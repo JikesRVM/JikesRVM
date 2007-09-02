@@ -436,6 +436,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
+   * Not implemented in Java and use C not JNI calling convention
+   */
+  public final boolean isSpecializedInvoke() {
+    return isAnnotationDeclared(VM_TypeReference.SpecializedMethodInvoke);
+  }
+
+  /**
    * Implemented in subclass?
    */
   @Uninterruptible

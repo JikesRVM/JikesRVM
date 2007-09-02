@@ -43,6 +43,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRSigExt;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRZerExt;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_BITS_AS_FLOAT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL;
@@ -71,6 +72,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_LOAD;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -85,7 +87,7 @@ import org.vmmagic.unboxed.Offset;
  * It does not mean that the eventual MIR that implements the magic
  * won't differ from architecture to architecture.
  */
-public class OPT_GenerateMagic {
+public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
 
   /**
    * "Semantic inlining" of methods of the VM_Magic class.
@@ -405,6 +407,50 @@ public class OPT_GenerateMagic {
       }
       OPT_Operand functionAddress = bc2ir.pop(args[0]);
       Call.setAddress(call, functionAddress);
+      if (!returnType.isVoidType()) {
+        OPT_RegisterOperand op0 = gc.temps.makeTemp(returnType);
+        Call.setResult(call, op0);
+        bc2ir.push(op0.copyD2U(), returnType);
+      }
+      bc2ir.appendInstruction(call);
+    } else if (meth.isSpecializedInvoke()) {
+      // The callsite looks like              RETURN = INVOKE (ID, OBJECT, P0, P1 .. PN)
+      // And the actual method will look like RETURN = INVOKE     (OBJECT, P0, P1 .. PN)
+
+      // Create the call instruction
+      OPT_Instruction call = Call.create(CALL, null, null, null, null, types.length - 1);
+
+      // Plumb all of the normal parameters into the call
+      for (int i = types.length - 1; i >= 2; i--) {
+        Call.setParam(call, i - 1, bc2ir.pop(types[i]));
+      }
+      // The object being specialized
+      OPT_Operand objectOperand = bc2ir.pop(types[1]);
+      Call.setParam(call, 0, objectOperand);
+      OPT_Operand guard = OPT_BC2IR.getGuard(objectOperand);
+      if (guard == null) {
+        // it's magic, so assume that it's OK....
+        guard = new OPT_TrueGuardOperand();
+      }
+      Call.setGuard(call, guard);
+
+      // Load the tib of this object
+      OPT_RegisterOperand tibObject = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+      bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibObject, objectOperand.copy(), guard.copy()));
+
+      // The index of the specialized method
+      OPT_Operand methodId = bc2ir.popInt();
+
+      // Add the base offset for specialized methods and convert from index to address
+      OPT_RegisterOperand tibOffset = gc.temps.makeTemp(VM_TypeReference.Int);
+      bc2ir.appendInstruction(Binary.create(INT_ADD, tibOffset, methodId, new OPT_IntConstantOperand(TIB_FIRST_SPECIALIZED_METHOD_INDEX)));
+      bc2ir.appendInstruction(Binary.create(INT_SHL, tibOffset.copyRO(), tibOffset.copyD2U(), new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
+
+      // Load the code address from the TIB
+      OPT_RegisterOperand codeAddress = gc.temps.makeTemp(VM_TypeReference.Address);
+      bc2ir.appendInstruction(Load.create(REF_LOAD, codeAddress, tibObject.copyD2U(), tibOffset.copyD2U(), null));
+
+      Call.setAddress(call, codeAddress.copyD2U());
       if (!returnType.isVoidType()) {
         OPT_RegisterOperand op0 = gc.temps.makeTemp(returnType);
         Call.setResult(call, op0);

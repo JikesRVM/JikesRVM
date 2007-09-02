@@ -481,6 +481,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
       typeInformationBlock[i] = javaLangObjectTIB[i];
     }
 
+    VM_SpecializedMethodManager.notifyTypeInstantiated(this);
+
     state = CLASS_INITIALIZED; // arrays have no "initialize" phase
   }
 

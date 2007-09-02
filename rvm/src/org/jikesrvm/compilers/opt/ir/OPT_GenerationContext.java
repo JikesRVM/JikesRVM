@@ -183,11 +183,12 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
    * OPT_GenerationContext.
    *
    * @param meth The VM_NormalMethod whose IR will be generated
+   * @param params The known types of the parameters to the method. For method specialization.
    * @param cm   The compiled method id to be used for this compilation
    * @param opts The OPT_Options to be used for the generation
    * @param ip   The OPT_InlineOracle to be used for the generation
    */
-  OPT_GenerationContext(VM_NormalMethod meth, VM_CompiledMethod cm, OPT_Options opts, OPT_InlineOracle ip) {
+  OPT_GenerationContext(VM_NormalMethod meth, VM_TypeReference[] params, VM_CompiledMethod cm, OPT_Options opts, OPT_InlineOracle ip) {
     original_method = meth;
     original_cm = cm;
     method = meth;
@@ -211,7 +212,8 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
     temps = new OPT_RegisterPool(meth);
     _ncGuards = new HashMap<OPT_Register, OPT_RegisterOperand>();
     initLocalPool();
-    VM_TypeReference[] params = meth.getParameterTypes();
+    VM_TypeReference[] definedParams = meth.getParameterTypes();
+    if (params == null) params = definedParams;
     int numParams = params.length;
     int argIdx = 0;
     int localNum = 0;

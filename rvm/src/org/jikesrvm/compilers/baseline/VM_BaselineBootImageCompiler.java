@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
@@ -45,7 +46,7 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
+  protected VM_CompiledMethod compileMethod(VM_NormalMethod method, VM_TypeReference[] params) {
     VM_CompiledMethod cm;
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     cm = VM_BaselineCompiler.compile(method);

@@ -1884,6 +1884,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     }
 
     VM_InterfaceInvocation.initializeDispatchStructures(this);
+    VM_SpecializedMethodManager.notifyTypeInstantiated(this);
 
     if (VM.writingBootImage) {
       state = CLASS_INITIALIZED;

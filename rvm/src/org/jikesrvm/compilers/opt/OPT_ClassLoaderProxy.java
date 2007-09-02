@@ -306,6 +306,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
           }
         }
       } catch (Throwable e) {
+        e.printStackTrace();
         OPT_OptimizingCompilerException.UNREACHABLE();
         return MAYBE;            // placate jikes.
       }

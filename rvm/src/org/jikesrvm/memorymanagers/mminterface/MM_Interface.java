@@ -21,6 +21,7 @@ import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_SpecializedMethod;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.mm.mmtk.Collection;
@@ -953,6 +954,26 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   public static void flushMutatorContext() {
     Selected.Mutator.get().flush();
+  }
+
+  /**
+   * Return the number of specialized methods.
+   */
+  public static int numSpecializedMethods() {
+    /* Not yet implemented */
+    return 0;
+  }
+
+  /**
+   * Initialize a specified specialized method.
+   *
+   * @param id the specializedMethod
+   */
+  @Interruptible
+  public static VM_SpecializedMethod createSpecializedMethod(int id) {
+    /* Not yet implemented */
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
   }
 
   /***********************************************************************

@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.classloader.VM_NativeMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
 
 /**
@@ -40,7 +41,7 @@ public abstract class VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  protected abstract VM_CompiledMethod compileMethod(VM_NormalMethod method);
+  protected abstract VM_CompiledMethod compileMethod(VM_NormalMethod method, VM_TypeReference[] params);
 
   /**
    * Initialize boot image compiler.
@@ -57,8 +58,12 @@ public abstract class VM_BootImageCompiler {
     }
   }
 
+  public static VM_CompiledMethod compile(VM_NormalMethod method, VM_TypeReference[] params) {
+    return compiler.compileMethod(method, params);
+  }
+
   public static VM_CompiledMethod compile(VM_NormalMethod method) {
-    return compiler.compileMethod(method);
+    return compile(method, null);
   }
 
   /**

@@ -19,6 +19,7 @@ import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
@@ -95,7 +96,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
+  protected VM_CompiledMethod compileMethod(VM_NormalMethod method, VM_TypeReference[] params) {
     if (method.hasNoOptCompileAnnotation()) {
       return baselineCompile(method);
     } else {
@@ -111,7 +112,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         int freeOptimizationPlan = getFreeOptimizationPlan();
         OPT_OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
         OPT_CompilationPlan cp =
-            new OPT_CompilationPlan(method, optimizationPlan, null, options.get(freeOptimizationPlan));
+            new OPT_CompilationPlan(method, params, optimizationPlan, null, options.get(freeOptimizationPlan));
         cm = OPT_Compiler.compile(cp);
         releaseOptimizationPlan(freeOptimizationPlan);
         if (VM.BuildForAdaptiveSystem) {

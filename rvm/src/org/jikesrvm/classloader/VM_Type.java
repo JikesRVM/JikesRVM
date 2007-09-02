@@ -15,6 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
@@ -749,6 +750,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Does this slot in the TIB hold code?
    */
   public abstract boolean isTIBSlotCode(int slot);
+
+  /**
+   * Set the specialized method for a class or array.
+   */
+  public final void setSpecializedMethod(int id, VM_CodeArray code) {
+    getTypeInformationBlock()[TIB_FIRST_SPECIALIZED_METHOD_INDEX + id] = code;
+  }
 
   /**
    * The memory manager's allocator id for this type.
