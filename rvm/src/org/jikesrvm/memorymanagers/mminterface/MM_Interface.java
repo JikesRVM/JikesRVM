@@ -23,6 +23,7 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_SpecializedMethod;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.Options;
@@ -960,8 +961,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * Return the number of specialized methods.
    */
   public static int numSpecializedMethods() {
-    /* Not yet implemented */
-    return 0;
+    return Selected.Constraints.get().numSpecializedMethods();
   }
 
   /**
@@ -971,9 +971,13 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static VM_SpecializedMethod createSpecializedMethod(int id) {
-    /* Not yet implemented */
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
+    if (VM.VerifyAssertions) VM._assert(id < Selected.Constraints.get().numSpecializedMethods());
+
+    /* What does the plan want us to specialize this to? */
+    Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
+
+    /* Create the specialized method */
+    return new VM_SpecializedScanMethod(id, VM_TypeReference.findOrCreate(traceClass));
   }
 
   /***********************************************************************

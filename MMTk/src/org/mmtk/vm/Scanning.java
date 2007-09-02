@@ -29,6 +29,16 @@ import org.vmmagic.unboxed.*;
   public abstract void scanObject(TransitiveClosure trace, ObjectReference object);
 
   /**
+   * Invoke a specialized scan method. Note that these methods must have been allocated
+   * explicitly through Plan and PlanConstraints.
+   *
+   * @param id The specialized method id
+   * @param trace The trace the method has been specialized for
+   * @param object The object to be scanned
+   */
+  public abstract void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object);
+
+  /**
    * Delegated precopying of a object's children, processing each pointer field
    * encountered.
    *

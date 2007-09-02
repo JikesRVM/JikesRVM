@@ -66,4 +66,10 @@ import org.vmmagic.pragma.*;
 
   /** @return True if type information must be immortal */
   public boolean needsImmortalTypeInfo() { return false; }
+
+  /** @return The specialized scan methods required */
+  public int numSpecializedScans() { return 0; }
+
+  /** @return The number of specialized methods required */
+  public final int numSpecializedMethods() { return numSpecializedScans(); }
 }

@@ -939,4 +939,14 @@ public abstract class Plan implements Constants {
     return false;
   }
 
+  /****************************************************************************
+   * Specialized Scanning
+   */
+
+  /**
+   * Get the specialized scan with the given id.
+   */
+  public final Class<?> getSpecializedScanClass(int id) {
+    return TransitiveClosure.getSpecializedScanClass(id);
+  }
 }

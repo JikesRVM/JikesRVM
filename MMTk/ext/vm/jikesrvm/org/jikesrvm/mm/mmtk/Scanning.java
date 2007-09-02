@@ -18,6 +18,7 @@ import org.mmtk.utility.Constants;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.jikesrvm.memorymanagers.mminterface.VM_SpecializedScanMethod;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Type;
@@ -65,19 +66,23 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Inline
   public void scanObject(TransitiveClosure trace, ObjectReference object) {
-    VM_Type type = VM_ObjectModel.getObjectType(object.toObject());
-    if (type.isClassType()) {
-      VM_Class klass = type.asClass();
-      int[] offsets = klass.getReferenceOffsets();
-      for(int i=0; i < offsets.length; i++) {
-        trace.processEdge(object, object.toAddress().plus(offsets[i]));
-      }
-    } else if (type.isArrayType() && type.asArray().getElementType().isReferenceType()) {
-      for(int i=0; i < VM_ObjectModel.getArrayLength(object.toObject()); i++) {
-        trace.processEdge(object, object.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
-      }
-    }
+    VM_SpecializedScanMethod.fallback(object.toObject(), trace);
   }
+
+  /**
+   * Invoke a specialized scan method. Note that these methods must have been allocated
+   * explicitly through Plan and PlanConstraints.
+   *
+   * @param id The specialized method id
+   * @param trace The trace the method has been specialized for
+   * @param object The object to be scanned
+   */
+  @Inline
+  public void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object) {
+    VM_SpecializedScanMethod.invoke(id, object.toObject(), trace);
+  }
+
+
 
   /**
    * Precopying of a object's fields, processing each pointer field encountered.

@@ -27,6 +27,53 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public abstract class TransitiveClosure {
+
+  /** Database of specialized scan classes. */
+  private static final Class<?>[] specializedScans = new Class[VM.activePlan.constraints().numSpecializedScans()];
+
+  /**
+   * A transitive closure has been created that is designed to work with a specialized scan method. We must
+   * register it here so the specializer can return the class when queried.
+   *
+   * @param id The method id to register.
+   * @param specializedScanClass The class to register.
+   */
+  @Interruptible
+  protected static synchronized void registerSpecializedScan(int id, Class<?> specializedScanClass) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(specializedScans[id] == null || specializedScans[id] == specializedScanClass);
+    specializedScans[id] = specializedScanClass;
+  }
+
+  /**
+   * Get the specialized scan with the given id.
+   */
+  public static Class<?> getSpecializedScanClass(int id) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(specializedScans[id] != null);
+    return specializedScans[id];
+  }
+
+  /** The specialized scan identifier */
+  protected final int specializedScan;
+
+  /**
+   * Constructor
+   */
+  protected TransitiveClosure() {
+    this(-1);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param specializedScan The specialized scan for this trace.
+   */
+  protected TransitiveClosure(int specializedScan) {
+    this.specializedScan = specializedScan;
+    if (specializedScan >= 0) {
+      registerSpecializedScan(specializedScan, getClass());
+    }
+  }
+
   /**
    * Trace an edge during GC.
    *

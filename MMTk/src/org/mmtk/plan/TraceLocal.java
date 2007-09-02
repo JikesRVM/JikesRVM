@@ -56,6 +56,17 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * @param trace The global trace class to use.
    */
   public TraceLocal(Trace trace) {
+    this(-1, trace);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param specializedScan The specialized scan id.
+   * @param trace The global trace class to use.
+   */
+  public TraceLocal(int specializedScan, Trace trace) {
+    super(specializedScan);
     values = new ObjectReferenceDeque("value", trace.valuePool);
     trace.valuePool.newConsumer();
     rootLocations = new AddressDeque("rootLoc", trace.rootLocationPool);
@@ -142,7 +153,11 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   protected void scanObject(ObjectReference object) {
-    VM.scanning.scanObject(this, object);
+    if (specializedScan >= 0) {
+      VM.scanning.specializedScanObject(specializedScan, this, object);
+    } else {
+      VM.scanning.scanObject(this, object);
+    }
   }
 
 
