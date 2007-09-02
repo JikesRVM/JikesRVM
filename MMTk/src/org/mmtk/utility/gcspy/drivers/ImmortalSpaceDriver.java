@@ -106,6 +106,7 @@ import org.vmmagic.pragma.*;
   /**
    * Used to visit the edges in the immortal object.
    */
+  @Uninterruptible
   private class Closure extends TransitiveClosure {
     /**
      * Process an edge.
