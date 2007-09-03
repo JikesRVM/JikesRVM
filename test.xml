@@ -30,7 +30,11 @@
   <property name="test.results.dir" value="${results.dir}/tests/${test-run.name}"/>
   <property name="test.build.dir" value="${build.dir}/tests/${test-run.name}"/>
 
+  <property name="test.results.file" value="${test.results.dir}/Results.xml"/>
   <property name="build.results.file" value="${test.results.dir}/BuildResults.xml"/>
+  <property name="test.report.file" value="${test.results.dir}/Report.xml"/>
+  <property name="test.report.html" value="${test.results.dir}/Report.html"/>
+  <property name="temp.aggregate.file" value="${test.results.dir}/Aggregate.xml"/>
 
   <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
 
@@ -78,13 +82,13 @@
 
   <target name="init" depends="prepare-ant-tasks">
     <tstamp prefix="test-run.start">
-      <format property="time" pattern="EEE MMM dd HH:mm:ss z yyyy" timezone="UTC"/>
-      <format property="time-stamp" pattern="yyyyMMddHHmmss" timezone="UTC"/>
+        <format property="time" pattern="yyyy-MM-dd'T'HH:mm:ss'Z'" timezone="UTC"/>
+        <format property="time-stamp" pattern="yyyyMMddHHmmss" timezone="UTC"/>
     </tstamp>
     <hostname property="local.hostname"/>
   </target>
 
-    <!-- **************************************************************************** -->
+  <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                          Task to actually run tests                      * -->
   <!-- *                                                                          * -->
@@ -98,9 +102,21 @@
     <mkdir dir="${driver.scratch.dir}"/>
 
     <mkdir dir="${test.results.dir}"/>
-    <bres append="false"><![CDATA[<builds>]]></bres>
+    <bres append="false"><![CDATA[<buildresults>
+<build-target>
+<name>${target.name}</name>
+<parameters>]]></bres>
+    <property file="${target.file}" prefix="build-target"/>
+    <forEach list="target.arch target.address.size target.os target.bootimage.code.address target.bootimage.data.address target.bootimage.rmap.address target.max-mappable.address target.arch.sse2" property="parameter">
+      <sequential>
+        <bres append="true"><![CDATA[
+<parameter key="@{parameter}" value="${build-target.@{parameter}}"/>]]></bres>
+      </sequential>
+    </forEach>
+    <bres append="true"><![CDATA[
+</parameters>]]></bres>
 
-    <forEach list="${test.configs}" property="tag">
+  	<forEach list="${test.configs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
         <propertycopy name="test.config.@{tag}.build.done" from="${test.config.@{tag}.configuration}.built"/>
@@ -132,22 +148,49 @@
               <equals arg1="${test.config.@{tag}.build.error}" arg2="true"/>
             </condition>
 
-            <bres><![CDATA[<build><configuration>${test.config.@{tag}.configuration}</configuration><time>${test.config.@{tag}.build.time}</time><result>${test.config.@{tag}.build.status}</result><output><![CDATA[]]></bres>
-            <concat destfile="${build.results.file}" append="true">
-              <path path="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt"/>
-            </concat>
-            <bres>]<![CDATA[]></output><parameters>]]></bres>
+            <bres><![CDATA[
+<build-configuration>
+<name>${test.config.@{tag}.configuration}</name>
+<parameters>]]></bres>
             <property prefix="@{tag}" file="${test.config.@{tag}.rvm.dir}/constants.properties"/>
 
             <property name="properties.config"
                       value="config.name config.runtime.compiler config.bootimage.compiler config.mmtk.plan config.include.aos config.include.gcspy config.include.gcspy-client config.include.all-classes config.assertions config.default-heapsize.initial config.default-heapsize.maximum config.bootimage.compiler.args config.stress-gc-interval"/>
-            <forEach list="${properties.config}" property="property">
-              <sequential>
-                <bres><![CDATA[<parameter key="@{property}" value="${@{tag}.@{property}}"/>]]></bres>
-              </sequential>
-            </forEach>
-            <bres><![CDATA[</parameters></build>]]></bres>
+              <forEach list="${properties.config}" property="property">
+                <sequential>
+                  <bres><![CDATA[
+<parameter key="@{property}" value="${@{tag}.@{property}}"/>]]></bres>
+                </sequential>
+              </forEach>
+            <bres><![CDATA[
+</parameters>
+<duration>${test.config.@{tag}.build.time}</duration>
+<result>${test.config.@{tag}.build.status}</result>
+<output><![CDATA[]]></bres>
+            <concat destfile="${build.results.file}" append="true">
+              <path path="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt"/>
+            </concat>
+            <bres>]<![CDATA[]></output>
+</build-configuration>]]></bres>
 
+          </sequential>
+        </if>
+        <if>
+          <conditions>
+            <or>
+              <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
+              <isset property="skip.build"/>
+            </or>
+          </conditions>
+          <sequential>
+            <bres><![CDATA[
+<build-configuration>
+<name>${test.config.@{tag}.configuration}</name>
+<parameters></parameters>
+<duration>0</duration>
+<result>PREBUILT</result>
+<output></output>
+</build-configuration>]]></bres>
           </sequential>
         </if>
         <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
@@ -186,59 +229,50 @@
       </sequential>
     </forEach>
 
-    <bres><![CDATA[</builds>]]></bres>
+    <bres><![CDATA[
+</build-target>
+</buildresults>
+]]></bres>
   </target>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                       Targets for aggregating results                    * -->
+  <!-- *                       Targets for generating results                     * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="aggregate" depends="init,get-svn-version">
+  <target name="gen-xml-results" depends="init,get-svn-version">
     <mkdir dir="${build.results.dir}"/>
-    <echo file="${build.results.dir}/Results.xml" append="false">
-      <![CDATA[<test-run name="${test-run.name}">
-  <revision>${svn.revision}</revision>
-  <time>${test-run.start.time}</time>
-  <variant>${test-run.variant}</variant>
-  <host>${local.hostname}</host>
-]]></echo>
-    <concat destfile="${build.results.dir}/Results.xml" append="true">
-      <path path="${build.results.file}"/>
-    </concat>
     <mkdir dir="${test.results.dir}"/>
+    <tstamp prefix="test-run.end">
+      <format property="time" pattern="yyyy-MM-dd'T'HH:mm:ss'Z'" timezone="UTC"/>
+    </tstamp>
+    <echo file="${test.results.file}" append="false"><![CDATA[<results version="1.1">
+<name>${test-run.name}</name>
+<variant>${test-run.variant}</variant>
+<revision>${svn.revision}</revision>
+<start-time>${test-run.start.time}</start-time>
+<end-time>${test-run.end.time}</end-time>
+<parameters>
+</parameters>
+<host>
+<name>${local.hostname}</name>
+<parameters>
+</parameters>
+</host>]]></echo>
     <forEach list="${test.configs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
         <property prefix="@{tag}" file="${test.config.@{tag}.rvm.dir}/constants.properties"/>
-
-        <if>
-          <conditions>
-            <not>
-              <isset property="properties.target"/>
-            </not>
-          </conditions>
-          <sequential>
-            <property name="properties.target"
-                      value="target.name target.arch target.address.size target.os target.bootimage.code.address target.bootimage.data.address target.bootimage.rmap.address target.max-mappable.address target.arch.sse2"/>
-            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[<target><parameters>]]></echo>
-            <forEach list="${properties.target}" property="property">
-              <sequential>
-                <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[
-            <parameter key="@{property}" value="${@{tag}.@{property}}"/>
-    ]]></echo>
-              </sequential>
-            </forEach>
-            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</parameters></target>]]></echo>
-          </sequential>
-        </if>
-
-        <echo file="${build.results.dir}/@{tag}.xml" append="false">
-          <![CDATA[<test-configuration tag="@{tag}" name="${test.config.@{tag}.name}">]]></echo>
-        <condition property="test.config.@{tag}.prefix" value="" else="${test.config.@{tag}.name}_">
-          <equals arg1="${test.config.@{tag}.name}" arg2=""/>
-        </condition>
+        <echo file="${build.results.dir}/@{tag}.xml" append="false"><![CDATA[
+<test-configuration>
+<build-configuration>${test.config.@{tag}.configuration}</build-configuration>
+<name>@{tag}</name>
+<parameters>
+<parameter key="mode" value="${test.config.@{tag}.rvm.dir}"/>
+<parameter key="mode" value="${test.config.@{tag}.mode}"/>
+</parameters>
+]]></echo>
         <forEach list="${test.config.@{tag}.tests}" property="test">
           <sequential>
             <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
@@ -246,15 +280,17 @@
             </concat>
           </sequential>
         </forEach>
-        <echo file="${build.results.dir}/@{tag}.xml" append="true"><![CDATA[</test-configuration>]]></echo>
-        <concat destfile="${build.results.dir}/Results.xml" append="true">
+        <echo file="${build.results.dir}/@{tag}.xml" append="true"><![CDATA[
+</test-configuration>]]></echo>
+        <concat destfile="${test.results.file}" append="true">
           <fileset dir="${build.results.dir}" includes="@{tag}.xml"/>
         </concat>
       </sequential>
     </forEach>
-    <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</test-run>]]></echo>
+    <echo file="${test.results.file}" append="true"><![CDATA[
+</results>
+]]></echo>
   </target>
-
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -262,9 +298,16 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-xml-report" depends="aggregate">
-    <xslt in="${build.results.dir}/Results.xml"
-          out="${test.results.dir}/Report.xml"
+  <target name="gen-xml-report" depends="gen-xml-results">
+    <echo file="${temp.aggregate.file}" append="false"><![CDATA[<aggregate>
+]]></echo>
+  	<concat destfile="${temp.aggregate.file}" append="true">
+      <filelist dir="${test.results.dir}" files="BuildResults.xml,Results.xml"/>
+    </concat>
+    <echo file="${temp.aggregate.file}" append="true"><![CDATA[
+</aggregate>]]></echo>
+    <xslt in="${temp.aggregate.file}"
+          out="${test.report.file}"
           style="${jikesrvm.dir}/build/results2report.xsl"
           force="true">
       <outputproperty name="method" value="xml"/>
@@ -284,7 +327,7 @@
   <target name="archive" depends="gen-xml-report">
     <mkdir dir="${results.archive}"/>
     <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${svn.revision}_${target.name}_Report.xml"/>
-    <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${archive.filename}.gz"/>
+    <gzip src="${test.report.file}" destfile="${results.archive}/${archive.filename}.gz"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -293,9 +336,9 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-report" depends="archive">
-    <xslt in="${test.results.dir}/Report.xml"
-          out="${test.results.dir}/Report.html"
+  <target name="gen-report-html" depends="archive">
+    <xslt in="${test.report.file}"
+          out="${test.report.html}"
           style="${jikesrvm.dir}/build/testing/report2html.xsl"
           force="true">
       <outputproperty name="method" value="html"/>
@@ -316,23 +359,23 @@
       <arg value="${cattrack.upload.account}"/>
       <arg value="mkdir"/>
       <arg value="-p"/>
-      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}"/>
+      <arg value="${cattrack.upload.incoming.dir}"/>
     </exec>
     <exec executable="scp" failonerror="true">
       <arg value="${results.archive}/${archive.filename}.gz"/>
-      <arg value="${cattrack.upload.account}:${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
+      <arg value="${cattrack.upload.account}:${cattrack.upload.incoming.dir}/${archive.filename}.gz_tmp"/>
     </exec>
     <exec executable="ssh" failonerror="true">
       <arg value="${cattrack.upload.account}"/>
       <arg value="chmod"/>
       <arg value="go+rw"/>
-      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
+      <arg value="${cattrack.upload.incoming.dir}/${archive.filename}.gz_tmp"/>
     </exec>
     <exec executable="ssh" failonerror="true">
       <arg value="${cattrack.upload.account}"/>
       <arg value="mv"/>
-      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
-      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz"/>
+      <arg value="${cattrack.upload.incoming.dir}/${archive.filename}.gz_tmp"/>
+      <arg value="${cattrack.upload.incoming.dir}/${archive.filename}.gz"/>
     </exec>
   </target>
 
@@ -342,6 +385,6 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="report" depends="test,upload-results,gen-report"/>
+  <target name="report" depends="test,upload-results,gen-report-html"/>
 
 </project>
