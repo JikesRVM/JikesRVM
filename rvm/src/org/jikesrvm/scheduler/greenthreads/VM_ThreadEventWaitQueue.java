@@ -181,8 +181,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
       if (tail == thread) {
         tail = prev;
       }
-      prev = null;
-
+      thread.setNext(null);
       --length;
       --ready;
     } else /* thread == null */ {
@@ -218,7 +217,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
     VM.sysWrite(prefix);
     for (VM_GreenThread t = head; t != null; t = t.getNext()) {
       VM.sysWrite(t.getIndex());
-      dumpWaitDescription((VM_GreenThread)t);
+      dumpWaitDescription(t);
     }
     VM.sysWrite("\n");
   }

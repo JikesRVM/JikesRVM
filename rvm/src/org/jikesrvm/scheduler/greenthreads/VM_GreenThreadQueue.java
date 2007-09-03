@@ -15,6 +15,7 @@ package org.jikesrvm.scheduler.greenthreads;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 
@@ -72,8 +73,18 @@ public class VM_GreenThreadQueue extends VM_AbstractThreadQueue {
     // not currently on any other queue
     if (VM.VerifyAssertions && t.getNext() != null) {
       VM.sysWrite("Thread sitting on >1 queue: ");
-      VM.sysWriteln(VM_Magic.getObjectType(t).getDescriptor());
-      VM._assert(false);
+      VM.sysWrite(VM_Magic.getObjectType(t).getDescriptor());
+      VM.sysWrite(" ", t.getIndex());
+      VM.sysWrite(" ", t.toString());
+      VM.sysWrite(" ", t.getJavaLangThread().toString());
+      t = t.getNext();
+      VM.sysWrite(" on same queue as: ");
+      VM.sysWrite(VM_Magic.getObjectType(t).getDescriptor());
+      VM.sysWrite(" ", t.getIndex());
+      VM.sysWrite(" ", t.toString());
+      VM.sysWrite(" ", t.getJavaLangThread().toString());
+      VM_Scheduler.dumpVirtualMachine();
+      VM.sysFail("Thread sitting on >1 queue");
     }
     // not dead
     if (VM.VerifyAssertions) VM._assert(t.isQueueable());
