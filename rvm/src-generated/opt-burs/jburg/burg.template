@@ -73,9 +73,9 @@ public class OPT_BURS_STATE extends OPT_BURS_Helpers
      }
    }
 
-   //
-   // This function will dump the tree
-   //
+   /**
+    * This function will dump the tree
+    */
    public static void dumpTree(OPT_BURS_TreeNode p) {
      if (OPT_BURS.DEBUG) {
        VM.sysWrite(dumpTree("\n",p,1));
@@ -98,10 +98,10 @@ public class OPT_BURS_STATE extends OPT_BURS_Helpers
      return out;
    }
 
-   //
-   // This function will dump the cover of a tree, i.e. the rules
-   // that cover the tree with a minimal cost.
-   //
+   /**
+    * This function will dump the cover of a tree, i.e. the rules
+    * that cover the tree with a minimal cost.
+    */
    public static void dumpCover(OPT_BURS_TreeNode p, byte goalnt, int indent){
       if (OPT_BURS.DEBUG) {
 	if (p == null) return;
