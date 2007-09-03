@@ -161,6 +161,7 @@ import java.util.Vector;
  * character of a line.  The next line is appended to the end of the
  * current line.
  * NOTE: Lines are appended AS IS: leading spaces become part of the line.
+ * if you wish the line to be broken use a double backslash ("\\")
  *
  * Lines starting with "#" are considered comments and skipped.
  *
@@ -173,6 +174,38 @@ public class GenerateFromTemplate {
   static boolean DEBUG = false;
 
   static String inDir;
+
+  static final String templateMarker = "$$$$";
+  static final String commentMarker = "#";
+
+  static final String indexField = "INDEX";
+
+  /**
+   * Enumeration of commands that can be generated
+   */
+  enum Command {
+    END,
+    FOREACH,
+    LOOP,
+    IF,
+    ELSE,
+    SPLIT,
+    JOIN,
+    EVAL,
+    LET,
+    COUNT,
+    INCLUDE
+  }
+  
+  static final int MAX_DATA_SIZE = 65536;
+
+  LineNumberReader in;
+  PrintWriter out;
+
+  String[] vars;
+  String[] vals;
+
+  String params;
 
   /**
    * Main.
@@ -239,14 +272,6 @@ public class GenerateFromTemplate {
     }
   }
 
-  LineNumberReader in;
-  PrintWriter out;
-
-  String[] vars;
-  String[] vals;
-
-  String params;
-
   GenerateFromTemplate(InputStream inStream, OutputStream outStream) {
     // setup i/o
     in = new LineNumberReader(new InputStreamReader(inStream));
@@ -285,39 +310,6 @@ public class GenerateFromTemplate {
     }
   }
 
-  static final String templateMarker = "$$$$";
-  static final String commentMarker = "#";
-
-  static final String indexField = "INDEX";
-
-  static final String[] commands = {
-                  "END",
-                  "FOREACH",
-                  "LOOP",
-                  "IF",
-                  "ELSE",
-                  "SPLIT",
-                  "JOIN",
-                  "EVAL",
-                  "LET",
-                  "COUNT",
-                  "INCLUDE"
-               };
-  static final int INVALID_COMMAND = -1;
-  static final int END     =  0;
-  static final int FOREACH =  1;
-  static final int LOOP    =  2;
-  static final int IF      =  3;
-  static final int ELSE    =  4;
-  static final int SPLIT   =  5;
-  static final int JOIN    =  6;
-  static final int EVAL    =  7;
-  static final int LET     =  8;
-  static final int COUNT   =  9;
-  static final int INCLUDE = 10;
-
-  static final int MAX_DATA_SIZE = 65536;
-
   boolean isTemplateLine(String line) {
     StringTokenizer st = new StringTokenizer(line, " \t");
     return st.hasMoreTokens() && st.nextToken().equals(templateMarker);
@@ -326,7 +318,7 @@ public class GenerateFromTemplate {
   Vector<Object> buildTemplateRegion(String inLine) throws IOException {
     Vector<Object> region = new Vector<Object>();
     region.addElement(inLine);
-    int command = getTemplateCommand(inLine);
+    Command command = getTemplateCommand(inLine);
     if (DEBUG) System.out.println("template command #"+command);
     switch (command) {
        case FOREACH:
@@ -338,7 +330,6 @@ public class GenerateFromTemplate {
        case COUNT:   buildLoopRegion(region); break;
        case IF:      buildCondRegion(region); break;
        case INCLUDE: buildIncludeRegion(region); break;
-       default:      throw new IOException("Invalid command");
     }
     return region;
   }
@@ -348,8 +339,8 @@ public class GenerateFromTemplate {
       String inLine = readLine();
       if (inLine == null) throw new IOException("Unexpected end of file");
       if (isTemplateLine(inLine)) {
-        int command = getTemplateCommand(inLine);
-        if (command == END) break;
+        Command command = getTemplateCommand(inLine);
+        if (command == Command.END) break;
         region.addElement(buildTemplateRegion(inLine));
       } else {
          if (DEBUG) System.out.println("adding line to region :"+inLine);
@@ -364,11 +355,11 @@ public class GenerateFromTemplate {
       String inLine = readLine();
       if (inLine == null) throw new IOException("Unexpected end of file");
       if (isTemplateLine(inLine)) {
-        int command = getTemplateCommand(inLine);
-        if (command == END) {
+        Command command = getTemplateCommand(inLine);
+        if (command == Command.END) {
           region.addElement(intern);
           break;
-        } else if (command == ELSE) {
+        } else if (command == Command.ELSE) {
           region.addElement(intern);
           intern = new Vector<Object>();
         } else {
@@ -405,23 +396,29 @@ public class GenerateFromTemplate {
     in = old_in;
   }
 
-  int getTemplateCommand(String line) {
+  Command getTemplateCommand(String line) throws IOException {
     int startMatch = line.indexOf(templateMarker) + templateMarker.length() + 1;
-    if (DEBUG) System.out.println("getting template command :"+line.substring(startMatch));
-    for (int i = 0; i < commands.length; ++i) {
-      String current = commands[i];
-      if (line.regionMatches(startMatch, current, 0, current.length())) {
-        params = line.substring(startMatch+current.length());
-        if (DEBUG) System.out.println("command is "+commands[i]+". params ="+params);
-        return i;
-      }
+    int endMatch = line.indexOf(' ', startMatch);
+    if (endMatch < 0) {
+      endMatch = line.length();
     }
-    return INVALID_COMMAND;
+    if (DEBUG) System.out.println("getting template command :"+line.substring(startMatch));
+    Command i;
+    try {
+      i = Enum.valueOf(Command.class, line.substring(startMatch, endMatch));
+    } catch (IllegalArgumentException e) {
+      IOException newE = new IOException("Invalid command");
+      newE.initCause(e);
+      throw newE;
+    }
+    params = line.substring(endMatch);
+    if (DEBUG) System.out.println("command is " + i + ". params ="+params);
+    return i;
   }
 
   void processTemplateRegion(Vector<Object> region) throws IOException {
     String inLine = (String)region.elementAt(0);
-    int command = getTemplateCommand(inLine);
+    Command command = getTemplateCommand(inLine);
     switch (command) {
       case FOREACH: processForeachRegion(region); break;
       case LOOP:    processLoopRegion(region); break;
@@ -432,7 +429,6 @@ public class GenerateFromTemplate {
       case EVAL:    processEvalRegion(region); break;
       case IF:      processCondRegion(region); break;
       case INCLUDE: processIncludeRegion(region); break;
-      default:      throw new IOException("Invalid command");
     }
   }
 
@@ -440,10 +436,16 @@ public class GenerateFromTemplate {
     String line = data.readLine();
     if (line == null || line.length() == 0)
       return line;
-    while (line.startsWith(commentMarker))
+    while (line.startsWith(commentMarker)) {
       line = data.readLine();
-    while (line.endsWith("\\"))
-      line = line.substring(0, line.length()-1) + data.readLine();
+    }
+    while (line.endsWith("\\")) {
+      if (line.endsWith("\\\\")) {
+        line = line.substring(0, line.length()-2) + "\n" + data.readLine();      
+      } else {
+        line = line.substring(0, line.length()-1) + data.readLine();
+      }
+    }
     return line;
   }
 
