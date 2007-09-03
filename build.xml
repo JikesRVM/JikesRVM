@@ -1,6 +1,7 @@
 <!--
  ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
  ~
+ ~  This file is licensed to You under the Common Public License (CPL);
  ~  You may not use this file except in compliance with the License. You
  ~  may obtain a copy of the License at
  ~
@@ -45,7 +46,7 @@
   <property name="build.dir" location="target"/>
   <property name="build.base" location="${build.dir}/${build.name}"/>
   <property name="build.profiles" location="${build.dir}/profiles"/>
-	
+
   <property name="build.vmmagic-stub.classes" location="${build.dir}/vmmagic-stub/classes"/>
   <property name="build.mmtk.jar" location="${build.dir}/mmtk/mmtk.jar"/>
   <property name="build.native" location="${build.base}/c"/>
@@ -727,9 +728,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
-    <condition property="pp_RVM_FOR_SOLARIS" value="true" else="false"> 
-      <equals arg1="${target.os}" arg2="Solaris" /> 
-    </condition> 
+    <condition property="pp_RVM_FOR_SOLARIS" value="true" else="false">
+      <equals arg1="${target.os}" arg2="Solaris" />
+    </condition>
     <condition property="pp_RVM_FOR_SSE2" value="true" else="false">
       <not>
         <equals arg1="${target.arch.sse2}" arg2="none"/>
@@ -1291,7 +1292,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="c++.librt" value="" else="-lrt">
       <equals arg1="${target.os}" arg2="OSX"/>
     </condition>
-  	
+
     <!-- create jvm shared library -->
     <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
@@ -1483,7 +1484,7 @@ target.jni-suffix=${target.jni-suffix}
   <target name="runtime" depends="cross-compile-host,cross-compile-target" description="Build the runtime."/>
 
   <target name="main" depends="runtime"/>
-	
+
   <!-- Create an image using a profile (which requires first creating a profile) -->
   <target name="profiled-image">
 	<ant inheritAll="false" target="create-bootimage-profile">
@@ -1495,7 +1496,7 @@ target.jni-suffix=${target.jni-suffix}
 	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_count_input_file=${build.profiles}/profile.ec ${config.bootimage.compiler.args}"/>
 	</ant>
   </target>
-	
+
   <!-- Create an edge profile by creating a baseline-compiled sibling to this image and profiling it -->
   <target name="create-bootimage-profile" depends="runtime">
 	<ant antfile="build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
@@ -1508,7 +1509,7 @@ target.jni-suffix=${target.jni-suffix}
 	  <arg line="-jar ${dacapo.jar} -n 3 fop"/>
 	</exec>
   </target>
-	
+
   <target name="clean" description="Delete all the intermediate and image files.">
     <delete dir="${build.dir}"/>
     <delete dir="${dist.base}"/>
@@ -1524,7 +1525,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="." includes="**/*~" defaultexcludes="false"/>
     </delete>
   </target>
-	
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                                Doc                                       * -->
@@ -1558,7 +1559,7 @@ target.jni-suffix=${target.jni-suffix}
 
     <loadfile property="checkstyle.output" srcFile="${build.dir}/checkstyle/report.txt"/>
     <echo message="${checkstyle.output}"/>
- 
+
     <fail if="checkstyle.failed" message="Checkstyle failures must be corrected!"/>
   </target>
 
