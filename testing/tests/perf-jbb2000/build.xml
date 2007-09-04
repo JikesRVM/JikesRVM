@@ -87,9 +87,10 @@
           <outputExecutionStart tag="@{tag}" execution="@{execution}"/>
           <outputStatisticStart/>
           <extractMMTkStatistics tag="@{tag}" execution="@{execution}" statistics="time.mu time.gc GC majorGC"/>
-          <findStatistic tag="@{tag}" pattern="Run will be COMPLIANT" key="compliant.check"/>
-          <findStatistic tag="@{tag}" pattern="No errors.  Valid run." key="errors.check"/>
+          <findStatistic tag="@{tag}" execution="@{execution}" pattern="Run will be COMPLIANT" key="compliant.check"/>
+          <findStatistic tag="@{tag}" execution="@{execution}" pattern="No errors.  Valid run." key="errors.check"/>
           <extractStatistic tag="@{tag}"
+                            execution="@{execution}"
                             pattern="Valid run, Score is\s*(\S*)"
                             key="score"/>
           <outputStatisticEnd/>
