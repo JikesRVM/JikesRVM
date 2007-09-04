@@ -82,26 +82,26 @@
          initialHeapSize="${jbb2005.@{tag}.heapSize}"
          maxHeapSize="${jbb2005.@{tag}.heapSize}"/>
 
-      <outputMultiInvocationTestStart tag="@{tag}"/>
+      <outputMultiExecutionTestStart tag="@{tag}"/>
 
-      <forEach list="${test.perf.jbb-invocations}" property="invocation">
+      <forEach list="${test.perf.jbb-executions}" property="execution">
         <sequential>
-          <invokeRvm tag="@{tag}" invocation="@{invocation}"/>
-          <outputInvocationStart tag="@{tag}" invocation="@{invocation}"/>
+          <invokeRvm tag="@{tag}" execution="@{execution}"/>
+          <outputExecutionStart tag="@{tag}" execution="@{execution}"/>
           <outputStatisticStart/>
-          <extractMMTkStatistics tag="@{tag}" invocation="@{invocation}" statistics="time.mu time.gc GC majorGC"/>
+          <extractMMTkStatistics tag="@{tag}" execution="@{execution}" statistics="time.mu time.gc GC majorGC"/>
           <findStatistic tag="@{tag}" pattern="JVM Check OK" key="jvm.check"/>
           <findStatistic tag="@{tag}" pattern="Run will be COMPLIANT" key="compliant.check"/>
           <findStatistic tag="@{tag}" pattern="No errors.  Valid run." key="errors.check"/>
           <extractStatistic tag="@{tag}" pattern="Valid run, Score is\s*(\S*)" key="score"/>
           <outputStatisticEnd/>
-          <outputInvocationResults tag="@{tag}" invocation="@{invocation}"/>
-          <outputInvocationEnd/>
-          <displayInvocationResults tag="@{tag}" invocation="@{invocation}"/>
+          <outputExecutionResults tag="@{tag}" execution="@{execution}"/>
+          <outputExecutionEnd/>
+          <displayExecutionResults tag="@{tag}" execution="@{execution}"/>
         </sequential>
       </forEach>
 
-      <outputMultiInvocationTestEnd/>
+      <outputMultiExecutionTestEnd/>
     </sequential>
   </macrodef>
 

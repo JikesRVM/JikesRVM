@@ -59,42 +59,42 @@
          initialHeapSize="${jvm98.@{tag}.heapSize}"
          maxHeapSize="${jvm98.@{tag}.heapSize}"/>
 
-      <outputMultiInvocationTestStart tag="@{tag}"/>
+      <outputMultiExecutionTestStart tag="@{tag}"/>
 
-      <forEach list="${test.perf.invocations}" property="invocation">
+      <forEach list="${test.perf.executions}" property="execution">
         <sequential>
-          <invokeRvm tag="@{tag}" invocation="@{invocation}"/>
-          <outputInvocationStart tag="@{tag}" invocation="@{invocation}"/>
+          <invokeRvm tag="@{tag}" execution="@{execution}"/>
+          <outputExecutionStart tag="@{tag}" execution="@{execution}"/>
           <outputStatisticStart/>
-          <extractMMTkStatistics tag="@{tag}" invocation="@{invocation}" statistics="time.mu time.gc GC majorGC"/>
-          <extractFinalSpecResult tag="@{tag}" invocation="@{invocation}" benchmark="@{benchmark}"/>
+          <extractMMTkStatistics tag="@{tag}" execution="@{execution}" statistics="time.mu time.gc GC majorGC"/>
+          <extractFinalSpecResult tag="@{tag}" execution="@{execution}" benchmark="@{benchmark}"/>
           <outputStatisticEnd/>
-          <outputInvocationResults tag="@{tag}" invocation="@{invocation}"/>
-          <outputInvocationEnd/>
-          <displayInvocationResults tag="@{tag}" invocation="@{invocation}"/>
+          <outputExecutionResults tag="@{tag}" execution="@{execution}"/>
+          <outputExecutionEnd/>
+          <displayExecutionResults tag="@{tag}" execution="@{execution}"/>
         </sequential>
       </forEach>
 
-      <outputMultiInvocationTestEnd/>
+      <outputMultiExecutionTestEnd/>
     </sequential>
   </macrodef>
 
   <macrodef name="extractFinalSpecResult">
     <attribute name="tag"/>
-    <attribute name="invocation" default="1"/>
+    <attribute name="execution" default="1"/>
     <attribute name="benchmark"/>
     <sequential>
-      <exec executable="${extractfinalspecresult.exe}" failonerror="false" resultproperty="test.@{tag}.@{invocation}.finalspec.exit.code">
-        <arg value="${test.@{tag}.@{invocation}.sanitized.output.file}"/>
+      <exec executable="${extractfinalspecresult.exe}" failonerror="false" resultproperty="test.@{tag}.@{execution}.finalspec.exit.code">
+        <arg value="${test.@{tag}.@{execution}.sanitized.output.file}"/>
         <arg value="${results.file}"/>
         <arg line="@{benchmark}"/>
       </exec>
-      <condition property="test.@{tag}.@{invocation}.result" value="FAILURE">
+      <condition property="test.@{tag}.@{execution}.result" value="FAILURE">
         <not>
-          <equals arg1="${test.@{tag}.@{invocation}.mmtkstats.exit.code}" arg2="0"/>
+          <equals arg1="${test.@{tag}.@{execution}.mmtkstats.exit.code}" arg2="0"/>
         </not>
       </condition>
-      <explainResult tag="@{tag}" invocation="@{invocation}" message="Could not extract SPECjvm98 time."/>
+      <explainResult tag="@{tag}" execution="@{execution}" message="Could not extract SPECjvm98 time."/>
     </sequential>
   </macrodef>
 
