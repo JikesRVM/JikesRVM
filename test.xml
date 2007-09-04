@@ -58,7 +58,7 @@
       <setBuildName property="test.config.@{tag}.build.name" config="${test.config.@{tag}.configuration}"/>
       <property name="test.config.@{tag}.rvm.dir" location="${dist.dir}/${test.config.@{tag}.build.name}"/>
       <property name="test.config.@{tag}.tests" value="${test.tests}"/>
-      <property name="test.config.@{tag}.name" value=""/>
+      <property name="test.config.@{tag}.name" value="default"/>
       <property name="test.config.@{tag}.mode" value="${test.mode}"/>
     </sequential>
   </macrodef>
@@ -179,13 +179,13 @@
           <conditions>
             <and>
               <not>
-                <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
+                <isset property="${test.config.@{tag}.configuration}.built"/>
               </not>
               <isset property="skip.build"/>
             </and>
           </conditions>
           <sequential>
-            <property name="test.config.@{tag}.build.done" value="true"/>
+            <property name="${test.config.@{tag}.configuration}.built" value="true"/>
             <bres><![CDATA[
 <build-configuration>
 <name>${test.config.@{tag}.configuration}</name>
@@ -270,7 +270,7 @@
         <echo file="${build.results.dir}/@{tag}.xml" append="false"><![CDATA[
 <test-configuration>
 <build-configuration>${test.config.@{tag}.configuration}</build-configuration>
-<name>@{tag}</name>
+<name>${test.config.@{tag}.name}</name>
 <parameters>
 <parameter key="mode" value="${test.config.@{tag}.rvm.dir}"/>
 <parameter key="mode" value="${test.config.@{tag}.mode}"/>
