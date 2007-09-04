@@ -319,6 +319,7 @@
       <outputproperty name="indent" value="yes"/>
       <outputproperty name="omit-xml-declaration" value="yes"/>
     </xslt>
+    <delete file="${temp.aggregate.file}"/>
   </target>
 
   <!-- **************************************************************************** -->
