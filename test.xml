@@ -177,19 +177,22 @@
         </if>
         <if>
           <conditions>
-            <or>
-              <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
+            <and>
+              <not>
+                <equals arg1="${test.config.@{tag}.build.done}" arg2="true"/>
+              </not>
               <isset property="skip.build"/>
-            </or>
+            </and>
           </conditions>
           <sequential>
+            <property name="test.config.@{tag}.build.done" arg2="true"/>
             <bres><![CDATA[
 <build-configuration>
 <name>${test.config.@{tag}.configuration}</name>
 <parameters></parameters>
 <duration>0</duration>
-<result>PREBUILT</result>
-<output></output>
+<result>SKIPPED</result>
+<output>Builds are being skipped</output>
 </build-configuration>]]></bres>
           </sequential>
         </if>
