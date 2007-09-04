@@ -562,14 +562,14 @@ if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
+$rvm_revision=`svnversion`;
+chomp($rvm_revision);
+
 if ($ok) {
   foreach $g (@gcs) {
     $_ = $g;
 
     $config = "$compiler$g";
-
-    $rvm_revision=`svnversion`;
-    chomp($rvm_revision);
 
     # Principal "-D" defines for ant
     $defs = "-Dtarget.name=$targetConfig ".
@@ -733,6 +733,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
+          "-Dsvn.revision=$rvm_revision ".
           "-Dskip.build=true ".
           "-Dexternal.lib.dir=$extlibdir ".
           "-Dresults.dir=$targetRoot/$resultdir ";
@@ -779,6 +780,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   if ($test_list ne "") {
     $test .= "-Dtest.tests='$test_list' ".
              "-Dtest-run.name=local ";
+    $test_set = "local";
   }
 
   if ($test_args ne "") {
@@ -833,23 +835,12 @@ foreach $g (@gcs) {
   }
   $configTitle = "          ";
 }
-if ($test_set || $test_list) {
+if ($test_set) {
   print "Test Dir: $resultdir \n";
-  my $xmls = `find $localRoot/$resultdir -name Results.xml`;
-  chomp ($xmls);
-  $xmls =~ s/\n/ /g; 
-  if (! $dry_run && $xmls ne "") { 
+  my $html = "$localRoot/$resultdir/tests/$test_set/Report.html";
+  if (! $dry_run) { 
     print "===================== Results =====================\n";
-    print "Total Results Found : ";
-    system("cat $xmls | grep \"\\<result\\>\" | wc -l");
-    print "           EXCLUDED : ";
-    system("cat $xmls | grep \"\\<result\\>\" | grep EXCLUDED | wc -l");
-    print "            SUCCESS : ";
-    system("cat $xmls | grep \"\\<result\\>\" | grep SUCCESS | wc -l");
-    print "               FAIL : ";
-    system("cat $xmls | grep \"\\<result\\>\" | grep FAIL | wc -l");
-# We used to have a working report :(
-#system("w3m -dump $html");
+    system("w3m -dump $html");
   }
 }
 print "===================================================\n";
