@@ -39,11 +39,10 @@
         <xsl:variable name="total-tests" select="count(build-target/build-configuration/test-configuration/group/test)"/>
         <xsl:variable name="total-executions" select="count(build-target/build-configuration/test-configuration/group/test/test-execution)"/>
         <xsl:variable name="total-successes" select="count(build-target/build-configuration/test-configuration/group/test/test-execution/result[text() = 'SUCCESS'])"/>
-        <xsl:variable name="total-excluded" select="count(build-target/build-configuration/test-configuration/group/test/test-execution/result[text() = 'EXCLUDED'])"/>
 
-        <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/> (<xsl:value-of select="$total-excluded"/> excluded)</h2>
+        <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/></h2>
         <p>Subversion Revision: <xsl:value-of select="revision"/></p>
-        <xsl:if test="($total-tests - $total-successes - $total-excluded) != 0">
+        <xsl:if test="($total-tests - $total-successes) != 0">
           <table class="errors">
             <tr>
               <th>Result</th>
