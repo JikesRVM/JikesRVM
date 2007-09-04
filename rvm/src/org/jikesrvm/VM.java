@@ -484,7 +484,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * "if (VM.VerifyAssertions) VM._assert(xxx);"
    * @param b the assertion to verify
    */
-  @NoInline
+  @Inline
   public static void _assert(boolean b) {
     _assert(b, null, null);
   }
@@ -496,12 +496,12 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  @NoInline
+  @Inline
   public static void _assert(boolean b, String message) {
     _assert(b, message, null);
   }
 
-  @NoInline
+  @Inline
   public static void _assert(boolean b, String msg1, String msg2) {
     if (!VM.VerifyAssertions) {
       sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
