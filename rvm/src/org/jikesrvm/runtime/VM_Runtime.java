@@ -375,7 +375,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
-    checkAllocationCountDownToGC();
+    if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
     // Allocate the object and initialize its header
     Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
@@ -457,7 +457,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (numElements < 0) raiseNegativeArraySizeException();
 
     // GC stress testing
-    checkAllocationCountDownToGC();
+    if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, headerSize, tib, allocator, align, offset, site);
