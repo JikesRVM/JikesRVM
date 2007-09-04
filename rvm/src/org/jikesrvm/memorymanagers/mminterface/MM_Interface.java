@@ -48,6 +48,7 @@ import org.mmtk.utility.heap.Mmapper;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -589,10 +590,22 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
       /* asked to allocate more than Integer.MAX_VALUE bytes */
-      throw new OutOfMemoryError();
+      throwLargeArrayOutOfMemoryError();
     }
     int size = elemBytes + headerSize;
     return allocateArrayInternal(numElements, size, tib, allocator, align, offset, site);
+  }
+
+
+  /**
+   * Throw an out of memory error due to an array allocation request that is
+   * larger than the maximum allowed value. This is in a separate method
+   * so it can be forced out of line.
+   */
+  @NoInline
+  @Interruptible
+  private static void throwLargeArrayOutOfMemoryError() {
+    throw new OutOfMemoryError();
   }
 
   /**
