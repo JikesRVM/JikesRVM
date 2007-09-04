@@ -196,7 +196,7 @@ public class GenerateFromTemplate {
     COUNT,
     INCLUDE
   }
-  
+
   static final int MAX_DATA_SIZE = 65536;
 
   LineNumberReader in;
@@ -441,7 +441,7 @@ public class GenerateFromTemplate {
     }
     while (line.endsWith("\\")) {
       if (line.endsWith("\\\\")) {
-        line = line.substring(0, line.length()-2) + "\n" + data.readLine();      
+        line = line.substring(0, line.length()-2) + "\n" + data.readLine();
       } else {
         line = line.substring(0, line.length()-1) + data.readLine();
       }
