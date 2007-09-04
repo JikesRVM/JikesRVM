@@ -185,7 +185,7 @@
             </and>
           </conditions>
           <sequential>
-            <property name="test.config.@{tag}.build.done" arg2="true"/>
+            <property name="test.config.@{tag}.build.done" value="true"/>
             <bres><![CDATA[
 <build-configuration>
 <name>${test.config.@{tag}.configuration}</name>
