@@ -618,7 +618,6 @@ public abstract class Plan implements Constants {
   @Interruptible
   public static void harnessEnd()  {
     Stats.stopAll();
-    Stats.printStats();
     insideHarness = false;
   }
 

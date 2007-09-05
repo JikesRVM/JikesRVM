@@ -13,57 +13,14 @@
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
-import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.ObjectReferenceArray;
 import org.vmmagic.unboxed.Word;
 
 /**
  * Utility class for writing statistics out in XML format.
  */
-@Uninterruptible public class Xml {
-
-  /*
-   * Stack of XML tags to simplify output.
-   */
-
-  /**
-   * Fixed sizxze stack - more than 64 levels of nesting would be pathological !
-   */
-  private static final int TAGSTACK = 64;
-
-  /**
-   * Top-of-stack of the tag stack
-   */
-  private static int curTag = -1;
-
-  /**
-   * The stack of nested tags
-   */
-  private static ObjectReferenceArray tags = ObjectReferenceArray.create(TAGSTACK);
-
-  /**
-   * Push a tag onto the tag stack
-   *
-   * @param name The name of the tag
-   */
-  protected static void pushTag(String name) {
-    tags.set(++curTag,ObjectReference.fromObject(name));
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(curTag < TAGSTACK);
-  }
-
-  /**
-   * Pop a tag from the tag stack
-   *
-   * @return the innermost tag
-   */
-  protected static String popTag() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Xml.curTag >= 0);
-    String name = (String)tags.get(curTag--).toObject();
-    return name;
-  }
-
+@Uninterruptible
+public class Xml {
   /**
    * Mark the start of XML output
    */
@@ -81,17 +38,8 @@ import org.vmmagic.unboxed.Word;
   /**
    * Close the innermost XML tag and pop it from the stack.
    */
-  public static void closeTag() {
-    String name = popTag();
+  public static void closeTag(String name) {
     Log.write("</"); Log.write(name); Log.writeln(">");
-  }
-
-  /**
-   * Close all open XML tags and flush the tag stack
-   */
-  public static void closeAllTags() {
-    while (curTag >= 0)
-      closeTag();
   }
 
   /**
@@ -102,7 +50,6 @@ import org.vmmagic.unboxed.Word;
    *               adding additional attributes
    */
   static void openTag(String name, boolean endTag) {
-    pushTag(name);
     openMinorTag(name);
     if (endTag)
       closeTag(false);

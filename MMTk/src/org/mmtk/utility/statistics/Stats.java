@@ -134,7 +134,21 @@ import org.vmmagic.pragma.*;
   /**
    * Stop all counters
    */
+  @Interruptible
   public static void stopAll() {
+    stopAllCounters();
+    Stats.printStats();
+    if (Options.xmlStats.getValue()) {
+      Xml.begin();
+      Xml.closeTag("mmtk-stats");
+      Xml.end();
+    }
+  }
+
+  /**
+   * Stop all counters
+   */
+  private static void stopAllCounters() {
     for (int c = 0; c < counters; c++) {
       if (counter[c].getStart())
         counter[c].stop();
@@ -239,7 +253,6 @@ import org.vmmagic.pragma.*;
     if (Options.printPhaseStats.getValue())
       printPhasesXml();
     printTotalsXml();
-    Xml.closeAllTags(); // The global mmtk-stats tag
     Xml.end();
   }
 
@@ -279,7 +292,7 @@ import org.vmmagic.pragma.*;
       }
     }
     Xml.singleValue("total-time",Plan.totalTime.getTotalMillis(),"ms");
-    Xml.closeTag();
+    Xml.closeTag("mmtk-stats-totals");
   }
 
   /**
@@ -346,9 +359,9 @@ import org.vmmagic.pragma.*;
           printPhaseStatXml(counter[c],p,Phase.GC);
         }
       }
-      Xml.closeTag();
+      Xml.closeTag("phase");
     }
-    Xml.closeTag();
+    Xml.closeTag("mmtk-stats-per-gc");
   }
 
   /** @return The GC count (inclusive of any in-progress GC) */
