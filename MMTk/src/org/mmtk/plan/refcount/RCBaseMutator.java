@@ -109,7 +109,7 @@ import org.vmmagic.unboxed.*;
       case RCBase.ALLOC_PRIMITIVE_LOS:
           return los.alloc(bytes, align, offset, false);
       case RCBase.ALLOC_IMMORTAL:
-        return immortal.alloc(bytes, align, offset, false);
+        return immortal.alloc(bytes, align, offset);
       default:
         VM.assertions.fail("RC not aware of allocator");
         return Address.zero();

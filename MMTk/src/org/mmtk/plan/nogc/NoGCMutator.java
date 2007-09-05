@@ -73,7 +73,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == NoGC.ALLOC_DEFAULT) {
-      return def.alloc(bytes, align, offset, false);
+      return def.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }

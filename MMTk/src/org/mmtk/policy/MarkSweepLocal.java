@@ -154,13 +154,12 @@ public final class MarkSweepLocal extends SegregatedFreeList implements Constant
    *
    * @param block The block to be prepared for use
    * @param sizeClass The size class of the block
-   * @param inGC Is this space currently being collected
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
-  protected Address advanceToBlock(Address block, int sizeClass, boolean inGC) {
+  protected Address advanceToBlock(Address block, int sizeClass) {
     if (HEADER_MARK_BITS) {
-      if (inGC) MarkSweepLocal.liveBlock(block);
+      if (msSpace.inMSCollection()) MarkSweepLocal.liveBlock(block);
     }
 
     if (LAZY_SWEEP)
@@ -176,9 +175,9 @@ public final class MarkSweepLocal extends SegregatedFreeList implements Constant
    * @param block The new block
    * @param sizeClass The block's sizeclass.
    */
-  protected void notifyNewBlock(Address block, int sizeClass, boolean inGC) {
+  protected void notifyNewBlock(Address block, int sizeClass) {
     if (HEADER_MARK_BITS) {
-      if (inGC) MarkSweepLocal.liveBlock(block);
+      if (msSpace.inMSCollection()) MarkSweepLocal.liveBlock(block);
     }
   }
 

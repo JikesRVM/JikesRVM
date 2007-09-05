@@ -82,7 +82,7 @@ import org.vmmagic.pragma.*;
   @Inline
   public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenCopy.ALLOC_MATURE) {
-      return mature.alloc(bytes, align, offset, false);
+      return mature.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }

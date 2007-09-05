@@ -108,7 +108,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
-  protected Address advanceToBlock(Address block, int sizeClass, boolean duringGC) {
+  protected Address advanceToBlock(Address block, int sizeClass) {
     return makeFreeListFromLiveBits(block, sizeClass);
   }
 

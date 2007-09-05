@@ -85,7 +85,7 @@ import org.vmmagic.unboxed.*;
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == Gen.ALLOC_NURSERY) {
       if (Stats.GATHER_MARK_CONS_STATS) Gen.nurseryCons.inc(bytes);
-      return nursery.alloc(bytes, align, offset, false);
+      return nursery.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }

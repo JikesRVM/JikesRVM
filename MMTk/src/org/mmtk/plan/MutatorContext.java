@@ -155,7 +155,7 @@ import org.vmmagic.unboxed.*;
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
     case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
-    case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset, false);
+    case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
     default:
       VM.assertions.fail("No such allocator");
       return Address.zero();

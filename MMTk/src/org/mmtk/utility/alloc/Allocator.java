@@ -195,11 +195,10 @@ import org.vmmagic.pragma.*;
    * @param bytes The size of the allocation request
    * @param alignment The required alignment
    * @param offset The alignment offset
-   * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
   protected abstract Address allocSlowOnce(int bytes, int alignment,
-      int offset, boolean inGC);
+      int offset);
 
   /**
    * <b>Out-of-line</b> slow path allocation. This method forces slow path
@@ -214,7 +213,7 @@ import org.vmmagic.pragma.*;
    */
   @NoInline
   public final Address allocSlow(int bytes, int alignment, int offset, boolean inGC) {
-    return allocSlowInline(bytes, alignment, offset, inGC);
+    return allocSlowInline(bytes, alignment, offset);
   }
 
   /**
@@ -227,18 +226,18 @@ import org.vmmagic.pragma.*;
    * @param bytes The size of the allocation request
    * @param alignment The required alignment
    * @param offset The alignment offset
-   * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
   @Inline
-  public final Address allocSlowInline(int bytes, int alignment, int offset, boolean inGC) {
+  public final Address allocSlowInline(int bytes, int alignment, int offset) {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < Plan.MAX_COLLECTION_ATTEMPTS; i++) {
-      Address result = current.allocSlowOnce(bytes, alignment, offset, inGC);
-      if (!result.isZero())
+      Address result = current.allocSlowOnce(bytes, alignment, offset);
+      if (!result.isZero()) {
         return result;
-      if (!inGC) {
+      }
+      if (!Plan.gcInProgress()) {
         /* This is in case a GC occurs, and our mutator context is stale.
          * In some VMs the scheduler can change the affinity between the
          * current thread and the mutator context. This is possible for

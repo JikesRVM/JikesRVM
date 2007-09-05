@@ -73,7 +73,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SSGCspy.ALLOC_GCSPY)
-      return gcspy.alloc(bytes, align, offset, false);
+      return gcspy.alloc(bytes, align, offset);
     else
       return super.alloc(bytes, align, offset, allocator, site);
   }

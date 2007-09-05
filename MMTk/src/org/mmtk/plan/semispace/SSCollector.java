@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
       VM.assertions._assert(allocator == SS.ALLOC_SS);
     }
 
-    return ss.alloc(bytes, align, offset, true);
+    return ss.alloc(bytes, align, offset);
   }
 
   /**

@@ -92,7 +92,7 @@ import org.vmmagic.unboxed.*;
       int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
-    return immortal.alloc(bytes, align, offset, true);
+    return immortal.alloc(bytes, align, offset);
   }
 
   /**

@@ -80,7 +80,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MC.ALLOC_DEFAULT) {
-      return mc.alloc(bytes, align, offset, false);
+      return mc.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }

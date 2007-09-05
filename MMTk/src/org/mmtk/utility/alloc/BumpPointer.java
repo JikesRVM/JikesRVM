@@ -136,15 +136,14 @@ import org.vmmagic.pragma.*;
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, boolean inGC) {
+  public final Address alloc(int bytes, int align, int offset) {
     Address start = alignAllocationNoFill(cursor, align, offset);
     Address end = start.plus(bytes);
     if (end.GT(internalLimit))
-      return allocSlow(start, end, align, offset, inGC);
+      return allocSlow(start, end, align, offset);
     fillAlignmentGap(cursor, start);
     cursor = end;
     return start;
@@ -157,22 +156,20 @@ import org.vmmagic.pragma.*;
   * we inline into this method since this is already out of line.
   *
   * @param start The start address for the pending allocation
-  * @param end The end address for the pending allocation
-  * @param align The requested alignment
-  * @param offset The offset from the alignment
-  * @param inGC Is the allocation request occuring during GC.
+ * @param end The end address for the pending allocation
+ * @param align The requested alignment
+ * @param offset The offset from the alignment
   * @return The address of the first byte of the allocated region
   */
   @NoInline
   private Address allocSlow(Address start, Address end, int align,
-      int offset, boolean inGC) {
+      int offset) {
     Address rtn = null;
     Address card = null;
     if (SUPPORT_CARD_SCANNING)
       card = getCard(start.plus(CARD_MASK)); // round up
     if (end.GT(limit)) { /* external slow path */
-      rtn = allocSlowInline(end.diff(start).toInt(), align, offset,
-          inGC);
+      rtn = allocSlowInline(end.diff(start).toInt(), align, offset);
       if (SUPPORT_CARD_SCANNING && card.NE(getCard(rtn.plus(CARD_MASK))))
         card = getCard(rtn); // round down
     } else {             /* internal slow path */
@@ -241,19 +238,17 @@ import org.vmmagic.pragma.*;
    * threads.
    *
    * @param bytes The number of bytes allocated
-   * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Was the request made from within GC?
+   * @param align The requested alignment
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
-  protected final Address allocSlowOnce(int bytes, int align, int offset,
-      boolean inGC) {
+  protected final Address allocSlowOnce(int bytes, int align, int offset) {
     /* Check if we already have a chunk to use */
     if (allowScanning && !region.isZero()) {
       Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);
       if (!nextRegion.isZero()) {
-        return consumeNextRegion(nextRegion, bytes, align, offset, inGC);
+        return consumeNextRegion(nextRegion, bytes, align, offset);
       }
     }
 
@@ -269,7 +264,7 @@ import org.vmmagic.pragma.*;
       updateLimit(start.plus(chunkSize), start, bytes);
     } else                // scannable allocator
       updateMetaData(start, chunkSize, bytes);
-    return alloc(bytes, align, offset, inGC);
+    return alloc(bytes, align, offset);
   }
 
   /**
@@ -304,12 +299,11 @@ import org.vmmagic.pragma.*;
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Was the request made from within GC?
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
   private Address consumeNextRegion(Address nextRegion, int bytes, int align,
-        int offset, boolean inGC) {
+        int offset) {
     region.plus(DATA_END_OFFSET).store(cursor);
     region = nextRegion;
     cursor = nextRegion.plus(DATA_START_OFFSET);
@@ -318,7 +312,7 @@ import org.vmmagic.pragma.*;
     VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
     reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
 
-    return alloc(bytes, align, offset, inGC);
+    return alloc(bytes, align, offset);
   }
 
   /**

@@ -77,7 +77,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == CopyMS.ALLOC_DEFAULT)
-      return nursery.alloc(bytes, align, offset, false);
+      return nursery.alloc(bytes, align, offset);
     if (allocator == CopyMS.ALLOC_MS)
       return mature.alloc(bytes, align, offset, false);
 

@@ -89,7 +89,7 @@ import org.vmmagic.pragma.*;
                      allocator == GenCopy.ALLOC_MATURE_MAJORGC);
     }
 
-    Address result = mature.alloc(bytes, align, offset, true);
+    Address result = mature.alloc(bytes, align, offset);
     return result;
   }
 

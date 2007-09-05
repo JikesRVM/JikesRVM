@@ -88,15 +88,12 @@ import org.vmmagic.pragma.*;
    * returned zeroed memory.
    *
    * @param bytes The required size of this space in bytes.
-   * @param align The requested alignment.
    * @param offset The alignment offset.
-   * @param inGC If true, this allocation is occuring with respect to
-   * a space that is currently being collected.
+   * @param align The requested alignment.
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  protected final Address allocSlowOnce(int bytes, int align, int offset,
-      boolean inGC) {
+  protected final Address allocSlowOnce(int bytes, int align, int offset) {
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of MIN_ALIGNMENT
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
     int pages = (maxbytes + BYTES_IN_PAGE - 1) >> LOG_BYTES_IN_PAGE;

@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SS.ALLOC_SS)
-      return ss.alloc(bytes, align, offset, false);
+      return ss.alloc(bytes, align, offset);
     else
       return super.alloc(bytes, align, offset, allocator, site);
   }

@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenRC.ALLOC_NURSERY) {
-      return nursery.alloc(bytes, align, offset, false);
+      return nursery.alloc(bytes, align, offset);
     }
     return super.alloc(bytes,align,offset,allocator, site);
   }
