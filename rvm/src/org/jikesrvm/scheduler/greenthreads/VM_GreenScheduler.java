@@ -15,6 +15,7 @@ package org.jikesrvm.scheduler.greenthreads;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.VM_ConcurrentCollectorThread;
 import org.jikesrvm.osr.OSR_ObjectHolder;
@@ -278,10 +279,12 @@ public final class VM_GreenScheduler extends VM_Scheduler {
       t.start(processors[1 + i].readyQueue);
     }
 
-    // Start concurrent collector threads on each VM_Processor.
-    for (int i = 0; i < numProcessors; ++i) {
-      VM_GreenThread t = VM_ConcurrentCollectorThread.createConcurrentCollectorThread(processors[1 + i]);
-      t.start(processors[1 + i].readyQueue);
+    if (MM_Constants.NEEDS_CONCURRENT_WORKERS) {
+      // Start concurrent collector threads on each VM_Processor.
+      for (int i = 0; i < numProcessors; ++i) {
+        VM_GreenThread t = VM_ConcurrentCollectorThread.createConcurrentCollectorThread(processors[1 + i]);
+        t.start(processors[1 + i].readyQueue);
+      }
     }
 
     // Start the G.C. system.

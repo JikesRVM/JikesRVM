@@ -33,6 +33,8 @@ public class MM_Constants implements VM_SizeConstants {
   public static final boolean NEEDS_WRITE_BARRIER = Selected.Constraints.get().needsWriteBarrier();
   /** True if the selected plan requires write barriers on putstatic */
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Selected.Constraints.get().needsStaticWriteBarrier();
+  /** True if the selected plan requires concurrent worker threads */
+  public static final boolean NEEDS_CONCURRENT_WORKERS = Selected.Constraints.get().needsConcurrentWorkers();
   /** True if the selected plan needs support for generating a GC trace */
   public static final boolean GENERATE_GC_TRACE = Selected.Constraints.get().generateGCTrace();
   /** True if the selected plan may move objects */
