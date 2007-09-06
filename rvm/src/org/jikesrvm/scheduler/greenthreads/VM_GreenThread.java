@@ -722,7 +722,11 @@ public class VM_GreenThread extends VM_Thread {
    */
   @Override
   protected final void suspendInternal() {
-    VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 0, 1);
+    if(VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 0, 1)) {
+      // successful change from no suspend pending to suspend pending
+    } else {
+      // TODO: in what cases do we want to allow suspending a suspended thread?
+    }
     if (this == VM_GreenScheduler.getCurrentThread()) yield();
   }
   /**
@@ -730,12 +734,19 @@ public class VM_GreenThread extends VM_Thread {
    */
   @Override
   protected final void resumeInternal() {
-    VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 1, 0);
-    VM_GreenProcessor.getCurrentProcessor().scheduleThread(this);
+    if (VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 1, 0)) {
+      // we cleared the fact a thread suspend is pending, so thread was never
+      // removed from runnable queue. There's no work to do here.
+    } else {
+      // thread was actually dequeued so re-queue it again
+      VM_GreenProcessor.getCurrentProcessor().scheduleThread(this);
+    }
   }
 
   /**
    * Suspend thread if a suspend is pending. Called by processor dispatch loop.
+   * Thread will be dequeued and not run if this returns true.
+   *
    * @return whether the thread had a suspend pending
    */
   final boolean suspendIfPending() {
