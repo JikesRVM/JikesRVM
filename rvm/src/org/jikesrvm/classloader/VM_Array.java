@@ -401,7 +401,9 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     } else {
       innermostElementType = elementType;
     }
-    if (BYTES_IN_DOUBLE != BYTES_IN_ADDRESS) {
+    if (VM.BuildForIA32 && this == VM_Array.CodeArrayType) {
+      this.alignment = 16;
+    } else if (BYTES_IN_DOUBLE != BYTES_IN_ADDRESS) {
       // Desired alignment on 32bit architectures
       if (elementType.isDoubleType() || elementType.isLongType()) {
         this.alignment = BYTES_IN_DOUBLE;

@@ -289,7 +289,13 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
       if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
         start = start.plus(VM_SizeConstants.BYTES_IN_WORD);
         if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-          return ObjectReference.nullReference();
+          start = start.plus(VM_SizeConstants.BYTES_IN_WORD);
+          if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
+            start = start.plus(VM_SizeConstants.BYTES_IN_WORD);
+            if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
+              return ObjectReference.nullReference();
+            }
+          }
         }
       }
     }
