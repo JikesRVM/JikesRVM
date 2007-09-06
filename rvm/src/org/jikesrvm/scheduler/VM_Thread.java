@@ -923,7 +923,7 @@ public abstract class VM_Thread {
   }
 
   /*
-   * Wait and notify suport
+   * Wait and notify support
    */
 
   /**
