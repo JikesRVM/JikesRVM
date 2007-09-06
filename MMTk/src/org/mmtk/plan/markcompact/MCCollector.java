@@ -128,12 +128,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == MC.START_CLOSURE) {
-      markTrace.startTrace();
-      return;
-    }
-
-    if (phaseId == MC.COMPLETE_CLOSURE) {
+    if (phaseId == MC.CLOSURE) {
       markTrace.completeTrace();
       return;
     }
@@ -152,7 +147,6 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == MC.FORWARD_CLOSURE) {
-      forwardTrace.startTrace();
       forwardTrace.completeTrace();
       return;
     }

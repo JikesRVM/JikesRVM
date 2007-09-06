@@ -125,12 +125,7 @@ import org.vmmagic.unboxed.*;
         return;
       }
 
-      if (phaseId == GenMS.START_CLOSURE) {
-        matureTrace.startTrace();
-        return;
-      }
-
-      if (phaseId == GenMS.COMPLETE_CLOSURE) {
+      if (phaseId == GenMS.CLOSURE) {
         matureTrace.completeTrace();
         return;
       }

@@ -417,15 +417,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   }
 
   /**
-   * Process all GC work. This method iterates until all work queues
-   * are empty.
-   */
-  @Inline
-  public void startTrace() {
-    completeTrace();
-  }
-
-  /**
    * Finishing processing all GC work.  This method iterates until all work queues
    * are empty.
    */

@@ -105,14 +105,7 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    if (phaseId == Gen.START_CLOSURE) {
-      if (!global().gcFullHeap) {
-        nurseryTrace.startTrace();
-      }
-      return;
-    }
-
-    if (phaseId == Gen.COMPLETE_CLOSURE) {
+    if (phaseId == Gen.CLOSURE) {
       if (!global().gcFullHeap) {
         nurseryTrace.completeTrace();
       }

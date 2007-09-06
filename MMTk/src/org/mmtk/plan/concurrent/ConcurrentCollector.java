@@ -82,7 +82,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
    * @param phaseId The unique phase identifier
    */
   public void concurrentCollectionPhase(short phaseId) {
-    if (phaseId == Concurrent.CONCURRENT_COMPLETE_CLOSURE) {
+    if (phaseId == Concurrent.CONCURRENT_CLOSURE) {
       if (VM.VERIFY_ASSERTIONS) {
         VM.assertions._assert(!Plan.gcInProgress());
         for(int i=0; i < VM.activePlan.mutatorCount(); i++) {

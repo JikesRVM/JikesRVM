@@ -45,10 +45,10 @@ public abstract class Concurrent extends Simple {
    */
   protected static final short preemptConcurrentClosure = Phase.createComplex("preeempt-concurrent-trace", null,
       Phase.scheduleMutator  (FLUSH_MUTATOR),
-      Phase.scheduleCollector(COMPLETE_CLOSURE));
+      Phase.scheduleCollector(CLOSURE));
 
-  public static final short CONCURRENT_COMPLETE_CLOSURE = Phase.createConcurrent("concurrent-closure",
-                                                                                 Phase.scheduleComplex(preemptConcurrentClosure));
+  public static final short CONCURRENT_CLOSURE = Phase.createConcurrent("concurrent-closure",
+                                                                        Phase.scheduleComplex(preemptConcurrentClosure));
 
   /**
    * Perform the initial determination of liveness from the roots.
@@ -56,7 +56,7 @@ public abstract class Concurrent extends Simple {
   protected static final short concurrentCompleteClosure = Phase.createComplex("concurrent-mark", null,
       Phase.scheduleMutator   (SET_BARRIER_ACTIVE),
       Phase.scheduleCollector (FLUSH_COLLECTOR),
-      Phase.scheduleConcurrent(CONCURRENT_COMPLETE_CLOSURE),
+      Phase.scheduleConcurrent(CONCURRENT_CLOSURE),
       Phase.scheduleMutator   (CLEAR_BARRIER_ACTIVE));
 
   /** Build, validate and then build another sanity table */
@@ -101,7 +101,7 @@ public abstract class Concurrent extends Simple {
     super.postBoot();
 
     /* Set up the concurrent marking phase */
-    replacePhase(Phase.scheduleCollector(COMPLETE_CLOSURE), Phase.scheduleComplex(concurrentCompleteClosure));
+    replacePhase(Phase.scheduleCollector(CLOSURE), Phase.scheduleComplex(concurrentCompleteClosure));
 
     if (Options.sanityCheck.getValue()) {
       Log.writeln("Collection sanity checking enabled.");

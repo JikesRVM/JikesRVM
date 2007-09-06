@@ -107,12 +107,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == RCBase.START_CLOSURE) {
-      getCurrentTrace().startTrace();
-      return;
-    }
-
-    if (phaseId == RCBase.COMPLETE_CLOSURE) {
+    if (phaseId == RCBase.CLOSURE) {
       getCurrentTrace().completeTrace();
       processNewRootSet();
       return;

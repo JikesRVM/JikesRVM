@@ -129,12 +129,7 @@ import org.vmmagic.pragma.*;
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
       }
-      if (phaseId == GenCopy.START_CLOSURE) {
-        matureTrace.startTrace();
-        return;
-      }
-
-      if (phaseId == GenCopy.COMPLETE_CLOSURE) {
+      if (phaseId == GenCopy.CLOSURE) {
         matureTrace.completeTrace();
         return;
       }

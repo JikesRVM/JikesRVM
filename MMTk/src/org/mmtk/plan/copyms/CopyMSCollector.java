@@ -118,12 +118,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == CopyMS.START_CLOSURE) {
-      trace.startTrace();
-      return;
-    }
-
-    if (phaseId == CopyMS.COMPLETE_CLOSURE) {
+    if (phaseId == CopyMS.CLOSURE) {
       trace.completeTrace();
       return;
     }

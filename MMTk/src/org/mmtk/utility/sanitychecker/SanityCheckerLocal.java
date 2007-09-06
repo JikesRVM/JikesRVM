@@ -69,7 +69,7 @@ import org.vmmagic.unboxed.*;
     if (phaseId == Simple.SANITY_BUILD_TABLE) {
       if (primary) {
         // Trace, checking for dangling pointers
-        sanityTrace.startTrace();
+        sanityTrace.completeTrace();
       }
       return true;
     }

@@ -65,12 +65,7 @@ import org.vmmagic.pragma.*;
    * @param primary perform any single-threaded local activities.
    */
   public void collectionPhase(short phaseId, boolean primary) {
-    if (phaseId == GCTrace.START_CLOSURE) {
-      inducedTrace.startTrace();
-      return;
-    }
-
-    if (phaseId == GCTrace.COMPLETE_CLOSURE) {
+    if (phaseId == GCTrace.CLOSURE) {
       inducedTrace.completeTrace();
       return;
     }

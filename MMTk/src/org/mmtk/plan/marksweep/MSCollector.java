@@ -80,12 +80,7 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    if (phaseId == MS.START_CLOSURE) {
-      trace.startTrace();
-      return;
-    }
-
-    if (phaseId == MS.COMPLETE_CLOSURE) {
+    if (phaseId == MS.CLOSURE) {
       trace.completeTrace();
       return;
     }

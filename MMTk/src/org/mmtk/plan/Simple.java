@@ -53,9 +53,8 @@ public abstract class Simple extends Plan implements Constants {
   public static final short PREPARE_STACKS      = Phase.createSimple("prepare-stacks", null);
   public static final short ROOTS               = Phase.createSimple("root");
   public static final short BOOTIMAGE_ROOTS     = Phase.createSimple("bootimage-root");
-  public static final short START_CLOSURE       = Phase.createSimple("start-closure", scanTime);
+  public static final short CLOSURE             = Phase.createSimple("closure", scanTime);
   public static final short SOFT_REFS           = Phase.createSimple("soft-ref", refTypeTime);
-  public static final short COMPLETE_CLOSURE    = Phase.createSimple("complete-closure", scanTime);
   public static final short WEAK_REFS           = Phase.createSimple("weak-ref", refTypeTime);
   public static final short FINALIZABLE         = Phase.createSimple("finalize", finalizeTime);
   public static final short WEAK_TRACK_REFS     = Phase.createSimple("weak-track-ref", refTypeTime);
@@ -120,17 +119,17 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
-      Phase.scheduleCollector  (START_CLOSURE));
+      Phase.scheduleCollector  (CLOSURE));
 
   /**
    * Complete closure including reference types and finalizable objects.
    */
   protected static final short refTypeClosurePhase = Phase.createComplex("refType-closure", null,
       Phase.scheduleCollector  (SOFT_REFS),
-      Phase.scheduleCollector  (COMPLETE_CLOSURE),
+      Phase.scheduleCollector  (CLOSURE),
       Phase.scheduleCollector  (WEAK_REFS),
       Phase.scheduleCollector  (FINALIZABLE),
-      Phase.scheduleCollector  (COMPLETE_CLOSURE),
+      Phase.scheduleCollector  (CLOSURE),
       Phase.schedulePlaceholder(WEAK_TRACK_REFS),
       Phase.scheduleCollector  (PHANTOM_REFS));
 
