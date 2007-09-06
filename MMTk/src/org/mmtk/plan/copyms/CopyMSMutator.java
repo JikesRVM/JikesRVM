@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.*;
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return nursery.alloc(bytes, align, offset);
     if (allocator == CopyMS.ALLOC_MS)
-      return mature.alloc(bytes, align, offset, false);
+      return mature.alloc(bytes, align, offset);
 
     return super.alloc(bytes, align, offset, allocator, site);
   }

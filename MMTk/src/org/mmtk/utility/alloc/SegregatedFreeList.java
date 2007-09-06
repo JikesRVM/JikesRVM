@@ -143,18 +143,16 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the object to occupy this space, in bytes.
    * @param align The requested alignment.
    * @param offset The alignment offset.
-   * @param inGC If true, this allocation is occuring with respect to
-   * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
    * contiguous bytes of zeroed memory.
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, boolean inGC) {
+  public final Address alloc(int bytes, int align, int offset) {
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
     Address cell = allocFast(bytes, align, offset);
     if (cell.isZero())
-      return allocSlow(bytes, align, offset, inGC);
+      return allocSlow(bytes, align, offset);
     else
       return cell;
   }

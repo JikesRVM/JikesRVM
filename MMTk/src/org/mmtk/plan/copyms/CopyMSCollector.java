@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.*;
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == CopyMS.ALLOC_MS);
     }
-    return mature.alloc(bytes, align, offset, CopyMS.msSpace.inMSCollection());
+    return mature.alloc(bytes, align, offset);
   }
 
   /**

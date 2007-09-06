@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MS.ALLOC_DEFAULT) {
-      return ms.alloc(bytes, align, offset, false);
+      return ms.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }

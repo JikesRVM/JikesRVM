@@ -81,7 +81,7 @@ public abstract class CMSMutator extends ConcurrentMutator {
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == CMS.ALLOC_DEFAULT) {
-      return ms.alloc(bytes, align, offset, false);
+      return ms.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }

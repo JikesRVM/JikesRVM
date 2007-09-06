@@ -119,7 +119,7 @@ implements Constants {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     }
-    return rc.alloc(bytes, align, offset, true);
+    return rc.alloc(bytes, align, offset);
   }
 
   /**

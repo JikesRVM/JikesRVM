@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
     if (Stats.GATHER_MARK_CONS_STATS) {
       if (Space.isInSpace(GenMS.NURSERY, original)) GenMS.nurseryMark.inc(bytes);
     }
-    return mature.alloc(bytes, align, offset, GenMS.msSpace.inMSCollection());
+    return mature.alloc(bytes, align, offset);
   }
 
   /**

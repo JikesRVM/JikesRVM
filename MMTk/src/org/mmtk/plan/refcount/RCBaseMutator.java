@@ -104,10 +104,10 @@ import org.vmmagic.unboxed.*;
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch(allocator) {
       case RCBase.ALLOC_RC:
-        return rc.alloc(bytes, align, offset, false);
+        return rc.alloc(bytes, align, offset);
       case RCBase.ALLOC_LOS:
       case RCBase.ALLOC_PRIMITIVE_LOS:
-          return los.alloc(bytes, align, offset, false);
+          return los.alloc(bytes, align, offset);
       case RCBase.ALLOC_IMMORTAL:
         return immortal.alloc(bytes, align, offset);
       default:

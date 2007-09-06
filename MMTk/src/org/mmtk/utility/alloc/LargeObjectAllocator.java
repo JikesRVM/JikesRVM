@@ -69,13 +69,12 @@ import org.vmmagic.pragma.*;
    * @param bytes The number of bytes allocated
    * @param align The requested alignment.
    * @param offset The alignment offset.
-   * @param inGC Is this allocation occuring during GC
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
   @NoInline
-  public final Address alloc(int bytes, int align, int offset, boolean inGC) {
-    Address cell = allocSlow(bytes, align, offset, inGC);
+  public final Address alloc(int bytes, int align, int offset) {
+    Address cell = allocSlow(bytes, align, offset);
     postAlloc(cell);
     return alignAllocation(cell, align, offset);
   }

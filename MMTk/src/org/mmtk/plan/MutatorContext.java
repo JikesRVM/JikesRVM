@@ -153,8 +153,8 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch (allocator) {
-    case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
-    case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
+    case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset);
+    case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset);
     case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
     default:
       VM.assertions.fail("No such allocator");
@@ -207,11 +207,10 @@ import org.vmmagic.unboxed.*;
    *
    * This method allows the correct allocator instance to be
    * established and associated with the thread (see {@link
-   * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int,
-   * boolean) Allocator.allocSlow()}).
+   * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int) Allocator.allocSlow()}).
    *
    * @see org.mmtk.utility.alloc.Allocator
-   * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int, boolean)
+   * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int)
    *
    * @param a An allocator instance.
    * @return An allocator instance associated with <i>this plan
