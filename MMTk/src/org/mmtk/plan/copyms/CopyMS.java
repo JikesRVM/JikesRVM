@@ -58,6 +58,7 @@ import org.vmmagic.pragma.*;
   public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
   public static final int ALLOC_MS = StopTheWorld.ALLOCATORS + 1;
 
+  public static final int SCAN_COPYMS = 0;
 
   /****************************************************************************
    * Instance variables

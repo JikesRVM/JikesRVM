@@ -58,6 +58,9 @@ import org.vmmagic.unboxed.*;
   public static final int ALLOC_MATURE_MINORGC = StopTheWorld.ALLOCATORS + 2;
   public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
 
+  public static final int SCAN_NURSERY = 0;
+  public static final int SCAN_MATURE  = 1;
+
   /*****************************************************************************
    *
    * Class fields

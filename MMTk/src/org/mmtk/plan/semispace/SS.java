@@ -70,13 +70,7 @@ public class SS extends StopTheWorld {
    */
   public static final int ALLOC_SS = Plan.ALLOC_DEFAULT;
 
-  /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).  This is where key <i>global</i>
-   * instances are allocated.  These instances will be incorporated
-   * into the boot image by the build process.
-   */
-  static {} //NOPMD
+  public static final int SCAN_SS = 0;
 
   /**
    * Constructor

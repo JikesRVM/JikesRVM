@@ -49,6 +49,9 @@ import org.vmmagic.unboxed.ObjectReference;
   public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
 
+  public static final int SCAN_MARK    = 0;
+  public static final int SCAN_FORWARD = 1;
+
   /* Phases */
   public static final short PREPARE_FORWARD     = Phase.createSimple("fw-prepare");
   public static final short FORWARD_CLOSURE     = Phase.createSimple("fw-closure");

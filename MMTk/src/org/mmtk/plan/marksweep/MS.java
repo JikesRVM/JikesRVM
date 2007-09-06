@@ -50,6 +50,8 @@ import org.vmmagic.unboxed.*;
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
+  public static final int SCAN_MARK = 0;
+
   /****************************************************************************
    * Instance variables
    */
@@ -126,5 +128,4 @@ import org.vmmagic.unboxed.*;
       return true;
     return super.willNeverMove(object);
   }
-
 }

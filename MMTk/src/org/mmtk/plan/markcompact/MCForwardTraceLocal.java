@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public MCForwardTraceLocal(Trace trace) {
-    super(trace);
+    super(MC.SCAN_FORWARD, trace);
   }
 
   /****************************************************************************

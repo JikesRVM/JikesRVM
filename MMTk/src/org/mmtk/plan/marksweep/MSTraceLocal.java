@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public MSTraceLocal(Trace trace) {
-    super(trace);
+    super(MS.SCAN_MARK, trace);
   }
 
   /****************************************************************************

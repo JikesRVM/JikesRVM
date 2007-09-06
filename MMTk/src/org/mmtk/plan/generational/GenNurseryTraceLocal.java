@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
-    super(trace);
+    super(Gen.SCAN_NURSERY, trace);
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }

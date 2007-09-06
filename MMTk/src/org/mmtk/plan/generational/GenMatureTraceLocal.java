@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public GenMatureTraceLocal(Trace trace, GenCollector plan) {
-    super(trace);
+    super(Gen.SCAN_MATURE, trace);
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }

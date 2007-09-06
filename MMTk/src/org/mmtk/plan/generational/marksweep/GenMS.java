@@ -67,7 +67,8 @@ import org.vmmagic.unboxed.*;
    *
    * Collection
    */
-  /*
+
+  /**
    * Perform a (global) collection phase.
    */
   @Inline

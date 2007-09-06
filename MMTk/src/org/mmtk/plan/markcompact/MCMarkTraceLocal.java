@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public MCMarkTraceLocal(Trace trace) {
-    super(trace);
+    super(MC.SCAN_MARK, trace);
   }
 
   /****************************************************************************

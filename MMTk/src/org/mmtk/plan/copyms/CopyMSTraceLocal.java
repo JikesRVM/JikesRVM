@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public CopyMSTraceLocal(Trace trace) {
-    super(trace);
+    super(CopyMS.SCAN_COPYMS, trace);
   }
 
   /****************************************************************************

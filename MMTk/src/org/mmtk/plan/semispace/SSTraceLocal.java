@@ -31,6 +31,13 @@ import org.vmmagic.unboxed.*;
     super(trace);
   }
 
+  /**
+   * Constructor
+   */
+  public SSTraceLocal(int specializedScan, Trace trace) {
+    super(specializedScan, trace);
+  }
+
   /****************************************************************************
    *
    * Externally visible Object processing and tracing

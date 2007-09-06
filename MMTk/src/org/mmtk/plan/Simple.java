@@ -79,12 +79,12 @@ public abstract class Simple extends Plan implements Constants {
   public static final short SANITY_RELEASE      = Phase.createSimple("sanity-release", null);
 
   // CHECKSTYLE:OFF
-  
+
   /** Ensure stacks are ready to be scanned */
   protected static final short prepareStacks = Phase.createComplex("prepare-stacks", null,
       Phase.scheduleCollector  (PREPARE_STACKS),
       Phase.scheduleMutator    (PREPARE_STACKS),
-      Phase.scheduleGlobal     (PREPARE_STACKS));   
+      Phase.scheduleGlobal     (PREPARE_STACKS));
 
   /** Trace and set up a sanity table */
   protected static final short sanityBuildPhase = Phase.createComplex("sanity-build", null,

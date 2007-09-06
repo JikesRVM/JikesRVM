@@ -24,9 +24,12 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  */
-@Uninterruptible public class MSConstraints extends StopTheWorldConstraints {
+@Uninterruptible
+public class MSConstraints extends StopTheWorldConstraints {
 
   public int gcHeaderBits() { return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED; }
 
   public int gcHeaderWords() { return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED; }
+
+  public int numSpecializedScans() { return 1; }
 }
