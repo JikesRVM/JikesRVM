@@ -38,12 +38,8 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * Instance variables
    */
-  // gray objects
+  /* gray object */
   protected final ObjectReferenceDeque values;
-  // root locs of white objs
-  protected final AddressDeque rootLocations;
-  // interior root locations
-  protected final AddressPairDeque interiorRootLocations;
 
   /****************************************************************************
    *
@@ -69,10 +65,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     super(specializedScan);
     values = new ObjectReferenceDeque("value", trace.valuePool);
     trace.valuePool.newConsumer();
-    rootLocations = new AddressDeque("rootLoc", trace.rootLocationPool);
-    trace.rootLocationPool.newConsumer();
-    interiorRootLocations = new AddressPairDeque(trace.interiorRootPool);
-    trace.interiorRootPool.newConsumer();
   }
 
   /****************************************************************************
@@ -118,26 +110,25 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param object The object reference to be traced.
-   * @param interiorRef The interior reference inside obj that must be traced.
-   * @param root True if the reference to <code>obj</code> was held in a root.
-   * @return The possibly moved interior reference.
+   * @param target The object the interior edge points within.
+   * @param slot The location of the interior edge.
+   * @param root True if this is a root edge.
    */
-  public final Address processInteriorEdge(ObjectReference object, Address interiorRef, boolean root) {
-    Offset offset = interiorRef.diff(object.toAddress());
-    ObjectReference newObject = traceObject(object, root);
+  public final void processInteriorEdge(ObjectReference target, Address slot, boolean root) {
+    Address interiorRef = slot.loadAddress();
+    Offset offset = interiorRef.diff(target.toAddress());
+    ObjectReference newTarget = traceObject(target, root);
     if (VM.VERIFY_ASSERTIONS) {
-      if (offset.sLT(Offset.zero()) ||
-          offset.sGT(Offset.fromIntSignExtend(1<<24))) {
+      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {
         // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta to interior pointer");
-        Log.write("       object base = "); Log.writeln(object);
+        Log.write("       object base = "); Log.writeln(target);
         Log.write("       interior reference = "); Log.writeln(interiorRef);
         Log.write("       delta = "); Log.writeln(offset);
         VM.assertions._assert(false);
       }
     }
-    return newObject.toAddress().plus(offset);
+    slot.store(newTarget.toAddress().plus(offset));
   }
 
   /**
@@ -177,41 +168,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   }
 
   /**
-   * Report a new root location for the trace.
-   *
-   * @param location The slot of the root.
-   */
-  @Inline
-  public final void addRootLocation(Address location) {
-    rootLocations.push(location);
-  }
-
-  /**
-   * Report a new interior root location for the trace.
-   *
-   * @param object The object the location resides in.
-   * @param location The slot of the root.
-   */
-  @Inline
-  public final void addInteriorRootLocation(ObjectReference object,
-                                            Address location) {
-    interiorRootLocations.push(object.toAddress(), location);
-  }
-
-  /**
    * Flush the local buffers of all deques.
    */
   public final void flush() {
-    flushRoots();
     values.flushLocal();
-  }
-
-  /**
-   * Flush the local buffers of the root deques.
-   */
-  public final void flushRoots() {
-    rootLocations.flushLocal();
-    interiorRootLocations.flushLocal();
   }
 
   /**
@@ -454,39 +414,15 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
 
   public void release() {
     values.reset();
-    rootLocations.reset();
-    interiorRootLocations.reset();
   }
 
   /**
-   * Process all GC work.  This method iterates until all work queues
+   * Process all GC work. This method iterates until all work queues
    * are empty.
    */
   @Inline
   public void startTrace() {
-    processRoots();
     completeTrace();
-  }
-
-  /**
-   * Process only the roots.
-   */
-  @Inline
-  public void processRoots() {
-    logMessage(4, "Working on GC in parallel");
-    logMessage(5, "processing root locations");
-    while (!rootLocations.isEmpty()) {
-      Address loc = rootLocations.pop();
-      processRootEdge(loc);
-    }
-    logMessage(5, "processing interior root locations");
-    while (!interiorRootLocations.isEmpty()) {
-      ObjectReference obj = interiorRootLocations.pop1().toObjectReference();
-      Address interiorLoc = interiorRootLocations.pop2();
-      Address interior = interiorLoc.loadAddress();
-      Address newInterior = processInteriorEdge(obj, interior, true);
-      interiorLoc.store(newInterior);
-    }
   }
 
   /**
@@ -516,7 +452,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * @return True if all work was completed within workLimit.
    */
   @Inline
-  public boolean traceIncrement(int workLimit) {
+  public boolean incrementalTrace(int workLimit) {
     logMessage(4, "Continuing GC in parallel (incremental)");
     logMessage(5, "processing gray objects");
     int units = 0;

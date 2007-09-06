@@ -90,7 +90,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
         }
       }
       TraceLocal trace = getConcurrentTrace();
-      while(!trace.traceIncrement(100)) {
+      while(!trace.incrementalTrace(100)) {
         /* Check if we should yield */
         if (VM.collection.yieldpoint()) {
           if (resetConcurrentWork) {

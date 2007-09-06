@@ -292,7 +292,7 @@ import org.vmmagic.pragma.*;
         if (!failed) failed = true;
       }
     }
-    trace.addInteriorRootLocation(code, ipLoc);
+    trace.processInteriorEdge(code, ipLoc, true);
   }
 
   /***********************************************************************
@@ -397,7 +397,7 @@ import org.vmmagic.pragma.*;
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
       if (verbosity >= 3) dumpRef(refaddr, verbosity);
-      trace.addRootLocation(refaddr);
+      trace.processRootEdge(refaddr);
     }
   }
 
@@ -516,7 +516,7 @@ import org.vmmagic.pragma.*;
       VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
       while(!refaddr.isZero()) {
-        trace.addRootLocation(refaddr);
+        trace.processRootEdge(refaddr);
         refaddr = iterator.getNextReferenceAddress();
       }
     }

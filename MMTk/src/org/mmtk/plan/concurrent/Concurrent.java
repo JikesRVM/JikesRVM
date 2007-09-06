@@ -51,14 +51,6 @@ public abstract class Concurrent extends Simple {
                                                                                  Phase.scheduleComplex(preemptConcurrentClosure));
 
   /**
-   * Perform the initial determination of liveness from the roots, we split it into concurrent
-   * and atomic parts for concurrent collection..
-   */
-  protected static final short concurrentStartClosure = Phase.createComplex("concurrent-start-trace", null,
-      Phase.scheduleCollector (START_CLOSURE),
-      Phase.scheduleCollector (COMPLETE_CLOSURE));
-
-  /**
    * Perform the initial determination of liveness from the roots.
    */
   protected static final short concurrentCompleteClosure = Phase.createComplex("concurrent-mark", null,
@@ -107,9 +99,6 @@ public abstract class Concurrent extends Simple {
   @Interruptible
   public void postBoot() {
     super.postBoot();
-
-    /* Make the start of the closure two parts */
-    replacePhase(Phase.scheduleCollector(START_CLOSURE), Phase.scheduleComplex(concurrentStartClosure));
 
     /* Set up the concurrent marking phase */
     replacePhase(Phase.scheduleCollector(COMPLETE_CLOSURE), Phase.scheduleComplex(concurrentCompleteClosure));

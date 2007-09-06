@@ -65,11 +65,6 @@ public abstract class CMSCollector extends ConcurrentCollector {
       return;
     }
 
-    if (phaseId == CMS.START_CLOSURE) {
-      trace.processRoots();
-      return;
-    }
-
     if (phaseId == CMS.COMPLETE_CLOSURE) {
       trace.completeTrace();
       return;

@@ -251,7 +251,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       ScanThread.scanThread(thread, trace, processCodeLocations);
 
       /* identify this thread as a root */
-      trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS));
+      trace.processRootEdge(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS));
     }
     /* flush out any remset entries generated during the above activities */
     ActivePlan.flushRememberedSets();

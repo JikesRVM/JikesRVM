@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
       if (Plan.SCAN_BOOT_IMAGE) {
         VM.scanning.computeBootImageRoots(sanityTrace);
       }
-      sanityTrace.flushRoots();
+      sanityTrace.flush();
       return true;
     }
 
