@@ -60,13 +60,16 @@ extern "C" {
 #include "perfctr.h"
 
 #define RET_INST 0
-#define L1_MISS 1
+#define L1D_MISS 1
 #define L2_MISS 2
 #define DTLB_L_MISS 3
 #define ITLB_MISS 4
 #define ITLB_HIT 5
 #define BPU_TRACE_CACHE_MISS 6
 #define TRACE_CACHE_FLUSH 7
+#define L1I_MISS 8
+#define BRANCHES 9
+#define BRANCH_MISS 10
 
 static struct vperfctr *pc_vpc;
 static struct perfctr_info pc_info;
@@ -207,7 +210,7 @@ perfCtrInit(int metric)
       
     case PERFCTR_X86_INTEL_CORE2:
       /* event 0x82 (ITLB_MISS), all cores,  */
-      pc_control.cpu_control.evntsel[0] = 0x82 | (0x12 << 8);
+      pc_control.cpu_control.evntsel[0] = 0x82 | (0x12 << 8) | (1 << 16) | (1 << 22);
       break;
 #endif
 #if defined(__powerpc64__) || defined(PPC64)
@@ -257,6 +260,60 @@ perfCtrInit(int metric)
     break;
 
 /*****************************************************************************
+ *                            ICache Misses                                  *
+ *****************************************************************************/
+  case L1I_MISS:
+    switch (pc_info.cpu_type) {
+#ifdef RVM_FOR_IA32
+    case PERFCTR_X86_INTEL_CORE2:
+      /* event 0x81 (L1I_MISSES), all cores,  */
+      pc_control.cpu_control.evntsel[0] = 0x81 | (1 << 16) | (1 << 22);
+      break;
+#endif
+    default:
+      fprintf(stderr, "cpu type %u (%s) not supported\n",
+	      pc_info.cpu_type, perfctr_info_cpu_name(&pc_info));
+      exit(1);
+    }
+    break;
+
+/*****************************************************************************
+ *                              Branches                                     *
+ *****************************************************************************/
+  case BRANCHES:
+    switch (pc_info.cpu_type) {
+#ifdef RVM_FOR_IA32
+    case PERFCTR_X86_INTEL_CORE2:
+      /* event 0xC4 (Branch Instruction Retired), count at CPL > 0, Enable */
+      pc_control.cpu_control.evntsel[0] = 0xC4 | (1 << 16) | (1 << 22);
+      break;
+#endif
+    default:
+      fprintf(stderr, "cpu type %u (%s) not supported\n",
+	      pc_info.cpu_type, perfctr_info_cpu_name(&pc_info));
+      exit(1);
+    }
+    break;
+
+/*****************************************************************************
+ *                         Branch Mispredicts                                *
+ *****************************************************************************/
+  case BRANCH_MISS:
+    switch (pc_info.cpu_type) {
+#ifdef RVM_FOR_IA32
+    case PERFCTR_X86_INTEL_CORE2:
+      /* event 0xC5 (Branch Misses Retired), count at CPL > 0, Enable */
+      pc_control.cpu_control.evntsel[0] = 0xC5 | (1 << 16) | (1 << 22);
+      break;
+#endif
+    default:
+      fprintf(stderr, "cpu type %u (%s) not supported\n",
+	      pc_info.cpu_type, perfctr_info_cpu_name(&pc_info));
+      exit(1);
+    }
+    break;
+    
+/*****************************************************************************
  *                        Trace Cache Flushes                                *
  *****************************************************************************/
   case TRACE_CACHE_FLUSH:
@@ -284,7 +341,7 @@ perfCtrInit(int metric)
 /*****************************************************************************
  *                        Cache and DTLB Misses                              *
  *****************************************************************************/
-  case L1_MISS:
+  case L1D_MISS:
   case L2_MISS:
   case DTLB_L_MISS:
     switch (pc_info.cpu_type) {
@@ -293,7 +350,7 @@ perfCtrInit(int metric)
     case PERFCTR_X86_AMD_K8:
     case PERFCTR_X86_AMD_K8C:
       switch (metric) {
-      case L1_MISS:
+      case L1D_MISS:
         /* DATA_CACHE_MISSES */
         pc_control.cpu_control.evntsel[0] = 0x41 | (1 << 16) | (1 << 22);
         break;
@@ -316,7 +373,7 @@ perfCtrInit(int metric)
       pc_control.cpu_control.ireset[0] = -25;
       pc_control.cpu_control.p4.pebs_matrix_vert = 0x1;
       switch (metric) {
-      case L1_MISS:
+      case L1D_MISS:
         pc_control.cpu_control.p4.pebs_enable = 0x01000001;
         break;
       case L2_MISS:
@@ -329,7 +386,7 @@ perfCtrInit(int metric)
       break;
     case PERFCTR_X86_INTEL_PENTM:
       switch (metric) {
-      case L1_MISS:
+      case L1D_MISS:
         /* event 0x03 (L2_RQSTS), MESI 0xF, count at CPL > 0, Enable */
         //pc_control.cpu_control.evntsel[0] = 0x2E  | (0xF00) | (1 << 16) | (1 << 22);
         /* event 0x03 (DCU_LINES_IN), MESI 0xF, count at CPL > 0, Enable */
@@ -348,7 +405,7 @@ perfCtrInit(int metric)
       break;
     case PERFCTR_X86_INTEL_CORE2:
       switch (metric) {
-      case L1_MISS:
+      case L1D_MISS:
         /* event 0x45 (L1D_REPL), umask 0xf, count at CPL > 0, Enable */
         pc_control.cpu_control.evntsel[0] = 0x45 | (0xf<<8) | (1 << 16) | (1 << 22);
         break;
@@ -368,7 +425,7 @@ perfCtrInit(int metric)
 #if defined(__powerpc64__) || defined(PPC64)
     case PERFCTR_PPC64_970:
       switch (metric) {
-      case L1_MISS:
+      case L1D_MISS:
         /* oprofile event 0x4a - result in PMC2 */
         pc_control.cpu_control.pmc_map[0] = 2;
         pc_control.cpu_control.ppc64.mmcr0 = 0x0000D420L;

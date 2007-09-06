@@ -16,23 +16,13 @@ package org.mmtk.utility.options;
  * Performance counter options.
  */
 public class PerfMetric extends EnumOption {
-  // enumeration values.
-  public static final int RI = 0;
-  public static final int L1_MISS = 1;
-  public static final int L2_MISS = 2;
-  public static final int DTLB_MISS = 3;
-  public static final int ITLB_MISS = 4;
-  public static final int ITLB_HIT = 5;
-  public static final int BPU_TC = 6;
-  public static final int TC_FLUSH = 7;
-
   /**
    * Create the option.
    */
   public PerfMetric() {
     super("Perf Metric",
           "Use this to select a performance metric to measure",
-          new String[] {"RI", "L1_MISS", "L2_MISS", "DTLB_MISS", "ITLB_MISS", "ITLB_HIT", "BPU_TC", "TC_FLUSH"},
+          new String[] {"RI", "L1D_MISS", "L2_MISS", "DTLB_MISS", "ITLB_MISS", "ITLB_HIT", "BPU_TC", "TC_FLUSH", "L1I_MISS", "BRANCHES", "BRANCH_MISS"},
           0);
   }
 }
