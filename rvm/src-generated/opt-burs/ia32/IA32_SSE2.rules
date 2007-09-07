@@ -24,11 +24,6 @@ PRODUCTION
 ##################################
 # Basic Floating-Point ALU operations
 ##################################
-r: REGISTER
-0
-NOFLAGS
-// No code emitted
-
 #####
 # ADD/SUB/MUL/DIV
 #####
