@@ -1488,7 +1488,7 @@ target.jni-suffix=${target.jni-suffix}
   <!-- Create an image using a profile (which requires first creating a profile) -->
   <target name="profiled-image">
 	<ant inheritAll="false" target="create-bootimage-profile">
-	  <property name="config.variant" value="profile"/>
+	  <property name="config.with-profile" value="true"/>
 	  <property name="config.bootimage.compiler" value="base"/>
 	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_counters=true"/>
 	</ant>

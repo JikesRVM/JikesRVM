@@ -52,10 +52,13 @@
     <attribute name="property"/>
     <attribute name="config"/>
     <sequential>
+      <condition property="config.full-variant" value="${config.variant}profile" else="${config.variant}">
+        <isset property="config.with-profile"/>
+      </condition>
       <condition property="@{property}"
                  value="@{config}_${target.name}"
-                 else="@{config}_${config.variant}_${target.name}">
-        <equals arg1="${config.variant}" arg2=""/>
+                 else="@{config}_${config.full-variant}_${target.name}">
+        <equals arg1="${config.full-variant}" arg2=""/>
       </condition>
     </sequential>
   </macrodef>
