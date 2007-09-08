@@ -98,26 +98,65 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
+   *
+   * @param units The number of allocatable units for this free list
    */
   public GenericFreeList(int units) {
     this(units, units);
   }
+
+  /**
+   * Constructor
+   *
+   * @param units The number of allocatable units for this free list
+   * @param grain Units are allocated such that they will never cross this granularity boundary
+   */
   public GenericFreeList(int units, int grain) {
+    this(units, grain, 1);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param units The number of allocatable units for this free list
+   * @param grain Units are allocated such that they will never cross this granularity boundary
+   * @param heads The number of free lists which will share this instance
+   */
+  public GenericFreeList(int units, int grain, int heads) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS);
+    this.heads = heads;
+    head = -1;
 
     // allocate the data structure, including space for top & bottom sentinels
-    table = new int[(units + 2) << 1];
+    table = new int[(units + 1 + heads) << 1];
     initializeHeap(units, grain);
   }
 
   /**
+   * Constructor
+   *
+   * @param parent The parent, owning the data structures this instance will share
+   * @param ordinal The ordinal number of this child
+   */
+  public GenericFreeList(GenericFreeList parent, int ordinal) {
+    this.table = parent.getTable();
+    this.heads = parent.getHeads();
+    this.head = -(1 + ordinal);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(-this.head <= this.heads);
+  }
+
+  /** Getter */
+  int[] getTable() { return table; }
+  int getHeads() { return heads; }
+
+  /**
    * Initialize a unit as a sentinel
    *
-   * @param unit The unit to be initilized
+   * @param unit The unit to be initialized
    */
   protected void setSentinel(int unit) {
-    setLoEntry(unit, SENTINEL_LO_INIT);
-    setHiEntry(unit, SENTINEL_HI_INIT);
+    setLoEntry(unit, NEXT_MASK & unit);
+    setHiEntry(unit, PREV_MASK & unit);
   }
 
   /**
@@ -186,7 +225,7 @@ import org.vmmagic.pragma.*;
    */
   protected int getNext(int unit) {
     int next = getHiEntry(unit) & NEXT_MASK;
-    return (next <= MAX_UNITS) ? next : HEAD;
+    return (next <= MAX_UNITS) ? next : head;
   }
 
   /**
@@ -196,9 +235,9 @@ import org.vmmagic.pragma.*;
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= HEAD) && (next <= MAX_UNITS));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= -heads) && (next <= MAX_UNITS));
     int oldValue = getHiEntry(unit);
-    int newValue = (next == HEAD) ? (oldValue | NEXT_MASK) : ((oldValue & ~NEXT_MASK) | next);
+    int newValue = (oldValue & ~NEXT_MASK) | (next & NEXT_MASK);
     setHiEntry(unit, newValue);
   }
 
@@ -211,7 +250,7 @@ import org.vmmagic.pragma.*;
    */
   protected int getPrev(int unit) {
     int prev = getLoEntry(unit) & PREV_MASK;
-    return (prev <= MAX_UNITS) ? prev : HEAD;
+    return (prev <= MAX_UNITS) ? prev : head;
   }
 
   /**
@@ -221,11 +260,10 @@ import org.vmmagic.pragma.*;
    * @param prev The value to be set.
    */
   protected void setPrev(int unit, int prev) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= HEAD) && (prev <= MAX_UNITS));
-    if (prev == HEAD)
-      setLoEntry(unit, (getLoEntry(unit) | PREV_MASK));
-    else
-      setLoEntry(unit, (getLoEntry(unit) & ~PREV_MASK) | prev);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= -heads) && (prev <= MAX_UNITS));
+    int oldValue = getLoEntry(unit);
+    int newValue = (oldValue & ~PREV_MASK) | (prev & PREV_MASK);
+    setLoEntry(unit, newValue);
   }
 
   /**
@@ -249,10 +287,10 @@ import org.vmmagic.pragma.*;
    * @return The contents of the unit
    */
   private int getLoEntry(int unit) {
-    return table[(unit + 1) << 1];
+    return table[(unit + heads) << 1];
   }
   private int getHiEntry(int unit) {
-    return table[((unit + 1) << 1) + 1];
+    return table[((unit + heads) << 1) + 1];
   }
 
   /**
@@ -262,10 +300,10 @@ import org.vmmagic.pragma.*;
    * @param value The contents of the unit
    */
   private void setLoEntry(int unit, int value) {
-    table[(unit + 1) << 1] = value;
+    table[(unit + heads) << 1] = value;
   }
   private void setHiEntry(int unit, int value) {
-    table[((unit + 1) << 1) + 1] = value;
+    table[((unit + heads) << 1) + 1] = value;
   }
 
   private static final int TOTAL_BITS = 32;
@@ -276,11 +314,6 @@ import org.vmmagic.pragma.*;
   private static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
   private static final int MULTI_MASK = 1 << (TOTAL_BITS - 1);
   private static final int SIZE_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
-
-  // want the sentinels to be "used" & "single", and want first
-  // sentinel to initially point to itself.
-  private static final int SENTINEL_LO_INIT = PREV_MASK;
-  private static final int SENTINEL_HI_INIT = NEXT_MASK;
 
   private int[] table;
 }

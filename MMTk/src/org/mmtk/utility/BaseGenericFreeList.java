@@ -105,11 +105,11 @@ import org.vmmagic.pragma.*;
    */
   public final int alloc(int size) {
     // Note: -1 is both the default return value *and* the start sentinel index
-    int rtn = HEAD; // HEAD = -1
+    int unit = head; // HEAD = -1
     int s = 0;
-    while (((rtn = getNext(rtn)) != HEAD) && ((s = getSize(rtn)) < size));
+    while (((unit = getNext(unit)) != head) && ((s = getSize(unit)) < size));
 
-    return alloc(size, rtn, s);
+    return alloc(size, unit, s);
   }
 
   /**
@@ -120,10 +120,10 @@ import org.vmmagic.pragma.*;
    */
   public final boolean couldAlloc(int size) {
     // Note: -1 is both the default return value *and* the start sentinel index
-    int rtn = HEAD; // HEAD = -1
-    while (((rtn = getNext(rtn)) != HEAD) && (getSize(rtn) < size));
+    int unit = head; // HEAD = -1
+    while (((unit = getNext(unit)) != head) && (getSize(unit) < size));
 
-    return (rtn != -1);
+    return (unit != head);
   }
 
   /**
@@ -139,7 +139,7 @@ import org.vmmagic.pragma.*;
     if (getFree(unit) && (s = getSize(unit)) >= size)
       return alloc(size, unit, s);
     else
-      return HEAD;
+      return FAILURE;
   }
 
   /**
@@ -158,6 +158,7 @@ import org.vmmagic.pragma.*;
     }
 
     if (DEBUG) dbgPrintFree();
+
     return unit;
   }
 
@@ -165,6 +166,7 @@ import org.vmmagic.pragma.*;
    * Free a previously allocated contiguous lump of units.
    *
    * @param unit The index of the first unit.
+   * @param returnCoalescedSize TODO
    * @return The number of units freed.
    */
   public final int free(int unit) {
@@ -173,9 +175,9 @@ import org.vmmagic.pragma.*;
     int end = getFree(getRight(unit)) ? getRight(unit) : unit;
     if (start != end)
       coalesce(start, end);
+
     addToFree(start);
     if (DEBUG) dbgPrintFree();
-
     return freed;
   }
 
@@ -211,8 +213,9 @@ import org.vmmagic.pragma.*;
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units, int grain) {
-    // Initialize the sentiels
-    setSentinel(-1);
+    // Initialize the sentinels
+    for (int i = 1; i <= heads; i++)
+      setSentinel(-i);
     setSentinel(units);
 
     // create the free list item
@@ -243,6 +246,7 @@ import org.vmmagic.pragma.*;
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);
+    if (DEBUG) dbgPrintFree();
   }
 
   /**
@@ -267,10 +271,10 @@ import org.vmmagic.pragma.*;
    */
   private void addToFree(int unit) {
     setFree(unit, true);
-    int next = getNext(HEAD);
+    int next = getNext(head);
     setNext(unit, next);
-    setNext(HEAD, unit);
-    setPrev(unit, HEAD);
+    setNext(head, unit);
+    setPrev(unit, head);
     setPrev(next, unit);
   }
 
@@ -284,6 +288,7 @@ import org.vmmagic.pragma.*;
     int prev = getPrev(unit);
     setNext(prev, next);
     setPrev(next, prev);
+    if (DEBUG) dbgPrintFree();
   }
 
   /**
@@ -304,8 +309,8 @@ import org.vmmagic.pragma.*;
   void dbgPrintFree() {
     if (DEBUG) {
       Log.write("FL[");
-      int i = HEAD;
-      while ((i = getNext(i)) != HEAD) {
+      int i = head;
+      while ((i = getNext(i)) != head) {
         boolean f = getFree(i);
         int s = getSize(i);
         if (!f)
@@ -313,9 +318,9 @@ import org.vmmagic.pragma.*;
         Log.write(i);
         if (!f)
           Log.write("<-");
-        Log.write("[");
+        Log.write("(");
         Log.write(s);
-        Log.write("]");
+        Log.write(")");
         Log.write(" ");
         Log.flush();
       }
@@ -335,5 +340,8 @@ import org.vmmagic.pragma.*;
   abstract int getLeft(int unit);
 
   protected static final boolean DEBUG = false;
-  protected static final int HEAD = -1;
+  protected static final int FAILURE = -1;
+
+  protected int heads = 1;
+  protected int head = -heads;
 }
