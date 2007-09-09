@@ -29,6 +29,16 @@ import org.vmmagic.unboxed.*;
   public abstract void setArrayNoBarrier(char [] dst, int index, char value);
 
   /**
+   * Sets an element of an object array without invoking any write
+   * barrier.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  public abstract void setArrayNoBarrier(Object [] dst, int index, Object value);
+
+  /**
    * Perform the actual write of the write barrier.
    *
    * @param ref The object that has the reference field

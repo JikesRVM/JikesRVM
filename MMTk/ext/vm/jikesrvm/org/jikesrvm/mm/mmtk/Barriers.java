@@ -88,6 +88,26 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Sets an element of a object array without invoking any write
+   * barrier.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  @Override
+  public final void setArrayNoBarrier(Object [] dst, int index, Object value) {
+    setArrayNoBarrierStatic(dst, index, value);
+  }
+  @UninterruptibleNoWarn
+  public static void setArrayNoBarrierStatic(Object [] dst, int index, Object value) {
+    if (VM.runningVM)
+      VM_Magic.setObjectAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS), value);
+    else
+      dst[index] = value;
+  }
+
+  /**
    * Sets an element of a char array without invoking any write
    * barrier.  This method is called by the Log method, as it will be
    * used during garbage collection and needs to manipulate character
