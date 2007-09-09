@@ -89,7 +89,8 @@ import org.vmmagic.pragma.*;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  */
-@Uninterruptible public final class GenericFreeList extends BaseGenericFreeList implements Constants {
+@Uninterruptible
+public final class GenericFreeList extends BaseGenericFreeList implements Constants {
 
   /****************************************************************************
    *
@@ -123,7 +124,7 @@ import org.vmmagic.pragma.*;
    * @param heads The number of free lists which will share this instance
    */
   public GenericFreeList(int units, int grain, int heads) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS && heads <= MAX_HEADS);
     this.heads = heads;
     head = -1;
 
@@ -308,7 +309,7 @@ import org.vmmagic.pragma.*;
 
   private static final int TOTAL_BITS = 32;
   private static final int UNIT_BITS = (TOTAL_BITS - 1);
-  private static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - 1);
+  private static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - MAX_HEADS - 1);
   private static final int NEXT_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
   private static final int PREV_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
   private static final int FREE_MASK = 1 << (TOTAL_BITS - 1);

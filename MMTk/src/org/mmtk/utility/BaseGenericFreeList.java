@@ -109,7 +109,7 @@ import org.vmmagic.pragma.*;
     int s = 0;
     while (((unit = getNext(unit)) != head) && ((s = getSize(unit)) < size));
 
-    return alloc(size, unit, s);
+    return (unit == head) ? FAILURE : alloc(size, unit, s);
   }
 
   /**
@@ -166,17 +166,32 @@ import org.vmmagic.pragma.*;
    * Free a previously allocated contiguous lump of units.
    *
    * @param unit The index of the first unit.
-   * @param returnCoalescedSize TODO
-   * @return The number of units freed.
+   * @return return the size of the unit which was freed.
    */
   public final int free(int unit) {
+    return free(unit, false);
+  }
+
+  /**
+   * Free a previously allocated contiguous lump of units.
+   *
+   * @param unit The index of the first unit.
+   * @param returnCoalescedSize if true, return the coalesced size
+   * @return The number of units freed. if returnCoalescedSize is
+   *  false, return the size of the unit which was freed.  Otherwise
+   *   return the size of the unit now available (the coalesced size)
+   */
+  public final int free(int unit, boolean returnCoalescedSize) {
     int freed = getSize(unit);
     int start = getFree(getLeft(unit)) ? getLeft(unit) : unit;
     int end = getFree(getRight(unit)) ? getRight(unit) : unit;
     if (start != end)
       coalesce(start, end);
 
+    if (returnCoalescedSize)
+      freed = getSize(start);
     addToFree(start);
+
     if (DEBUG) dbgPrintFree();
     return freed;
   }
@@ -341,6 +356,7 @@ import org.vmmagic.pragma.*;
 
   protected static final boolean DEBUG = false;
   protected static final int FAILURE = -1;
+  protected static final int MAX_HEADS = 128; // somewhat arbitrary
 
   protected int heads = 1;
   protected int head = -heads;
