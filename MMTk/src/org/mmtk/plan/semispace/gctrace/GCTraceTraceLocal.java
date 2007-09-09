@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
    * @param trace The global trace to use.
    */
   public GCTraceTraceLocal(Trace trace) {
-    super(trace);
+    super(trace, false);
   }
 
   /****************************************************************************

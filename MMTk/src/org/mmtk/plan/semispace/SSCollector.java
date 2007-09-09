@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public SSCollector() {
-    this(new SSTraceLocal(SS.SCAN_SS, global().ssTrace));
+    this(new SSTraceLocal(global().ssTrace));
   }
 
   /**
@@ -65,7 +65,6 @@ import org.vmmagic.pragma.*;
   protected SSCollector(SSTraceLocal tr) {
     ss = new CopyLocal(SS.copySpace0);
     trace = tr;
-
   }
 
   /****************************************************************************
