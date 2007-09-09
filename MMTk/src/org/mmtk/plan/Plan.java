@@ -47,13 +47,13 @@ import org.vmmagic.unboxed.*;
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
- * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * methods of PlanLocal allow fast, unsynchronized access to functions such as
  * allocation and collection.
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance proprties of MMTk plans.
+ * performance properties of MMTk plans.
  */
 @Uninterruptible
 public abstract class Plan implements Constants {
@@ -73,6 +73,7 @@ public abstract class Plan implements Constants {
   /* Space Size Constants. */
   public static final int IMMORTAL_MB = 32;
   public static final int META_DATA_MB = 32;
+  public static final int SANITY_DATA_MB = 32;
   public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
   public static final float LOS_FRAC = (float) 0.03;
@@ -124,12 +125,15 @@ public abstract class Plan implements Constants {
       large object space. */
   public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);
 
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, SANITY_DATA_MB);
+
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
   public static final int VM_SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
   public static final int PLOS = ploSpace.getDescriptor();
+  public static final int SANITY = sanitySpace.getDescriptor();
 
   /** Timer that counts total time */
   public static final Timer totalTime = new Timer("time");
