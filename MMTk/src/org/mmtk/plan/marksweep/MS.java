@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.*;
    * Class variables
    */
 
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final MarkSweepSpace msSpace = USE_DISCONTIGUOUS_SPACES ? new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY) : new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, 0.6f);
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   public static final int SCAN_MARK = 0;

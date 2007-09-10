@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MATURE_FRACTION);
+  public static final MarkSweepSpace msSpace = USE_DISCONTIGUOUS_SPACES ? new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY) : new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MATURE_FRACTION);
 
   public static final int MS = msSpace.getDescriptor();
 

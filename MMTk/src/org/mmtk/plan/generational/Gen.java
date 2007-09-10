@@ -47,8 +47,8 @@ import org.vmmagic.unboxed.*;
    *
    * Constants
    */
-  protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final float MATURE_FRACTION = (float) 0.5; // est yield
+  protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
+  protected static final float MATURE_FRACTION = 0.5f; // est yield
   public static final boolean IGNORE_REMSETS = false;
   public static final boolean USE_STATIC_WRITE_BARRIER = false;
 
@@ -75,7 +75,7 @@ import org.vmmagic.unboxed.*;
   public static SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, 0.15f, true, false);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   public static final Address NURSERY_START = nurserySpace.getStart();
