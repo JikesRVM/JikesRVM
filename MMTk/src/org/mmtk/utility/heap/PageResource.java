@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.*;
  * be satisfied (for either reason) a GC may be triggered.<p>
  *
  * This class is abstract, and is subclassed with monotone and
- * freelist variants, which reflect monotonic and ad hoc space useage
+ * freelist variants, which reflect monotonic and ad hoc space usage
  * respectively.  Monotonic use is easier to manage, but is obviously
  * more restrictive (useful for copying collectors which allocate
  * monotonically before freeing the entire space and starting over).
@@ -45,7 +45,7 @@ public abstract class PageResource implements Constants {
    */
   protected static final boolean ZERO_ON_RELEASE = false; // debugging
 
-  private static Lock classLock;
+  private static final Lock classLock;
   private static long cumulativeCommitted = 0;
 
 
@@ -58,14 +58,15 @@ public abstract class PageResource implements Constants {
   protected int reserved;
   protected int committed;
   protected int required;
-  private int pageBudget;
+  private final int pageBudget;
 
-  protected boolean contiguous = false;
+  protected final boolean contiguous;
+  protected final Space space;
   protected Address start; // only for contiguous
 
   // locking
-  private Lock gcLock; // used during GC
-  private Lock mutatorLock; // used by mutators
+  private final Lock gcLock; // used during GC
+  private final Lock mutatorLock; // used by mutators
 
   /****************************************************************************
    *
@@ -83,23 +84,35 @@ public abstract class PageResource implements Constants {
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
-  PageResource(int pageBudget, Space space) {
+  private PageResource(int pageBudget, Space space, boolean contiguous) {
     this.pageBudget = pageBudget;
+    this.contiguous = contiguous;
+    this.space = space;
     gcLock = VM.newLock(space.getName() + ".gcLock");
     mutatorLock = VM.newLock(space.getName() + ".mutatorLock");
   }
 
   /**
-   * Constructor
+   * Constructor for discontiguous spaces
+   *
+   * @param pageBudget The budget of pages available to this memory
+   * manager before it must poll the collector.
+   * @param space The space to which this resource is attached
+   */
+  PageResource(int pageBudget, Space space) {
+    this(pageBudget, space, false);
+  }
+
+  /**
+   * Constructor for contiguous spaces
    *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
   PageResource(int pageBudget, Space space, Address start) {
-    this(pageBudget, space);
+    this(pageBudget, space, true);
     this.start = start;
-    this.contiguous = true;
   }
 
   /**

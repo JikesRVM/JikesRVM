@@ -355,7 +355,7 @@ import org.vmmagic.pragma.*;
   abstract int getLeft(int unit);
 
   protected static final boolean DEBUG = false;
-  protected static final int FAILURE = -1;
+  public static final int FAILURE = -1;
   protected static final int MAX_HEADS = 128; // somewhat arbitrary
 
   protected int heads = 1;

@@ -13,6 +13,7 @@
 package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
+import static org.mmtk.policy.Space.PAGES_IN_CHUNK;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
@@ -31,15 +32,15 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public final class FreeListPageResource extends PageResource
   implements Constants {
 
-  private GenericFreeList freeList;
+  private final GenericFreeList freeList;
   private int highWaterMark = 0;
-  private int metaDataPagesPerRegion = 0;
+  private final int metaDataPagesPerRegion;
 
   /**
    * Constructor
    *
    * Contiguous monotone resource. The address range is pre-defined at
-   * initializtion time and is immutable.
+   * initialization time and is immutable.
    *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
@@ -51,13 +52,14 @@ import org.vmmagic.pragma.*;
       Extent bytes) {
     super(pageBudget, space, start);
     freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
+    this.metaDataPagesPerRegion = 0;
   }
 
   /**
    * Constructor
    *
    * Contiguous monotone resource. The address range is pre-defined at
-   * initializtion time and is immutable.
+   * initialization time and is immutable.
    *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
@@ -79,19 +81,18 @@ import org.vmmagic.pragma.*;
    * Constructor
    *
    * Discontiguous monotone resource. The address range is <i>not</i>
-   * pre-defined at initializtion time and is dynamically defined to
+   * pre-defined at initialization time and is dynamically defined to
    * be some set of pages, according to demand and availability.
-   *
-   * CURRENTLY UNIMPLEMENTED
    *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
-  public FreeListPageResource(int pageBudget, Space space) {
+  public FreeListPageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
     super(pageBudget, space);
-    /* unimplemented */
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    this.metaDataPagesPerRegion = metaDataPagesPerRegion;
+    this.start = Space.AVAILABLE_START;
+    freeList = new GenericFreeList(Map.globalPageMap, Map.getSpaceMapOrdinal());
   }
 
   /**
@@ -99,7 +100,7 @@ import org.vmmagic.pragma.*;
    *
    * If the request can be satisfied, then ensure the pages are
    * mmpapped and zeroed before returning the address of the start of
-   * the region.  If the request cannot be satisified, return zero.
+   * the region.  If the request cannot be satisfied, return zero.
    *
    * @param pages The number of pages to be allocated.
    * @return The start of the first page if successful, zero on
@@ -107,9 +108,11 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   protected Address allocPages(int pages) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || pages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
     lock();
     int pageOffset = freeList.alloc(pages);
+    if (pageOffset == GenericFreeList.FAILURE && !contiguous)
+      pageOffset = allocateContiguousChunks(pages);
     if (pageOffset == -1) {
       unlock();
       return Address.zero();
@@ -159,8 +162,64 @@ import org.vmmagic.pragma.*;
     lock();
     reserved -= pages;
     committed -= pages;
-    freeList.free(pageOffset);
+    int freed = freeList.free(pageOffset, true);
+    // FIXME Can't yet deal with multi-chunk regions :-/
+    if (!contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion))
+      freeDiscontiguousChunk(Space.chunkAlign(first, true));
     unlock();
+  }
+
+  /**
+   * Allocate sufficient contiguous chunks within a discontiguous region to
+   * satisfy the pending request.  Note that this is purely about address space
+   * allocation within a discontiguous region.  This method does not reserve
+   * individual pages, it merely assigns a suitably large region of virtual
+   * memory from within the discontiguous region for use by a particular space.
+   *
+   * @param pages The number of pages currently being requested
+   * @return A chunk number or GenericFreelist.FAILURE
+   */
+  private int allocateContiguousChunks(int pages) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || pages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
+    int rtn = -1;
+    Extent required = Space.chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
+    Address region = space.growDiscontiguousSpace(required);
+    if (!region.isZero()) {
+      int regionStart = Conversions.bytesToPages(region.diff(start));
+      int regionEnd = regionStart + required.toWord().rshl(LOG_BYTES_IN_PAGE).toInt() - 1;
+      // FIXME --- we throw away the first page to avoid cross-region coalescing...
+      if (metaDataPagesPerRegion > 0) // ensure that we have at least one empty page to avoid bad coalescing
+        freeList.free(regionStart + metaDataPagesPerRegion);
+      for (int i = regionStart + metaDataPagesPerRegion + 1; i < regionEnd; i++) {
+        if (!(i % PAGES_IN_CHUNK < metaDataPagesPerRegion)) {
+          freeList.free(i);
+        }
+      }
+      freeList.free(regionEnd);
+      rtn = freeList.alloc(pages); // re-do the request which triggered this call
+    }
+    return rtn;
+  }
+
+  /**
+   * Release a single chunk from a discontiguous region.  All this does is
+   * release a chunk from the virtual address space associated with this
+   * discontiguous space.
+   *
+   * @param chunk The chunk to be freed
+   */
+  private void freeDiscontiguousChunk(Address chunk) {
+    // FIXME current assumption is that this is a single chunk
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion > 0);
+    int chunkStart = Conversions.bytesToPages(chunk.diff(start));
+    int usableChunkStart = chunkStart + metaDataPagesPerRegion;
+    /* pin down each of the pages so they can't be locally re-used again */
+    for (int i = usableChunkStart; i < chunkStart + PAGES_IN_CHUNK; i++) {
+      int tmp = freeList.alloc(1, i);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == i);
+    }
+    /* return the chunk */
+    space.releaseDiscontiguousChunk(chunk);
   }
 
   /**

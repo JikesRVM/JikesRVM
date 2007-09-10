@@ -41,7 +41,6 @@ import org.vmmagic.unboxed.*;
  * policy, spaces also manage memory consumption (<i>used</i> virtual
  * memory).<p>
  *
- * Discontiguous spaces are currently unsupported.
  */
 @Uninterruptible
 public abstract class Space implements Constants {
@@ -135,7 +134,7 @@ public abstract class Space implements Constants {
     this(name, movable, immortal, false, SpaceDescriptor.createDescriptor());
     this.start = Address.zero();
     this.extent = Extent.zero();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); // unsupported
+    VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
   }
 
   /**
@@ -169,7 +168,6 @@ public abstract class Space implements Constants {
       Log.write(bytes.toLong()); Log.writeln(" bytes");
       Log.writeln("(requests should be Space.BYTES_IN_CHUNK aligned)");
     }
-
     VM.memory.setHeapRange(index, start, start.plus(bytes));
     Map.insert(start, extent, descriptor, this);
 
@@ -312,7 +310,6 @@ public abstract class Space implements Constants {
       heapCursor = heapCursor.plus(extent);
     }
   }
-
 
   /****************************************************************************
    *
@@ -538,6 +535,35 @@ public abstract class Space implements Constants {
 
     if (allowPoll) VM.collection.reportAllocationSuccess();
     return rtn;
+  }
+
+  /**
+   * Extend the virtual memory associated with a particular discontiguous
+   * space.  This simply involves requesting a suitable number of chunks
+   * from the pool of chunks available to discontiguous spaces.
+   *
+   * @param bytes The amount by which the space needs to be extended
+   * (will be rounded up to chunks)
+   * @return The address of the new discontiguous space.
+   */
+  public Address growDiscontiguousSpace(Extent bytes) {
+    Extent extent = chunkAlign(bytes, false);
+    int chunks = extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
+    start = Map.allocateContiguousChunks(descriptor, this, chunks, start);
+    this.extent = (start.isZero()) ? Extent.zero() : extent;
+    return start;
+  }
+
+  /**
+   * Release one or more contiguous chunks associated with a discontiguous
+   * space.
+   *
+   * @param chunk THe address of the start of the contiguous chunk or chunks
+   */
+  public void releaseDiscontiguousChunk(Address chunk) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
+    // FIXME need to properly deal with start and extent --- see use in VM_Scheduler :-/
+    Map.freeContiguousChunks(chunk);
   }
 
   /**
