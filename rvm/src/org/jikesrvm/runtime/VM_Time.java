@@ -60,4 +60,12 @@ public class VM_Time {
   public static long currentTimeMillis() {
     return VM_SysCall.sysCall.sysCurrentTimeMillis();
   }
+
+  public static double nanosToSecs(long nanos) {
+    return ((double)nanos)/1E9;
+  }
+
+  public static long secsToNanos(double secs) {
+    return (long)(secs*1E9);
+  }
 }

@@ -22,7 +22,8 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A counter that supports atomic increment and reset.
  */
-@Uninterruptible public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
+@Uninterruptible
+public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 
   private static Offset offset = Offset.max();
 

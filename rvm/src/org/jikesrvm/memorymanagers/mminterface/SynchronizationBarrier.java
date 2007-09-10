@@ -20,7 +20,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
-import org.mmtk.utility.Barrier;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**

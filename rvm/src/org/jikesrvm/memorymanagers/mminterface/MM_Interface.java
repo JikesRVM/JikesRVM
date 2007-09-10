@@ -37,7 +37,6 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Memory;

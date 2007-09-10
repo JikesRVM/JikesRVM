@@ -58,7 +58,8 @@
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
 
-[Lorg/mmtk/vm/SynchronizedCounter;
+[Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
+
 [Lorg/mmtk/plan/Phase;
 [Lorg/mmtk/policy/Space;
 [Lorg/mmtk/utility/statistics/Stats;
