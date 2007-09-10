@@ -197,7 +197,7 @@ public class Map {
       int tmp = globalPageMap.alloc(1);      // pin down entire space
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == p);
     }
-    Space.printVMMap();
+    /* Space.printVMMap(); */
   }
 
   /**
