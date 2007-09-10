@@ -86,6 +86,22 @@ import org.vmmagic.unboxed.*;
    * @param start The start address of the space in virtual memory
    * @param bytes The size of the space in virtual memory, in bytes
    */
+  public MarkSweepSpace(String name, int pageBudget) {
+    super(name, false, false);
+    pr = new FreeListPageResource(pageBudget, this, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  }
+
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
+   */
   public MarkSweepSpace(String name, int pageBudget, Address start,
                         Extent bytes) {
     super(name, false, false, start, bytes);

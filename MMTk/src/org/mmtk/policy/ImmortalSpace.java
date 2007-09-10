@@ -49,6 +49,21 @@ import org.vmmagic.pragma.*;
    *
    * Initialization
    */
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
+   */
+  public ImmortalSpace(String name, int pageBudget) {
+    super(name, false, true);
+    pr = new MonotonePageResource(pageBudget, this, META_DATA_PAGES_PER_REGION);
+  }
 
   /**
    * The caller specifies the region of virtual memory to be used for

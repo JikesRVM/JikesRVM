@@ -21,6 +21,7 @@ import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
+import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
@@ -167,6 +168,8 @@ public abstract class Plan implements Constants {
     Options.sanityCheck = new SanityCheck();
     Options.debugAddress = new DebugAddress();
     Options.perfMetric = new PerfMetric();
+
+    Map.finalizeStaticSpaceMap();
   }
 
   /****************************************************************************

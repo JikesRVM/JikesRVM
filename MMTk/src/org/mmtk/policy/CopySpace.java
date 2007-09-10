@@ -80,6 +80,26 @@ import org.vmmagic.pragma.*;
    * @param fromSpace The does this instance start life as from-space
    * (or to-space)?
    */
+  public CopySpace(String name, int pageBudget, boolean fromSpace) {
+    super(name, true, false);
+    this.fromSpace = fromSpace;
+    pr = new MonotonePageResource(pageBudget, this, META_DATA_PAGES_PER_REGION);
+  }
+
+
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
+   * @param fromSpace The does this instance start life as from-space
+   * (or to-space)?
+   */
   public CopySpace(String name, int pageBudget, Address start, Extent bytes,
       boolean fromSpace) {
     super(name, true, false, start, bytes);
@@ -204,7 +224,13 @@ import org.vmmagic.pragma.*;
    * Release this copy space after a collection.  This means releasing
    * all pages associated with this (now empty) space.
    */
-  public void release() { ((MonotonePageResource) pr).reset(); }
+  public void release() {
+    if (!contiguous) {
+      start = Address.zero();
+      extent = Extent.zero();
+    }
+    ((MonotonePageResource) pr).reset();
+  }
 
   /**
    * Release an allocated page or pages.  In this case we do nothing
