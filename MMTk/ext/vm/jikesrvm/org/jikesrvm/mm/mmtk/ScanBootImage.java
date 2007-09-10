@@ -32,7 +32,7 @@ public class ScanBootImage implements Constants {
   private static final boolean DEBUG = false;
   private static final boolean FILTER = true;
 
-  private static final int LOG_CHUNK_BYTES = 10;
+  private static final int LOG_CHUNK_BYTES = 12;
   private static final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
   private static final int LONG_MASK = 0x1;
   private static final int RUN_MASK = 0x2;
