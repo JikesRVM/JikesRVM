@@ -57,6 +57,9 @@ import org.vmmagic.unboxed.*;
   private static final int VM_MANTISSA_BITS = 14;
   private static final int VM_BASE_EXPONENT = BITS_IN_INT - VM_MANTISSA_BITS;
 
+  private static int discontiguousSpaceIndex = 0;
+  private static int DISCONTIG_INDEX_INCREMENT = 1<<VM_TYPE_BITS;
+
   /****************************************************************************
    *
    * Descriptor creation
@@ -99,7 +102,9 @@ import org.vmmagic.unboxed.*;
    * maps).
    */
   public static int createDescriptor() {
-    return VM_TYPE_SHARED;
+    discontiguousSpaceIndex += DISCONTIG_INDEX_INCREMENT;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((discontiguousSpaceIndex & VM_TYPE_CONTIGUOUS) != VM_TYPE_CONTIGUOUS);
+    return discontiguousSpaceIndex;
   }
 
   /****************************************************************************
