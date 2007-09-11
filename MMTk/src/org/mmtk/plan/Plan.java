@@ -171,7 +171,8 @@ public abstract class Plan implements Constants {
     Options.debugAddress = new DebugAddress();
     Options.perfMetric = new PerfMetric();
 
-    Map.finalizeStaticSpaceMap();
+    if (USE_DISCONTIGUOUS_SPACES)
+      Map.finalizeStaticSpaceMap();
   }
 
   /****************************************************************************

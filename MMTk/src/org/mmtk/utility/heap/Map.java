@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility.heap;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.utility.Log;
@@ -52,8 +53,8 @@ public class Map {
     descriptorMap = new int[Space.MAX_CHUNKS];
     linkageMap = new int[Space.MAX_CHUNKS];
     spaceMap = new Space[Space.MAX_CHUNKS];
-    regionMap = new GenericFreeList(Space.MAX_CHUNKS);
-    globalPageMap = new GenericFreeList(Space.AVAILABLE_PAGES, Space.AVAILABLE_PAGES, Space.MAX_SPACES);
+    regionMap = Plan.USE_DISCONTIGUOUS_SPACES ? new GenericFreeList(Space.MAX_CHUNKS) : null;
+    globalPageMap = Plan.USE_DISCONTIGUOUS_SPACES ? new GenericFreeList(Space.AVAILABLE_PAGES, Space.AVAILABLE_PAGES, Space.MAX_SPACES) : null;
   }
 
   /****************************************************************************
