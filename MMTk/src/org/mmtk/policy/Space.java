@@ -559,11 +559,12 @@ public abstract class Space implements Constants {
    * space.
    *
    * @param chunk THe address of the start of the contiguous chunk or chunks
+   * @return The number of chunks freed
    */
-  public void releaseDiscontiguousChunk(Address chunk) {
+  public int releaseDiscontiguousChunks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
     // FIXME need to properly deal with start and extent --- see use in VM_Scheduler :-/
-    Map.freeContiguousChunks(chunk);
+    return Map.freeContiguousChunks(chunk);
   }
 
   /**

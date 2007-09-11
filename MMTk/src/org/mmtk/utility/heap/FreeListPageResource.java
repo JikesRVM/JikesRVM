@@ -163,9 +163,9 @@ import org.vmmagic.pragma.*;
     reserved -= pages;
     committed -= pages;
     int freed = freeList.free(pageOffset, true);
-    // FIXME Can't yet deal with multi-chunk regions :-/
+    // FIXME Can't yet figure out when we're done with an entire multi-chunk region :-/
     if (!contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion))
-      freeDiscontiguousChunk(Space.chunkAlign(first, true));
+      freeContiguousChunk(Space.chunkAlign(first, true));
     unlock();
   }
 
@@ -181,22 +181,24 @@ import org.vmmagic.pragma.*;
    */
   private int allocateContiguousChunks(int pages) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || pages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
-    int rtn = -1;
+    int rtn = GenericFreeList.FAILURE;
     Extent required = Space.chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
     Address region = space.growDiscontiguousSpace(required);
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
       int regionEnd = regionStart + required.toWord().rshl(LOG_BYTES_IN_PAGE).toInt() - 1;
-      // FIXME --- we throw away the first page to avoid cross-region coalescing...
-      if (metaDataPagesPerRegion > 0) // ensure that we have at least one empty page to avoid bad coalescing
-        freeList.free(regionStart + metaDataPagesPerRegion);
-      for (int i = regionStart + metaDataPagesPerRegion + 1; i < regionEnd; i++) {
-        if (!(i % PAGES_IN_CHUNK < metaDataPagesPerRegion)) {
-          freeList.free(i);
+      for (int p = regionStart; p < regionEnd; p += Space.PAGES_IN_CHUNK) {
+        int liberated;
+        if (p != regionStart) {
+          liberated = freeList.free(p); // first page to our free list
+          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == 1);
         }
+        liberated = freeList.free(p+1); // add remainder of chunk to our free list
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == Space.PAGES_IN_CHUNK-1);
+        if (metaDataPagesPerRegion > 1)
+          freeList.alloc(metaDataPagesPerRegion - 1, p+1); // carve out space for metadata
       }
-      freeList.free(regionEnd);
-      rtn = freeList.alloc(pages); // re-do the request which triggered this call
+      rtn = freeList.alloc(pages, regionStart + (metaDataPagesPerRegion > 0 ? metaDataPagesPerRegion : 1)); // re-do the request which triggered this call
     }
     return rtn;
   }
@@ -208,18 +210,27 @@ import org.vmmagic.pragma.*;
    *
    * @param chunk The chunk to be freed
    */
-  private void freeDiscontiguousChunk(Address chunk) {
-    // FIXME current assumption is that this is a single chunk
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion > 0);
+  private void freeContiguousChunk(Address chunk) {
+    int numChunks = Map.getContiguousRegionChunks(chunk);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numChunks == 1 || metaDataPagesPerRegion == 0);
+
+    /* nail down all pages associated with the chunk, so it is no longer on our free list */
     int chunkStart = Conversions.bytesToPages(chunk.diff(start));
-    int usableChunkStart = chunkStart + metaDataPagesPerRegion;
-    /* pin down each of the pages so they can't be locally re-used again */
-    for (int i = usableChunkStart; i < chunkStart + PAGES_IN_CHUNK; i++) {
-      int tmp = freeList.alloc(1, i);
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == i);
+    int chunkEnd = chunkStart + (numChunks*Space.PAGES_IN_CHUNK);
+
+    while (chunkStart < chunkEnd) {
+      if (metaDataPagesPerRegion > 0)
+        freeList.free(chunkStart+1);  // first free any metadata pages
+      int tmp = freeList.alloc(Space.PAGES_IN_CHUNK-1, chunkStart+1); // then alloc the entire chunk
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == chunkStart+1);
+      chunkStart += Space.PAGES_IN_CHUNK;
+      if (chunkStart < chunkEnd) {
+        tmp = freeList.alloc(1, chunkStart);  // to avoid inter-chunk coalescing
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == 1);
+      }
     }
-    /* return the chunk */
-    space.releaseDiscontiguousChunk(chunk);
+    /* now return the address space associated with the chunk for global reuse */
+    space.releaseDiscontiguousChunks(chunk);
   }
 
   /**

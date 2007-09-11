@@ -128,15 +128,25 @@ public class Map {
   }
 
   /**
-   * Return the size of a contiguous region.
+   * Return the size of a contiguous region in chunks.
+   *
+   * @param start The start address of the region whose size is being requested
+   * @return The size of the region in question
+   */
+  public static int getContiguousRegionChunks(Address start) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
+    int chunk = hashAddress(start);
+    return regionMap.size(chunk);
+  }
+
+  /**
+   * Return the size of a contiguous region in bytes.
    *
    * @param start The start address of the region whose size is being requested
    * @return The size of the region in question
    */
   public static Extent getContiguousRegionSize(Address start) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    int chunk = hashAddress(start);
-    return Word.fromIntSignExtend(regionMap.size(chunk)).rshl(Space.LOG_BYTES_IN_CHUNK).toExtent();
+    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).rshl(Space.LOG_BYTES_IN_CHUNK).toExtent();
   }
 
   /**
@@ -156,27 +166,41 @@ public class Map {
   }
 
   /**
-   * Free some set of contiguous chunks, given the start address of those chunks
+   * Return the size of a region of contiguous chunks
    *
-   * @param start The start address of the contiguous chunks to be freed.
+   * @param start The start address of the first chunk in the series
+   * @return The number of chunks which were contiguously allocated
    */
-  public static void freeContiguousChunks(Address start) {
+  public static int sizeOfContiguousChunks(Address start) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    freeContiguousChunks(hashAddress(start));
+    return regionMap.size(hashAddress(start));
+  }
+
+  /**
+   * Free some set of contiguous chunks, given the chunk address
+   *
+   * @param start The start address of the first chunk in the series
+   * @return The number of chunks which were contiguously allocated
+   */
+  public static int freeContiguousChunks(Address start) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
+    return freeContiguousChunks(hashAddress(start));
   }
 
   /**
    * Free some set of contiguous chunks, given the chunk index
    *
    * @param chunk The chunk index of the region to be freed
+   * @return The number of chunks freed
    */
-  private static void freeContiguousChunks(int chunk) {
+  private static int freeContiguousChunks(int chunk) {
     int chunks = regionMap.free(chunk);
     for (int offset = 0; offset < chunks; offset++) {
       descriptorMap[chunk + offset] = 0;
       VM.barriers.setArrayNoBarrier(spaceMap, chunk + offset, null);
       linkageMap[chunk + offset] = 0;
     }
+    return chunks;
   }
 
   /**
@@ -187,15 +211,17 @@ public class Map {
   public static void finalizeStaticSpaceMap() {
     int start = hashAddress(Space.AVAILABLE_START);
     int end = hashAddress(Space.AVAILABLE_END);
+
     regionMap.alloc(start);                  // block out entire bottom of address range
     for (int chunk = start; chunk < end; chunk++)
       regionMap.alloc(1);                    // tentitively allocate all usable chunks
     regionMap.alloc(Space.MAX_CHUNKS - end); // block out entire top of address range
-    for (int chunk = start; chunk < end; chunk++)
+    for (int chunk = start; chunk < end; chunk++) {
       if (spaceMap[chunk] == null) regionMap.free(chunk);  // free all unpinned chunks
-    for (int p = 0; p < Space.AVAILABLE_PAGES; p++) {
-      int tmp = globalPageMap.alloc(1);      // pin down entire space
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == p);
+      int tmp = globalPageMap.alloc(1); // populate the global page map
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp/Space.PAGES_IN_CHUNK == chunk - start);
+      tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK - 1); // populate the global page map
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp/Space.PAGES_IN_CHUNK == chunk - start);
     }
     /* Space.printVMMap(); */
   }
