@@ -797,5 +797,20 @@ public final class VM_Magic {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
+
+  /****************************************************************
+   *
+   *    Misc
+   *
+   */
+
+  /**
+   * On IA32, emit a PAUSE instruction, to optimize spin-wait loops.
+   */
+  public static void pause() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
 }
 

@@ -19,6 +19,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
@@ -95,6 +96,8 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
       // nothing required on Intel
     } else if (methodName == VM_MagicNames.prefetch) {
       bc2ir.appendInstruction(CacheOp.create(PREFETCH, bc2ir.popAddress()));
+    } else if (methodName == VM_MagicNames.pause) {
+      bc2ir.appendInstruction(Empty.create(PAUSE));
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);

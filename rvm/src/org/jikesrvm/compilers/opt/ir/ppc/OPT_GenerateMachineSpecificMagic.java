@@ -130,6 +130,8 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
       if (!gc.options.NO_CACHE_FLUSH) {
         bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
       }
+    } else if (methodName == VM_MagicNames.pause) {
+      // IA-specific
     } else if (methodName == VM_MagicNames.dcbst) {
       bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popInt()));
     } else if (methodName == VM_MagicNames.dcbt) {

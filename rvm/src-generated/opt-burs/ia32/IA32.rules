@@ -2512,6 +2512,14 @@ stm:	PREFETCH(r)
 EMIT_INSTRUCTION
 EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCHNTA, R(CacheOp.getRef(P(p)))));
 
+#####
+# PAUSE
+#####
+stm:	PAUSE
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), IA32_PAUSE));
+
 ##################################
 # Calling convention
 ##################################

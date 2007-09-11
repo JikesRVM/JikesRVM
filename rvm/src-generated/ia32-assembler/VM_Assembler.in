@@ -1533,6 +1533,14 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.R(miStart, "PREFETCHNTA", srcReg);
   }
 
+  // wait-loop pause
+  public final void emitPAUSE () {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0xF3);
+    setMachineCodes(mi++,(byte) 0x90);
+    if (lister != null) lister.OP(miStart, "PAUSE");
+  }
+
   // nop
   public final void emitNOP () {
     int miStart = mi;

@@ -4211,6 +4211,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
 
+    if (methodName == VM_MagicNames.pause) {
+      asm.emitPAUSE();       // read timestamp counter instruction
+      return true;
+    }
+
     if (methodName == VM_MagicNames.wordFromInt ||
         methodName == VM_MagicNames.wordFromObject ||
         methodName == VM_MagicNames.wordFromIntZeroExtend ||
