@@ -64,20 +64,20 @@ final class VM_IdleThread extends VM_GreenThread {
 
     if (runInitProc) myProcessor.initializeProcessor();
 
-    // Only perform load balancing if there is more than one processor.
-    final boolean loadBalancing = VM_GreenScheduler.numProcessors > 1;
-    long spinNano = loadBalancing ? ((long)1e6) : 0;
     main:
     while (true) {
       if (VM_Scheduler.terminated) terminate();
       if (VM.VerifyAssertions) VM._assert(processorAffinity.idleQueue.isEmpty());
-      long t = VM_Time.nanoTime() + spinNano;
 
       if (VM_Scheduler.debugRequested) {
         VM.sysWriteln("debug requested in idle thread");
         VM_Scheduler.debugRequested = false;
       }
 
+      /* Short term spin loop; wait for a little bit to see if a thread quickly becomes runnable */
+      long startCycles = VM_Time.cycles();
+      long endCycles = startCycles + ((long) 1e6); // a few hundred microseconds more or less.
+      long nowCycles;
       do {
         VM_GreenProcessor.idleProcessor = myProcessor;
         if (availableWork(myProcessor)) {
@@ -87,10 +87,11 @@ final class VM_IdleThread extends VM_GreenThread {
           VM_GreenThread.yield(VM_GreenProcessor.getCurrentProcessor().idleQueue);
           continue main;
         }
-      } while (VM_Time.nanoTime() < t);
+        nowCycles = VM_Time.cycles();
+      } while (startCycles < nowCycles && nowCycles < endCycles); /* check against both ends to guard against CPU migration */
 
       /* Now go into the long-term sleep/check-for-work loop. */
-      for (; ;) {
+      while (true) {
         sysCall.sysVirtualProcessorYield();
         if (availableWork(myProcessor)) {
           continue main;
