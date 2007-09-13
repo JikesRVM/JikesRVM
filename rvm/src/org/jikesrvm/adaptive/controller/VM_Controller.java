@@ -151,9 +151,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     // Initialize the controller input queue
     controllerInputQueue = new VM_BlockingPriorityQueue(new VM_BlockingPriorityQueue.CallBack() {
-      void aboutToWait() { controllerThread.aboutToWait(); }
-
-      void doneWaiting() { controllerThread.doneWaiting(); }
+      public void aboutToWait() { controllerThread.aboutToWait(); }
+      public void doneWaiting() { controllerThread.doneWaiting(); }
     });
 
     compilationQueue = new VM_BlockingPriorityQueue();
