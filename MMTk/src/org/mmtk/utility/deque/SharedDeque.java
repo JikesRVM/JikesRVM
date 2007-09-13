@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
   private static final Offset NEXT_OFFSET = Offset.zero();
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 
-  private static final boolean TRACE = true;
+  private static final boolean TRACE = false;
   private static final boolean TRACE_DETAIL = false;
   private static final boolean TRACE_BLOCKERS = false;
 
