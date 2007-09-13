@@ -113,7 +113,12 @@ public class SS extends StopTheWorld {
       // prepare each of the collected regions
       copySpace0.prepare(hi);
       copySpace1.prepare(!hi);
+      ssTrace.prepare();
       super.collectionPhase(phaseId);
+      return;
+    }
+    if (phaseId == CLOSURE) {
+      ssTrace.prepare();
       return;
     }
     if (phaseId == SS.RELEASE) {

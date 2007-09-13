@@ -43,7 +43,8 @@ import org.vmmagic.unboxed.*;
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
  */
-@Uninterruptible public class GenMS extends Gen {
+@Uninterruptible
+public class GenMS extends Gen {
 
   /*****************************************************************************
    *
@@ -82,6 +83,10 @@ import org.vmmagic.unboxed.*;
         return;
       }
 
+      if (phaseId == CLOSURE) {
+        matureTrace.prepare();
+        return;
+      }
       if (phaseId == RELEASE) {
         matureTrace.release();
         msSpace.release();

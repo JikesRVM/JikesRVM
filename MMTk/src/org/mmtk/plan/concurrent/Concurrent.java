@@ -122,6 +122,9 @@ public abstract class Concurrent extends Simple {
    */
   @Inline
   public void collectionPhase(short phaseId) {
+    if (phaseId == CLOSURE) {  // No-op for a concurrent collector
+      return;
+    }
     super.collectionPhase(phaseId);
   }
 

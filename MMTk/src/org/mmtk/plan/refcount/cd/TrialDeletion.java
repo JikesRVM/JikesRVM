@@ -92,14 +92,14 @@ import org.vmmagic.unboxed.*;
    */
 
   public TrialDeletion(RCBase global) {
-    workPool = new SharedDeque(RCBase.metaDataSpace, 1);
-    blackPool = new SharedDeque(RCBase.metaDataSpace, 1);
-    unfilteredPurplePool = new SharedDeque(RCBase.metaDataSpace, 1);
-    maturePurplePool = new SharedDeque(RCBase.metaDataSpace, 1);
-    filteredPurplePool = new SharedDeque(RCBase.metaDataSpace, 1);
-    cyclePoolA = new SharedDeque(RCBase.metaDataSpace, 1);
-    cyclePoolB = new SharedDeque(RCBase.metaDataSpace, 1);
-    freePool = new SharedDeque(RCBase.metaDataSpace, 1);
+    workPool = new SharedDeque("workPool",RCBase.metaDataSpace, 1);
+    blackPool = new SharedDeque("blackPool",RCBase.metaDataSpace, 1);
+    unfilteredPurplePool = new SharedDeque("unfilteredPurplePool",RCBase.metaDataSpace, 1);
+    maturePurplePool = new SharedDeque("maturePurplePool",RCBase.metaDataSpace, 1);
+    filteredPurplePool = new SharedDeque("filteredPurplePool",RCBase.metaDataSpace, 1);
+    cyclePoolA = new SharedDeque("cyclePoolA",RCBase.metaDataSpace, 1);
+    cyclePoolB = new SharedDeque("cyclePoolB",RCBase.metaDataSpace, 1);
+    freePool = new SharedDeque("freePool",RCBase.metaDataSpace, 1);
     cdMode = NO_PROCESSING;
     global.insertPhaseAfter(Phase.scheduleGlobal(RCBase.RELEASE), Phase.scheduleComplex(cdPhase));
   }
@@ -116,6 +116,14 @@ import org.vmmagic.unboxed.*;
       if (shouldFilterPurple()) {
         cdMode = FILTER_PURPLE;
       }
+      workPool.prepare(1);
+      blackPool.prepare(1);
+      maturePurplePool.prepare();
+      filteredPurplePool.prepare(1);
+      unfilteredPurplePool.prepare();
+      cyclePoolA.prepare(1);
+      cyclePoolB.prepare(1);
+      freePool.prepare();
       return true;
     }
 

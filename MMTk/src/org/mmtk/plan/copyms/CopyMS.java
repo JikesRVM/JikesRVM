@@ -40,7 +40,8 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class CopyMS extends StopTheWorld {
+@Uninterruptible
+public class CopyMS extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -91,6 +92,10 @@ import org.vmmagic.pragma.*;
       trace.prepare();
       msSpace.prepare();
       nurserySpace.prepare(true);
+      return;
+    }
+    if (phaseId == CLOSURE) {
+      trace.prepare();
       return;
     }
     if (phaseId == RELEASE) {

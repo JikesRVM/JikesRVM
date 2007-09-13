@@ -119,6 +119,7 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
+      Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE));
 
   /**
@@ -126,9 +127,11 @@ public abstract class Simple extends Plan implements Constants {
    */
   protected static final short refTypeClosurePhase = Phase.createComplex("refType-closure", null,
       Phase.scheduleCollector  (SOFT_REFS),
+      Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE),
       Phase.scheduleCollector  (WEAK_REFS),
       Phase.scheduleCollector  (FINALIZABLE),
+      Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE),
       Phase.schedulePlaceholder(WEAK_TRACK_REFS),
       Phase.scheduleCollector  (PHANTOM_REFS));

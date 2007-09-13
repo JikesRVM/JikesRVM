@@ -143,6 +143,10 @@ import org.vmmagic.pragma.*;
         matureTrace.prepare();
         return;
       }
+      if (phaseId == CLOSURE) {
+        matureTrace.prepare();
+        return;
+      }
       if (phaseId == RELEASE) {
         matureTrace.release();
         fromSpace().release();

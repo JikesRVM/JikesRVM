@@ -15,6 +15,7 @@ package org.mmtk.utility.deque;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
 
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
@@ -29,7 +30,12 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class SharedDeque extends Deque implements Constants {
 
+  private static final Offset NEXT_OFFSET = Offset.zero();
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
+
+  private static final boolean TRACE = true;
+  private static final boolean TRACE_DETAIL = false;
+  private static final boolean TRACE_BLOCKERS = false;
 
   /****************************************************************************
    *
@@ -38,23 +44,28 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
- */
-  public SharedDeque(RawPageSpace rps, int arity) {
+   */
+  public SharedDeque(String name, RawPageSpace rps, int arity) {
     this.rps = rps;
     this.arity = arity;
+    this.name = name;
     lock = VM.newLock("SharedDeque");
-    completionFlag = 0;
+    clearCompletionFlag();
     head = HEAD_INITIAL_VALUE;
     tail = TAIL_INITIAL_VALUE;
   }
 
-  final boolean complete() {
-    return completionFlag == 1;
-  }
-
+  /** Get the arity (words per entry) of this queue */
   @Inline
   final int getArity() { return arity; }
 
+  /**
+   * Enqueue a block on the head or tail of the shared queue
+   *
+   * @param buf
+   * @param arity
+   * @param toTail
+   */
   final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
     lock();
@@ -88,6 +99,7 @@ import org.vmmagic.pragma.*;
       free(bufferStart(buf));
       buf = dequeue(arity);
     }
+    setCompletionFlag();
   }
 
   @Inline
@@ -108,15 +120,38 @@ import org.vmmagic.pragma.*;
   final Address dequeueAndWait(int arity, boolean fromTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
     Address buf = dequeue(false, fromTail);
-    while (buf.isZero() && (completionFlag == 0)) {
-      buf = dequeue(true, fromTail);
+    if (buf.isZero() && (!complete())) {
+      buf = dequeue(true, fromTail);  // Wait inside dequeue
     }
     return buf;
   }
 
+  /**
+   * Prepare for parallel processing.  All active GC threads
+   * take part.
+   */
+  public final void prepare() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numConsumersWaiting == 0);
+    setNumConsumers(VM.collection.gcThreads());
+    clearCompletionFlag();
+  }
+
+  /**
+   * Prepare for parallel processing where a specific number
+   * of threads take part.
+   *
+   * @param consumers # threads taking part.
+   */
+  public final void prepare(int consumers) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numConsumersWaiting == 0);
+    setNumConsumers(consumers);
+    clearCompletionFlag();
+  }
+
   public final void reset() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numConsumersWaiting == 0);
+    clearCompletionFlag();
     setNumConsumersWaiting(0);
-    setCompletionFlag(0);
     assertExhausted();
   }
 
@@ -125,7 +160,7 @@ import org.vmmagic.pragma.*;
   }
 
   public final void newConsumer() {
-    setNumConsumers(numConsumers + 1);
+    //setNumConsumers(numConsumers + 1);
   }
 
   @Inline
@@ -147,30 +182,59 @@ import org.vmmagic.pragma.*;
 
   @Inline
   public final int enqueuedPages() {
-    return bufsenqueued << LOG_PAGES_PER_BUFFER;
+    return (int) (bufsenqueued * PAGES_PER_BUFFER);
   }
 
   /****************************************************************************
    *
    * Private instance methods and fields
    */
+
+  /** The name of this shared deque - for diagnostics */
+  private final String name;
+
+  /** Raw page space from which to allocate */
   private RawPageSpace rps;
-  private int arity;
+
+  /** Number of words per entry */
+  private final int arity;
+
+  /** Completion flag - set when all consumers have arrived at the barrier */
   @Entrypoint
-  private int completionFlag; //
+  private volatile int completionFlag;
+
+  /** # active threads - processing is complete when # waiting == this */
   @Entrypoint
-  private int numConsumers; //
+  private volatile int numConsumers;
+
+  /** # threads waiting */
   @Entrypoint
-  private int numConsumersWaiting; //
+  private volatile int numConsumersWaiting;
+
+  /** Head of the shared deque */
   @Entrypoint
-  protected Address head;
+  protected volatile Address head;
+
+  /** Tail of the shared deque */
   @Entrypoint
-  protected Address tail;
+  protected volatile Address tail;
   @Entrypoint
-  private int bufsenqueued;
+  private volatile int bufsenqueued;
   private Lock lock;
 
+  private static final int TIME_CHECK = 1000000;
+  private static final long WARN_PERIOD = (long)(2*1E9);
+  private static final long TIMEOUT_PERIOD = 10 * WARN_PERIOD;
 
+  /**
+   * Dequeue a block from the shared pool.  If 'waiting' is true, and the
+   * queue is empty, wait for either a new block to show up or all the
+   * other consumers to join us.
+   *
+   * @param waiting
+   * @param fromTail
+   * @return
+   */
   private Address dequeue(boolean waiting, boolean fromTail) {
     lock();
     Address rtn = ((fromTail) ? tail : head);
@@ -178,36 +242,108 @@ import org.vmmagic.pragma.*;
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
+        int ordinal = VM.activePlan.collector().getId();
         setNumConsumersWaiting(numConsumersWaiting + 1);
-        if (numConsumersWaiting == numConsumers)
-          setCompletionFlag(1);
-      }
-    } else {
-      if (fromTail) {
-        // dequeue the tail buffer
-        setTail(getPrev(tail));
-        if (head.EQ(rtn)) {
-          setHead(Address.zero());
-          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tail.isZero());
-        } else {
-          setNext(tail, Address.zero());
+        while (rtn.isZero()) {
+          if (numConsumersWaiting == numConsumers)
+            setCompletionFlag();
+          if (TRACE) {
+            Log.write("-- ("); Log.write(ordinal);
+            Log.write(") joining wait queue of SharedDeque(");
+            Log.write(name); Log.write(") ");
+            Log.write(numConsumersWaiting); Log.write("/");
+            Log.write(numConsumers);
+            Log.write(" consumers waiting");
+            if (complete()) Log.write(" WAIT COMPLETE");
+            Log.writeln();
+            if (TRACE_BLOCKERS)
+              VM.assertions.dumpStack();
+          }
+          unlock();
+          // Spin and wait
+          spinWait(fromTail);
+
+          if (complete()) {
+            if (TRACE) {
+              Log.write("-- ("); Log.write(ordinal); Log.writeln(") EXITING");
+            }
+            lock();
+            setNumConsumersWaiting(numConsumersWaiting - 1);
+            unlock();
+            return Address.zero();
+          }
+          lock();
+          // Re-get the list head/tail while holding the lock
+          rtn = ((fromTail) ? tail : head);
+        }
+        setNumConsumersWaiting(numConsumersWaiting - 1);
+        if (TRACE) {
+          Log.write("-- ("); Log.write(ordinal); Log.write(") resuming work ");
+          Log.write(" n="); Log.writeln(numConsumersWaiting);
         }
       } else {
-        // dequeue the head buffer
-        setHead(getNext(head));
-        if (tail.EQ(rtn)) {
-          setTail(Address.zero());
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(head.isZero());
-        } else {
-          setPrev(head, Address.zero());
-        }
+        unlock();
+        return Address.zero();
       }
-      bufsenqueued--;
-      if (waiting)
-        setNumConsumersWaiting(numConsumersWaiting - 1);
     }
+    if (fromTail) {
+      // dequeue the tail buffer
+      setTail(getPrev(tail));
+      if (head.EQ(rtn)) {
+        setHead(Address.zero());
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tail.isZero());
+      } else {
+        setNext(tail, Address.zero());
+      }
+    } else {
+      // dequeue the head buffer
+      setHead(getNext(head));
+      if (tail.EQ(rtn)) {
+        setTail(Address.zero());
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(head.isZero());
+      } else {
+        setPrev(head, Address.zero());
+      }
+    }
+    bufsenqueued--;
     unlock();
     return rtn;
+  }
+
+  /**
+   * Spinwait for GC work to arrive
+   *
+   * @param fromTail Check the head or the tail ?
+   * @return
+   */
+  private void spinWait(boolean fromTail) {
+    long startCheck = 0;
+    long lastElapsed = 0;
+    Address rtn = Address.zero();
+    for (int i=0; rtn.isZero() && !complete(); i++) {
+      VM.memory.isync();
+      rtn = ((fromTail) ? tail : head);
+      if (((i - 1) % TIME_CHECK) == 0) {
+        lock();
+        if (startCheck == 0) {
+          startCheck = VM.statistics.nanoTime();
+        } else {
+          long elapsed = VM.statistics.nanoTime() - startCheck;
+          if (elapsed - lastElapsed > WARN_PERIOD) {
+            Log.write("GC Warning: SharedDeque("); Log.write(name);
+            Log.write(") wait has reached "); Log.write(VM.statistics.nanosToSecs(elapsed));
+            Log.write(", "); Log.write(numConsumersWaiting); Log.write("/");
+            Log.write(numConsumers); Log.writeln(" threads waiting");
+            lastElapsed = elapsed;
+          }
+          if (elapsed > TIMEOUT_PERIOD) {
+            unlock();   // To allow other GC threads to die in turn
+            VM.assertions.fail("GC Error: SharedDeque Timeout");
+          }
+        }
+        unlock();
+      }
+    }
   }
 
   /**
@@ -217,7 +353,7 @@ import org.vmmagic.pragma.*;
    * @param next The reference to which next should point.
    */
   private static void setNext(Address buf, Address next) {
-    buf.store(next);
+    buf.store(next, NEXT_OFFSET);
   }
 
   /**
@@ -227,7 +363,7 @@ import org.vmmagic.pragma.*;
    * @return The next field for this buffer.
    */
   protected final Address getNext(Address buf) {
-    return buf.loadAddress();
+    return buf.loadAddress(NEXT_OFFSET);
   }
 
   /**
@@ -283,30 +419,60 @@ import org.vmmagic.pragma.*;
     lock.release();
   }
 
-  // need to use this to avoid generating a putfield and so causing write barrier recursion
-  //
+  /**
+   * Is the current round of processing complete ?
+   */
+  private boolean complete() {
+    return completionFlag == 1;
+  }
+
+  /**
+   * Set the completion flag.
+   */
   @Inline
-  private void setCompletionFlag(int flag) {
-    completionFlag = flag;
+  private void setCompletionFlag() {
+    if (TRACE_DETAIL) {
+      Log.writeln("# setCompletionFlag: ");
+    }
+    completionFlag = 1;
+  }
+
+  /**
+   * Clear the completion flag.
+   */
+  @Inline
+  private void clearCompletionFlag() {
+    if (TRACE_DETAIL) {
+      Log.writeln("# clearCompletionFlag: ");
+    }
+    completionFlag = 0;
   }
 
   @Inline
   private void setNumConsumers(int newNumConsumers) {
+    if (TRACE_DETAIL) {
+      Log.write("# Num consumers "); Log.writeln(newNumConsumers);
+    }
     numConsumers = newNumConsumers;
   }
 
   @Inline
   private void setNumConsumersWaiting(int newNCW) {
+    if (TRACE_DETAIL) {
+      Log.write("# Num consumers waiting "); Log.writeln(newNCW);
+    }
     numConsumersWaiting = newNCW;
   }
 
   @Inline
   private void setHead(Address newHead) {
     head = newHead;
+    VM.memory.sync();
   }
 
   @Inline
   private void setTail(Address newTail) {
     tail = newTail;
+    VM.memory.sync();
   }
 }

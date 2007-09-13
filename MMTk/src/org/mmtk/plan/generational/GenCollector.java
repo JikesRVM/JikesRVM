@@ -63,9 +63,7 @@ import org.vmmagic.pragma.*;
    * @see GenMutator
    */
   public GenCollector() {
-    global().remsetPool.newConsumer();
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
-    global().arrayRemsetPool.newConsumer();
     remset = new AddressDeque("remset", global().remsetPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
     sanityChecker = new GenSanityCheckerLocal();
@@ -86,6 +84,8 @@ import org.vmmagic.pragma.*;
   public void collectionPhase(short phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
+      global().arrayRemsetPool.prepare();
+      global().remsetPool.prepare();
       nurseryTrace.prepare();
       return;
     }
@@ -115,6 +115,8 @@ import org.vmmagic.pragma.*;
     if (phaseId == Gen.RELEASE) {
       if (!global().traceFullHeap()) {
         nurseryTrace.release();
+        global().arrayRemsetPool.reset();
+        global().remsetPool.reset();
       }
       return;
     }

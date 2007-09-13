@@ -125,6 +125,10 @@ import org.vmmagic.unboxed.ObjectReference;
       mcSpace.prepare();
       return;
     }
+    if (phaseId == CLOSURE) {
+      markTrace.prepare();
+      return;
+    }
     if (phaseId == RELEASE) {
       markTrace.release();
       mcSpace.release();

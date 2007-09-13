@@ -12,7 +12,8 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.plan.*;
+import org.mmtk.plan.StopTheWorld;
+import org.mmtk.plan.Trace;
 import org.mmtk.plan.refcount.cd.CD;
 import org.mmtk.plan.refcount.cd.NullCD;
 import org.mmtk.plan.refcount.cd.TrialDeletion;
@@ -106,10 +107,10 @@ import org.vmmagic.unboxed.*;
     }
     previousMetaDataPages = 0;
     rcTrace = new Trace(metaDataSpace);
-    decPool = new SharedDeque(metaDataSpace, 1);
-    modPool = new SharedDeque(metaDataSpace, 1);
-    newRootPool = new SharedDeque(metaDataSpace, 1);
-    oldRootPool = new SharedDeque(metaDataSpace, 1);
+    decPool = new SharedDeque("decPool",metaDataSpace, 1);
+    modPool = new SharedDeque("modPool",metaDataSpace, 1);
+    newRootPool = new SharedDeque("newRootPool",metaDataSpace, 1);
+    oldRootPool = new SharedDeque("oldRootPool",metaDataSpace, 1);
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       nullCD = new NullCD();
@@ -154,6 +155,15 @@ import org.vmmagic.unboxed.*;
   public void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
+      rcTrace.prepare();
+      modPool.prepare();
+      decPool.prepare();
+      oldRootPool.prepare();
+      newRootPool.prepare();
+      return;
+    }
+
+    if (phaseId == CLOSURE) {
       rcTrace.prepare();
       return;
     }

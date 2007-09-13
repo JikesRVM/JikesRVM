@@ -23,7 +23,8 @@ import org.vmmagic.pragma.*;
  * closure over the heap.  This class holds the global state, TraceLocal
  * and its super-classes handle per-thread state.
  */
-@Uninterruptible public class Trace implements Constants {
+@Uninterruptible
+public class Trace implements Constants {
 
   // Global pools for load-balancing deques
   final SharedDeque valuePool;
@@ -34,16 +35,28 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public Trace(RawPageSpace metaDataSpace) {
-    valuePool = new SharedDeque(metaDataSpace, 1);
-    rootLocationPool = new SharedDeque(metaDataSpace, 1);
-    interiorRootPool = new SharedDeque(metaDataSpace, 2);
+    valuePool = new SharedDeque("valuePool",metaDataSpace, 1);
+    rootLocationPool = new SharedDeque("rootLocations", metaDataSpace, 1);
+    interiorRootPool = new SharedDeque("interiorRoots", metaDataSpace, 2);
   }
 
   /**
    * Prepare for a new collection pass.
    */
+  public void prepare(int participants) {
+    valuePool.prepare(participants);
+    rootLocationPool.prepare(participants);
+    interiorRootPool.prepare(participants);
+  }
+
+  /**
+   * Prepare for a new collection pass.
+   * All active GC threads take part.
+   */
   public void prepare() {
-    // Nothing to do.
+    valuePool.prepare();
+    rootLocationPool.prepare();
+    interiorRootPool.prepare();
   }
 
   /**

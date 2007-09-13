@@ -142,6 +142,8 @@ import org.vmmagic.pragma.*;
    */
   public abstract int rendezvous(int where);
 
+  public abstract int gcThreads();
+
   /**
    * Ensure all concurrent worker threads are scheduled.
    */

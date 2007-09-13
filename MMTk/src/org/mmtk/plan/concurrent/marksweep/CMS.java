@@ -57,7 +57,7 @@ public class CMS extends Concurrent {
   public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
-      msTrace.prepare();
+      msTrace.prepare(1);  // Ensure that the trace never blocks
       msSpace.prepare();
       return;
     }

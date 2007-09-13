@@ -280,6 +280,10 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
+  public final int gcThreads() {
+    return VM_CollectorThread.numCollectors();
+  }
+
   /**
    * Ensure all concurrent worker threads are scheduled.
    */

@@ -41,7 +41,8 @@ import org.vmmagic.unboxed.*;
  * See also Plan.java for general comments on local vs global plan
  * classes.
  */
-@Uninterruptible public abstract class Gen extends StopTheWorld {
+@Uninterruptible
+public abstract class Gen extends StopTheWorld {
 
   /*****************************************************************************
    *
@@ -97,8 +98,8 @@ import org.vmmagic.unboxed.*;
   /**
    * Remset pools
    */
-  public final SharedDeque arrayRemsetPool = new SharedDeque(metaDataSpace, 2);
-  public final SharedDeque remsetPool = new SharedDeque(metaDataSpace, 1);
+  public final SharedDeque arrayRemsetPool = new SharedDeque("arrayRemSets",metaDataSpace, 2);
+  public final SharedDeque remsetPool = new SharedDeque("remSets",metaDataSpace, 1);
 
   /*
    * Class initializer
@@ -142,7 +143,6 @@ import org.vmmagic.unboxed.*;
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
       if (!traceFullHeap()) {
-        nurseryTrace.prepare();
         ploSpace.prepare(false);
       } else {
         if (gcFullHeap) {
@@ -158,6 +158,12 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
+    if (phaseId == CLOSURE) {
+      if (!traceFullHeap()) {
+        nurseryTrace.prepare();
+      }
+      return;
+    }
     if (phaseId == RELEASE) {
       nurserySpace.release();
       remsetPool.clearDeque(1);

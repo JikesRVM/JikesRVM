@@ -31,8 +31,8 @@ public final class SortTODSharedDeque extends SortSharedDeque {
    * @param rps The space from which the instance should obtain buffers.
    * @param arity The arity of the data to be enqueued
    */
-  public SortTODSharedDeque(RawPageSpace rps, int arity) {
-    super(rps, arity);
+  public SortTODSharedDeque(String name, RawPageSpace rps, int arity) {
+    super(name, rps, arity);
   }
 
   /**

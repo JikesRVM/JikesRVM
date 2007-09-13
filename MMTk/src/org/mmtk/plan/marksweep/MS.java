@@ -37,7 +37,8 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class MS extends StopTheWorld {
+@Uninterruptible
+public class MS extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -78,6 +79,10 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
+    if (phaseId == CLOSURE) {
+      msTrace.prepare();
+      return;
+    }
     if (phaseId == RELEASE) {
       msTrace.release();
       msSpace.release();

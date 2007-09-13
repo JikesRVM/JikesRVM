@@ -101,8 +101,8 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public GCTrace() {
-    SortTODSharedDeque workList = new SortTODSharedDeque(traceSpace, 1);
-    SortTODSharedDeque traceBuf = new SortTODSharedDeque(traceSpace, 1);
+    SortTODSharedDeque workList = new SortTODSharedDeque("workList",traceSpace, 1);
+    SortTODSharedDeque traceBuf = new SortTODSharedDeque("traceBuf",traceSpace, 1);
     TraceGenerator.init(workList, traceBuf);
   }
 
