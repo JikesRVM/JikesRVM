@@ -1075,8 +1075,7 @@ Check to make sure all required properties are specified. This includes properti
           maxmemory="500M"
           failonerror="false"
           resultproperty="bootimage-writer.result"
-          dir="${basedir}/tools/bootImageWriter/src"
-          output="${build.base}/BootImageWriterOutput.txt">
+          dir="${basedir}/tools/bootImageWriter/src">
       <classpath>
         <pathelement location="${build.bootimage-writer.dir}"/>
         <path refid="rvm.class.path"/>
@@ -1087,6 +1086,8 @@ Check to make sure all required properties are specified. This includes properti
       <sysproperty key="rvm.properties" value="${build.base}/rvm.properties"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
       <jvmarg value="-Xss2m"/>
+      <arg value="-log"/>
+      <arg value="${build.base}/BootImageWriterOutput.txt"/>
       <arg value="-classpath"/>
       <arg value="${rvm.class.path}"/>
       <arg value="-n"/>
@@ -1366,6 +1367,7 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.base}">
         <include name="RVM.*.image"/>
         <include name="RVM.map"/>
+        <include name="BootImageWriterOutput.txt"/>
       </fileset>
     </copy>
     <copy file="${basedir}/tools/bootImageRunner/rvm" todir="${dist.base}">

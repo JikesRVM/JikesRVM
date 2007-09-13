@@ -63,6 +63,7 @@ import org.vmmagic.unboxed.*;
  *    -ca <addr>               address where code portion of boot image starts
  *    -da <addr>               address where data portion of boot image starts
  *    -ra <addr>               address where ref map portion of boot image starts
+ *    -log <filename>          place to write log file to
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
  *    -profile                 time major phases of bootimage writing
@@ -362,6 +363,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param args command line arguments
    */
   public static void main(String[] args) {
+    String   logFile               = null;
     String   bootImageCodeName     = null;
     String   bootImageDataName     = null;
     String   bootImageRMapName     = null;
@@ -494,6 +496,13 @@ public class BootImageWriter extends BootImageWriterMessages
         profile = true;
         continue;
       }
+      // log
+      if (args[i].equals("-log")) {
+        if (++i >= args.length)
+          fail("argument syntax error: Got a -log flag without a following argument for the log file");
+        logFile = args[i];
+        continue;
+      }
       // generate detailed information about traversed objects (for debugging)
       if (args[i].equals("-detailed")) {
         verbose += 2;
@@ -543,6 +552,17 @@ public class BootImageWriter extends BootImageWriterMessages
       fail("please specify boot-image address with \"-ra <addr>\"");
     if (!(bootImageRMapAddress.toWord().and(Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
       fail("please specify a boot-image address that is a multiple of 0x01000000");
+
+    // Redirect the log file
+    if (logFile != null) {
+      try {
+        PrintStream logFileStream = new PrintStream(logFile);
+        System.setOut(logFileStream);
+        System.setErr(logFileStream);
+      } catch (IOException ex) {
+        fail("Failed to open log file for redirecting: " + ex.getMessage());
+      }
+    }
 
     //
     // Initialize the bootimage.
