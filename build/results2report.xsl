@@ -48,7 +48,7 @@
   <xsl:template match="group">
     <xsl:copy>
       <xsl:copy-of select="name"/>
-      <xsl:copy-of select="test/test-execution[result = 'SUCCESS' or result = 'FAILURE']/.."/>
+      <xsl:copy-of select="test/test-execution[not(result = 'EXCLUDED')]/.."/>
     </xsl:copy>
   </xsl:template>
 
