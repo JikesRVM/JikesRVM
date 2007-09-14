@@ -16,12 +16,13 @@ import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
-
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
@@ -222,7 +223,6 @@ import org.vmmagic.pragma.*;
   private volatile int bufsenqueued;
   private Lock lock;
 
-  private static final int TIME_CHECK = 1000000;
   private static final long WARN_PERIOD = (long)(2*1E9);
   private static final long TIMEOUT_PERIOD = 10 * WARN_PERIOD;
 
@@ -317,32 +317,43 @@ import org.vmmagic.pragma.*;
    * @return
    */
   private void spinWait(boolean fromTail) {
-    long startCheck = 0;
-    long lastElapsed = 0;
-    Address rtn = Address.zero();
-    for (int i=0; rtn.isZero() && !complete(); i++) {
-      VM.memory.isync();
-      rtn = ((fromTail) ? tail : head);
-      if (((i - 1) % TIME_CHECK) == 0) {
-        lock();
-        if (startCheck == 0) {
-          startCheck = VM.statistics.nanoTime();
-        } else {
-          long elapsed = VM.statistics.nanoTime() - startCheck;
-          if (elapsed - lastElapsed > WARN_PERIOD) {
-            Log.write("GC Warning: SharedDeque("); Log.write(name);
-            Log.write(") wait has reached "); Log.write(VM.statistics.nanosToSecs(elapsed));
-            Log.write(", "); Log.write(numConsumersWaiting); Log.write("/");
-            Log.write(numConsumers); Log.writeln(" threads waiting");
-            lastElapsed = elapsed;
-          }
-          if (elapsed > TIMEOUT_PERIOD) {
-            unlock();   // To allow other GC threads to die in turn
-            VM.assertions.fail("GC Error: SharedDeque Timeout");
-          }
+    long startNano = 0;
+    long lastElapsedNano = 0;
+    while (true) {
+      long startCycles = VM.statistics.cycles();
+      long endCycles = startCycles + ((long) 1e9); // a few hundred milliseconds more or less.
+      long nowCycles;
+      do {
+        VM.memory.isync();
+        Address rtn = ((fromTail) ? tail : head);
+        if (!rtn.isZero() || complete()) return;
+        nowCycles = VM.statistics.cycles();
+      } while (startCycles < nowCycles && nowCycles < endCycles); /* check against both ends to guard against CPU migration */
+
+      /*
+       * According to the cycle counter, we've been spinning for a while.
+       * Time to check nanoTime and see if we should print a warning and/or fail.
+       * We lock the deque while doing this to avoid interleaved messages from multiple threads.
+       */
+      lock();
+      if (startNano == 0) {
+        startNano = VM.statistics.nanoTime();
+      } else {
+        long nowNano = VM.statistics.nanoTime();
+        long elapsedNano = nowNano - startNano;
+        if (elapsedNano - lastElapsedNano > WARN_PERIOD) {
+          Log.write("GC Warning: SharedDeque("); Log.write(name);
+          Log.write(") wait has reached "); Log.write(VM.statistics.nanosToSecs(elapsedNano));
+          Log.write(", "); Log.write(numConsumersWaiting); Log.write("/");
+          Log.write(numConsumers); Log.writeln(" threads waiting");
+          lastElapsedNano = elapsedNano;
         }
-        unlock();
+        if (elapsedNano > TIMEOUT_PERIOD) {
+          unlock();   // To allow other GC threads to die in turn
+          VM.assertions.fail("GC Error: SharedDeque Timeout");
+        }
       }
+      unlock();
     }
   }
 

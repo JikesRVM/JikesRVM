@@ -49,6 +49,11 @@ import org.vmmagic.pragma.Uninterruptible;
   public abstract long secsToNanos(double t);
 
   /**
+   * Read the cycle counter
+   */
+  public abstract long cycles();
+
+  /**
    * Initialize performance counters
    *
    * @param metric An integer identifying the metric being read
