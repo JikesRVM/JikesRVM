@@ -15,6 +15,7 @@ package org.mmtk.plan.refcount.generational;
 import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
 
@@ -49,7 +50,7 @@ public class GenRC extends RCBase {
    */
 
   /** The nursery space, where all new objects are allocated by default. */
-  public static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
+  public static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
 
   public static final int NS = nurserySpace.getDescriptor();
 

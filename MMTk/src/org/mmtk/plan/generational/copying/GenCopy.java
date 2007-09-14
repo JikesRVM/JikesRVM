@@ -16,6 +16,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -64,14 +65,14 @@ import org.vmmagic.pragma.*;
    * The low half of the copying mature space.  We allocate into this space
    * when <code>hi</code> is <code>false</code>.
    */
-  static CopySpace matureSpace0 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false) : new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, 0.25f, false);
+  static CopySpace matureSpace0 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create()) : new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.25f));
   static final int MS0 = matureSpace0.getDescriptor();
 
   /**
    * The high half of the copying mature space. We allocate into this space
    * when <code>hi</code> is <code>true</code>.
    */
-  static CopySpace matureSpace1 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true) : new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, 0.25f, true);
+  static CopySpace matureSpace1 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create()) : new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create(0.25f));
   static final int MS1 = matureSpace1.getDescriptor();
 
 

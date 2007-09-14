@@ -15,6 +15,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
@@ -46,7 +47,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * Class variables
    */
 
-  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
 
   public static final int SCAN_MARK    = 0;

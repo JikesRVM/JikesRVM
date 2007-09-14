@@ -51,22 +51,22 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
+   * @param vmRequest An object describing the virtual memory requested.
    */
-  public MarkCompactSpace(String name, int pageBudget, float frac) {
-    super(name, true, false, frac);
-    pr = new MonotonePageResource(pageBudget, this, start, extent, 0);
+  public MarkCompactSpace(String name, int pageBudget, VMRequest vmRequest) {
+    super(name, true, false, vmRequest);
+    if (vmRequest.isDiscontiguous()) {
+      pr = new MonotonePageResource(pageBudget, this, 0);
+    } else {
+      pr = new MonotonePageResource(pageBudget, this, start, extent, 0);
+    }
   }
 
   /**

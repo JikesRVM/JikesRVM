@@ -15,6 +15,7 @@ package org.mmtk.policy;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListPageResource;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.DoublyLinkedList;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.Constants;
@@ -54,8 +55,8 @@ import org.vmmagic.unboxed.*;
    */
   private Word markState;
   private boolean inNurseryGC;
-  private DoublyLinkedList cells;
-  private Treadmill treadmill;
+  private final DoublyLinkedList cells;
+  private final Treadmill treadmill;
 
   /****************************************************************************
    *
@@ -70,121 +71,15 @@ import org.vmmagic.unboxed.*;
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
+   * @param vmRequest An object describing the virtual memory requested.
    */
-  public LargeObjectSpace(String name, int pageBudget) {
-    super(name, false, false);
-    init(pageBudget);
-  }
-
-  /**
-   * The caller specifies the region of virtual memory to be used for
-   * this space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
-   */
-  public LargeObjectSpace(String name, int pageBudget, Address start,
-      Extent bytes) {
-    super(name, false, false, start, bytes);
-    init(pageBudget);
-  }
-
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   */
-  public LargeObjectSpace(String name, int pageBudget, int mb) {
-    super(name, false, false, mb);
-    init(pageBudget);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   */
-  public LargeObjectSpace(String name, int pageBudget, float frac) {
-    super(name, false, false, frac);
-    init(pageBudget);
-  }
-
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  public LargeObjectSpace(String name, int pageBudget, int mb, boolean top) {
-    super(name, false, false, mb, top);
-    init(pageBudget);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  public LargeObjectSpace(String name, int pageBudget, float frac,
-                          boolean top) {
-    super(name, false, false, frac, top);
-    init(pageBudget);
-  }
-
-  @Interruptible
-  private void init(int pageBudget) {
-    if (start.isZero())
+  public LargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
+    super(name, false, false, vmRequest);
+    if (vmRequest.isDiscontiguous()) {
       pr = new FreeListPageResource(pageBudget, this, 0);
-    else
+    } else {
       pr = new FreeListPageResource(pageBudget, this, start, extent);
+    }
     cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
   }

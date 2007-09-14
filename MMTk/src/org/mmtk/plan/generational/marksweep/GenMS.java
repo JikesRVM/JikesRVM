@@ -16,6 +16,7 @@ import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -52,7 +53,7 @@ public class GenMS extends Gen {
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
-  public static final MarkSweepSpace msSpace = USE_DISCONTIGUOUS_SPACES ? new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY) : new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MATURE_FRACTION);
+  public static final MarkSweepSpace msSpace = USE_DISCONTIGUOUS_SPACES ? new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create(MATURE_FRACTION));
 
   public static final int MS = msSpace.getDescriptor();
 

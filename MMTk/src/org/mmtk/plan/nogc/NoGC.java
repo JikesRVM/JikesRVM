@@ -15,6 +15,7 @@ package org.mmtk.plan.nogc;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -30,7 +31,7 @@ import org.vmmagic.pragma.*;
    *
    * Class fields
    */
-  public static final ImmortalSpace defSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final ImmortalSpace defSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
   public static final int DEF = defSpace.getDescriptor();
 
   /*****************************************************************************

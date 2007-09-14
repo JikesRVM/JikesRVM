@@ -22,6 +22,7 @@ import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Map;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
@@ -115,20 +116,20 @@ public abstract class Plan implements Constants {
   public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
-  public static final ImmortalSpace immortalSpace = USE_DISCONTIGUOUS_SPACES ? new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY) : new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
+  public static final ImmortalSpace immortalSpace = USE_DISCONTIGUOUS_SPACES ? new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create(IMMORTAL_MB));
 
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
-  public static final RawPageSpace metaDataSpace = USE_DISCONTIGUOUS_SPACES ?  new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY) : new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  public static final RawPageSpace metaDataSpace = USE_DISCONTIGUOUS_SPACES ?  new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create(META_DATA_MB));
 
   /** Large objects are allocated into a special large object space. */
-  public static final LargeObjectSpace loSpace = USE_DISCONTIGUOUS_SPACES ? new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY) : new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
+  public static final LargeObjectSpace loSpace = USE_DISCONTIGUOUS_SPACES ? new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create(LOS_FRAC));
 
   /** Primitive (non-ref) large objects are allocated into a special primitive
       large object space. */
-  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);
+  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, VMRequest.create(PLOS_FRAC, true));
 
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
-  public static final RawPageSpace sanitySpace = USE_DISCONTIGUOUS_SPACES ? new RawPageSpace("sanity", Integer.MAX_VALUE) : new RawPageSpace("sanity", Integer.MAX_VALUE, SANITY_DATA_MB);
+  public static final RawPageSpace sanitySpace = USE_DISCONTIGUOUS_SPACES ? new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create()) : new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create(SANITY_DATA_MB));
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();

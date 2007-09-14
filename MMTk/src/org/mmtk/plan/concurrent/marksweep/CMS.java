@@ -16,6 +16,7 @@ import org.mmtk.plan.*;
 import org.mmtk.plan.concurrent.Concurrent;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
@@ -34,7 +35,7 @@ public class CMS extends Concurrent {
    * Class variables
    */
 
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, 0.6f);
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   /****************************************************************************

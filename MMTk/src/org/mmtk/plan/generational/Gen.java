@@ -17,6 +17,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
@@ -76,7 +77,7 @@ public abstract class Gen extends StopTheWorld {
   public static SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, 0.15f, true, false);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   public static final Address NURSERY_START = nurserySpace.getStart();

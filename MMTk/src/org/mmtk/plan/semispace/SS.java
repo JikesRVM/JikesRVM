@@ -15,6 +15,7 @@ package org.mmtk.plan.semispace;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.*;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -51,11 +52,11 @@ public class SS extends StopTheWorld {
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace0 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false) : new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, false);
+  public static final CopySpace copySpace0 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create()) : new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(SEMISPACE_VIRT_MEM_FRAC));
   public static final int SS0 = copySpace0.getDescriptor();
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace1 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true) : new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, true);
+  public static final CopySpace copySpace1 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create()) : new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create(SEMISPACE_VIRT_MEM_FRAC));
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;

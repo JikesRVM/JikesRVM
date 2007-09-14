@@ -13,6 +13,7 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.utility.heap.VMRequest;
 
 /**
  * This interface provides an immortal allocation space for GCspy objects.
@@ -26,7 +27,7 @@ public interface GCspyPlan {
    * in a separate immortal space.
    */
   ImmortalSpace gcspySpace =
-      new ImmortalSpace("gcspy", Plan.DEFAULT_POLL_FREQUENCY, GCSPY_MB);
+      new ImmortalSpace("gcspy", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create(GCSPY_MB));
 
   /** The descriptor for the GCspy allocation space */
   int GCSPY = gcspySpace.getDescriptor();

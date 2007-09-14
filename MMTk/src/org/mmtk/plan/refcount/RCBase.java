@@ -22,6 +22,7 @@ import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SharedDeque;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 
@@ -68,7 +69,7 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Class variables
    */
-  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
+  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.5f));
   public static final int REF_COUNT = rcSpace.getDescriptor();
 
   // Counters

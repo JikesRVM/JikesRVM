@@ -15,6 +15,7 @@ package org.mmtk.plan.marksweep;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -48,7 +49,7 @@ public class MS extends StopTheWorld {
    * Class variables
    */
 
-  public static final MarkSweepSpace msSpace = USE_DISCONTIGUOUS_SPACES ? new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY) : new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, 0.6f);
+  public static final MarkSweepSpace msSpace = USE_DISCONTIGUOUS_SPACES ? new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   public static final int SCAN_MARK = 0;

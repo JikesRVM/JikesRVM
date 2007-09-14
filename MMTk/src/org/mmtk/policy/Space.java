@@ -18,6 +18,7 @@ import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
@@ -87,15 +88,16 @@ public abstract class Space implements Constants {
   private final String name;
   private final int descriptor;
   private final int index;
+
   protected final boolean immortal;
   protected final boolean movable;
   protected final boolean contiguous;
 
+  protected PageResource pr;
   protected Address start;
   protected Extent extent;
 
   private boolean allocationFailed;
-  protected PageResource pr;
 
   /****************************************************************************
    *
@@ -108,93 +110,51 @@ public abstract class Space implements Constants {
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
-   * @param contiguous Is this space contiguous?
-   * @param descriptor The descriptor for this space.
+   * @param vmRequest An object describing the virtual memory requested.
+   * @param pr The page resource associated with this space
    */
-  Space(String name, boolean movable, boolean immortal, boolean contiguous, int descriptor) {
+  protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
     this.name = name;
     this.movable = movable;
     this.immortal = immortal;
-    this.contiguous = contiguous;
-    this.descriptor = descriptor;
     this.index = spaceCount++;
     spaces[index] = this;
-  }
 
-  /**
-   * This is the base constructor for <i>discontiguous</i> spaces
-   * (i.e. those that may occupy multiple disjoint regions of virtual
-   * memory).<p>
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   */
-  Space(String name, boolean movable, boolean immortal) {
-    this(name, movable, immortal, false, SpaceDescriptor.createDescriptor());
-    this.start = Address.zero();
-    this.extent = Extent.zero();
-    VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
-  }
-
-  /**
-   * This is the base constructor for <i>contiguous</i> spaces
-   * (i.e. those that occupy a single contiguous range of virtual
-   * memory which is identified at construction time).<p>
-   *
-   * The caller specifies the region of virtual memory to be used for
-   * this space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
-   */
-  Space(String name, boolean movable, boolean immortal, Address start,
-      Extent bytes) {
-    this(name, movable, immortal, true, SpaceDescriptor.createDescriptor(start, start.plus(bytes)));
-    this.start = start;
-    this.extent = bytes;
-
-    /* ensure requests are chunk aligned */
-    if (bytes.NE(chunkAlign(bytes, false))) {
-      Log.write("Warning: ");
-      Log.write(name);
-      Log.write(" space request for ");
-      Log.write(bytes.toLong()); Log.write(" bytes rounded up to ");
-      bytes = chunkAlign(bytes, false);
-      Log.write(bytes.toLong()); Log.writeln(" bytes");
-      Log.writeln("(requests should be Space.BYTES_IN_CHUNK aligned)");
+    if (vmRequest.type == VMRequest.REQUEST_DISCONTIGUOUS) {
+      this.contiguous = false;
+      this.descriptor = SpaceDescriptor.createDescriptor();
+      this.start = Address.zero();
+      this.extent = Extent.zero();
+      VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
+      return;
     }
-    VM.memory.setHeapRange(index, start, start.plus(bytes));
-    Map.insert(start, extent, descriptor, this);
 
-    if (DEBUG) {
-      Log.write(name); Log.write(" ");
-      Log.write(start); Log.write(" ");
-      Log.write(start.plus(extent)); Log.write(" ");
-      Log.writeln(bytes.toWord());
+    Address start;
+    Extent extent;
+
+    if (vmRequest.type == VMRequest.REQUEST_FRACTION) {
+      extent = getFracAvailable(vmRequest.frac);
+    } else {
+      extent = vmRequest.extent;
     }
-  }
 
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   */
-  Space(String name, boolean movable, boolean immortal, int mb) {
-    this(name, movable, immortal, heapCursor,
-         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
-    heapCursor = heapCursor.plus(extent);
+    if (extent.NE(chunkAlign(extent, false))) {
+      VM.assertions.fail(name + " requested non-aligned extent: " + extent.toLong() + " bytes");
+    }
+
+    if (vmRequest.type == VMRequest.REQUEST_FIXED) {
+      start = vmRequest.start;
+      if (start.NE(chunkAlign(start, false))) {
+        VM.assertions.fail(name + " starting on non-aligned boundary: " + start.toLong() + " bytes");
+      }
+    } else if (vmRequest.top) {
+      heapLimit = heapLimit.minus(extent);
+      start = heapLimit;
+    } else {
+      start = heapCursor;
+      heapCursor = heapCursor.plus(extent);
+    }
+
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
       Log.write(name); Log.write("\" at ");
@@ -203,111 +163,20 @@ public abstract class Space implements Constants {
       Log.write(heapLimit); Log.writeln(")");
       VM.assertions.fail("exiting");
     }
-  }
 
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   */
-  Space(String name, boolean movable, boolean immortal, float frac) {
-    this(name, movable, immortal, heapCursor, getFracAvailable(frac));
-    heapCursor = heapCursor.plus(extent);
-  }
+    this.contiguous = true;
+    this.start = start;
+    this.extent = extent;
+    this.descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
 
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  Space(String name, boolean movable, boolean immortal, int mb, boolean top) {
-    this(name, movable, immortal,
-         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
-  }
+    VM.memory.setHeapRange(index, start, start.plus(extent));
+    Map.insert(start, extent, descriptor, this);
 
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  Space(String name, boolean movable, boolean immortal, float frac,
-        boolean top) {
-    this(name, movable, immortal, getFracAvailable(frac), top);
-  }
-
-  /**
-   * This is a private constructor that creates a contiguous space at
-   * the top or bottom of the available virtual memory, if
-   * possible.<p>
-   *
-   * The caller specifies the size of the region of virtual memory and
-   * whether it should be at the top or bottom of the available
-   * address space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param bytes The size of the space in virtual memory, in bytes
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  private Space(String name, boolean movable, boolean immortal, Extent bytes,
-      boolean top) {
-    this(name, movable, immortal, (top) ? heapLimit.minus(bytes) : HEAP_START,
-        bytes);
-    if (top) { // request for the top of available memory
-      /* if (heapLimit.NE(HEAP_END)) {
-        Log.write("Unable to satisfy virtual address space request \"");
-        Log.write(name); Log.write("\" at ");
-        Log.writeln(heapLimit);
-        VM.assertions.fail("exiting");
-      } */
-      heapLimit = heapLimit.minus(extent);
-    } else { // request for the bottom of available memory
-      if (heapCursor.GT(HEAP_START)) {
-        Log.write("Unable to satisfy virtual address space request \"");
-        Log.write(name); Log.write("\" at ");
-        Log.writeln(heapCursor);
-        VM.assertions.fail("exiting");
-      }
-      heapCursor = heapCursor.plus(extent);
+    if (DEBUG) {
+      Log.write(name); Log.write(" ");
+      Log.write(start); Log.write(" ");
+      Log.write(start.plus(extent)); Log.write(" ");
+      Log.writeln(extent.toWord());
     }
   }
 
@@ -549,7 +418,7 @@ public abstract class Space implements Constants {
   public Address growDiscontiguousSpace(Extent bytes) {
     Extent extent = chunkAlign(bytes, false);
     int chunks = extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
-    start = Map.allocateContiguousChunks(descriptor, this, chunks, start);
+    this.start = Map.allocateContiguousChunks(descriptor, this, chunks, start);
     this.extent = (start.isZero()) ? Extent.zero() : extent;
     return start;
   }

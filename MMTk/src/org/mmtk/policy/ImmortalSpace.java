@@ -15,6 +15,7 @@ package org.mmtk.policy;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.MonotonePageResource;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
@@ -57,112 +58,15 @@ import org.vmmagic.pragma.*;
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
+   * @param vmRequest An object describing the virtual memory requested.
    */
-  public ImmortalSpace(String name, int pageBudget) {
-    super(name, false, true);
-    pr = new MonotonePageResource(pageBudget, this, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * The caller specifies the region of virtual memory to be used for
-   * this space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
-   */
-  public ImmortalSpace(String name, int pageBudget, Address start,
-                       Extent bytes) {
-    super(name, false, true, start, bytes);
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   */
-  public ImmortalSpace(String name, int pageBudget, int mb) {
-    super(name, false, true, mb);
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   */
-  public ImmortalSpace(String name, int pageBudget, float frac) {
-    super(name, false, true, frac);
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  public ImmortalSpace(String name, int pageBudget, int mb, boolean top) {
-    super(name, false, true, mb, top);
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  public ImmortalSpace(String name, int pageBudget, float frac, boolean top) {
-    super(name, false, true, frac, top);
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
+  public ImmortalSpace(String name, int pageBudget, VMRequest vmRequest) {
+    super(name, false, true, vmRequest);
+    if (vmRequest.isDiscontiguous()) {
+      pr = new MonotonePageResource(pageBudget, this, META_DATA_PAGES_PER_REGION);
+    } else {
+      pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
+    }
   }
 
   /** @return the current mark state */

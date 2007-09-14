@@ -15,6 +15,7 @@ package org.mmtk.plan.semispace.gctrace;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.utility.deque.SortTODSharedDeque;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.utility.options.Options;
 
@@ -83,7 +84,7 @@ import org.vmmagic.pragma.*;
    */
 
   /* Spaces */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB<<2);
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, VMRequest.create(META_DATA_MB<<2));
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */
