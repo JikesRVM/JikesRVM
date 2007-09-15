@@ -26,11 +26,9 @@ import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
-import org.mmtk.policy.Space;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
@@ -758,21 +756,7 @@ public abstract class VM_Scheduler {
    */
   private static boolean isAddressValidFramePointer(final Address address) {
     return address.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
-           isAddressInSpace(address, Selected.Plan.loSpace) ||
-           isAddressInSpace(address, Selected.Plan.immortalSpace)||
-           isAddressInSpace(address, Selected.Plan.vmSpace);
-  }
-
-  /**
-   * Return true if address is in space.
-   *
-   * @param address the address.
-   * @param space the space.
-   * @return true if address is in space.
-   */
-  private static boolean isAddressInSpace(final Address address,
-                                          final Space space) {
-    return address.GE(space.getStart()) && address.LE(space.getStart().plus(space.getExtent()));
+           MM_Interface.mightBeFP(address);
   }
 
   private static void showPrologue(Address fp) {

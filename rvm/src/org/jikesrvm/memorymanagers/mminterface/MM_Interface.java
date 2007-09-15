@@ -412,6 +412,17 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     return Space.isMappedObject(object);
   }
 
+  /**
+   * Return true if address is in a space which may contain stacks
+   *
+   * @param address The address to be checked
+   * @return true if the address is within a space which may contain stacks
+   */
+  public static boolean mightBeFP(Address address) {
+    return Space.isInSpace(Plan.LOS, address) ||
+    Space.isInSpace(Plan.IMMORTAL, address) ||
+    Space.isInSpace(Plan.VM_SPACE, address);
+  }
   /***********************************************************************
    *
    * Allocation
