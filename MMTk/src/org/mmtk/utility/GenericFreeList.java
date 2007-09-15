@@ -268,6 +268,39 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
   }
 
   /**
+   * Set the uncoalescable bit associated with this unit.
+   * This ensures this unit cannot be coalesced with units below
+   * it.
+   *
+   * @param unit The unit whose uncoalescable bit is to be set
+   */
+  public void setUncoalescable(int unit) {
+    setLoEntry(unit, getLoEntry(unit) | COALESC_MASK);
+  }
+
+  /**
+   * Clear the uncoalescable bit associated with this unit.
+   * This allows this unit to be coalesced with units below
+   * it.
+   *
+   * @param unit The unit whose uncoalescable bit is to be cleared
+   */
+  public void clearUncoalescable(int unit) {
+    setLoEntry(unit, getLoEntry(unit) & ~COALESC_MASK);
+  }
+
+  /**
+   * Return true if this unit may be coalesced with the unit below it.
+   *
+   * @param The unit in question
+   * @return True if this unit may be coalesced with the unit below it.
+   */
+  @Override
+  public boolean isCoalescable(int unit) {
+    return (getLoEntry(unit) & COALESC_MASK) == 0;
+  }
+
+ /**
    * Get the lump to the "left" of the current lump (i.e. "above" it)
    *
    * @param unit The index of the first unit in the lump in question
@@ -280,6 +313,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
     else
       return unit - 1;
   }
+
 
   /**
    * Get the contents of an entry
@@ -308,12 +342,13 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
   }
 
   private static final int TOTAL_BITS = 32;
-  private static final int UNIT_BITS = (TOTAL_BITS - 1);
-  private static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - MAX_HEADS - 1);
+  private static final int UNIT_BITS = (TOTAL_BITS - 2);
+  public static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - MAX_HEADS - 1);
   private static final int NEXT_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
   private static final int PREV_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
   private static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
   private static final int MULTI_MASK = 1 << (TOTAL_BITS - 1);
+  private static final int COALESC_MASK = 1 << (TOTAL_BITS - 2);
   private static final int SIZE_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
 
   private int[] table;

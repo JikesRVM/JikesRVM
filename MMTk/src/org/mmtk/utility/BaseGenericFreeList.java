@@ -183,8 +183,10 @@ import org.vmmagic.pragma.*;
    */
   public final int free(int unit, boolean returnCoalescedSize) {
     int freed = getSize(unit);
-    int start = getFree(getLeft(unit)) ? getLeft(unit) : unit;
-    int end = getFree(getRight(unit)) ? getRight(unit) : unit;
+    int left = getLeft(unit);
+    int start = isCoalescable(unit) && getFree(left) ? left : unit;
+    int right = getRight(unit);
+    int end = isCoalescable(right) && getFree(right) ? right : unit;
     if (start != end)
       coalesce(start, end);
 
@@ -353,6 +355,7 @@ import org.vmmagic.pragma.*;
   abstract int getPrev(int unit);
   abstract void setPrev(int unit, int prev);
   abstract int getLeft(int unit);
+  abstract boolean isCoalescable(int unit);
 
   protected static final boolean DEBUG = false;
   public static final int FAILURE = -1;
