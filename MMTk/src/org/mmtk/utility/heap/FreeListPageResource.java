@@ -163,8 +163,19 @@ public final class FreeListPageResource extends PageResource implements Constant
     reserved -= pages;
     committed -= pages;
     int freed = freeList.free(pageOffset, true);
-    // FIXME Can't yet figure out when we're done with an entire multi-chunk region :-/
-    if (!contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion))
+    boolean completelyFreed = !contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion);
+    if (!contiguous && (freed % PAGES_IN_CHUNK == 0)) {
+      /* maybe we've freed this entire chunk.  let's check... */
+      int regionStart = pageOffset & ~(PAGES_IN_CHUNK - 1);
+      int nextRegionStart = regionStart + PAGES_IN_CHUNK;
+      while (regionStart >= 0 && freeList.isCoalescable(regionStart))
+        regionStart -= PAGES_IN_CHUNK;
+      while (nextRegionStart < GenericFreeList.MAX_UNITS && freeList.isCoalescable(nextRegionStart))
+        nextRegionStart += PAGES_IN_CHUNK;
+       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(regionStart >= 0 && nextRegionStart < GenericFreeList.MAX_UNITS);
+      completelyFreed = (freed == nextRegionStart - regionStart);
+    }
+    if (completelyFreed)
       freeContiguousChunk(Space.chunkAlign(first, true));
     unlock();
   }
@@ -187,18 +198,18 @@ public final class FreeListPageResource extends PageResource implements Constant
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
       int regionEnd = regionStart + required.toWord().rshl(LOG_BYTES_IN_PAGE).toInt() - 1;
+      freeList.setUncoalescable(regionStart);
+      freeList.setUncoalescable(regionEnd + 1);
       for (int p = regionStart; p < regionEnd; p += Space.PAGES_IN_CHUNK) {
         int liberated;
-        if (p != regionStart) {
-          liberated = freeList.free(p); // first page to our free list
-          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == 1);
-        }
-        liberated = freeList.free(p+1); // add remainder of chunk to our free list
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == Space.PAGES_IN_CHUNK-1);
+        if (p != regionStart)
+          freeList.clearUncoalescable(p);
+        liberated = freeList.free(p, true); // add chunk to our free list
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == Space.PAGES_IN_CHUNK + (p - regionStart));
         if (metaDataPagesPerRegion > 1)
-          freeList.alloc(metaDataPagesPerRegion - 1, p+1); // carve out space for metadata
+          freeList.alloc(metaDataPagesPerRegion, p); // carve out space for metadata
       }
-      rtn = freeList.alloc(pages, regionStart + (metaDataPagesPerRegion > 0 ? metaDataPagesPerRegion : 1)); // re-do the request which triggered this call
+      rtn = freeList.alloc(pages); // re-do the request which triggered this call
     }
     return rtn;
   }
@@ -217,17 +228,13 @@ public final class FreeListPageResource extends PageResource implements Constant
     /* nail down all pages associated with the chunk, so it is no longer on our free list */
     int chunkStart = Conversions.bytesToPages(chunk.diff(start));
     int chunkEnd = chunkStart + (numChunks*Space.PAGES_IN_CHUNK);
-
     while (chunkStart < chunkEnd) {
+      freeList.setUncoalescable(chunkStart);
       if (metaDataPagesPerRegion > 0)
-        freeList.free(chunkStart+1);  // first free any metadata pages
-      int tmp = freeList.alloc(Space.PAGES_IN_CHUNK-1, chunkStart+1); // then alloc the entire chunk
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == chunkStart+1);
+        freeList.free(chunkStart);  // first free any metadata pages
+      int tmp = freeList.alloc(Space.PAGES_IN_CHUNK, chunkStart); // then alloc the entire chunk
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == chunkStart);
       chunkStart += Space.PAGES_IN_CHUNK;
-      if (chunkStart < chunkEnd) {
-        tmp = freeList.alloc(1, chunkStart);  // to avoid inter-chunk coalescing
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == 1);
-      }
     }
     /* now return the address space associated with the chunk for global reuse */
     space.releaseDiscontiguousChunks(chunk);

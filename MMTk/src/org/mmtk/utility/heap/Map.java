@@ -217,12 +217,13 @@ public class Map {
     for (int chunk = start; chunk < end; chunk++)
       regionMap.alloc(1);                    // tentitively allocate all usable chunks
     regionMap.alloc(Space.MAX_CHUNKS - end); // block out entire top of address range
+    int firstPage = 0;
     for (int chunk = start; chunk < end; chunk++) {
       if (spaceMap[chunk] == null) regionMap.free(chunk);  // free all unpinned chunks
-      int tmp = globalPageMap.alloc(1); // populate the global page map
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp/Space.PAGES_IN_CHUNK == chunk - start);
-      tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK - 1); // populate the global page map
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp/Space.PAGES_IN_CHUNK == chunk - start);
+      globalPageMap.setUncoalescable(firstPage);
+      int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
+      firstPage += Space.PAGES_IN_CHUNK;
     }
     /* Space.printVMMap(); */
   }
