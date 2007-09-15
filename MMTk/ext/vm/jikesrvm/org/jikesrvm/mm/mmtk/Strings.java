@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Services;
 import org.jikesrvm.scheduler.VM_Processor;
 
 import org.vmmagic.pragma.*;
@@ -60,7 +61,7 @@ import org.vmmagic.pragma.*;
     int len = src.length();
     int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
     for (int i = 0; i < n; i++)
-      Barriers.setArrayNoBarrierStatic(dst, dstBegin + i, src.charAt(i));
+      VM_Services.setArrayNoBarrier(dst, dstBegin + i, src.charAt(i));
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().enableThreadSwitching();
     return n;

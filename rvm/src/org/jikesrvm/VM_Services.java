@@ -12,20 +12,20 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.mm.mmtk.Barriers;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Offset;
 
 /**
  *  Various service utilities.  This is a common place for some shared utility routines
  */
 @Uninterruptible
-public class VM_Services {
+public class VM_Services implements VM_SizeConstants {
   /**
    * Biggest buffer you would possibly need for {@link #dump(char[], int)}
    * Modify this if you modify that method.
@@ -152,7 +152,7 @@ public class VM_Services {
    */
   public static int sprintf(char[] dest, int destOffset, char[] src, int srcStart, int srcEnd) {
     for (int i = srcStart; i < srcEnd; ++i) {
-      char nextChar = Barriers.getArrayNoBarrierStatic(src, i);
+      char nextChar = getArrayNoBarrier(src, i);
       destOffset = sprintf(dest, destOffset, nextChar);
     }
     return destOffset;
@@ -165,7 +165,7 @@ public class VM_Services {
     }
 
     if (destOffset < dest.length) {
-      Barriers.setArrayNoBarrierStatic(dest, destOffset, c);
+      setArrayNoBarrier(dest, destOffset, c);
     }
     return destOffset + 1;
   }
@@ -206,19 +206,19 @@ public class VM_Services {
     char[] intBuffer = grabIntBuffer();
 
     nextDigit = (int) (l % 10);
-    nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter, negative ? -nextDigit : nextDigit);
-    Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
+    nextChar = getArrayNoBarrier(hexDigitCharacter, negative ? -nextDigit : nextDigit);
+    setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
-      nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter, negative ? -nextDigit : nextDigit);
-      Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
+      nextChar = getArrayNoBarrier(hexDigitCharacter, negative ? -nextDigit : nextDigit);
+      setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
 
     if (negative) {
-      Barriers.setArrayNoBarrierStatic(intBuffer, index--, '-');
+     setArrayNoBarrier(intBuffer, index--, '-');
     }
 
     int newOffset = sprintf(dest, offset, intBuffer, index + 1, INT_BUFFER_SIZE);
@@ -319,5 +319,113 @@ public class VM_Services {
     }
     print("% of ");
     println(quantity);
+  }
+
+  /**
+   * Sets an element of a object array without invoking any write
+   * barrier.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  @UninterruptibleNoWarn
+  public static void setArrayNoBarrier(Object[] dst, int index, Object value) {
+    if (VM.runningVM)
+      VM_Magic.setObjectAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS), value);
+    else
+      dst[index] = value;
+  }
+
+  /**
+   * Sets an element of a char array without invoking any write
+   * barrier.  This method is called by the Log method, as it will be
+   * used during garbage collection and needs to manipulate character
+   * arrays without causing a write barrier operation.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  public static void setArrayNoBarrier(char[] dst, int index, char value) {
+    if (VM.runningVM)
+      VM_Magic.setCharAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR), value);
+    else
+      dst[index] = value;
+  }
+
+  /**
+   * Gets an element of an Object array without invoking any read
+   * barrier or performing bounds checks.
+   *
+   * @param src the source array
+   * @param index the natural array index of the element to get
+   * @return the new value of element
+   */
+  public static Object getArrayNoBarrier(Object[] src, int index) {
+    if (VM.runningVM)
+      return VM_Magic.getObjectAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS));
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of an int array without invoking any read barrier
+   * or performing bounds checks.
+   *
+   * @param src the source array
+   * @param index the natural array index of the element to get
+   * @return the new value of element
+   */
+  public static int getArrayNoBarrier(int[] src, int index) {
+    if (VM.runningVM)
+      return VM_Magic.getCharAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT));
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of a char array without invoking any read barrier
+   * or performing bounds check.
+   *
+   * @param src the source array
+   * @param index the natural array index of the element to get
+   * @return the new value of element
+   */
+  public static char getArrayNoBarrier(char[] src, int index) {
+    if (VM.runningVM)
+      return VM_Magic.getCharAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR));
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of a byte array without invoking any read barrier
+   * or bounds check.
+   *
+   * @param src the source array
+   * @param index the natural array index of the element to get
+   * @return the new value of element
+   */
+  public static byte getArrayNoBarrier(byte[] src, int index) {
+    if (VM.runningVM)
+      return VM_Magic.getByteAtOffset(src, Offset.fromIntZeroExtend(index));
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of an array of byte arrays without causing the potential
+   * thread switch point that array accesses normally cause.
+   *
+   * @param src the source array
+   * @param index the index of the element to get
+   * @return the new value of element
+   */
+  public static byte[] getArrayNoBarrier(byte[][] src, int index) {
+    if (VM.runningVM)
+      return VM_Magic.addressAsByteArray(VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS))));
+    else
+      return src[index];
   }
 }

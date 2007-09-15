@@ -21,6 +21,7 @@ import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Services;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -87,13 +88,13 @@ import org.vmmagic.pragma.*;
    */
   private boolean isAllocCall(byte[] name) {
     for (int i = 0; i < allocCallMethods.length; i++) {
-      byte[] funcName = Barriers.getArrayNoBarrierStatic(allocCallMethods, i);
+      byte[] funcName = VM_Services.getArrayNoBarrier(allocCallMethods, i);
       if (VM_Magic.getArrayLength(name) == VM_Magic.getArrayLength(funcName)) {
         /* Compare the letters in the allocCallMethod */
         int j = VM_Magic.getArrayLength(funcName) - 1;
         while (j >= 0) {
-          if (Barriers.getArrayNoBarrierStatic(name, j) !=
-              Barriers.getArrayNoBarrierStatic(funcName, j))
+          if (VM_Services.getArrayNoBarrier(name, j) !=
+              VM_Services.getArrayNoBarrier(funcName, j))
             break;
           j--;
         }
