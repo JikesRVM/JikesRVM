@@ -73,7 +73,7 @@ public abstract class Plan implements Constants {
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   /* Space Size Constants. */
-  public static final boolean USE_DISCONTIGUOUS_SPACES = true;  // this is intended only during transition to discontiguous spaces
+  public static final boolean USE_DISCONTIGUOUS_SPACES = false;  // this is intended only during transition to discontiguous spaces
   public static final int IMMORTAL_MB = 32;
   public static final int META_DATA_MB = 32;
   public static final int SANITY_DATA_MB = 32;
