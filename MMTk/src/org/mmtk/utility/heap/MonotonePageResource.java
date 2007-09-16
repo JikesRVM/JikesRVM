@@ -119,10 +119,10 @@ public final class MonotonePageResource extends PageResource
 
     if (!contiguous && tmp.GT(sentinel)) {
       /* we're out of virtual memory within our discontiguous region, so ask for more */
-      space.growDiscontiguousSpace(bytes);
-      start = space.getStart();
+      int requiredChunks = Space.requiredChunks(pages);
+      start = space.growDiscontiguousSpace(requiredChunks);
       cursor = start;
-      sentinel = cursor.plus(space.getExtent());
+      sentinel = cursor.plus(start.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
     }

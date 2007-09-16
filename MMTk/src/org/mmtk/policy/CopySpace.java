@@ -108,10 +108,6 @@ import org.vmmagic.pragma.*;
    * all pages associated with this (now empty) space.
    */
   public void release() {
-    if (!contiguous) {
-      start = Address.zero();
-      extent = Extent.zero();
-    }
     ((MonotonePageResource) pr).reset();
   }
 

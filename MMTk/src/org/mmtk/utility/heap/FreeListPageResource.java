@@ -193,11 +193,11 @@ public final class FreeListPageResource extends PageResource implements Constant
   private int allocateContiguousChunks(int pages) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || pages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
     int rtn = GenericFreeList.FAILURE;
-    Extent required = Space.chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
-    Address region = space.growDiscontiguousSpace(required);
+    int requiredChunks = Space.requiredChunks(pages);
+    Address region = space.growDiscontiguousSpace(requiredChunks);
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
-      int regionEnd = regionStart + required.toWord().rshl(LOG_BYTES_IN_PAGE).toInt() - 1;
+      int regionEnd = regionStart + (requiredChunks*Space.PAGES_IN_CHUNK) - 1;
       freeList.setUncoalescable(regionStart);
       freeList.setUncoalescable(regionEnd + 1);
       for (int p = regionStart; p < regionEnd; p += Space.PAGES_IN_CHUNK) {

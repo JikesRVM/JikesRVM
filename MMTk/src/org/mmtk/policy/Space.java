@@ -94,8 +94,9 @@ public abstract class Space implements Constants {
   protected final boolean contiguous;
 
   protected PageResource pr;
-  protected Address start;
-  protected Extent extent;
+  protected final Address start;
+  protected final Extent extent;
+  protected Address lastDiscontiguousRegion;
 
   private boolean allocationFailed;
 
@@ -125,6 +126,7 @@ public abstract class Space implements Constants {
       this.descriptor = SpaceDescriptor.createDescriptor();
       this.start = Address.zero();
       this.extent = Extent.zero();
+      this.lastDiscontiguousRegion = Address.zero();
       VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
       return;
     }
@@ -415,12 +417,20 @@ public abstract class Space implements Constants {
    * (will be rounded up to chunks)
    * @return The address of the new discontiguous space.
    */
-  public Address growDiscontiguousSpace(Extent bytes) {
-    Extent extent = chunkAlign(bytes, false);
-    int chunks = extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
-    this.start = Map.allocateContiguousChunks(descriptor, this, chunks, start);
-    this.extent = (start.isZero()) ? Extent.zero() : extent;
-    return start;
+  public Address growDiscontiguousSpace(int chunks) {
+    this.lastDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, lastDiscontiguousRegion);
+    return lastDiscontiguousRegion;
+  }
+
+  /**
+   * Return the number of chunks required to satisfy a request for a certain number of pages
+   *
+   * @param pages The number of pages desired
+   * @return The number of chunks needed to satisfy the request
+   */
+  public static int requiredChunks(int pages) {
+    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
+    return extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
   }
 
   /**
@@ -432,8 +442,7 @@ public abstract class Space implements Constants {
    */
   public int releaseDiscontiguousChunks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
-    // FIXME need to properly deal with start and extent --- see use in VM_Scheduler :-/
-    return Map.freeContiguousChunks(chunk);
+     return Map.freeContiguousChunks(chunk);
   }
 
   /**
