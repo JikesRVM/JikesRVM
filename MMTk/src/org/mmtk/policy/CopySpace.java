@@ -109,6 +109,7 @@ import org.vmmagic.pragma.*;
    */
   public void release() {
     ((MonotonePageResource) pr).reset();
+    lastDiscontiguousRegion = Address.zero();
   }
 
   /**
