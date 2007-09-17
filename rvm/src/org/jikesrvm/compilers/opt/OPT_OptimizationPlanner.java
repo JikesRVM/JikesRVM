@@ -67,6 +67,9 @@ public class OPT_OptimizationPlanner {
 
     VM.sysWrite("\n\tTOTAL COMPILATION TIME\t\t");
     int t = (int) total, places = t;
+    if (places == 0) {
+      places = 1;
+    }
     while (places < 1000000) { // Right-align 't'
       VM.sysWrite(" ");
       places *= 10;
