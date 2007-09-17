@@ -225,9 +225,9 @@ public final class MonotonePageResource extends PageResource
   private void releasePages() {
     Address first = start;
     do {
-    Extent bytes = cursor.diff(start).toWord().toExtent();
-    releasePages(start, bytes);
-    cursor = start;
+      Extent bytes = cursor.diff(start).toWord().toExtent();
+      releasePages(start, bytes);
+      cursor = start;
     } while (!contiguous && moveToNextChunk());
     if (!contiguous) {
       sentinel = Address.zero();
