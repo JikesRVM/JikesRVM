@@ -889,6 +889,8 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.classes}"/>
     <javac destdir="${build.classes}"
            debug="true"
+           fork="true"
+           memoryMaximumSize="500M"
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
