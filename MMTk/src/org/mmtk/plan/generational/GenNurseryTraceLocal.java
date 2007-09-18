@@ -81,7 +81,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
-    if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
+    if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
         return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MINORGC);
       else
