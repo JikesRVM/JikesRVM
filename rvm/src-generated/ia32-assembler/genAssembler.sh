@@ -584,6 +584,14 @@ function emitCall() {
    * @see VM_ForwardReference.UnconditionalBranch
    */
   public final void emit${acronym}_Label(int label) {
+
+      // if alignment checking on, force alignment here
+      if (VM.AlignmentChecking) {
+        while (((mi + 5) % 4) != 0) {
+          emitNOP();
+        }
+      }
+
       int miStart = mi;
       VM_ForwardReference r =
         new VM_ForwardReference.UnconditionalBranch(mi, label);

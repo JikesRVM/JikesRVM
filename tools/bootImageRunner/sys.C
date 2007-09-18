@@ -205,9 +205,73 @@ pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool systemExiting = false;
 
+// alignment checking: hardware alignment checking variables and functions
+
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+
+volatile int numNativeAlignTraps;
+volatile int numEightByteAlignTraps;
+volatile int numBadAlignTraps;
+
+static volatile int numEnableAlignCheckingCalls = 0;
+static volatile int numDisableAlignCheckingCalls = 0;
+
+extern "C" void sysEnableAlignmentChecking() {
+  numEnableAlignCheckingCalls++;
+  if (numEnableAlignCheckingCalls > numDisableAlignCheckingCalls) {
+    asm("pushf\n\t"
+        "orl $0x00040000,(%esp)\n\t"
+        "popf");
+  }
+}
+
+extern "C" void sysDisableAlignmentChecking() {
+  numDisableAlignCheckingCalls++;
+  asm("pushf\n\t"
+      "andl $0xfffbffff,(%esp)\n\t"
+      "popf");
+}
+
+extern "C" void sysReportAlignmentChecking() {
+  fprintf(SysTraceFile, "\nAlignment checking report:\n\n");
+  fprintf(SysTraceFile, "# native traps (ignored by default):             %d\n", numNativeAlignTraps);
+  fprintf(SysTraceFile, "# 8-byte access traps (ignored by default):      %d\n", numEightByteAlignTraps);
+  fprintf(SysTraceFile, "# bad access traps (throw exception by default): %d (should be zero)\n\n", numBadAlignTraps);
+  fprintf(SysTraceFile, "# calls to sysEnableAlignmentChecking():         %d\n", numEnableAlignCheckingCalls);
+  fprintf(SysTraceFile, "# calls to sysDisableAlignmentChecking():        %d\n\n", numDisableAlignCheckingCalls);
+  fprintf(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
+  fprintf(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
+
+  // cause a native trap to see if traps are enabled
+  volatile int dummy[2];
+  volatile int prevNumNativeTraps = numNativeAlignTraps;
+  *(int*)((char*)dummy + 1) = 0x12345678;
+  int enabled = (numNativeAlignTraps != prevNumNativeTraps);
+
+  fprintf(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
+  fprintf(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
+  fprintf(SysTraceFile, "Current status of alignment checking:            %s (should be on)\n\n", (enabled ? "on" : "off"));
+}
+
+#else
+
+extern "C" void sysEnableAlignmentChecking() { }
+extern "C" void sysDisableAlignmentChecking() { }
+extern "C" void sysReportAlignmentChecking() { }
+
+#endif // RVM_WITH_ALIGNMENT_CHECKING
+
 extern "C" void
 sysExit(int value)
 {
+    // alignment checking: report info before exiting, then turn off checking
+    #ifdef RVM_WITH_ALIGNMENT_CHECKING
+    if (numEnableAlignCheckingCalls > 0) {
+      sysReportAlignmentChecking();
+      sysDisableAlignmentChecking();
+    }
+    #endif // RVM_WITH_ALIGNMENT_CHECKING
+	
     if (lib_verbose & value != 0) {
         fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
     }

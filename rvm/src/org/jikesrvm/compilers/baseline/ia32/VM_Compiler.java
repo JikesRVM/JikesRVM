@@ -2077,6 +2077,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     } else {
       asm.emitJCC_Cond_ImmOrLabel(VM_Assembler.LGE, mTarget, bTarget);   // if not, goto default case
     }
+
+    // make table aligned if doing alignment checking
+    if (VM.AlignmentChecking) {
+      while (((asm.getMachineCodeIndex() + 5) % WORDSIZE) != 0) {
+        asm.emitNOP();
+      }
+    }
+
     asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n << LG_WORDSIZE));
     // jump around table, pushing address of 0th delta
     for (int i = 0; i < n; i++) {                  // create table of deltas

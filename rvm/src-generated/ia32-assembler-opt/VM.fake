@@ -24,6 +24,8 @@ public class VM {
 
     public static boolean NOT_REACHED;
 
+    public static boolean AlignmentChecking;
+
     public static void _assert(boolean c) { }
 
     public static void _assert(boolean c, String s) { }

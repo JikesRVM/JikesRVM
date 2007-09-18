@@ -36,6 +36,8 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_ExitStatus;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_SysCall;
+
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_MainThread;
@@ -389,6 +391,11 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     if (VM.BuildForAdaptiveSystem) {
       VM_CompilerAdvice.postBoot();
+    }
+
+    // enable alignment checking
+    if (VM.AlignmentChecking) {
+      VM_SysCall.sysCall.sysEnableAlignmentChecking();
     }
 
     // Schedule "main" thread for execution.

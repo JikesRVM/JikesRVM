@@ -130,4 +130,12 @@ public abstract class VM_Configuration {
   public static final boolean BuildForClasspath_0_93 = 93 == ClasspathVersion;
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
+
+  /**
+   * Alignment checking (for IA32 only; for debugging purposes only).
+   * To enable, build with -Dconfig.alignment-checking=true.
+   * Important: You'll also need to build without SSE (-Dtarget.arch.sse2=none) and
+   * run Jikes with only one processor (-X:processors=1).
+   */
+  public static final boolean AlignmentChecking = @_RVM_WITH_ALIGNMENT_CHECKING_@;
 }

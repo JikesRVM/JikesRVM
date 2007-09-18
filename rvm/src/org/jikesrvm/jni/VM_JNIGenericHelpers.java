@@ -15,6 +15,7 @@ package org.jikesrvm.jni;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_SysCall;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.unboxed.Address;
 
@@ -35,6 +36,12 @@ public abstract class VM_JNIGenericHelpers {
    * @return a new Java byte[]
    */
   public static byte[] createByteArrayFromC(Address stringAddress) {
+
+    // disable alignment checking for this method
+    if (VM.AlignmentChecking) {
+      VM_SysCall.sysCall.sysDisableAlignmentChecking();
+    }
+
     // scan the memory for the null termination of the string
     int length = 0;
     for (Address addr = stringAddress; true; addr = addr.plus(4)) {
@@ -71,6 +78,11 @@ public abstract class VM_JNIGenericHelpers {
 
     byte[] contents = new byte[length];
     VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
+
+    // re-enable alignment checking
+    if (VM.AlignmentChecking) {
+      VM_SysCall.sysCall.sysEnableAlignmentChecking();
+    }
 
     return contents;
   }

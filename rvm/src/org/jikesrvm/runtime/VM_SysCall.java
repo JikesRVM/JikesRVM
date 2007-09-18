@@ -334,6 +334,16 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract void sysWaitForMultithreadingStart();
 
+  // system calls for alignment checking
+  @SysCallTemplate
+  public abstract void sysEnableAlignmentChecking();
+
+  @SysCallTemplate
+  public abstract void sysDisableAlignmentChecking();
+
+  @SysCallTemplate
+  public abstract void sysReportAlignmentChecking();
+
   @SysCallTemplate
   public abstract Address gcspyDriverAddStream(Address driver, int id);
 

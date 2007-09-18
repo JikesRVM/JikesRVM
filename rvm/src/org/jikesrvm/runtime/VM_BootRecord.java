@@ -345,6 +345,11 @@ public class VM_BootRecord {
   public Address sysVMMathLog10IP;
   public Address sysVMMathLog1pIP;
 
+  // system calls for alignment checking
+  public Address sysEnableAlignmentCheckingIP;
+  public Address sysDisableAlignmentCheckingIP;
+  public Address sysReportAlignmentCheckingIP;
+
   /* FIXME: We *really* don't want all these syscalls here unconditionally --- need to push them out somehow */
   // GCspy entry points
   public Address gcspyDriverAddStreamIP;

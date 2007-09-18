@@ -38,6 +38,8 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_SysCall;
+
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
@@ -3976,6 +3978,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
+    // briefly disable alignment checking
+    if (VM.AlignmentChecking) {
+      VM_SysCall.sysCall.sysDisableAlignmentChecking();
+    }
+
     try {
       String str = (String) env.getJNIRef(strJREF);
       byte[] utfcontents = VM_UTF8Convert.toUTF8(str);
@@ -3990,6 +3997,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       Address copyBuffer = sysCall.sysMalloc(copyBufferLen);
 
       if (copyBuffer.isZero()) {
+
+        // re-enable alignment checking
+        if (VM.AlignmentChecking) {
+          VM_SysCall.sysCall.sysEnableAlignmentChecking();
+        }
+
         env.recordException(new OutOfMemoryError());
         return Address.zero();
       }
@@ -4002,10 +4015,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
          address */
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
+      // re-enable alignment checking
+      if (VM.AlignmentChecking) {
+        VM_SysCall.sysCall.sysEnableAlignmentChecking();
+      }
+
       return copyBuffer;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
+
+      // re-enable alignment checking
+      if (VM.AlignmentChecking) {
+        VM_SysCall.sysCall.sysEnableAlignmentChecking();
+      }
+
       return Address.zero();
     }
   }

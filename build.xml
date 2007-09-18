@@ -286,13 +286,16 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="gcspy.filter" value="-DRVM_WITH_GCSPY=1" else="">
       <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
+    <condition property="alignment-checking.filter" value="-DRVM_WITH_ALIGNMENT_CHECKING=1" else="">
+      <equals arg1="${config.alignment-checking}" arg2="true"/>
+    </condition>
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
 
     <condition property="perfctr.filter" value="-DRVM_WITH_PERFCTR=1" else="">
       <equals arg1="${config.include.perfctr}" arg2="true"/>
     </condition>
 
-    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${perfctr.filter}"/>
+    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -779,6 +782,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_CLASSPATH_VERSION_" value="${classpath.version}"/>
         <filter token="_RVM_STRESSGC_INTERVAL_" value="${config.stress-gc-interval}"/>
         <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>
+        <filter token="_RVM_WITH_ALIGNMENT_CHECKING_" value ="${config.alignment-checking}"/>
       </filterset>
     </copy>
 
