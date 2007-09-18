@@ -116,6 +116,24 @@ public abstract class PageResource implements Constants {
   }
 
   /**
+   * Return the number of available physical pages for this resource.
+   *
+   * Note: This just considers physical pages (ie virtual memory pages
+   * allocated for use by this resource). This calculation is orthogonal
+   * to and does not consider any restrictions on the number of pages
+   * this resource may actually use at any time (ie the number of
+   * committed and reserved pages).<p>
+   *
+   * Note: The calculation is made on the assumption that all space that
+   * could be assigned to this resource would be assigned to this resource
+   * (ie the unused discontiguous space could just as likely be assigned
+   * to another competing resource).
+   *
+   * @return The number of available physical pages for this resource.
+   */
+   public abstract int getAvailablePhysicalPages();
+
+  /**
    * Reserve pages.<p>
    *
    * The role of reserving pages is that it allows the request to be

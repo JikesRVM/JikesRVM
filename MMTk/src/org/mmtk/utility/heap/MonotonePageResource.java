@@ -88,6 +88,33 @@ public final class MonotonePageResource extends PageResource
   }
 
   /**
+   * Return the number of available physical pages for this resource.
+   * This includes all pages currently unused by this resource's page
+   * cursor. If the resource is using discontiguous space it also includes
+   * currently unassigned discontiguous space.<p>
+   *
+   * Note: This just considers physical pages (ie virtual memory pages
+   * allocated for use by this resource). This calculation is orthogonal
+   * to and does not consider any restrictions on the number of pages
+   * this resource may actually use at any time (ie the number of
+   * committed and reserved pages).<p>
+   *
+   * Note: The calculation is made on the assumption that all space that
+   * could be assigned to this resource would be assigned to this resource
+   * (ie the unused discontiguous space could just as likely be assigned
+   * to another competing resource).
+   *
+   * @return The number of available physical pages for this resource.
+   */
+  @Override
+  public int getAvailablePhysicalPages() {
+    int rtn = Conversions.bytesToPages(sentinel.diff(cursor));
+    if (!contiguous)
+      rtn += Map.getAvailableDiscontiguousChunks()*Space.PAGES_IN_CHUNK;
+    return rtn;
+  }
+
+  /**
    * Allocate <code>pages</code> pages from this resource.  Simply
    * bump the cursor, and fail if we hit the sentinel.<p>
    *

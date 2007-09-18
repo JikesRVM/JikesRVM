@@ -35,11 +35,12 @@ public final class FreeListPageResource extends PageResource implements Constant
   private final GenericFreeList freeList;
   private int highWaterMark = 0;
   private final int metaDataPagesPerRegion;
+  private int pagesCurrentlyOnFreeList = 0;
 
   /**
    * Constructor
    *
-   * Contiguous monotone resource. The address range is pre-defined at
+   * Contiguous free list resource. The address range is pre-defined at
    * initialization time and is immutable.
    *
    * @param pageBudget The budget of pages available to this memory
@@ -51,14 +52,16 @@ public final class FreeListPageResource extends PageResource implements Constant
   public FreeListPageResource(int pageBudget, Space space, Address start,
       Extent bytes) {
     super(pageBudget, space, start);
-    freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
+    int pages = Conversions.bytesToPages(bytes);
+    freeList = new GenericFreeList(pages);
+    pagesCurrentlyOnFreeList = pages;
     this.metaDataPagesPerRegion = 0;
   }
 
   /**
    * Constructor
    *
-   * Contiguous monotone resource. The address range is pre-defined at
+   * Contiguous free list resource. The address range is pre-defined at
    * initialization time and is immutable.
    *
    * @param pageBudget The budget of pages available to this memory
@@ -73,7 +76,9 @@ public final class FreeListPageResource extends PageResource implements Constant
       Extent bytes, int metaDataPagesPerRegion) {
     super(pageBudget, space, start);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
-    freeList = new GenericFreeList(Conversions.bytesToPages(bytes), EmbeddedMetaData.PAGES_IN_REGION);
+    int pages = Conversions.bytesToPages(bytes);
+    freeList = new GenericFreeList(pages, EmbeddedMetaData.PAGES_IN_REGION);
+    pagesCurrentlyOnFreeList = pages;
     reserveMetaData(space.getExtent());
   }
 
@@ -93,6 +98,34 @@ public final class FreeListPageResource extends PageResource implements Constant
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     this.start = Space.AVAILABLE_START;
     freeList = new GenericFreeList(Map.globalPageMap, Map.getSpaceMapOrdinal());
+    pagesCurrentlyOnFreeList = 0;
+  }
+
+  /**
+   * Return the number of available physical pages for this resource.
+   * This includes all pages currently free on the resource's free list.
+   * If the resource is using discontiguous space it also includes
+   * currently unassigned discontiguous space.<p>
+   *
+   * Note: This just considers physical pages (ie virtual memory pages
+   * allocated for use by this resource). This calculation is orthogonal
+   * to and does not consider any restrictions on the number of pages
+   * this resource may actually use at any time (ie the number of
+   * committed and reserved pages).<p>
+   *
+   * Note: The calculation is made on the assumption that all space that
+   * could be assigned to this resource would be assigned to this resource
+   * (ie the unused discontiguous space could just as likely be assigned
+   * to another competing resource).
+   *
+   * @return The number of available physical pages for this resource.
+   */
+  @Override
+  public int getAvailablePhysicalPages() {
+    int rtn = pagesCurrentlyOnFreeList;
+    if (!contiguous)
+      rtn += Map.getAvailableDiscontiguousChunks()*(Space.PAGES_IN_CHUNK-metaDataPagesPerRegion);
+    return rtn;
   }
 
   /**
@@ -117,6 +150,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       unlock();
       return Address.zero();
     } else {
+      pagesCurrentlyOnFreeList -= pages;
       if (pageOffset > highWaterMark) {
         if ((pageOffset ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
           int regions = 1 + ((pageOffset - highWaterMark) >> EmbeddedMetaData.LOG_PAGES_IN_REGION);
@@ -163,6 +197,7 @@ public final class FreeListPageResource extends PageResource implements Constant
     reserved -= pages;
     committed -= pages;
     int freed = freeList.free(pageOffset, true);
+    pagesCurrentlyOnFreeList += pages;
     boolean completelyFreed = !contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion);
     if (!contiguous && (freed % PAGES_IN_CHUNK == 0)) {
       /* maybe we've freed this entire chunk.  let's check... */
@@ -208,6 +243,7 @@ public final class FreeListPageResource extends PageResource implements Constant
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == Space.PAGES_IN_CHUNK + (p - regionStart));
         if (metaDataPagesPerRegion > 1)
           freeList.alloc(metaDataPagesPerRegion, p); // carve out space for metadata
+        pagesCurrentlyOnFreeList += Space.PAGES_IN_CHUNK - metaDataPagesPerRegion;
       }
       rtn = freeList.alloc(pages); // re-do the request which triggered this call
     }
@@ -235,6 +271,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       int tmp = freeList.alloc(Space.PAGES_IN_CHUNK, chunkStart); // then alloc the entire chunk
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == chunkStart);
       chunkStart += Space.PAGES_IN_CHUNK;
+      pagesCurrentlyOnFreeList -= (Space.PAGES_IN_CHUNK - metaDataPagesPerRegion);
     }
     /* now return the address space associated with the chunk for global reuse */
     space.releaseDiscontiguousChunks(chunk);
@@ -255,6 +292,7 @@ public final class FreeListPageResource extends PageResource implements Constant
         cursor = cursor.minus(EmbeddedMetaData.BYTES_IN_REGION);
         int unit = cursor.diff(start).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
         int tmp = freeList.alloc(metaDataPagesPerRegion, unit);
+        pagesCurrentlyOnFreeList -= metaDataPagesPerRegion;
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == unit);
       }
     }
@@ -270,15 +308,9 @@ public final class FreeListPageResource extends PageResource implements Constant
    */
   public int adjustForMetaData(int pages) { return pages; }
 
-  @Inline
-  int pages(Address first) {
-    return freeList.size(Conversions.bytesToPages(first.diff(start)));
-  }
-
   public Address getHighWater() {
     return start.plus(Extent.fromIntSignExtend(highWaterMark<<LOG_BYTES_IN_PAGE));
   }
-
 
   /**
    * Return the size of the super page
