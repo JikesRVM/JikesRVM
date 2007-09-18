@@ -1808,7 +1808,13 @@ public abstract class VM_Thread {
    * Clears the outstanding OutOfMemoryError.
    */
   public final void clearOutOfMemoryError() {
-    outOfMemoryError = null;
+    /*
+     * SEE RVM-141
+     * To avoid problems in GCTrace configuration, only clear the OOM if it is non-NULL.
+     */
+    if (outOfMemoryError != null) {
+      outOfMemoryError = null;
+    }
   }
 
   @Interruptible
