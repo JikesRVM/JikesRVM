@@ -40,6 +40,7 @@ public class Map {
   private static final GenericFreeList regionMap;
   public static final GenericFreeList globalPageMap;
   private static int sharedSpaceCount = 0;
+  private static int totalAvailableDiscontiguousChunks = 0;
 
   /****************************************************************************
    *
@@ -110,6 +111,7 @@ public class Map {
       Space.printVMMap();
       VM.assertions.fail("exiting");
     }
+    totalAvailableDiscontiguousChunks -= chunks;
     Address rtn = reverseHashChunk(chunk);
     insert(rtn, Extent.fromIntZeroExtend(chunks<<Space.LOG_BYTES_IN_CHUNK), descriptor, space);
     linkageMap[chunk] = previous.isZero() ? 0 : hashAddress(previous);
@@ -196,6 +198,7 @@ public class Map {
    */
   private static int freeContiguousChunks(int chunk) {
     int chunks = regionMap.free(chunk);
+    totalAvailableDiscontiguousChunks += chunks;
     for (int offset = 0; offset < chunks; offset++) {
       descriptorMap[chunk + offset] = 0;
       VM.barriers.setArrayNoBarrier(spaceMap, chunk + offset, null);
@@ -219,11 +222,14 @@ public class Map {
     regionMap.alloc(Space.MAX_CHUNKS - end); // block out entire top of address range
     int firstPage = 0;
     for (int chunk = start; chunk < end; chunk++) {
-      if (spaceMap[chunk] == null) regionMap.free(chunk);  // free all unpinned chunks
-      globalPageMap.setUncoalescable(firstPage);
-      int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
-      firstPage += Space.PAGES_IN_CHUNK;
+      if (spaceMap[chunk] == null) {         // this chunk has not been pinned down
+        totalAvailableDiscontiguousChunks++;
+        regionMap.free(chunk);  // free the chunk
+        globalPageMap.setUncoalescable(firstPage);
+        int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
+        firstPage += Space.PAGES_IN_CHUNK;
+      }
     }
     /* Space.printVMMap(); */
   }
@@ -235,6 +241,16 @@ public class Map {
   public static int getSpaceMapOrdinal() {
     sharedSpaceCount++;
     return sharedSpaceCount;
+  }
+
+  /**
+   * Return the total number of chunks available (unassigned) within the
+   * range of virtual memory apportioned to discontiguous spaces.
+   *
+   * @return The number of available chunks for use by discontiguous spaces.
+   */
+  public static int getAvailableDiscontiguousChunks() {
+    return totalAvailableDiscontiguousChunks;
   }
 
   /**
