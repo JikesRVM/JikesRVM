@@ -228,6 +228,10 @@ public abstract class Simple extends Plan implements Constants {
     if (phaseId == PREPARE) {
       loSpace.prepare(true);
       ploSpace.prepare(true);
+      if (USE_CODE_SPACE) {
+        smallCodeSpace.prepare();
+        largeCodeSpace.prepare(true);
+      }
       immortalSpace.prepare();
       VM.memory.globalPrepareVMSpace();
       return;
@@ -242,6 +246,10 @@ public abstract class Simple extends Plan implements Constants {
     if (phaseId == RELEASE) {
       loSpace.release(true);
       ploSpace.release(true);
+      if (USE_CODE_SPACE) {
+        smallCodeSpace.release();
+        largeCodeSpace.release(true);
+      }
       immortalSpace.release();
       VM.memory.globalReleaseVMSpace();
       return;

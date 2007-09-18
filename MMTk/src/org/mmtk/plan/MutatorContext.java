@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.LargeObjectLocal;
@@ -92,6 +93,12 @@ import org.vmmagic.unboxed.*;
   /** Per-mutator allocator into the large object space */
   protected LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
+  /** Per-mutator allocator into the small code space */
+  protected  MarkSweepLocal smcode = new MarkSweepLocal(Plan.smallCodeSpace);
+
+  /** Per-mutator allocator into the large code space */
+  protected LargeObjectLocal lgcode = new LargeObjectLocal(Plan.largeCodeSpace);
+
   /** Per-mutator allocator into the primitive large object space */
   protected LargeObjectLocal plos = new LargeObjectLocal(Plan.ploSpace);
 
@@ -131,7 +138,12 @@ import org.vmmagic.unboxed.*;
     if (allocator == Plan.ALLOC_DEFAULT &&
         Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
       return Plan.ALLOC_LOS;
-    else if (allocator == Plan.ALLOC_NON_REFERENCE) {
+    else if (Plan.USE_CODE_SPACE && allocator == Plan.ALLOC_CODE) {
+      if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
+        return Plan.ALLOC_LARGE_CODE;
+      else
+        return allocator;
+    } else if (allocator == Plan.ALLOC_NON_REFERENCE) {
         if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.PLOS_SIZE_THRESHOLD)
           return Plan.ALLOC_PRIMITIVE_LOS;
     else
@@ -155,7 +167,9 @@ import org.vmmagic.unboxed.*;
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset);
     case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset);
-    case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      Plan.ALLOC_CODE: return smcode.alloc(bytes, align, offset);
+    case      Plan.ALLOC_LARGE_CODE: return lgcode.alloc(bytes, align, offset);
     default:
       VM.assertions.fail("No such allocator");
       return Address.zero();
@@ -178,6 +192,8 @@ import org.vmmagic.unboxed.*;
     case           Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref, false); return;
     case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref, true); return;
     case      Plan.ALLOC_IMMORTAL: Plan.immortalSpace.initializeHeader(ref);  return;
+    case          Plan.ALLOC_CODE: Plan.smallCodeSpace.initializeHeader(ref, true); return;
+    case    Plan.ALLOC_LARGE_CODE: Plan.largeCodeSpace.initializeHeader(ref, true); return;
     default:
       VM.assertions.fail("No such allocator");
     }
@@ -239,6 +255,8 @@ import org.vmmagic.unboxed.*;
     if (a == immortal) return Plan.immortalSpace;
     if (a == los)      return Plan.loSpace;
     if (a == plos)     return Plan.ploSpace;
+    if (Plan.USE_CODE_SPACE && a == smcode)   return Plan.smallCodeSpace;
+    if (Plan.USE_CODE_SPACE && a == lgcode)   return Plan.largeCodeSpace;
 
     // a does not belong to this plan instance
     return null;
@@ -257,6 +275,8 @@ import org.vmmagic.unboxed.*;
     if (space == Plan.immortalSpace) return immortal;
     if (space == Plan.loSpace)       return los;
     if (space == Plan.ploSpace)      return plos;
+    if (Plan.USE_CODE_SPACE && space == Plan.smallCodeSpace) return smcode;
+    if (Plan.USE_CODE_SPACE && space == Plan.largeCodeSpace) return lgcode;
 
     // Invalid request has been made
     if (space == Plan.metaDataSpace) {

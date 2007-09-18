@@ -220,7 +220,8 @@ public abstract class Gen extends StopTheWorld {
       return true;
     }
 
-    if (loSpace.allocationFailed()) {
+    if (loSpace.allocationFailed() ||
+        (USE_CODE_SPACE && (largeCodeSpace.allocationFailed() || smallCodeSpace.allocationFailed()))) {
       // We need space from the nursery
       return true;
     }
