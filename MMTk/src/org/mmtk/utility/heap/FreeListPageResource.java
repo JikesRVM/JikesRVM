@@ -330,14 +330,18 @@ public final class FreeListPageResource extends PageResource implements Constant
   }
 
   /**
-   * Resize the free list associated with this resource.  This method is
-   * called to re-set the free list once the global free list (which it shares)
-   * is finalized.  There's a circular dependency, so we need an explicit
-   * call-back to reset the free list size.
+   * Resize the free list associated with this resource and nail down
+   * its start address. This method is called to re-set the free list
+   * once the global free list (which it shares) is finalized and the
+   * base address is finalized.  There's a circular dependency, so we
+   * need an explicit call-back to reset the free list size and start
+   *
+   * @param startAddress The final start address for the discontiguous space.
    */
   @Interruptible
-  public void resizeFreeList() {
+  public void resizeFreeList(Address startAddress) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!contiguous && !Plan.isInitialized());
+    start = startAddress;
     freeList.resizeFreeList();
   }
 }

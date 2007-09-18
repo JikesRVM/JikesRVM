@@ -217,12 +217,13 @@ public class Map {
   @Interruptible
   public static void finalizeStaticSpaceMap() {
     /* establish bounds of discontiguous space */
-    int start = hashAddress(Space.getDiscontigStart());
+    Address startAddress = Space.getDiscontigStart();
+    int start = hashAddress(startAddress);
     int end = hashAddress(Space.getDiscontigEnd());
-    int pages = (end - start)*Space.PAGES_IN_CHUNK;
+    int pages = (end - start)*Space.PAGES_IN_CHUNK + 1;
     globalPageMap.resizeFreeList(pages, pages);
     for (int pr = 0; pr < sharedDiscontigFLCount; pr++)
-      sharedFLMap[pr].resizeFreeList();
+      sharedFLMap[pr].resizeFreeList(startAddress);
 
     /* set up the region map free list */
     regionMap.alloc(start);                  // block out entire bottom of address range

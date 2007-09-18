@@ -145,7 +145,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
   @Interruptible
   public void resizeFreeList(int units, int grain) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent == null && !Plan.isInitialized());
-   table = new int[(units + 1 + heads) << 1];
+    table = new int[(units + 1 + heads) << 1];
     initializeHeap(units, grain);
   }
 
