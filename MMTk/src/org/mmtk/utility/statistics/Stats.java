@@ -44,6 +44,7 @@ import org.vmmagic.pragma.*;
   static int phase = 0;
   private static int gcCount = 0;
   static boolean gatheringStats = false;
+  static boolean exceededPhaseLimit = false;
 
   /****************************************************************************
    *
@@ -88,8 +89,9 @@ import org.vmmagic.pragma.*;
         counter[c].phaseChange(phase);
       }
       phase++;
-    } else {
+    } else if (!exceededPhaseLimit) {
       Log.writeln("Warning: number of GC phases exceeds MAX_PHASES");
+      exceededPhaseLimit = true;
     }
   }
 
@@ -104,8 +106,9 @@ import org.vmmagic.pragma.*;
         counter[c].phaseChange(phase);
       }
       phase++;
-    } else {
+    } else if (!exceededPhaseLimit) {
       Log.writeln("Warning: number of GC phases exceeds MAX_PHASES");
+      exceededPhaseLimit = true;
     }
   }
 
@@ -158,6 +161,9 @@ import org.vmmagic.pragma.*;
 
   @Interruptible
   public static void printStats() {
+    if (exceededPhaseLimit) {
+      Log.writeln("Warning: number of GC phases exceeds MAX_PHASES.  Statistics are truncated.");
+    }
     if (Options.xmlStats.getValue())
       printStatsXml();
     else
