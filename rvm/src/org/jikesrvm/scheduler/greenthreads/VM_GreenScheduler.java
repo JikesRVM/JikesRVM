@@ -57,6 +57,14 @@ public final class VM_GreenScheduler extends VM_Scheduler {
    */
   public static final int MAX_PROCESSORS = 12;   // allow processors = 1 to 12
 
+  /** Type of processor */
+  private static final VM_TypeReference greenProcessorType =
+    VM_TypeReference.findOrCreate(VM_GreenProcessor.class);
+
+  /** Type of thread */
+  private static final VM_TypeReference greenThreadType =
+    VM_TypeReference.findOrCreate(VM_GreenThread.class);
+
   /** Maximum number of VM_Thread's that we can support. */
   public static final int LOG_MAX_THREADS = 14;
   public static final int MAX_THREADS = 1 << LOG_MAX_THREADS;
@@ -665,7 +673,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   @Override
   @Interruptible
   protected VM_TypeReference getThreadTypeInternal() {
-    return VM_TypeReference.findOrCreate(VM_GreenThread.class);
+    return greenThreadType;
   }
 
   /**
@@ -674,6 +682,6 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   @Override
   @Interruptible
   protected VM_TypeReference getProcessorTypeInternal() {
-    return VM_TypeReference.findOrCreate(VM_GreenProcessor.class);
+    return greenProcessorType;
   }
 }
