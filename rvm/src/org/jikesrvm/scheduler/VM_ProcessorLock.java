@@ -218,7 +218,8 @@ public final class VM_ProcessorLock implements VM_Constants {
    */
   @NoInline
   private static void handleMicrocontention(int n) {
-    if (n <= 0) return;                                  // method call overhead is delay enough
+    VM_Magic.pause();    // reduce overhead of spin wait on IA
+    if (n <= 0) return;  // method call overhead is delay enough
     if (n > 100) {
       VM.sysWriteln("Unexpectedly large processor lock contention");
       VM_Scheduler.dumpStack();
