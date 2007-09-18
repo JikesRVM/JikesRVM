@@ -73,13 +73,9 @@ public abstract class Plan implements Constants {
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   /* Space Size Constants. */
-  public static final boolean USE_DISCONTIGUOUS_SPACES = true;  // this is intended only during transition to discontiguous spaces
-  public static final int IMMORTAL_MB = 32;
   public static final int META_DATA_MB = 32;
-  public static final int SANITY_DATA_MB = 32;
   public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
-  public static final float LOS_FRAC = 0.03f;
   public static final float PLOS_FRAC = 0.07f;
   public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
   public static final int HEAP_FULL_PERCENTAGE = 2;
@@ -116,20 +112,20 @@ public abstract class Plan implements Constants {
   public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
-  public static final ImmortalSpace immortalSpace = USE_DISCONTIGUOUS_SPACES ? new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create(IMMORTAL_MB));
+  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
-  public static final RawPageSpace metaDataSpace = USE_DISCONTIGUOUS_SPACES ?  new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create(META_DATA_MB));
+  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** Large objects are allocated into a special large object space. */
-  public static final LargeObjectSpace loSpace = USE_DISCONTIGUOUS_SPACES ? new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create(LOS_FRAC));
+  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** Primitive (non-ref) large objects are allocated into a special primitive
       large object space. */
   public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, VMRequest.create(PLOS_FRAC, true));
 
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
-  public static final RawPageSpace sanitySpace = USE_DISCONTIGUOUS_SPACES ? new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create()) : new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create(SANITY_DATA_MB));
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create());
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
@@ -171,9 +167,7 @@ public abstract class Plan implements Constants {
     Options.sanityCheck = new SanityCheck();
     Options.debugAddress = new DebugAddress();
     Options.perfMetric = new PerfMetric();
-
-    if (USE_DISCONTIGUOUS_SPACES)
-      Map.finalizeStaticSpaceMap();
+    Map.finalizeStaticSpaceMap();
   }
 
   /****************************************************************************

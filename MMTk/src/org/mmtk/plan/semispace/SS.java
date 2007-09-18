@@ -52,11 +52,11 @@ public class SS extends StopTheWorld {
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace0 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create()) : new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(SEMISPACE_VIRT_MEM_FRAC));
+  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create());
   public static final int SS0 = copySpace0.getDescriptor();
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace1 = USE_DISCONTIGUOUS_SPACES ? new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create()) : new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create(SEMISPACE_VIRT_MEM_FRAC));
+  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create());
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;
