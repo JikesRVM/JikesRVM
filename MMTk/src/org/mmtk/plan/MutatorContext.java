@@ -94,10 +94,10 @@ import org.vmmagic.unboxed.*;
   protected LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
   /** Per-mutator allocator into the small code space */
-  protected  MarkSweepLocal smcode = new MarkSweepLocal(Plan.smallCodeSpace);
+  private  MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
 
   /** Per-mutator allocator into the large code space */
-  protected LargeObjectLocal lgcode = new LargeObjectLocal(Plan.largeCodeSpace);
+  private LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
 
   /** Per-mutator allocator into the primitive large object space */
   protected LargeObjectLocal plos = new LargeObjectLocal(Plan.ploSpace);
