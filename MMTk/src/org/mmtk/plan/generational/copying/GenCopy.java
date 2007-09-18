@@ -197,6 +197,17 @@ import org.vmmagic.pragma.*;
     return super.getPagesRequired() + (toSpace().requiredPages() << 1);
   }
 
+  /**
+   * Return the number of pages available for allocation into the mature
+   * space.
+   *
+   * @return The number of pages available for allocation into the mature
+   * space.
+   */
+  public int getMaturePhysicalPagesAvail() {
+    return toSpace().availablePhysicalPages() >> 1;
+  }
+
   /**************************************************************************
    * Miscellaneous methods
    */

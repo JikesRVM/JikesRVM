@@ -127,6 +127,16 @@ public class GenMS extends Gen {
     return super.getPagesRequired() + msSpace.requiredPages();
   }
 
+  /**
+   * Return the number of pages available for allocation into the mature
+   * space.
+   *
+   * @return The number of pages available for allocation into the mature
+   * space.
+   */
+  public int getMaturePhysicalPagesAvail() {
+    return msSpace.availablePhysicalPages();
+  }
 
   /*****************************************************************************
    *

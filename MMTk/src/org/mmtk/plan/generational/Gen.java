@@ -192,9 +192,17 @@ public abstract class Gen extends StopTheWorld {
    * @return True if a collection is requested by the plan.
    */
   public final boolean collectionRequired(boolean spaceFull) {
-    boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
+    int nurseryPages = nurserySpace.reservedPages();
 
-    return super.collectionRequired(spaceFull) || nurseryFull;
+    if (nurseryPages > Options.nurserySize.getMaxNursery()) {
+      return true;
+    }
+
+    if (nurseryPages >= getMaturePhysicalPagesAvail()) {
+      return true;
+    }
+
+    return super.collectionRequired(spaceFull);
   }
 
   /**
@@ -217,12 +225,14 @@ public abstract class Gen extends StopTheWorld {
       return true;
     }
 
-    // Estimate the yield from nursery PLOS pages
+    if (nurserySpace.reservedPages() >= getMaturePhysicalPagesAvail()) {
+      // Ensure we have the physical copy reserve required
+      return true;
+    }
+
+    int smallNurseryPages = nurserySpace.committedPages();
     int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
     int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
-
-    // Estimate the yield from small nursery pages
-    int smallNurseryPages = nurserySpace.committedPages();
     int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
 
     if ((plosYield + smallNurseryYield) < getPagesRequired()) {
@@ -290,6 +300,15 @@ public abstract class Gen extends StopTheWorld {
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
+
+  /**
+   * Return the number of pages available for allocation into the mature
+   * space.
+   *
+   * @return The number of pages available for allocation into the mature
+   * space.
+   */
+  public abstract int getMaturePhysicalPagesAvail();
 
   /**
    * Calculate the number of pages a collection is required to free to satisfy

@@ -223,6 +223,9 @@ public abstract class Space implements Constants {
   /** RequiredPages getter @return The number of required pages */
   public final int requiredPages() { return pr.requiredPages(); }
 
+  /** AvailablePages getter @return The number of pages available for allocation */
+  public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
+
   /** Cumulative committed pages getter @return Cumulative committed pages. */
   public static long cumulativeCommittedPages() {
     return PageResource.cumulativeCommittedPages();
