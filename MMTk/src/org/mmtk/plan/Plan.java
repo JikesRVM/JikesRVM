@@ -75,9 +75,6 @@ public abstract class Plan implements Constants {
 
   /* Space Size Constants. */
   public static final boolean USE_CODE_SPACE = false;
-  public static final int META_DATA_MB = 32;
-  public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
-  public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
   public static final float PLOS_FRAC = 0.07f;
   public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
   public static final int HEAP_FULL_PERCENTAGE = 2;
@@ -902,9 +899,8 @@ public abstract class Plan implements Constants {
   protected boolean collectionRequired(boolean spaceFull) {
     boolean stressForceGC = stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
 
-    return spaceFull || stressForceGC || heapFull || metaDataFull;
+    return spaceFull || stressForceGC || heapFull;
   }
 
   /**

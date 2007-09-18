@@ -84,7 +84,7 @@ import org.vmmagic.pragma.*;
    */
 
   /* Spaces */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, VMRequest.create(META_DATA_MB<<2));
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, VMRequest.create());
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */

@@ -20,14 +20,12 @@ import org.mmtk.utility.heap.VMRequest;
  */
 public interface GCspyPlan {
 
-  int GCSPY_MB = 4; // 1 chunk
-
   /**
    * Any GCspy objects allocated after booting are allocated
    * in a separate immortal space.
    */
   ImmortalSpace gcspySpace =
-      new ImmortalSpace("gcspy", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create(GCSPY_MB));
+      new ImmortalSpace("gcspy", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** The descriptor for the GCspy allocation space */
   int GCSPY = gcspySpace.getDescriptor();
