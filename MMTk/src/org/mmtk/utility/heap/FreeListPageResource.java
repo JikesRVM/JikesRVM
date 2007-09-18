@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility.heap;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import static org.mmtk.policy.Space.PAGES_IN_CHUNK;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
@@ -97,7 +98,7 @@ public final class FreeListPageResource extends PageResource implements Constant
     super(pageBudget, space);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     this.start = Space.AVAILABLE_START;
-    freeList = new GenericFreeList(Map.globalPageMap, Map.getSpaceMapOrdinal());
+    freeList = new GenericFreeList(Map.globalPageMap, Map.getDiscontigFreeListPROrdinal(this));
     pagesCurrentlyOnFreeList = 0;
   }
 
@@ -326,5 +327,17 @@ public final class FreeListPageResource extends PageResource implements Constant
     int pageOffset = Conversions.bytesToPages(first.diff(start));
     int pages = freeList.size(pageOffset);
     return Conversions.pagesToBytes(pages);
+  }
+
+  /**
+   * Resize the free list associated with this resource.  This method is
+   * called to re-set the free list once the global free list (which it shares)
+   * is finalized.  There's a circular dependency, so we need an explicit
+   * call-back to reset the free list size.
+   */
+  @Interruptible
+  public void resizeFreeList() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!contiguous && !Plan.isInitialized());
+    freeList.resizeFreeList();
   }
 }

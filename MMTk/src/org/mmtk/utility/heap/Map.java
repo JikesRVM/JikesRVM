@@ -18,6 +18,7 @@ import org.mmtk.utility.GenericFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -39,7 +40,8 @@ public class Map {
   private static final Space[] spaceMap;
   private static final GenericFreeList regionMap;
   public static final GenericFreeList globalPageMap;
-  private static int sharedSpaceCount = 0;
+  private static int sharedDiscontigFLCount = 0;
+  private static final FreeListPageResource[] sharedFLMap;
   private static int totalAvailableDiscontiguousChunks = 0;
 
   /****************************************************************************
@@ -55,7 +57,8 @@ public class Map {
     linkageMap = new int[Space.MAX_CHUNKS];
     spaceMap = new Space[Space.MAX_CHUNKS];
     regionMap = Plan.USE_DISCONTIGUOUS_SPACES ? new GenericFreeList(Space.MAX_CHUNKS) : null;
-    globalPageMap = Plan.USE_DISCONTIGUOUS_SPACES ? new GenericFreeList(Space.AVAILABLE_PAGES, Space.AVAILABLE_PAGES, Space.MAX_SPACES) : null;
+    globalPageMap = Plan.USE_DISCONTIGUOUS_SPACES ? new GenericFreeList(1, 1, Space.MAX_SPACES) : null;
+    sharedFLMap = Plan.USE_DISCONTIGUOUS_SPACES ? new FreeListPageResource[Space.MAX_SPACES] : null;
   }
 
   /****************************************************************************
@@ -212,35 +215,44 @@ public class Map {
    * is nailed down, and then placing the rest into a map to
    * be used by discontiguous spaces.
    */
+  @Interruptible
   public static void finalizeStaticSpaceMap() {
-    int start = hashAddress(Space.AVAILABLE_START);
-    int end = hashAddress(Space.AVAILABLE_END);
+    /* establish bounds of discontiguous space */
+    int start = hashAddress(Space.getDiscontigStart());
+    int end = hashAddress(Space.getDiscontigEnd());
+    int pages = (end - start)*Space.PAGES_IN_CHUNK;
+    globalPageMap.resizeFreeList(pages, pages);
+    for (int pr = 0; pr < sharedDiscontigFLCount; pr++)
+      sharedFLMap[pr].resizeFreeList();
 
+    /* set up the region map free list */
     regionMap.alloc(start);                  // block out entire bottom of address range
     for (int chunk = start; chunk < end; chunk++)
       regionMap.alloc(1);                    // tentitively allocate all usable chunks
     regionMap.alloc(Space.MAX_CHUNKS - end); // block out entire top of address range
+
+    /* set up the global page map and place chunks on free list */
     int firstPage = 0;
     for (int chunk = start; chunk < end; chunk++) {
-      if (spaceMap[chunk] == null) {         // this chunk has not been pinned down
-        totalAvailableDiscontiguousChunks++;
-        regionMap.free(chunk);  // free the chunk
-      }
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunk] == null);
+      totalAvailableDiscontiguousChunks++;
+      regionMap.free(chunk);  // put this chunk on the free list
       globalPageMap.setUncoalescable(firstPage);
       int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
       firstPage += Space.PAGES_IN_CHUNK;
     }
-    /* Space.printVMMap(); */
   }
 
   /**
-   * Return the ordinal number for some space wishing to share a discontiguous region.
-   * @return The ordinal number for a space wishing to share a discontiguous region
+   * Return the ordinal number for some free list space wishing to share a discontiguous region.
+   * @return The ordinal number for a free list space wishing to share a discontiguous region
    */
-  public static int getSpaceMapOrdinal() {
-    sharedSpaceCount++;
-    return sharedSpaceCount;
+  @Interruptible
+  public static int getDiscontigFreeListPROrdinal(FreeListPageResource pr) {
+    sharedFLMap[sharedDiscontigFLCount] = pr;
+    sharedDiscontigFLCount++;
+    return sharedDiscontigFLCount;
   }
 
   /**

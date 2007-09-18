@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -124,6 +125,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param heads The number of free lists which will share this instance
    */
   public GenericFreeList(int units, int grain, int heads) {
+    this.parent = null;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS && heads <= MAX_HEADS);
     this.heads = heads;
     head = -1;
@@ -134,12 +136,37 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
   }
 
   /**
+   * Resize the free list for a parent free list.
+   * This must not be called dynamically (ie not after bootstrap).
+   *
+   * @param units The number of allocatable units for this free list
+   * @param grain Units are allocated such that they will never cross this granularity boundary
+   */
+  @Interruptible
+  public void resizeFreeList(int units, int grain) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent == null && !Plan.isInitialized());
+   table = new int[(units + 1 + heads) << 1];
+    initializeHeap(units, grain);
+  }
+
+  /**
+   * Resize the free list for a child free list.
+   * This must not be called dynamically (ie not after bootstrap).
+   */
+  @Interruptible
+  public void resizeFreeList() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent != null && !Plan.isInitialized());
+    table = parent.getTable();
+  }
+
+  /**
    * Constructor
    *
    * @param parent The parent, owning the data structures this instance will share
    * @param ordinal The ordinal number of this child
    */
   public GenericFreeList(GenericFreeList parent, int ordinal) {
+    this.parent = parent;
     this.table = parent.getTable();
     this.heads = parent.getHeads();
     this.head = -(1 + ordinal);
@@ -352,4 +379,5 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
   private static final int SIZE_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
 
   private int[] table;
+  private final GenericFreeList parent;
 }

@@ -187,6 +187,12 @@ public abstract class Space implements Constants {
    * Accessor methods
    */
 
+  /** Start of discontig getter @return The start of the discontiguous space */
+  public static Address getDiscontigStart() { return heapCursor; }
+
+  /** End of discontig getter @return The end of the discontiguous space */
+  public static Address getDiscontigEnd() { return heapLimit; }
+
   /** Name getter @return The name of this space */
   public final String getName() { return name; }
 
