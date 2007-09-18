@@ -225,11 +225,11 @@ public class Map {
       if (spaceMap[chunk] == null) {         // this chunk has not been pinned down
         totalAvailableDiscontiguousChunks++;
         regionMap.free(chunk);  // free the chunk
-        globalPageMap.setUncoalescable(firstPage);
-        int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
-        firstPage += Space.PAGES_IN_CHUNK;
       }
+      globalPageMap.setUncoalescable(firstPage);
+      int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
+      firstPage += Space.PAGES_IN_CHUNK;
     }
     /* Space.printVMMap(); */
   }
