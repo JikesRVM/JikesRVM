@@ -379,7 +379,7 @@ public class VM_Services implements VM_SizeConstants {
    */
   public static int getArrayNoBarrier(int[] src, int index) {
     if (VM.runningVM)
-      return VM_Magic.getCharAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT));
+      return VM_Magic.getIntAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT));
     else
       return src[index];
   }
