@@ -4481,6 +4481,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitSYNC();
     } else if (methodName == VM_MagicNames.isync) {
       asm.emitISYNC();
+    } else if (methodName == VM_MagicNames.pause) {
+      // NO-OP
     } else if (methodName == VM_MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
