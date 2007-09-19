@@ -273,7 +273,7 @@ public class Map {
   @Inline
   public static Space getSpaceForAddress(Address address) {
     int index = hashAddress(address);
-    return (Space) VM.barriers.getArrayNoBarrier(spaceMap, index);
+    return spaceMap[index];
   }
 
   /**
@@ -288,7 +288,7 @@ public class Map {
   public static int getDescriptorForAddress(Address object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isZero());
     int index = hashAddress(object);
-    return VM.barriers.getArrayNoBarrier(descriptorMap, index);
+    return descriptorMap[index];
   }
 
   /**
