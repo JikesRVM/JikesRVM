@@ -539,6 +539,7 @@ if ($ok) {
     }
     $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
     if ($host ne $target) {
+      $rsync .= ";\nssh -t $sshTarget mkdir -p $targetRoot";
       $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
       if ($compcachedir ne "") {
         $rsync .= ";\nssh -t $sshTarget mkdir -p $targetCompCache;\n";
