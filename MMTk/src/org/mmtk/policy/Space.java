@@ -451,7 +451,7 @@ public abstract class Space implements Constants {
    */
   public int releaseDiscontiguousChunks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
-     return Map.freeContiguousChunks(chunk);
+    return Map.freeContiguousChunks(chunk);
   }
 
   /**
