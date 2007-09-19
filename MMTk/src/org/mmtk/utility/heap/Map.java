@@ -15,6 +15,7 @@ package org.mmtk.utility.heap;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.utility.Log;
+import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -42,6 +43,8 @@ public class Map {
   private static int sharedDiscontigFLCount = 0;
   private static final FreeListPageResource[] sharedFLMap;
   private static int totalAvailableDiscontiguousChunks = 0;
+
+  private static Lock lock = VM.newLock("Map lock");
 
   /****************************************************************************
    *
@@ -103,6 +106,7 @@ public class Map {
    * @return The address of the assigned memory.  This always succeeds.  If the request fails we fail right here.
    */
   public static Address allocateContiguousChunks(int descriptor, Space space, int chunks, Address previous) {
+    lock.acquire();
     int chunk = regionMap.alloc(chunks);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk != 0);
     if (chunk == -1) {
@@ -117,6 +121,7 @@ public class Map {
     Address rtn = reverseHashChunk(chunk);
     insert(rtn, Extent.fromIntZeroExtend(chunks<<Space.LOG_BYTES_IN_CHUNK), descriptor, space);
     linkageMap[chunk] = previous.isZero() ? 0 : hashAddress(previous);
+    lock.release();
     return rtn;
   }
 
@@ -161,6 +166,7 @@ public class Map {
    * @param lastChunk The last chunk in the linked list of chunks to be freed
    */
   public static void freeAllChunks(Address lastChunk) {
+    lock.acquire();
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(lastChunk.EQ(Space.chunkAlign(lastChunk, true)));
     int chunk = hashAddress(lastChunk);
     while (chunk != 0) {
@@ -168,17 +174,7 @@ public class Map {
       freeContiguousChunks(chunk);
       chunk = next;
     }
-  }
-
-  /**
-   * Return the size of a region of contiguous chunks
-   *
-   * @param start The start address of the first chunk in the series
-   * @return The number of chunks which were contiguously allocated
-   */
-  public static int sizeOfContiguousChunks(Address start) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    return regionMap.size(hashAddress(start));
+    lock.release();
   }
 
   /**
@@ -188,8 +184,11 @@ public class Map {
    * @return The number of chunks which were contiguously allocated
    */
   public static int freeContiguousChunks(Address start) {
+    lock.acquire();
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    return freeContiguousChunks(hashAddress(start));
+    int rtn = freeContiguousChunks(hashAddress(start));
+    lock.release();
+    return rtn;
   }
 
   /**
