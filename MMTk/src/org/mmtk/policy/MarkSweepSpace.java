@@ -33,13 +33,19 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  */
-@Uninterruptible public final class MarkSweepSpace extends Space
-  implements Constants {
+@Uninterruptible
+public final class MarkSweepSpace extends SegregatedFreeListSpace implements Constants {
 
   /****************************************************************************
    *
    * Class variables
    */
+  /**
+   * Select between using mark bits in a side bitmap, or mark bits
+   * in the headers of object (or other sub-class scheme), and a single
+   * mark bit per block.
+   */
+  public static final boolean HEADER_MARK_BITS = VM.config.HEADER_MARK_BITS;
   /** highest bit bits we may use */
   private static final int MAX_BITS = 4;
 
@@ -86,11 +92,64 @@ import org.vmmagic.unboxed.*;
    * @param vmRequest An object describing the virtual memory requested.
    */
   public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
-    if (vmRequest.isDiscontiguous()) {
-      pr = new FreeListPageResource(pageBudget, this, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+    super(name, pageBudget, 0, vmRequest);
+  }
+
+  /**
+   * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
+   */
+  @Inline
+  protected boolean maintainSideBitmap() {
+    return !HEADER_MARK_BITS;
+  }
+
+  /**
+   * Do we need to preserve free lists as we move blocks around.
+   */
+  @Inline
+  protected boolean preserveFreeList() {
+    return !LAZY_SWEEP;
+  }
+
+  /****************************************************************************
+   *
+   * Allocation
+   */
+
+  /**
+   * Prepare the next block in the free block list for use by the free
+   * list allocator.  In the case of lazy sweeping this involves
+   * sweeping the available cells.  <b>The sweeping operation must
+   * ensure that cells are pre-zeroed</b>, as this method must return
+   * pre-zeroed cells.
+   *
+   * @param block The block to be prepared for use
+   * @param sizeClass The size class of the block
+   * @return The address of the first pre-zeroed cell in the free list
+   * for this block, or zero if there are no available cells.
+   */
+  protected Address advanceToBlock(Address block, int sizeClass) {
+    if (HEADER_MARK_BITS) {
+      if (inMSCollection) markBlock(block);
+    }
+
+    if (LAZY_SWEEP) {
+      return makeFreeList(block, sizeClass);
     } else {
-      pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+      return getFreeList(block);
+    }
+  }
+
+  /**
+   * Notify that a new block has been installed. This is to ensure that
+   * appropriate collection state can be initialized for the block
+   *
+   * @param block The new block
+   * @param sizeClass The block's sizeclass.
+   */
+  protected void notifyNewBlock(Address block, int sizeClass) {
+    if (HEADER_MARK_BITS) {
+      if (inMSCollection) markBlock(block);
     }
   }
 
@@ -105,11 +164,16 @@ import org.vmmagic.unboxed.*;
    * collections.
    */
   public void prepare() {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
+    if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
+      consumeBlocks();
+    } else {
+      flushAvailableBlocks();
+    }
+    if (HEADER_MARK_BITS) {
       allocState = markState;
       markState = deltaMarkState(true);
     } else {
-      MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
+      zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     }
     inMSCollection = true;
   }
@@ -119,17 +183,8 @@ import org.vmmagic.unboxed.*;
    * collector this means we can perform the sweep phase.
  */
   public void release() {
+    sweepConsumedBlocks();
     inMSCollection = false;
-  }
-
-  /**
-   * Return true if this mark-sweep space is currently being collected.
-   *
-   * @return True if this mark-sweep space is currently being collected.
-   */
-  @Inline
-  public boolean inMSCollection() {
-    return inMSCollection;
   }
 
   /**
@@ -140,6 +195,22 @@ import org.vmmagic.unboxed.*;
   @Inline
   public void release(Address start) {
     ((FreeListPageResource) pr).releasePages(start);
+  }
+
+  /**
+   * Should the sweep reclaim the cell containing this object. Is this object
+   * live. This is only used when maintainSideBitmap is false.
+   *
+   * @param object The object to query
+   * @param markState The markState ot compare against
+   * @return True if the cell should be reclaimed
+   */
+  @Inline
+  protected boolean isCellLive(ObjectReference object) {
+    if (!HEADER_MARK_BITS) {
+      return super.isCellLive(object);
+    }
+    return testMarkState(object, markState);
   }
 
   /****************************************************************************
@@ -162,13 +233,13 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
+    if (HEADER_MARK_BITS) {
       if (testAndMark(object, markState)) {
-        MarkSweepLocal.liveBlock(object);
+        markBlock(object);
         trace.processNode(object);
       }
     } else {
-      if (MarkSweepLocal.liveObject(object)) {
+      if (testAndSetLiveBit(object)) {
         trace.processNode(object);
       }
     }
@@ -182,10 +253,10 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public boolean isLive(ObjectReference object) {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
+    if (HEADER_MARK_BITS) {
       return testMarkState(object, markState);
     } else {
-      return MarkSweepLocal.isLiveObject(object);
+      return liveBitSet(object);
     }
   }
 
@@ -250,8 +321,8 @@ import org.vmmagic.unboxed.*;
   @Inline
   public void postCopy(ObjectReference object, boolean majorGC) {
     initializeHeader(object, false);
-    if (!MarkSweepLocal.HEADER_MARK_BITS) {
-      MarkSweepLocal.liveObject(object);
+    if (!HEADER_MARK_BITS) {
+      testAndSetLiveBit(object);
     }
   }
 
@@ -264,12 +335,14 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
-    if (MarkSweepLocal.HEADER_MARK_BITS)
-      if (alloc)
+    if (HEADER_MARK_BITS) {
+      if (alloc) {
         writeAllocState(object);
-      else
+      } else {
         writeMarkState(object);
-   }
+      }
+    }
+  }
 
   /**
    * Atomically attempt to set the mark bit of an object.  Return true

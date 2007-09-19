@@ -17,7 +17,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.plan.refcount.cd.CD;
 import org.mmtk.plan.refcount.cd.NullCD;
 import org.mmtk.plan.refcount.cd.TrialDeletion;
-import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
@@ -257,7 +256,7 @@ import org.vmmagic.unboxed.*;
     }
 
     if (Space.isInSpace(REF_COUNT, object)) {
-      ExplicitFreeListLocal.free(object);
+      ExplicitFreeListSpace.free(object);
     } else if (Space.isInSpace(LOS, object)){
       ExplicitLargeObjectLocal.free(loSpace, object);
     }

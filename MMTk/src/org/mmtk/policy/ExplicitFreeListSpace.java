@@ -28,8 +28,8 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  */
-@Uninterruptible public final class ExplicitFreeListSpace extends Space
-  implements Constants {
+@Uninterruptible
+public final class ExplicitFreeListSpace extends SegregatedFreeListSpace implements Constants {
 
   /****************************************************************************
    *
@@ -55,12 +55,23 @@ import org.vmmagic.unboxed.*;
    * @param vmRequest An object describing the virtual memory requested.
    */
   public ExplicitFreeListSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
-    if (vmRequest.isDiscontiguous()) {
-      pr = new FreeListPageResource(pageBudget, this, start, extent, ExplicitFreeListLocal.META_DATA_PAGES_PER_REGION);
-    } else {
-      pr = new FreeListPageResource(pageBudget, this, ExplicitFreeListLocal.META_DATA_PAGES_PER_REGION);
-    }
+    super(name, pageBudget, 0, vmRequest);
+  }
+
+  /**
+   * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
+   */
+  @Inline
+  protected boolean maintainSideBitmap() {
+    return true;
+  }
+
+  /**
+   * Do we need to preserve free lists as we move blocks around.
+   */
+  @Inline
+  protected boolean preserveFreeList() {
+    return false;
   }
 
   /****************************************************************************
@@ -69,14 +80,44 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
+   * Prepare the next block in the free block list for use by the free
+   * list allocator.  In the case of lazy sweeping this involves
+   * sweeping the available cells.  <b>The sweeping operation must
+   * ensure that cells are pre-zeroed</b>, as this method must return
+   * pre-zeroed cells.
+   *
+   * @param block The block to be prepared for use
+   * @param sizeClass The size class of the block
+   * @return The address of the first pre-zeroed cell in the free list
+   * for this block, or zero if there are no available cells.
+   */
+  protected Address advanceToBlock(Address block, int sizeClass) {
+    return makeFreeList(block, sizeClass);
+  }
+
+  /**
+   * Free an object.
+   *
+   * @param object The object to be freed.
+   */
+  @Inline
+  public static void free(ObjectReference object) {
+    clearLiveBit(object);
+  }
+
+  /**
    * Prepare for a new collection increment.
    */
-  public void prepare() {}
+  public void prepare() {
+    flushAvailableBlocks();
+  }
 
   /**
    * A new collection increment has completed.
    */
-  public void release() {}
+  public void release() {
+    sweepConsumedBlocks();
+  }
 
   /**
    * Release an allocated page or pages

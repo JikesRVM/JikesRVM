@@ -133,8 +133,7 @@ import org.vmmagic.unboxed.*;
       if (phaseId == GenMS.RELEASE) {
         matureTrace.release();
         if (global().gcFullHeap) {
-          mature.releaseCollector();
-          mature.releaseMutator();
+          mature.release();
         }
         super.collectionPhase(phaseId, primary);
         return;

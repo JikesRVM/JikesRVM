@@ -159,7 +159,7 @@ import org.vmmagic.unboxed.*;
 
     if (phaseId == CopyMS.RELEASE) {
       nursery.reset();
-      mature.releaseMutator();
+      mature.release();
       super.collectionPhase(phaseId, primary);
       return;
     }

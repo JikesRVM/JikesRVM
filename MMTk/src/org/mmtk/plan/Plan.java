@@ -13,12 +13,12 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.SegregatedFreeListSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -96,8 +96,8 @@ public abstract class Plan implements Constants {
   public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
-  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
-  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE >> 1;
+  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
+  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE >> 1;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;

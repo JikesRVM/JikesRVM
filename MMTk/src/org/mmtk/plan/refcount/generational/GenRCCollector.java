@@ -18,6 +18,7 @@ import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
@@ -90,8 +91,7 @@ implements Constants {
 
     if (phaseId == GenRC.RELEASE) {
       super.collectionPhase(phaseId, primary);
-      rc.releaseCollector();
-      rc.releaseMutator();
+      rc.release();
       return;
     }
 
@@ -135,7 +135,7 @@ implements Constants {
     CopySpace.clearGCBits(object);
     RCHeader.initializeHeader(object, typeRef, false);
     RCHeader.makeUnlogged(object);
-    ExplicitFreeListLocal.unsyncLiveObject(object);
+    ExplicitFreeListSpace.unsyncSetLiveBit(object);
   }
 
   /****************************************************************************

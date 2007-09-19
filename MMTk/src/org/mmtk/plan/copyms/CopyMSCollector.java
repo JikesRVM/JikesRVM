@@ -124,8 +124,7 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == CopyMS.RELEASE) {
-      mature.releaseCollector();
-      mature.releaseMutator();
+      mature.release();
       trace.release();
       super.collectionPhase(phaseId, primary);
       return;

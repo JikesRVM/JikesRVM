@@ -59,7 +59,6 @@ public abstract class CMSMutator extends ConcurrentMutator {
   public CMSMutator() {
     ms = new MarkSweepLocal(CMS.msSpace);
     remset = new TraceWriteBuffer(global().msTrace);
-
   }
 
   /****************************************************************************
@@ -155,8 +154,7 @@ public abstract class CMSMutator extends ConcurrentMutator {
     }
 
     if (phaseId == CMS.RELEASE) {
-      ms.releaseCollector();
-      ms.releaseMutator(); // FIXME see block comment at top of this class
+      ms.release();
       super.collectionPhase(phaseId, primary);
       return;
     }

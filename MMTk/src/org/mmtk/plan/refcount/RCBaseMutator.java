@@ -17,6 +17,7 @@ import org.mmtk.plan.refcount.cd.CDMutator;
 import org.mmtk.plan.refcount.cd.NullCDMutator;
 import org.mmtk.plan.refcount.cd.TrialDeletionMutator;
 import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
 
@@ -131,7 +132,7 @@ import org.vmmagic.unboxed.*;
       int bytes, int allocator) {
     switch(allocator) {
     case RCBase.ALLOC_RC:
-      ExplicitFreeListLocal.unsyncLiveObject(ref);
+      ExplicitFreeListSpace.unsyncSetLiveBit(ref);
     case RCBase.ALLOC_LOS:
     case RCBase.ALLOC_IMMORTAL:
       if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
@@ -201,8 +202,7 @@ import org.vmmagic.unboxed.*;
 
     if (phaseId == RCBase.RELEASE) {
       los.release();
-      rc.releaseCollector();
-      rc.releaseMutator(); // FIXME see block comment at top of this class
+      rc.release();
       return;
     }
 

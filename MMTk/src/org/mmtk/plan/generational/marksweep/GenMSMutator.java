@@ -161,7 +161,7 @@ import org.vmmagic.unboxed.*;
       }
 
       if (phaseId == GenMS.RELEASE) {
-        if (global().gcFullHeap) mature.releaseMutator();
+        if (global().gcFullHeap) mature.release();
         super.collectionPhase(phaseId, primary);
         return;
       }

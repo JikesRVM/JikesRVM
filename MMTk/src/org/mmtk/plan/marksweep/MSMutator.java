@@ -156,8 +156,7 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == MS.RELEASE) {
-      ms.releaseCollector();
-      ms.releaseMutator(); // FIXME see block comment at top of this class
+      ms.release();
       super.collectionPhase(phaseId, primary);
       return;
     }
