@@ -75,6 +75,9 @@ public abstract class VM_SysCall {
   public abstract Address sysMalloc(int length);
 
   @SysCallTemplate
+  public abstract Address sysCalloc(int length);
+
+  @SysCallTemplate
   public abstract void sysFree(Address location);
 
   @SysCallTemplate

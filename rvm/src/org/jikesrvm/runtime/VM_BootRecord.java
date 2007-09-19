@@ -225,6 +225,7 @@ public class VM_BootRecord {
   // memory
   public Address sysCopyIP;
   public Address sysMallocIP;
+  public Address sysCallocIP;
   public Address sysFreeIP;
   public Address sysZeroIP;
   public Address sysZeroPagesIP;

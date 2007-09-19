@@ -1591,6 +1591,12 @@ sysMalloc(int length)
     return malloc(length);
 }
 
+extern "C" void *
+sysCalloc(int length)
+{
+  return calloc(1, length);
+}
+
 // Release memory.
 //
 extern "C" void
