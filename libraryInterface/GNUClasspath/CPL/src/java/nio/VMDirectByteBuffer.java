@@ -25,43 +25,43 @@ final class VMDirectByteBuffer
 {
   /** Malloc capacity bytes and ensure they're zeroed */
   static Pointer allocate (int capacity) {
-	 return getPointerFromAddress(VM_SysCall.sysCall.sysCalloc(capacity));
+    return getPointerFromAddress(VM_SysCall.sysCall.sysCalloc(capacity));
   }
   /** Free memory previously allocated */
   static void free(Pointer address) {
-	 VM_SysCall.sysCall.sysFree(getAddressFromPointer(address));
+    VM_SysCall.sysCall.sysFree(getAddressFromPointer(address));
   }
   /** Read byte at index */
   static byte get(Pointer address, int index) {
-	 return getAddressFromPointer(address).loadByte(Offset.fromIntSignExtend(index));
+    return getAddressFromPointer(address).loadByte(Offset.fromIntSignExtend(index));
   }
   /** Read bytes at index into dst */
   static void get(Pointer address, int index, byte[] dst, int offset, int length) {
-	 Address startAddress = getAddressFromPointer(address);
-	 for (int i=0; i<length; i++) {
-		dst[offset+i] = startAddress.loadByte(Offset.fromIntSignExtend(index+i));
-	 }
+    Address startAddress = getAddressFromPointer(address);
+    for (int i=0; i<length; i++) {
+      dst[offset+i] = startAddress.loadByte(Offset.fromIntSignExtend(index+i));
+    }
   }
   /** Write byte at index */
   static void put(Pointer address, int index, byte value) {
-	 getAddressFromPointer(address).store(value, Offset.fromIntSignExtend(index));
+    getAddressFromPointer(address).store(value, Offset.fromIntSignExtend(index));
   }
   /** Write bytes at offset in src into buffer */
   static void put(Pointer address, int index, byte[] src, int offset, int length) {
-	 Address startAddress = getAddressFromPointer(address);
-	 for (int i=0; i<length; i++) {
-		startAddress.store(src[offset+i], Offset.fromIntSignExtend(index+i));
-	 }
+    Address startAddress = getAddressFromPointer(address);
+    for (int i=0; i<length; i++) {
+      startAddress.store(src[offset+i], Offset.fromIntSignExtend(index+i));
+    }
   }
   /** Adjust pointer by offset */
   static Pointer adjustAddress(Pointer address, int offset) {
-	 return getPointerFromAddress(getAddressFromPointer(address).toWord().plus(Word.fromIntSignExtend(offset)).toAddress());
+    return getPointerFromAddress(getAddressFromPointer(address).toWord().plus(Word.fromIntSignExtend(offset)).toAddress());
   }
   /** Copy region in buffer to another region */
   static void shiftDown(Pointer address, int dst_offset, int src_offset, int count) {
-	 Address startAddress = getAddressFromPointer(address);
-	 for (int i=0; i < count; i++) {
-		startAddress.store(startAddress.loadByte(Offset.fromIntSignExtend(src_offset+i)), Offset.fromIntSignExtend(dst_offset+i));
-	 }
+    Address startAddress = getAddressFromPointer(address);
+    for (int i=0; i < count; i++) {
+      startAddress.store(startAddress.loadByte(Offset.fromIntSignExtend(src_offset+i)), Offset.fromIntSignExtend(dst_offset+i));
+    }
   }
 }
