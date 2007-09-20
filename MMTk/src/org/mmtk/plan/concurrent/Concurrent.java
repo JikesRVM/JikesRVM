@@ -53,7 +53,7 @@ public abstract class Concurrent extends Simple {
   /**
    * Perform the initial determination of liveness from the roots.
    */
-  protected static final short concurrentCompleteClosure = Phase.createComplex("concurrent-mark", null,
+  protected static final short concurrentClosure = Phase.createComplex("concurrent-mark", null,
       Phase.scheduleMutator   (SET_BARRIER_ACTIVE),
       Phase.scheduleCollector (FLUSH_COLLECTOR),
       Phase.scheduleConcurrent(CONCURRENT_CLOSURE),
@@ -101,7 +101,7 @@ public abstract class Concurrent extends Simple {
     super.postBoot();
 
     /* Set up the concurrent marking phase */
-    replacePhase(Phase.scheduleCollector(CLOSURE), Phase.scheduleComplex(concurrentCompleteClosure));
+    replacePhase(Phase.scheduleCollector(CLOSURE), Phase.scheduleComplex(concurrentClosure));
 
     if (Options.sanityCheck.getValue()) {
       Log.writeln("Collection sanity checking enabled.");

@@ -40,6 +40,8 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   /* gray object */
   protected final ObjectReferenceDeque values;
+  /* delayed root slots */
+  protected final AddressDeque rootLocations;
 
   /****************************************************************************
    *
@@ -64,6 +66,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public TraceLocal(int specializedScan, Trace trace) {
     super(specializedScan);
     values = new ObjectReferenceDeque("value", trace.valuePool);
+    rootLocations = new AddressDeque("roots", trace.rootLocationPool);
   }
 
   /****************************************************************************
@@ -86,6 +89,20 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     ObjectReference object = slot.loadObjectReference();
     ObjectReference newObject = traceObject(object, false);
     slot.store(newObject);
+  }
+
+  /**
+   * Report a root edge to be processed during GC. As the given reference
+   * may theoretically point to an object required during root scanning,
+   * the caller has requested processing be delayed.
+   *
+   * @param slot The location containing the object reference to be
+   * traced.  The object reference is <i>NOT</i> an interior pointer.
+   * @param root True if <code>objLoc</code> is within a root.
+   */
+  @Inline
+  public final void reportDelayedRootEdge(Address slot) {
+    rootLocations.push(slot);
   }
 
   /**
@@ -171,6 +188,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   public final void flush() {
     values.flushLocal();
+    rootLocations.flushLocal();
   }
 
   /**
@@ -421,6 +439,18 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
 
   public void release() {
     values.reset();
+    rootLocations.reset();
+  }
+
+  /**
+   * Process any roots for which processing was delayed.
+   */
+  @Inline
+  public void processRoots() {
+    logMessage(5, "processing delayed root objects");
+    while (!rootLocations.isEmpty()) {
+      processRootEdge(rootLocations.pop());
+    }
   }
 
   /**
@@ -429,7 +459,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   public void completeTrace() {
-    logMessage(4, "Continuing GC in parallel");
+    logMessage(4, "Processing GC in parallel");
+    if (!rootLocations.isEmpty()) {
+      processRoots();
+    }
     logMessage(5, "processing gray objects");
     assertMutatorRemsetsFlushed();
     do {

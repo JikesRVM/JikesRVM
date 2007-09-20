@@ -75,15 +75,16 @@ public abstract class SimpleCollector extends CollectorContext {
       return;
     }
 
-    if (phaseId == Simple.ROOTS) {
+    if (phaseId == Simple.STACK_ROOTS) {
       VM.scanning.computeThreadRoots(getCurrentTrace());
-      VM.scanning.computeStaticRoots(getCurrentTrace());
       return;
     }
 
-    if (phaseId == Simple.BOOTIMAGE_ROOTS) {
-      if (Plan.SCAN_BOOT_IMAGE)
+    if (phaseId == Simple.ROOTS) {
+      VM.scanning.computeStaticRoots(getCurrentTrace());
+      if (Plan.SCAN_BOOT_IMAGE) {
         VM.scanning.computeBootImageRoots(getCurrentTrace());
+      }
       return;
     }
 

@@ -265,7 +265,7 @@ import org.vmmagic.pragma.*;
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = hwExReg.getIPLocation();
       if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
-      codeLocationsPush(code, ipLoc);
+      processCodeLocation(code, ipLoc);
     }
   }
 
@@ -277,7 +277,7 @@ import org.vmmagic.pragma.*;
    * @param ipLoc The location of the pointer into this code object
    */
   @Inline
-  private void codeLocationsPush(ObjectReference code, Address ipLoc) {
+  private void processCodeLocation(ObjectReference code, Address ipLoc) {
     if (VALIDATE_REFS) {
       Address ip = ipLoc.loadAddress();
       Offset offset = ip.diff(code.toAddress());
@@ -397,7 +397,7 @@ import org.vmmagic.pragma.*;
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
       if (verbosity >= 3) dumpRef(refaddr, verbosity);
-      trace.processRootEdge(refaddr);
+      trace.reportDelayedRootEdge(refaddr);
     }
   }
 
@@ -462,7 +462,7 @@ import org.vmmagic.pragma.*;
       }
       /* skip native code, as it is not (cannot be) moved */
       if (compiledMethodType != VM_CompiledMethod.JNI)
-        codeLocationsPush(code, initialIPLoc);
+        processCodeLocation(code, initialIPLoc);
       else if (verbosity >=3) {
         Log.writeln("GC Warning: SKIPPING return address for JNI code");
       }
@@ -475,7 +475,7 @@ import org.vmmagic.pragma.*;
       }
       /* skip boot image code, as it is not (cannot be) moved */
       if (!DebugUtil.addrInBootImage(returnAddress))
-        codeLocationsPush(code, returnAddressLoc);
+        processCodeLocation(code, returnAddressLoc);
     }
   }
 
@@ -491,7 +491,7 @@ import org.vmmagic.pragma.*;
     for (Address retaddrLoc = iterator.getNextReturnAddressAddress();
          !retaddrLoc.isZero();
          retaddrLoc = iterator.getNextReturnAddressAddress())
-      codeLocationsPush(code, retaddrLoc);
+      processCodeLocation(code, retaddrLoc);
   }
 
 
@@ -516,7 +516,7 @@ import org.vmmagic.pragma.*;
       VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
       while(!refaddr.isZero()) {
-        trace.processRootEdge(refaddr);
+        trace.reportDelayedRootEdge(refaddr);
         refaddr = iterator.getNextReferenceAddress();
       }
     }

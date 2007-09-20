@@ -167,8 +167,8 @@ import org.vmmagic.pragma.*;
     } else if (!traceInducedGC ||
                (phaseId == INITIATE) ||
                (phaseId == PREPARE_STACKS) ||
-               (phaseId == BOOTIMAGE_ROOTS) ||
                (phaseId == ROOTS) ||
+               (phaseId == STACK_ROOTS) ||
                (phaseId == COMPLETE)) {
       /* Performing normal GC; sponge off of parent's work. */
       super.collectionPhase(phaseId);

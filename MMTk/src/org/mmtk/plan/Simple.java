@@ -51,8 +51,8 @@ public abstract class Simple extends Plan implements Constants {
   public static final short PREPARE             = Phase.createSimple("prepare");
   public static final short PRECOPY             = Phase.createSimple("precopy");
   public static final short PREPARE_STACKS      = Phase.createSimple("prepare-stacks", null);
+  public static final short STACK_ROOTS         = Phase.createSimple("stacks");
   public static final short ROOTS               = Phase.createSimple("root");
-  public static final short BOOTIMAGE_ROOTS     = Phase.createSimple("bootimage-root");
   public static final short CLOSURE             = Phase.createSimple("closure", scanTime);
   public static final short SOFT_REFS           = Phase.createSimple("soft-ref", refTypeTime);
   public static final short WEAK_REFS           = Phase.createSimple("weak-ref", refTypeTime);
@@ -116,9 +116,9 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (PRECOPY),
+      Phase.scheduleCollector  (STACK_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
-      Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
       Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE));
 

@@ -80,13 +80,6 @@ public abstract class CMSCollector extends ConcurrentCollector {
   }
 
   /**
-   * Return the current trace to be used during concurrent collection.
-   */
-  protected TraceLocal getConcurrentTrace() {
-    return this.trace;
-  }
-
-  /**
    * Has all work been completed?
    */
   protected boolean concurrentTraceComplete() {

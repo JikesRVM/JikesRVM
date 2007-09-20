@@ -29,7 +29,6 @@ public class Trace implements Constants {
   // Global pools for load-balancing deques
   final SharedDeque valuePool;
   final SharedDeque rootLocationPool;
-  final SharedDeque interiorRootPool;
 
   /**
    * Constructor
@@ -37,7 +36,6 @@ public class Trace implements Constants {
   public Trace(RawPageSpace metaDataSpace) {
     valuePool = new SharedDeque("valuePool",metaDataSpace, 1);
     rootLocationPool = new SharedDeque("rootLocations", metaDataSpace, 1);
-    interiorRootPool = new SharedDeque("interiorRoots", metaDataSpace, 2);
   }
 
   /**
@@ -46,7 +44,6 @@ public class Trace implements Constants {
   public void prepareNonBlocking() {
     valuePool.prepareNonBlocking();
     rootLocationPool.prepareNonBlocking();
-    interiorRootPool.prepareNonBlocking();
   }
 
   /**
@@ -55,8 +52,7 @@ public class Trace implements Constants {
    */
   public void prepare() {
     valuePool.prepare();
-    rootLocationPool.prepare();
-    interiorRootPool.prepare();
+    rootLocationPool.prepareNonBlocking();
   }
 
   /**
@@ -65,13 +61,12 @@ public class Trace implements Constants {
   public void release() {
     valuePool.reset();
     rootLocationPool.reset();
-    interiorRootPool.reset();
   }
 
   /**
    * Is there any work outstanding in this trace. That is are there any pages in the pools.
    */
   public boolean hasWork() {
-    return (valuePool.enqueuedPages() + rootLocationPool.enqueuedPages() + interiorRootPool.enqueuedPages()) > 0;
+    return (valuePool.enqueuedPages() + rootLocationPool.enqueuedPages()) > 0;
   }
 }

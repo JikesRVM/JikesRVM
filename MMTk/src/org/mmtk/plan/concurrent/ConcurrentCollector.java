@@ -69,7 +69,8 @@ public abstract class ConcurrentCollector extends SimpleCollector {
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Concurrent.FLUSH_COLLECTOR) {
-      getConcurrentTrace().flush();
+      getCurrentTrace().processRoots();
+      getCurrentTrace().flush();
       return;
     }
 
@@ -89,7 +90,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
           VM.assertions._assert(((ConcurrentMutator)VM.activePlan.mutator(i)).barrierActive);
         }
       }
-      TraceLocal trace = getConcurrentTrace();
+      TraceLocal trace = getCurrentTrace();
       while(!trace.incrementalTrace(100)) {
         /* Check if we should yield */
         if (VM.collection.yieldpoint()) {
@@ -125,11 +126,6 @@ public abstract class ConcurrentCollector extends SimpleCollector {
     Log.writeln(" not handled.");
     VM.assertions.fail("Concurrent phase not handled!");
   }
-
-  /**
-   * Return the current trace to be used during concurrent collection.
-   */
-  protected abstract TraceLocal getConcurrentTrace();
 
   /**
    * Has all work been completed?
