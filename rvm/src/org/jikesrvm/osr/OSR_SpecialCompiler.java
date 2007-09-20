@@ -49,7 +49,7 @@ public class OSR_SpecialCompiler {
       }
 
       if (VM.TraceOnStackReplacement) {
-        VM.sysWriteln("new CMID 0x" + Integer.toHexString(newCM.getId()) + " for " + newCM.getMethod());
+        VM.sysWriteln("new CMID 0x" + Integer.toHexString(newCM.getId()) + "(" + newCM.getId() + ") for " + newCM.getMethod());
       }
 
       if (state.callerState == null) break;
@@ -110,7 +110,7 @@ public class OSR_SpecialCompiler {
 //        ((VM_BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
       VM.sysWriteln("BASE : done, CMID 0x" +
                     Integer.toHexString(newCompiledMethod.getId()) +
-                    " JTOC offset " +
+                    "(" + newCompiledMethod.getId() + ") JTOC offset " +
                     VM.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
     }
 
