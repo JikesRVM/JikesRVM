@@ -116,13 +116,14 @@ import org.vmmagic.unboxed.*;
       if (shouldFilterPurple()) {
         cdMode = FILTER_PURPLE;
       }
-      workPool.prepare(1);
-      blackPool.prepare(1);
+      workPool.prepareNonBlocking();
+      blackPool.prepareNonBlocking();
+      filteredPurplePool.prepareNonBlocking();
+      cyclePoolA.prepareNonBlocking();
+      cyclePoolB.prepareNonBlocking();
+
       maturePurplePool.prepare();
-      filteredPurplePool.prepare(1);
       unfilteredPurplePool.prepare();
-      cyclePoolA.prepare(1);
-      cyclePoolB.prepare(1);
       freePool.prepare();
       return true;
     }

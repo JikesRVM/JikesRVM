@@ -68,11 +68,8 @@ import org.vmmagic.unboxed.*;
    */
   public RCBaseCollector() {
     newRootSet = new ObjectReferenceDeque("new root", global().newRootPool);
-    global().newRootPool.newConsumer();
     oldRootSet = new ObjectReferenceDeque("old root", global().oldRootPool);
-    global().oldRootPool.newConsumer();
     modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
-    global().modPool.newConsumer();
     decBuffer = new DecBuffer(global().decPool);
     sanityChecker = new RCSanityCheckerLocal();
     switch (RCBase.CYCLE_DETECTOR) {

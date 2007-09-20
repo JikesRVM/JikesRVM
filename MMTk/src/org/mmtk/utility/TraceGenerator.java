@@ -85,13 +85,11 @@ import org.vmmagic.unboxed.*;
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
       worklist = new SortTODObjectReferenceStack(workListPool);
-      workListPool.newConsumer();
     }
 
     /* Trace objects */
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
-    tracePool.newConsumer();
     objectLinks = ObjectReferenceArray.create(Space.MAX_SPACES);
   }
 

@@ -47,7 +47,6 @@ import org.vmmagic.unboxed.Offset;
  * and initialize the constants and singletons defined here.
  */
 public final class VM {
-
   /*
    * VM-specific constant values
    */
@@ -357,7 +356,4 @@ public final class VM {
                                      presentation, paintStyle, indexMaxStream,
                                      colour, summary);
   }
-
-  public static final boolean DEQUES_WAIT = false;
-
 }

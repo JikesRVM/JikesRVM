@@ -46,7 +46,6 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
    */
   public ObjectReferenceBuffer(String name, SharedDeque queue) {
     values = new ObjectReferenceDeque(name, queue);
-    queue.newConsumer();
   }
 
   /**

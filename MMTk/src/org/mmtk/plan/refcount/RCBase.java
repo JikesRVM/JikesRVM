@@ -153,10 +153,9 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void collectionPhase(short phaseId) {
-
     if (phaseId == PREPARE) {
       rcTrace.prepare();
-      modPool.prepare();
+      modPool.prepareNonBlocking();
       decPool.prepare();
       oldRootPool.prepare();
       newRootPool.prepare();

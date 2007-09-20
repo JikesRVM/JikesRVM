@@ -84,8 +84,8 @@ import org.vmmagic.pragma.*;
   public void collectionPhase(short phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
-      global().arrayRemsetPool.prepare();
-      global().remsetPool.prepare();
+      global().arrayRemsetPool.prepareNonBlocking();
+      global().remsetPool.prepareNonBlocking();
       nurseryTrace.prepare();
       return;
     }

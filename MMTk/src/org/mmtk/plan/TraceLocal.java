@@ -64,7 +64,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public TraceLocal(int specializedScan, Trace trace) {
     super(specializedScan);
     values = new ObjectReferenceDeque("value", trace.valuePool);
-    trace.valuePool.newConsumer();
   }
 
   /****************************************************************************

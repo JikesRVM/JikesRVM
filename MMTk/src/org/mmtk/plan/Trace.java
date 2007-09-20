@@ -43,10 +43,10 @@ public class Trace implements Constants {
   /**
    * Prepare for a new collection pass.
    */
-  public void prepare(int participants) {
-    valuePool.prepare(participants);
-    rootLocationPool.prepare(participants);
-    interiorRootPool.prepare(participants);
+  public void prepareNonBlocking() {
+    valuePool.prepareNonBlocking();
+    rootLocationPool.prepareNonBlocking();
+    interiorRootPool.prepareNonBlocking();
   }
 
   /**

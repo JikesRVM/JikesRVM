@@ -102,7 +102,7 @@ import org.vmmagic.unboxed.*;
       // Clear data space
       sanityTable.acquireTable();
 
-      trace.prepare(1); // Sanity is single-threaded
+      trace.prepareNonBlocking();
       return true;
     }
 

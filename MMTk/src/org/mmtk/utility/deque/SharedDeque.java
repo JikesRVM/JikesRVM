@@ -29,8 +29,9 @@ import org.vmmagic.unboxed.Offset;
  * for shared use.  The data can be added to and removed from either end
  * of the deque.
  */
-@Uninterruptible public class SharedDeque extends Deque implements Constants {
-
+@Uninterruptible
+public class SharedDeque extends Deque implements Constants {
+  private static final boolean DISABLE_WAITING = true;
   private static final Offset NEXT_OFFSET = Offset.zero();
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 
@@ -128,11 +129,25 @@ import org.vmmagic.unboxed.Offset;
   }
 
   /**
-   * Prepare for parallel processing.  All active GC threads
-   * take part.
+   * Prepare for parallel processing. All active GC threads will
+   * participate, and pop operations will block until all work
+   * is complete.
    */
   public final void prepare() {
-    prepare(VM.DEQUES_WAIT ? VM.collection.activeGCThreads() : 1);
+    if (DISABLE_WAITING) {
+      prepareNonBlocking();
+    } else {
+      /* This should be the normal mode of operation once performance is fixed */
+      prepare(VM.collection.activeGCThreads());
+    }
+  }
+
+  /**
+   * Prepare for processing where pop operations on the deques
+   * will never block.
+   */
+  public final void prepareNonBlocking() {
+    prepare(1);
   }
 
   /**
@@ -141,7 +156,7 @@ import org.vmmagic.unboxed.Offset;
    *
    * @param consumers # threads taking part.
    */
-  public final void prepare(int consumers) {
+  private void prepare(int consumers) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numConsumersWaiting == 0);
     setNumConsumers(consumers);
     clearCompletionFlag();
@@ -156,10 +171,6 @@ import org.vmmagic.unboxed.Offset;
 
   public final void assertExhausted() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(head.isZero() && tail.isZero());
-  }
-
-  public final void newConsumer() {
-    //setNumConsumers(numConsumers + 1);
   }
 
   @Inline
