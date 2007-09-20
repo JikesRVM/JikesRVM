@@ -116,9 +116,9 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (PRECOPY),
-      Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
+      Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
       Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE));
 

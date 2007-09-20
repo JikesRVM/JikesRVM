@@ -76,8 +76,8 @@ public abstract class SimpleCollector extends CollectorContext {
     }
 
     if (phaseId == Simple.ROOTS) {
-      VM.scanning.computeStaticRoots(getCurrentTrace());
       VM.scanning.computeThreadRoots(getCurrentTrace());
+      VM.scanning.computeStaticRoots(getCurrentTrace());
       return;
     }
 
