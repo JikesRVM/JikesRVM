@@ -280,8 +280,17 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
-  public final int gcThreads() {
+  /** @return The number of active collector threads */
+  public final int activeGCThreads() {
     return VM_CollectorThread.numCollectors();
+  }
+
+  /**
+   * @return The ordinal ID of the running collector thread w.r.t.
+   * the set of active collector threads (zero based)
+   */
+  public final int activeGCThreadOrdinal() {
+    return VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getGCOrdinal() - VM_CollectorThread.GC_ORDINAL_BASE;
   }
 
   /**

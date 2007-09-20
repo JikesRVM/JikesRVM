@@ -98,6 +98,9 @@ public final class VM_CollectorThread extends VM_GreenThread {
    */
   public static final boolean MEASURE_WAIT_TIMES = false;
 
+  /** gc threads are indexed from 1 for now... */
+  public static final int GC_ORDINAL_BASE = 1;
+
   /** array of size 1 to count arriving collector threads */
   static final int[] participantCount;
 
@@ -359,14 +362,14 @@ public final class VM_CollectorThread extends VM_GreenThread {
 
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
-      gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + 1;
+      gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + GC_ORDINAL_BASE;
       long startTime = VM_Time.nanoTime();
 
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
       boolean userTriggered = handshake.gcTrigger == Collection.EXTERNAL_GC_TRIGGER;
       boolean internalPhaseTriggered = handshake.gcTrigger == Collection.INTERNAL_PHASE_GC_TRIGGER;
-      if (gcOrdinal == 1) {
+      if (gcOrdinal == GC_ORDINAL_BASE) {
         Plan.setCollectionTrigger(handshake.gcTrigger);
       }
 
@@ -382,7 +385,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
 
         gcBarrier.rendezvous(5200);
 
-        if (gcOrdinal == 1) {
+        if (gcOrdinal == GC_ORDINAL_BASE) {
           long elapsedTime = VM_Time.nanoTime() - startTime;
           HeapGrowthManager.recordGCTime(VM_Time.nanosToMillis(elapsedTime));
           if (Selected.Plan.get().lastCollectionFullHeap() && !internalPhaseTriggered) {
@@ -417,7 +420,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
         gcBarrier.rendezvous(5201);
       } while (Selected.Plan.get().lastCollectionFailed() && !Plan.isEmergencyCollection());
 
-      if (gcOrdinal == 1 && !internalPhaseTriggered) {
+      if (gcOrdinal == GC_ORDINAL_BASE && !internalPhaseTriggered) {
         /* If the collection failed, we may need to throw OutOfMemory errors.
          * As we have not cleared the GC flag, allocation is not budgeted.
          *
@@ -448,7 +451,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
        * Note that mutators will not run until after thread switching
        * is enabled, so no mutators can possibly arrive at old
        * handshake object: it's safe to replace it with a new one. */
-      if (gcOrdinal == 1) {
+      if (gcOrdinal == GC_ORDINAL_BASE) {
         collectionAttemptBase = 0;
         /* notify mutators waiting on previous handshake object -
          * actually we don't notify anymore, mutators are simply in
@@ -465,7 +468,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
       if (verbose > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
 
       /* final cleanup for initial collector thread */
-      if (gcOrdinal == 1) {
+      if (gcOrdinal == GC_ORDINAL_BASE) {
         /* It is VERY unlikely, but possible that some RVM processors
          * were found in C, and were BLOCKED_IN_NATIVE, during the
          * collection, and now need to be unblocked. */

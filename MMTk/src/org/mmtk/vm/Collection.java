@@ -142,7 +142,14 @@ import org.vmmagic.pragma.*;
    */
   public abstract int rendezvous(int where);
 
-  public abstract int gcThreads();
+  /** @return The number of active collector threads */
+  public abstract int activeGCThreads();
+
+  /**
+   * @return The ordinal ID of the running collector thread w.r.t.
+   * the set of active collector threads (zero based)
+   */
+  public abstract int activeGCThreadOrdinal();
 
   /**
    * Ensure all concurrent worker threads are scheduled.

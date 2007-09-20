@@ -132,7 +132,7 @@ import org.vmmagic.unboxed.Offset;
    * take part.
    */
   public final void prepare() {
-    prepare(VM.DEQUES_WAIT ? VM.collection.gcThreads() : 1);
+    prepare(VM.DEQUES_WAIT ? VM.collection.activeGCThreads() : 1);
   }
 
   /**
