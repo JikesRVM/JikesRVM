@@ -209,7 +209,7 @@ public class OSR_VariableElement implements OSR_Constants {
     } else {
       buf.append('S');
     }
-    buf.append(num);
+    buf.append((int)num);
     buf.append(",");
 
     char t = 'V';

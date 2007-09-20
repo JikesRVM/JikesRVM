@@ -292,7 +292,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
       if (VM.TraceOnStackReplacement) {
         VM.sysWrite((kind == LOCAL) ? "L" : "S");
-        VM.sysWrite(num);
+        VM.sysWrite((int)num);
         VM.sysWrite(" , ");
         if (vtype == ICONST) {
           VM.sysWrite("ICONST ");
