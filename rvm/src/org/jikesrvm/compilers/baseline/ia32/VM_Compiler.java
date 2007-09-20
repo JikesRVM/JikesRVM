@@ -78,6 +78,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     generateBoundsChecks = !method.hasNoBoundsCheckAnnotation();
   }
 
+  @Override
   protected void initializeCompiler() {
     //nothing to do for intel
   }
@@ -155,11 +156,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Notify VM_Compiler that we are starting code gen for the bytecode biStart
    */
+  @Override
   protected final void starting_bytecode() {}
 
   /**
    * Emit the prologue for the method
    */
+  @Override
   protected final void emit_prologue() {
     genPrologue();
   }
@@ -168,6 +171,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit the code for a threadswitch tests (aka a yieldpoint).
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
+  @Override
   protected final void emit_threadSwitchTest(int whereFrom) {
     genThreadSwitchTest(whereFrom);
   }
@@ -176,6 +180,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit the code to implement the spcified magic.
    * @param magicMethod desired magic
    */
+  @Override
   protected final boolean emit_Magic(VM_MethodReference magicMethod) {
     return genMagic(magicMethod);
   }
@@ -187,6 +192,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load the null constant.
    */
+  @Override
   protected final void emit_aconst_null() {
     asm.emitPUSH_Imm(0);
   }
@@ -195,6 +201,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load an int constant.
    * @param val the int constant to load
    */
+  @Override
   protected final void emit_iconst(int val) {
     asm.emitPUSH_Imm(val);
   }
@@ -203,6 +210,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load a long constant
    * @param val the lower 32 bits of long constant (upper32 are 0).
    */
+  @Override
   protected final void emit_lconst(int val) {
     asm.emitPUSH_Imm(0);    // high part
     asm.emitPUSH_Imm(val);  //  low part
@@ -211,6 +219,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load 0.0f
    */
+  @Override
   protected final void emit_fconst_0() {
     asm.emitPUSH_Imm(0);
   }
@@ -218,6 +227,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load 1.0f
    */
+  @Override
   protected final void emit_fconst_1() {
     asm.emitPUSH_Imm(0x3f800000);
   }
@@ -225,6 +235,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load 2.0f
    */
+  @Override
   protected final void emit_fconst_2() {
     asm.emitPUSH_Imm(0x40000000);
   }
@@ -232,6 +243,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load 0.0d
    */
+  @Override
   protected final void emit_dconst_0() {
     asm.emitPUSH_Imm(0x00000000);
     asm.emitPUSH_Imm(0x00000000);
@@ -240,6 +252,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load 1.0d
    */
+  @Override
   protected final void emit_dconst_1() {
     asm.emitPUSH_Imm(0x3ff00000);
     asm.emitPUSH_Imm(0x00000000);
@@ -250,6 +263,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
+  @Override
   protected final void emit_ldc(Offset offset, byte type) {
     asm.emitPUSH_RegDisp(JTOC, offset);
   }
@@ -259,6 +273,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
+  @Override
   protected final void emit_ldc2(Offset offset, byte type) {
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegDisp(XMM0, JTOC, offset); // XMM0 is constant value
@@ -278,6 +293,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load an int local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_iload(int index) {
     Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP, offset);
@@ -287,6 +303,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to local a float local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_fload(int index) {
     // identical to iload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
@@ -297,6 +314,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load a reference local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_aload(int index) {
     // identical to iload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
@@ -307,6 +325,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load a long local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_lload(int index) {
     Offset offset = localOffset(index);
     if (SSE2_BASE) {
@@ -323,6 +342,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load a double local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_dload(int index) {
     // identical to lload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
@@ -344,6 +364,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to store an int to a local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_istore(int index) {
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp(ESP, offset);
@@ -353,6 +374,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to store a float to a local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_fstore(int index) {
     // identical to istore - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
@@ -363,6 +385,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to store a reference to a local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_astore(int index) {
     // identical to istore - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
@@ -373,6 +396,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to store a long to a local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_lstore(int index) {
     if (SSE2_BASE) {
       Offset offset = localOffset(index).minus(4);
@@ -391,6 +415,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to store an double  to a local variable
    * @param index the local index to load
    */
+  @Override
   protected final void emit_dstore(int index) {
     // identical to lstore - code replicated for BaseBase compiler performance
     if (SSE2_BASE) {
@@ -413,6 +438,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from an int array
    */
+  @Override
   protected final void emit_iaload() {
     asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
@@ -425,6 +451,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a float array
    */
+  @Override
   protected final void emit_faload() {
     // identical to iaload - code replicated for BaseBase compiler performance
     asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
@@ -438,6 +465,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a reference array
    */
+  @Override
   protected final void emit_aaload() {
     // identical to iaload - code replicated for BaseBase compiler performance
     asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
@@ -451,6 +479,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a char array
    */
+  @Override
   protected final void emit_caload() {
     asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
@@ -464,6 +493,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a short array
    */
+  @Override
   protected final void emit_saload() {
     asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
@@ -477,6 +507,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a byte/boolean array
    */
+  @Override
   protected final void emit_baload() {
     asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
@@ -490,6 +521,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a long array
    */
+  @Override
   protected final void emit_laload() {
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);    // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0 is the array ref
@@ -509,6 +541,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to load from a double array
    */
+  @Override
   protected final void emit_daload() {
     // identical to laload - code replicated for BaseBase compiler performance
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);    // T0 is array index
@@ -533,6 +566,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to an int array
    */
+  @Override
   protected final void emit_iastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
@@ -546,6 +580,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a float array
    */
+  @Override
   protected final void emit_fastore() {
     // identical to iastore - code replicated for BaseBase compiler performance
     VM_Barriers.compileModifyCheck(asm, 8);
@@ -561,6 +596,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a reference array
    */
+  @Override
   protected final void emit_aastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitPUSH_RegDisp(SP, TWO_SLOTS); // duplicate array ref
@@ -584,6 +620,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a char array
    */
+  @Override
   protected final void emit_castore() {
     VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
@@ -598,6 +635,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a short array
    */
+  @Override
   protected final void emit_sastore() {
     // identical to castore - code replicated for BaseBase compiler performance
     VM_Barriers.compileModifyCheck(asm, 8);
@@ -613,6 +651,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a byte/boolean array
    */
+  @Override
   protected final void emit_bastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
@@ -626,6 +665,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a long array
    */
+  @Override
   protected final void emit_lastore() {
     VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
@@ -652,6 +692,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to store to a double array
    */
+  @Override
   protected final void emit_dastore() {
     // identical to lastore - code replicated for BaseBase compiler performance
     VM_Barriers.compileModifyCheck(asm, 12);
@@ -683,6 +724,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the pop bytecode
    */
+  @Override
   protected final void emit_pop() {
     asm.emitPOP_Reg(T0);
   }
@@ -690,6 +732,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the pop2 bytecode
    */
+  @Override
   protected final void emit_pop2() {
     // This could be encoded as the single 3 byte instruction
     // asm.emitADD_Reg_Imm(SP, 8);
@@ -702,6 +745,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dup bytecode
    */
+  @Override
   protected final void emit_dup() {
     // This could be encoded as the 2 instructions totalling 4 bytes:
     // asm.emitMOV_Reg_RegInd(T0, SP);
@@ -713,6 +757,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dup_x1 bytecode
    */
+  @Override
   protected final void emit_dup_x1() {
     asm.emitPOP_Reg(T0);
     asm.emitPOP_Reg(S0);
@@ -724,6 +769,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dup_x2 bytecode
    */
+  @Override
   protected final void emit_dup_x2() {
     asm.emitPOP_Reg(T0);
     asm.emitPOP_Reg(S0);
@@ -737,6 +783,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dup2 bytecode
    */
+  @Override
   protected final void emit_dup2() {
     asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);
     asm.emitMOV_Reg_RegInd(S0, SP);
@@ -747,6 +794,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dup2_x1 bytecode
    */
+  @Override
   protected final void emit_dup2_x1() {
     asm.emitPOP_Reg(T0);
     asm.emitPOP_Reg(S0);
@@ -761,6 +809,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dup2_x2 bytecode
    */
+  @Override
   protected final void emit_dup2_x2() {
     asm.emitPOP_Reg(T0);
     asm.emitPOP_Reg(S0);
@@ -779,6 +828,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the swap bytecode
    */
+  @Override
   protected final void emit_swap() {
     // This could be encoded as the 4 instructions totalling 14 bytes:
     // asm.emitMOV_Reg_RegInd(T0, SP);
@@ -799,6 +849,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the iadd bytecode
    */
+  @Override
   protected final void emit_iadd() {
     asm.emitPOP_Reg(T0);
     asm.emitADD_RegInd_Reg(SP, T0);
@@ -807,6 +858,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the isub bytecode
    */
+  @Override
   protected final void emit_isub() {
     asm.emitPOP_Reg(T0);
     asm.emitSUB_RegInd_Reg(SP, T0);
@@ -815,6 +867,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the imul bytecode
    */
+  @Override
   protected final void emit_imul() {
     asm.emitPOP_Reg(T0);
     asm.emitIMUL2_Reg_RegInd(T0, SP);
@@ -824,6 +877,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the idiv bytecode
    */
+  @Override
   protected final void emit_idiv() {
     asm.emitMOV_Reg_RegDisp(ECX,
                             SP,
@@ -838,6 +892,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the irem bytecode
    */
+  @Override
   protected final void emit_irem() {
     asm.emitMOV_Reg_RegDisp(ECX,
                             SP,
@@ -852,6 +907,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ineg bytecode
    */
+  @Override
   protected final void emit_ineg() {
     asm.emitNEG_RegInd(SP); // [SP] <- -[SP]
   }
@@ -859,6 +915,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ishl bytecode
    */
+  @Override
   protected final void emit_ishl() {
     asm.emitPOP_Reg(ECX);
     asm.emitSHL_RegInd_Reg(SP, ECX);
@@ -867,6 +924,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ishr bytecode
    */
+  @Override
   protected final void emit_ishr() {
     asm.emitPOP_Reg(ECX);
     asm.emitSAR_RegInd_Reg(SP, ECX);
@@ -875,6 +933,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the iushr bytecode
    */
+  @Override
   protected final void emit_iushr() {
     asm.emitPOP_Reg(ECX);
     asm.emitSHR_RegInd_Reg(SP, ECX);
@@ -883,6 +942,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the iand bytecode
    */
+  @Override
   protected final void emit_iand() {
     asm.emitPOP_Reg(T0);
     asm.emitAND_RegInd_Reg(SP, T0);
@@ -891,6 +951,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ior bytecode
    */
+  @Override
   protected final void emit_ior() {
     asm.emitPOP_Reg(T0);
     asm.emitOR_RegInd_Reg(SP, T0);
@@ -899,6 +960,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ixor bytecode
    */
+  @Override
   protected final void emit_ixor() {
     asm.emitPOP_Reg(T0);
     asm.emitXOR_RegInd_Reg(SP, T0);
@@ -909,6 +971,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param index index of local
    * @param val value to increment it by
    */
+  @Override
   protected final void emit_iinc(int index, int val) {
     Offset offset = localOffset(index);
     asm.emitADD_RegDisp_Imm(ESP, offset, val);
@@ -921,6 +984,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ladd bytecode
    */
+  @Override
   protected final void emit_ladd() {
     asm.emitPOP_Reg(T0);                 // the low half of one long
     asm.emitPOP_Reg(S0);                 // the high half
@@ -931,6 +995,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lsub bytecode
    */
+  @Override
   protected final void emit_lsub() {
     asm.emitPOP_Reg(T0);                 // the low half of one long
     asm.emitPOP_Reg(S0);                 // the high half
@@ -941,6 +1006,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lmul bytecode
    */
+  @Override
   protected final void emit_lmul() {
     // stack: value1.high = mulitplier
     //        value1.low
@@ -990,6 +1056,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ldiv bytecode
    */
+  @Override
   protected final void emit_ldiv() {
     // (1) zero check
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
@@ -1028,6 +1095,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lrem bytecode
    */
+  @Override
   protected final void emit_lrem() {
     // (1) zero check
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
@@ -1066,6 +1134,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lneg bytecode
    */
+  @Override
   protected final void emit_lneg() {
     asm.emitNOT_RegDisp(SP, ONE_SLOT);    // [SP+4] <- ~[SP+4] or high <- ~high
     asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
@@ -1075,6 +1144,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lshsl bytecode
    */
+  @Override
   protected final void emit_lshl() {
     if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert(ECX != T1);
@@ -1098,6 +1168,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lshr bytecode
    */
+  @Override
   protected final void emit_lshr() {
     if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert(ECX != T1);
@@ -1121,6 +1192,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lushr bytecode
    */
+  @Override
   protected final void emit_lushr() {
     if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert(ECX != T1);
@@ -1144,6 +1216,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the land bytecode
    */
+  @Override
   protected final void emit_land() {
     asm.emitPOP_Reg(T0);        // low
     asm.emitPOP_Reg(S0);        // high
@@ -1154,6 +1227,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lor bytecode
    */
+  @Override
   protected final void emit_lor() {
     asm.emitPOP_Reg(T0);        // low
     asm.emitPOP_Reg(S0);        // high
@@ -1164,6 +1238,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lxor bytecode
    */
+  @Override
   protected final void emit_lxor() {
     asm.emitPOP_Reg(T0);        // low
     asm.emitPOP_Reg(S0);        // high
@@ -1178,6 +1253,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fadd bytecode
    */
+  @Override
   protected final void emit_fadd() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);            // XMM0 = value2
@@ -1195,6 +1271,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fsub bytecode
    */
+  @Override
   protected final void emit_fsub() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 = value1
@@ -1212,6 +1289,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fmul bytecode
    */
+  @Override
   protected final void emit_fmul() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);            // XMM0 = value2
@@ -1229,6 +1307,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fdiv bytecode
    */
+  @Override
   protected final void emit_fdiv() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 = value1
@@ -1246,6 +1325,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the frem bytecode
    */
+  @Override
   protected final void emit_frem() {
     // TODO: Something else when SSE2?
     asm.emitFLD_Reg_RegInd(FP0, SP);                 // FPU reg. stack <- value2, or a
@@ -1259,6 +1339,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fneg bytecode
    */
+  @Override
   protected final void emit_fneg() {
     if (SSE2_BASE) {
       asm.emitXORPS_Reg_Reg(XMM0, XMM0);             // XMM0 = 0
@@ -1278,6 +1359,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dadd bytecode
    */
+  @Override
   protected final void emit_dadd() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);                // XMM0 = value2
@@ -1295,6 +1377,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dsub bytecode
    */
+  @Override
   protected final void emit_dsub() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 = value1
@@ -1312,6 +1395,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dmul bytecode
    */
+  @Override
   protected final void emit_dmul() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);                // XMM0 = value2
@@ -1329,6 +1413,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ddiv bytecode
    */
+  @Override
   protected final void emit_ddiv() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 = value1
@@ -1346,6 +1431,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the drem bytecode
    */
+  @Override
   protected final void emit_drem() {
     // TODO: Something else when SSE2?
     asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // FPU reg. stack <- value2, or a
@@ -1359,6 +1445,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dneg bytecode
    */
+  @Override
   protected final void emit_dneg() {
     if (SSE2_BASE) {
       asm.emitXORPD_Reg_Reg(XMM0, XMM0);                 // XMM0 = 0
@@ -1378,6 +1465,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the i2l bytecode
    */
+  @Override
   protected final void emit_i2l() {
     asm.emitPUSH_RegInd(SP);                   // duplicate int on stack
     asm.emitSAR_RegDisp_Imm(SP, ONE_SLOT, 31); // sign extend as high word of long
@@ -1386,6 +1474,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the l2i bytecode
    */
+  @Override
   protected final void emit_l2i() {
     asm.emitMOV_Reg_RegInd(T0, SP);    // low half of the long
     asm.emitADD_Reg_Imm(SP, WORDSIZE); // throw away high half of the long
@@ -1395,6 +1484,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the i2f bytecode
    */
+  @Override
   protected final void emit_i2f() {
     if (SSE2_BASE) {
       asm.emitCVTSI2SS_Reg_RegInd(XMM0, SP);
@@ -1408,6 +1498,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the i2d bytecode
    */
+  @Override
   protected final void emit_i2d() {
     if (SSE2_BASE) {
       asm.emitCVTSI2SD_Reg_RegInd(XMM0, SP);
@@ -1423,6 +1514,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the l2f bytecode
    */
+  @Override
   protected final void emit_l2f() {
     asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
     asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
@@ -1432,6 +1524,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the l2d bytecode
    */
+  @Override
   protected final void emit_l2d() {
     asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
@@ -1440,6 +1533,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the f2d bytecode
    */
+  @Override
   protected final void emit_f2d() {
     if (SSE2_BASE) {
       asm.emitCVTSS2SD_Reg_RegInd(XMM0, SP);
@@ -1455,6 +1549,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the d2f bytecode
    */
+  @Override
   protected final void emit_d2f() {
     if (SSE2_BASE) {
       asm.emitCVTSD2SS_Reg_RegInd(XMM0, SP);
@@ -1470,6 +1565,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the f2i bytecode
    */
+  @Override
   protected final void emit_f2i() {
     if (SSE2_BASE) {
       // Set up max int in XMM0
@@ -1519,6 +1615,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the f2l bytecode
    */
+  @Override
   protected final void emit_f2l() {
     // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
     // meaning the FPSCW can be left alone
@@ -1558,6 +1655,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the d2i bytecode
    */
+  @Override
   protected final void emit_d2i() {
     if (SSE2_BASE) {
       // Set up max int in XMM0
@@ -1610,6 +1708,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the d2l bytecode
    */
+  @Override
   protected final void emit_d2l() {
      // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
     // meaning the FPSCW can be left alone
@@ -1648,6 +1747,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the i2b bytecode
    */
+  @Override
   protected final void emit_i2b() {
     // This could be coded as 2 instructions as follows:
     // asm.emitMOVSX_Reg_RegInd_Byte(T0, SP);
@@ -1663,6 +1763,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the i2c bytecode
    */
+  @Override
   protected final void emit_i2c() {
     // This could be coded as zeroing the high 16bits on stack:
     // asm.emitMOV_RegDisp_Imm_Word(SP, Offset.fromIntSignExtend(2), 0);
@@ -1678,6 +1779,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the i2s bytecode
    */
+  @Override
   protected final void emit_i2s() {
     // This could be coded as 2 instructions as follows:
     // asm.emitMOVSX_Reg_RegInd_Word(T0, SP);
@@ -1697,6 +1799,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lcmp bytecode
    */
+  @Override
   protected final void emit_lcmp() {
     asm.emitPOP_Reg(T0);                // (S0:T0) = (high half value2: low half value2)
     asm.emitPOP_Reg(S0);
@@ -1722,6 +1825,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fcmpl bytecode
    */
+  @Override
   protected final void emit_fcmpl() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
@@ -1753,6 +1857,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the fcmpg bytecode
    */
+  @Override
   protected final void emit_fcmpg() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
@@ -1787,6 +1892,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dcmpl bytecode
    */
+  @Override
   protected final void emit_dcmpl() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
@@ -1818,6 +1924,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dcmpg bytecode
    */
+  @Override
   protected final void emit_dcmpg() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
@@ -1857,6 +1964,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifeg bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifeq(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
@@ -1867,6 +1975,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifne bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifne(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
@@ -1877,6 +1986,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the iflt bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_iflt(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
@@ -1887,6 +1997,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifge bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifge(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
@@ -1897,6 +2008,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifgt bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifgt(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
@@ -1907,6 +2019,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifle bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifle(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
@@ -1917,6 +2030,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_icmpeq bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_icmpeq(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1928,6 +2042,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_icmpne bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_icmpne(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1939,6 +2054,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_icmplt bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_icmplt(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1950,6 +2066,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_icmpge bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_icmpge(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1961,6 +2078,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_icmpgt bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_icmpgt(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1972,6 +2090,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_icmple bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_icmple(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1983,6 +2102,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_acmpeq bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_acmpeq(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -1994,6 +2114,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the if_acmpne bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_if_acmpne(int bTarget) {
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
@@ -2005,6 +2126,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifnull bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifnull(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
@@ -2015,6 +2137,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ifnonnull bytecode
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_ifnonnull(int bTarget) {
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
@@ -2025,6 +2148,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the goto and gotow bytecodes
    * @param bTarget target bytecode of the branch
    */
+  @Override
   protected final void emit_goto(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitJMP_ImmOrLabel(mTarget, bTarget);
@@ -2034,6 +2158,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the jsr and jsrw bytecode
    * @param bTarget target bytecode of the jsr
    */
+  @Override
   protected final void emit_jsr(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitCALL_ImmOrLabel(mTarget, bTarget);
@@ -2043,6 +2168,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the ret bytecode
    * @param index local variable containing the return address
    */
+  @Override
   protected final void emit_ret(int index) {
     Offset offset = localOffset(index);
     asm.emitJMP_RegDisp(ESP, offset);
@@ -2054,6 +2180,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param low low value of switch
    * @param high high value of switch
    */
+  @Override
   protected final void emit_tableswitch(int defaultval, int low, int high) {
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
@@ -2109,6 +2236,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param defaultval bcIndex of the default target
    * @param npairs number of pairs in the lookup switch
    */
+  @Override
   protected final void emit_lookupswitch(int defaultval, int npairs) {
     asm.emitPOP_Reg(T0);
     for (int i = 0; i < npairs; i++) {
@@ -2143,6 +2271,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the ireturn bytecode
    */
+  @Override
   protected final void emit_ireturn() {
     if (method.isSynchronized()) genMonitorExit();
     asm.emitPOP_Reg(T0);
@@ -2152,6 +2281,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the lreturn bytecode
    */
+  @Override
   protected final void emit_lreturn() {
     if (method.isSynchronized()) genMonitorExit();
     asm.emitPOP_Reg(T1); // low half
@@ -2162,6 +2292,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the freturn bytecode
    */
+  @Override
   protected final void emit_freturn() {
     if (method.isSynchronized()) genMonitorExit();
     if (SSE2_FULL) {
@@ -2176,6 +2307,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the dreturn bytecode
    */
+  @Override
   protected final void emit_dreturn() {
     if (method.isSynchronized()) genMonitorExit();
     if (SSE2_FULL) {
@@ -2190,6 +2322,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the areturn bytecode
    */
+  @Override
   protected final void emit_areturn() {
     if (method.isSynchronized()) genMonitorExit();
     asm.emitPOP_Reg(T0);
@@ -2199,6 +2332,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the return bytecode
    */
+  @Override
   protected final void emit_return() {
     if (method.isSynchronized()) genMonitorExit();
     genEpilogue(0);
@@ -2212,6 +2346,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a dynamically linked getstatic
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (fieldRef.getSize() <= BYTES_IN_INT) {
@@ -2227,6 +2362,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a getstatic
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
@@ -2242,6 +2378,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a dynamically linked putstatic
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
@@ -2263,6 +2400,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a putstatic
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
@@ -2283,6 +2421,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a dynamically linked getfield
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     emitDynamicLinkingSequence(T0, fieldRef, true);
@@ -2337,6 +2476,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a getfield
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
@@ -2391,6 +2531,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a dynamically linked putfield
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     emitDynamicLinkingSequence(T0, fieldRef, true);
@@ -2445,6 +2586,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a putfield
    * @param fieldRef the referenced field
    */
+  @Override
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
@@ -2509,6 +2651,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a dynamically linked invokevirtual
    * @param methodRef the referenced method
    */
+  @Override
   protected final void emit_unresolved_invokevirtual(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(T0, methodRef, true);
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
@@ -2526,6 +2669,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement invokevirtual
    * @param methodRef the referenced method
    */
+  @Override
   protected final void emit_resolved_invokevirtual(VM_MethodReference methodRef) {
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     Offset methodRefOffset = methodRef.peekResolvedMethod().getOffset();
@@ -2543,6 +2687,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param methodRef The referenced method
    * @param target    The method to invoke
    */
+  @Override
   protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) {
       genParameterRegisterLoad(methodRef, true);
@@ -2563,6 +2708,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement invokespecial
    * @param methodRef the referenced method
    */
+  @Override
   protected final void emit_unresolved_invokespecial(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(S0, methodRef, true);
     genParameterRegisterLoad(methodRef, true);
@@ -2574,6 +2720,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement a dynamically linked invokestatic
    * @param methodRef the referenced method
    */
+  @Override
   protected final void emit_unresolved_invokestatic(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(S0, methodRef, true);
     genParameterRegisterLoad(methodRef, false);
@@ -2585,6 +2732,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement invokestatic
    * @param methodRef the referenced method
    */
+  @Override
   protected final void emit_resolved_invokestatic(VM_MethodReference methodRef) {
     Offset methodOffset = methodRef.peekResolvedMethod().getOffset();
     genParameterRegisterLoad(methodRef, false);
@@ -2596,6 +2744,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the invokeinterface bytecode
    * @param methodRef the referenced method
    */
+  @Override
   protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
 
@@ -2724,6 +2873,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to allocate a scalar object
    * @param typeRef the VM_Class to instantiate
    */
+  @Override
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
@@ -2747,6 +2897,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to dynamically link and allocate a scalar object
    * @param typeRef typeReference to dynamically link & instantiate
    */
+  @Override
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
     int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(typeRef.getId());
@@ -2760,6 +2911,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to allocate an array
    * @param array the VM_Array to instantiate
    */
+  @Override
   protected final void emit_resolved_newarray(VM_Array array) {
     int width = array.getLogElementSize();
     Offset tibOffset = array.getTibOffset();
@@ -2785,6 +2937,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to dynamically link and allocate an array
    * @param tRef the type reference to dynamically link & instantiate
    */
+  @Override
   protected final void emit_unresolved_newarray(VM_TypeReference tRef) {
     int site = MM_Interface.getAllocationSite(true);
     // count is already on stack- nothing required
@@ -2800,6 +2953,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param typeRef the type reference to instantiate
    * @param dimensions the number of dimensions
    */
+  @Override
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     // Calculate the offset from FP on entry to newarray:
     //      1 word for each parameter, plus 1 for return address on
@@ -2824,6 +2978,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the arraylength bytecode
    */
+  @Override
   protected final void emit_arraylength() {
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                   // T0 is array reference
     asm.emitMOV_Reg_RegDisp(T0, T0, VM_ObjectModel.getArrayLengthOffset()); // T0 is array length
@@ -2833,6 +2988,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the athrow bytecode
    */
+  @Override
   protected final void emit_athrow() {
     genParameterRegisterLoad(1);          // pass 1 parameter word
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.athrowMethod.getOffset());
@@ -2842,6 +2998,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the checkcast bytecode
    * @param typeRef the LHS type
    */
+  @Override
   protected final void emit_checkcast(VM_TypeReference typeRef) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(typeRef.getId());               // VM_TypeReference id.
@@ -2853,6 +3010,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
+  @Override
   protected final void emit_checkcast_resolvedClass(VM_Type type) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getId());                  // VM_Type id.
@@ -2864,6 +3022,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
+  @Override
   protected final void emit_checkcast_final(VM_Type type) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getTibOffset().toInt());           // JTOC index that identifies klass
@@ -2875,6 +3034,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the instanceof bytecode
    * @param typeRef the LHS type
    */
+  @Override
   protected final void emit_instanceof(VM_TypeReference typeRef) {
     asm.emitPUSH_Imm(typeRef.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
@@ -2886,6 +3046,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the instanceof bytecode
    * @param type the LHS type
    */
+  @Override
   protected final void emit_instanceof_resolvedClass(VM_Type type) {
     asm.emitPUSH_Imm(type.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
@@ -2897,6 +3058,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the instanceof bytecode
    * @param type the LHS type
    */
+  @Override
   protected final void emit_instanceof_final(VM_Type type) {
     asm.emitPUSH_Imm(type.getTibOffset().toInt());
     genParameterRegisterLoad(2);          // pass 2 parameter words
@@ -2907,6 +3069,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the monitorenter bytecode
    */
+  @Override
   protected final void emit_monitorenter() {
     genParameterRegisterLoad(1);          // pass 1 parameter word
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());
@@ -2915,6 +3078,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   /**
    * Emit code to implement the monitorexit bytecode
    */
+  @Override
   protected final void emit_monitorexit() {
     genParameterRegisterLoad(1);          // pass 1 parameter word
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());
@@ -3039,6 +3203,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     }
   }
 
+  @Override
   protected final void emit_deferred_prologue() {
 
     if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
@@ -3515,13 +3680,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         if (types.length == 0) {
           // No offset
           asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVZX_Reg_RegInd_Byte(T0, T0);
+          asm.emitMOVSX_Reg_RegInd_Byte(T0, T0);
           asm.emitPUSH_Reg(T0);
         } else {
           // Load at offset
           asm.emitPOP_Reg(S0);                  // offset
           asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
+          asm.emitMOVSX_Reg_RegIdx_Byte(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and sign extend byte [T0+S0]
           asm.emitPUSH_Reg(T0);
         }
         return true;
@@ -3537,7 +3702,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           // Load at offset
           asm.emitPOP_Reg(S0);                  // offset
           asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend word [T0+S0]
+          asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and sign extend word [T0+S0]
           asm.emitPUSH_Reg(T0);
         }
         return true;
@@ -4449,6 +4614,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * I havenot thought about GCMaps for invoke_compiledmethod
    * TODO: Figure out what the above GCMaps comment means and fix it!
    */
+  @Override
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
     Offset methodOffset = cm.getOsrJTOCoffset();
     boolean takeThis = !cm.method.isStatic();
@@ -4458,6 +4624,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     genResultRegisterUnload(ref);
   }
 
+  @Override
   protected final void emit_loadretaddrconst(int bcIndex) {
     asm.generateLoadReturnAddress(bcIndex);
   }
@@ -4466,6 +4633,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * in resposible for patch the target address by call resolve method
    * of returned forward reference
    */
+  @Override
   protected final VM_ForwardReference emit_pending_goto(int bTarget) {
     return asm.generatePendingJMP(bTarget);
   }
