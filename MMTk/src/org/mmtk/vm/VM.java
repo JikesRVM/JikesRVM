@@ -358,4 +358,6 @@ public final class VM {
                                      colour, summary);
   }
 
+  public static final boolean DEQUES_WAIT = false;
+
 }

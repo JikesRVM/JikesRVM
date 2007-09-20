@@ -132,9 +132,7 @@ import org.vmmagic.unboxed.Offset;
    * take part.
    */
   public final void prepare() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numConsumersWaiting == 0);
-    setNumConsumers(VM.collection.gcThreads());
-    clearCompletionFlag();
+    prepare(VM.DEQUES_WAIT ? VM.collection.gcThreads() : 1);
   }
 
   /**
