@@ -13,6 +13,7 @@
 package java.lang;
 
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Pure;
 
 /**
  * Double <==> long bit transfer for Jikes RVM.
@@ -37,9 +38,11 @@ final class VMDouble {
     return VM_Magic.longBitsAsDouble(bits);
   }
 
+  @Pure
   public static native String toString(double d, boolean isFloat);
 
   public static native void initIDs();
 
+  @Pure
   public static native double parseDouble(String str);
 }
