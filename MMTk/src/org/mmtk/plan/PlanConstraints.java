@@ -70,9 +70,6 @@ import org.vmmagic.pragma.*;
   /** @return The specialized scan methods required */
   public int numSpecializedScans() { return 0; }
 
-  /** @return The number of specialized methods required */
-  public final int numSpecializedMethods() { return numSpecializedScans(); }
-
   /** @return True if this plan requires concurrent worker threads */
   public boolean needsConcurrentWorkers() { return false; }
 }

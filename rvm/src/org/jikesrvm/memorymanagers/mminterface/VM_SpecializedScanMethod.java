@@ -48,6 +48,9 @@ import org.vmmagic.unboxed.ObjectReference;
 @Uninterruptible
 public final class VM_SpecializedScanMethod extends VM_SpecializedMethod implements VM_SizeConstants, VM_JavaHeaderConstants {
 
+  /** Use specialized scanning ? */
+  public static final boolean ENABLED = true;
+
   /** This method's signature: the object to be scanned and the trace to use */
   private static final VM_TypeReference[] signature = new VM_TypeReference[] {
     VM_TypeReference.JavaLangObject,

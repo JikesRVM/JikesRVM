@@ -79,7 +79,11 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Inline
   public void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object) {
-    VM_SpecializedScanMethod.invoke(id, object.toObject(), trace);
+    if (VM_SpecializedScanMethod.ENABLED) {
+      VM_SpecializedScanMethod.invoke(id, object.toObject(), trace);
+    } else {
+      VM_SpecializedScanMethod.fallback(object.toObject(), trace);
+    }
   }
 
 

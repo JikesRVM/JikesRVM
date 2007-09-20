@@ -983,7 +983,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * Return the number of specialized methods.
    */
   public static int numSpecializedMethods() {
-    return Selected.Constraints.get().numSpecializedMethods();
+    return VM_SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
   }
 
   /**
@@ -993,7 +993,10 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static VM_SpecializedMethod createSpecializedMethod(int id) {
-    if (VM.VerifyAssertions) VM._assert(id < Selected.Constraints.get().numSpecializedMethods());
+    if (VM.VerifyAssertions) {
+      VM._assert(VM_SpecializedScanMethod.ENABLED);
+      VM._assert(id < Selected.Constraints.get().numSpecializedScans());
+    }
 
     /* What does the plan want us to specialize this to? */
     Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
