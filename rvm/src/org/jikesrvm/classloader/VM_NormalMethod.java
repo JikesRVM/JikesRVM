@@ -439,7 +439,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   /**
    * Set the value of the 'runtime service method' flag to the argument
    * value.  A method is considered to be a runtime service method if it
-   * is only/primarialy invoked "under the covers" from the generated code
+   * is only/primarily invoked "under the covers" from the generated code
    * and thus is not subject to inlining via the normal mechanisms.
    * For example, the implementations of bytecodes such as new or checkcast
    * or the implementation of yieldpoints.
