@@ -191,7 +191,7 @@
 <name>${test.config.@{tag}.configuration}</name>
 <parameters></parameters>
 <duration>0</duration>
-<result>SKIPPED</result>
+<result>SUCCESS</result>
 <output>Builds are being skipped</output>
 </build-configuration>]]></bres>
           </sequential>
