@@ -66,6 +66,9 @@
   <property name="generated.arch.java" location="${generated.dir}/${target.arch}-${target.address.size}/main/java"/>
   <property name="generated.vmmagic.arch.java" location="${generated.dir}/vmmagic/${target.address.size}/java"/>
 
+  <property name="generated.asm" location="${generated.dir}/asm/java"/>
+  <property name="build.asm.classes" location="${generated.dir}/asm/classes"/>
+
   <!-- Set the properties for distribution directory -->
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
 
@@ -178,6 +181,7 @@
     <ant antfile="build/components/ecj.xml" target="ensure"/>
     <ant antfile="build/components/classpath.xml" target="ensure"/>
     <ant antfile="build/components/checkstyle.xml" target="ensure"/>
+    <ant antfile="build/components/asm.xml" target="ensure"/>
     <if>
       <conditions>
         <isset property="include.gcspy-client"/>
@@ -979,7 +983,29 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.vmmagic.classes}"/>
     </jar>
   </target>
-
+  
+  <target name="prepare-asm" depends="package,check-components-properties">
+    <mkdir dir="${build.asm.classes}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/asm-tasks/src" destdir="${build.asm.classes}" debug="true" classpath="${asm.jar}:${build.vm.jar}"/>
+ </target>
+  
+  <target name="gen-asm" depends="package,prepare-asm">
+    <mkdir dir="${generated.asm}"/>
+    <java classname="org.jikesrvm.tools.asm.AnnotationAdder" failonerror="true">
+      <classpath>
+        <pathelement location="${asm.jar}"/>
+        <pathelement location="${build.asm.classes}"/>
+        <pathelement location="${build.vm.jar}"/>
+      </classpath>
+      <arg value="${build.rt.jar}:${build.vm.jar}"/>
+      <arg value="${generated.asm}"/>
+    </java>
+    <zip destfile="${build.rt.jar}" update="true" basedir="${generated.asm}" compress="false">
+      <include name="java/**"/>
+      <include name="sun/**"/>
+      <include name="gnu/**"/>
+    </zip>
+  </target>	
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -1051,7 +1077,7 @@ Check to make sure all required properties are specified. This includes properti
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
 
-  <target name="build-bootimage-writer" depends="package">
+  <target name="build-bootimage-writer" depends="gen-asm">
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
@@ -1146,7 +1172,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- **************************************************************************** -->
 
   <!-- Generate InterfaceDeclarations.h for booter -->
-  <target name="gen-interface" depends="package">
+  <target name="gen-interface" depends="gen-asm">
     <mkdir dir="${build.native}"/>
     <java classname="org.jikesrvm.tools.header_gen.GenerateInterfaceDeclarations" fork="yes" maxmemory="200M"
           failonerror="true">
@@ -1170,7 +1196,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- Generate JNI headers for booter -->
-  <target name="gen-jni-headers" depends="package">
+  <target name="gen-jni-headers" depends="gen-asm">
     <mkdir dir="${build.native}"/>
     <javah destdir="${build.native}" classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.VM_DynamicLibrary"/>
