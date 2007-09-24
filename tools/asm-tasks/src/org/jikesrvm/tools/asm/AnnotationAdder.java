@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.tools.asm;
 
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
@@ -29,7 +28,6 @@ import java.io.InputStream;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,13 +49,13 @@ public final class AnnotationAdder {
     new HashMap<AnnotatedElement, Set<Class<? extends Annotation>>>();
 
   private static String destinationDir;
-  
+
   /**
    * Add annotation to element
    * @param ann annotation to add
    * @param elem element to add it to
    */
-  static void addToAdapt (Class<? extends Annotation> ann, AnnotatedElement elem) {
+  private static void addToAdapt(Class<? extends Annotation> ann, AnnotatedElement elem) {
     if (elem == null)
       throw new Error("Can't adapt a null element");
     if (ann == null)
@@ -76,7 +74,7 @@ public final class AnnotationAdder {
       throw new Error(e);
     }
   }
-  
+
   /**
    * Find the annotations to add to the given method
    * @param className name of class we're adding annotation to
@@ -95,17 +93,17 @@ public final class AnnotationAdder {
     }
     return null;
   }
-  
+
   /**
    * Main entry point
    * @param args args[0] is the classpath to use to read classes, args[1] is the destination directory
    */
-  public static void main(final String args[]) {
+  public static void main(final String[] args) {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
-    
+
     VM_ClassLoader.init(args[0]);
     destinationDir = args[1] + "/";
-    
+
     for(AnnotatedElement elem: thingsToAnnotate.keySet()) {
       Class<?> c = getClassForElement(elem);
       if (!processedClasses.contains(c)) {
@@ -114,7 +112,7 @@ public final class AnnotationAdder {
       }
     }
   }
-  
+
   /**
    * Given an annotated element return the class that declares it
    * @param elem the annotated element
@@ -162,7 +160,7 @@ public final class AnnotationAdder {
       throw new Error("Error writing to " + destinationDir + resource + " to disk", e);
     }
   }
-  
+
   /**
    * Class responsible for processing classes and adding annotations
    */
@@ -236,7 +234,7 @@ public final class AnnotationAdder {
       System.out.println("Found annotation: " + desc);
       return mv.visitAnnotation(desc, visible);
     }
-    
+
     /**
      * We've finished processing method, check what annotations were found and
      * then add those that weren't
