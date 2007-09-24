@@ -8,6 +8,8 @@ on October 14, 2001,
 *Jikes RVM 2.9.2 Release Notes (Future)
 ** Highlights
 
+*** r13676: ASM based tool to add annotations to class library.
+
 *** r13413: Initial support for IA32 Solaris, capable of running basic tests
     and partially running DaCapo benchmarks.
 
