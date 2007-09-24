@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Locale;
 
 import org.jikesrvm.classloader.VM_ClassLoader;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
@@ -48,7 +49,16 @@ public final class AnnotationAdder {
   private static final Map<AnnotatedElement, Set<Class<? extends Annotation>>> thingsToAnnotate =
     new HashMap<AnnotatedElement, Set<Class<? extends Annotation>>>();
 
+  /**
+   * Destination directory for annotated classes
+   */
   private static String destinationDir;
+
+  /**
+   * Elements that have been annotated
+   */
+  private static final Set<AnnotatedElement> annotatedElements =
+    new HashSet<AnnotatedElement>();
 
   /**
    * Add annotation to element
@@ -70,13 +80,61 @@ public final class AnnotationAdder {
     try {
       addToAdapt(Pure.class, Integer.class.getMethod("toString", new Class[]{int.class, int.class}));
       addToAdapt(Pure.class, Integer.class.getMethod("valueOf", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("charAt", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, String.class.getMethod("equalsIgnoreCase", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("compareTo", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("compareToIgnoreCase", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("regionMatches", new Class[]{int.class, String.class, int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("regionMatches", new Class[]{boolean.class, int.class, String.class, int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("startsWith", new Class[]{String.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("startsWith", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("endsWith", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{String.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{String.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("subSequence", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("concat", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("replace", new Class[]{char.class, char.class}));
+      addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("matches", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("replaceFirst", new Class[]{String.class, String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("replaceAll", new Class[]{String.class, String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("split", new Class[]{String.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("split", new Class[]{String.class}));
+      addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[]{Locale.class}));
+      addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[]{Locale.class}));
+      addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("trim", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("toCharArray", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{boolean.class}));
+      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{char.class}));
+      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{long.class}));
+      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{float.class}));
+      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{double.class}));
+      addToAdapt(Pure.class, String.class.getMethod("intern", new Class[0]));
+      addToAdapt(Pure.class, String.class.getMethod("codePointCount", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, String.class.getMethod("offsetByCodePoints", new Class[]{int.class, int.class}));
     } catch (NoSuchMethodException e) {
       throw new Error(e);
     }
   }
 
   /**
-   * Find the annotations to add to the given method
+   * Find the annotations to add to the given method and remove from the set
+   * of things to annotate
    * @param className name of class we're adding annotation to
    * @param methodName name of method we're adding annotation to
    * @param methodDesc descriptor of method
@@ -87,6 +145,7 @@ public final class AnnotationAdder {
       if (elem instanceof Method) {
         Method m = (Method)elem;
         if (m.getName().equals(methodName) && Type.getMethodDescriptor(m).equals(methodDesc)) {
+          annotatedElements.add(m);
           return thingsToAnnotate.get(m);
         }
       }
@@ -96,7 +155,8 @@ public final class AnnotationAdder {
 
   /**
    * Main entry point
-   * @param args args[0] is the classpath to use to read classes, args[1] is the destination directory
+   * @param args args[0] is the classpath to use to read classes, args[1] is
+   *        the destination directory
    */
   public static void main(final String[] args) {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
@@ -110,6 +170,17 @@ public final class AnnotationAdder {
         adaptClass(c.getName());
         processedClasses.add(c);
       }
+    }
+
+    for (AnnotatedElement elem: annotatedElements) {
+      thingsToAnnotate.remove(elem);
+    }
+
+    if (thingsToAnnotate.size() > 0) {
+      for (AnnotatedElement elem: thingsToAnnotate.keySet()) {
+        System.out.println("Error finding element to annotate: " + elem);
+      }
+      throw new Error("Error finding elements to annotate");
     }
   }
 
