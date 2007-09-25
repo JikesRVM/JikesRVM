@@ -685,7 +685,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
             VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
             break;
           case TRAP_ARRAY_BOUNDS:
-            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region.");
+            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo, ").");
             break;
           case TRAP_DIVIDE_BY_ZERO:
             VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
