@@ -54,7 +54,7 @@ public abstract class Space implements Constants {
   private static boolean DEBUG = false;
 
   // the following is somewhat arbitrary for the 64 bit system at this stage
-  private static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
+  public static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
   public static final int LOG_BYTES_IN_CHUNK = 22;
   public static final int BYTES_IN_CHUNK = 1 << LOG_BYTES_IN_CHUNK;
   public static final int PAGES_IN_CHUNK = 1 << (LOG_BYTES_IN_CHUNK - LOG_BYTES_IN_PAGE);
@@ -65,7 +65,7 @@ public abstract class Space implements Constants {
   public static final Address HEAP_START = chunkAlign(VM.HEAP_START, true);
   public static final Address AVAILABLE_START = chunkAlign(VM.AVAILABLE_START, false);
   public static final Address AVAILABLE_END = chunkAlign(VM.AVAILABLE_END, true);
-  private static final Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
+  public static final Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
   public static final int AVAILABLE_PAGES = AVAILABLE_BYTES.toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   public static final Address HEAP_END = chunkAlign(VM.HEAP_END, false);
 

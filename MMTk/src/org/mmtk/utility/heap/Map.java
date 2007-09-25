@@ -61,6 +61,9 @@ public class Map {
     regionMap = new GenericFreeList(Space.MAX_CHUNKS);
     globalPageMap = new GenericFreeList(1, 1, Space.MAX_SPACES);
     sharedFLMap = new FreeListPageResource[Space.MAX_SPACES];
+    if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(Space.BITS_IN_ADDRESS == Space.LOG_ADDRESS_SPACE ||
+            Space.AVAILABLE_BYTES.toWord().rshl(Space.LOG_ADDRESS_SPACE).isZero());
   }
 
   /****************************************************************************
@@ -299,10 +302,16 @@ public class Map {
    */
   @Inline
   private static int hashAddress(Address address) {
-    return address.toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
+    if (Space.BYTES_IN_ADDRESS == 8)
+      return address.diff(Space.AVAILABLE_START).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
+    else
+      return address.toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
   }
   @Inline
   private static Address reverseHashChunk(int chunk) {
-    return Word.fromIntZeroExtend(chunk).lsh(Space.LOG_BYTES_IN_CHUNK).toAddress();
+    if (Space.BYTES_IN_ADDRESS == 8)
+      return Space.AVAILABLE_START.plus(Word.fromIntZeroExtend(chunk).lsh(Space.LOG_BYTES_IN_CHUNK).toExtent());
+    else
+      return Word.fromIntZeroExtend(chunk).lsh(Space.LOG_BYTES_IN_CHUNK).toAddress();
   }
 }
