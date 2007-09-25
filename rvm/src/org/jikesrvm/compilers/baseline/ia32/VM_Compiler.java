@@ -2383,7 +2383,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
       VM_Barriers.compilePutstaticBarrier(asm, T0, fieldRef.getId());
-      emitDynamicLinkingSequence(T0, fieldRef, false);
       asm.emitADD_Reg_Imm(SP, WORDSIZE);
     } else {
       if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
@@ -2539,7 +2538,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // 32bit reference store
       if (MM_Constants.NEEDS_WRITE_BARRIER) {
         VM_Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
-        emitDynamicLinkingSequence(T0, fieldRef, false);
         asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       } else {
         asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored

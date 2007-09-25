@@ -2478,7 +2478,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
-      emitDynamicLinkingSequence(T0, fieldRef, false);
+      discardSlots(1);
+      return;
     }
     if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       popInt(T1);
@@ -2505,6 +2506,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
+      discardSlots(1);
+      return;
     }
     if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       popInt(T0);
@@ -2622,7 +2625,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       if (MM_Constants.NEEDS_WRITE_BARRIER) {
         // NOTE: offset is in T1 from emitDynamicLinkingSequence
         VM_Barriers.compilePutfieldBarrier((ArchitectureSpecific.VM_Compiler) this, fieldRef.getId());
-        emitDynamicLinkingSequence(T1, fieldRef, false);
         discardSlots(2);
       } else {
         popAddr(T0);                // T0 = address value
@@ -2675,11 +2677,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // 32/64bit reference store
       if (MM_Constants.NEEDS_WRITE_BARRIER) {
         VM_Barriers.compilePutfieldBarrierImm((ArchitectureSpecific.VM_Compiler) this, fieldOffset, fieldRef.getId());
+        discardSlots(2);
+      } else {
+        popAddr(T0); // T0 = address value
+        popAddr(T1); // T1 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+        asm.emitSTAddrOffset(T0, T1, fieldOffset);
       }
-      popAddr(T0); // T0 = address value
-      popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
-      asm.emitSTAddrOffset(T0, T1, fieldOffset);
     } else if (fieldType.isWordType()) {
       // 32/64bit word store
       popAddr(T0);                // T0 = value
