@@ -120,6 +120,7 @@ import org.vmmagic.pragma.*;
    * The planExit method is called at RVM termination to allow the
    * trace process to finish.
    */
+  @Interruptible
   public final void notifyExit(int value) {
     super.notifyExit(value);
     finalDead = true;

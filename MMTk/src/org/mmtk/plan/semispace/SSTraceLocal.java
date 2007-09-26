@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public SSTraceLocal(Trace trace, boolean specialized) {
-    super(SS.SCAN_SS, trace);
+    super(specialized ? SS.SCAN_SS : -1, trace);
   }
 
   /**
