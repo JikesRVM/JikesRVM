@@ -49,6 +49,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -165,6 +166,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Entrypoint
+  @Unpreemptible
   public static void putfieldWriteBarrier(Object ref, Offset offset, Object value, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
@@ -184,6 +186,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param value the new value for the field
    */
   @Inline
+  @Unpreemptible
   public static boolean tryCompareAndSwapWriteBarrier(Object ref, Offset offset, Object old, Object value) {
     ObjectReference src = ObjectReference.fromObject(ref);
     return Selected.Mutator.get().tryCompareAndSwapWriteBarrier(src,
@@ -204,6 +207,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Entrypoint
+  @Unpreemptible
   public static void putstaticWriteBarrier(Offset offset, Object value, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(VM_Magic.getJTOC());
     Selected.Mutator.get().writeBarrier(src,
@@ -226,6 +230,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Entrypoint
+  @Unpreemptible
   public static void arrayStoreWriteBarrier(Object ref, int index, Object value) {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
@@ -255,6 +260,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * left to the caller (always false in this case).
    */
   @Inline
+  @Uninterruptible
   public static boolean arrayCopyWriteBarrier(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
     return Selected.Mutator.get().writeBarrier(ObjectReference.fromObject(src),
                                                srcOffset,

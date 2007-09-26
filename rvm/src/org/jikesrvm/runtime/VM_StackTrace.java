@@ -25,6 +25,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
@@ -329,6 +330,14 @@ public class VM_StackTrace {
      * at org.jikesrvm.memorymanagers.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
      * ...
      * at org.jikesrvm.runtime.VM_Runtime.unresolvedNewArray(VM_Runtime.java:401)
+     *
+     * and a NullPointerException within a barrier to look like:
+     * ...
+     * ...
+     * ...
+     * at org.jikesrvm.memorymanagers.MM_Interface.xxxBarrier(...)
+     * ...
+     * ...
      */
     if (VM_Options.stackTraceFull) {
       return 0;
@@ -349,6 +358,18 @@ public class VM_StackTrace {
           element++;
         }
         return element;
+      }
+
+      // Deal with NullPointerException
+      if (cause instanceof NullPointerException) {
+        for (element = compiledMethods.length - 1; element > 0; element--) {
+          if ((compiledMethods[element] != null) &&
+            (compiledMethods[element].getCompilerType() == VM_CompiledMethod.TRAP ||
+            compiledMethods[element].method.getDeclaringClass().getClassForType() == MM_Interface.class)) {
+            return (element + 1);
+          }
+        }
+        return 0;
       }
 
       // (1) remove any VM_StackTrace frames

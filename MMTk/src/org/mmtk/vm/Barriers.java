@@ -13,6 +13,7 @@
 package org.mmtk.vm;
 
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.*;
 
 @Uninterruptible public abstract class Barriers {
@@ -48,6 +49,7 @@ import org.vmmagic.unboxed.*;
    * @param locationMetadata An index of the FieldReference (metaDataB)
    * @param mode The context in which the write is occuring
    */
+  @Unpreemptible
   public abstract void performWriteInBarrier(ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset,
                                            int locationMetadata, int mode);
@@ -64,10 +66,11 @@ import org.vmmagic.unboxed.*;
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
+  @Unpreemptible
   public abstract ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset,
-      int locationMetadata, int mode);
+                                           int locationMetadata, int mode);
 
   /**
    * Attempt an atomic compare and exchange in a write barrier sequence.
@@ -81,6 +84,7 @@ import org.vmmagic.unboxed.*;
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
+  @Unpreemptible
   public abstract boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
       ObjectReference old, ObjectReference target, Offset offset, int locationMetadata, int mode);
 

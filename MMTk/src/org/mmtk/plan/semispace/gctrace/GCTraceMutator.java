@@ -80,20 +80,17 @@ import org.vmmagic.pragma.*;
    * non-nursery space.
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
+   * @param slot The address into which the new reference will be stored.
    * @param tgt The target of the new reference
-   * @param metaDataA an int that encodes the source location
-   * @param metaDataB an int that encodes the source location
-   * being modified
-   * @param mode The mode of the store (eg putfield, putstatic etc)
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
   @Inline
-  public final void writeBarrier(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
-    TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
-        src, slot, tgt);
+  @Unpreemptible
+  public final void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt,
+                                 Offset metaDataA, int metaDataB, int mode) {
+    TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER, src, slot, tgt);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
@@ -105,19 +102,18 @@ import org.vmmagic.pragma.*;
    * <b>By default do nothing, override if appropriate.</b>
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
+   * @param slot The address into which the new reference will be stored
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
   @Inline
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+  @Unpreemptible
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old,
+                                               ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
     if (result) {
       TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER, src, slot, tgt);
@@ -132,19 +128,15 @@ import org.vmmagic.pragma.*;
    * appropriate write barrier actions.<p>
    *
    * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
+   * @param srcOffset The (possibly negative) offset of the first source address in bytes, relative to src
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
+   * @param dstOffset The (possibly negative) offset of the first destination address in bytes, relative to dst
    * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @return True if the update was performed by the barrier, false if left to the caller.
    */
+  @Inline
   public boolean writeBarrier(ObjectReference src, Offset srcOffset,
-      ObjectReference dst, Offset dstOffset, int bytes) {
+                              ObjectReference dst, Offset dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
      * previous writeBarrier method. */
     Address slot = dst.toAddress().plus(dstOffset);

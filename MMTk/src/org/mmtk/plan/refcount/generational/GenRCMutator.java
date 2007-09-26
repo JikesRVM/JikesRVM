@@ -163,17 +163,16 @@ import org.vmmagic.unboxed.*;
    * non-nursery space.
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
+   * @param slot The address into which the new reference will be stored.
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic etc)
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
   @Inline
-  public final void writeBarrier(ObjectReference src, Address slot,
-                                 ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode) {
+  @Unpreemptible
+  public final void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt,
+                                 Offset metaDataA, int metaDataB, int mode) {
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
@@ -186,18 +185,18 @@ import org.vmmagic.unboxed.*;
    * created, we must then take appropriate write barrier actions.<p>
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
+   * @param slot The address into which the new reference will be stored
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+  @Inline
+  @Unpreemptible
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old,
+                                               ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
     return VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
@@ -211,22 +210,16 @@ import org.vmmagic.unboxed.*;
    *
    * In this case, we simply remember the mutated source object.
    *
-   * @param src The source of the values to copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
+   * @param src The source of the values to be copied
+   * @param srcOffset The (possibly negative) offset of the first source address in bytes, relative to src
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
+   * @param dstOffset The (possibly negative) offset of the first destination address in bytes, relative to dst
    * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @return True if the update was performed by the barrier, false if left to the caller.
    */
   @Inline
-  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
-                                    ObjectReference dst, Offset dstOffset,
-                                    int bytes) {
+  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                              ObjectReference dst, Offset dstOffset, int bytes) {
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(dst))
       writeBarrierSlow(dst);
