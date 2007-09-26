@@ -24,6 +24,14 @@ import org.jikesrvm.compilers.opt.OPT_Options;
 public final class OPT_CompilationState {
 
   /*
+   * Implementation
+   */
+  private final OPT_Instruction call;
+  private final boolean isExtant;
+  private final OPT_Options options;
+  private final VM_CompiledMethod cm;
+
+  /*
    * Interface
    */
 
@@ -127,12 +135,4 @@ public final class OPT_CompilationState {
   public VM_CompiledMethod getCompiledMethod() {
     return cm;
   }
-
-  /*
-   * Implementation
-   */
-  private OPT_Instruction call;
-  private boolean isExtant;
-  private OPT_Options options;
-  private VM_CompiledMethod cm;
 }
