@@ -267,7 +267,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       } else {
         VM.sysWrite("VM_BuildReferenceMaps, error: found a block on work stack with");
         VM.sysWrite(" no starting map. The block number is ");
-        VM.sysWrite(basicBlocks[currBBNum].blockNumber);
+        VM.sysWrite(basicBlocks[currBBNum].getBlockNumber());
         VM.sysWrite("\n");
         VM.sysFail("VM_BuildReferenceMaps work stack failure");
       }

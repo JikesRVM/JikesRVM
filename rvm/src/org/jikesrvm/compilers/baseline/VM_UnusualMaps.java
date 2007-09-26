@@ -25,73 +25,66 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 final class VM_UnusualMaps {
 
-  // set the index in the stack frame of the return address for this map
-  //
+  /** For maps of JSR subroutine locations index into the normal reference map of where the return address can be located */
+  int returnAddressIndex;
+  /** index into the map table of the references set map */
+  int referenceMapIndex;
+  /** index into the map table of the non-reference set map */
+  int nonReferenceMapIndex;
+  /** index into the map table of the return address map */
+  int returnAddressMapIndex;
+  /** index into the array of normal maps ie the back-pointer */
+  int normalMapIndex;
+
+  /** set the index in the stack frame of the return address for this map */
   void setReturnAddressIndex(int index) {
     returnAddressIndex = index;
   }
 
-  // provide the index in the stack frame of the return address for this map
-  //
+  /** provide the index in the stack frame of the return address for this map */
   int getReturnAddressIndex() {
     return returnAddressIndex;
   }
 
-  // set the  offset of the reference map in the stackmap list of maps
-  //
+  /** set the  offset of the reference map in the stackmap list of maps */
   void setReferenceMapIndex(int index) {
     referenceMapIndex = index;
   }
 
-  // provide the index in the stackmaps for the refernce map
-  //
+  /** provide the index in the stackmaps for the reference map */
   int getReferenceMapIndex() {
     return referenceMapIndex;
   }
 
-  // set the  offset of the non-reference map in the stackmap list of maps
-  //
+  /** set the  offset of the non-reference map in the stackmap list of maps */
   void setNonReferenceMapIndex(int index) {
     nonReferenceMapIndex = index;
   }
 
-  // provide the index in the stackmaps for the non-refernce map
-  //
+  /** provide the index in the stackmaps for the non-reference map */
   int getNonReferenceMapIndex() {
     return nonReferenceMapIndex;
   }
 
-  // set the  offset of the returnAddress map in the stackmap list of maps
-  //
+  /** set the  offset of the returnAddress map in the stackmap list of maps */
   void setReturnAddressMapIndex(int index) {
     returnAddressMapIndex = index;
   }
 
-  // provide the index in the stackmaps for the return Address  map
-  //
+  /** provide the index in the stackmaps for the return Address map */
   int getReturnAddressMapIndex() {
     return returnAddressMapIndex;
   }
 
-  // provide the normal map index ie the backpointer
-  //
+  /** provide the normal map index ie the back-pointer */
   int getNormalMapIndex() {
     return normalMapIndex;
   }
 
-  // set the normal map index ie the backpointer
-  //
+  /** set the normal map index ie the back-pointer */
   void setNormalMapIndex(int index) {
     normalMapIndex = index;
   }
-
-  // For maps of JSR subroutine locations
-  int returnAddressIndex;   // index into the normal reference map of where the
-  // return address can be located
-  int referenceMapIndex;     // index into the map table of the references set map
-  int nonReferenceMapIndex;  // index into the map table of the non-reference set map
-  int returnAddressMapIndex; // index into the map table of the return address map
-  int normalMapIndex;        // index into the array of normal maps ie the backpointer
 
   public void showInfo() {
     VM.sysWrite("  UnusualMap showInfo- ");
@@ -106,5 +99,4 @@ final class VM_UnusualMaps {
     VM.sysWrite(returnAddressMapIndex);
     VM.sysWrite("\n");
   }
-
 }

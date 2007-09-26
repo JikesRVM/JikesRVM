@@ -23,8 +23,7 @@ import org.jikesrvm.classloader.VM_NormalMethod;
  * basic blocks. Used for building the reference maps for a
  * method.
  */
-
-public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
+final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
 
   // ---------------- Static Class Fields --------------------
 
@@ -61,7 +60,6 @@ public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
   /**
    * Number of GC points found
    */
-
   public int gcPointCount;
 
   // This variable is used in multiple methods of this class, make it accessible
@@ -71,7 +69,6 @@ public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
    * Analyze the bytecodes and build the basic blocks with their predecessors.
    * The results will be used by VM_BuildReferenceMaps
    */
-
   public void determineTheBasicBlocks(VM_NormalMethod method) {
     VM_ExceptionHandlerMap exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int[] retList;    // List of basic block numbers that end with a "ret" instruction.

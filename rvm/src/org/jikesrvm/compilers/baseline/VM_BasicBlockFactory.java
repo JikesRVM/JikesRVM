@@ -12,12 +12,14 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-public final class VM_BasicBlockFactory {
+final class VM_BasicBlockFactory {
 
   private int nextBlockNumber = VM_BasicBlock.STARTBBNUMBER;
 
-  // This should be the usual constructor, we know the start, but don't
-  // yet know the end. No predecessors.
+  /**
+   * This should be the usual constructor, we know the start, but don't
+   * yet know the end. No predecessors.
+   */
   VM_BasicBlock newBlock(int startval) {
     int blockNumber = nextBlockNumber++;
     return new VM_BasicBlock(startval, blockNumber);

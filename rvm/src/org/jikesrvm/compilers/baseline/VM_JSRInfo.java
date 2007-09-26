@@ -20,7 +20,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * Scratch space for JSR processing.  Used from VM_ReferenceMaps
  */
 @Uninterruptible
-public final class VM_JSRInfo implements VM_BaselineConstants {
+final class VM_JSRInfo implements VM_BaselineConstants {
 
   int numberUnusualMaps;
   VM_UnusualMaps[] unusualMaps;
@@ -36,8 +36,8 @@ public final class VM_JSRInfo implements VM_BaselineConstants {
   }
 
   /**
-   * show the basic information for each of the unusual maps
-   *    this is for testing use
+   * show the basic information for each of the unusual maps this is for testing
+   * use
    */
   public void showUnusualMapInfo(int bytesPerMap) {
     VM.sysWrite("-------------------------------------------------\n");
@@ -67,8 +67,7 @@ public final class VM_JSRInfo implements VM_BaselineConstants {
   }
 
   /**
-   * show the basic information for a single unusualmap
-   *    this is for testing use
+   * show the basic information for a single unusualmap this is for testing use
    */
   public void showAnUnusualMap(int mapIndex, int bytesPerMap) {
     VM.sysWrite("unusualMap with index = ", mapIndex);

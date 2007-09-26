@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-public final class VM_BasicBlock {
-
-  // structure to describe the basic blocks of the byte code
-  // Used in calculating stack map and local variable map for
-  // the garabage collector.
+/**
+ * Structure to describe the basic blocks of the byte code Used in calculating
+ * stack map and local variable map for the garbage collector.
+ */
+final class VM_BasicBlock {
 
   // NOTE: Block number 1 is the epilog block, the only block
   // that exits from the method. Blocks that end in a return will
@@ -40,29 +40,35 @@ public final class VM_BasicBlock {
 
   // --------------------- Instance Fields ---------------------
 
-  public int blockNumber;// ID number (index into block array)
-  int start;             // starting byte in byte code array
-  int end;               // ending byte in byte code array
-  int predcount = 0;     // number of preceeding basic blocks
+  /** ID number (index into block array) */
+  private final int blockNumber;
+  /** starting byte in byte code array */
+  private int start;
+  /** ending byte in byte code array */
+  private int end;
+  /** number of preceding basic blocks */
+  private int predcount = 0;
   // First 2 are listed individually.
-  short pred1;
-  short pred2;
-  short[] restPredecessors;  // list of rest preceeding basic blocks
+  private short pred1;
+  private short pred2;
+  /** list of rest preceding basic blocks */
+  private short[] restPredecessors;
   // may be bigger then predcount;
-  byte state = 0;           // additional state info for jsr handling,
-  // and other flags
+  /** additional state info for jsr handling, and other flags */
+  private byte state = 0;
 
   // --------------- Constructor --------------------------------
 
-  // This should be called only from the factory.
-
+  /** This should be called only from the factory. */
   VM_BasicBlock(int startval, int bn) {
     blockNumber = bn;
     start = startval;
   }
 
-  // This should be used when building the EXIT block
-  // EXIT is likely to have several predecessors.
+  /**
+   * This should be used when building the EXIT block EXIT is likely to have
+   * several predecessors.
+   */
   VM_BasicBlock(int startval, int endval, int blockNumber) {
     start = startval;
     end = endval;
@@ -72,12 +78,9 @@ public final class VM_BasicBlock {
 
   // ------------------ Static Methods -------------------------
 
-  void setStart(int startval) {
-    start = startval;
-  }
-
-  // transfer predecessor blocks from one block to another
-  public static void transferPredecessors(VM_BasicBlock fromBB, VM_BasicBlock toBB) {
+  /** transfer predecessor blocks from one block to another */
+  public static void transferPredecessors(VM_BasicBlock fromBB,
+      VM_BasicBlock toBB) {
     toBB.predcount = fromBB.predcount;
     toBB.pred1 = fromBB.pred1;
     toBB.pred2 = fromBB.pred2;
@@ -88,6 +91,10 @@ public final class VM_BasicBlock {
   }
 
   // -------------------------- Instance Methods ----------------
+
+  void setStart(int startval) {
+    start = startval;
+  }
 
   void setEnd(int endval) {
     end = endval;
@@ -165,9 +172,10 @@ public final class VM_BasicBlock {
     }
   }
 
-  // This method first checks if a block is already on the predecessor
-  // list. Used with try blocks being added to their catch block as
-  // predecessors.
+  /**
+   * This method first checks if a block is already on the predecessor list.
+   * Used with try blocks being added to their catch block as predecessors.
+   */
   public void addUniquePredecessor(VM_BasicBlock predbb) {
     boolean dupFound = false, checkMade = false;
     short predbbNum = (short) predbb.getBlockNumber();
@@ -188,14 +196,15 @@ public final class VM_BasicBlock {
             int restLength = restPredecessors.length;
             for (int i = 0; i < restLength; i++) {
               if (restPredecessors[i] == predbbNum) {
-                dupFound = true;            // finish up the copy anyway.
+                dupFound = true; // finish up the copy anyway.
               }
               newpreds[i] = restPredecessors[i];
             }
             restPredecessors = newpreds;
             newpreds = null;
 
-            if (dupFound) return;
+            if (dupFound)
+              return;
             checkMade = true;
           }
 
@@ -209,7 +218,7 @@ public final class VM_BasicBlock {
 
           predcount++;
           restPredecessors[predcount - 3] = predbbNum;
-        } else {  // predcount must be 2
+        } else { // predcount must be 2
           restPredecessors = new short[STARTPREDSIZE];
           predcount++;
           restPredecessors[predcount - 3] = predbbNum;
@@ -226,7 +235,6 @@ public final class VM_BasicBlock {
   }
 
   public int[] getPredecessors() {
-
     int[] preds;
     preds = new int[predcount];
     if (predcount >= 1) {
