@@ -355,6 +355,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
                                null,
                                OPT_IRTools.AC(target.getOffset()),
                                OPT_MethodOperand.STATIC(target),
+                               PutField.getClearGuard(inst),
                                PutField.getRef(inst).copy(),
                                PutField.getOffset(inst).copy(),
                                PutField.getValue(inst).copy(),

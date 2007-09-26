@@ -33,7 +33,6 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -202,7 +201,6 @@ public abstract class VM_Scheduler {
      * implies that this method must be called after the exit callbacks
      * are invoked if they are to be able to do JNI.
      */
-  @Unpreemptible
   static void releaseThreadSlot(int threadSlot, VM_Thread thread) {
     threadCreationMutex.lock("releasing a thread slot");
     if (VM.VerifyAssertions) VM._assert(VM_Scheduler.threads[threadSlot] == thread);
@@ -217,14 +215,13 @@ public abstract class VM_Scheduler {
      *  barrier. Generational collectors may not care about a null
      *  store, but a reference counting collector sure does.
      */
-    if (MM_Constants.NEEDS_WRITE_BARRIER) {
-      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, null);
-    } else {
-      VM_Magic.setObjectAtOffset(VM_Scheduler.threads, Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), null);
-    }
-    if (threadSlot < VM_Scheduler.threadAllocationIndex) {
+    if (MM_Constants.NEEDS_WRITE_BARRIER)
+      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
+          threadSlot, null);
+    VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
+        Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), null);
+    if (threadSlot < VM_Scheduler.threadAllocationIndex)
       VM_Scheduler.threadAllocationIndex = threadSlot;
-    }
     threadCreationMutex.unlock();
   }
 

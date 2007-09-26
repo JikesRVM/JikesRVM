@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -30,6 +30,7 @@ class VM_Barriers implements VM_BaselineConstants {
     // on entry java stack contains ...|target_array_ref|array_index|ref_to_store|
     // SP -> ref_to_store, SP+8 -> target_ref
     Offset of8 = Offset.fromIntSignExtend(8);
+    genNullCheck(asm, 8);
     asm.emitPUSH_RegDisp(SP, of8);
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 4)
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
@@ -42,6 +43,7 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+4 -> target_ref
     Offset of4 = Offset.fromIntSignExtend(4);
     Offset of8 = Offset.fromIntSignExtend(8);
+    genNullCheck(asm, 4);
     asm.emitPUSH_RegDisp(SP, of4);
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
@@ -55,6 +57,7 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+4 -> target_ref
     Offset of4 = Offset.fromIntSignExtend(4);
     Offset of8 = Offset.fromIntSignExtend(8);
+    genNullCheck(asm, 4);
     asm.emitPUSH_RegDisp(SP, of4);
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
@@ -85,6 +88,15 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
   }
 
+  /**
+   * Generate a cheap nullcheck by attempting to load the TIB of the object
+   * at the given offset to SP.
+   */
+  private static void genNullCheck(VM_Assembler asm, int offset) {
+    asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend(offset));
+    VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T1);
+  }
+
   static void compileModifyCheck(VM_Assembler asm, int offset) {
     if (!VM_Configuration.ExtremeAssertions) return;
     // on entry java stack contains ... [SP+offset] -> target_ref
@@ -105,7 +117,6 @@ class VM_Barriers implements VM_BaselineConstants {
    * @param params number of parameter words (including "this" if any).
    */
   private static void genParameterRegisterLoad(VM_Assembler asm, int params) {
-    if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params - 1) << LG_WORDSIZE));
     }

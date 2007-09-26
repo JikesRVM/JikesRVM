@@ -79,16 +79,15 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * <b>In this case we employ a Yuasa style snapshot barrier.</b>
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be stored.
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic)
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
    */
   @Inline
-  @Unpreemptible
-  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt,
-                           Offset metaDataA, int metaDataB, int mode) {
+  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
     if (barrierActive) checkAndEnqueueReference(slot.loadObjectReference());
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
@@ -101,16 +100,16 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * <b>By default do nothing, override if appropriate.</b>
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   @Inline
-  @Unpreemptible
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old,
                                                ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
@@ -125,15 +124,20 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * appropriate write barrier actions.<p>
    *
    * @param src The source of the values to be copied
-   * @param srcOffset The (possibly negative) offset of the first source address in bytes, relative to src
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The (possibly negative) offset of the first destination address in bytes, relative to dst
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
    * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if left to the caller.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
    */
   @Inline
   public boolean writeBarrier(ObjectReference src, Offset srcOffset,
-                              ObjectReference dst, Offset dstOffset, int bytes) {
+      ObjectReference dst, Offset dstOffset, int bytes) {
     Address cursor = dst.toAddress().plus(dstOffset);
     Address limit = cursor.plus(bytes);
     while (cursor.LT(limit)) {

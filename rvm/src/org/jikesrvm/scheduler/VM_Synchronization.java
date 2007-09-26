@@ -18,7 +18,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -75,7 +74,6 @@ public class VM_Synchronization {
    * @return true => successful swap, false => field not equal to testValue
    */
   @Inline
-  @Unpreemptible
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
     if (MM_Constants.NEEDS_WRITE_BARRIER) {
       return MM_Interface.tryCompareAndSwapWriteBarrier(base, offset, testValue, newValue);

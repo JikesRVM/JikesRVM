@@ -107,7 +107,7 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if <code>object</code> needs to be logged.
    */
   @Inline
-  @Unpreemptible
+  @Uninterruptible
   public static boolean logRequired(ObjectReference object) {
     Word value = VM.objectModel.readAvailableBitsWord(object);
     return value.and(LOGGING_MASK).EQ(UNLOGGED);

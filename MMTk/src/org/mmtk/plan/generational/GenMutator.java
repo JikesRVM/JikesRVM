@@ -153,16 +153,17 @@ import org.vmmagic.unboxed.*;
    * non-nursery space.
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be stored.
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic)
+   * @param metaDataA A field used by the VM to create a correct store.
+   * @param metaDataB A field used by the VM to create a correct store.
+   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
-  @Unpreemptible
-  public final void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt,
-                                 Offset metaDataA, int metaDataB, int mode) {
+  public final void writeBarrier(ObjectReference src, Address slot,
+      ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
     if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
     if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
       if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
@@ -181,18 +182,19 @@ import org.vmmagic.unboxed.*;
    * non-nursery space.
    *
    * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   @Inline
-  @Unpreemptible
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old,
-                                               ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+      ObjectReference old, ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
     if (result) {
       if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
@@ -213,20 +215,26 @@ import org.vmmagic.unboxed.*;
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The (possibly negative) offset of the first source address in bytes, relative to src
+   * @param src The source of the values to copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The (possibly negative) offset of the first destination address in bytes, relative to dst
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
    * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if left to the caller.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
    */
   @Inline
-  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
-                              ObjectReference dst, Offset dstOffset, int bytes) {
+  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
+      ObjectReference dst, Offset dstOffset,
+      int bytes) {
     // We can ignore when src is in old space, right?
-    if (dst.toAddress().LT(Gen.NURSERY_START)) {
-      arrayRemset.insert(dst.toAddress().plus(dstOffset), dst.toAddress().plus(dstOffset.plus(bytes)));
-    }
+    if (dst.toAddress().LT(Gen.NURSERY_START))
+      arrayRemset.insert(dst.toAddress().plus(dstOffset),
+          dst.toAddress().plus(dstOffset.plus(bytes)));
     return false;
   }
 

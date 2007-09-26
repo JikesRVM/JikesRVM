@@ -116,10 +116,6 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   @Interruptible
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
-    if (realMethod == null) {
-      /* Runtime services? */
-      return false;
-    }
     return realMethod.isUninterruptible();
   }
 
