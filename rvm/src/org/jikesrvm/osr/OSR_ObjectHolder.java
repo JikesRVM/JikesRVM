@@ -20,6 +20,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -89,6 +90,7 @@ public class OSR_ObjectHolder implements VM_SizeConstants {
    * Uses magic because it must be uninterruptible
    */
   @Inline
+  @Unpreemptible
   public static void cleanRefs(int h) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
