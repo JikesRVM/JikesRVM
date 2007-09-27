@@ -378,6 +378,21 @@ public abstract class VM_Lock implements VM_Constants {
   }
 
   /**
+   * Count number of locks held by thread
+   * @param id the thread locking ID we're counting for
+   * @return number of locks held
+   */
+  public static int countLocksHeldByThread(int id) {
+    int count=0;
+    for (VM_Lock lock : locks) {
+      if (lock != null && lock.active  && lock.ownerId == id && lock.recursionCount > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
    * Dump threads blocked trying to get this lock
    */
   protected abstract void dumpBlockedThreads();
