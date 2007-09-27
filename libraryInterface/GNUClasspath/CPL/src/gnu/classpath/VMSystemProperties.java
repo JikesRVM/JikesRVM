@@ -134,6 +134,11 @@ public class VMSystemProperties {
       p.put("java.class.path", VM_ClassLoader.getApplicationRepositories());
     }
 
+    if (VM.PortableNativeSync) {
+      /* Enable portable native sync to support M-to-N threading with gtk peers */
+      p.put("gnu.classpath.awt.gtk.portable.native.sync", "true");
+    }
+
     /* Now the rest of the special ones that we set on the command line.   Do
      * this just in case later revisions of GNU Classpath start to require
      * some of them in the boot process; otherwise, we could wait for them to

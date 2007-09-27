@@ -210,6 +210,11 @@ public class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
 
+    if (VM.PortableNativeSync) {
+      pln("#define PORTABLE_NATIVE_SYNC 1");
+      pln();
+    }
+
     pln("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
     emitBootRecordDeclarations();
     pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS */");

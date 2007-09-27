@@ -19,7 +19,7 @@
   <!-- in target patch-classpath-web                                -->
   <property name="classpath.version" value="95"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="2"/>
+  <property name="classpath.patchlevel" value="3"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -117,6 +117,8 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-51.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
   <!-- Patches against the current stable version -->
@@ -134,7 +136,9 @@
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-solaris.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>   
+           dir="${classpath.package.dir}/classpath/" strip="0"/> 
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-51.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>  
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
 
@@ -157,6 +161,10 @@
           <available file="/opt/gnome/include/gtk-2.0/gtk/gtk.h"/>
         </or>
       </and>
+    </condition>
+
+    <condition property="cp.enable.portable-native-sync" value=" --enable-portable-native-sync" else="">
+      <equals arg1="${config.portable-native-sync}" arg2="true"/>
     </condition>
 
     <condition property="cp.disable.alsa" value=" --disable-alsa" else="">
@@ -196,7 +204,7 @@
       <arg value="--with-ecj=${ecj.dir}/ecj"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
-      <arg line="${cp.enable.gtk-peer}${cp.disable.alsa}${cp.cppflags}"/>
+      <arg line="${cp.enable.gtk-peer}${cp.enable.portable-native-sync}${cp.disable.alsa}${cp.cppflags}"/>
     </exec>
     <exec executable="${make.exe}" failonerror="true" dir="${classpath.dir}">
       <env key="OBJECT_MODE" value="${cp.objectmode}" />

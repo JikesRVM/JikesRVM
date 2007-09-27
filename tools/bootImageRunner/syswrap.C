@@ -314,6 +314,7 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
     return ready;
 }
 
+#ifndef PORTABLE_NATIVE_SYNC
 // Wrapper for pthread_mutex_lock
 // If the lock can't be obtained then yield and try again
 int pthread_mutex_lock(pthread_mutex_t *mutex)
@@ -389,3 +390,5 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
   }
   return err;
 }
+#endif /* PORTABLE_NATIVE_SYNC */
+

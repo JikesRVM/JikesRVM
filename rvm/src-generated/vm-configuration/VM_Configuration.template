@@ -46,6 +46,9 @@ public abstract class VM_Configuration {
   /** Do we have the facilities to intercept blocking system calls? */
   public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix || BuildForOsx || BuildForSolaris;
 
+  /** Are we using Classpath's portable native sync feature? */
+  public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;
+
   /**
    * Can a dereference of a null pointer result in an access
    * to 'low' memory addresses that must be explicitly guarded because the
@@ -127,7 +130,6 @@ public abstract class VM_Configuration {
    * old code when we move up to the next version.
    */
   private static final int ClasspathVersion = @_RVM_CLASSPATH_VERSION_@;
-  public static final boolean BuildForClasspath_0_93 = 93 == ClasspathVersion;
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
 
