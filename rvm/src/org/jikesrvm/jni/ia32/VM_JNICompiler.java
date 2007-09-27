@@ -749,7 +749,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(EBX, EBP, Offset.fromIntSignExtend(2 * WORDSIZE));   // pick up arg 0 (from callers frame)
     VM_ProcessorLocalState.emitLoadProcessor(asm, EBX, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
-    // reload JTOC from vitual processor
+    // reload JTOC from virtual processor
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
 
