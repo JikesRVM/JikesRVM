@@ -30,6 +30,10 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  */
 public abstract class OPT_InlineTools implements OPT_Constants {
 
+  private static final VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom("arraycopy");
+  private static final VM_Atom objectArrayCopyDescriptor =
+      VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
+
   /**
    * Does class <code>A</code> directly implement the interface <code>B</code>?
    */
@@ -173,10 +177,6 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     }
     return false;
   }
-
-  private static VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom("arraycopy");
-  private static VM_Atom objectArrayCopyDescriptor =
-      VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Should the callee method be barred from ever being considered for inlining?
