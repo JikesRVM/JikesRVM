@@ -30,7 +30,6 @@ class VM_Barriers implements VM_BaselineConstants {
     // on entry java stack contains ...|target_array_ref|array_index|ref_to_store|
     // SP -> ref_to_store, SP+8 -> target_ref
     Offset of8 = Offset.fromIntSignExtend(8);
-    genNullCheck(asm, 8);
     asm.emitPUSH_RegDisp(SP, of8);
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 4)
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
