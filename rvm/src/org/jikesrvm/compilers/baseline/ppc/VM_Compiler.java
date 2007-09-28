@@ -1885,6 +1885,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   @Override
   protected final void emit_d2f() {
     popDouble(F0);
+    asm.emitFRSP(F0, F0);
     pushFloat(F0);
   }
 
