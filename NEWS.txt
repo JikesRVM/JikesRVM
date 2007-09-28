@@ -8,6 +8,9 @@ on October 14, 2001,
 *Jikes RVM 2.9.2 Release Notes (Future)
 ** Highlights
 
+*** r13697: Switch from hijacking pthread system calls to using Classpath's
+    portable native sync (which uses JNI for locking rather than pthread locks).
+
 *** r13676: ASM based tool to add annotations to class library.
 
 *** r13413: Initial support for IA32 Solaris, capable of running basic tests
