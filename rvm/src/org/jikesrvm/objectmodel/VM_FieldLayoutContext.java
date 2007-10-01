@@ -73,7 +73,7 @@ public abstract class VM_FieldLayoutContext implements VM_SizeConstants {
   }
 
   /* *****************************************************************
-   *                  Instance methodss
+   *                  Instance methods
    */
 
   /**
@@ -98,6 +98,13 @@ public abstract class VM_FieldLayoutContext implements VM_SizeConstants {
    */
   protected int getObjectSize() {
     return objectSize;
+  }
+
+  /**
+   * Set the current size of the object (excluding header)
+   */
+  protected void setObjectSize(int size) {
+    objectSize = size;
   }
 
   /**
