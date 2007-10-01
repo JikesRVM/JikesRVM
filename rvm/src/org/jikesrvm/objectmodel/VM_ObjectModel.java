@@ -139,11 +139,11 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   private static final boolean PACKED = true;
 
   /** Layout widget */
-  private static VM_FieldLayout layout;
+  private static final VM_FieldLayout layout;
 
   static {
     if (PACKED) {
-      layout = new VM_FieldLayoutPacked(true, false);
+      layout = new VM_FieldLayoutPackedUsingHoles(true, false);
     } else {
       layout = new VM_FieldLayoutUnpacked(true, false);
     }
