@@ -49,6 +49,17 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
     return (x > y) ? x : y;
   }
 
+  /**
+   * Log base 2 of an integer
+   */
+  protected static int log2(int x) {
+    int logSize = 0;
+    while ((1 << logSize) < x) {
+      logSize += 1;
+    }
+    return logSize;
+  }
+
   /*
   * Abstract methods that determine the behaviour of a particular layout scheme
   */

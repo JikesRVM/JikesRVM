@@ -143,7 +143,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
 
   static {
     if (PACKED) {
-      layout = new VM_FieldLayoutPackedUsingHoles(true, false);
+      layout = new VM_FieldLayoutPacked(true, false);
     } else {
       layout = new VM_FieldLayoutUnpacked(true, false);
     }
