@@ -41,8 +41,7 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
     private void setByteHole(int hole) {
       if (hole <= 0xFFFF) {
         byteHole = (short)hole;
-      }
-      else {
+      } else {
         byteHole = 0;
       }
     }
@@ -62,8 +61,7 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
       hole >>= 1;
       if (hole <= 0xFFFF) {
         shortHole = (short)hole;
-      }
-      else {
+      } else {
         shortHole = 0;
       }
     }
@@ -83,8 +81,7 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
       hole >>= 2;
       if (hole <= 0xFFFF) {
         intHole = (short)hole;
-      }
-      else {
+      } else {
         intHole = 0;
       }
     }
@@ -136,15 +133,13 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
       if (size <= 1 && getByteHole() != 0) {
         result = getByteHole();
         setByteHole(0);
-      }
-      else if (size <= 2 && getShortHole() != 0) {
+      } else if (size <= 2 && getShortHole() != 0) {
         result = getShortHole();
         if (size <= 1) {
           setByteHole(result + 1);
         }
         setShortHole(0);
-      }
-      else if (size <= 4) {
+      } else if (size <= 4) {
         if (getIntHole() != 0) {
           result = getIntHole();
           if (size <= 2) {
@@ -154,11 +149,10 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
             setByteHole(result + 1);
           }
           setIntHole(0);
-        }
-        else {
+        } else {
           // Failed to find a hole so allocate at end of object
           result = getObjectSize();
-          setObjectSize (result + 4);
+          setObjectSize(result + 4);
           if (size <= 2) {
             setShortHole(result + 2);
           }
@@ -166,8 +160,7 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
             setByteHole(result + 1);
           }
         }
-      }
-      else {
+      } else {
         // Longs are always allocated at the end of objects
         if (VM.VerifyAssertions) VM._assert(size == 8);
         result = getObjectSize();
@@ -177,7 +170,7 @@ public class VM_FieldLayoutPackedUsingHoles extends VM_FieldLayout implements VM
           setIntHole(result);
           result += 4;
         }
-        setObjectSize (result + 8);
+        setObjectSize(result + 8);
       }
       if (DEBUG) {
         VM.sysWrite("  field: & offset ", result, " New object size = ", getObjectSize());
