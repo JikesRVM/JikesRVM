@@ -33,6 +33,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Locale;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 import org.jikesrvm.classloader.VM_ClassLoader;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
@@ -75,11 +79,214 @@ public final class AnnotationAdder {
     thingsToAnnotate.put(elem, set);
   }
 
-  /* Class constructor - set up things to adapt */
-  static {
+  /** Set up things to adapt */
+  private static void setup() {
     try {
+      // BigDecimal
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[]{MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("add", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("add", new Class[]{BigDecimal.class, MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("byteValueExact", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("compareTo", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("divide", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("divide", new Class[]{BigDecimal.class, int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("divide", new Class[]{BigDecimal.class, int.class, int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("divide", new Class[]{BigDecimal.class, int.class, RoundingMode.class}));
+      //addToAdapt(Pure.class, BigDecimal.class.getMethod("divide", new Class[]{BigDecimal.class, MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("doubleValue", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("floatValue", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("intValue", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("intValueExact", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("longValue", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("longValueExact", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("max", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("min", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("movePointLeft", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("movePointRight", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("multiply", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("multiply", new Class[]{BigDecimal.class, MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("negate", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("negate", new Class[]{MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("plus", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("plus", new Class[]{MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("pow", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("pow", new Class[]{int.class, MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("precision", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("remainder", new Class[]{BigDecimal.class}));
+      //addToAdapt(Pure.class, BigDecimal.class.getMethod("remainder", new Class[]{BigDecimal.class, MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("round", new Class[]{MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("scale", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("scaleByPowerOfTen", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("setScale", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("setScale", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("shortValue", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("shortValueExact", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("signum", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("stripTrailingZeros", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("subtract", new Class[]{BigDecimal.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("subtract", new Class[]{BigDecimal.class, MathContext.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("toBigInteger", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("toBigIntegerExact", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("toEngineeringString", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("toPlainString", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("toString", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("ulp", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("unscaledValue", new Class[0]));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("valueOf", new Class[]{double.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("valueOf", new Class[]{long.class}));
+      addToAdapt(Pure.class, BigDecimal.class.getMethod("valueOf", new Class[]{long.class, int.class}));
+
+      // BigInteger
+      addToAdapt(Pure.class, BigInteger.class.getMethod("abs", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("add", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("and", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("andNot", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("bitCount", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("bitLength", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("clearBit", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("compareTo", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("divide", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("divideAndRemainder", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("doubleValue", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("flipBit", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("floatValue", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("gcd", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("getLowestSetBit", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("intValue", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("isProbablePrime", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("longValue", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("max", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("min", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("mod", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("modInverse", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("modPow", new Class[]{BigInteger.class, BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("multiply", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("negate", new Class[0]));
+      //addToAdapt(Pure.class, BigInteger.class.getMethod("nextProbablePrime", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("not", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("or", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("pow", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("remainder", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("setBit", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("shiftLeft", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("shiftRight", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("signum", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("subtract", new Class[]{BigInteger.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("testBit", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("toByteArray", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("toString", new Class[0]));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("toString", new Class[]{int.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("valueOf", new Class[]{long.class}));
+      addToAdapt(Pure.class, BigInteger.class.getMethod("xor", new Class[]{BigInteger.class}));
+ 
+      // Double
+      addToAdapt(Pure.class, Double.class.getMethod("byteValue", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("compare", new Class[]{double.class, double.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("compareTo", new Class[]{Double.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("doubleValue", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("floatValue", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("intValue", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("longValue", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("parseDouble", new Class[]{String.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("shortValue", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("toHexString", new Class[]{double.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("toString", new Class[0]));
+      addToAdapt(Pure.class, Double.class.getMethod("toString", new Class[]{double.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("valueOf", new Class[]{double.class}));
+      addToAdapt(Pure.class, Double.class.getMethod("valueOf", new Class[]{String.class}));
+      
+      // Float
+      addToAdapt(Pure.class, Float.class.getMethod("byteValue", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("compare", new Class[]{float.class, float.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("compareTo", new Class[]{Float.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("doubleValue", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("floatValue", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("intValue", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("longValue", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("parseFloat", new Class[]{String.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("shortValue", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("toHexString", new Class[]{float.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("toString", new Class[0]));
+      addToAdapt(Pure.class, Float.class.getMethod("toString", new Class[]{float.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("valueOf", new Class[]{float.class}));
+      addToAdapt(Pure.class, Float.class.getMethod("valueOf", new Class[]{String.class}));
+      
+      // Integer
+      addToAdapt(Pure.class, Integer.class.getMethod("bitCount", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("byteValue", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("compareTo", new Class[]{Integer.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("decode", new Class[]{String.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("doubleValue", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("floatValue", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("highestOneBit", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("intValue", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("longValue", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("lowestOneBit", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("numberOfLeadingZeros", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("numberOfTrailingZeros", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("parseInt", new Class[]{String.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("parseInt", new Class[]{String.class, int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("reverse", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("reverseBytes", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("rotateLeft", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("rotateRight", new Class[]{int.class, int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("shortValue", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("signum", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("toBinaryString", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("toHexString", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("toOctalString", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("toString", new Class[0]));
+      addToAdapt(Pure.class, Integer.class.getMethod("toString", new Class[]{int.class}));
       addToAdapt(Pure.class, Integer.class.getMethod("toString", new Class[]{int.class, int.class}));
       addToAdapt(Pure.class, Integer.class.getMethod("valueOf", new Class[]{int.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("valueOf", new Class[]{String.class}));
+      addToAdapt(Pure.class, Integer.class.getMethod("valueOf", new Class[]{String.class, int.class}));
+
+      // Long
+      addToAdapt(Pure.class, Long.class.getMethod("bitCount", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("byteValue", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("compareTo", new Class[]{Long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("decode", new Class[]{String.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("doubleValue", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("equals", new Class[]{Object.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("floatValue", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("hashCode", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("highestOneBit", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("intValue", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("longValue", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("lowestOneBit", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("numberOfLeadingZeros", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("numberOfTrailingZeros", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("parseLong", new Class[]{String.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("parseLong", new Class[]{String.class, int.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("reverse", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("reverseBytes", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("rotateLeft", new Class[]{long.class, int.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("rotateRight", new Class[]{long.class, int.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("shortValue", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("signum", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("toBinaryString", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("toHexString", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("toOctalString", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("toString", new Class[0]));
+      addToAdapt(Pure.class, Long.class.getMethod("toString", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("toString", new Class[]{long.class, int.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{long.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{String.class}));
+      addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{String.class, int.class}));
+
+      // String
       addToAdapt(Pure.class, String.class.getMethod("charAt", new Class[]{int.class}));
       addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[]{String.class}));
       addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[0]));
@@ -127,7 +334,8 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, String.class.getMethod("intern", new Class[0]));
       addToAdapt(Pure.class, String.class.getMethod("codePointCount", new Class[]{int.class, int.class}));
       addToAdapt(Pure.class, String.class.getMethod("offsetByCodePoints", new Class[]{int.class, int.class}));
-    } catch (NoSuchMethodException e) {
+    } catch (Exception e) {
+      System.out.println("Exception " + e);
       throw new Error(e);
     }
   }
@@ -144,7 +352,8 @@ public final class AnnotationAdder {
     for (AnnotatedElement elem: thingsToAnnotate.keySet()) {
       if (elem instanceof Method) {
         Method m = (Method)elem;
-        if (m.getName().equals(methodName) && Type.getMethodDescriptor(m).equals(methodDesc)) {
+        if (m.getDeclaringClass().getName().equals(className) && m.getName().equals(methodName) &&
+            Type.getMethodDescriptor(m).equals(methodDesc)) {
           annotatedElements.add(m);
           return thingsToAnnotate.get(m);
         }
@@ -164,6 +373,8 @@ public final class AnnotationAdder {
     VM_ClassLoader.init(args[0]);
     destinationDir = args[1] + "/";
 
+    setup();
+    
     for(AnnotatedElement elem: thingsToAnnotate.keySet()) {
       Class<?> c = getClassForElement(elem);
       if (!processedClasses.contains(c)) {
