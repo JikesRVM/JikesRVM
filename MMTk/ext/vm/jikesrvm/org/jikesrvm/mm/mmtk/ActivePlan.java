@@ -140,13 +140,11 @@ import org.vmmagic.pragma.*;
   /**
    * Register a new CollectorContext instance.
    *
-   * FIXME: Possible race in allocation of ids. Should be synchronized.
-   *
    * @param collector The CollectorContext to register
    * @return The CollectorContext's unique identifier
    */
   @Interruptible
-  public int registerCollector(CollectorContext collector) {
+  public synchronized int registerCollector(CollectorContext collector) {
     collectors[collectorCount] = (Selected.Collector) collector;
     return collectorCount++;
   }
@@ -154,13 +152,11 @@ import org.vmmagic.pragma.*;
   /**
    * Register a new MutatorContext instance.
    *
-   * FIXME: Possible race in allocation of ids. Should be synchronized.
-   *
    * @param mutator The MutatorContext to register
    * @return The MutatorContext's unique identifier
    */
   @Interruptible
-  public int registerMutator(MutatorContext mutator) {
+  public synchronized int registerMutator(MutatorContext mutator) {
     mutators[mutatorCount] = (Selected.Mutator) mutator;
     return mutatorCount++;
   }
