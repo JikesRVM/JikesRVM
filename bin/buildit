@@ -662,7 +662,8 @@ if ($ok) {
         $build .= "&& rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache/ ";
       }
       $build .= "&& ".
-                "ssh -t $sshTarget mkdir -p $targetRoot/dist && ";
+                "ssh -t $sshTarget 'mkdir -p $targetRoot/dist && ".
+                "mkdir -p $targetRoot/target' &&";
       if ($hostConfig eq $targetConfig) {
         #
         # Same architecture: just copy the dist directory
