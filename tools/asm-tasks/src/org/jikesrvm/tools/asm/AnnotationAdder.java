@@ -183,7 +183,7 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, BigInteger.class.getMethod("toString", new Class[]{int.class}));
       addToAdapt(Pure.class, BigInteger.class.getMethod("valueOf", new Class[]{long.class}));
       addToAdapt(Pure.class, BigInteger.class.getMethod("xor", new Class[]{BigInteger.class}));
- 
+
       // Double
       addToAdapt(Pure.class, Double.class.getMethod("byteValue", new Class[0]));
       addToAdapt(Pure.class, Double.class.getMethod("compare", new Class[]{double.class, double.class}));
@@ -201,7 +201,7 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, Double.class.getMethod("toString", new Class[]{double.class}));
       addToAdapt(Pure.class, Double.class.getMethod("valueOf", new Class[]{double.class}));
       addToAdapt(Pure.class, Double.class.getMethod("valueOf", new Class[]{String.class}));
-      
+
       // Float
       addToAdapt(Pure.class, Float.class.getMethod("byteValue", new Class[0]));
       addToAdapt(Pure.class, Float.class.getMethod("compare", new Class[]{float.class, float.class}));
@@ -219,7 +219,7 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, Float.class.getMethod("toString", new Class[]{float.class}));
       addToAdapt(Pure.class, Float.class.getMethod("valueOf", new Class[]{float.class}));
       addToAdapt(Pure.class, Float.class.getMethod("valueOf", new Class[]{String.class}));
-      
+
       // Integer
       addToAdapt(Pure.class, Integer.class.getMethod("bitCount", new Class[]{int.class}));
       addToAdapt(Pure.class, Integer.class.getMethod("byteValue", new Class[0]));
@@ -374,7 +374,7 @@ public final class AnnotationAdder {
     destinationDir = args[1] + "/";
 
     setup();
-    
+
     for(AnnotatedElement elem: thingsToAnnotate.keySet()) {
       Class<?> c = getClassForElement(elem);
       if (!processedClasses.contains(c)) {
