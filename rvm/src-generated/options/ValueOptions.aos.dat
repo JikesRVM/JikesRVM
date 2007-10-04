@@ -37,7 +37,7 @@ What triggers us to take a method sample?
 "ML_TIMER mlTimer timer" \
 "ML_CBS mlCBS cbs"
 
-E CALL_GRAPH_LISTENER_TRIGGER byte CGL_TIMER
+E CALL_GRAPH_LISTENER_TRIGGER byte CGL_CBS
 What triggers us to take a method sample?
 "CGL_TIMER cgTimer timer" \
 "CGL_CBS cgCBS cbs"
