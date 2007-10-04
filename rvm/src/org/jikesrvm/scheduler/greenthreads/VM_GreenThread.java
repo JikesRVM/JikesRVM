@@ -194,6 +194,7 @@ public class VM_GreenThread extends VM_Thread {
   @NoInline
   public static void yieldpoint(int whereFrom) {
     boolean threadSwitch = false;
+    boolean cbsOverrun = false;
     VM_GreenProcessor p = VM_GreenProcessor.getCurrentProcessor();
     int takeYieldpointVal = p.takeYieldpoint;
     p.takeYieldpoint = 0;
@@ -219,22 +220,30 @@ public class VM_GreenThread extends VM_Thread {
     if (p.timeSliceExpired != 0) {
       p.timeSliceExpired = 0;
 
-      if (VM.CBSCallSamplesPerTick > 0) {
-        p.yieldForCBSCall = true;
-        p.takeYieldpoint = -1;
-        p.firstCBSCallSample++;
-        p.firstCBSCallSample = p.firstCBSCallSample % VM.CBSCallSampleStride;
-        p.countdownCBSCall = p.firstCBSCallSample;
-        p.numCBSCallSamples = VM.CBSCallSamplesPerTick;
-      }
+      if (p.yieldForCBSCall || p.yieldForCBSMethod) {
+        /*
+         * CBS Sampling is still active from previous quantum.
+         * Note that fact, but leave all the other CBS parameters alone.
+         */
+        cbsOverrun = true;
+      } else {
+        if (VM.CBSCallSamplesPerTick > 0) {
+          p.yieldForCBSCall = true;
+          p.takeYieldpoint = -1;
+          p.firstCBSCallSample++;
+          p.firstCBSCallSample = p.firstCBSCallSample % VM.CBSCallSampleStride;
+          p.countdownCBSCall = p.firstCBSCallSample;
+          p.numCBSCallSamples = VM.CBSCallSamplesPerTick;
+        }
 
-      if (VM.CBSMethodSamplesPerTick > 0) {
-        p.yieldForCBSMethod = true;
-        p.takeYieldpoint = -1;
-        p.firstCBSMethodSample++;
-        p.firstCBSMethodSample = p.firstCBSMethodSample % VM.CBSMethodSampleStride;
-        p.countdownCBSMethod = p.firstCBSMethodSample;
-        p.numCBSMethodSamples = VM.CBSMethodSamplesPerTick;
+        if (VM.CBSMethodSamplesPerTick > 0) {
+          p.yieldForCBSMethod = true;
+          p.takeYieldpoint = -1;
+          p.firstCBSMethodSample++;
+          p.firstCBSMethodSample = p.firstCBSMethodSample % VM.CBSMethodSampleStride;
+          p.countdownCBSMethod = p.firstCBSMethodSample;
+          p.numCBSMethodSamples = VM.CBSMethodSamplesPerTick;
+        }
       }
 
       if (++p.interruptQuantumCounter >= VM.schedulingMultiplier) {
@@ -268,7 +277,7 @@ public class VM_GreenThread extends VM_Thread {
         VM_RuntimeMeasurements.takeTimerSample(whereFrom);
       }
 
-      if (threadSwitch && (p.yieldForCBSMethod || p.yieldForCBSCall)) {
+      if (threadSwitch && !cbsOverrun && (p.yieldForCBSMethod || p.yieldForCBSCall)) {
         // want to sample the current thread, not the next one to be scheduled
         // So, defer actual threadswitch until we take all of our samples
         p.threadSwitchWhenCBSComplete = true;
