@@ -62,6 +62,7 @@ Building Options:
      --x87            Use x87 Compatibility mode.
  -c, --cross-to       Crossbuild to target host (or copy post build).
  -p, --with-perfctr   Build with perfctr support
+ -a, --with-acheck    Build with align checks, implies --x87 --processors 1
  -g, --gdb-symbols    Build with gdb symbols
  -q, --quick          Quick build (not 100% safe - doesn't regenerate source)
      --classpath-cvs  Build from classpath CVS head
@@ -147,6 +148,7 @@ GetOptions(
   "q|quick" => \$quick,
   "processors=s" => \$procs,
   "p|with-perfctr" => \$with_perfctr,
+  "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
   "h|help" => \$help,
   "x87" => \$x87,
@@ -155,6 +157,11 @@ GetOptions(
   "comp-cache-dir=s" => \$compcachedir,
   "clear-cc" => \$clearcc,
   "e|email-report" => \$email_report) or bad_usage();
+
+if ($with_acheck) {
+  $x87 = $with_acheck;
+  $procs = "1";
+}
 
 if ($clear_cache) {
   unlink($cacheFile);
@@ -591,6 +598,9 @@ if ($ok) {
     }
     if ($with_perfctr ne "") {
       $defs .= "-Dconfig.include.perfctr=true ";
+    }
+    if ($with_acheck ne "") {
+      $defs .= "-Dconfig.alignment-checking=true ";
     }
     if ($mmtk_config ne "") {
       $defs .= "-Dconfig.mmtk=$mmtk_config ";
