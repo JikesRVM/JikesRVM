@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -29,8 +28,7 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 public class OSR_Listener {
 
-  @NoInline
-  public static boolean checkForOSRPromotion(int whereFrom) {
+  public static boolean checkForOSRPromotion(int whereFrom, Address yieldpointServiceMethodFP) {
     if (VM_Scheduler.getCurrentThread().isIdleThread()) return false;
     if (VM_Scheduler.getCurrentThread().isSystemThread()) return false;
 
@@ -43,21 +41,13 @@ public class OSR_Listener {
 
     // See if we are at a loop backedge in an outdated baseline compiled method
 
-    // Get pointer to my caller's frame
-    Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
-
-    // Skip over wrapper to "real" method
-    fp = VM_Magic.getCallerFramePointer(fp);
+    Address fp = yieldpointServiceMethodFP;
     fp = VM_Magic.getCallerFramePointer(fp);
     int ypTakenInCMID = VM_Magic.getCompiledMethodID(fp);
     VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
     if (ypTakenInCM.isOutdated() && ypTakenInCM.getCompilerType() == VM_CompiledMethod.BASELINE) {
 
-      // get this frame pointer
-      Address tsFP = VM_Magic.getFramePointer();
-      Address tsFromFP = VM_Magic.getCallerFramePointer(tsFP);
-      tsFromFP = VM_Magic.getCallerFramePointer(tsFromFP);
-      // Skip over wrapper to "real" method
+      Address tsFromFP = yieldpointServiceMethodFP;
       Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
 
       Address stackbeg = VM_Magic.objectAsAddress(VM_Scheduler.getCurrentThread().getStack());
@@ -71,13 +61,8 @@ public class OSR_Listener {
     return false;
   }
 
-  @NoInline
-  public static void handleOSRFromOpt() {
-    // get this frame pointer
-    Address tsFP = VM_Magic.getFramePointer();
-    Address tsFromFP = VM_Magic.getCallerFramePointer(tsFP);
-    tsFromFP = VM_Magic.getCallerFramePointer(tsFromFP);
-    // Skip over wrapper to "real" method
+  public static void handleOSRFromOpt(Address yieldpointServiceMethodFP) {
+    Address tsFromFP = yieldpointServiceMethodFP;
     Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
     int ypTakenInCMID = VM_Magic.getCompiledMethodID(realFP);
     Address stackbeg = VM_Magic.objectAsAddress(VM_Scheduler.getCurrentThread().getStack());
