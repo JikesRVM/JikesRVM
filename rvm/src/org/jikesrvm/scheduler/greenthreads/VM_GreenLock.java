@@ -124,7 +124,7 @@ public class VM_GreenLock extends VM_Lock {
       }
     }
     mutex.unlock(); // does a VM_Magic.sync();  (thread-switching benign)
-    if (deflated && ((LOCK_ALLOCATION_UNIT_SIZE << 1) <= mine.freeLocks) && balanceFreeLocks) {
+    if (deflated && ((LOCK_ALLOCATION_UNIT_SIZE << 1) <= mine.freeLocks) && BALANCE_FREE_LOCKS) {
       globalizeFreeLocks(mine);
     }
   }

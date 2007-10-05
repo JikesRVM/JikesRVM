@@ -45,6 +45,7 @@
 [Lorg/jikesrvm/scheduler/VM_Processor;
 [Lorg/jikesrvm/scheduler/VM_Thread;
 [Lorg/jikesrvm/scheduler/VM_Lock;
+[[Lorg/jikesrvm/scheduler/VM_Lock;
 [Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;
 [Lorg/jikesrvm/scheduler/greenthreads/VM_GreenThread;
 [Lorg/jikesrvm/scheduler/greenthreads/VM_GreenLock;
