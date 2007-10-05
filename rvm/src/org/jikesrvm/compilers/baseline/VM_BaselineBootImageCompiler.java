@@ -52,13 +52,8 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
     cm = VM_BaselineCompiler.compile(method);
 
     if (VM.BuildForAdaptiveSystem) {
-      // Must estimate compilation time by using offline ratios.
-      // It is tempting to time via System.currentTimeMillis()
-      // but 1 millisecond granularity isn't good enough because the
-      // the baseline compiler is just too fast.
-      // TODO: Try Using System.nanoTime() instead
-      double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();
-      cm.setCompilationTime(compileTime);
+      /* We can't accurately measure compilation time on Host JVM, so just approximate with DNA */
+      cm.setCompilationTime((float)VM_CompilerDNA.estimateCompileTime(VM_CompilerDNA.BASELINE, method));
     }
     return cm;
   }

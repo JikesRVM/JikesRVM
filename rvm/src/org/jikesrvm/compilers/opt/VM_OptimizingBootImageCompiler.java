@@ -108,18 +108,17 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         if (!include) {
           throw escape;
         }
-        long start = System.currentTimeMillis();
         int freeOptimizationPlan = getFreeOptimizationPlan();
         OPT_OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
         OPT_CompilationPlan cp =
-            new OPT_CompilationPlan(method, params, optimizationPlan, null, options.get(freeOptimizationPlan));
+          new OPT_CompilationPlan(method, params, optimizationPlan, null, options.get(freeOptimizationPlan));
         cm = OPT_Compiler.compile(cp);
-        releaseOptimizationPlan(freeOptimizationPlan);
         if (VM.BuildForAdaptiveSystem) {
-          long stop = System.currentTimeMillis();
-          long compileTime = stop - start;
-          cm.setCompilationTime((float) compileTime);
+          /* We can't accurately measure compilation time on Host JVM, so just approximate with DNA */
+          int compilerId = VM_CompilerDNA.getCompilerConstant(cp.options.getOptLevel());
+          cm.setCompilationTime((float)VM_CompilerDNA.estimateCompileTime(compilerId, method));
         }
+        releaseOptimizationPlan(freeOptimizationPlan);
         return cm;
       } catch (OPT_OptimizingCompilerException e) {
         if (e.isFatal) {
@@ -153,12 +152,8 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
   private VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
-    // Must estimate compilation time by using offline ratios.
-    // It is tempting to time via System.currentTimeMillis()
-    // but 1 millisecond granularity isn't good enough because the
-    // the baseline compiler is just too fast.
-    double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();
-    cm.setCompilationTime(compileTime);
+    /* We can't accurately measure compilation time on Host JVM, so just approximate with DNA */
+    cm.setCompilationTime((float)VM_CompilerDNA.estimateCompileTime(VM_CompilerDNA.BASELINE, method));
     return cm;
   }
 
