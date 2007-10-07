@@ -29,7 +29,7 @@ $usage = $shortusage."Building:
   buildit <Option(s)> build-host [-c target-host] <Config(s)>
 
 Testing:
-  buildit <Option(s)> -t test-set build-host [-c target-host] [<Config(s)>]
+  buildit <Option(s)> -t test build-host [-c target-host] [<Config(s)>]
 
 Configuration is specified as either:
  - a specific configuration, such as
