@@ -30,6 +30,12 @@ $usage = $shortusage."Building:
 
 Testing:
   buildit <Option(s)> -t test build-host [-c target-host] [<Config(s)>]
+    for example:
+  buildit -t dacapo host production
+  
+  buildit <Option(s)> --test-run test-run build-host
+    for example:
+  buildit --test-run pre-commit host
 
 Configuration is specified as either:
  - a specific configuration, such as
