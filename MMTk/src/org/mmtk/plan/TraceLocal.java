@@ -313,6 +313,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       return true;
     if (Space.isInSpace(Plan.VM_SPACE, object))
       return true;
+    if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.SMALL_CODE, object))
+      return true;
+    if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
+      return true;
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false, "willNotMove not defined properly in subclass");
     return false;
