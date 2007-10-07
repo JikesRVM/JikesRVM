@@ -74,7 +74,7 @@ public abstract class Plan implements Constants {
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   /* Space Size Constants. */
-  public static final boolean USE_CODE_SPACE = false;
+  public static final boolean USE_CODE_SPACE = true;
   public static final float PLOS_FRAC = 0.07f;
   public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
   public static final int HEAP_FULL_PERCENTAGE = 2;
