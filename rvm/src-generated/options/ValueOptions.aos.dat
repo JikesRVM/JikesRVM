@@ -90,18 +90,6 @@ V AI_SEED_MULTIPLIER double 3
 Initial edge weight of call graph is set to AI_SEED_MULTIPLER * (1/AI_CONTROL_POINT)
 
 
-V AI_METHOD_HOTNESS_THRESHOLD double 0.0025
-What fraction (0.0 to 1.0) of total method samples makes a callee hot enough to consider for recompilation to inline a hot non-inlined call edge?
-
-
-V AI_MISSING_EDGE_FREQUENCY int 250
-At what interval (in timer interrupts) should the missing edge organizer look for opportunities?
-
-
-V MAX_EXPECTED_AI_BOOST double 0.2
-How much more effective do we expected an optimization level to be if boosted by adaptive inlining?
-
-
 V OFFLINE_INLINE_PLAN_NAME String \"AI_plan\" offlinePlan
 Name of offline inline plan to be read and used for inlining
 
