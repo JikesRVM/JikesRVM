@@ -752,8 +752,7 @@ public abstract class Plan implements Constants {
    */
   public int getPagesUsed() {
     return loSpace.reservedPages() + ploSpace.reservedPages() +
-           immortalSpace.reservedPages() + metaDataSpace.reservedPages() +
-           (USE_CODE_SPACE ? smallCodeSpace.reservedPages() + largeCodeSpace.reservedPages() : 0);
+           immortalSpace.reservedPages() + metaDataSpace.reservedPages();
   }
 
   /**
@@ -765,8 +764,7 @@ public abstract class Plan implements Constants {
    */
   public int getPagesRequired() {
     return loSpace.requiredPages() + ploSpace.requiredPages() +
-      metaDataSpace.requiredPages() + immortalSpace.requiredPages() +
-      (USE_CODE_SPACE ? smallCodeSpace.requiredPages() + largeCodeSpace.requiredPages() : 0);
+      metaDataSpace.requiredPages() + immortalSpace.requiredPages();
   }
 
   /**
