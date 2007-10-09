@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.refcount;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.StopTheWorldMutator;
 import org.mmtk.plan.refcount.cd.CDMutator;
 import org.mmtk.plan.refcount.cd.NullCDMutator;
@@ -54,6 +55,8 @@ import org.vmmagic.unboxed.*;
 
   public ExplicitFreeListLocal rc;
   public ExplicitLargeObjectLocal los;
+  private ExplicitFreeListLocal smcode = Plan.USE_CODE_SPACE ? new ExplicitFreeListLocal(RCBase.smallCodeSpace) : null;
+  private ExplicitLargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new ExplicitLargeObjectLocal(Plan.largeCodeSpace) : null;
 
   public ObjectReferenceDeque modBuffer;
   public DecBuffer decBuffer;
@@ -111,6 +114,10 @@ import org.vmmagic.unboxed.*;
           return los.alloc(bytes, align, offset);
       case RCBase.ALLOC_IMMORTAL:
         return immortal.alloc(bytes, align, offset);
+      case Plan.ALLOC_CODE:
+        return smcode.alloc(bytes, align, offset);
+      case Plan.ALLOC_LARGE_CODE:
+        return lgcode.alloc(bytes, align, offset);
       default:
         VM.assertions.fail("RC not aware of allocator");
         return Address.zero();
@@ -132,8 +139,10 @@ import org.vmmagic.unboxed.*;
       int bytes, int allocator) {
     switch(allocator) {
     case RCBase.ALLOC_RC:
+    case Plan.ALLOC_CODE:
       ExplicitFreeListSpace.unsyncSetLiveBit(ref);
     case RCBase.ALLOC_LOS:
+    case Plan.ALLOC_LARGE_CODE:
     case RCBase.ALLOC_IMMORTAL:
       if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
     case RCBase.ALLOC_PRIMITIVE_LOS:
@@ -160,6 +169,8 @@ import org.vmmagic.unboxed.*;
   public Space getSpaceFromAllocator(Allocator a) {
     if (a == rc)  return RCBase.rcSpace;
     if (a == los) return RCBase.loSpace;
+    if (a == smcode) return RCBase.smallCodeSpace;
+    if (a == lgcode) return RCBase.largeCodeSpace;
     return super.getSpaceFromAllocator(a);
   }
 
@@ -175,6 +186,8 @@ import org.vmmagic.unboxed.*;
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == RCBase.rcSpace) return rc;
     if (space == RCBase.loSpace) return los;
+    if (space == RCBase.smallCodeSpace) return smcode;
+    if (space == RCBase.largeCodeSpace) return lgcode;
     return super.getAllocatorFromSpace(space);
   }
 
@@ -195,6 +208,8 @@ import org.vmmagic.unboxed.*;
     if (phaseId == RCBase.PREPARE) {
       rc.prepare();
       los.prepare();
+      smcode.prepare();
+      lgcode.prepare();
       decBuffer.flushLocal();
       modBuffer.flushLocal();
       return;
@@ -203,6 +218,8 @@ import org.vmmagic.unboxed.*;
     if (phaseId == RCBase.RELEASE) {
       los.release();
       rc.release();
+      smcode.release();
+      lgcode.release();
       return;
     }
 

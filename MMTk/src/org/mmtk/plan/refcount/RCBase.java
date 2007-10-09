@@ -70,6 +70,8 @@ import org.vmmagic.unboxed.*;
    */
   public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.5f));
   public static final int REF_COUNT = rcSpace.getDescriptor();
+  public static final ExplicitFreeListSpace smallCodeSpace = new ExplicitFreeListSpace("rc-sm-code", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final int RC_SMALL_CODE = smallCodeSpace.getDescriptor();
 
   // Counters
   public static EventCounter wbFast;
@@ -258,6 +260,10 @@ import org.vmmagic.unboxed.*;
       ExplicitFreeListSpace.free(object);
     } else if (Space.isInSpace(LOS, object)){
       ExplicitLargeObjectLocal.free(loSpace, object);
+    } else if (Space.isInSpace(RC_SMALL_CODE, object)) {
+      ExplicitFreeListSpace.free(object);
+    } else if (Space.isInSpace(LARGE_CODE, object)) {
+      ExplicitLargeObjectLocal.free(largeCodeSpace, object);
     }
   }
 
@@ -284,6 +290,8 @@ import org.vmmagic.unboxed.*;
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(REF_COUNT, object))
+      return true;
+    else if (Space.isInSpace(RC_SMALL_CODE, object))
       return true;
     return super.willNeverMove(object);
   }
