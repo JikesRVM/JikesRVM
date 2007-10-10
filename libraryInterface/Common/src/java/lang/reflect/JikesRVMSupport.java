@@ -117,7 +117,7 @@ public class JikesRVMSupport {
       if (accessingClass == declaringClass) return;
     } else if (member.isProtected()) {
       // access within the package is allowed.
-      if (declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
+      if (declaringClass.getClassLoader() == accessingClass.getClassLoader() && declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
 
       // access by subclasses is allowed.
       for (VM_Class cls = accessingClass; cls != null; cls = cls.getSuperClass()) {
@@ -125,7 +125,7 @@ public class JikesRVMSupport {
       }
     } else {
       // default: access within package is allowed
-      if (declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
+      if (declaringClass.getClassLoader() == accessingClass.getClassLoader() && declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
     }
 
     throw new IllegalAccessException("Access to "+member+" is denied to "+accessingClass);
