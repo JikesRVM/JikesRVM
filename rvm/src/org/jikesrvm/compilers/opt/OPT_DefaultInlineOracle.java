@@ -266,7 +266,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools implements OP
 
                 if (callSiteWeight > VM_Controller.options.AI_SEED_MULTIPLIER) {
                   // real profile data with enough samples for us to trust it.
-                  // Use weight and shape of call site distrubution to compute
+                  // Use weight and shape of call site distribution to compute
                   // a higher maxCost.
                   double fractionOfSample = weight / callSiteWeight;
                   if (needsGuard && fractionOfSample < opts.AI_MIN_CALLSITE_FRACTION) {
