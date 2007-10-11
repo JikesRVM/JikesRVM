@@ -15,6 +15,7 @@ package org.jikesrvm.ppc;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
@@ -27,7 +28,9 @@ public abstract class VM_Registers implements VM_ArchConstants {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
   //
-  public WordArray gprs; // word size general purpose registers (either 32 or 64 bit)
+  @Untraced
+  public final WordArray gprs; // word size general purpose registers (either 32 or 64 bit)
+  @Untraced
   public final double[] fprs; // 64-bit floating point registers
   public Address ip; // instruction address register
 

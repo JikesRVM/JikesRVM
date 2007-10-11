@@ -261,6 +261,17 @@ public abstract class Plan implements Constants {
     return status; // nothing to do (no bytes of GC header)
   }
 
+  /**
+   * Perform any required write barrier action when installing an object reference
+   * a boot time.
+   *
+   * @param reference the reference value that is to be stored
+   * @return The raw value to be
+   */
+  public Word bootTimeWriteBarrier(Word reference) {
+    return reference;
+  }
+
   /****************************************************************************
    * Allocation
    */
@@ -944,7 +955,6 @@ public abstract class Plan implements Constants {
       return true;
     if (USE_CODE_SPACE && Space.isInSpace(LARGE_CODE, object))
       return true;
-
     /*
      * Default to false- this preserves correctness over efficiency.
      * Individual plans should override for non-moving spaces they define.

@@ -21,6 +21,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -73,6 +74,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
    * field could be final
    */
   @Entrypoint
+  @Untraced
   public VM_Thread activeThread;
 
   /**

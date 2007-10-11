@@ -187,7 +187,10 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       bc2ir.push(t.copyD2U());
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.addressArrayGet) {
-      VM_TypeReference elementType = meth.getType().getArrayElementType();
+      VM_TypeReference elementType = meth.getReturnType();
+      if (meth.getType() == VM_TypeReference.ProcessorTable) {
+        elementType = VM_Scheduler.getProcessorType();
+      }
       OPT_Operand index = bc2ir.popInt();
       OPT_Operand ref = bc2ir.popRef();
       OPT_RegisterOperand offsetI = gc.temps.makeTempInt();
@@ -229,7 +232,7 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       }
       bc2ir.push(result.copyD2U());
     } else if (methodName == VM_MagicNames.addressArraySet) {
-      VM_TypeReference elementType = meth.getType().getArrayElementType();
+      VM_TypeReference elementType = meth.getParameterTypes()[1];
       OPT_Operand val = bc2ir.pop();
       OPT_Operand index = bc2ir.popInt();
       OPT_Operand ref = bc2ir.popRef();
@@ -278,16 +281,24 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, object, offset, null));
     } else if (methodName == VM_MagicNames.getWordAtOffset) {
+      OPT_LocationOperand loc = null;
+      if (meth.getParameterTypes().length == 3) {
+        loc = mapToMetadata(bc2ir.popInt());
+      }
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, null));
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, loc));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setWordAtOffset) {
+      OPT_LocationOperand loc = null;
+      if (meth.getParameterTypes().length == 4) {
+        loc = mapToMetadata(bc2ir.popInt());
+      }
       OPT_Operand val = bc2ir.popRef();
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();
-      bc2ir.appendInstruction(Store.create(REF_STORE, val, object, offset, null));
+      bc2ir.appendInstruction(Store.create(REF_STORE, val, object, offset, loc));
     } else if (methodName == VM_MagicNames.getLongAtOffset) {
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();
@@ -311,15 +322,19 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(DOUBLE_STORE, val, object, offset, null));
     } else if (methodName == VM_MagicNames.getObjectAtOffset) {
+      OPT_LocationOperand loc = null;
+      if (meth.getParameterTypes().length == 3) {
+        loc = mapToMetadata(bc2ir.popInt());
+      }
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, null));
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, loc));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getObjectArrayAtOffset) {
+    } else if (methodName == VM_MagicNames.getTIBAtOffset) {
       OPT_Operand offset = bc2ir.popAddress();
       OPT_Operand object = bc2ir.popRef();
-      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.TIB);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setObjectAtOffset) {
@@ -435,7 +450,7 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       Call.setGuard(call, guard);
 
       // Load the tib of this object
-      OPT_RegisterOperand tibObject = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+      OPT_RegisterOperand tibObject = gc.temps.makeTemp(VM_TypeReference.TIB);
       bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibObject, objectOperand.copy(), guard.copy()));
 
       // The index of the specialized method
@@ -481,8 +496,8 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.addressAsObjectArray) {
-      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+    } else if (methodName == VM_MagicNames.addressAsTIB) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.TIB);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsByteArray) {
@@ -527,7 +542,7 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
           // it's magic, so assume that it's OK....
           guard = new OPT_TrueGuardOperand();
         }
-        OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+        OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.TIB);
         bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibPtr, val, guard));
         OPT_RegisterOperand op0;
         VM_TypeReference argType = val.getType();
@@ -747,6 +762,10 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
     } else if (methodName == VM_MagicNames.codeArrayAsObject) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.CodeArray)));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.tibAsObject) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.TIB)));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordPlus) {
       OPT_Operand o2 = bc2ir.pop();

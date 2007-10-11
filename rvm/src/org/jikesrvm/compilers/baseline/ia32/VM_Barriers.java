@@ -87,6 +87,50 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
   }
 
+  static void compileArrayLoadBarrier(VM_Assembler asm, boolean pushResult) {
+    // on entry java stack contains ...|target_array_ref|array_index|
+    // SP -> index, SP+4 -> target_ref
+    genParameterRegisterLoad(asm, 2);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayLoadReadBarrierMethod.getOffset());
+    if (pushResult) asm.emitPUSH_Reg(T0);
+  }
+
+  static void compileGetfieldBarrier(VM_Assembler asm, byte reg, int locationMetadata) {
+    //  on entry java stack contains ...|target_ref|
+    //  SP -> target_ref
+    genNullCheck(asm, 0);
+    asm.emitPUSH_Reg(reg);
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 3);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getfieldReadBarrierMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  static void compileGetfieldBarrierImm(VM_Assembler asm, Offset fieldOffset, int locationMetadata) {
+    genNullCheck(asm, 0);
+    asm.emitPUSH_Imm(fieldOffset.toInt());
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 3);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getfieldReadBarrierMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  static void compileGetstaticBarrier(VM_Assembler asm, byte reg, int locationMetadata) {
+    asm.emitPUSH_Reg(reg);
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 2);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getstaticReadBarrierMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  static void compileGetstaticBarrierImm(VM_Assembler asm, Offset fieldOffset, int locationMetadata) {
+    asm.emitPUSH_Imm(fieldOffset.toInt());
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 2);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getstaticReadBarrierMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
   /**
    * Generate a cheap nullcheck by attempting to load the TIB of the object
    * at the given offset to SP.

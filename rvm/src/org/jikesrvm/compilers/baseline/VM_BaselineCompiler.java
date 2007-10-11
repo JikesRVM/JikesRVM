@@ -52,6 +52,10 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
   }
 
+  protected final int getEdgeCounterIndex() {
+    return method.getId();
+  }
+
   /**
    * The types that locals can take.
    * There are two types of locals. First the parameters of the method, they only have one type

@@ -67,7 +67,7 @@ import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
-import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.vmmagic.unboxed.Address;
@@ -3363,11 +3363,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
 
           // Create appropriate constant operand for TIB slot
           OPT_ConstantOperand result;
-          Object[] tibArray = tib.value.getTypeInformationBlock();
-          if (tib.value.isTIBSlotTIB(intSlot)) {
-            VM_Type typeOfTIB = (VM_Type) (((Object[]) tibArray[intSlot])[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+          VM_TIB tibArray = tib.value.getTypeInformationBlock();
+          if (tibArray.slotContainsTib(intSlot)) {
+            VM_Type typeOfTIB = ((VM_TIB)tibArray.get(intSlot)).getType();
             result = new OPT_TIBConstantOperand(typeOfTIB);
-          } else if (tib.value.isTIBSlotCode(intSlot)) {
+          } else if (tibArray.slotContainsCode(intSlot)) {
             // Only generate code constants when we want to make
             // some virtual calls go via the JTOC
             if (OPT_ConvertToLowLevelIR.CALL_VIA_JTOC) {
@@ -3377,10 +3377,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
               return DefUseEffect.UNCHANGED;
             }
           } else {
-            if (tibArray[intSlot] == null) {
+            if (tibArray.get(intSlot) == null) {
               result = new OPT_NullConstantOperand();
             } else {
-              result = new OPT_ObjectConstantOperand(tibArray[intSlot], Offset.zero());
+              result = new OPT_ObjectConstantOperand(tibArray.get(intSlot), Offset.zero());
             }
           }
           Move.mutate(s, REF_MOVE, Load.getClearResult(s), result);

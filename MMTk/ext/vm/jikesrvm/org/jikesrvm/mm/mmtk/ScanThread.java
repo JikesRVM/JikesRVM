@@ -17,11 +17,14 @@ import org.mmtk.utility.Log;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
+import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.VM_Constants;
 
@@ -122,7 +125,7 @@ import org.vmmagic.pragma.*;
   public static void scanThread(VM_Thread thread, TraceLocal trace,
                                 boolean processCodeLocations) {
     /* get the gprs associated with this thread */
-    Address gprs = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
+    Address gprs = VM_Magic.objectAsAddress(thread.getContextRegisters().gprs);
     scanThread(thread, trace, processCodeLocations, gprs, Address.zero());
   }
 
@@ -145,13 +148,29 @@ import org.vmmagic.pragma.*;
     /* establish ip and fp for the stack to be scanned */
     Address ip, fp, initialIPLoc;
     if (topFrame.isZero()) { /* implicit top of stack, inferred from thread */
-      ip = thread.contextRegisters.getInnermostInstructionAddress();
-      fp = thread.contextRegisters.getInnermostFramePointer();
-      initialIPLoc = thread.contextRegisters.getIPLocation();
+      ip = thread.getContextRegisters().getInnermostInstructionAddress();
+      fp = thread.getContextRegisters().getInnermostFramePointer();
+      initialIPLoc = thread.getContextRegisters().getIPLocation();
     } else {                 /* top frame explicitly defined */
       ip = VM_Magic.getReturnAddress(topFrame);
       fp = VM_Magic.getCallerFramePointer(topFrame);
-      initialIPLoc = thread.contextRegisters.getIPLocation(); // FIXME
+      initialIPLoc = thread.getContextRegisters().getIPLocation(); // FIXME
+    }
+
+    /* Registers */
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadContextRegistersField.getOffset()));
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset()));
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getContextRegisters()).plus(VM_ArchEntrypoints.registersGPRsField.getOffset()));
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getContextRegisters()).plus(VM_ArchEntrypoints.registersFPRsField.getOffset()));
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getHardwareExceptionRegisters()).plus(VM_ArchEntrypoints.registersGPRsField.getOffset()));
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getHardwareExceptionRegisters()).plus(VM_ArchEntrypoints.registersFPRsField.getOffset()));
+
+    /* Scan the JNI Env field */
+    if (thread.getJNIEnv() != null) {
+      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.jniEnvField.getOffset()));
+      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIRefsField.getOffset()));
+      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIEnvSavedPRField.getOffset()));
+      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIPendingExceptionField.getOffset()));
     }
 
     /* Grab the ScanThread instance associated with this thread */
@@ -456,9 +475,9 @@ import org.vmmagic.pragma.*;
     if (prevFp.isZero()) {  /* top of stack: IP in thread state */
       if (verbosity >= 2) {
         Log.write(" t.contextRegisters.ip    = ");
-        Log.writeln(thread.contextRegisters.ip);
+        Log.writeln(thread.getContextRegisters().ip);
         Log.write("*t.contextRegisters.iploc = ");
-        Log.writeln(thread.contextRegisters.getIPLocation().loadAddress());
+        Log.writeln(thread.getContextRegisters().getIPLocation().loadAddress());
       }
       /* skip native code, as it is not (cannot be) moved */
       if (compiledMethodType != VM_CompiledMethod.JNI)
@@ -544,10 +563,10 @@ import org.vmmagic.pragma.*;
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
-    VM._assert(thread.jniEnv == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv)));
-    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv.refsArray())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters)));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters.gprs)));
+    VM._assert(thread.getJNIEnv() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv())));
+    VM._assert(thread.getJNIEnv() == null || thread.getJNIEnv().refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv().refsArray())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters().gprs)));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters().gprs)));
   }
@@ -563,9 +582,9 @@ import org.vmmagic.pragma.*;
     Log.write("   topFrame = "); Log.writeln(topFrame);
     Log.write("         ip = "); Log.writeln(ip);
     Log.write("         fp = "); Log.writeln(fp);
-    Log.write("  registers.ip = "); Log.writeln(thread.contextRegisters.ip);
-    if (verbosity >= 2 && thread.jniEnv != null)
-      thread.jniEnv.dumpJniRefsStack();
+    Log.write("  registers.ip = "); Log.writeln(thread.getContextRegisters().ip);
+    if (verbosity >= 2 && thread.getJNIEnv() != null)
+      thread.getJNIEnv().dumpJniRefsStack();
   }
 
   /**
@@ -604,8 +623,8 @@ import org.vmmagic.pragma.*;
       Log.writeln("Dumping stack starting at frame with bad ref:");
       VM_Scheduler.dumpStack(ip, fp);
       /* dump stack starting at top */
-      Address top_ip = thread.contextRegisters.getInnermostInstructionAddress();
-      Address top_fp = thread.contextRegisters.getInnermostFramePointer();
+      Address top_ip = thread.getContextRegisters().getInnermostInstructionAddress();
+      Address top_fp = thread.getContextRegisters().getInnermostFramePointer();
       VM_Scheduler.dumpStack(top_ip, top_fp);
       VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
@@ -677,7 +696,7 @@ import org.vmmagic.pragma.*;
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));
       Log.write("):   ");
-      ObjectReference value = loc.loadObjectReference();
+      ObjectReference value = Selected.Collector.get().loadObjectReference(loc);
       Log.write(value);
       Log.write(" ");
       Log.flush();

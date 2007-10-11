@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.jni.VM_FunctionTable;
 import org.jikesrvm.jni.VM_JNIFunctions;
 
 /**
@@ -271,9 +272,9 @@ public class BuildJNIFunctionTable {
    * This is not very efficient, but is done at bootImageWriting time,
    * so we just don't worry about it.
    */
-  public static VM_CodeArray[] buildTable() {
+  public static VM_FunctionTable buildTable() {
     String[] names = initNames();
-    VM_CodeArray[] functions = new VM_CodeArray[VM_JNIFunctions.FUNCTIONCOUNT];
+    VM_FunctionTable functions = VM_FunctionTable.allocate(VM_JNIFunctions.FUNCTIONCOUNT);
 
     VM_Class cls = VM_TypeReference.VM_JNIFunctions.peekType().asClass();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
@@ -281,7 +282,7 @@ public class BuildJNIFunctionTable {
       String methodName = mth.getName().toString();
       int jniIndex = indexOf(names, methodName);
       if (jniIndex != -1) {
-        functions[jniIndex] = mth.getCurrentEntryCodeArray();
+        functions.set(jniIndex, mth.getCurrentEntryCodeArray());
       }
     }
     return functions;

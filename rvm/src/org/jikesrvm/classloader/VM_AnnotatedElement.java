@@ -288,4 +288,12 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   public final boolean hasRuntimeFinalAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.RuntimeFinal);
   }
+
+  /**
+   * Return true if this element has a Untraced annotation.
+   * @see org.vmmagic.pragma.Untraced
+   */
+  public final boolean hasUntracedAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Untraced);
+  }
 }

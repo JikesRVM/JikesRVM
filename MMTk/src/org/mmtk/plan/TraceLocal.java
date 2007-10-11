@@ -86,9 +86,9 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {
-    ObjectReference object = slot.loadObjectReference();
+    ObjectReference object = VM.activePlan.collector().loadObjectReference(slot);
     ObjectReference newObject = traceObject(object, false);
-    slot.store(newObject);
+    VM.activePlan.collector().storeObjectReference(slot, newObject);
   }
 
   /**
@@ -96,9 +96,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * may theoretically point to an object required during root scanning,
    * the caller has requested processing be delayed.
    *
+   * NOTE: delayed roots are assumed to be raw.
+   *
    * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
-   * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
   public final void reportDelayedRootEdge(Address slot) {
@@ -112,13 +113,16 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
-   * @param root True if <code>objLoc</code> is within a root.
+   * @param untraced True if <code>objLoc</code> is an untraced root.
    */
   @Inline
-  public final void processRootEdge(Address slot) {
-    ObjectReference object = slot.loadObjectReference();
+  public final void processRootEdge(Address slot, boolean untraced) {
+    ObjectReference object;
+    if (untraced) object = slot.loadObjectReference();
+    else     object = VM.activePlan.collector().loadObjectReference(slot);
     ObjectReference newObject = traceObject(object, true);
-    slot.store(newObject);
+    if (untraced) slot.store(newObject);
+    else     VM.activePlan.collector().storeObjectReference(slot, newObject);
   }
 
   /**
@@ -180,6 +184,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   public final void processNode(ObjectReference object) {
+    VM.assertions._assert(object.toAddress().toWord().and(Word.one()).isZero());
     values.push(object);
   }
 
@@ -453,7 +458,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public void processRoots() {
     logMessage(5, "processing delayed root objects");
     while (!rootLocations.isEmpty()) {
-      processRootEdge(rootLocations.pop());
+      processRootEdge(rootLocations.pop(), true);
     }
   }
 
@@ -544,13 +549,17 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * calling the precopyObject method.
    *
    * @param slot The slot to check
+   * @param raw Is this is raw reference?
    */
   @Inline
-  public final void processPrecopyEdge(Address slot) {
-    ObjectReference child = slot.loadObjectReference();
+  public final void processPrecopyEdge(Address slot, boolean raw) {
+    ObjectReference child;
+    if (raw) child = slot.loadObjectReference();
+    else     child = VM.activePlan.collector().loadObjectReference(slot);
     if (!child.isNull()) {
       child = precopyObject(child);
-      slot.store(child);
+      if (raw) slot.store(child);
+      else     VM.activePlan.collector().storeObjectReference(slot, child);
     }
   }
 }

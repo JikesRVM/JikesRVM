@@ -16,16 +16,22 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 
+import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.VM_SpecializedScanMethod;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -101,11 +107,11 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       VM_Class klass = type.asClass();
       int[] offsets = klass.getReferenceOffsets();
       for(int i=0; i < offsets.length; i++) {
-        trace.processPrecopyEdge(object.toAddress().plus(offsets[i]));
+        trace.processPrecopyEdge(object.toAddress().plus(offsets[i]), false);
       }
     } else if (type.isArrayType() && type.asArray().getElementType().isReferenceType()) {
       for(int i=0; i < VM_ObjectModel.getArrayLength(object.toObject()); i++) {
-        trace.processPrecopyEdge(object.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
+        trace.processPrecopyEdge(object.toAddress().plus(i << LOG_BYTES_IN_ADDRESS), false);
       }
     }
   }
@@ -174,24 +180,36 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
           }
           Address threadTableSlot = threadTable.toAddress().plus(threadIndex<<LOG_BYTES_IN_ADDRESS);
-          if (VM.VerifyAssertions)
-            VM._assert(ObjectReference.fromObject(thread).toAddress().EQ(
-                threadTableSlot.loadObjectReference().toAddress()),
-            "Thread table address arithmetic is wrong!");
-          trace.processPrecopyEdge(threadTableSlot);
+          if (VM.VerifyAssertions) {
+            Address a = ObjectReference.fromObject(thread).toAddress();
+            Address b = Selected.Collector.get().loadObjectReference(threadTableSlot).toAddress();
+            VM._assert(a.EQ(b), "Thread table address arithmetic is wrong!");
+          }
+          trace.processPrecopyEdge(threadTableSlot, false);
           thread = VM_Scheduler.threads[threadIndex];  // reload  it - it just moved!
           if (TRACE_PRECOPY) {
             VM.sysWrite(ct.getGCOrdinal()," New address ");
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
           }
           precopyChildren(trace, ObjectReference.fromObject(thread));
-          precopyChildren(trace, ObjectReference.fromObject(thread.contextRegisters));
-          precopyChildren(trace, ObjectReference.fromObject(thread.getHardwareExceptionRegisters()));
-          if (thread.jniEnv != null) {
+
+          /* Registers */
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadContextRegistersField.getOffset()), true);
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getContextRegisters()).plus(VM_ArchEntrypoints.registersGPRsField.getOffset()), true);
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getContextRegisters()).plus(VM_ArchEntrypoints.registersFPRsField.getOffset()), true);
+
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset()), true);
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getHardwareExceptionRegisters()).plus(VM_ArchEntrypoints.registersGPRsField.getOffset()), true);
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getHardwareExceptionRegisters()).plus(VM_ArchEntrypoints.registersFPRsField.getOffset()), true);
+
+          if (thread.getJNIEnv() != null) {
             // Right now, jniEnv are Java-visible objects (not C-visible)
             // if (VM.VerifyAssertions)
             //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
-            precopyChildren(trace, ObjectReference.fromObject(thread.jniEnv));
+            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.jniEnvField.getOffset()), true);
+            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIRefsField.getOffset()), true);
+            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIEnvSavedPRField.getOffset()), true);
+            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIPendingExceptionField.getOffset()), true);
           }
         }
       } // end of for loop
@@ -220,6 +238,38 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   }
 
   /**
+   * Computes global roots.  This method establishes all such roots for
+   * collection and places them in the root locations queue.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
+   *
+   * <ul>
+   * <li> All objects used in the course of GC (such as the GC thread
+   * objects) need to be "pre-copied" prior to calling this method.
+   * <li> The <code>threadCounter</code> must be reset so that load
+   * balancing parallel GC can share the work of scanning threads.
+   * </ul>
+   *
+   * @param trace The trace to use for computing roots.
+   */
+  public void computeGlobalRoots(TraceLocal trace) {
+    /* scan jni functions */
+    VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    Address jniFunctions = VM_Magic.objectAsAddress(VM_JNIEnvironment.JNIFunctions);
+    int threads = VM_CollectorThread.numCollectors();
+    int size = VM_JNIEnvironment.JNIFunctions.length();
+    int chunkSize = size / threads;
+    int start = (ct.getGCOrdinal() - 1) * chunkSize;
+    int end = (ct.getGCOrdinal() == threads) ? size : ct.getGCOrdinal() * chunkSize;
+
+    for(int i=start; i < end; i++) {
+      trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
+    }
+
+    /* scan types*/
+    ScanTypes.scanTypes(trace);
+  }
+  /**
    * Computes roots pointed to by threads, their associated registers
    * and stacks.  This method places these roots in the root values,
    * root locations and interior root locations queues.  This method
@@ -243,6 +293,18 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
     /* Set status flag */
     threadStacksScanned = true;
 
+    /* scan (small) set of processor roots */
+    VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    if (ct.getGCOrdinal() == 1) {
+      Address processors = VM_Magic.objectAsAddress(VM_GreenScheduler.processors);
+      for(int i = VM_Scheduler.getFirstProcessorId(); i < VM_Scheduler.getLastProcessorId(); i++) {
+        trace.reportDelayedRootEdge(processors.plus(i << LOG_BYTES_IN_ADDRESS));
+        VM_Processor processorObject = VM_Scheduler.getProcessor(i);
+        Address processorAddress = VM_Magic.objectAsAddress(processorObject);
+        trace.reportDelayedRootEdge(processorAddress.plus(VM_Entrypoints.activeThreadField.getOffset()));
+      }
+    }
+
     /* scan all threads */
     while (true) {
       int threadIndex = threadCounter.increment();
@@ -255,7 +317,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       ScanThread.scanThread(thread, trace, processCodeLocations);
 
       /* identify this thread as a root */
-      trace.processRootEdge(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS));
+      trace.processRootEdge(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS), false);
     }
     /* flush out any remset entries generated during the above activities */
     ActivePlan.flushRememberedSets();
