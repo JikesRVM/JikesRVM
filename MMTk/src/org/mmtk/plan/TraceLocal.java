@@ -184,7 +184,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   public final void processNode(ObjectReference object) {
-    VM.assertions._assert(object.toAddress().toWord().and(Word.one()).isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(object.toAddress().toWord().and(Word.one()).isZero());
     values.push(object);
   }
 
