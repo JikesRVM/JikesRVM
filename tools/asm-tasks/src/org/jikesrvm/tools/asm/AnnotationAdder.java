@@ -47,6 +47,9 @@ import org.vmmagic.pragma.Pure;
  * Add annotations to classes using the ASM framework.
  */
 public final class AnnotationAdder {
+  /** Verbose debug information */
+  private static final boolean VERBOSE = false;
+
   /**
    * Elements we're looking to adapt and the annotations we want adding to them
    */
@@ -413,7 +416,7 @@ public final class AnnotationAdder {
    * @param fromName the name of the class we're coming from
    */
   private static void adaptClass(String fromName) {
-    System.out.println("Adding annotations to class: " + fromName);
+    if (VERBOSE) System.out.println("Adding annotations to class: " + fromName);
 
     // gets an input stream to read the bytecode of the class
     String resource = fromName.replace('.', '/') + ".class";
@@ -477,7 +480,7 @@ public final class AnnotationAdder {
       if (mv != null) {
         Set<Class<? extends Annotation>> annotations = findAnnotationsForMethod(className, name, desc);
         if (annotations != null) {
-          System.out.println("Found method: " + name);
+          if (VERBOSE) System.out.println("Found method: " + name);
           return new AddAnnotationMethodAdapter(mv, annotations);
         }
       }
@@ -513,7 +516,7 @@ public final class AnnotationAdder {
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
       presentAnnotations.add(desc);
-      System.out.println("Found annotation: " + desc);
+      if (VERBOSE) System.out.println("Found annotation: " + desc);
       return mv.visitAnnotation(desc, visible);
     }
 
@@ -526,14 +529,14 @@ public final class AnnotationAdder {
       outer:
       for (Class<? extends Annotation> toAddAnn : toAddAnnotations) {
         Type toAddAnnType = Type.getType(toAddAnn);
-        System.out.println("Annotation: " + toAddAnn);
+        if (VERBOSE) System.out.println("Annotation: " + toAddAnn);
         for (String presentAnn : presentAnnotations) {
           if (toAddAnnType.equals(Type.getType(presentAnn))) {
-            System.out.println("Annotation already present: " + toAddAnn + " " + presentAnn);
+            if (VERBOSE) System.out.println("Annotation already present: " + toAddAnn + " " + presentAnn);
             continue outer;
           }
         }
-        System.out.println("Adding annotation: " + toAddAnn);
+        if (VERBOSE) System.out.println("Adding annotation: " + toAddAnn);
         mv.visitAnnotation("L"+toAddAnnType.getInternalName()+";", true);
       }
       mv.visitEnd();
