@@ -947,7 +947,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (type.isClassType()) {
       VM_TypeReference enclosingClass = type.asClass().getEnclosingClass();
       if(enclosingClass != null) {
-        return create(enclosingClass.resolve());
+        return enclosingClass.resolve().getClassForType();
       } else {
         return null;
       }

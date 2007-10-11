@@ -111,7 +111,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   private final VM_TypeReference[] declaredClasses;
   /** The outerclass, or null if this is not a inner/nested class */
   private final VM_TypeReference declaringClass;
-  /** The enclosing method if this is a local class */
+  /** The enclosing class if this is a local class */
   private final VM_TypeReference enclosingClass;
   /** The enclosing method if this is a local class */
   private final VM_MethodReference enclosingMethod;
@@ -1402,6 +1402,10 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
           if (innerClassInfoIndex == myTypeIndex) {
             if (outerClassInfoIndex != 0) {
               declaringClass = getTypeRef(constantPool, outerClassInfoIndex);
+              if (enclosingClass == null) {
+                // TODO: is this the null test necessary?
+                enclosingClass = declaringClass;
+              }
             }
             if ((innerClassAccessFlags & (ACC_PRIVATE | ACC_PROTECTED)) != 0) {
               modifiers &= ~(ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED);
