@@ -109,15 +109,7 @@
 
   <!-- Patches against CVS head -->
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
-    <patch patchfile="${components.patch.dir}/classpath-cvs.classpath30275.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-77.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-26.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-185.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-51.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
