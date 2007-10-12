@@ -86,7 +86,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   @Uninterruptible
-  public static void initializeHeader(Object obj, VM_TIB tib, int size, boolean isScalar) {
+  public static void initializeHeader(Object obj, Object[] tib, int size, boolean isScalar) {
     /* Only perform initialization when it is required */
     if (MM_Constants.GENERATE_GC_TRACE) {
       Address ref = VM_Magic.objectAsAddress(obj);
@@ -105,13 +105,13 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   @LogicallyUninterruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref, VM_TIB tib, int size,
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, Object[] tib, int size,
                                       boolean isScalar) {
     /* Only perform initialization when it is required */
     if (MM_Constants.GENERATE_GC_TRACE) {
-      bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false, false);
-      bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time, false, false);
-      bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress, false, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress, false);
       prevAddress = ref.toWord();
       oid = oid.plus(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) >> LOG_BYTES_IN_ADDRESS));
     }

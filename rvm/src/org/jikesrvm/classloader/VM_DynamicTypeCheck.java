@@ -13,7 +13,6 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Uninterruptible;
@@ -213,7 +212,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfNonArray(VM_Class LHSclass, VM_TIB rhsTIB) {
+  public static boolean instanceOfNonArray(VM_Class LHSclass, Object[] rhsTIB) {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
     } else {
@@ -231,12 +230,12 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         or <code>false</code> if it is not
    */
   @Uninterruptible
-  public static boolean instanceOfClass(VM_Class LHSclass, VM_TIB rhsTIB) {
+  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
-      VM._assert(rhsTIB.getSuperclassIds() != null);
+      VM._assert(rhsTIB[TIB_SUPERCLASS_IDS_INDEX] != null);
     }
-    short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB.getSuperclassIds());
+    short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
     int LHSId = LHSclass.getId();
@@ -252,8 +251,8 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfInterface(VM_Class LHSclass, VM_TIB rhsTIB) {
-    int[] doesImplement = rhsTIB.getDoesImplement();
+  public static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) {
+    int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[TIB_DOES_IMPLEMENT_INDEX]);
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
     return idx < doesImplement.length && ((doesImplement[idx] & mask) != 0);

@@ -181,10 +181,9 @@ public abstract class VM_Scheduler {
           if (MM_Constants.NEEDS_WRITE_BARRIER) {
             MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
                 index, thread);
-          } else {
-            VM_Magic.setObjectAtOffset(threads,
-              Offset.fromIntZeroExtend(index << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), thread);
           }
+          VM_Magic.setObjectAtOffset(threads,
+              Offset.fromIntZeroExtend(index << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), thread);
           VM_Scheduler.threadCreationMutex.unlock();
           return index;
         }
@@ -349,42 +348,6 @@ public abstract class VM_Scheduler {
    */
   public static int getNumberOfProcessors() {
     return getScheduler().getNumberOfProcessorsInternal();
-  }
-
-  /**
-   *  First VM_Processor
-   */
-  protected abstract int getFirstProcessorIdInternal();
-
-  /**
-   *  First VM_Processor
-   */
-  public static int getFirstProcessorId() {
-    return getScheduler().getFirstProcessorIdInternal();
-  }
-
-  /**
-   *  Last VM_Processor
-   */
-  protected abstract int getLastProcessorIdInternal();
-
-  /**
-   *  Last VM_Processor
-   */
-  public static int getLastProcessorId() {
-    return getScheduler().getLastProcessorIdInternal();
-  }
-
-  /**
-   * Get a VM_Processor
-   */
-  protected abstract VM_Processor getProcessorInternal(int id);
-
-  /**
-   * Get a VM_Processor
-   */
-  public static VM_Processor getProcessor(int id) {
-    return getScheduler().getProcessorInternal(id);
   }
 
   /**

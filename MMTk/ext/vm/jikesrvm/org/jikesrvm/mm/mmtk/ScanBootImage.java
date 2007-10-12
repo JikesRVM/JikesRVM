@@ -128,7 +128,7 @@ public class ScanBootImage implements Constants {
       if (DEBUG) refs++;
       if (!FILTER || slot.loadAddress().GT(mapEnd)) {
         if (DEBUG) roots++;
-        trace.processRootEdge(slot, false);
+        trace.processRootEdge(slot);
       }
       if (runlength != 0) {
         for (int i = 0; i < runlength; i++) {
@@ -137,7 +137,7 @@ public class ScanBootImage implements Constants {
           if (DEBUG) refs++;
           if (!FILTER || slot.loadAddress().GT(mapEnd)) {
             if (DEBUG) roots++;
-            trace.processRootEdge(slot, false);
+            trace.processRootEdge(slot);
           }
         }
       }

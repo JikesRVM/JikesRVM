@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Entrypoint;
@@ -147,7 +146,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
-    VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
+    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
     return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
   }
 
@@ -213,7 +212,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (object == null) return; // null can be cast to any type
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
-    VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
+    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
     }
@@ -372,7 +371,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * See also: bytecode 0xbb ("new")
    */
   @Entrypoint
-  public static Object resolvedNewScalar(int size, VM_TIB tib, boolean hasFinalizer, int allocator, int align,
+  public static Object resolvedNewScalar(int size, Object[] tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
@@ -451,7 +450,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Entrypoint
-  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, VM_TIB tib,
+  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, Object[] tib,
                                         int allocator, int align, int offset, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
 

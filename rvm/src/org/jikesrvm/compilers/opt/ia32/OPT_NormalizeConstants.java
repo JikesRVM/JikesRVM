@@ -108,7 +108,7 @@ public abstract class OPT_NormalizeConstants implements OPT_Operators {
               int v = ((OPT_AddressConstantOperand) use).value.toInt();
               s.putOperand(idx, new OPT_IntConstantOperand(v));
             } else if (use instanceof OPT_TIBConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.TIB);
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((OPT_TIBConstantOperand) use).value.getTibOffset();
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);

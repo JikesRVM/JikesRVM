@@ -29,9 +29,9 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -140,7 +140,7 @@ import org.vmmagic.pragma.*;
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
   public Address skipOwnFramesAndDump(ObjectReference typeRef) {
-    VM_TIB tib = VM_Magic.addressAsTIB(typeRef.toAddress());
+    Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     VM_Method m = null;
     int bci = -1;
     int compiledMethodID = 0;
@@ -213,7 +213,7 @@ import org.vmmagic.pragma.*;
       VM.sysWrite(':');
       VM.writeHex(bci);
       VM.sysWrite('\t');
-      VM_Type type = tib.getType();
+      VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
       type.getDescriptor().sysWrite();
       VM.sysWrite('\n');
     }

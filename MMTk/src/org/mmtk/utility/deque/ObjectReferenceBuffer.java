@@ -56,7 +56,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
    */
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {
-    ObjectReference object = VM.activePlan.collector().loadObjectReference(slot);
+    ObjectReference object = slot.loadObjectReference();
     process(object);
   }
 

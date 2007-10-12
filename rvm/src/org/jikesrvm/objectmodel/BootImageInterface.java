@@ -69,9 +69,8 @@ public interface BootImageInterface {
    * @param value value to write
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
-   * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
    */
-  void setAddressWord(Address offset, Word value, boolean objField, boolean root);
+  void setAddressWord(Address offset, Word value, boolean objField);
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.
@@ -79,9 +78,8 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
-   * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
    */
-  void setNullAddressWord(Address offset, boolean objField, boolean root);
+  void setNullAddressWord(Address offset, boolean objField);
 
   /**
    * Fill in 8 bytes of bootimage.

@@ -20,7 +20,6 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.ShortStream;
 import org.mmtk.vm.gcspy.Util;
-import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -81,35 +80,20 @@ public final class VM {
   /*
    * VM-specific functionality captured in a series of singleton classs
    */
-  @Untraced
   public static final ActivePlan activePlan;
-  @Untraced
   public static final Assert assertions;
-  @Untraced
   public static final Barriers barriers;
-  @Untraced
   public static final Collection collection;
-  @Untraced
   public static final Config config;
-  @Untraced
   public static final Memory memory;
-  @Untraced
   public static final ObjectModel objectModel;
-  @Untraced
   public static final Options options;
-  @Untraced
   public static final ReferenceProcessor weakReferences;
-  @Untraced
   public static final ReferenceProcessor softReferences;
-  @Untraced
   public static final ReferenceProcessor phantomReferences;
-  @Untraced
   public static final Scanning scanning;
-  @Untraced
   public static final Statistics statistics;
-  @Untraced
   public static final Strings strings;
-  @Untraced
   public static final TraceInterface traceInterface;
 
   /*

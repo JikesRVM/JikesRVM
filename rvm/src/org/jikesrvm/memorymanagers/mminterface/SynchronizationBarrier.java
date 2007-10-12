@@ -97,7 +97,7 @@ public final class SynchronizationBarrier {
     waitABit(5);          // give missing threads a chance to show up
     int numParticipating = 0;
     for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
-      if (VM_GreenScheduler.getProcessor(i).lockInCIfInC()) { // can't be true for self
+      if (VM_GreenScheduler.processors[i].lockInCIfInC()) { // can't be true for self
         if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
         removeProcessor(i);
       } else {
@@ -162,7 +162,7 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   private void removeProcessor(int id) {
 
-    VM_GreenProcessor vp = VM_GreenScheduler.getProcessor(id);
+    VM_GreenProcessor vp = VM_GreenScheduler.processors[id];
 
     // get processors collector thread off its transfer queue
     vp.collectorThreadMutex.lock("removing a processor from gc");

@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.jni;
 
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -19,7 +20,6 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.ObjectReference;
@@ -47,7 +47,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * This is the shared JNI function table used by native code
    * to invoke methods in @link{VM_JNIFunctions}.
    */
-  public static VM_FunctionTable JNIFunctions;
+  private static VM_CodeArray[] JNIFunctions;
 
   /**
    * For the PowerOpenABI we need a linkage triple instead of just
@@ -84,7 +84,6 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * to be restored on JNI call from native
    */
   @Entrypoint
-  @Untraced
   protected VM_Processor savedPRreg;
 
   /**
@@ -97,7 +96,6 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * references passed to native code
    */
   @Entrypoint
-  @Untraced
   public AddressArray JNIRefs;
 
   /**
@@ -128,7 +126,6 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * Currently pending exception (null if none)
    */
   @Entrypoint
-  @Untraced
   protected Throwable pendingException;
 
   /**
@@ -334,12 +331,12 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * Initialize the array of JNI functions.
    * This function is called during bootimage writing.
    */
-  public static void initFunctionTable(VM_FunctionTable functions) {
+  public static void initFunctionTable(VM_CodeArray[] functions) {
     JNIFunctions = functions;
     if (VM.BuildForPowerOpenABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
-      LinkageTriplets = new AddressArray[functions.length()];
-      for (int i = 0; i < functions.length(); i++) {
+      LinkageTriplets = new AddressArray[functions.length];
+      for (int i = 0; i < functions.length; i++) {
         LinkageTriplets[i] = AddressArray.create(3);
       }
     }
@@ -352,10 +349,10 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   public static void boot() {
     if (VM.BuildForPowerOpenABI) {
       // fill in the TOC and IP entries for each linkage triplet
-      for (int i = 0; i < JNIFunctions.length(); i++) {
+      for (int i = 0; i < JNIFunctions.length; i++) {
         AddressArray triplet = LinkageTriplets[i];
         triplet.set(1, VM_Magic.getTocPointer());
-        triplet.set(0, VM_Magic.objectAsAddress(JNIFunctions.get(i)));
+        triplet.set(0, VM_Magic.objectAsAddress(JNIFunctions[i]));
       }
     }
   }

@@ -57,9 +57,8 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == Simple.SANITY_ROOTS) {
-      VM.scanning.computeGlobalRoots(sanityTrace);
-      VM.scanning.computeThreadRoots(sanityTrace);
       VM.scanning.computeStaticRoots(sanityTrace);
+      VM.scanning.computeThreadRoots(sanityTrace);
       if (Plan.SCAN_BOOT_IMAGE) {
         VM.scanning.computeBootImageRoots(sanityTrace);
       }

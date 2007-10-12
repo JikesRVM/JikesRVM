@@ -12,8 +12,6 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
@@ -324,23 +322,19 @@ public class VM_Services implements VM_SizeConstants {
   }
 
   /**
-   * Sets an element of a object array without possibly losing control.
+   * Sets an element of a object array without invoking any write
+   * barrier.
    *
    * @param dst the destination array
    * @param index the index of the element to set
    * @param value the new value for the element
    */
   @UninterruptibleNoWarn
-  public static void setArrayUninterruptible(Object[] dst, int index, Object value) {
-    if (VM.runningVM) {
-      if (MM_Constants.NEEDS_WRITE_BARRIER) {
-        MM_Interface.arrayStoreWriteBarrier(dst, index, value);
-      } else {
-        VM_Magic.setObjectAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS), value);
-      }
-    } else {
+  public static void setArrayNoBarrier(Object[] dst, int index, Object value) {
+    if (VM.runningVM)
+      VM_Magic.setObjectAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS), value);
+    else
       dst[index] = value;
-    }
   }
 
   /**

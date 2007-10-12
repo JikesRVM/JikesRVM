@@ -234,7 +234,8 @@ import org.vmmagic.unboxed.*;
       }
       VM.barriers.performWriteInBarrier(src,slot,tgt,metaDataA,metaDataB,mode);
     } else {
-      ObjectReference old = VM.barriers.performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
+      ObjectReference old = VM.barriers.
+      performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
 
       if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.pushOOL(old);
@@ -266,7 +267,8 @@ import org.vmmagic.unboxed.*;
       }
       VM.barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
     } else {
-      ObjectReference old = VM.barriers.performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
+      ObjectReference old = VM.barriers.
+      performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
 
       if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.push(old);

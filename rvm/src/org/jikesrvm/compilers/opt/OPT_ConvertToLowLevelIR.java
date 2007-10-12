@@ -900,7 +900,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
               InsertLoadOffset(v,
                                ir,
                                REF_LOAD,
-                               VM_TypeReference.IMT,
+                               VM_TypeReference.JavaLangObjectArray,
                                RHStib.copy(),
                                Offset.fromIntZeroExtend(TIB_IMT_TIB_INDEX << LOG_BYTES_IN_ADDRESS));
           address = InsertLoadOffset(v, ir, REF_LOAD, VM_TypeReference.CodeArray, IMT.copyD2U(), offset);
@@ -919,14 +919,14 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
             InsertLoadOffset(v,
                              ir,
                              REF_LOAD,
-                             VM_TypeReference.ITableArray,
+                             VM_TypeReference.JavaLangObjectArray,
                              RHStib.copy(),
                              Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << LOG_BYTES_IN_ADDRESS));
         OPT_RegisterOperand iTable =
             InsertLoadOffset(v,
                              ir,
                              REF_LOAD,
-                             VM_TypeReference.ITable,
+                             VM_TypeReference.JavaLangObjectArray,
                              iTables.copyD2U(),
                              Offset.fromIntZeroExtend(I.getInterfaceId() << LOG_BYTES_IN_ADDRESS));
         OPT_RegisterOperand address =
@@ -973,7 +973,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
           // itable index is known at compile-time.
           // call "findITable" to resolve object + interface id into
           // itable address
-          OPT_RegisterOperand iTable = ir.regpool.makeTemp(VM_TypeReference.ITable);
+          OPT_RegisterOperand iTable = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
           OPT_Operand RHStib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
           VM_Method target = VM_Entrypoints.findItableMethod;
           OPT_Instruction fi =
@@ -1227,7 +1227,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         // only valid in the bootstrap JVM
       }
     }
-    OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.TIB);
+    OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     OPT_Instruction s2 = GuardedUnary.create(GET_OBJ_TIB, res, obj, guard);
     s.insertBefore(s2);
     return res.copyD2U();
@@ -1246,7 +1246,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
       Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
       return new OPT_AddressConstantOperand(addr);
     } else if (!t.isResolved()) {
-      OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.TIB);
+      OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
       s.insertBefore(Unary.create(GET_CLASS_TIB, res, type));
       return res.copyD2U();
     } else {

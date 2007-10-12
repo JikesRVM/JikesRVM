@@ -16,7 +16,6 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.VM_ConcurrentCollectorThread;
 import org.jikesrvm.osr.OSR_ObjectHolder;
@@ -27,15 +26,11 @@ import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_DebuggerThread;
 import org.jikesrvm.scheduler.VM_FinalizerThread;
 import org.jikesrvm.scheduler.VM_Lock;
-import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
-import org.jikesrvm.scheduler.VM_ProcessorTable;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -90,8 +85,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   /** Total number of virtual processors to be used */
   public static int numProcessors = 1;
   /** Array of all virtual processors (slot 0 always empty) */
-  @Entrypoint
-  public static VM_ProcessorTable processors;
+  public static VM_GreenProcessor[] processors;
   /** Have all processors completed initialization? */
   public static boolean allProcessorsInitialized;
 
@@ -141,10 +135,10 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     // allocate initial processor list
     //
     // first slot unused, then primordial, then extra
-    processors = MM_Interface.newProcessorTable(2 + NUM_EXTRA_PROCS);
-    processors.set(PRIMORDIAL_PROCESSOR_ID, new VM_GreenProcessor(PRIMORDIAL_PROCESSOR_ID));
+    processors = new VM_GreenProcessor[2 + NUM_EXTRA_PROCS];
+    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_GreenProcessor(PRIMORDIAL_PROCESSOR_ID);
     for (int i = 1; i <= NUM_EXTRA_PROCS; i++) {
-      processors.set(PRIMORDIAL_PROCESSOR_ID + i, new VM_GreenProcessor(PRIMORDIAL_PROCESSOR_ID + i));
+      processors[PRIMORDIAL_PROCESSOR_ID + i] = new VM_GreenProcessor(PRIMORDIAL_PROCESSOR_ID + i);
     }
 
     // allocate lock structures
@@ -170,15 +164,15 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     // (the virtual cpu in whose context we are currently running)
     // was already created in the boot image by init(), above.
     //
-    VM_ProcessorTable origProcs = processors;
-    processors = MM_Interface.newProcessorTable(1 + numProcessors);
+    VM_GreenProcessor[] origProcs = processors;
+    processors = new VM_GreenProcessor[1 + numProcessors];
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
-      VM_GreenProcessor p = (i < origProcs.length()) ? (VM_GreenProcessor)origProcs.get(i) : null;
+      VM_GreenProcessor p = (i < origProcs.length) ? origProcs[i] : null;
       if (p == null) {
-        processors.set(i, new VM_GreenProcessor(i));
+        processors[i] = new VM_GreenProcessor(i);
       } else {
-        processors.set(i, p);
+        processors[i] = p;
         if (VM.BuildForIA32) {
           // TODO: the JTOC doesn't move so this field is redundant
           p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
@@ -190,15 +184,15 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     //
     for (int i = 0; i < numProcessors; ++i) {
       int pid = i + 1;
-      VM_GreenThread t = new VM_IdleThread(getProcessor(pid), pid != PRIMORDIAL_PROCESSOR_ID);
-      getProcessor(pid).idleQueue.enqueue(t);
+      VM_GreenThread t = new VM_IdleThread(processors[pid], pid != PRIMORDIAL_PROCESSOR_ID);
+      processors[pid].idleQueue.enqueue(t);
     }
 
     // JNI support
     terminated = false;
 
     // the one we're running on
-    getProcessor(PRIMORDIAL_PROCESSOR_ID).isInitialized = true;
+    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true;
 
     // Create virtual cpu's.
     //
@@ -220,7 +214,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors;) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_GreenThread target = getProcessor(i).idleQueue.dequeue();
+      VM_GreenThread target = processors[i].idleQueue.dequeue();
 
       // Create a virtual cpu and wait for execution to enter the target's
       // code/stack.
@@ -232,8 +226,8 @@ public final class VM_GreenScheduler extends VM_Scheduler {
         trace("VM_Scheduler.boot", "starting processor id", i);
       }
 
-      getProcessor(i).activeThread = target;
-      getProcessor(i).activeThreadStackLimit = target.stackLimit;
+      processors[i].activeThread = target;
+      processors[i].activeThreadStackLimit = target.stackLimit;
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         // NOTE: It is critical that we acquire the tocPointer explicitly
@@ -242,7 +236,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
         //       sys toc instead of the RVM jtoc. --dave
         Address toc = VM_Magic.getTocPointer();
         sysCall.sysVirtualProcessorCreate(toc,
-                                          VM_Magic.objectAsAddress(getProcessor(i)),
+                                          VM_Magic.objectAsAddress(processors[i]),
                                           target.contextRegisters.ip,
                                           target.contextRegisters.getInnermostFramePointer());
         if (cpuAffinity != NO_CPU_AFFINITY) {
@@ -250,7 +244,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
         }
       } else if (VM.BuildForIA32) {
         sysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                          VM_Magic.objectAsAddress(getProcessor(i)),
+                                          VM_Magic.objectAsAddress(processors[i]),
                                           target.contextRegisters.ip,
                                           target.contextRegisters.getInnermostFramePointer());
       } else if (VM.VerifyAssertions) {
@@ -288,16 +282,16 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     }
 
     // Start collector threads on each VM_Processor.
-    for (int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
-      VM_GreenThread t = VM_CollectorThread.createActiveCollectorThread(getProcessor(i));
-      t.start(getProcessor(i).readyQueue);
+    for (int i = 0; i < numProcessors; ++i) {
+      VM_GreenThread t = VM_CollectorThread.createActiveCollectorThread(processors[1 + i]);
+      t.start(processors[1 + i].readyQueue);
     }
 
     if (MM_Constants.NEEDS_CONCURRENT_WORKERS) {
       // Start concurrent collector threads on each VM_Processor.
-      for (int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
-        VM_GreenThread t = VM_ConcurrentCollectorThread.createConcurrentCollectorThread(getProcessor(i));
-        t.start(getProcessor(i).readyQueue);
+      for (int i = 0; i < numProcessors; ++i) {
+        VM_GreenThread t = VM_ConcurrentCollectorThread.createConcurrentCollectorThread(processors[1 + i]);
+        t.start(processors[1 + i].readyQueue);
       }
     }
 
@@ -339,9 +333,9 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     // find the pthread to wait for
     VM_GreenProcessor myVP = VM_GreenProcessor.getCurrentProcessor();
     VM_GreenProcessor VPtoWaitFor = null;
-    for (int i = getFirstProcessorId(); i < getLastProcessorId(); i++) {
-      if (getProcessor(i) == myVP) {
-        VPtoWaitFor = getProcessor(i + 1);
+    for (int i = 1; i < numProcessors; i++) {
+      if (processors[i] == myVP) {
+        VPtoWaitFor = processors[i + 1];
         break;
       }
     }
@@ -409,8 +403,8 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   protected void requestMutatorFlushInternal() {
     flushMutatorContextsMutex.lock("requesting mutator flush");
     flushedMutatorCount = 0;
-    for(int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
-      getProcessor(i).flushRequested = true;
+    for(int i=0; i < numProcessors; i++) {
+      processors[i+1].flushRequested = true;
     }
     VM_GreenScheduler.getCurrentThread().yield(flushMutatorContextsQueue, flushMutatorContextsMutex);
   }
@@ -421,36 +415,6 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   @Override
   protected int getNumberOfProcessorsInternal() {
     return numProcessors;
-  }
-
-  /**
-   *  First VM_Processor
-   */
-  protected int getFirstProcessorIdInternal() {
-    return PRIMORDIAL_PROCESSOR_ID;
-  }
-
-  /**
-   *  Last VM_Processor
-   */
-  protected int getLastProcessorIdInternal() {
-    return numProcessors;
-  }
-
-  /**
-   * Get a VM_Processor
-   */
-  @Override
-  protected VM_Processor getProcessorInternal(int id) {
-    return processors.get(id);
-  }
-
-  /**
-   * Get a VM_Processor
-   */
-  @UninterruptibleNoWarn
-  public static VM_GreenProcessor getProcessor(int id) {
-    return (VM_GreenProcessor)processors.get(id);
   }
 
   /**
@@ -472,8 +436,8 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   public void dumpVirtualMachineInternal() {
     VM_GreenProcessor processor;
     VM.sysWrite("\n-- Processors --\n");
-    for (int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
-      processor = getProcessor(i);
+    for (int i = 1; i <= numProcessors; ++i) {
+      processor = processors[i];
       processor.dumpProcessorState();
     }
 
@@ -499,7 +463,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
 
     VM.sysWrite("\n-- Locks available --\n");
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; ++i) {
-      processor = getProcessor(i);
+      processor = processors[i];
       processor.dumpLocks();
     }
     VM.sysWrite("\n");
@@ -562,7 +526,6 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     } while (false);
     VM_Magic.isync(); // TODO!! is this really necessary?
   }
-
   @Override
   protected void unlockOutputInternal() {
     if (VM_GreenScheduler.numProcessors == 1) return;
@@ -590,8 +553,8 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   static String getThreadState(VM_GreenThread t) {
     // scan per-processor queues
     //
-    for (int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
-      VM_GreenProcessor p = getProcessor(i);
+    for (int i = 0; i < processors.length; ++i) {
+      VM_GreenProcessor p = processors[i];
       if (p == null) continue;
       if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
       if (p.readyQueue.contains(t)) return "runnable on processor " + i;
@@ -615,8 +578,8 @@ public final class VM_GreenScheduler extends VM_Scheduler {
 
     // not in any queue
     //
-    for (int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
-      VM_GreenProcessor p = getProcessor(i);
+    for (int i = 0; i < processors.length; ++i) {
+      VM_GreenProcessor p = processors[i];
       if (p == null) continue;
       if (p.activeThread == t) {
         return "running on processor " + i;
@@ -700,7 +663,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     byte[] stack = new byte[ArchitectureSpecific.VM_ArchConstants.STACK_SIZE_BOOT];
     VM_GreenThread startupThread = new VM_Scheduler.ThreadModel(stack, "Jikes_RVM_Boot_Thread");
     numDaemons++;
-    getProcessor(initProc).activeThread = startupThread;
+    processors[initProc].activeThread = startupThread;
     return startupThread;
   }
 

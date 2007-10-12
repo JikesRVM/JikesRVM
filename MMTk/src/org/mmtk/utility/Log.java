@@ -113,7 +113,8 @@ import org.vmmagic.pragma.*;
   /** constructor */
   public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
-      VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i, OVERFLOW_MESSAGE.charAt(i));
+      VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
+          OVERFLOW_MESSAGE.charAt(i));
   }
 
   /**
@@ -149,13 +150,15 @@ import org.vmmagic.pragma.*;
     char[] intBuffer = getIntBuffer();
 
     nextDigit = (int) (l % 10);
-    nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, negative ? - nextDigit : nextDigit);
+    nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
+                                              negative ? - nextDigit : nextDigit);
     VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
-      nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, negative ? - nextDigit : nextDigit);
+      nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
+                                                negative ? - nextDigit : nextDigit);
       VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
@@ -257,7 +260,7 @@ import org.vmmagic.pragma.*;
    */
   public static void write(byte[] b) {
     for (int i = 0; i < b.length; i++)
-      add((char)VM.barriers.getArrayNoBarrier(b, i));
+      add((char) VM.barriers.getArrayNoBarrier(b, i));
   }
 
   /**
@@ -730,7 +733,8 @@ import org.vmmagic.pragma.*;
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
       nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
-      char nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, nextDigit);
+      char nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
+                                                     nextDigit);
       add(nextChar);
     }
   }
@@ -788,7 +792,8 @@ import org.vmmagic.pragma.*;
         // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
         // MMTk method that lets us peek into a string. Anyway, it's just a
         // convenience to get the newline right.
-        VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE, OVERFLOW_MESSAGE_FIRST_CHAR);
+        VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
+            OVERFLOW_MESSAGE_FIRST_CHAR);
         bufferIndex--;
       }
     } else

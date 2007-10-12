@@ -42,7 +42,6 @@ import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -252,7 +251,6 @@ public abstract class VM_Thread {
    * Place to save register state when this thread is not actually running.
    */
   @Entrypoint
-  @Untraced
   public final VM_Registers contextRegisters;
 
   /**
@@ -260,7 +258,6 @@ public abstract class VM_Thread {
    * an exception while this thread is running.
    */
   @Entrypoint
-  @Untraced
   private final VM_Registers hardwareExceptionRegisters;
 
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
@@ -312,7 +309,6 @@ public abstract class VM_Thread {
    * Cached JNI environment for this thread
    */
   @Entrypoint
-  @Untraced
   public VM_JNIEnvironment jniEnv;
 
   /*

@@ -14,7 +14,6 @@ package org.jikesrvm.scheduler.nativethreads;
 
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.scheduler.VM_Lock;
-import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Interruptible;
@@ -121,31 +120,6 @@ public class VM_NativeScheduler extends VM_Scheduler {
   protected int getNumberOfProcessorsInternal() {
     // TODO Auto-generated method stub
     return 0;
-  }
-
-  /**
-   *  First VM_Processor
-   */
-  protected int getFirstProcessorIdInternal() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  /**
-   *  Last VM_Processor
-   */
-  protected int getLastProcessorIdInternal() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  /**
-   * Get a VM_Processor
-   */
-  @Override
-  protected VM_Processor getProcessorInternal(int id) {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   /**

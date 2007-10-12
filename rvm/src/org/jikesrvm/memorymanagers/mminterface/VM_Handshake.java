@@ -216,7 +216,7 @@ public class VM_Handshake {
   @Uninterruptible
   private void complete() {
     for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
-      VM_GreenScheduler.getProcessor(i).unblockIfBlockedInC();
+      VM_GreenScheduler.processors[i].unblockIfBlockedInC();
     }
   }
 

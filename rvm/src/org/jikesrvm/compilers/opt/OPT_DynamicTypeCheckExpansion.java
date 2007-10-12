@@ -489,7 +489,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           InsertUnary(curBlock.lastInstruction(),
                       ir,
                       GET_ARRAY_ELEMENT_TIB_FROM_TIB,
-                      VM_TypeReference.TIB,
+                      VM_TypeReference.JavaLangObjectArray,
                       lhsTIB.copy());
       curBlock.appendInstruction(IfCmp.create(REF_IFCMP,
                                               guardResult.copyRO(),

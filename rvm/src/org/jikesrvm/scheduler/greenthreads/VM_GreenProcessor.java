@@ -304,19 +304,19 @@ public final class VM_GreenProcessor extends VM_Processor {
 
     // If one of the threads has an active timerInteval, then we need to
     // update the timing information.
-    if (previousThread.hasActiveTimedInterval() || activeThread.hasActiveTimedInterval()) {
+    if (previousThread.hasActiveTimedInterval() || newThread.hasActiveTimedInterval()) {
       long now = VM_Time.nanoTime();
       if (previousThread.hasActiveTimedInterval()) {
         previousThread.suspendInterval(now);
       }
-      if (activeThread.hasActiveTimedInterval()) {
-        activeThread.resumeInterval(now);
+      if (newThread.hasActiveTimedInterval()) {
+        newThread.resumeInterval(now);
       }
     }
 
-    threadId = activeThread.getLockingId();
-    activeThreadStackLimit = activeThread.stackLimit; // Delay this to last possible moment so we can sysWrite
-    VM_Magic.threadSwitch(previousThread, activeThread.contextRegisters);
+    threadId = newThread.getLockingId();
+    activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
+    VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
 
   /**
@@ -527,7 +527,7 @@ public final class VM_GreenProcessor extends VM_Processor {
    */
   private VM_GreenProcessor chooseNextProcessor(VM_GreenThread t) {
     t.chosenProcessorId = (t.chosenProcessorId % VM_GreenScheduler.numProcessors) + 1;
-    return VM_GreenScheduler.getProcessor(t.chosenProcessorId);
+    return VM_GreenScheduler.processors[t.chosenProcessorId];
   }
 
   //---------------------//

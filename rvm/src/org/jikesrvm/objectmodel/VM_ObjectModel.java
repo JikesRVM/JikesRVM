@@ -177,28 +177,28 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Get the TIB for an object.
    */
-  public static VM_TIB getTIB(ObjectReference ptr) {
+  public static Object[] getTIB(ObjectReference ptr) {
     return getTIB(ptr.toObject());
   }
 
   /**
    * Get the TIB for an object.
    */
-  public static VM_TIB getTIB(Object o) {
+  public static Object[] getTIB(Object o) {
     return VM_JavaHeader.getTIB(o);
   }
 
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(ObjectReference ptr, VM_TIB tib) {
+  public static void setTIB(ObjectReference ptr, Object[] tib) {
     setTIB(ptr.toObject(), tib);
   }
 
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, VM_TIB tib) {
+  public static void setTIB(Object ref, Object[] tib) {
     VM_JavaHeader.setTIB(ref, tib);
   }
 
@@ -214,8 +214,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * Get the pointer just past an object
    */
   public static Address getObjectEndAddress(Object obj) {
-    VM_TIB tib = getTIB(obj);
-    VM_Type type = tib.getType();
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
       return getObjectEndAddress(obj, type.asClass());
     } else {
@@ -263,8 +263,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * Get the next object in the heap under contiguous allocation.
    */
   public static ObjectReference getNextObject(ObjectReference obj) {
-    VM_TIB tib = getTIB(obj);
-    VM_Type type = tib.getType();
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
       return getNextObject(obj, type.asClass());
     } else {
@@ -291,8 +291,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * how many bytes are used by the object?
    */
   public static Object getReferenceWhenCopiedTo(Object obj, Address to) {
-    VM_TIB tib = getTIB(obj);
-    VM_Type type = tib.getType();
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
       return getReferenceWhenCopiedTo(obj, to, type.asClass());
     } else {
@@ -304,8 +304,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * how many bytes are used by the object?
    */
   public static int bytesUsed(Object obj) {
-    VM_TIB tib = getTIB(obj);
-    VM_Type type = tib.getType();
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
       return bytesUsed(obj, type.asClass());
     } else {
@@ -332,8 +332,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * how many bytes are required when the object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object obj) {
-    VM_TIB tib = getTIB(obj);
-    VM_Type type = tib.getType();
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
       return bytesRequiredWhenCopied(obj, type.asClass());
     } else {
@@ -720,7 +720,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * @param size number of bytes of raw storage allocated.
    */
   @Inline
-  public static Object initializeScalar(Address ptr, VM_TIB tib, int size) {
+  public static Object initializeScalar(Address ptr, Object[] tib, int size) {
     Object ref = VM_JavaHeader.initializeScalarHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, true);
     setTIB(ref, tib);
@@ -738,7 +738,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    */
   @Interruptible
   public static Address allocateScalar(BootImageInterface bootImage, VM_Class klass) {
-    VM_TIB tib = klass.getTypeInformationBlock();
+    Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int align = getAlignment(klass);
     int offset = getOffsetForAlignment(klass);
@@ -772,7 +772,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    * @param size number of bytes of raw storage allocated.
    */
   @Inline
-  public static Object initializeArray(Address ptr, VM_TIB tib, int numElems, int size) {
+  public static Object initializeArray(Address ptr, Object[] tib, int numElems, int size) {
     Object ref = VM_JavaHeader.initializeArrayHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, false);
     setTIB(ref, tib);
@@ -792,7 +792,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    */
   @Interruptible
   public static Address allocateArray(BootImageInterface bootImage, VM_Array array, int numElements) {
-    VM_TIB tib = array.getTypeInformationBlock();
+    Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
     int offset = getOffsetForAlignment(array);
@@ -816,7 +816,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
    */
   @Interruptible
   public static Address allocateCode(BootImageInterface bootImage, VM_Array array, int numElements) {
-    VM_TIB tib = array.getTypeInformationBlock();
+    Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
     int offset = getOffsetForAlignment(array);

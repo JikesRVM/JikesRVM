@@ -31,12 +31,8 @@ public class MM_Constants implements VM_SizeConstants {
   public static final boolean NEEDS_REFTYPE_READ_BARRIER = Selected.Constraints.get().needsReferenceTypeReadBarrier();
   /** True if the selected plan requires write barriers on putfield, arraystore or modifycheck */
   public static final boolean NEEDS_WRITE_BARRIER = Selected.Constraints.get().needsWriteBarrier();
-  /** True if the selected plan requires read barriers on getfield or arrayload */
-  public static final boolean NEEDS_READ_BARRIER = Selected.Constraints.get().needsReadBarrier();
   /** True if the selected plan requires write barriers on putstatic */
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Selected.Constraints.get().needsStaticWriteBarrier();
-  /** True if the selected plan requires read barriers on getstatic */
-  public static final boolean NEEDS_GETSTATIC_READ_BARRIER = Selected.Constraints.get().needsStaticReadBarrier();
   /** True if the selected plan requires concurrent worker threads */
   public static final boolean NEEDS_CONCURRENT_WORKERS = Selected.Constraints.get().needsConcurrentWorkers();
   /** True if the selected plan needs support for generating a GC trace */

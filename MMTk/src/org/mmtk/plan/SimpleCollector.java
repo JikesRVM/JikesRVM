@@ -81,7 +81,6 @@ public abstract class SimpleCollector extends CollectorContext {
     }
 
     if (phaseId == Simple.ROOTS) {
-      VM.scanning.computeGlobalRoots(getCurrentTrace());
       VM.scanning.computeStaticRoots(getCurrentTrace());
       if (Plan.SCAN_BOOT_IMAGE) {
         VM.scanning.computeBootImageRoots(getCurrentTrace());

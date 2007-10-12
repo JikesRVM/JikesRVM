@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.classloader.VM_DynamicTypeCheck;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.objectmodel.VM_TIB;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -55,7 +54,7 @@ public abstract class VM_ExceptionTable {
         if (lhs == exceptionType) {
           return eTable[i + CATCH_START];
         } else if (lhs.isInitialized()) {
-          VM_TIB rhsTIB = exceptionType.getTypeInformationBlock();
+          Object[] rhsTIB = exceptionType.getTypeInformationBlock();
           if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
             return eTable[i + CATCH_START];
           }

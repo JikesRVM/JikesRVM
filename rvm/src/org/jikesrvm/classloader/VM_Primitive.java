@@ -14,7 +14,6 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.objectmodel.VM_TIB;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -372,8 +371,24 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Runtime type information for this class/array type.
    */
   @Uninterruptible
-  public VM_TIB getTypeInformationBlock() {
+  public Object[] getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
+  }
+
+  /**
+   * Does this slot in the TIB hold a TIB entry?
+   */
+  public boolean isTIBSlotTIB(int slot) {
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Does this slot in the TIB hold code?
+   */
+  public boolean isTIBSlotCode(int slot) {
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    return false;
   }
 }

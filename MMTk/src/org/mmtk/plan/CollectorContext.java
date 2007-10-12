@@ -201,30 +201,4 @@ import org.vmmagic.unboxed.*;
   /** @return the unique identifier for this collector context. */
   @Inline
   public int getId() { return id; }
-
-  /****************************************************************************
-   * Collector read/write barriers.
-   */
-
-  /**
-   * Store an object reference
-   *
-   * @param slot The location of the reference
-   * @param value The value to store
-   */
-  @Inline
-  public void storeObjectReference(Address slot, ObjectReference value) {
-    slot.store(value);
-  }
-
-  /**
-   * Load an object reference
-   *
-   * @param slot The location of the reference
-   * @param value The value to store
-   */
-  @Inline
-  public ObjectReference loadObjectReference(Address slot) {
-    return slot.loadObjectReference();
-  }
 }
