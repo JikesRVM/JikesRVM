@@ -277,15 +277,24 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools implements OP
                     maxCost = 0;
                   } else {
                     if (cost > maxCost) {
-                      // adjust up based on weight of callsite
+                      /* We're going to increase the maximum callee size (maxCost) we're willing
+                       * to inline based on how "hot" (what % of the total weight in the
+                       * dynamic call graph) the edge is.
+                       */
                       double adjustedWeight = VM_AdaptiveInlining.adjustedWeight(weight);
-                      if (adjustedWeight > VM_Controller.options.AI_CONTROL_POINT) {
+                      if (adjustedWeight > VM_Controller.options.AI_HOT_CALLSITE_THRESHOLD) {
+                        /* A truly hot edge; use the max allowable callee size */
                         maxCost = opts.AI_MAX_TARGET_SIZE;
                       } else {
-                        int range = opts.AI_MAX_TARGET_SIZE - opts.IC_MAX_TARGET_SIZE;
-                        double slope = ((double) range) / VM_Controller.options.AI_CONTROL_POINT;
-                        int sizeAdj = (int) (slope * adjustedWeight);
-                        maxCost += sizeAdj;
+                        /* A warm edge, we will use a value between the static default and the max allowable.
+                         * The code below simply does a linear interpolation between 2x static default
+                         * and max allowable.
+                         * Other alternatives would be to do a log interpolation or some other step function.
+                         */
+                        int range = opts.AI_MAX_TARGET_SIZE -  2*opts.IC_MAX_TARGET_SIZE;
+                        double slope = ((double) range) / VM_Controller.options.AI_HOT_CALLSITE_THRESHOLD;
+                        int scaledAdj = (int) (slope * adjustedWeight);
+                        maxCost += opts.IC_MAX_TARGET_SIZE + scaledAdj;
                       }
                     }
                   }

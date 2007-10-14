@@ -110,8 +110,8 @@ V COUNTER_BASED_SAMPLE_INTERVAL int 1000
 What is the sample interval for counter-based sampling
 
 
-V AI_CONTROL_POINT double 0.01
-Tuning param for new inliner function
+V AI_HOT_CALLSITE_THRESHOLD double 0.01
+What percentage of the total weight of the dcg demarcates warm/hot edges 
 
 
 V MAX_OPT_LEVEL int 2
