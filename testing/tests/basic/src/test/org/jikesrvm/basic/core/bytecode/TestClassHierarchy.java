@@ -280,7 +280,7 @@ In class SubSubClass extends SubClassInDifferentPackage:
     if (enclosing == null)
       System.out.println("SubSubClass class has no enclosing class");
     else if (enclosing != TestClassHierarchy.class)
-      System.out.println("Bad enclosing class"); 
+      System.out.println("Bad enclosing class");
     else
       System.out.println("Correct enclosing class");
   }
