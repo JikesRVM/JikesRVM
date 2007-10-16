@@ -17,9 +17,9 @@
 
   <!-- NOTE: when incrementing classpath version, check the patches -->
   <!-- in target patch-classpath-web                                -->
-  <property name="classpath.version" value="95"/>
+  <property name="classpath.version" value="96"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="3"/>
+  <property name="classpath.patchlevel" value="1"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -86,7 +86,7 @@
     <property name="classpath.web-archive" value="classpath-0.${classpath.version}${generics-extension}.tar.gz"/>
     <mkdir dir="${classpath.package.dir}"/>
     <cachedGet key="${classpath.web-archive}"
-         src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
+         src="http://builder.classpath.org/dist/${classpath.web-archive}"
          dest="${classpath.package.dir}/${classpath.web-archive}"/>
     <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
     <exec executable="${tar.exe}" failonerror="true" dir="${classpath.package.dir}">
@@ -111,26 +111,16 @@
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-solaris.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
   <!-- Patches against the current stable version -->
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
-    <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.R1728742.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-77.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-26.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-solaris.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/> 
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-51.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>  
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
 
