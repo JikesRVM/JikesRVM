@@ -129,7 +129,7 @@ public abstract class VM_Configuration {
    * This makes it easier to find an eliminate
    * old code when we move up to the next version.
    */
-  private static final int ClasspathVersion = @_RVM_CLASSPATH_VERSION_@;
+  private static final int ClasspathVersion = (int)@_RVM_CLASSPATH_VERSION_@;
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
 

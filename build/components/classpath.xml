@@ -17,7 +17,7 @@
 
   <!-- NOTE: when incrementing classpath version, check the patches -->
   <!-- in target patch-classpath-web                                -->
-  <property name="classpath.version" value="96"/>
+  <property name="classpath.version" value="96.1"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
   <property name="classpath.patchlevel" value="1"/>
   <property name="classpath.description" value="GNU Classpath"/>
@@ -28,7 +28,7 @@
 
   <!-- Compiler to compile Classpath -->
   <!-- Remember to edit the same property in ../../build.xml -->
-  <property name="classpath.compiler" value="ecj"/>
+  <property name="classpath.compiler" value="javac"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->

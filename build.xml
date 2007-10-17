@@ -78,7 +78,7 @@
 
   <!-- Compiler to compile Classpath -->
   <!-- Remember to edit the same property in build/components/classpath.xml -->
-  <property name="classpath.compiler" value="ecj"/>
+  <property name="classpath.compiler" value="javac"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
