@@ -117,6 +117,8 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-solaris.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-298.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
   <!-- Patches against the current stable version -->
@@ -125,6 +127,8 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-solaris.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/> 
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-298.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
 

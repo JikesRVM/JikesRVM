@@ -1,0 +1,21 @@
+--- native/jni/gtk-peer/gtkpeer.c	2007-05-08 01:00:54.000000000 +0100
++++ native/jni/gtk-peer/gtkpeer.c	2007-10-17 10:49:25.000000000 +0100
+@@ -102,11 +102,13 @@
+ #else
+ #if SIZEOF_VOID_P == 4
+   pointerClass = (*env)->FindClass(env, "gnu/classpath/Pointer32");
+-  pointerDataFID = (*env)->GetFieldID(env, pointerClass, "data", "I");
+-
+-  /* Find the Pointer32 constructor. */
+-  pointerConstructorMID = (*env)->GetMethodID(env, pointerClass, "<init>",
+-                                              "(I)V");
++  if (pointerClass != NULL)
++    {
++      pointerClass = (*env)->NewGlobalRef (env, pointerClass);
++      pointerDataFID = (*env)->GetFieldID (env, pointerClass, "data", "I");
++      pointerConstructorMID = (*env)->GetMethodID (env, pointerClass, "<init>",
++                                                   "(I)V");
++    }
+ #else
+ #error "Pointer size is not supported."
+ #endif /* SIZEOF_VOID_P == 4 */
