@@ -1,0 +1,2046 @@
+diff -r -u gnu/java/nio/charset/ByteCharset.java gnu/java/nio/charset/ByteCharset.java
+--- gnu/java/nio/charset/ByteCharset.java	2007-02-04 09:52:56.000000000 +0000
++++ gnu/java/nio/charset/ByteCharset.java	2007-10-18 17:23:20.000000000 +0100
+@@ -45,32 +45,34 @@
+ import java.nio.charset.CoderResult;
+ 
+ /**
+- * A generic encoding framework for single-byte encodings, 
+- * utilizing a look-up table.
++ * A generic encoding framework for single-byte encodings, utilizing a look-up
++ * table.
++ * 
++ * This replaces the gnu.java.io.EncoderEightBitLookup class, created by Aron
++ * Renn.
+  * 
+- * This replaces the gnu.java.io.EncoderEightBitLookup class, 
+- * created by Aron Renn.
+- *
+  * @author Sven de Marothy
++ * @modified Ian Rogers
+  */
+ abstract class ByteCharset extends Charset
+ {
+-  protected char[] lookupTable;
+-    /**
+-     * Char to signify the character in the table is undefined
+-     */
+-  protected static final char NONE = (char)0xFFFD;
++  protected final char[] lookupTable;
++  /**
++   * Char to signify the character in the table is undefined
++   */
++  protected static final char NONE = (char) 0xFFFD;
+ 
+-  ByteCharset (String canonicalName, String[] aliases)
++  ByteCharset(String canonicalName, String[] aliases, char[] lookup)
+   {
+-    super (canonicalName, aliases);
++    super(canonicalName, aliases);
++    lookupTable = lookup;
+   }
+ 
+   /**
+-   * Most western charsets include ASCII, but this should
+-   * be overloaded for others.
++   * Most western charsets include ASCII, but this should be overloaded for
++   * others.
+    */
+-  public boolean contains (Charset cs)
++  public boolean contains(Charset cs)
+   {
+     return cs instanceof US_ASCII || (cs.getClass() == getClass());
+   }
+@@ -80,83 +82,91 @@
+     return lookupTable;
+   }
+ 
+-  public CharsetDecoder newDecoder ()
++  public CharsetDecoder newDecoder()
+   {
+-    return new Decoder (this);
++    return new Decoder(this);
+   }
+ 
+-  public CharsetEncoder newEncoder ()
++  public CharsetEncoder newEncoder()
+   {
+-    return new Encoder (this);
++    return new Encoder(this);
+   }
+ 
+   private static final class Decoder extends CharsetDecoder
+   {
+-    private char[] lookup;
+-
++    /** Lookup of byte to char mappings */
++    private final char[] lookup;
++    
++    /** Helper to decode loops */
++    private final ByteDecodeLoopHelper helper = new ByteDecodeLoopHelper()
++    {
++      protected boolean isMappable(byte b)
++      {
++        return lookup[(int) (b & 0xFF)] != NONE;
++      }
++      protected char mapToChar(byte b)
++      {
++        return lookup[(int) (b & 0xFF)];
++      }
++    };
++    
+     // Package-private to avoid a trampoline constructor.
+-    Decoder (ByteCharset cs)
++    Decoder(ByteCharset cs)
+     {
+-      super (cs, 1.0f, 1.0f);
++      super(cs, 1.0f, 1.0f);
+       lookup = cs.getLookupTable();
+     }
+ 
+-    protected CoderResult decodeLoop (ByteBuffer in, CharBuffer out)
++    protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out)
+     {
+-      // TODO: Optimize this in the case in.hasArray() / out.hasArray()
+-      while (in.hasRemaining ())
+-      {
+-        byte b = in.get ();
+-	char c;
+-
+-        if (!out.hasRemaining ())
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.OVERFLOW;
+-          }
+-	
+-	if((c = lookup[(int) (b & 0xFF)]) == NONE)
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.unmappableForLength (1);
+-          }
+-        out.put (c);
+-      }
+-
+-      return CoderResult.UNDERFLOW;
++      return helper.decodeLoop(in, out);
+     }
+   }
+ 
+   private static final class Encoder extends CharsetEncoder
+   {
+-    private byte[] lookup;
+-
++    /** Lookup of char to byte mappings */
++    private final byte[] lookup;
++    
++    /** Helper to encode loops */
++    private final ByteEncodeLoopHelper helper = new ByteEncodeLoopHelper()
++    {
++      protected boolean isMappable(char c)
++      {
++        return canEncode(c);
++      }
++      protected byte mapToByte(char c)
++      {
++        return lookup[c];
++      }
++    };
++    
+     // Package-private to avoid a trampoline constructor.
+-    Encoder (ByteCharset cs)
++    Encoder(ByteCharset cs)
+     {
+-      super (cs, 1.0f, 1.0f);
++      super(cs, 1.0f, 1.0f);
+ 
+       char[] lookup_table = cs.getLookupTable();
+ 
+       // Create the inverse look-up table.
+-      // determine required size of encoding_table: 
+-      int max = 0; 
++      // determine required size of encoding_table:
++      int max = 0;
+       for (int i = 0; i < lookup_table.length; i++)
+-	  {
+-	      int c = (int)lookup_table[i]; 
+-	      max = (c > max && c < NONE) ? c : max;
+-	  }
++        {
++          int c = (int) lookup_table[i];
++          max = (c > max && c < NONE) ? c : max;
++        }
++
++      lookup = new byte[max + 1];
+ 
+-      lookup = new byte[max+1];
+-      
+       for (int i = 0; i < lookup_table.length; i++)
+-	  {
+-	    int c = (int)lookup_table[i]; 
+-	    if (c != 0 && c < NONE) 
+-	      {
+-		lookup[c] = (byte)i;
+-	      }
+-	  }
++        {
++          int c = (int) lookup_table[i];
++          if (c != 0 && c < NONE)
++            {
++              lookup[c] = (byte) i;
++            }
++        }
+     }
+ 
+     public boolean canEncode(char c)
+@@ -169,38 +179,15 @@
+     {
+       for (int i = 0; i < cs.length(); ++i)
+         {
+-          if (! canEncode(cs.charAt(i)))
++          if (!canEncode(cs.charAt(i)))
+             return false;
+         }
+       return true;
+     }
+ 
+-    protected CoderResult encodeLoop (CharBuffer in, ByteBuffer out)
++    protected CoderResult encodeLoop(CharBuffer in, ByteBuffer out)
+     {
+-      // TODO: Optimize this in the case in.hasArray() / out.hasArray()
+-      while (in.hasRemaining ())
+-      {
+-	int c = (int)in.get ();
+-
+-        if (!out.hasRemaining ())
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.OVERFLOW;
+-          }
+-
+-	// lookup byte encoding
+-	byte b = (c < lookup.length) ? lookup[c] : (byte)0;
+-
+-	if ((int)b != 0 || (int)c == 0)
+-	    {
+-		out.put (b);
+-	    } else {
+-		in.position (in.position () - 1);
+-		return CoderResult.unmappableForLength (1);		
+-	    }
+-      }
+-
+-      return CoderResult.UNDERFLOW;
++      return helper.encodeLoop(in, out);
+     }
+   }
+ }
+diff -r -u gnu/java/nio/charset/ByteDecodeLoopHelper.java gnu/java/nio/charset/ByteDecodeLoopHelper.java
+--- gnu/java/nio/charset/ByteDecodeLoopHelper.java	2007-10-19 14:20:49.000000000 +0100
++++ gnu/java/nio/charset/ByteDecodeLoopHelper.java	2007-10-18 21:21:07.000000000 +0100
+@@ -0,0 +1,162 @@
++/* ByteCharset.java -- Abstract class for generic 1-byte encodings.
++   Copyright (C) 2005 Free Software Foundation, Inc.
++
++This file is part of GNU Classpath.
++
++GNU Classpath is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2, or (at your option)
++any later version.
++
++GNU Classpath is distributed in the hope that it will be useful, but
++WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with GNU Classpath; see the file COPYING.  If not, write to the
++Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++02110-1301 USA.
++
++Linking this library statically or dynamically with other modules is
++making a combined work based on this library.  Thus, the terms and
++conditions of the GNU General Public License cover the whole
++combination.
++
++As a special exception, the copyright holders of this library give you
++permission to link this library with independent modules to produce an
++executable, regardless of the license terms of these independent
++modules, and to copy and distribute the resulting executable under
++terms of your choice, provided that you also meet, for each linked
++independent module, the terms and conditions of the license of that
++module.  An independent module is a module which is not derived from
++or based on this library.  If you modify this library, you may extend
++this exception to your version of the library, but you are not
++obligated to do so.  If you do not wish to do so, delete this
++exception statement from your version. */
++
++package gnu.java.nio.charset;
++
++import java.nio.ByteBuffer;
++import java.nio.CharBuffer;
++import java.nio.charset.CoderResult;
++
++/**
++ * Helper class to deal with decoding loops that read a byte at a time
++ * 
++ * @author Ian Rogers
++ */
++public abstract class ByteDecodeLoopHelper
++{
++  /**
++   * @return can the given byte be encoded
++   */
++  protected abstract boolean isMappable(byte b);
++
++  /**
++   * Map the given byte to a char, the given byte is guaranteed to be mappable
++   */
++  protected abstract char mapToChar(byte b);
++
++  /**
++   * Encodes one or more characters into one or more bytes, mapping each
++   * character to only one byte
++   * 
++   * @param in character buffer to read from
++   * @param out byte buffer to write to
++   * @return the result state of the encoder
++   */
++  CoderResult decodeLoop(ByteBuffer in, CharBuffer out)
++  {
++    if (in.hasArray() && out.hasArray())
++      {
++        return arrayDecodeLoop(in, out);
++      } else
++      {
++        return normalDecodeLoop(in, out);
++      }
++  }
++
++  /**
++   * Encode loop using get and put operations
++   */
++  private CoderResult normalDecodeLoop(ByteBuffer in, CharBuffer out)
++  {
++    int outRemaining = out.remaining();
++    int inRemaining = in.remaining();
++    while (inRemaining > 0 && outRemaining > 0)
++      {
++        byte b = in.get();
++        inRemaining--;
++
++        if (!isMappable(b))
++          {
++            in.position(in.position() - 1);
++            return CoderResult.unmappableForLength(1);
++          }
++        char c = mapToChar(b);
++        out.put(c);
++        outRemaining--;
++      }
++    if (inRemaining > 0)
++      {
++        return CoderResult.OVERFLOW;
++      } else
++      {
++        return CoderResult.UNDERFLOW;
++      }
++  }
++
++  /**
++   * Encode loop using array read and write operations
++   */
++  private CoderResult arrayDecodeLoop(ByteBuffer in, CharBuffer out)
++  {
++    byte[] inArray = in.array();
++    char[] outArray = out.array();
++    int inPos = in.arrayOffset() + in.position();
++    int outPos = out.arrayOffset() + out.position();
++    int inRemaining = in.remaining();
++    int outRemaining = out.remaining();
++    CoderResult result;
++    if (inRemaining <= outRemaining)
++      {
++        for (int i = 0; i < inRemaining; i++)
++          {
++            byte b = inArray[inPos];
++            inPos++;
++            if (!isMappable(b))
++              {
++                inPos--;
++                result = CoderResult.unmappableForLength(1);
++                break;
++              }
++            char c = mapToChar(b);
++            outArray[outPos] = c;
++            outPos++;
++          }
++        result = CoderResult.UNDERFLOW;
++      }
++    else
++      {
++        for (int i = 0; i < outRemaining; i++)
++          {
++            byte b = inArray[inPos];
++            inPos++;
++            if (!isMappable(b))
++              {
++                inPos--;
++                result = CoderResult.unmappableForLength(1);
++                break;
++              }
++            char c = mapToChar(b);
++            outArray[outPos] = c;
++            outPos++;
++          }
++        result = CoderResult.OVERFLOW;
++      }
++    in.position(inPos - in.arrayOffset());
++    out.position(outPos - out.arrayOffset());
++    return result;
++  }
++}
+diff -r -u gnu/java/nio/charset/ByteEncodeLoopHelper.java gnu/java/nio/charset/ByteEncodeLoopHelper.java
+--- gnu/java/nio/charset/ByteEncodeLoopHelper.java	2007-10-19 14:20:45.000000000 +0100
++++ gnu/java/nio/charset/ByteEncodeLoopHelper.java	2007-10-18 21:21:37.000000000 +0100
+@@ -0,0 +1,163 @@
++/* ByteCharset.java -- Abstract class for generic 1-byte encodings.
++   Copyright (C) 2005 Free Software Foundation, Inc.
++
++This file is part of GNU Classpath.
++
++GNU Classpath is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2, or (at your option)
++any later version.
++
++GNU Classpath is distributed in the hope that it will be useful, but
++WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with GNU Classpath; see the file COPYING.  If not, write to the
++Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++02110-1301 USA.
++
++Linking this library statically or dynamically with other modules is
++making a combined work based on this library.  Thus, the terms and
++conditions of the GNU General Public License cover the whole
++combination.
++
++As a special exception, the copyright holders of this library give you
++permission to link this library with independent modules to produce an
++executable, regardless of the license terms of these independent
++modules, and to copy and distribute the resulting executable under
++terms of your choice, provided that you also meet, for each linked
++independent module, the terms and conditions of the license of that
++module.  An independent module is a module which is not derived from
++or based on this library.  If you modify this library, you may extend
++this exception to your version of the library, but you are not
++obligated to do so.  If you do not wish to do so, delete this
++exception statement from your version. */
++
++package gnu.java.nio.charset;
++
++import java.nio.ByteBuffer;
++import java.nio.CharBuffer;
++import java.nio.charset.CoderResult;
++
++/**
++ * Helper class to deal with encoding loops that write a byte at a time
++ * 
++ * @author Ian Rogers
++ */
++public abstract class ByteEncodeLoopHelper
++{
++  /**
++   * @return can the given character be encoded
++   */
++  protected abstract boolean isMappable(char c);
++
++  /**
++   * Map the given character to a byte, the given character is guaranteed to be
++   * mappable
++   */
++  protected abstract byte mapToByte(char c);
++
++  /**
++   * Encodes one or more characters into one or more bytes, mapping each
++   * character to only one byte
++   * 
++   * @param in character buffer to read from
++   * @param out byte buffer to write to
++   * @return the result state of the encoder
++   */
++  CoderResult encodeLoop(CharBuffer in, ByteBuffer out)
++  {
++    if (in.hasArray() && out.hasArray())
++      {
++        return arrayEncodeLoop(in, out);
++      } else
++      {
++        return normalEncodeLoop(in, out);
++      }
++  }
++
++  /**
++   * Encode loop using get and put operations
++   */
++  private CoderResult normalEncodeLoop(CharBuffer in, ByteBuffer out)
++  {
++    int outRemaining = out.remaining();
++    int inRemaining = in.remaining();
++    while (inRemaining > 0 && outRemaining > 0)
++      {
++        char c = in.get();
++        inRemaining--;
++
++        if (!isMappable(c))
++          {
++            in.position(in.position() - 1);
++            return CoderResult.unmappableForLength(1);
++          }
++        byte b = mapToByte(c);
++        out.put(b);
++        outRemaining--;
++      }
++    if (inRemaining > 0)
++      {
++        return CoderResult.OVERFLOW;
++      } else
++      {
++        return CoderResult.UNDERFLOW;
++      }
++  }
++
++  /**
++   * Encode loop using array read and write operations
++   */
++  private CoderResult arrayEncodeLoop(CharBuffer in, ByteBuffer out)
++  {
++    char[] inArray = in.array();
++    byte[] outArray = out.array();
++    int inPos = in.arrayOffset() + in.position();
++    int outPos = out.arrayOffset() + out.position();
++    int inRemaining = in.remaining();
++    int outRemaining = out.remaining();
++    CoderResult result;
++    if (inRemaining <= outRemaining)
++      {
++        for (int i = 0; i < inRemaining; i++)
++          {
++            char inChar = inArray[inPos];
++            inPos++;
++            if (!isMappable(inChar))
++              {
++                inPos--;
++                result = CoderResult.unmappableForLength(1);
++                break;
++              }
++            byte b = mapToByte(inChar);
++            outArray[outPos] = b;
++            outPos++;
++          }
++        result = CoderResult.UNDERFLOW;
++      }
++    else
++      {
++        for (int i = 0; i < outRemaining; i++)
++          {
++            char inChar = inArray[inPos];
++            inPos++;
++            if (!isMappable(inChar))
++              {
++                inPos--;
++                result = CoderResult.unmappableForLength(1);
++                break;
++              }
++            byte b = mapToByte(inChar);
++            outArray[outPos] = b;
++            outPos++;
++          }
++        result = CoderResult.OVERFLOW;
++      }
++    in.position(inPos - in.arrayOffset());
++    out.position(outPos - out.arrayOffset());
++    return result;
++  }
++}
+diff -r -u gnu/java/nio/charset/Cp424.java gnu/java/nio/charset/Cp424.java
+--- gnu/java/nio/charset/Cp424.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp424.java	2007-10-18 12:33:21.000000000 +0100
+@@ -37,53 +37,50 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp424 extends ByteCharset
++public final class Cp424 extends ByteCharset
+ {
+ 
+   /**
+    * This is the lookup table for this encoding
+    */
+-    private static final char[]	lookup =
++    private static final char[] lookup =
+     {
+-	0x0000, 0x0001, 0x0002, 0x0003, 0x009C, 0x0009, 0x0086, 0x007F, 
+-	0x0097, 0x008D, 0x008E, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F, 
+-	0x0010, 0x0011, 0x0012, 0x0013, 0x009D, 0x0085, 0x0008, 0x0087, 
+-	0x0018, 0x0019, 0x0092, 0x008F, 0x001C, 0x001D, 0x001E, 0x001F, 
+-	0x0080, 0x0081, 0x0082, 0x0083, 0x0084, 0x000A, 0x0017, 0x001B, 
+-	0x0088, 0x0089, 0x008A, 0x008B, 0x008C, 0x0005, 0x0006, 0x0007, 
+-	0x0090, 0x0091, 0x0016, 0x0093, 0x0094, 0x0095, 0x0096, 0x0004, 
+-	0x0098, 0x0099, 0x009A, 0x009B, 0x0014, 0x0015, 0x009E, 0x001A, 
+-	0x0020, 0x05D0, 0x05D1, 0x05D2, 0x05D3, 0x05D4, 0x05D5, 0x05D6, 
+-	0x05D7, 0x05D8, 0x00A2, 0x002E, 0x003C, 0x0028, 0x002B, 0x007C, 
+-	0x0026, 0x05D9, 0x05DA, 0x05DB, 0x05DC, 0x05DD, 0x05DE, 0x05DF, 
+-	0x05E0, 0x05E1, 0x0021, 0x0024, 0x002A, 0x0029, 0x003B, 0x00AC, 
+-	0x002D, 0x002F, 0x05E2, 0x05E3, 0x05E4, 0x05E5, 0x05E6, 0x05E7, 
+-	0x05E8, 0x05E9, 0x00A6, 0x002C, 0x0025, 0x005F, 0x003E, 0x003F, 
+-	NONE,   0x05EA,   NONE,   NONE, 0x00A0,   NONE,   NONE,   NONE, 
+-	0x2017, 0x0060, 0x003A, 0x0023, 0x0040, 0x0027, 0x003D, 0x0022, 
+-	NONE,   0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 
+-	0x0068, 0x0069, 0x00AB, 0x00BB,   NONE,   NONE,   NONE, 0x00B1, 
+-	0x00B0, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F, 0x0070, 
+-	0x0071, 0x0072,   NONE,   NONE,   NONE, 0x00B8,   NONE, 0x00A4, 
+-	0x00B5, 0x007E, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077, 0x0078, 
+-	0x0079, 0x007A,   NONE,   NONE,   NONE,   NONE,   NONE, 0x00AE, 
+-	0x005E, 0x00A3, 0x00A5, 0x00B7, 0x00A9, 0x00A7, 0x00B6, 0x00BC, 
+-	0x00BD, 0x00BE, 0x005B, 0x005D, 0x00AF, 0x00A8, 0x00B4, 0x00D7, 
+-	0x007B, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047, 
+-	0x0048, 0x0049, 0x00AD,   NONE,   NONE,   NONE,   NONE,   NONE, 
+-	0x007D, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F, 0x0050, 
+-	0x0051, 0x0052, 0x00B9,   NONE,   NONE,   NONE,   NONE,   NONE, 
+-	0x005C, 0x00F7, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 
+-	0x0059, 0x005A, 0x00B2,   NONE,   NONE,   NONE,   NONE,   NONE, 
+-	0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 
++	0x0000, 0x0001, 0x0002, 0x0003, 0x009C, 0x0009, 0x0086, 0x007F,
++	0x0097, 0x008D, 0x008E, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
++	0x0010, 0x0011, 0x0012, 0x0013, 0x009D, 0x0085, 0x0008, 0x0087,
++	0x0018, 0x0019, 0x0092, 0x008F, 0x001C, 0x001D, 0x001E, 0x001F,
++	0x0080, 0x0081, 0x0082, 0x0083, 0x0084, 0x000A, 0x0017, 0x001B,
++	0x0088, 0x0089, 0x008A, 0x008B, 0x008C, 0x0005, 0x0006, 0x0007,
++	0x0090, 0x0091, 0x0016, 0x0093, 0x0094, 0x0095, 0x0096, 0x0004,
++	0x0098, 0x0099, 0x009A, 0x009B, 0x0014, 0x0015, 0x009E, 0x001A,
++	0x0020, 0x05D0, 0x05D1, 0x05D2, 0x05D3, 0x05D4, 0x05D5, 0x05D6,
++	0x05D7, 0x05D8, 0x00A2, 0x002E, 0x003C, 0x0028, 0x002B, 0x007C,
++	0x0026, 0x05D9, 0x05DA, 0x05DB, 0x05DC, 0x05DD, 0x05DE, 0x05DF,
++	0x05E0, 0x05E1, 0x0021, 0x0024, 0x002A, 0x0029, 0x003B, 0x00AC,
++	0x002D, 0x002F, 0x05E2, 0x05E3, 0x05E4, 0x05E5, 0x05E6, 0x05E7,
++	0x05E8, 0x05E9, 0x00A6, 0x002C, 0x0025, 0x005F, 0x003E, 0x003F,
++	NONE,   0x05EA,   NONE,   NONE, 0x00A0,   NONE,   NONE,   NONE,
++	0x2017, 0x0060, 0x003A, 0x0023, 0x0040, 0x0027, 0x003D, 0x0022,
++	NONE,   0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
++	0x0068, 0x0069, 0x00AB, 0x00BB,   NONE,   NONE,   NONE, 0x00B1,
++	0x00B0, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F, 0x0070,
++	0x0071, 0x0072,   NONE,   NONE,   NONE, 0x00B8,   NONE, 0x00A4,
++	0x00B5, 0x007E, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077, 0x0078,
++	0x0079, 0x007A,   NONE,   NONE,   NONE,   NONE,   NONE, 0x00AE,
++	0x005E, 0x00A3, 0x00A5, 0x00B7, 0x00A9, 0x00A7, 0x00B6, 0x00BC,
++	0x00BD, 0x00BE, 0x005B, 0x005D, 0x00AF, 0x00A8, 0x00B4, 0x00D7,
++	0x007B, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
++	0x0048, 0x0049, 0x00AD,   NONE,   NONE,   NONE,   NONE,   NONE,
++	0x007D, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F, 0x0050,
++	0x0051, 0x0052, 0x00B9,   NONE,   NONE,   NONE,   NONE,   NONE,
++	0x005C, 0x00F7, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058,
++	0x0059, 0x005A, 0x00B2,   NONE,   NONE,   NONE,   NONE,   NONE,
++	0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
+ 	0x0038, 0x0039, 0x00B3,   NONE,   NONE,   NONE,   NONE, 0x009F
+     };
+ 
+-    public Cp424()
+-    {
+-	super("Cp424", new String[] {
+-	});
+-	lookupTable = lookup;
++    public Cp424() {
++      super("Cp424", new String[] {}, lookup);
+     }
+ 
+ } // class Cp424
+diff -r -u gnu/java/nio/charset/Cp437.java gnu/java/nio/charset/Cp437.java
+--- gnu/java/nio/charset/Cp437.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp437.java	2007-10-18 12:34:50.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp437 extends ByteCharset
++public final class Cp437 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public Cp437()
+     {
+-	super("Cp437", new String[] {
+-	});
+-	lookupTable = lookup;
++      super("Cp437", new String[]{}, lookup);
+     }
+ 
+ } // class Cp437
+diff -r -u gnu/java/nio/charset/Cp737.java gnu/java/nio/charset/Cp737.java
+--- gnu/java/nio/charset/Cp737.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp737.java	2007-10-18 12:34:50.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp737 extends ByteCharset
++public final class Cp737 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public Cp737()
+     {
+-	super("Cp737", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("Cp737", new String[] {}, lookup);
+     }
+ 
+ } // class Cp737
+diff -r -u gnu/java/nio/charset/Cp775.java gnu/java/nio/charset/Cp775.java
+--- gnu/java/nio/charset/Cp775.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp775.java	2007-10-18 12:34:50.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp775 extends ByteCharset
++public final class Cp775 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public Cp775()
+     {
+-	super("Cp775", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("Cp775", new String[] {}, lookup);
+     }
+ 
+ } // class Cp775
+diff -r -u gnu/java/nio/charset/Cp850.java gnu/java/nio/charset/Cp850.java
+--- gnu/java/nio/charset/Cp850.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp850.java	2007-10-18 12:34:50.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp850 extends ByteCharset
++public final class Cp850 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public Cp850()
+     {
+-	super("Cp850", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("Cp850", new String[] {}, lookup);
+     }
+ 
+ } // class Cp850
+diff -r -u gnu/java/nio/charset/Cp852.java gnu/java/nio/charset/Cp852.java
+--- gnu/java/nio/charset/Cp852.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp852.java	2007-10-18 12:34:51.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp852 extends ByteCharset
++public final class Cp852 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public Cp852()
+     {
+-	super("Cp852", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("Cp852", new String[] {}, lookup);
+     }
+ 
+ } // class Cp852
+diff -r -u gnu/java/nio/charset/Cp855.java gnu/java/nio/charset/Cp855.java
+--- gnu/java/nio/charset/Cp855.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp855.java	2007-10-18 12:34:51.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp855 extends ByteCharset
++public final class Cp855 extends ByteCharset
+ {
+ 
+     /**
+@@ -81,10 +81,7 @@
+ 
+     public Cp855()
+     {
+-	super("Cp855", new String[] {
+-	    "cp-855",
+-	});
+-	lookupTable = lookup;
++	super("Cp855", new String[] {"cp-855",}, lookup);
+     }
+ 
+ } // class Cp855
+diff -r -u gnu/java/nio/charset/Cp857.java gnu/java/nio/charset/Cp857.java
+--- gnu/java/nio/charset/Cp857.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp857.java	2007-10-18 12:34:51.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp857 extends ByteCharset
++public final class Cp857 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp857()
+     {
+-	super("Cp857", new String[] {
+-	    "cp-857"
+-	});
+-	lookupTable = lookup;
++	super("Cp857", new String[] {"cp-857"}, lookup);
+     }
+ 
+ } // class Cp857
+diff -r -u gnu/java/nio/charset/Cp860.java gnu/java/nio/charset/Cp860.java
+--- gnu/java/nio/charset/Cp860.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp860.java	2007-10-18 12:34:51.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp860 extends ByteCharset
++public final class Cp860 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp860()
+     {
+-	super("Cp860", new String[] {
+-	    "cp-860"
+-	});
+-	lookupTable = lookup;
++	super("Cp860", new String[] {"cp-860"}, lookup);
+     }
+ 
+ } // class Cp860
+diff -r -u gnu/java/nio/charset/Cp861.java gnu/java/nio/charset/Cp861.java
+--- gnu/java/nio/charset/Cp861.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp861.java	2007-10-18 12:35:08.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp861 extends ByteCharset
++public final class Cp861 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp861()
+     {
+-	super("Cp861", new String[] {
+-	    "cp-861"
+-	});
+-	lookupTable = lookup;
++	super("Cp861", new String[] {"cp-861"}, lookup);
+     }
+ 
+ } // class Cp861
+diff -r -u gnu/java/nio/charset/Cp862.java gnu/java/nio/charset/Cp862.java
+--- gnu/java/nio/charset/Cp862.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp862.java	2007-10-18 12:35:30.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp862 extends ByteCharset
++public final class Cp862 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp862()
+     {
+-	super("Cp862", new String[] {
+-	    "Cp-862"
+-	});
+-	lookupTable = lookup;
++	super("Cp862", new String[] {"Cp-862"}, lookup);
+     }
+ 
+ } // class Cp862
+diff -r -u gnu/java/nio/charset/Cp863.java gnu/java/nio/charset/Cp863.java
+--- gnu/java/nio/charset/Cp863.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp863.java	2007-10-18 12:35:52.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp863 extends ByteCharset
++public final class Cp863 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp863()
+     {
+-	super("Cp863", new String[] {
+-	    "Cp-863"
+-	});
+-	lookupTable = lookup;
++	super("Cp863", new String[] {"Cp-863"}, lookup);
+     }
+ 
+ } // class Cp863
+diff -r -u gnu/java/nio/charset/Cp864.java gnu/java/nio/charset/Cp864.java
+--- gnu/java/nio/charset/Cp864.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp864.java	2007-10-18 12:40:00.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp864 extends ByteCharset
++public final class Cp864 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp864()
+     {
+-	super("Cp864", new String[] {
+-	    "Cp-864"
+-	});
+-	lookupTable = lookup;
++	super("Cp864", new String[] {"Cp-864"}, lookup);
+     }
+ 
+ } // class Cp864
+diff -r -u gnu/java/nio/charset/Cp865.java gnu/java/nio/charset/Cp865.java
+--- gnu/java/nio/charset/Cp865.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp865.java	2007-10-18 12:37:03.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp865 extends ByteCharset
++public final class Cp865 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp865()
+     {
+-	super("Cp865", new String[] {
+-	    "Cp-865"
+-	});
+-	lookupTable = lookup;
++	super("Cp865", new String[] {"Cp-865"}, lookup);
+     }
+ 
+ } // class Cp865
+diff -r -u gnu/java/nio/charset/Cp866.java gnu/java/nio/charset/Cp866.java
+--- gnu/java/nio/charset/Cp866.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp866.java	2007-10-18 12:36:53.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp866 extends ByteCharset
++public final class Cp866 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp866()
+     {
+-	super("Cp866", new String[] {
+-	    "cp-866"
+-	});
+-	lookupTable = lookup;
++	super("Cp866", new String[] {"cp-866"}, lookup);
+     }
+ 
+ } // class Cp866
+diff -r -u gnu/java/nio/charset/Cp869.java gnu/java/nio/charset/Cp869.java
+--- gnu/java/nio/charset/Cp869.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp869.java	2007-10-18 12:37:35.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp869 extends ByteCharset
++public final class Cp869 extends ByteCharset
+ {
+ 
+     /**
+@@ -82,10 +82,7 @@
+ 
+     public Cp869()
+     {
+-	super("Cp869", new String[] {
+-	    "Cp-869"
+-	});
+-	lookupTable = lookup;
++	super("Cp869", new String[] {"Cp-869"}, lookup);
+     }
+ 
+ } // class Cp869
+diff -r -u gnu/java/nio/charset/Cp874.java gnu/java/nio/charset/Cp874.java
+--- gnu/java/nio/charset/Cp874.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Cp874.java	2007-10-18 12:37:54.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class Cp874 extends ByteCharset
++public final class Cp874 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public Cp874()
+     {
+-	super("Cp874", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("Cp874", new String[] {}, lookup);
+     }
+ 
+ } // class Cp874
+diff -r -u gnu/java/nio/charset/EncodingHelper.java gnu/java/nio/charset/EncodingHelper.java
+--- gnu/java/nio/charset/EncodingHelper.java	2007-03-27 10:51:26.000000000 +0100
++++ gnu/java/nio/charset/EncodingHelper.java	2007-10-18 12:59:33.000000000 +0100
+@@ -57,10 +57,10 @@
+      * Contains the mapping from java.io canonical names 
+      * to java.nio canonical names.
+      */
+-    private static HashMap canonicalNames;
++    private static final HashMap<String,String> canonicalNames;
+ 
+     static {
+-	canonicalNames = new HashMap();
++	canonicalNames = new HashMap<String,String>();
+ 	canonicalNames.put("US-ASCII", "ASCII");
+ 	canonicalNames.put("windows-1250", "Cp1250");
+ 	canonicalNames.put("windows-1251", "Cp1251");
+@@ -94,7 +94,6 @@
+      */
+     public static String getDefaultEncoding()
+     {
+-	String encoding;
+ 	try 
+ 	    {
+ 		return System.getProperty("file.encoding");
+Only in gnu/java/nio/charset/: iconv
+diff -r -u gnu/java/nio/charset/ISO_8859_13.java gnu/java/nio/charset/ISO_8859_13.java
+--- gnu/java/nio/charset/ISO_8859_13.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_13.java	2007-10-18 12:38:25.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-13, ISO Latin-7 char set.
+  */
+-public class ISO_8859_13 extends ByteCharset
++public final class ISO_8859_13 extends ByteCharset
+ {
+ 
+   /**
+@@ -96,8 +96,7 @@
+ 	  "8859_13", 
+ 	  "cp921",
+ 	  "921"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_13
+diff -r -u gnu/java/nio/charset/ISO_8859_15.java gnu/java/nio/charset/ISO_8859_15.java
+--- gnu/java/nio/charset/ISO_8859_15.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_15.java	2007-10-18 12:38:48.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-15, ISO Latin-9 char set.
+  */
+-public class ISO_8859_15 extends ByteCharset
++public final class ISO_8859_15 extends ByteCharset
+ {
+ 
+   /**
+@@ -103,8 +103,7 @@
+ 	  "cp923", 
+ 	  "923", 
+ 	  "windows-28605"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_15
+diff -r -u gnu/java/nio/charset/ISO_8859_1.java gnu/java/nio/charset/ISO_8859_1.java
+--- gnu/java/nio/charset/ISO_8859_1.java	2007-07-23 22:53:59.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_1.java	2007-10-18 17:26:32.000000000 +0100
+@@ -48,6 +48,7 @@
+  * ISO-8859-1 charset.
+  *
+  * @author Jesse Rosenstock
++ * @modified Ian Rogers
+  */
+ final class ISO_8859_1 extends Charset
+ {
+@@ -98,6 +99,19 @@
+ 
+   private static final class Decoder extends CharsetDecoder
+   {
++    /** Helper to decode loops */
++    private static final ByteDecodeLoopHelper helper = new ByteDecodeLoopHelper()
++    {
++      protected boolean isMappable(byte b)
++      {
++        return true;
++      }
++      protected char mapToChar(byte b)
++      {
++        return (char)(b & 0xFF);
++      }
++    };
++    
+     // Package-private to avoid a trampoline constructor.
+     Decoder (Charset cs)
+     {
+@@ -106,26 +120,24 @@
+ 
+     protected CoderResult decodeLoop (ByteBuffer in, CharBuffer out)
+     {
+-      // TODO: Optimize this in the case in.hasArray() / out.hasArray()
+-      while (in.hasRemaining ())
+-      {
+-        byte b = in.get ();
+-
+-        if (!out.hasRemaining ())
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.OVERFLOW;
+-          }
+-
+-        out.put ((char) (b & 0xFF));
+-      }
+-
+-      return CoderResult.UNDERFLOW;
++      return helper.decodeLoop(in, out);
+     }
+   }
+ 
+   private static final class Encoder extends CharsetEncoder
+   {
++    /** Helper to encode loops */
++    private static final ByteEncodeLoopHelper helper = new ByteEncodeLoopHelper()
++    {
++      protected boolean isMappable(char c)
++      {
++        return c <= 0xff;
++      }
++      protected byte mapToByte(char c)
++      {
++        return (byte)c;
++      }
++    };
+     // Package-private to avoid a trampoline constructor.
+     Encoder (Charset cs)
+     {
+@@ -147,26 +159,7 @@
+ 
+     protected CoderResult encodeLoop (CharBuffer in, ByteBuffer out)
+     {
+-      // TODO: Optimize this in the case in.hasArray() / out.hasArray()
+-      while (in.hasRemaining ())
+-      {
+-        char c = in.get ();
+-
+-        if (c > 0xFF)
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.unmappableForLength (1);
+-          }
+-        if (!out.hasRemaining ())
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.OVERFLOW;
+-          }
+-
+-        out.put ((byte) c);
+-      }
+-
+-      return CoderResult.UNDERFLOW;
++      return helper.encodeLoop(in, out);
+     }
+   }
+ }
+diff -r -u gnu/java/nio/charset/ISO_8859_2.java gnu/java/nio/charset/ISO_8859_2.java
+--- gnu/java/nio/charset/ISO_8859_2.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_2.java	2007-10-18 12:39:06.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-2, ISO Latin-2 char set.
+  */
+-public class ISO_8859_2 extends ByteCharset
++public final class ISO_8859_2 extends ByteCharset
+ {
+ 
+   /**
+@@ -102,8 +102,7 @@
+ 	  "cp912",
+ 	  "912", 
+ 	  "windows-28592"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_2
+diff -r -u gnu/java/nio/charset/ISO_8859_3.java gnu/java/nio/charset/ISO_8859_3.java
+--- gnu/java/nio/charset/ISO_8859_3.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_3.java	2007-10-18 12:39:35.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-3, ISO Latin-3 char set.
+  */
+-public class ISO_8859_3 extends ByteCharset
++public final class ISO_8859_3 extends ByteCharset
+ {
+ 
+   /**
+@@ -101,8 +101,7 @@
+ 	  "cp913", 
+ 	  "913", 
+ 	  "windows-28593"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_3
+diff -r -u gnu/java/nio/charset/ISO_8859_4.java gnu/java/nio/charset/ISO_8859_4.java
+--- gnu/java/nio/charset/ISO_8859_4.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_4.java	2007-10-18 12:40:01.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-4, ISO Latin-4 char set.
+  */
+-public class ISO_8859_4 extends ByteCharset
++public final class ISO_8859_4 extends ByteCharset
+ {
+ 
+   /**
+@@ -102,8 +102,7 @@
+ 	  "cp914",
+ 	  "914", 
+ 	  "windows-28594"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_4
+diff -r -u gnu/java/nio/charset/ISO_8859_5.java gnu/java/nio/charset/ISO_8859_5.java
+--- gnu/java/nio/charset/ISO_8859_5.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_5.java	2007-10-18 12:48:47.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-5, ISO cyrillic char set.
+  */
+-public class ISO_8859_5 extends ByteCharset
++public final class ISO_8859_5 extends ByteCharset
+ {
+ 
+   /**
+@@ -100,8 +100,7 @@
+ 	  "cp915", 
+ 	  "915", 
+ 	  "windows-28595"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_5
+diff -r -u gnu/java/nio/charset/ISO_8859_6.java gnu/java/nio/charset/ISO_8859_6.java
+--- gnu/java/nio/charset/ISO_8859_6.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_6.java	2007-10-18 12:48:47.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-6, ISO Arabic char set.
+  */
+-public class ISO_8859_6 extends ByteCharset
++public final class ISO_8859_6 extends ByteCharset
+ {
+ 
+   /**
+@@ -104,8 +104,7 @@
+ 	  "windows-28596", 
+ 	  "ISO-8859-6-I", 
+ 	  "ISO-8859-6-E"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_6
+diff -r -u gnu/java/nio/charset/ISO_8859_7.java gnu/java/nio/charset/ISO_8859_7.java
+--- gnu/java/nio/charset/ISO_8859_7.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_7.java	2007-10-18 12:48:47.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-7, ISO Latin/Greek char set.
+  */
+-public class ISO_8859_7 extends ByteCharset
++public final class ISO_8859_7 extends ByteCharset
+ {
+ 
+   /**
+@@ -103,8 +103,7 @@
+ 	  "cp813",
+ 	  "813",
+ 	  "windows-28597"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_7
+diff -r -u gnu/java/nio/charset/ISO_8859_8.java gnu/java/nio/charset/ISO_8859_8.java
+--- gnu/java/nio/charset/ISO_8859_8.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_8.java	2007-10-18 12:48:48.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-8, ISO Latin/Hebrew char set.
+  */
+-public class ISO_8859_8 extends ByteCharset
++public final class ISO_8859_8 extends ByteCharset
+ {
+ 
+   /**
+@@ -102,8 +102,7 @@
+ 	  "cp916",
+ 	  "916",
+ 	  "windows-28598"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_8
+diff -r -u gnu/java/nio/charset/ISO_8859_9.java gnu/java/nio/charset/ISO_8859_9.java
+--- gnu/java/nio/charset/ISO_8859_9.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/ISO_8859_9.java	2007-10-18 12:48:49.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for ISO-8859-9, ISO Latin-5 char set.
+  */
+-public class ISO_8859_9 extends ByteCharset
++public final class ISO_8859_9 extends ByteCharset
+ {
+ 
+   /**
+@@ -102,8 +102,7 @@
+ 	  "920", 
+ 	  "windows-28599",
+ 	  "ECMA-128"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class ISO_8859_9
+diff -r -u gnu/java/nio/charset/KOI_8.java gnu/java/nio/charset/KOI_8.java
+--- gnu/java/nio/charset/KOI_8.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/KOI_8.java	2007-10-18 12:48:49.000000000 +0100
+@@ -41,7 +41,7 @@
+ /**
+  * Encoding table for the KOI8 cyrillic char set.
+  */
+-public class KOI_8 extends ByteCharset
++public final class KOI_8 extends ByteCharset
+ {
+ 
+   /**
+@@ -94,8 +94,7 @@
+ 	  "koi8r", 
+ 	  "koi-8-r",
+ 	  "koi"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class KOI_8
+diff -r -u gnu/java/nio/charset/MacCentralEurope.java gnu/java/nio/charset/MacCentralEurope.java
+--- gnu/java/nio/charset/MacCentralEurope.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacCentralEurope.java	2007-10-18 12:48:49.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacCentralEurope extends ByteCharset
++public final class MacCentralEurope extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacCentralEurope()
+     {
+-	super("MacCentralEurope", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacCentralEurope", new String[] {}, lookup);
+     }
+ 
+ } // class MacCentralEurope
+diff -r -u gnu/java/nio/charset/MacCroatian.java gnu/java/nio/charset/MacCroatian.java
+--- gnu/java/nio/charset/MacCroatian.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacCroatian.java	2007-10-18 12:48:49.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacCroatian extends ByteCharset
++public final class MacCroatian extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacCroatian()
+     {
+-	super("MacCroatian", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacCroatian", new String[] {}, lookup);
+     }
+ 
+ } // class MacCroatian
+diff -r -u gnu/java/nio/charset/MacCyrillic.java gnu/java/nio/charset/MacCyrillic.java
+--- gnu/java/nio/charset/MacCyrillic.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacCyrillic.java	2007-10-18 12:48:50.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacCyrillic extends ByteCharset
++public final class MacCyrillic extends ByteCharset
+ {
+ 
+     /**
+@@ -81,9 +81,7 @@
+ 
+     public MacCyrillic()
+     {
+-	super("MacCyrillic", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacCyrillic", new String[] {}, lookup);
+     }
+ 
+ } // class MacCyrillic
+diff -r -u gnu/java/nio/charset/MacDingbat.java gnu/java/nio/charset/MacDingbat.java
+--- gnu/java/nio/charset/MacDingbat.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacDingbat.java	2007-10-18 12:48:50.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacDingbat extends ByteCharset
++public final class MacDingbat extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacDingbat()
+     {
+-	super("MacDingbat", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacDingbat", new String[] {}, lookup);
+     }
+ 
+ } // class MacDingbat
+diff -r -u gnu/java/nio/charset/MacGreek.java gnu/java/nio/charset/MacGreek.java
+--- gnu/java/nio/charset/MacGreek.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacGreek.java	2007-10-18 12:48:51.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacGreek extends ByteCharset
++public final class MacGreek extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacGreek()
+     {
+-	super("MacGreek", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacGreek", new String[] {}, lookup);
+     }
+ 
+ } // class MacGreek
+diff -r -u gnu/java/nio/charset/MacIceland.java gnu/java/nio/charset/MacIceland.java
+--- gnu/java/nio/charset/MacIceland.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacIceland.java	2007-10-18 12:49:08.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacIceland extends ByteCharset
++public final class MacIceland extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacIceland()
+     {
+-	super("MacIceland", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacIceland", new String[] {}, lookup);
+     }
+ 
+ } // class MacIceland
+diff -r -u gnu/java/nio/charset/MacRomania.java gnu/java/nio/charset/MacRomania.java
+--- gnu/java/nio/charset/MacRomania.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacRomania.java	2007-10-18 12:49:56.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacRomania extends ByteCharset
++public final class MacRomania extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacRomania()
+     {
+-	super("MacRomania", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacRomania", new String[] {}, lookup);
+     }
+ 
+ } // class MacRomania
+diff -r -u gnu/java/nio/charset/MacRoman.java gnu/java/nio/charset/MacRoman.java
+--- gnu/java/nio/charset/MacRoman.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacRoman.java	2007-10-18 12:49:49.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacRoman extends ByteCharset
++public final class MacRoman extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacRoman()
+     {
+-	super("MacRoman", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacRoman", new String[] {}, lookup);
+     }
+ 
+ } // class MacRoman
+diff -r -u gnu/java/nio/charset/MacSymbol.java gnu/java/nio/charset/MacSymbol.java
+--- gnu/java/nio/charset/MacSymbol.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacSymbol.java	2007-10-18 12:50:14.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacSymbol extends ByteCharset
++public final class MacSymbol extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacSymbol()
+     {
+-	super("MacSymbol", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacSymbol", new String[] {}, lookup);
+     }
+ 
+ } // class MacSymbol
+diff -r -u gnu/java/nio/charset/MacThai.java gnu/java/nio/charset/MacThai.java
+--- gnu/java/nio/charset/MacThai.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacThai.java	2007-10-18 12:50:31.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacThai extends ByteCharset
++public final class MacThai extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacThai()
+     {
+-	super("MacThai", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacThai", new String[] {}, lookup);
+     }
+ 
+ } // class MacThai
+diff -r -u gnu/java/nio/charset/MacTurkish.java gnu/java/nio/charset/MacTurkish.java
+--- gnu/java/nio/charset/MacTurkish.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MacTurkish.java	2007-10-18 12:51:21.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MacTurkish extends ByteCharset
++public final class MacTurkish extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MacTurkish()
+     {
+-	super("MacTurkish", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MacTurkish", new String[] {}, lookup);
+     }
+ 
+ } // class MacTurkish
+diff -r -u gnu/java/nio/charset/MS874.java gnu/java/nio/charset/MS874.java
+--- gnu/java/nio/charset/MS874.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/MS874.java	2007-10-18 12:51:13.000000000 +0100
+@@ -37,7 +37,7 @@
+ 
+ package gnu.java.nio.charset;
+ 
+-public class MS874 extends ByteCharset
++public final class MS874 extends ByteCharset
+ {
+ 
+   /**
+@@ -81,9 +81,7 @@
+ 
+     public MS874()
+     {
+-	super("MS874", new String[] {
+-	});
+-	lookupTable = lookup;
++	super("MS874", new String[] {}, lookup);
+     }
+ 
+ } // class MS874
+diff -r -u gnu/java/nio/charset/Provider.java gnu/java/nio/charset/Provider.java
+--- gnu/java/nio/charset/Provider.java	2006-06-07 20:26:59.000000000 +0100
++++ gnu/java/nio/charset/Provider.java	2007-10-18 12:55:13.000000000 +0100
+@@ -67,14 +67,14 @@
+    * are all lower-case to allow case-insensitive retrieval of
+    * Charset instances. 
+    */
+-  private final HashMap canonicalNames;
++  private final HashMap<String, String> canonicalNames;
+ 
+   /**
+    * Map from lower-case canonical name to Charset.
+    * TODO: We may want to use soft references.  We would then need to keep
+    * track of the class name to regenerate the object.
+    */
+-  private final HashMap charsets;
++  private final HashMap<String, Charset> charsets;
+ 
+   /**
+    * We don't load all available charsets at the start
+@@ -85,8 +85,8 @@
+   Provider ()
+   {
+     extendedLoaded = false;
+-    canonicalNames = new HashMap ();
+-    charsets = new HashMap ();
++    canonicalNames = new HashMap<String,String> ();
++    charsets = new HashMap<String,Charset> ();
+ 
+     // US-ASCII aka ISO646-US
+     addCharset (new US_ASCII ());
+@@ -203,7 +203,7 @@
+     extendedLoaded = true;
+   }
+ 
+-  public Iterator charsets ()
++  public Iterator<Charset> charsets ()
+   {
+     loadExtended();
+     return Collections.unmodifiableCollection (charsets.values ())
+@@ -250,7 +250,7 @@
+      */  
+     canonicalNames.put(canonicalName, canonicalName);
+ 
+-    for (Iterator i = cs.aliases ().iterator (); i.hasNext (); )
++    for (Iterator<String> i = cs.aliases ().iterator (); i.hasNext (); )
+       canonicalNames.put (((String) i.next()).toLowerCase(), canonicalName);
+   }
+ 
+@@ -258,10 +258,10 @@
+   {
+     // The default provider is safe to instantiate.
+     if (singleton == null)
+-      singleton = (Provider) AccessController.doPrivileged
+-	(new PrivilegedAction()
++      singleton = AccessController.doPrivileged
++	(new PrivilegedAction<Provider>()
+ 	  {
+-	    public Object run()
++	    public Provider run()
+ 	    {
+ 	      return new Provider();
+ 	    }
+diff -r -u gnu/java/nio/charset/US_ASCII.java gnu/java/nio/charset/US_ASCII.java
+--- gnu/java/nio/charset/US_ASCII.java	2006-09-25 20:19:47.000000000 +0100
++++ gnu/java/nio/charset/US_ASCII.java	2007-10-18 17:26:35.000000000 +0100
+@@ -48,6 +48,7 @@
+  * US-ASCII charset.
+  *
+  * @author Jesse Rosenstock
++ * @modified Ian Rogers
+  */
+ final class US_ASCII extends Charset
+ {
+@@ -95,6 +96,19 @@
+ 
+   private static final class Decoder extends CharsetDecoder
+   {
++    /** Helper to decode loops */
++    private static final ByteDecodeLoopHelper helper = new ByteDecodeLoopHelper()
++    {
++      protected boolean isMappable(byte b)
++      {
++        return b >= 0;
++      }
++      protected char mapToChar(byte b)
++      {
++        return (char)b;
++      }
++    };
++    
+     // Package-private to avoid a trampoline constructor.
+     Decoder (Charset cs)
+     {
+@@ -103,31 +117,24 @@
+ 
+     protected CoderResult decodeLoop (ByteBuffer in, CharBuffer out)
+     {
+-      // TODO: Optimize this in the case in.hasArray() / out.hasArray()
+-      while (in.hasRemaining ())
+-        {
+-          byte b = in.get ();
+-
+-          if (b < 0)
+-            {
+-              in.position (in.position () - 1);
+-              return CoderResult.malformedForLength (1);
+-            }
+-          if (!out.hasRemaining ())
+-            {
+-              in.position (in.position () - 1);
+-              return CoderResult.OVERFLOW;
+-            }
+-
+-          out.put ((char) b);
+-        }
+-
+-      return CoderResult.UNDERFLOW;
++      return helper.decodeLoop(in, out);
+     }
+   }
+ 
+   private static final class Encoder extends CharsetEncoder
+   {
++    /** Helper to encode loops */
++    private static final ByteEncodeLoopHelper helper = new ByteEncodeLoopHelper()
++    {
++      protected boolean isMappable(char c)
++      {
++        return c <= 0x7f;
++      }
++      protected byte mapToByte(char c)
++      {
++        return (byte)c;
++      }
++    };
+     // Package-private to avoid a trampoline constructor.
+     Encoder (Charset cs)
+     {
+@@ -149,26 +156,7 @@
+ 
+     protected CoderResult encodeLoop (CharBuffer in, ByteBuffer out)
+     {
+-      // TODO: Optimize this in the case in.hasArray() / out.hasArray()
+-      while (in.hasRemaining ())
+-      {
+-        char c = in.get ();
+-
+-        if (c > 0x7f)
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.unmappableForLength (1);
+-          }
+-        if (!out.hasRemaining ())
+-          {
+-            in.position (in.position () - 1);
+-            return CoderResult.OVERFLOW;
+-          }
+-
+-        out.put ((byte) c);
+-      }
+-
+-      return CoderResult.UNDERFLOW;
++      return helper.encodeLoop(in, out);
+     }
+   }
+ }
+diff -r -u gnu/java/nio/charset/Windows1250.java gnu/java/nio/charset/Windows1250.java
+--- gnu/java/nio/charset/Windows1250.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1250.java	2007-10-18 12:55:40.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1250-Latin-1, 
+  * aka cp1250 or Windows-1250 or whatever.
+  */
+-public class Windows1250 extends ByteCharset
++public final class Windows1250 extends ByteCharset
+ {
+ 
+   /**
+@@ -95,8 +95,7 @@
+ 	  "cp_1250", 
+ 	  "windows1250",
+ 	  "windows_1250" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1250
+diff -r -u gnu/java/nio/charset/Windows1251.java gnu/java/nio/charset/Windows1251.java
+--- gnu/java/nio/charset/Windows1251.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1251.java	2007-10-18 12:55:53.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1251 Cyrillic char set.
+  * aka cp1251 or Windows-1251 or whatever.
+  */
+-public class Windows1251 extends ByteCharset
++public final class Windows1251 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1251", 
+ 	  "windows1251",
+ 	  "windows_1251" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1251
+diff -r -u gnu/java/nio/charset/Windows1252.java gnu/java/nio/charset/Windows1252.java
+--- gnu/java/nio/charset/Windows1252.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1252.java	2007-10-18 12:56:21.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1252-Latin-1, 
+  * aka cp1252 or Windows-1252 or whatever.
+  */
+-public class Windows1252 extends ByteCharset
++public final class Windows1252 extends ByteCharset
+ {
+ 
+   /**
+@@ -92,8 +92,7 @@
+ 	  "windows-1252",
+ 	  "cp1252", 
+ 	  "cp-1252"
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1252
+diff -r -u gnu/java/nio/charset/Windows1253.java gnu/java/nio/charset/Windows1253.java
+--- gnu/java/nio/charset/Windows1253.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1253.java	2007-10-18 12:56:44.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1253 Greek char set.
+  * aka cp1253 or Windows-1253 or whatever.
+  */
+-public class Windows1253 extends ByteCharset
++public final class Windows1253 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1253", 
+ 	  "windows1253",
+ 	  "windows_1253" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1253
+diff -r -u gnu/java/nio/charset/Windows1254.java gnu/java/nio/charset/Windows1254.java
+--- gnu/java/nio/charset/Windows1254.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1254.java	2007-10-18 12:58:08.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1254 Turkish char set.
+  * aka cp1254 or Windows-1254 or whatever.
+  */
+-public class Windows1254 extends ByteCharset
++public final class Windows1254 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1254", 
+ 	  "windows1254",
+ 	  "windows_1254" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1254
+diff -r -u gnu/java/nio/charset/Windows1255.java gnu/java/nio/charset/Windows1255.java
+--- gnu/java/nio/charset/Windows1255.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1255.java	2007-10-18 12:57:19.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1255 Hebrew char set.
+  * aka cp1255 or Windows-1255 or whatever.
+  */
+-public class Windows1255 extends ByteCharset
++public final class Windows1255 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1255", 
+ 	  "windows1255",
+ 	  "windows_1255" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1255
+diff -r -u gnu/java/nio/charset/Windows1256.java gnu/java/nio/charset/Windows1256.java
+--- gnu/java/nio/charset/Windows1256.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1256.java	2007-10-18 12:58:08.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1256 Arabic char set.
+  * aka cp1256 or Windows-1256 or whatever.
+  */
+-public class Windows1256 extends ByteCharset
++public final class Windows1256 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1256", 
+ 	  "windows1256",
+ 	  "windows_1256" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1256
+diff -r -u gnu/java/nio/charset/Windows1257.java gnu/java/nio/charset/Windows1257.java
+--- gnu/java/nio/charset/Windows1257.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1257.java	2007-10-18 12:58:09.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1257 Baltic char set.
+  * aka cp1257 or Windows-1257 or whatever.
+  */
+-public class Windows1257 extends ByteCharset
++public final class Windows1257 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1257", 
+ 	  "windows1257",
+ 	  "windows_1257" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1257
+diff -r -u gnu/java/nio/charset/Windows1258.java gnu/java/nio/charset/Windows1258.java
+--- gnu/java/nio/charset/Windows1258.java	2005-07-02 21:32:13.000000000 +0100
++++ gnu/java/nio/charset/Windows1258.java	2007-10-18 12:58:09.000000000 +0100
+@@ -42,7 +42,7 @@
+  * Encoding table for Windows-1258 Arabic char set.
+  * aka cp1258 or Windows-1258 or whatever.
+  */
+-public class Windows1258 extends ByteCharset
++public final class Windows1258 extends ByteCharset
+ {
+ 
+   /**
+@@ -93,8 +93,7 @@
+ 	  "cp_1258", 
+ 	  "windows1258",
+ 	  "windows_1258" 
+-      });
+-      lookupTable = lookup;
++      }, lookup);
+  }
+   
+ } // class Windows1258
