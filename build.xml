@@ -1000,7 +1000,7 @@ Check to make sure all required properties are specified. This includes properti
   
   <target name="prepare-asm" depends="package,check-components-properties">
     <mkdir dir="${build.asm.classes}"/>
-    <javac srcdir="${jikesrvm.dir}/tools/asm-tasks/src" destdir="${build.asm.classes}" debug="true" classpath="${asm.jar}:${build.vm.jar}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/asm-tasks/src" destdir="${build.asm.classes}" debug="true" classpath="${asm.jar}:${build.vm.jar}:${build.rt.jar}"/>
  </target>
   
   <target name="gen-asm" depends="package,prepare-asm">
@@ -1010,6 +1010,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${asm.jar}"/>
         <pathelement location="${build.asm.classes}"/>
         <pathelement location="${build.vm.jar}"/>
+        <pathelement location="${build.rt.jar}"/>
       </classpath>
       <arg value="${build.rt.jar}:${build.vm.jar}"/>
       <arg value="${generated.asm}"/>

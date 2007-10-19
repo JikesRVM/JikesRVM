@@ -41,6 +41,7 @@ import java.math.RoundingMode;
 import org.jikesrvm.classloader.VM_ClassLoader;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Pure;
 
 /**
@@ -50,11 +51,47 @@ public final class AnnotationAdder {
   /** Verbose debug information */
   private static final boolean VERBOSE = false;
 
+  /** A triple of string constants used to identify an element to annotate */
+  private static final class ElementTriple {
+    private final String className;
+    private final String elementName;
+    private final String signature;
+    ElementTriple(String className, String elementName, String signature) {
+      this.className = className;
+      this.elementName = elementName;
+      this.signature = signature;
+    }
+    String getClassName() {
+      return className;
+    }
+    public int hashCode() {
+      return className.hashCode() + elementName.hashCode() + signature.hashCode();
+    }
+    public boolean equals(Object other) {
+      if (other instanceof ElementTriple) {
+        ElementTriple triple = (ElementTriple)other;
+        return className.equals(triple.className) && elementName.equals(triple.elementName) &&
+          signature.equals(triple.signature);
+      } else {
+        return false;
+      }
+    }
+    public String toString() {
+      return className + " " + elementName + " " + signature;
+    }
+  }
+
   /**
    * Elements we're looking to adapt and the annotations we want adding to them
    */
   private static final Map<AnnotatedElement, Set<Class<? extends Annotation>>> thingsToAnnotate =
     new HashMap<AnnotatedElement, Set<Class<? extends Annotation>>>();
+
+  /**
+   * More elements we're looking to adapt and the annotations we want adding to them
+   */
+  private static final Map<ElementTriple, Set<Class<? extends Annotation>>> thingsToAnnotate2 =
+    new HashMap<ElementTriple, Set<Class<? extends Annotation>>>();
 
   /**
    * Destination directory for annotated classes
@@ -68,6 +105,12 @@ public final class AnnotationAdder {
     new HashSet<AnnotatedElement>();
 
   /**
+   * More elements that have been annotated
+   */
+  private static final Set<ElementTriple> annotatedElements2 =
+    new HashSet<ElementTriple>();
+
+  /**
    * Add annotation to element
    * @param ann annotation to add
    * @param elem element to add it to
@@ -77,14 +120,55 @@ public final class AnnotationAdder {
       throw new Error("Can't adapt a null element");
     if (ann == null)
       throw new Error("Can't annotate with null");
-    Set<Class<? extends Annotation>> set = new HashSet<Class<? extends Annotation>>();
+    Set<Class<? extends Annotation>> set = thingsToAnnotate.get(elem);
+    if (set == null) {
+      set = new HashSet<Class<? extends Annotation>>();
+    }
     set.add(ann);
     thingsToAnnotate.put(elem, set);
+  }
+
+  /**
+   * Add annotation to element
+   * @param ann annotation to add
+   * @param elem element to add it to
+   */
+  private static void addToAdapt(Class<? extends Annotation> ann, String className,
+                                 String methodName, String signature) {
+    if (ann == null)
+      throw new Error("Can't annotate with null");
+    ElementTriple triple = new ElementTriple(className, methodName, signature);
+    Set<Class<? extends Annotation>> set = thingsToAnnotate2.get(triple);
+    if (set == null) {
+      set = new HashSet<Class<? extends Annotation>>();
+    }
+    set.add(ann);
+    thingsToAnnotate2.put(triple, set);
   }
 
   /** Set up things to adapt */
   private static void setup() {
     try {
+      // gnu.java.nio.charset.ByteEncodeLoopHelper
+      addToAdapt(Inline.class,
+                 "gnu/java/nio/charset/ByteEncodeLoopHelper",
+                 "normalEncodeLoop",
+                 "(Ljava/nio/CharBuffer;Ljava/nio/ByteBuffer;)Ljava/nio/charset/CoderResult;");
+      addToAdapt(Inline.class,
+                 "gnu/java/nio/charset/ByteEncodeLoopHelper",
+                 "arrayEncodeLoop",
+                 "(Ljava/nio/CharBuffer;Ljava/nio/ByteBuffer;)Ljava/nio/charset/CoderResult;");
+
+      // gnu.java.nio.charset.ByteDecodeLoopHelper
+      addToAdapt(Inline.class,
+                 "gnu/java/nio/charset/ByteDecodeLoopHelper",
+                 "normalDecodeLoop",
+                 "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
+      addToAdapt(Inline.class,
+                 "gnu/java/nio/charset/ByteDecodeLoopHelper",
+                 "arrayDecodeLoop",
+                 "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
+
       // BigDecimal
       addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[0]));
       addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[]{MathContext.class}));
@@ -362,7 +446,12 @@ public final class AnnotationAdder {
         }
       }
     }
-    return null;
+    ElementTriple triple = new ElementTriple(className, methodName, methodDesc);
+    Set<Class<? extends Annotation>> set = thingsToAnnotate2.get(triple);
+    if (set != null) {
+      annotatedElements2.add(triple);
+    }
+    return set;
   }
 
   /**
@@ -386,13 +475,30 @@ public final class AnnotationAdder {
       }
     }
 
+    Set<String> processedClasses2 = new HashSet<String>();
+
+    for(ElementTriple triple: thingsToAnnotate2.keySet()) {
+      String c = triple.getClassName();
+      if (!processedClasses2.contains(c)) {
+        adaptClass(c);
+        processedClasses2.add(c);
+      }
+    }
+
     for (AnnotatedElement elem: annotatedElements) {
       thingsToAnnotate.remove(elem);
     }
 
-    if (thingsToAnnotate.size() > 0) {
+    for (ElementTriple triple: annotatedElements2) {
+      thingsToAnnotate2.remove(triple);
+    }
+
+    if (thingsToAnnotate.size() > 0 || thingsToAnnotate2.size() > 0) {
       for (AnnotatedElement elem: thingsToAnnotate.keySet()) {
         System.out.println("Error finding element to annotate: " + elem);
+      }
+      for (ElementTriple triple: thingsToAnnotate2.keySet()) {
+        System.out.println("Error finding element to annotate: " + triple);
       }
       throw new Error("Error finding elements to annotate");
     }
