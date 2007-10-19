@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>RVM : Building the RVM</title>
+        <title>$webwork.htmlEncode($page.space.name) : Building the RVM</title>
 	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
         <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
     </head>
@@ -11,11 +11,11 @@
 			    <td valign="top" class="pagebody">
 				    <div class="pageheader">
 					    <span class="pagetitle">
-                            RVM : Building the RVM
+                            $webwork.htmlEncode($page.space.name) : Building the RVM
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Apr 28, 2007 by <font color="#0050B2">pdonald</font>.
+					    This page last changed on Aug 29, 2007 by <font color="#0050B2">ianrogers</font>.
 				    </div>
 
 				    <p>This guide describes how to build the Jikes RVM. The first section is an overview of the Jikes RVM build process and this is followed by your system requirements and a detailed description of the steps required to build JikesRVM.</p>
@@ -26,7 +26,6 @@
 <h3><a name="BuildingtheRVM-Compilingthesourcecode"></a>Compiling the source code</h3>
 
 <p>The majority of the Jikes RVM is written in Java and will be compiled into class files just as with other Java applications. There is also a small portion of the Jikes RVM that is written in C that must be compiled with a C compiler such as gcc. The Jikes RVM uses <a href="http://ant.apache.org">Ant</a> version 1.6.5 or later as the build tool that orchestrates the build process and executes the steps required in building the Jikes RVM.</p>
-
 <table cellpadding='5' width='85%' cellspacing='8px' class='noteMacro' border="0" align='center'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="./icons/emoticons/warning.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b class="strong">Note</b><br />
 <p>The Jikes RVM requires a complete install of ant, including the optional tasks. These are present if you download and install ant manually. Some Linux distributions have decided to break ant into multiple packages. So if you are installing on a platform such as Debian you may need to install another package such as 'ant-optional'.</p></td></tr></table>
 
@@ -92,11 +91,18 @@
 <td class='confluenceTd'> Unknown <br clear="all" /> </td>
 </tr>
 <tr>
+<td class='confluenceTd'> ia32-solaris </td>
+<td class='confluenceTd'> Solaris </td>
+<td class='confluenceTd'> ia32 </td>
+<td class='confluenceTd'> 32 bits </td>
+<td class='confluenceTd'> OK </td>
+</tr>
+<tr>
 <td class='confluenceTd'> ppc32-aix </td>
 <td class='confluenceTd'> AIX </td>
 <td class='confluenceTd'> PowerPC <br clear="all" /> </td>
 <td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK&#42; <br clear="all" /> </td>
+<td class='confluenceTd'> OK <br clear="all" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> ppc32-linux <br clear="all" /> </td>
@@ -110,14 +116,14 @@
 <td class='confluenceTd'> OSX <br clear="all" /> </td>
 <td class='confluenceTd'> PowerPC <br clear="all" /> </td>
 <td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> Not Working <br clear="all" /> </td>
+<td class='confluenceTd'> OK <br clear="all" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> ppc64-aix <br clear="all" /> </td>
 <td class='confluenceTd'> AIX <br clear="all" /> </td>
 <td class='confluenceTd'> PowerPC <br clear="all" /> </td>
 <td class='confluenceTd'> 64 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK&#42; <br clear="all" /> </td>
+<td class='confluenceTd'> OK <br clear="all" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> ppc64-linux <br clear="all" /> </td>
@@ -130,14 +136,17 @@
 <td class='confluenceTd'> x86_64-linux <br clear="all" /> </td>
 <td class='confluenceTd'> Linux <br clear="all" /> </td>
 <td class='confluenceTd'> ia32 <br clear="all" /> </td>
-<td class='confluenceTd'> 64 bits <br clear="all" /> </td>
+<td class='confluenceTd'> 32 bits&#42; <br clear="all" /> </td>
 <td class='confluenceTd'> OK <br clear="all" /> </td>
 </tr>
 </tbody></table>
-<p>&#42; Building GNU classpath 0.93 on AIX requires minor edits to fdlibm.h and to files in native-lib.&nbsp; We're working on getting those changes merged back into&nbsp; GNU classpath so that future versions will work out-of-the-box.&nbsp; In the interim, if you need help figuring out how to build on AIX contact Dave Grove.</p>
+
+<ul>
+	<li>x86_64 is currently only supported using the legacy 32bit addressing mode and instructions.</li>
+</ul>
 
 
-<h2><a name="BuildingtheRVM-ToolRequirements"></a>Tool Requirements</h2>
+<h2><a name="BuildingtheRVM-%26nbsp%3BToolRequirements"></a>&nbsp;Tool Requirements</h2>
 
 
 <h3><a name="BuildingtheRVM-JavaVirtualMachine"></a>Java Virtual Machine</h3>
@@ -163,6 +172,11 @@
 <h3><a name="BuildingtheRVM-Awk"></a>Awk</h3>
 
 <p>GNU Awk is required as part of the regression and performance testing framework but is not required when building Jikes RVM.</p>
+
+<h3><a name="BuildingtheRVM-ExtratoolsrecommendedforSolaris"></a>Extra tools recommended for Solaris</h3>
+
+<p>pkg-get will greatly simplify installing GNU packages on Solaris. Our patches require that GNU patch is picked up in preference to Sun's, to achieve this, for example, you can create a symbolic link to /usr/bin/gpatch from /opt/csw/bin/patch and make sure /opt/csw/bin is in your path before /usr/bin.</p>
+
 
 <h2><a name="BuildingtheRVM-Instructions"></a>Instructions</h2>
 
@@ -238,7 +252,7 @@
 
 <p>The Jikes RVM has a build time dependency on the <a href="http://www.gnu.org/software/classpath/">GNU Classpath</a> class library and dependening on the configuration may have a dependency on <a href="http://www.cs.kent.ac.uk/projects/gc/gcspy/">GCSpy</a>. The build system will attempt to download and build these dependencies if they are not present or are the wrong version.</p>
 
-<p>To manually download and install the <a href="http://www.gnu.org/software/classpath/">GNU Classpath</a> class library you can run the command "<tt>ant -f build/components/classpath.xml</tt>". After this command has completed running it should have downloaded and built the <a href="http://www.gnu.org/software/classpath/">GNU Classpath</a> class library for the current host. See the <a href="Using GCSpy.html" title="Using GCSpy">Using GCSpy</a> page for directions on building configurations with GCSpy support.</p>
+<p>To manually download and install the <a href="http://www.gnu.org/software/classpath/">GNU Classpath</a> class library you can run the command "<tt>ant &#45;f build/components/classpath.xml</tt>". After this command has completed running it should have downloaded and built the <a href="http://www.gnu.org/software/classpath/">GNU Classpath</a> class library for the current host. See the <a href="Using GCSpy.html" title="Using GCSpy">Using GCSpy</a> page for directions on building configurations with GCSpy support.</p>
 
 <h3><a name="BuildingtheRVM-BuildingtheRVM"></a>Building the RVM</h3>
 
@@ -291,7 +305,7 @@
 				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jul 25, 2007 12:31</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Oct 19, 2007 15:08</font></td>
 		    </tr>
 	    </table>
     </body>
