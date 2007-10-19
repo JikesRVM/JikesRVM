@@ -5,7 +5,7 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.9.2 Release Notes (Future)
+*Jikes RVM 2.9.2 Release Notes (October 20, 2007)
 ** Highlights
 
 *** r13697: Switch from hijacking pthread system calls to using Classpath's
