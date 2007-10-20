@@ -33,7 +33,8 @@ public abstract class VM_Configuration {
 
   public static final boolean BuildForAix = @_RVM_FOR_AIX_@;
   public static final boolean BuildForLinux = @_RVM_FOR_LINUX_@;
-  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux;
+  public static final boolean BuildForSolaris = @_RVM_FOR_SOLARIS_@; 
+  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux && !BuildForSolaris;
 
   public static final boolean LittleEndian = BuildForIA32;
 
@@ -43,7 +44,10 @@ public abstract class VM_Configuration {
   public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
 
   /** Do we have the facilities to intercept blocking system calls? */
-  public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix || BuildForOsx;
+  public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix || BuildForOsx || BuildForSolaris;
+
+  /** Are we using Classpath's portable native sync feature? */
+  public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;
 
   /**
    * Can a dereference of a null pointer result in an access
@@ -126,7 +130,14 @@ public abstract class VM_Configuration {
    * old code when we move up to the next version.
    */
   private static final int ClasspathVersion = @_RVM_CLASSPATH_VERSION_@;
-  public static final boolean BuildForClasspath_0_93 = 93 == ClasspathVersion;
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
+
+  /**
+   * Alignment checking (for IA32 only; for debugging purposes only).
+   * To enable, build with -Dconfig.alignment-checking=true.
+   * Important: You'll also need to build without SSE (-Dtarget.arch.sse2=none) and
+   * run Jikes with only one processor (-X:processors=1).
+   */
+  public static final boolean AlignmentChecking = @_RVM_WITH_ALIGNMENT_CHECKING_@;
 }

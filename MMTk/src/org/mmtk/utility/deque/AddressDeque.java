@@ -102,8 +102,7 @@ import org.vmmagic.pragma.*;
   public final Address pop() {
     if (checkDequeue(1)) {
       return uncheckedDequeue();
-    }
-    else {
+    } else {
       return Address.zero();
     }
   }

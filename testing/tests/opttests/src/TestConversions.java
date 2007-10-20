@@ -10,18 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestConversions
-{
-  public static void main(String args[])
-  {
-    // VM.boot();
+class TestConversions {
+  public static void main(String[] args) {
     run();
   }
 
   static boolean testSuccess = true;
 
-  public static boolean run()
-  {
+  public static boolean run() {
     boolean retSuccess = true;
 
     System.out.print("TestConversions");
@@ -163,7 +159,7 @@ class TestConversions
     testSuccess = true;
 
 
-    testFloatLimits( Float.NEGATIVE_INFINITY,   Float.POSITIVE_INFINITY);
+    testFloatLimits(Float.NEGATIVE_INFINITY,   Float.POSITIVE_INFINITY);
     //    testFloatLimits( Float.MIN_VALUE,           Float.MAX_VALUE);
     //    testFloatLimits(-Float.MAX_VALUE,           Float.MAX_VALUE);
     //    testFloatLimits(-99999F,                    99999F);
@@ -175,7 +171,7 @@ class TestConversions
     testSuccess = true;
 
 
-    testDoubleLimits( Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+    testDoubleLimits(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     //    testDoubleLimits( Double.MIN_VALUE,         Double.MAX_VALUE);
     //    testDoubleLimits(-Double.MAX_VALUE,         Double.MAX_VALUE);
     //    testDoubleLimits(-99999D,                   99999D);
@@ -190,9 +186,7 @@ class TestConversions
     return retSuccess;
   }
 
-  static void
-  i2b()
-  {
+  static void i2b() {
     byte x;
     x = i2b(0x0000007f);
     if (x != 127) {
@@ -220,9 +214,7 @@ class TestConversions
     return (byte)i;
   }
 
-  static void
-  i2c()
-  {
+  static void i2c() {
     int c = (int)i2c(0x0000007f);
     if (c != 127) {
       System.out.print("\nwant: 127\n got: ");
@@ -249,9 +241,7 @@ class TestConversions
     return (char)i;
   }
 
-  static void
-  i2s()
-  {
+  static void i2s() {
     short x;
 
     x = i2s(0x00007fff);
@@ -273,9 +263,7 @@ class TestConversions
     return (short)i;
   }
 
-  static void
-  i2l()
-  {
+  static void i2l() {
     long l = i2l(0x7fffffff);
     if (l != 2147483647L) {
       System.out.print("\nwant: 2147483647\n got: ");
@@ -295,20 +283,18 @@ class TestConversions
     return (long)i;
   }
 
-  static void
-  l2i()
-  {
-    int i = l2i( 0x000000007fffffffL);
+  static void l2i() {
+    int i = l2i(0x000000007fffffffL);
     if (i != 2147483647) {
       System.out.print("\nwant: 2147483647\n got: ");
-      System.out.println(l2i( 0x000000007fffffffL));
+      System.out.println(l2i(0x000000007fffffffL));
       testSuccess = false;
     }
 
-    i = l2i( 0x00000000ffffffffL);
+    i = l2i(0x00000000ffffffffL);
     if (i != -1) {
       System.out.print("\nwant: -1\n got: ");
-      System.out.println(l2i( 0x00000000ffffffffL));
+      System.out.println(l2i(0x00000000ffffffffL));
       testSuccess = false;
     }
   }
@@ -317,9 +303,7 @@ class TestConversions
     return (int)i;
   }
 
-  static void
-  i2f()
-  {
+  static void i2f() {
     if (i2f(-2) != -2.0) {
       System.out.print("\nwant: -2.0\n got: ");
       System.out.println(i2f(-2));
@@ -331,9 +315,7 @@ class TestConversions
     return (float)i;
   }
 
-  static void
-  l2f()
-  {
+  static void l2f() {
     if (l2f(-2L) != -2.0) {
       System.out.print("\nwant: -2.0\n got: ");
       System.out.println(l2f(-2L));
@@ -345,9 +327,7 @@ class TestConversions
     return (float)i;
   }
 
-  static void
-  l2d()
-  {
+  static void l2d() {
     if (l2d(-2L) != -2.0) {
       System.out.print("\nwant: -2.0\n got: ");
       System.out.println(l2d(-2L));
@@ -359,9 +339,7 @@ class TestConversions
     return (double)i;
   }
 
-  static void
-  i2d()
-  {
+  static void i2d() {
     if (i2d(-2) != -2.0) {
       System.out.print("\nwant: -2.0\n got: ");
       System.out.println(i2d(-2));
@@ -373,9 +351,8 @@ class TestConversions
   static double i2d(int i) {
     return (double)i;
   }
-  static void
-  f2d()
-  {
+
+  static void f2d() {
     if (f2d(-2.6F) != -2.5999999046325684D) {
       System.out.print("\nwant: -2.5999999046325684\n got: ");
       System.out.println(f2d(-2.6F));
@@ -387,9 +364,7 @@ class TestConversions
     return (double)f;
   }
 
-  static void
-  f2l()
-  {
+  static void f2l() {
     if (f2l(-2.6F) != -2) {
       System.out.print("\nwant: -2\n got: ");
       System.out.println(f2l(-2.6F));
@@ -401,9 +376,7 @@ class TestConversions
     return (long)f;
   }
 
-  static void
-  f2i()
-  {
+  static void f2i() {
     if (f2i(-2.6F) != -2) {
       System.out.print("\nwant: -2\n got: ");
       System.out.println(f2i(-2.6F));
@@ -415,9 +388,7 @@ class TestConversions
     return (int)f;
   }
 
-  static void
-  d2i()
-  {
+  static void d2i() {
     if (d2i(-2.6) != -2) {
       System.out.print("\nwant: -2\n got: ");
       System.out.println(d2i(-2.6));
@@ -429,9 +400,7 @@ class TestConversions
     return (int)d;
   }
 
-  static void
-  d2l()
-  {
+  static void d2l() {
     if (d2l(-2.6) != -2) {
       System.out.print("\nwant: -2\n got: ");
       System.out.println(d2l(-2.6));
@@ -443,9 +412,7 @@ class TestConversions
     return (long)d;
   }
 
-  static void
-  d2f()
-  {
+  static void d2f() {
     if (d2f(-2.6) != -2.6F) {
       System.out.print("\nwant: -2.6\n got: ");
       System.out.println(d2f(-2.6));
@@ -457,9 +424,7 @@ class TestConversions
     return (float)d;
   }
 
-  static void
-  testFloatLimits(float lo, float hi)
-  {
+  static void testFloatLimits(float lo, float hi) {
     //    System.out.println();
     if ((!Float.toString(lo).equals("-Infinity")) ||
         (!Float.toString(hi).equals("Infinity"))) {
@@ -475,14 +440,12 @@ class TestConversions
 
     if ((!Integer.toString((int)lo).equals("-2147483648")) ||
         (!Integer.toString((int)hi).equals("2147483647"))) {
-      System.out.println("\nint:    " + (int )lo + " .. " + (int )hi);
+      System.out.println("\nint:    " + (int)lo + " .. " + (int)hi);
       testSuccess = false;
     }
   }
 
-  static void
-  testDoubleLimits(double lo, double hi)
-  {
+  static void testDoubleLimits(double lo, double hi) {
     //    System.out.println();
 
     Double dbl1 = new Double(lo), dbl2 = new Double(hi);
@@ -500,7 +463,7 @@ class TestConversions
 
     if ((!Integer.toString((int)lo).equals("-2147483648")) ||
         (!Integer.toString((int)hi).equals("2147483647"))) {
-      System.out.println("\nint:    " + (int )lo + " .. " + (int )hi);
+      System.out.println("\nint:    " + (int)lo + " .. " + (int)hi);
       testSuccess = false;
     }
   }

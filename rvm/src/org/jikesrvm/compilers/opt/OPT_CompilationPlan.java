@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /*
@@ -31,6 +32,11 @@ public final class OPT_CompilationPlan {
   public VM_NormalMethod getMethod() {
     return method;
   }
+
+  /**
+   * The specialized parameters to use in place of those defined in method.
+   */
+  public VM_TypeReference[] params;
 
   /**
    * The OPT_OptimizationPlanElements to be invoked during compilation.
@@ -60,17 +66,32 @@ public final class OPT_CompilationPlan {
    * Construct a compilation plan
    *
    * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param pms  The specialized parameters to use in place of those defined in method
+   * @param op   The optimization plan to be executed on m
+   * @param mp   The instrumentation plan to be executed on m
+   * @param opts The OPT_Options to be used for compiling m
+   */
+  public OPT_CompilationPlan(VM_NormalMethod m, VM_TypeReference[] pms, OPT_OptimizationPlanElement[] op, OPT_InstrumentationPlan mp,
+                             OPT_Options opts) {
+    method = m;
+    params = pms;
+    inlinePlan = new OPT_DefaultInlineOracle();
+    optimizationPlan = op;
+    instrumentationPlan = mp;
+    options = opts;
+  }
+
+  /**
+   * Construct a compilation plan
+   *
+   * @param m    The VM_NormalMethod representing the source method to be compiled
    * @param op   The optimization plan to be executed on m
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
   public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement[] op, OPT_InstrumentationPlan mp,
                              OPT_Options opts) {
-    method = m;
-    inlinePlan = new OPT_DefaultInlineOracle();
-    optimizationPlan = op;
-    instrumentationPlan = mp;
-    options = opts;
+    this(m, null, op, mp, opts);
   }
 
   /**

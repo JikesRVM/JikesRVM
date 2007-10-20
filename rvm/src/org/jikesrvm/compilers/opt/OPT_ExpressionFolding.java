@@ -12,9 +12,12 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
@@ -35,156 +38,14 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_LONG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_DOUBLE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_FLOAT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2DOUBLE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2BYTE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2BYTE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2LONG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2SHORT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2SHORT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2USHORT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2USHORT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_OR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_CMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_CMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.ZeroCheck;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 
@@ -195,6 +56,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   /**
    * Only fold operations when the result of the 1st operation becomes dead
    * after folding
+   * TODO: doesn't apply to local folding
    */
   private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
 
@@ -205,7 +67,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   /**
    * Fold operations on word like things
    */
-  private static final boolean FOLD_REFS = true;
+  private static final boolean FOLD_REFS = false;
   /**
    * Fold operations on longs
    */
@@ -289,12 +151,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   /**
    * Fold IFCMP operations
    */
-  private static final boolean FOLD_IFCMPS = true;
+  private static final boolean FOLD_IFCMPS = false;
 
   /**
    * Fold COND_MOVE operations
    */
-  private static final boolean FOLD_CONDMOVES = true;
+  private static final boolean FOLD_CONDMOVES = false;
 
   /**
    * Fold xxx_2xxx where the precision is increased then decreased achieving a
@@ -302,6 +164,92 @@ class OPT_ExpressionFolding extends OPT_IRTools {
    */
   private static final boolean FOLD_2CONVERSION = true;
 
+  /**
+   * Fold ZeroCheck where we're testing whether a value is 0 or not
+   */
+  private static final boolean FOLD_CHECKS = true;
+
+  /**
+   * Perform expression folding on individual basic blocks
+   */
+  public static boolean performLocal(OPT_IR ir) {
+    OPT_Instruction outer = ir.cfg.entry().firstRealInstruction();
+    boolean didSomething = false;
+    loop_over_outer_instructions:
+    while (outer != null) {
+      OPT_Register outerDef = isCandidateExpression(outer, false);
+      if (outerDef != null) {
+        OPT_Instruction inner = outer.nextInstructionInCodeOrder();
+        loop_over_inner_instructions:
+        while ((inner != null) && (inner.operator() != BBEND)) {
+          OPT_Register innerDef = isCandidateExpression(inner, false);
+          // 1. check for true dependence (does inner use outer's def?)
+          if (innerDef != null) {
+            OPT_OperandEnumeration uses = inner.getUses();
+            loop_over_inner_uses:
+            while(uses.hasMoreElements()) {
+              OPT_Operand use = uses.nextElement();
+              if (use.isRegister() && (use.asRegister().getRegister() == outerDef)) {
+                // Optimization case
+                OPT_Instruction newInner = transform(inner, outer);
+                if (newInner != null) {
+                  OPT_DefUse.replaceInstructionAndUpdateDU(inner, CPOS(inner,newInner));
+                  inner = newInner;
+                  didSomething = true;
+                }
+                break loop_over_inner_uses;
+              }
+            }
+          }
+          // 2. check for output dependence (does inner kill outer's def?)
+          if (innerDef == outerDef) {
+            break loop_over_inner_instructions;
+          }
+          if (innerDef == null) {
+            OPT_OperandEnumeration defs = inner.getDefs();
+            while(defs.hasMoreElements()) {
+              OPT_Operand def = defs.nextElement();
+              if (def.isRegister()) {
+                OPT_Register defReg = def.asRegister().getRegister();
+                if (defReg == outerDef) {
+                  break loop_over_inner_instructions;
+                }
+              }
+            }
+          }
+          // 3. check for anti dependence (do we define something that outer uses?)
+          if (innerDef != null) {
+            OPT_OperandEnumeration uses = outer.getUses();
+            loop_over_outer_uses:
+            while(uses.hasMoreElements()) {
+              OPT_Operand use = uses.nextElement();
+              if (use.isRegister() && (use.asRegister().getRegister() == innerDef)) {
+                break loop_over_inner_instructions;
+              }
+            }
+          } else {
+            OPT_OperandEnumeration defs = inner.getDefs();
+            while(defs.hasMoreElements()) {
+              OPT_Operand def = defs.nextElement();
+              if (def.isRegister()) {
+                OPT_OperandEnumeration uses = outer.getUses();
+                loop_over_outer_uses:
+                while(uses.hasMoreElements()) {
+                  OPT_Operand use = uses.nextElement();
+                  if (use.similar(def)) {
+                    break loop_over_inner_instructions;
+                  }
+                }
+              }
+            }
+          }
+          inner = inner.nextInstructionInCodeOrder();
+        } // loop over inner instructions
+      }
+      outer = outer.nextInstructionInCodeOrder();
+    } // loop over outer instructions
+    return didSomething;
+  }
   /**
    * Perform the transformation.
    *
@@ -334,7 +282,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       // Check if s is a candidate for expression folding
-      OPT_Register r = isCandidateExpression(s);
+      OPT_Register r = isCandidateExpression(s, true);
       if (r != null) {
         candidates.add(r);
       }
@@ -366,43 +314,42 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           val1 = IfCmp2.getVal1(s);
         } else if (CondMove.conforms(s)) {
           val1 = CondMove.getVal1(s);
+        } else if (ZeroCheck.conforms(s)) {
+          val1 = ZeroCheck.getValue(s);
         } else {
           // we're not optimising any other instruction types
           continue;
         }
 
-        if (candidates.contains(val1.asRegister().register)) {
-          OPT_Instruction def = val1.asRegister().register.getFirstDef();
+        if (candidates.contains(val1.asRegister().getRegister())) {
+          OPT_Instruction def = val1.asRegister().getRegister().getFirstDef();
 
           // filter out moves to get the real defining instruction
           while (Move.conforms(def)) {
             OPT_Operand op = Move.getVal(def);
             if (op.isRegister()) {
-              def = op.asRegister().register.getFirstDef();
+              def = op.asRegister().getRegister().getFirstDef();
             } else {
               // The non-constant operand of the candidate expression is the
               // result of moving a constant. Remove as a candidate and leave
-              // for constant propogation and simplification.
+              // for constant propagation and simplification.
               it.remove();
               continue iterate_over_candidates;
             }
           }
 
           // check if the defining instruction has not mutated yet
-          if (isCandidateExpression(def) == null) {
+          if (isCandidateExpression(def, true) == null) {
             continue;
           }
 
           OPT_Instruction newS = transform(s, def);
           if (newS != null) {
             // check if this expression is still an optimisation candidate
-            if (isCandidateExpression(newS) == null) {
+            if (isCandidateExpression(newS, true) == null) {
               it.remove();
             }
-
-            s.insertAfter(CPOS(s,newS));
-            OPT_DefUse.updateDUForNewInstruction(newS);
-            OPT_DefUse.removeInstructionAndUpdateDU(s);
+            OPT_DefUse.replaceInstructionAndUpdateDU(s, CPOS(s,newS));
             didSomething = true;
           }
         }
@@ -433,6 +380,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         val1 = IfCmp2.getVal1(s);
       } else if (CondMove.conforms(s)) {
         val1 = CondMove.getVal1(s);
+      } else if (ZeroCheck.conforms(s)) {
+        val1 = ZeroCheck.getValue(s);
       } else {
         OPT_OptimizingCompilerException.UNREACHABLE();
         return;
@@ -442,13 +391,13 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         VM._assert(val1.isRegister(), "Error with val1 of " + s);
       }
 
-      OPT_Register v1 = val1.asRegister().register;
+      OPT_Register v1 = val1.asRegister().getRegister();
       if (candidates.contains(v1)) {
         for (Enumeration<OPT_RegisterOperand> uses = OPT_DefUse.uses(v1); uses
             .hasMoreElements();) {
           OPT_RegisterOperand op = uses.nextElement();
           OPT_Instruction u = op.instruction;
-          if ((isCandidateExpression(u) == null) && !Move.conforms(u)) {
+          if ((isCandidateExpression(u, true) == null) && !Move.conforms(u)) {
             i.remove();
             break;
           }
@@ -458,7 +407,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   }
 
   /**
-   * Perform the transfomation on the instruction
+   * Perform the transformation on the instruction
    *
    * @param s
    *          the instruction to transform of the form y = x op c1
@@ -468,8 +417,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
    * @return the new instruction to replace s;
    */
   private static OPT_Instruction transform(OPT_Instruction s, OPT_Instruction def) {
-    // x = a op1 c1
-    // y = x op2 c2
+    // x = a op1 c1  <-- def
+    // y = x op2 c2  <-- s
     OPT_RegisterOperand a;
     OPT_RegisterOperand y;
     if (Binary.conforms(def)) {
@@ -503,6 +452,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       y = IfCmp2.getGuardResult(s);
     } else if (CondMove.conforms(s)) {
       y = CondMove.getResult(s);
+    } else if (ZeroCheck.conforms(s)) {
+      y = ZeroCheck.getGuardResult(s);
     } else {
       OPT_OptimizingCompilerException.UNREACHABLE();
       return null;
@@ -511,6 +462,51 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     if (VM.VerifyAssertions) {
       VM._assert(a.isRegister(), "Expected register not " + a);
       VM._assert(y.isRegister(), "Expected register not " + y);
+      if (OPT_IR.PARANOID) {
+        OPT_RegisterOperand x1, x2;
+        if (Binary.conforms(s)) {
+          x1 = Binary.getVal1(s).asRegister();
+        } else if (GuardedBinary.conforms(s)) {
+          x1 = GuardedBinary.getVal1(s).asRegister();
+        } else if (Unary.conforms(s)) {
+          x1 = Unary.getVal(s).asRegister();
+        } else if (BooleanCmp.conforms(s)) {
+          x1 = BooleanCmp.getVal1(s).asRegister();
+        } else if (IfCmp.conforms(s)) {
+          x1 = IfCmp.getVal1(s).asRegister();
+        } else if (IfCmp2.conforms(s)) {
+          x1 = IfCmp2.getVal1(s).asRegister();
+        } else if (CondMove.conforms(s)) {
+          x1 = CondMove.getVal1(s).asRegister();
+        } else if (ZeroCheck.conforms(s)) {
+          x1 = ZeroCheck.getValue(s).asRegister();
+        } else {
+          OPT_OptimizingCompilerException.UNREACHABLE();
+          return null;
+        }
+
+        if (Binary.conforms(def)) {
+          x2 = Binary.getResult(def);
+        } else if (GuardedBinary.conforms(def)) {
+          x2 = GuardedBinary.getResult(def);
+        } else if (Unary.conforms(def)) {
+          x2 = Unary.getResult(def);
+        } else if (BooleanCmp.conforms(def)) {
+          x2 = BooleanCmp.getResult(def);
+        } else if (IfCmp.conforms(def)) {
+          x2 = IfCmp.getGuardResult(def);
+        } else if (IfCmp2.conforms(def)) {
+          x2 = IfCmp2.getGuardResult(def);
+        } else if (CondMove.conforms(def)) {
+          x2 = CondMove.getResult(def);
+        } else if (ZeroCheck.conforms(def)) {
+          x2 = ZeroCheck.getValue(def).asRegister();
+        } else {
+          OPT_OptimizingCompilerException.UNREACHABLE();
+          return null;
+        }
+        VM._assert(x1.similar(x2));
+      }
     }
 
     switch (s.operator.opcode) {
@@ -763,7 +759,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a / c1; y = x / c2
             return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(c1 * c2), guard);
           } else if (def.operator == INT_NEG) {
-            OPT_Operand guard = GuardedBinary.getGuard(def);
+            OPT_Operand guard = GuardedBinary.getGuard(s);
             // x = -a; y = x / c2;
             return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(-c2), guard);
           }
@@ -779,7 +775,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a / c1; y = x / c2
             return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(c1 * c2), guard);
           } else if (def.operator == LONG_NEG) {
-            OPT_Operand guard = GuardedBinary.getGuard(def);
+            OPT_Operand guard = GuardedBinary.getGuard(s);
             // x = -a; y = x / c2;
             return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(-c2), guard);
           }
@@ -1416,11 +1412,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_INT, y.copyRO(), a.copyRO(), IC(c1), cond2, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_INT, y.copyRO(), a.copyRO(), IC(c1), cond2.flipCode(), prof);
             }
           } else if (def.operator == BOOLEAN_CMP_LONG) {
@@ -1429,11 +1425,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1), cond2, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1), cond2.flipCode(), prof);
             }
           } else if (def.operator == BOOLEAN_CMP_ADDR) {
@@ -1442,11 +1438,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_ADDR, y.copyRO(), a.copyRO(), AC(c1), cond2, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_ADDR, y.copyRO(), a.copyRO(), AC(c1), cond2.flipCode(), prof);
             }
           } else if (def.operator == BOOLEAN_CMP_FLOAT) {
@@ -1455,11 +1451,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_FLOAT, y.copyRO(), a.copyRO(), FC(c1), cond2, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_FLOAT, y.copyRO(), a.copyRO(), FC(c1), cond2.flipCode(), prof);
             }
           } else if (def.operator == BOOLEAN_CMP_DOUBLE) {
@@ -1468,11 +1464,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_DOUBLE, y.copyRO(), a.copyRO(), DC(c1), cond2, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_DOUBLE, y.copyRO(), a.copyRO(), DC(c1), cond2.flipCode(), prof);
             }
           } else if (def.operator == LONG_CMP) {
@@ -1579,11 +1575,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(INT_IFCMP, y.copyRO(), a.copyRO(), IC(c1), cond2, target, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(INT_IFCMP, y.copyRO(), a.copyRO(), IC(c1), cond2.flipCode(), target, prof);
             }
           } else if (def.operator == BOOLEAN_CMP_LONG) {
@@ -1592,11 +1588,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1), cond2, target, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1), cond2.flipCode(), target, prof);
             }
           } else if (def.operator == BOOLEAN_CMP_ADDR) {
@@ -1605,11 +1601,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), AC(c1), cond2, target, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), AC(c1), cond2.flipCode(), target, prof);
             }
           } else if (def.operator == BOOLEAN_CMP_FLOAT) {
@@ -1618,11 +1614,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), FC(c1), cond2, target, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), FC(c1), cond2.flipCode(), target, prof);
             }
           } else if (def.operator == BOOLEAN_CMP_DOUBLE) {
@@ -1631,11 +1627,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), DC(c1), cond2, target, prof);
             } else if ((cond.isEQUAL() && c2 == 0)||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
-              // Fold away redundany boolean_cmp
+              // Fold away redundancy boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), DC(c1), cond2.flipCode(), target, prof);
             }
           } else if (def.operator == LONG_CMP) {
@@ -2383,7 +2379,24 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case FLOAT_2DOUBLE_opcode:
         // unused
         return null;
-
+      case INT_ZERO_CHECK_opcode: {
+        if (FOLD_INTS && FOLD_CHECKS) {
+          if (def.operator == INT_NEG) {
+            // x = -z; y = zerocheck x;
+            return ZeroCheck.create(INT_ZERO_CHECK, y.copyRO(), Unary.getVal(def).copy());
+          }
+        }
+        return null;
+      }
+      case LONG_ZERO_CHECK_opcode: {
+        if (FOLD_INTS && FOLD_CHECKS) {
+          if (def.operator == INT_NEG) {
+            // x = -z; y = zerocheck x;
+            return ZeroCheck.create(INT_ZERO_CHECK, y.copyRO(), Unary.getVal(def).copy());
+          }
+        }
+        return null;
+      }
       default:
         OPT_OptimizingCompilerException.UNREACHABLE();
         return null;
@@ -2393,9 +2406,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   /**
    * Does instruction s compute a register r = candidate expression?
    *
+   * @param s the instruction
+   * @param ssa are we in SSA form?
    * @return the computed register, or null
    */
-  private static OPT_Register isCandidateExpression(OPT_Instruction s) {
+  private static OPT_Register isCandidateExpression(OPT_Instruction s, boolean ssa) {
 
     switch (s.operator.opcode) {
       // Foldable operators
@@ -2423,7 +2438,14 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         if (val1.isConstant()) {
           return null;
         }
-        return Unary.getResult(s).asRegister().register;
+        OPT_Register result = Unary.getResult(s).asRegister().getRegister();
+        if (ssa) {
+          return result;
+        } else if (val1.asRegister().getRegister() != result) {
+          return result;
+        } else {
+          return null;
+        }
       }
 
       case INT_ADD_opcode:
@@ -2477,7 +2499,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case DOUBLE_CMPG_opcode: {
 
         OPT_Operand val2 = Binary.getVal2(s);
-        if (!val2.isObjectConstant()) {
+        if (!val2.isObjectConstant() && !val2.isTIBConstant()) {
           if (val2.isConstant()) {
             OPT_Operand val1 = Binary.getVal1(s);
             // if val1 is constant too, this should've been constant folded
@@ -2486,17 +2508,31 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return Binary.getResult(s).asRegister().register;
+            OPT_Register result = Binary.getResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            } else {
+              return null;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
             }
 
             OPT_Operand val1 = Binary.getVal1(s);
-            if (s.operator.isCommutative() && val1.isConstant() && !val1.isObjectConstant()) {
+            if (s.operator.isCommutative() && val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               Binary.setVal1(s, Binary.getClearVal2(s));
               Binary.setVal2(s, val1);
-              return Binary.getResult(s).asRegister().register;
+              OPT_Register result = Binary.getResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              } else {
+                return null;
+              }
             }
           }
         }
@@ -2513,8 +2549,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           if (val1.isConstant()) {
             return null;
           }
-
-          return GuardedBinary.getResult(s).asRegister().register;
+          OPT_Register result = GuardedBinary.getResult(s).asRegister().getRegister();
+          if (ssa) {
+            return result;
+          } else if (val1.asRegister().getRegister() != result) {
+            return result;
+          }
         }
         return null;
       }
@@ -2523,7 +2563,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case BOOLEAN_CMP_LONG_opcode:
       case BOOLEAN_CMP_ADDR_opcode: {
         OPT_Operand val2 = BooleanCmp.getVal2(s);
-        if (!val2.isObjectConstant()) {
+        if (!val2.isObjectConstant() && !val2.isTIBConstant()) {
           if (val2.isConstant()) {
             OPT_Operand val1 = BooleanCmp.getVal1(s);
             // if val1 is constant too, this should've been constant folded
@@ -2531,18 +2571,27 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (val1.isConstant()) {
               return null;
             }
-
-            return BooleanCmp.getResult(s).asRegister().register;
+            OPT_Register result = BooleanCmp.getResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = BooleanCmp.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
               BooleanCmp.setVal2(s, val1);
               BooleanCmp.getCond(s).flipOperands();
-              return BooleanCmp.getResult(s).asRegister().register;
+              OPT_Register result = BooleanCmp.getResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
@@ -2554,7 +2603,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case DOUBLE_IFCMP_opcode:
       case REF_IFCMP_opcode: {
         OPT_Operand val2 = IfCmp.getVal2(s);
-        if (!val2.isObjectConstant()) {
+        if (!val2.isObjectConstant() && !val2.isTIBConstant()) {
           if (val2.isConstant()) {
             OPT_Operand val1 = IfCmp.getVal1(s);
             // if val1 is constant too, this should've been constant folded
@@ -2563,17 +2612,27 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return IfCmp.getGuardResult(s).asRegister().register;
+            OPT_Register result = IfCmp.getGuardResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = IfCmp.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               IfCmp.setVal1(s, IfCmp.getClearVal2(s));
               IfCmp.setVal2(s, val1);
               IfCmp.getCond(s).flipOperands();
-              return IfCmp.getGuardResult(s).asRegister().register;
+              OPT_Register result = IfCmp.getGuardResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
@@ -2581,7 +2640,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       }
       case INT_IFCMP2_opcode: {
         OPT_Operand val2 = IfCmp2.getVal2(s);
-        if (!val2.isObjectConstant()) {
+        if (!val2.isObjectConstant() && !val2.isTIBConstant()) {
           if (val2.isConstant()) {
             OPT_Operand val1 = IfCmp2.getVal1(s);
             // if val1 is constant too, this should've been constant folded
@@ -2590,18 +2649,28 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return IfCmp2.getGuardResult(s).asRegister().register;
+            OPT_Register result = IfCmp2.getGuardResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = IfCmp2.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               IfCmp2.setVal1(s, IfCmp2.getClearVal2(s));
               IfCmp2.setVal2(s, val1);
               IfCmp2.getCond1(s).flipOperands();
               IfCmp2.getCond2(s).flipOperands();
-              return IfCmp2.getGuardResult(s).asRegister().register;
+              OPT_Register result = IfCmp2.getGuardResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
@@ -2622,22 +2691,48 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (val1.isConstant()) {
               return null;
             }
-
-            return CondMove.getResult(s).asRegister().register;
+            OPT_Register result = CondMove.getResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = CondMove.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant()) {
               CondMove.setVal1(s, CondMove.getClearVal2(s));
               CondMove.setVal2(s, val1);
               CondMove.getCond(s).flipOperands();
-              return CondMove.getResult(s).asRegister().register;
+              OPT_Register result = CondMove.getResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
         return null;
+      }
+      case INT_ZERO_CHECK_opcode:
+      case LONG_ZERO_CHECK_opcode:  {
+        OPT_Operand val1 = ZeroCheck.getValue(s);
+        // if val1 is constant too, this should've been constant folded
+        // beforehand. Give up.
+        if (val1.isConstant()) {
+          return null;
+        }
+        OPT_Register result = ZeroCheck.getGuardResult(s).asRegister().getRegister();
+        if (ssa) {
+          return result;
+        } else if (val1.asRegister().getRegister() != result) {
+          return result;
+        } else {
+          return null;
+        }
       }
       default:
         // Operator can't be folded
@@ -2689,6 +2784,10 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     }
     if (VM.BuildFor64Addr && op instanceof OPT_LongConstantOperand) {
       return Address.fromLong(op.asLongConstant().value);
+    }
+    if (op instanceof OPT_ObjectConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(!op.isMoveableObjectConstant());
+      return VM_Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OPT_OptimizingCompilerException(
         "Cannot getAddressValue from this operand " + op +

@@ -42,7 +42,7 @@
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #include <sys/utsname.h>        // for uname(2)
-#if (defined __linux__) || (defined __MACH__)
+#if (defined __linux__) || (defined __MACH__) || (defined (__SVR4) && defined (__sun))
 #include <ucontext.h>
 #include <signal.h>
 #else
@@ -72,7 +72,6 @@ int verboseBoot;                /* Declared in bootImageRunner.h */
 
 static int DEBUG = 0;                   // have to set this from a debugger
 static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
-
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
@@ -481,6 +480,11 @@ main(int argc, const char **argv)
         fprintf(SysTraceFile, "%s: please specify name of boot image ref map file using \"-X:ir=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
+
+#ifdef __MACH__
+    // Initialize timer information on OS/X
+    (void) mach_timebase_info(&timebaseInfo);
+#endif
 
     int ret = createVM(0);
     assert(ret == 1);           // must be 1 (error status for this func.)

@@ -25,10 +25,7 @@ class logic {
    }
 
    static boolean notA(boolean a) {
-      if (a)
-        return false;
-      else
-        return true;
+     return !a;
    }
 
    static boolean notB(boolean a) {
@@ -69,7 +66,7 @@ class logic {
       return a == null;
    }
 
-   static int array[];
+   static int[] array;
 
    static int uju1() {
       if (array != null)
@@ -173,7 +170,7 @@ static void store(int a, boolean b) {
 }
 
 
-   public static void main(String args[]) {
+   public static void main(String[] args) {
       run();
    }
 
@@ -191,7 +188,7 @@ static void store(int a, boolean b) {
      System.out.println(extract10(-1));
      System.out.println(extract11(-1));
      System.out.println(extract12(-1));
-     System.out.println(insert (0));
+     System.out.println(insert(0));
      System.out.println(insert1(0));
      System.out.println(insert2(0));
      return true;

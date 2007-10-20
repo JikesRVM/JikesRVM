@@ -30,32 +30,38 @@ import org.vmmagic.pragma.*;
   public static final int UNKNOWN_GC_TRIGGER = 0;
 
   /**
+   * Concurrent collection phase trigger.
+   */
+  public static final int INTERNAL_PHASE_GC_TRIGGER = 1;
+
+  /**
    * Externally triggered garbage collection (eg call to System.gc())
    */
-  public static final int EXTERNAL_GC_TRIGGER = 1;
+  public static final int EXTERNAL_GC_TRIGGER = 2;
 
   /**
    * Resource triggered garbage collection.  For example, an
    * allocation request would take the number of pages in use beyond
    * the number available.
    */
-  public static final int RESOURCE_GC_TRIGGER = 2;
+  public static final int RESOURCE_GC_TRIGGER = 3;
 
   /**
    * Internally triggered garbage collection.  For example, the memory
    * manager attempting another collection after the first failed to
    * free space.
    */
-  public static final int INTERNAL_GC_TRIGGER = 3;
+  public static final int INTERNAL_GC_TRIGGER = 4;
 
   /**
    * The number of garbage collection trigger reasons.
    */
-  public static final int TRIGGER_REASONS = 4;
+  public static final int TRIGGER_REASONS = 5;
 
   /** Short descriptions of the garbage collection trigger reasons. */
   protected static final String[] triggerReasons = {
     "unknown",
+    "concurrent phase",
     "external request",
     "resource exhaustion",
     "internal request"
@@ -74,12 +80,12 @@ import org.vmmagic.pragma.*;
    * Joins an already requested collection.
    */
   @LogicallyUninterruptible
-  public abstract void joinCollection(); 
+  public abstract void joinCollection();
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
-   * 
+   *
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
@@ -94,11 +100,17 @@ import org.vmmagic.pragma.*;
    * Report that the allocation has succeeded.
    */
   public abstract void reportAllocationSuccess();
-  
+
   /**
    * Report that a physical allocation has failed.
    */
   public abstract void reportPhysicalAllocationFailed();
+
+  /**
+   * Does the VM consider this an emergency alloction, where the normal
+   * heap size rules can be ignored.
+   */
+  public abstract boolean isEmergencyAllocation();
 
   /**
    * Determine whether a collection cycle has fully completed (this is
@@ -129,4 +141,31 @@ import org.vmmagic.pragma.*;
    * (that is, the order this processor arrived at the barrier).
    */
   public abstract int rendezvous(int where);
+
+  /** @return The number of active collector threads */
+  public abstract int activeGCThreads();
+
+  /**
+   * @return The ordinal ID of the running collector thread w.r.t.
+   * the set of active collector threads (zero based)
+   */
+  public abstract int activeGCThreadOrdinal();
+
+  /**
+   * Ensure all concurrent worker threads are scheduled.
+   */
+  public abstract void scheduleConcurrentWorkers();
+
+  /**
+   * Request each mutator flush remembered sets. This method
+   * will trigger the flush and then yield until all processors have
+   * flushed.
+   */
+  public abstract void requestMutatorFlush();
+
+  /**
+   * Possibly yield the current concurrent collector thread. Return
+   * true if yielded.
+   */
+  public abstract boolean yieldpoint();
 }

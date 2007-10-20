@@ -70,7 +70,7 @@ import org.vmmagic.unboxed.*;
                                            boolean root) {
     if (object.isNull()) return object;
     if (Space.isInSpace(GenRC.NS, object)) {
-      object = GenRC.nurserySpace.traceObject(this, object);
+      object = GenRC.nurserySpace.traceObject(this, object, GenRC.ALLOC_RC);
     } else if (!GenRC.isRCObject(object)) {
       return object;
     }
@@ -95,19 +95,14 @@ import org.vmmagic.unboxed.*;
     return traceObject(object, false);
   }
 
-  @Inline
-  public int getAllocator() {
-    return GenRC.ALLOC_RC;
-  }
-
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return !(Space.isInSpace(GenRC.NS, object));
   }
 
   public ObjectReference precopyObject(ObjectReference object) {
     if (Space.isInSpace(GenRC.NS, object))
-      return GenRC.nurserySpace.traceObject(this, object);
+      return GenRC.nurserySpace.traceObject(this, object, GenRC.ALLOC_RC);
     return object;
   }
 

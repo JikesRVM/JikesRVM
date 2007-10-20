@@ -13,6 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_SpecializedMethodManager;
 
 /**
  * Layout the TIB (Type Information Block).
@@ -51,6 +52,10 @@ public interface VM_TIBLayoutConstants {
   //        5:|     iTABLES        +-->
   //          +--------------------+
   //        6:|  indirect IMT      +-->
+  //          +--------------------+
+  //        7:|  specialized 0     +-->
+  //          +--------------------+
+  //          |       ...          +-->
   //          +--------------------+
   //        1:|  interface slot 0  |
   //          +--------------------+
@@ -92,10 +97,13 @@ public interface VM_TIBLayoutConstants {
   //
   int TIB_SUPERCLASS_IDS_INDEX = TIB_TYPE_INDEX + 1;
 
+  // A set of 0 or more specialized methods used in the VM such as for GC scanning
+  int TIB_FIRST_SPECIALIZED_METHOD_INDEX = TIB_SUPERCLASS_IDS_INDEX + 1;
+
   // "Does this class implement the ith interface?"
   // (see vm/classLoader/VM_DynamicTypeCheck.java)
   //
-  int TIB_DOES_IMPLEMENT_INDEX = TIB_SUPERCLASS_IDS_INDEX + 1;
+  int TIB_DOES_IMPLEMENT_INDEX = TIB_FIRST_SPECIALIZED_METHOD_INDEX + VM_SpecializedMethodManager.numSpecializedMethods();
 
   // The TIB of the elements type of an array (may be null in fringe cases
   // when element type couldn't be resolved during array resolution).

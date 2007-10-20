@@ -21,8 +21,8 @@ import org.jikesrvm.compilers.opt.ir.OsrPoint;
  * Variable map element (osr instruction, LinkedList MethodVariables)
  */
 public class OSR_VariableMapElement {
-  public OPT_Instruction osr;
-  public LinkedList<OSR_MethodVariables> mvars;
+  public final OPT_Instruction osr;
+  public final LinkedList<OSR_MethodVariables> mvars;
 
   public OSR_VariableMapElement(OPT_Instruction inst, LinkedList<OSR_MethodVariables> methVars) {
     if (VM.VerifyAssertions) {
@@ -34,7 +34,7 @@ public class OSR_VariableMapElement {
   }
 
   public String toString() {
-    StringBuffer buf = new StringBuffer("  ");
+    StringBuilder buf = new StringBuilder("  ");
     buf.append(this.osr.toString()).append("\n");
     for (int i = 0, n = this.mvars.size(); i < n; i++) {
       buf.append(i);
@@ -42,7 +42,6 @@ public class OSR_VariableMapElement {
       buf.append(this.mvars.get(i).toString());
       buf.append("\n");
     }
-
-    return new String(buf);
+    return buf.toString();
   }
 }

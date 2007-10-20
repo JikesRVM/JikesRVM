@@ -84,21 +84,21 @@ import org.vmmagic.unboxed.*;
        * that method will return immediately if collection is already in-
        * progress.
        */
-      if (gcLock.increment() == 0) {		// lead concurrent mutator
- 	    /* Note the above lock is insufficient to guarantee that only a single
- 	     * thread is in explicit collection (since another thread could have
- 	     * executed System.gc() directly). Thus, use System.gc() here, rather than
- 	     * org.mmtk.vm.Collection.triggerCollection(org.mmtk.vm.Collection.EXTERNAL_GC_TRIGGER),
- 	     * to prevent collection from being concurrently executed. See RVM
- 	     * bug 1511447 and RVM patch 1512948 for more detail.
- 	     */
-     	try {
+      if (gcLock.increment() == 0) { // lead concurrent mutator
+        /* Note the above lock is insufficient to guarantee that only a single
+         * thread is in explicit collection (since another thread could have
+         * executed System.gc() directly). Thus, use System.gc() here, rather than
+         * org.mmtk.vm.Collection.triggerCollection(org.mmtk.vm.Collection.EXTERNAL_GC_TRIGGER),
+         * to prevent collection from being concurrently executed. See RVM
+         * bug 1511447 and RVM patch 1512948 for more detail.
+         */
+        try {
           System.gc();
-     	} finally {
+        } finally {
           // release trailing concurrent mutators (in while-loop below)
           gcLock.reset();
-     	}
-      } else {		// trailing concurrent mutators
+        }
+      } else { // trailing concurrent mutators
         // wait until lead thread finishes above collection
         while (gcLock.peek() != 0) {
           /* must do a yielded-spin, since the concurrent
@@ -196,7 +196,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Move all finalizable objects to the to-be-finalized queue
-   * Called on shutdown.  Caller must also scheduler the finalizer thread.
+   * Called on shutdown.  Caller must also schedule the finalizer thread.
    */
   public static void finalizeAll() {
 

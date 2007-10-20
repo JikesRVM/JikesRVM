@@ -12,7 +12,8 @@
  */
 package org.mmtk.utility.sanitychecker;
 
-import org.mmtk.plan.StopTheWorld;
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.Simple;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -24,7 +25,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class performs sanity checks for StopTheWorld collectors.
+ * This class performs sanity checks for Simple collectors.
  */
 @Uninterruptible public class SanityCheckerLocal implements Constants {
 
@@ -48,24 +49,33 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public final boolean collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == StopTheWorld.SANITY_PREPARE) {
+    if (phaseId == Simple.SANITY_PREPARE) {
       if (primary) {
         sanityTrace.prepare();
       }
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_ROOTS) {
-      VM.scanning.computeAllRoots(sanityTrace);
-      sanityTrace.flushRoots();
+    if (phaseId == Simple.SANITY_ROOTS) {
+      VM.scanning.computeStaticRoots(sanityTrace);
+      VM.scanning.computeThreadRoots(sanityTrace);
+      if (Plan.SCAN_BOOT_IMAGE) {
+        VM.scanning.computeBootImageRoots(sanityTrace);
+      }
+      sanityTrace.flush();
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_CHECK) {
+    if (phaseId == Simple.SANITY_BUILD_TABLE) {
       if (primary) {
         // Trace, checking for dangling pointers
-        sanityTrace.startTrace();
+        sanityTrace.completeTrace();
+      }
+      return true;
+    }
 
+    if (phaseId == Simple.SANITY_CHECK_TABLE) {
+      if (primary) {
         // Iterate over the reachable objects.
         Address curr = global().getSanityTable().getFirst();
         while (!curr.isZero()) {
@@ -103,7 +113,7 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_RELEASE) {
+    if (phaseId == Simple.SANITY_RELEASE) {
       if (primary) {
         sanityTrace.release();
       }
@@ -131,12 +141,16 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
+    if (Plan.SCAN_BOOT_IMAGE && Space.isInSpace(Plan.VM_SPACE, object)) {
+      return;
+    }
+
     // Get the table entry.
     Address tableEntry = global().getSanityTable().getEntry(object, true);
 
     if (SanityDataTable.incRC(tableEntry, root)) {
       SanityChecker.liveObjectCount++;
-      trace.enqueue(object);
+      trace.processNode(object);
     }
   }
 
@@ -154,9 +168,7 @@ import org.vmmagic.unboxed.*;
       return SanityChecker.UNSURE;
 
     Space space = Space.getSpaceForObject(object);
-    return space.isReachable(object)
-      ? SanityChecker.ALIVE
-      : SanityChecker.DEAD;
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
   /** @return The global trace as a SanityChecker instance. */

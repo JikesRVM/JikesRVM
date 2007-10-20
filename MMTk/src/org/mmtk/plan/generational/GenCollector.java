@@ -33,7 +33,6 @@ import org.vmmagic.pragma.*;
  * @see GenMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenCollector extends StopTheWorldCollector {
 
@@ -64,9 +63,7 @@ import org.vmmagic.pragma.*;
    * @see GenMutator
    */
   public GenCollector() {
-    global().remsetPool.newConsumer();
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
-    global().arrayRemsetPool.newConsumer();
     remset = new AddressDeque("remset", global().remsetPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
     sanityChecker = new GenSanityCheckerLocal();
@@ -84,28 +81,26 @@ import org.vmmagic.pragma.*;
    * @param primary Use this thread for single-threaded local activities.
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
+      global().arrayRemsetPool.prepareNonBlocking();
+      global().remsetPool.prepareNonBlocking();
       nurseryTrace.prepare();
       return;
     }
 
-    if (phaseId == Gen.BOOTIMAGE_ROOTS) {
-      if (global().traceFullHeap()) {
-        super.collectionPhase(phaseId, primary);
+    if (phaseId == StopTheWorld.ROOTS) {
+      if (!Gen.USE_STATIC_WRITE_BARRIER || global().traceFullHeap()) {
+        VM.scanning.computeStaticRoots(getCurrentTrace());
+      }
+      if (Plan.SCAN_BOOT_IMAGE && global().traceFullHeap()) {
+        VM.scanning.computeBootImageRoots(getCurrentTrace());
       }
       return;
     }
 
-    if (phaseId == Gen.START_CLOSURE) {
-      if (!global().gcFullHeap) {
-        nurseryTrace.startTrace();
-      }
-      return;
-    }
-
-    if (phaseId == Gen.COMPLETE_CLOSURE) {
+    if (phaseId == Gen.CLOSURE) {
       if (!global().gcFullHeap) {
         nurseryTrace.completeTrace();
       }
@@ -115,6 +110,8 @@ import org.vmmagic.pragma.*;
     if (phaseId == Gen.RELEASE) {
       if (!global().traceFullHeap()) {
         nurseryTrace.release();
+        global().arrayRemsetPool.reset();
+        global().remsetPool.reset();
       }
       return;
     }

@@ -33,9 +33,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
-import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_MagicNames;
 
@@ -76,7 +75,7 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      VM_Field f = VM_Entrypoints.framePointerField;
+      VM_Field f = VM_ArchEntrypoints.framePointerField;
       OPT_RegisterOperand pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
       bc2ir.appendInstruction(GetField.create(GETFIELD,
                                               val,
@@ -97,6 +96,8 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
       // nothing required on Intel
     } else if (methodName == VM_MagicNames.prefetch) {
       bc2ir.appendInstruction(CacheOp.create(PREFETCH, bc2ir.popAddress()));
+    } else if (methodName == VM_MagicNames.pause) {
+      bc2ir.appendInstruction(Empty.create(PAUSE));
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
@@ -139,10 +140,6 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
                                             fp,
                                             new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.clearFloatingPointState) {
-      if (!VM_ArchConstants.SSE2_FULL) {
-        bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
-      }
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones)

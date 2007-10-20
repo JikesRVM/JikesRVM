@@ -22,12 +22,13 @@
   <property name="test.max.heapsize" value="200"/>
 
   <import file="../../../build/tests.xml"/>
+  <ant antfile="../../../build/components/caffeinemark.xml" target="ensure" inheritall="false" inheritrefs="false"/>
+  <property file="${components.file}"/>
 
   <property name="main.java" location="${basedir}/src"/>
   <property name="build.classes" location="${build.tests.dir}/classes"/>
 
-  <property name="CaffeineMark.dir" value="${external.lib.dir}/CaffeineMark-3.0"/>
-  <property name="test.class.path" value="${CaffeineMark.dir}:${build.classes}"/>
+  <property name="test.class.path" value="${caffeinemark.dir}:${build.classes}"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -56,9 +57,6 @@
 
 
   <target name="test" depends="compile">
-    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
-    <test-file name="CaffeineMark.dir" location="${jikesrvm.dir}/.ant.properties"/>
-
     <rvm tag="CaffeineMark" class="RunCaffeine"/>
 
     <startResults/>

@@ -122,7 +122,7 @@ import org.vmmagic.unboxed.*;
           if (traceState.EQ(TRACE_EXACT_ALLOC) ||
               traceState.EQ(TRACE_ALLOC)) {
             if (!OMIT_ALLOCS) {
-              Log.write( (traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
+              Log.write((traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
               Log.write(' ');
               Log.write(val);
               loggedRecord = true;
@@ -131,7 +131,7 @@ import org.vmmagic.unboxed.*;
           } else if (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC) ||
                      traceState.EQ(TRACE_IMMORTAL_ALLOC)) {
             if (!OMIT_ALLOCS) {
-              Log.write( (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
+              Log.write((traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
               Log.write(' ');
               Log.write(val);
               loggedRecord = true;

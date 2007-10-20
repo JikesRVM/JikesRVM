@@ -85,7 +85,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
               OPT_Operand use = s.getOperand(idx);
               if (use instanceof OPT_RegisterOperand) {
                 OPT_RegisterOperand rUse = (OPT_RegisterOperand) use;
-                OPT_Operand value = info.get(rUse.register);
+                OPT_Operand value = info.get(rUse.getRegister());
                 if (value != null) {
                   didSomething = true;
                   s.putOperand(idx, value.copy());
@@ -98,13 +98,13 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
           for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
             OPT_Operand def = e.next();
             if (def != null) {
-              info.remove(((OPT_RegisterOperand) def).register);
+              info.remove(((OPT_RegisterOperand) def).getRegister());
             }
           }
         }
         // GEN
         if (Move.conforms(s) && Move.getVal(s).isConstant()) {
-          info.put(Move.getResult(s).register, (OPT_ConstantOperand) Move.getVal(s));
+          info.put(Move.getResult(s).getRegister(), (OPT_ConstantOperand) Move.getVal(s));
         }
       }
       info.clear();

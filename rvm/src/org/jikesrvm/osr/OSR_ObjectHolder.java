@@ -14,6 +14,8 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -87,10 +89,15 @@ public class OSR_ObjectHolder implements VM_SizeConstants {
    * Uses magic because it must be uninterruptible
    */
   @Inline
-  public static void cleanRefs(int i) {
+  public static void cleanRefs(int h) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }
-    VM_Magic.setObjectAtOffset(refs, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_ADDRESS), null); // refs[i] = null;
+    /* refs[h] = null; */
+    if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      MM_Interface.arrayStoreWriteBarrier(refs, h, null);
+    } else {
+      VM_Magic.setObjectAtOffset(refs, Offset.fromIntSignExtend(h << LOG_BYTES_IN_ADDRESS), null);
+    }
   }
 }

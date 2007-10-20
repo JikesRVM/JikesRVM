@@ -11,8 +11,8 @@
  *  regarding copyright ownership.
  */
 class Globals {
-        static public int NumDisks;
-        static public int MaxDisks = 64; // this will do!
+        public static int NumDisks;
+        public static int MaxDisks = 64; // this will do!
 }
 
 public class hanoioo {
@@ -21,7 +21,7 @@ public class hanoioo {
                peg2 = new Peg(2),
                peg3 = new Peg(3);
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
        Globals.NumDisks = 24;
        if (args.length > 0) Globals.NumDisks = Integer.parseInt(args[0]);
@@ -60,7 +60,7 @@ public class hanoioo {
 class Peg {
 
     int pegNum;
-    int disks[] = new int[64];
+    int[] disks = new int[64];
     int nDisks;
 
     public Peg(int n) {

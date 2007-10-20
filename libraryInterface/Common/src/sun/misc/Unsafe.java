@@ -1,23 +1,27 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Ian Rogers, The University of Manchester 2007
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-//$Id: $
 package sun.misc;
+
+import java.lang.reflect.Field;
 
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
-import java.lang.reflect.Field;
 
-public class Unsafe {
+public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
 
   private Unsafe() {}
@@ -113,11 +117,11 @@ public class Unsafe {
     return VM_Magic.getObjectAtOffset(obj,off);
   }
 
-  public int arrayBaseOffset(Class arrayClass) {
+  public int arrayBaseOffset(Class<?> arrayClass) {
     return 0;
   }
 
-  public int arrayIndexScale(Class arrayClass) {
+  public int arrayIndexScale(Class<?> arrayClass) {
     VM_Type arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
     if (!arrayType.isArrayType()) {
       return 0;
@@ -128,10 +132,12 @@ public class Unsafe {
 
   public void unpark(Thread thread) {
     VM_Thread vmthread = java.lang.JikesRVMSupport.getThread(thread);
-    vmthread.unpark();
+    if (vmthread != null) {
+      vmthread.unpark();
+    }
   }
 
-  public void park(boolean isAbsolute,long time) {
+  public void park(boolean isAbsolute,long time) throws Throwable  {
     VM_Thread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
     vmthread.park(isAbsolute, time);
   }

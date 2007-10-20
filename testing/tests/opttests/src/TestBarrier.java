@@ -15,7 +15,7 @@ class TestBarrier {
   static Object[] array = new Object[10];
   static test     Test  = new test();
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
       run(new Object());
   }
 

@@ -99,6 +99,7 @@ public class VM_Properties extends VM_Options {
   public static final boolean TraceFileSystem = false;
   public static final boolean TraceThreads = false;
   public static final boolean TraceStackTrace = false;
+  public static final boolean TraceExceptionDelivery = false;
 
   // Baseline compiler reference map tracing.
   //

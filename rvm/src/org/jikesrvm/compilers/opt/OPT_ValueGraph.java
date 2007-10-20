@@ -150,7 +150,7 @@ final class OPT_ValueGraph {
    */
   public OPT_ValueGraphVertex getVertex(Object name) {
     if (name instanceof OPT_RegisterOperand) {
-      name = ((OPT_RegisterOperand) name).asRegister().register;
+      name = ((OPT_RegisterOperand) name).asRegister().getRegister();
     } else if (name instanceof OPT_IntConstantOperand) {
       name = ((OPT_IntConstantOperand) name).value;
     } else if (name instanceof OPT_FloatConstantOperand) {
@@ -264,10 +264,10 @@ final class OPT_ValueGraph {
     // ignore instructions that define physical registers
     for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
       OPT_Operand current = e.next();
-      if (current instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) current).register.isPhysical()) return;
+      if (current instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) current).getRegister().isPhysical()) return;
     }
 
-    OPT_Register result = Move.getResult(s).register;
+    OPT_Register result = Move.getResult(s).getRegister();
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_Operand val = Move.getVal(s);
     // bypass Move instructions that define the right-hand side
@@ -283,7 +283,7 @@ final class OPT_ValueGraph {
    * @param s the instruction in question
    */
   private void processPi(OPT_Instruction s) {
-    OPT_Register result = GuardedUnary.getResult(s).register;
+    OPT_Register result = GuardedUnary.getResult(s).getRegister();
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_Operand val = GuardedUnary.getVal(s);
     // bypass Move instructions that define the right-hand side
@@ -302,7 +302,7 @@ final class OPT_ValueGraph {
    */
   private void processNew(OPT_Instruction s) {
     OPT_RegisterOperand result = New.getResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     // set the label for a NEW instruction to be the instruction itself
     // so that no two NEW results get the same value number
     v.setLabel(s, 0);
@@ -319,7 +319,7 @@ final class OPT_ValueGraph {
    */
   private void processNewArray(OPT_Instruction s) {
     OPT_RegisterOperand result = NewArray.getResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     // set the label for a NEW instruction to be the instruction itself
     // so that no two NEW results get the same value number
     v.setLabel(s, 0);
@@ -403,7 +403,7 @@ final class OPT_ValueGraph {
   private void processUnary(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = Unary.getResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     v.setLabel(s.operator(), 1);
     // link node v to the operand it uses
     OPT_Operand val = Unary.getVal(s);
@@ -425,7 +425,7 @@ final class OPT_ValueGraph {
   private void processGuardedUnary(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = GuardedUnary.getResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     v.setLabel(s.operator(), 1);
     // link node v to the operand it uses
     OPT_Operand val = GuardedUnary.getVal(s);
@@ -444,7 +444,7 @@ final class OPT_ValueGraph {
   private void processNullCheck(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = NullCheck.getGuardResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     v.setLabel(s.operator(), 1);
     // link node v to the operand it uses
     OPT_Operand val = NullCheck.getRef(s);
@@ -463,7 +463,7 @@ final class OPT_ValueGraph {
   private void processZeroCheck(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = ZeroCheck.getGuardResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     v.setLabel(s.operator(), 1);
     // link node v to the operand it uses
     OPT_Operand val = ZeroCheck.getValue(s);
@@ -482,7 +482,7 @@ final class OPT_ValueGraph {
   private void processBinary(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = Binary.getResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     v.setLabel(s.operator(), 2);
     // link node v to the two operands it uses
     // first link the first val
@@ -507,7 +507,7 @@ final class OPT_ValueGraph {
   private void processGuardedBinary(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = GuardedBinary.getResult(s);
-    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.getRegister());
     v.setLabel(s.operator(), 2);
     // link node v to the two operands it uses
     // first link the first val
@@ -568,7 +568,7 @@ final class OPT_ValueGraph {
   private void processPhi(OPT_Instruction s) {
     // the label for a PHI instruction is the basic block
     // in which it appears
-    OPT_Register result = Phi.getResult(s).asRegister().register;
+    OPT_Register result = Phi.getResult(s).asRegister().getRegister();
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_BasicBlock bb = s.getBasicBlock();
     v.setLabel(bb, bb.getNumberOfIn());
@@ -591,7 +591,7 @@ final class OPT_ValueGraph {
   private void processPrologue(OPT_Instruction s) {
     int numArgs = 0;
     for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements(); numArgs++) {
-      OPT_Register formal = ((OPT_RegisterOperand) e.next()).register;
+      OPT_Register formal = ((OPT_RegisterOperand) e.next()).getRegister();
       OPT_ValueGraphVertex v = findOrCreateVertex(formal);
       v.setLabel(new OPT_ValueGraphParamLabel(numArgs), 0);
     }
@@ -620,7 +620,7 @@ final class OPT_ValueGraph {
     if (var instanceof OPT_Register) {
       return findOrCreateVertex((OPT_Register) var);
     } else if (var instanceof OPT_RegisterOperand) {
-      return findOrCreateVertex(((OPT_RegisterOperand) var).register);
+      return findOrCreateVertex(((OPT_RegisterOperand) var).getRegister());
     } else if (var instanceof OPT_ConstantOperand) {
       return findOrCreateVertex((OPT_ConstantOperand) var);
     } else if (var instanceof OPT_TypeOperand) {
@@ -780,7 +780,7 @@ final class OPT_ValueGraph {
    */
   private OPT_Operand bypassMoves(OPT_Operand op) {
     if (!op.isRegister()) return op;
-    OPT_Register r = op.asRegister().register;
+    OPT_Register r = op.asRegister().getRegister();
     OPT_Instruction def = r.getFirstDef();
     if (def == null) {
       return op;

@@ -80,8 +80,7 @@ class tClass {
     System.out.println(c);
     try {
       Class.forName("NotAClassSoThrowAnExceptionPlease");
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       System.out.println("caught ClassNotFoundException");
     }
 
@@ -118,8 +117,7 @@ class tClass {
     Method[] declaredMethods = c.getDeclaredMethods();
     Arrays.sort(declaredMethods, ToStringComparator.COMPARATOR);
 
-    System.out.println(c + " has a total number of methods: "
-        + methods.length);
+    System.out.println(c + " has a total number of methods: " + methods.length);
     for (final Method method : methods) {
       // dont print the methods out, signitures are different in
       // java and RVM libraries for java/lang/Object methods.

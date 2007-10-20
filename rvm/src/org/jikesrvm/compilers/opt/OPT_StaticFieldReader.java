@@ -62,6 +62,8 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
         } else {
           return new OPT_NullConstantOperand();
         }
+      } else if (type.isWordType()) {
+        return new OPT_AddressConstantOperand(field.getWordValueUnchecked(obj).toAddress());
       } else if (type.isIntType()) {
         return new OPT_IntConstantOperand(field.getIntValueUnchecked(obj));
       } else if (type.isBooleanType()) {
@@ -93,6 +95,20 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
             return new OPT_ObjectConstantOperand(value, Offset.zero());
           } else {
             return new OPT_NullConstantOperand();
+          }
+        } else if (type.isWordType()) {
+          Object value = f.get(obj);
+          if (type.equals(VM_TypeReference.Word))
+            return new OPT_AddressConstantOperand((Word)value);
+          else if (type.equals(VM_TypeReference.Address))
+            return new OPT_AddressConstantOperand((Address)value);
+          else if (type.equals(VM_TypeReference.Offset))
+            return new OPT_AddressConstantOperand((Offset)value);
+          else if (type.equals(VM_TypeReference.Extent))
+            return new OPT_AddressConstantOperand((Extent)value);
+          else {
+            OPT_OptimizingCompilerException.UNREACHABLE("Unknown word type " + type);
+            return null;
           }
         } else if (type.isIntType()) {
           return new OPT_IntConstantOperand(f.getInt(obj));

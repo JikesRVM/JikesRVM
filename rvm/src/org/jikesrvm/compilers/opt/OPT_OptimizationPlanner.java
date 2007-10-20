@@ -48,7 +48,7 @@ public class OPT_OptimizationPlanner {
    * @param explain Should an explanation of the metrics be generated?
    */
   public static void generateOptimizingCompilerSubsystemReport(boolean explain) {
-    if (!VM.MeasureCompilation) {
+    if (!VM.MeasureCompilationPhases) {
       return;
     }
 
@@ -67,6 +67,9 @@ public class OPT_OptimizationPlanner {
 
     VM.sysWrite("\n\tTOTAL COMPILATION TIME\t\t");
     int t = (int) total, places = t;
+    if (places == 0) {
+      places = 1;
+    }
     while (places < 1000000) { // Right-align 't'
       VM.sysWrite(" ");
       places *= 10;
@@ -150,11 +153,11 @@ public class OPT_OptimizationPlanner {
         // Always do initial wave of peephole branch optimizations
         new OPT_BranchOptimizations(0, true, false),
 
-        // Adjust static branch probabilites to account for infrequent blocks
+        // Adjust static branch probabilities to account for infrequent blocks
         new OPT_AdjustBranchProbabilities(),
 
         // Optional printing of initial HIR
-        // Do this after branch optmization, since without merging
+        // Do this after branch optimization, since without merging
         // FallThroughOuts, the IR is quite ugly.
         new OPT_IRPrinter("Initial HIR") {
           public boolean shouldPerform(OPT_Options options) {
@@ -184,7 +187,7 @@ public class OPT_OptimizationPlanner {
             return options.getOptLevel() >= 1;
           }
         },
-        // CFG spliting
+        // CFG splitting
         new OPT_StaticSplitting(),
         // restructure loops
         new OPT_CFGTransformations(),

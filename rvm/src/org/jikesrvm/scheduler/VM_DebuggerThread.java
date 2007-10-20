@@ -16,10 +16,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.unboxed.Address;
+import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * An interactive debugger that runs inside the virtual machine.
@@ -27,10 +27,9 @@ import org.vmmagic.pragma.Uninterruptible;
  * by VM_Thread.threadSwitch() following receipt of a debug request
  * signal (SIGQUIT).
  */
-public class VM_DebuggerThread extends VM_Thread {
-
+public class VM_DebuggerThread extends VM_Scheduler.ThreadModel {
   public VM_DebuggerThread() {
-    super(null);
+    super("Debugger");
     makeDaemon(true);
   }
 
@@ -39,14 +38,12 @@ public class VM_DebuggerThread extends VM_Thread {
    * @return true
    */
   @Uninterruptible
+  @Override
   public boolean isDebuggerThread() {
     return true;
   }
 
-  public String toString() {
-    return "DebuggerThread";
-  }
-
+  @Override
   public void run() {
     while (true) {
       try {
@@ -55,6 +52,7 @@ public class VM_DebuggerThread extends VM_Thread {
         eval(tokens);
       } catch (Exception e) {
         VM.sysWrite("oops: " + e + "\n");
+        e.printStackTrace();
       }
     }
   }
@@ -79,7 +77,7 @@ public class VM_DebuggerThread extends VM_Thread {
           for (VM_Scheduler.debugRequested = false; !VM_Scheduler.debugRequested;) {
             VM.sysWrite("\033[H\033[2J");
             eval(previousTokens);
-            VM_Wait.sleep(1000);
+            VM_Thread.sleep(1000,0);
           }
         }
         return;
@@ -91,11 +89,11 @@ public class VM_DebuggerThread extends VM_Thread {
     switch (command) {
       case't': // display thread(s)
         if (tokens.length == 1) { //
-          for (VM_Thread thread : VM_Scheduler.threads) {
+          for (VM_Scheduler.ThreadModel thread : VM_Scheduler.threads) {
             if (thread == null) continue;
             VM.sysWrite(rightJustify(thread.getIndex() + " ", 4) +
                         leftJustify(thread.toString(), 40) +
-                        getThreadState(thread) +
+                        thread.getThreadState() +
                         "\n");
           }
         } else if (tokens.length == 2) { // display specified thread
@@ -105,13 +103,13 @@ public class VM_DebuggerThread extends VM_Thread {
           //         won't start running while we're looking at it) ?
           VM_Thread thread = VM_Scheduler.threads[threadIndex];
 
-          VM.sysWrite(thread.getIndex() + " " + thread + " " + getThreadState(thread) + "\n");
+          VM.sysWriteln(thread.getIndex() + " " + thread + " " + thread.getThreadState());
 
           Address fp =
-              (thread ==
-               VM_Thread.getCurrentThread()) ? VM_Magic.getFramePointer() : thread.contextRegisters.getInnermostFramePointer();
+              (thread == VM_Scheduler.getCurrentThread()) ? VM_Magic.getFramePointer() :
+                 thread.contextRegisters.getInnermostFramePointer();
 
-          VM_Processor.getCurrentProcessor().disableThreadSwitching();
+          VM_Processor.getCurrentProcessor().disableThreadSwitching("disabled for debugger to dump stacks");
           VM_Scheduler.dumpStack(fp);
           VM_Processor.getCurrentProcessor().enableThreadSwitching();
         } else {
@@ -122,10 +120,8 @@ public class VM_DebuggerThread extends VM_Thread {
       case'p': // print object
         if (tokens.length == 2) {
           Address addr =
-              (VM.BuildFor64Addr) ? Address.fromLong(Long.parseLong(tokens[1],
-                                                                    16)) : Address.fromIntZeroExtend(Integer.parseInt(
-                  tokens[1],
-                  16));
+              (VM.BuildFor64Addr) ? Address.fromLong(Long.parseLong(tokens[1], 16)) :
+                Address.fromIntZeroExtend(Integer.parseInt(tokens[1],16));
           VM.sysWrite("Object at addr 0x");
           VM.sysWriteHex(addr);
           VM.sysWrite(": ");
@@ -141,15 +137,18 @@ public class VM_DebuggerThread extends VM_Thread {
         return;
 
       case'c': // continue execution of virtual machine (make debugger dormant until next debug request)
-        VM_Scheduler.debugRequested = false;
-        VM_Scheduler.debuggerMutex.lock();
-        yield(VM_Scheduler.debuggerQueue, VM_Scheduler.debuggerMutex);
+        VM_Scheduler.suspendDebuggerThread();
         return;
 
       case'q': // terminate execution of virtual machine
         VM.sysWrite("terminating execution\n");
         VM.sysExit(VM.EXIT_STATUS_MISC_TROUBLE);
         return;
+
+      case EOF: // got a signal without a stdin; dump VM and continue
+          VM_Scheduler.dumpVirtualMachine();
+          VM_Scheduler.suspendDebuggerThread();
+          return;
 
       default:
         if (tokens.length == 1) { // offer help
@@ -184,50 +183,6 @@ public class VM_DebuggerThread extends VM_Thread {
     }
   }
 
-  // Figure out what a thread is doing.
-  //
-  private static String getThreadState(VM_Thread t) {
-    // scan per-processor queues
-    //
-    for (int i = 0; i < VM_Scheduler.processors.length; ++i) {
-      VM_Processor p = VM_Scheduler.processors[i];
-      if (p == null) continue;
-      if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
-      if (p.readyQueue.contains(t)) return "runnable on processor " + i;
-      if (p.ioQueue.contains(t)) return "waitingForIO (" + p.ioQueue.getWaitDescription(t) + ") on processor " + i;
-      if (p.processWaitQueue.contains(t)) {
-        return "waitingForProcess (" + p.processWaitQueue.getWaitDescription(t) + ") on processor " + i;
-      }
-      if (p.idleQueue.contains(t)) return "waitingForIdleWork on processor " + i;
-    }
-
-    // scan global queues
-    //
-    if (VM_Scheduler.wakeupQueue.contains(t)) return "sleeping";
-    if (VM_Scheduler.debuggerQueue.contains(t)) return "waitingForDebuggerWork";
-    if (VM_Scheduler.collectorQueue.contains(t)) return "waitingForCollectorWork";
-
-    // scan lock queues
-    //
-    for (int i = 0; i < VM_Scheduler.locks.length; ++i) {
-      VM_Lock l = VM_Scheduler.locks[i];
-      if (l == null || !l.active) continue;
-      if (l.entering.contains(t)) return ("waitingForLock" + i);
-      if (l.waiting.contains(t)) return "waitingForNotification";
-    }
-
-    // not in any queue
-    //
-    for (int i = 0; i < VM_Scheduler.processors.length; ++i) {
-      VM_Processor p = VM_Scheduler.processors[i];
-      if (p == null) continue;
-      if (p.activeThread == t) {
-        return "running on processor " + i;
-      }
-    }
-    return "unknown";
-  }
-
   private static final int STDIN = 0;
 
   // Read and tokenize one line of input.
@@ -252,9 +207,9 @@ public class VM_DebuggerThread extends VM_Thread {
     for (int i = 0, n = line.length(); i < n; ++i) {
       char ch = line.charAt(i);
 
-      if (isLetter(ch) || isDigit(ch)) {
+      if (Character.isLetter(ch) || Character.isDigit(ch)) {
         StringBuilder alphaNumericToken = new StringBuilder();
-        while (isLetter(ch) || isDigit(ch)) {
+        while (Character.isLetter(ch) || Character.isDigit(ch)) {
           alphaNumericToken.append(ch);
           if (++i == n) break;
           ch = line.charAt(i);
@@ -271,14 +226,6 @@ public class VM_DebuggerThread extends VM_Thread {
     String[] result = new String[tokens.size()];
     tokens.toArray(result);
     return result;
-  }
-
-  private static boolean isDigit(char ch) {
-    return '0' <= ch && ch <= '9';
-  }
-
-  private static boolean isLetter(char ch) {
-    return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z');
   }
 
   private static String leftJustify(String s, int width) {

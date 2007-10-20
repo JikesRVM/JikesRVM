@@ -34,6 +34,6 @@ public class TestLoadingWithoutName
     final TestLoadingWithoutName loader = new TestLoadingWithoutName();
     System.out.println("Defining class");
     final Class<?> clazz = loader.defineClass(null, data, 0, data.length);
-    System.out.println("Class defined Expected: test.org.jikesrvm.basic.core.TestClassLoading Actual: " + clazz.getName() );
+    System.out.println("Class defined Expected: test.org.jikesrvm.basic.core.TestClassLoading Actual: " + clazz.getName());
   }
 }

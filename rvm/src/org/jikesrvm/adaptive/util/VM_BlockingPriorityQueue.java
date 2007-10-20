@@ -28,9 +28,9 @@ public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    * Default implementation does nothing, but can be overriden as needed by client.
    */
   public static class CallBack {
-    void aboutToWait() {}
+    public void aboutToWait() {}
 
-    void doneWaiting() {}
+    public void doneWaiting() {}
   }
 
   CallBack callback;

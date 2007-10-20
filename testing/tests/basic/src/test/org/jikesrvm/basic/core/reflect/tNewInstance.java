@@ -16,7 +16,7 @@ package test.org.jikesrvm.basic.core.reflect;
  * Test of whether we enforce member access with newInstance()
  */
 class tNewInstance {
-  static class OnlyPrivateConstructor {
+  static final class OnlyPrivateConstructor {
     private OnlyPrivateConstructor() {}
   }
 

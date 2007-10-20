@@ -12,13 +12,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BITS_IN_ADDRESS;
 import static org.jikesrvm.VM_SizeConstants.BITS_IN_INT;
 import static org.jikesrvm.VM_SizeConstants.BITS_IN_LONG;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
@@ -45,153 +48,13 @@ import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 import org.jikesrvm.compilers.opt.ir.OPT_OperatorNames;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADDR_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADDR_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_DOUBLE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_FLOAT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_LONG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_NOTNULL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CHECKCAST_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_AS_LONG_BITS_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_AS_INT_BITS_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_DOES_IMPLEMENT_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_SUPERCLASS_IDS_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COMBINE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_NOTNULL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRSigExt;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRSigExt_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRZerExt_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2BYTE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2SHORT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2USHORT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_BITS_AS_FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_BITS_AS_DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_CMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MUST_IMPLEMENT_INTERFACE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NOP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OBJARRAY_STORE_CHECK_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OBJARRAY_STORE_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.TRAP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.TRAP_IF;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.TRAP_IF_opcode;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TIBConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
@@ -205,6 +68,7 @@ import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -262,7 +126,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    * Constant fold TIB operations?  Default is true, flip to avoid
    * consuming precious JTOC slots to hold new constant values.
    */
-  public static final boolean CF_TIB = false;
+  public static final boolean CF_TIB = true;
 
   /**
    * Effect of the simplification on Def-Use chains
@@ -1772,10 +1636,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (CF_ADDR) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
-      if (op2.isConstant() && !op2.isObjectConstant()) {
+      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
         Address val2 = getAddressValue(op2);
         OPT_Operand op1 = Binary.getVal1(s);
-        if (op1.isConstant() && !op1.isObjectConstant()) {
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Address val1 = getAddressValue(op1);
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.plus(val2.toWord().toOffset())));
@@ -1815,11 +1679,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
-      if (op2.isAddressConstant()) {
-        Word val2 = op2.asAddressConstant().value.toWord();
-        if (op1.isAddressConstant()) {
+      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+        Word val2 = getAddressValue(op2).toWord();
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
-          Word val1 = op1.asAddressConstant().value.toWord();
+          Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.and(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
@@ -1844,9 +1708,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
-        if (op1.isAddressConstant()) {
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
-          Word val1 = op1.asAddressConstant().value.toWord();
+          Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.lsh(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
@@ -1860,10 +1724,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
         }
-      } else if (op1.isAddressConstant()) {
-        Address val1 = op1.asAddressConstant().value;
+      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        Word val1 = getAddressValue(op1).toWord();
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-        if (val1.EQ(Word.zero().toAddress())) {                  // 0 << x == 0
+        if (val1.isZero()) {                  // 0 << x == 0
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(Address.zero()));
           return DefUseEffect.MOVE_FOLDED;
         }
@@ -1878,9 +1742,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
-        if (op1.isAddressConstant()) {
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
-          Word val1 = op1.asAddressConstant().value.toWord();
+          Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.rsha(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
@@ -1894,8 +1758,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.UNCHANGED;
           }
         }
-      } else if (op1.isAddressConstant()) {
-        Word val1 = op1.asAddressConstant().value.toWord();
+      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        Word val1 = getAddressValue(op1).toWord();
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
         // -1 >> x == -1, 0 >> x == 0
         if (val1.EQ(Word.zero()) || val1.EQ(Word.zero().minus(Word.one()))) {
@@ -1910,9 +1774,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect refNot(OPT_Instruction s) {
     if (CF_ADDR) {
       OPT_Operand op = Unary.getVal(s);
-      if (op.isAddressConstant()) {
+      if (op.isConstant() && !op.isMoveableObjectConstant()) {
         // CONSTANT: FOLD
-        Word val = op.asAddressConstant().value.toWord();
+        Word val = getAddressValue(op).toWord();
         Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(val.not().toAddress()));
         return DefUseEffect.MOVE_FOLDED;
       }
@@ -1930,11 +1794,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
-      if (op2.isAddressConstant()) {
-        Word val2 = op2.asAddressConstant().value.toWord();
+      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+        Word val2 = getAddressValue(op2).toWord();
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
-          Word val1 = op1.asAddressConstant().value.toWord();
+          Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.or(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
@@ -1962,9 +1826,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
-      if (op2.isConstant() && !op2.isObjectConstant()) {
+      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
         Address val2 = getAddressValue(op2);
-        if (op1.isConstant() && !op1.isObjectConstant()) {
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Address val1 = getAddressValue(op1);
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.minus(val2.toWord().toOffset())));
@@ -1989,7 +1853,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         AC(Address.zero().minus(val2.toWord().toOffset())));
           return DefUseEffect.REDUCED;
         }
-      } else if (op1.isConstant() && !op1.isObjectConstant()) {
+      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
         Address val1 = getAddressValue(op1);
         if (val1.EQ(Address.zero())) {
           Unary.mutate(s, REF_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
@@ -2006,9 +1870,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
-        if (op1.isAddressConstant()) {
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
-          Word val1 = op1.asAddressConstant().value.toWord();
+          Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.rshl(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
@@ -2022,8 +1886,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
         }
-      } else if (op1.isAddressConstant()) {
-        Word val1 = op1.asAddressConstant().value.toWord();
+      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        Word val1 = getAddressValue(op1).toWord();
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
         if (val1.EQ(Word.zero())) {                  // 0 >>> x == 0
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(Address.zero()));
@@ -2044,11 +1908,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
-      if (op2.isAddressConstant()) {
-        Word val2 = op2.asAddressConstant().value.toWord();
-        if (op1.isAddressConstant()) {
+      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+        Word val2 = getAddressValue(op2).toWord();
+        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
-          Word val1 = op1.asAddressConstant().value.toWord();
+          Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.xor(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
@@ -3031,9 +2895,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect addr2Int(OPT_Instruction s) {
     if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
-      if (op.isAddressConstant()) {
+      if (op.isConstant() && !op.isMoveableObjectConstant()) {
         // CONSTANT: FOLD
-        Address val = op.asAddressConstant().value;
+        Address val = getAddressValue(op);
         Move.mutate(s, INT_MOVE, Unary.getClearResult(s), IC(val.toInt()));
         return DefUseEffect.MOVE_FOLDED;
       }
@@ -3044,9 +2908,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect addr2Long(OPT_Instruction s) {
     if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
-      if (op.isAddressConstant()) {
+      if (op.isConstant() && !op.isMoveableObjectConstant()) {
         // CONSTANT: FOLD
-        Address val = op.asAddressConstant().value;
+        Address val = getAddressValue(op);
         Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC(val.toLong()));
         return DefUseEffect.MOVE_FOLDED;
       }
@@ -3233,11 +3097,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Object[] otherArgs;
         Object result = null;
         if (methOp.isVirtual()) {
-          thisArg = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,0), paramTypes[0]);
+          thisArg = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,0), method.getDeclaringClass().getTypeRef());
           n--;
           otherArgs = new Object[n];
           for(int i=0; i < n; i++) {
-            otherArgs[i] = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,i),paramTypes[i+1]);
+            otherArgs[i] = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,i+1),paramTypes[i]);
           }
         } else {
           otherArgs = new Object[n];
@@ -3257,8 +3121,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             Method m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
             result = m.invoke(thisArg, otherArgs);
           }
-        }
-        catch (Throwable e) { t = e;}
+        } catch (Throwable e) { t = e;}
         if (t != null) {
           // Call threw exception so leave in to generate at execution time
           return DefUseEffect.UNCHANGED;
@@ -3285,32 +3148,23 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static Object boxConstantOperand(OPT_ConstantOperand op, VM_TypeReference t){
     if (op.isObjectConstant()) {
       return op.asObjectConstant().value;
-    }
-    else if (op.isLongConstant()) {
+    } else if (op.isLongConstant()) {
       return op.asLongConstant().value;
-    }
-    else if (op.isFloatConstant()) {
+    } else if (op.isFloatConstant()) {
       return op.asFloatConstant().value;
-    }
-    else if (op.isDoubleConstant()) {
+    } else if (op.isDoubleConstant()) {
       return op.asDoubleConstant().value;
-    }
-    else if (t.isIntType()) {
+    } else if (t.isIntType()) {
       return op.asIntConstant().value;
-    }
-    else if (t.isBooleanType()) {
+    } else if (t.isBooleanType()) {
       return op.asIntConstant().value == 1;
-    }
-    else if (t.isByteType()) {
+    } else if (t.isByteType()) {
       return (byte)op.asIntConstant().value;
-    }
-    else if (t.isCharType()) {
+    } else if (t.isCharType()) {
       return (char)op.asIntConstant().value;
-    }
-    else if (t.isShortType()) {
+    } else if (t.isShortType()) {
       return (short)op.asIntConstant().value;
-    }
-    else {
+    } else {
       throw new OPT_OptimizingCompilerException("Trying to box an VM magic unboxed type for a pure method call is not possible");
     }
   }
@@ -3322,28 +3176,30 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    */
   private static OPT_ConstantOperand boxConstantObjectAsOperand(Object x, VM_TypeReference t){
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
-    if (t.isIntLikeType()) {
+    if (t.isIntType()) {
       return IC((Integer)x);
-    }
-    else if (t.isLongType()) {
+    } else if (t.isBooleanType()) {
+      return IC((Boolean)x ? 1 : 0);
+    } else if (t.isByteType()) {
+      return IC((Byte)x);
+    } else if (t.isCharType()) {
+      return IC((Character)x);
+    } else if (t.isShortType()) {
+      return IC((Short)x);
+    } else if (t.isLongType()) {
       return LC((Long)x);
-    }
-    else if (t.isFloatType()) {
+    } else if (t.isFloatType()) {
       return FC((Float)x);
-    }
-    else if (t.isDoubleType()) {
+    } else if (t.isDoubleType()) {
       return DC((Double)x);
-    }
-    else if(x instanceof String) {
+    } else if (x instanceof String) {
       // Handle as object constant but make sure to use interned String
       x = ((String)x).intern();
       return new OPT_ObjectConstantOperand(x, Offset.zero());
-    }
-    else if(x instanceof Class) {
+    } else if (x instanceof Class) {
       // Handle as object constant
       return new OPT_ObjectConstantOperand(x, Offset.zero());
-    }
-    else {
+    } else {
       return new OPT_ObjectConstantOperand(x, Offset.zero());
     }
   }
@@ -3386,33 +3242,26 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect getObjTib(OPT_Instruction s) {
     if (CF_TIB) {
       OPT_Operand op = GuardedUnary.getVal(s);
-      if (VM.VerifyAssertions && op.isNullConstant()) {
+      if (op.isNullConstant()) {
         // Simplify to an unreachable operand, this instruction is dead code
         // guarded by a nullcheck that should already have been simplified
         OPT_RegisterOperand result = GetField.getClearResult(s);
         Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result, new OPT_UnreachableOperand());
         return DefUseEffect.MOVE_FOLDED;
       } else if (op.isConstant()) {
-        try {
-          // NB as the operand is final it must already have been
-          // resolved.
-          VM_Type type = op.getType().resolve();
-          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(type));
+        final VM_TypeReference typeRef = op.getType();
+        if (typeRef.isResolved()) {
+          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(op.getType().peekType()));
           return DefUseEffect.MOVE_FOLDED;
-        } catch (NoClassDefFoundError e) {
-          if (VM.runningVM) {
-            // this is unexpected
-            throw e;
-          } else {
-            // Class not found during bootstrap due to chasing a class
-            // only valid in the bootstrap JVM
-            System.out.println("Failed to resolve: " + op.getType() + ": " + e.getMessage());
-          }
         }
       } else {
         OPT_RegisterOperand rop = op.asRegister();
         VM_TypeReference typeRef = rop.getType();
-        if (typeRef.isResolved() && rop.isPreciseType()) {
+        // Is the type of this register only one possible type?
+        if (typeRef.isResolved() && rop.isPreciseType() && typeRef.resolve().isInstantiated()) {
+          // before simplifying ensure that the type is instantiated, this stops
+          // constant propagation potentially moving the TIB constant before the
+          // runtime call that instantiates it
           Move.mutate(s,
                       REF_MOVE,
                       GuardedUnary.getClearResult(s),
@@ -3472,7 +3321,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
         Move.mutate(s,
                     REF_MOVE,
-                    Load.getClearResult(s),
+                    Unary.getClearResult(s),
                     new OPT_ObjectConstantOperand(tib.value.getSuperclassIds(), Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
       }
@@ -3487,7 +3336,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
         Move.mutate(s,
                     REF_MOVE,
-                    Load.getClearResult(s),
+                    Unary.getClearResult(s),
                     new OPT_ObjectConstantOperand(tib.value.getDoesImplement(), Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
       }
@@ -3591,6 +3440,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     }
     if (op instanceof OPT_IntConstantOperand) {
       return Address.fromIntSignExtend(op.asIntConstant().value);
+    }
+    if (VM.BuildFor64Addr && op instanceof OPT_LongConstantOperand) {
+      return Address.fromLong(op.asLongConstant().value);
+    }
+    if (op instanceof OPT_ObjectConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(!op.isMoveableObjectConstant());
+      return VM_Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OPT_OptimizingCompilerException("Cannot getAddressValue from this operand " + op);
   }

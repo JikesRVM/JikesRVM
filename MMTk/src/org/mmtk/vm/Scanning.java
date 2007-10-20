@@ -13,7 +13,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.Uninterruptible;
@@ -26,7 +26,17 @@ import org.vmmagic.unboxed.*;
    *
    * @param object The object to be scanned.
    */
-  public abstract void scanObject(TraceStep trace, ObjectReference object);
+  public abstract void scanObject(TransitiveClosure trace, ObjectReference object);
+
+  /**
+   * Invoke a specialized scan method. Note that these methods must have been allocated
+   * explicitly through Plan and PlanConstraints.
+   *
+   * @param id The specialized method id
+   * @param trace The trace the method has been specialized for
+   * @param object The object to be scanned
+   */
+  public abstract void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object);
 
   /**
    * Delegated precopying of a object's children, processing each pointer field
@@ -60,11 +70,10 @@ import org.vmmagic.unboxed.*;
   public abstract void preCopyGCInstances(TraceLocal trace);
 
   /**
-   * Computes all roots.  This method establishes all roots for
-   * collection and places them in the root values, root locations and
-   * interior root locations queues.  This method should not have side
-   * effects (such as copying or forwarding of objects).  There are a
-   * number of important preconditions:
+   * Computes static roots.  This method establishes all such roots for
+   * collection and places them in the root locations queue.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
    *
    * <ul>
    * <li> All objects used in the course of GC (such as the GC thread
@@ -75,8 +84,25 @@ import org.vmmagic.unboxed.*;
    *
    * @param trace The trace to use for computing roots.
    */
-  public abstract void computeAllRoots(TraceLocal trace);
+  public abstract void computeStaticRoots(TraceLocal trace);
 
+  /**
+   * Computes roots pointed to by threads, their associated registers
+   * and stacks.  This method places these roots in the root values,
+   * root locations and interior root locations queues.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
+   *
+   * <ul>
+   * <li> All objects used in the course of GC (such as the GC thread
+   * objects) need to be "pre-copied" prior to calling this method.
+   * <li> The <code>threadCounter</code> must be reset so that load
+   * balancing parallel GC can share the work of scanning threads.
+   * </ul>
+   *
+   * @param trace The trace to use for computing roots.
+   */
+  public abstract void computeThreadRoots(TraceLocal trace);
 
   /**
    * Compute all roots out of the VM's boot image (if any).  This method is a no-op

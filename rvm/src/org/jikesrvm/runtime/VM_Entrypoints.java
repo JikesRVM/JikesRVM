@@ -13,384 +13,350 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Member;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.runtime.VM_EntrypointHelper.getField;
+import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
 
 /**
  * Fields and methods of the virtual machine that are needed by
  * compiler-generated machine code or C runtime code.
  */
-public class VM_Entrypoints implements VM_Constants {
+public class VM_Entrypoints {
+  // The usual causes for getField/Method() to fail are:
+  //  1. you mispelled the class name, member name, or member signature
+  //  2. the class containing the specified member didn't get compiled
+  //
 
-  public static final String arch = VM.BuildForIA32 ? "ia32" : "ppc";
-  public static final VM_NormalMethod bootMethod = getMethod("Lorg/jikesrvm/VM;", "boot", "()V");
+  public static final VM_NormalMethod bootMethod = VM_EntrypointHelper.getMethod(org.jikesrvm.VM.class, "boot", "()V");
 
   public static final VM_Method java_lang_reflect_Method_invokeMethod =
-      getMethod("Ljava/lang/reflect/Method;", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+      getMethod(java.lang.reflect.Method.class, "invoke",
+          "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
   public static final VM_Field magicObjectRemapperField =
-      getField("Lorg/jikesrvm/runtime/VM_Magic;",
+      getField(org.jikesrvm.runtime.VM_Magic.class,
                "objectAddressRemapper",
-               "Lorg/jikesrvm/runtime/VM_ObjectAddressRemapper;");
+               org.jikesrvm.runtime.VM_ObjectAddressRemapper.class);
 
   public static final VM_NormalMethod instanceOfMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "instanceOf", "(Ljava/lang/Object;I)Z");
   public static final VM_NormalMethod instanceOfResolvedClassMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
   public static final VM_NormalMethod instanceOfFinalMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;",
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "instanceOfFinal",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)Z");
   public static final VM_NormalMethod checkcastMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "checkcast", "(Ljava/lang/Object;I)V");
   public static final VM_NormalMethod checkcastResolvedClassMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
   public static final VM_NormalMethod checkcastFinalMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;",
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "checkcastFinal",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
   public static final VM_NormalMethod checkstoreMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "athrow", "(Ljava/lang/Throwable;)V");
 
   // Allocation-related entry points
   //
   public static final VM_NormalMethod resolvedNewScalarMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;",
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "resolvedNewScalar",
                 "(I[Ljava/lang/Object;ZIIII)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewScalarMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unresolvedNewScalar", "(II)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unresolvedNewScalar", "(II)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewArrayMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unresolvedNewArray", "(III)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unresolvedNewArray", "(III)Ljava/lang/Object;");
   public static final VM_NormalMethod resolvedNewArrayMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;",
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "resolvedNewArray",
                 "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
-  public static final VM_NormalMethod newArrayArrayMethod =
-      getMethod("Lorg/jikesrvm/" + arch + "/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
-  public static final VM_Field gcLockField = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
+  public static final VM_Field gcLockField = getField(java.lang.VMRuntime.class, "gcLock", int.class);
 
-  public static final VM_Field sysWriteLockField = getField("Lorg/jikesrvm/VM;", "sysWriteLock", "I");
+  public static final VM_Field sysWriteLockField = getField(org.jikesrvm.VM.class, "sysWriteLock", int.class);
   public static final VM_Field intBufferLockField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;", "intBufferLock", "I");
+      getField(org.jikesrvm.VM_Services.class, "intBufferLock", int.class);
   public static final VM_Field dumpBufferLockField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;", "dumpBufferLock", "I");
+      getField(org.jikesrvm.VM_Services.class, "dumpBufferLock", int.class);
 
-  public static final VM_NormalMethod unimplementedBytecodeMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unimplementedBytecode", "(I)V");
   public static final VM_NormalMethod unexpectedAbstractMethodCallMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unexpectedAbstractMethodCall", "()V");
   public static final VM_NormalMethod raiseNullPointerException =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseNullPointerException", "()V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseNullPointerException", "()V");
   public static final VM_NormalMethod raiseArrayBoundsException =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseArrayIndexOutOfBoundsException", "(I)V");
   public static final VM_NormalMethod raiseArithmeticException =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseArithmeticException", "()V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseArithmeticException", "()V");
   public static final VM_NormalMethod raiseAbstractMethodError =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseAbstractMethodError", "()V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseAbstractMethodError", "()V");
   public static final VM_NormalMethod raiseIllegalAccessError =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "raiseIllegalAccessError", "()V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseIllegalAccessError", "()V");
   public static final VM_NormalMethod deliverHardwareExceptionMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "deliverHardwareException", "(II)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "deliverHardwareException", "(II)V");
   public static final VM_NormalMethod unlockAndThrowMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 
   public static final VM_NormalMethod invokeInterfaceMethod =
-      getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;",
+      getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "invokeInterface",
                 "(Ljava/lang/Object;I)Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
   public static final VM_NormalMethod findItableMethod =
-      getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;",
+      getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "findITable",
                 "([Ljava/lang/Object;I)[Ljava/lang/Object;");
   public static final VM_NormalMethod invokeinterfaceImplementsTestMethod =
-      getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;",
+      getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "invokeinterfaceImplementsTest",
                 "(Lorg/jikesrvm/classloader/VM_Class;[Ljava/lang/Object;)V");
   public static final VM_NormalMethod unresolvedInvokeinterfaceImplementsTestMethod =
-      getMethod("Lorg/jikesrvm/classloader/VM_InterfaceInvocation;",
+      getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "unresolvedInvokeinterfaceImplementsTest",
                 "(I[Ljava/lang/Object;)V");
 
   public static final VM_NormalMethod lockMethod =
-      getMethod("Lorg/jikesrvm/objectmodel/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.objectmodel.VM_ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
   public static final VM_NormalMethod unlockMethod =
-      getMethod("Lorg/jikesrvm/objectmodel/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.objectmodel.VM_ObjectModel.class, "genericUnlock", "(Ljava/lang/Object;)V");
 
   public static final VM_NormalMethod inlineLockMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;",
+      getMethod(org.jikesrvm.scheduler.VM_ThinLock.class,
                 "inlineLock",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
   public static final VM_NormalMethod inlineUnlockMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_ThinLock;",
+      getMethod(org.jikesrvm.scheduler.VM_ThinLock.class,
                 "inlineUnlock",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
 
   public static final VM_NormalMethod lazyMethodInvokerMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
+      getMethod(org.jikesrvm.runtime.VM_DynamicLinker.class, "lazyMethodInvoker", "()V");
   public static final VM_NormalMethod unimplementedNativeMethodMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
+      getMethod(org.jikesrvm.runtime.VM_DynamicLinker.class, "unimplementedNativeMethod", "()V");
   public static final VM_NormalMethod sysCallMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_DynamicLinker;", "sysCallMethod", "()V");
+      getMethod(org.jikesrvm.runtime.VM_DynamicLinker.class, "sysCallMethod", "()V");
 
   public static final VM_NormalMethod resolveMemberMethod =
-      getMethod("Lorg/jikesrvm/classloader/VM_TableBasedDynamicLinker;", "resolveMember", "(I)I");
+      getMethod(org.jikesrvm.classloader.VM_TableBasedDynamicLinker.class, "resolveMember", "(I)I");
   public static final VM_Field memberOffsetsField =
-      getField("Lorg/jikesrvm/classloader/VM_TableBasedDynamicLinker;", "memberOffsets", "[I");
+      getField(org.jikesrvm.classloader.VM_TableBasedDynamicLinker.class, "memberOffsets", int[].class);
 
-  public static final VM_Field longOneField = getField("Lorg/jikesrvm/runtime/VM_Math;", "longOne", "J");  // 1L
-  public static final VM_Field minusOneField = getField("Lorg/jikesrvm/runtime/VM_Math;", "minusOne", "F"); // -1.0F
-  public static final VM_Field zeroFloatField = getField("Lorg/jikesrvm/runtime/VM_Math;", "zero", "F");     // 0.0F
-  public static final VM_Field halfFloatField = getField("Lorg/jikesrvm/runtime/VM_Math;", "half", "F");     // 0.5F
-  public static final VM_Field oneFloatField = getField("Lorg/jikesrvm/runtime/VM_Math;", "one", "F");      // 1.0F
-  public static final VM_Field twoFloatField = getField("Lorg/jikesrvm/runtime/VM_Math;", "two", "F");      // 2.0F
-  public static final VM_Field two32Field = getField("Lorg/jikesrvm/runtime/VM_Math;", "two32", "F");    // 2.0F^32
-  public static final VM_Field half32Field = getField("Lorg/jikesrvm/runtime/VM_Math;", "half32", "F");   // 0.5F^32
-  public static final VM_Field billionthField = getField("Lorg/jikesrvm/runtime/VM_Math;", "billionth", "D");// 1e-9
-  public static final VM_Field zeroDoubleField = getField("Lorg/jikesrvm/runtime/VM_Math;", "zeroD", "D");    // 0.0
-  public static final VM_Field oneDoubleField = getField("Lorg/jikesrvm/runtime/VM_Math;", "oneD", "D");     // 1.0
+  /** 1L */
+  public static final VM_Field longOneField = getField(org.jikesrvm.runtime.VM_Math.class, "longOne", long.class);
+  /** -1.0F */
+  public static final VM_Field minusOneField = getField(org.jikesrvm.runtime.VM_Math.class, "minusOne", float.class);
+  /** 0.0F */
+  public static final VM_Field zeroFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "zero", float.class);
+  /**0.5F */
+  public static final VM_Field halfFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "half", float.class);
+  /** 1.0F */
+  public static final VM_Field oneFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "one", float.class);
+  /** 2.0F */
+  public static final VM_Field twoFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "two", float.class);
+  /** 2.0F^32 */
+  public static final VM_Field two32Field = getField(org.jikesrvm.runtime.VM_Math.class, "two32", float.class);
+  /** 0.5F^32 */
+  public static final VM_Field half32Field = getField(org.jikesrvm.runtime.VM_Math.class, "half32", float.class);
+  /** 1e-9 */
+  public static final VM_Field billionthField = getField(org.jikesrvm.runtime.VM_Math.class, "billionth", double.class);
+  /** 0.0 */
+  public static final VM_Field zeroDoubleField = getField(org.jikesrvm.runtime.VM_Math.class, "zeroD", double.class);
+  /** 1.0 */
+  public static final VM_Field oneDoubleField = getField(org.jikesrvm.runtime.VM_Math.class, "oneD", double.class);
+  /** largest double that can be rounded to an int */
   public static final VM_Field maxintField =
-      getField("Lorg/jikesrvm/runtime/VM_Math;", "maxint", "D");   //  largest double that can be rounded to an int
+      getField(org.jikesrvm.runtime.VM_Math.class, "maxint", double.class);
+  /** largest double that can be rounded to a long */
+  public static final VM_Field maxlongField =
+    getField(org.jikesrvm.runtime.VM_Math.class, "maxlong", double.class);
+  /** smallest double that can be rounded to an int */
   public static final VM_Field minintField =
-      getField("Lorg/jikesrvm/runtime/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
+      getField(org.jikesrvm.runtime.VM_Math.class, "minint", double.class);
   /** largest float that can be rounded to an int */
   public static final VM_Field maxintFloatField =
-    getField("Lorg/jikesrvm/runtime/VM_Math;", "maxintF", "F");
+    getField(org.jikesrvm.runtime.VM_Math.class, "maxintF", float.class);
+  /** largest float that can be rounded to a long */
+  public static final VM_Field maxlongFloatField =
+    getField(org.jikesrvm.runtime.VM_Math.class, "maxlongF", float.class);
+  /** IEEEmagic constant */
   public static final VM_Field IEEEmagicField =
-      getField("Lorg/jikesrvm/runtime/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
+      getField(org.jikesrvm.runtime.VM_Math.class, "IEEEmagic", double.class);
+  /** special double value for use in int <--> double conversions */
   public static final VM_Field I2DconstantField =
-      getField("Lorg/jikesrvm/runtime/VM_Math;",
+      getField(org.jikesrvm.runtime.VM_Math.class,
                "I2Dconstant",
-               "D");//  special double value for use in int <--> double conversions
-  public static final VM_Field FPUControlWordField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/" + arch + "/VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
+               double.class);
 
-  public static final String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;";
-  public static final VM_Field reflectiveMethodInvokerInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "reflectiveMethodInvokerInstructions",
-               ArchCodeArrayName);
-  public static final VM_Field saveThreadStateInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", ArchCodeArrayName);
-  public static final VM_Field threadSwitchInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;", "threadSwitchInstructions", ArchCodeArrayName);
-  public static final VM_Field restoreHardwareExceptionStateInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "restoreHardwareExceptionStateInstructions",
-               ArchCodeArrayName);
-  public static final VM_Field invokeNativeFunctionInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "invokeNativeFunctionInstructions",
-               ArchCodeArrayName);
-
+  public static final VM_Field suspendPendingField =
+    getField(org.jikesrvm.scheduler.greenthreads.VM_GreenThread.class, "suspendPending", int.class);
   public static final VM_Field scratchStorageField =
-      getField("Lorg/jikesrvm/scheduler/VM_Processor;", "scratchStorage", "D");
+      getField(org.jikesrvm.scheduler.VM_Processor.class, "scratchStorage", double.class);
   public static final VM_Field timeSliceExpiredField =
-      getField("Lorg/jikesrvm/scheduler/VM_Processor;", "timeSliceExpired", "I");
+      getField(org.jikesrvm.scheduler.VM_Processor.class, "timeSliceExpired", int.class);
   public static final VM_Field takeYieldpointField =
-      getField("Lorg/jikesrvm/scheduler/VM_Processor;", "takeYieldpoint", "I");
+      getField(org.jikesrvm.scheduler.VM_Processor.class, "takeYieldpoint", int.class);
   public static final VM_Field activeThreadField =
-      getField("Lorg/jikesrvm/scheduler/VM_Processor;", "activeThread", "Lorg/jikesrvm/scheduler/VM_Thread;");
+      getField(org.jikesrvm.scheduler.VM_Processor.class, "activeThread", org.jikesrvm.scheduler.VM_Thread.class);
   public static final VM_Field activeThreadStackLimitField =
-      getField("Lorg/jikesrvm/scheduler/VM_Processor;", "activeThreadStackLimit", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field pthreadIDField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "pthread_id", "I");
-  public static final VM_Field timerTicksField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "timerTicks", "I");
+      getField(org.jikesrvm.scheduler.VM_Processor.class, "activeThreadStackLimit", org.vmmagic.unboxed.Address.class);
+  public static final VM_Field pthreadIDField = getField(org.jikesrvm.scheduler.VM_Processor.class, "pthread_id", int.class);
+  public static final VM_Field timerTicksField =
+    getField(org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor.class, "timerTicks", int.class);
   public static final VM_Field reportedTimerTicksField =
-      getField("Lorg/jikesrvm/scheduler/VM_Processor;", "reportedTimerTicks", "I");
-  public static final VM_Field vpStatusField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "vpStatus", "I");
-  public static final VM_Field threadIdField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "threadId", "I");
-  public static final VM_Field jtocField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;",
-                                   "jtoc",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final VM_Field framePointerField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;",
-                                   "framePointer",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final VM_Field hiddenSignatureIdField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "hiddenSignatureId", "I") : null;
-  public static final VM_Field arrayIndexTrapParamField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "arrayIndexTrapParam", "I") : null;
+      getField(org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor.class, "reportedTimerTicks", int.class);
+  public static final VM_Field vpStatusField = getField(org.jikesrvm.scheduler.VM_Processor.class, "vpStatus", int.class);
+  public static final VM_Field threadIdField = getField(org.jikesrvm.scheduler.VM_Processor.class, "threadId", int.class);
 
   public static final VM_Field referenceReferentField =
-      getField("Ljava/lang/ref/Reference;", "referent", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field referenceNextAsAddressField =
-      getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
+      getField(java.lang.ref.Reference.class, "referent", org.vmmagic.unboxed.Address.class);
 
   /** Used in deciding which stack frames we can elide when printing. */
   public static final VM_NormalMethod mainThreadRunMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_MainThread;", "run", "()V");
+      getMethod(org.jikesrvm.scheduler.VM_MainThread.class, "run", "()V");
 
   public static final VM_NormalMethod yieldpointFromPrologueMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromPrologue", "()V");
+      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "yieldpointFromPrologue", "()V");
   public static final VM_NormalMethod yieldpointFromBackedgeMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromBackedge", "()V");
+      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "yieldpointFromBackedge", "()V");
   public static final VM_NormalMethod yieldpointFromEpilogueMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "yieldpointFromEpilogue", "()V");
+      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "yieldpointFromEpilogue", "()V");
 
-  public static final VM_NormalMethod threadRunMethod = getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "run", "()V");
+  public static final VM_NormalMethod threadRunMethod = getMethod(org.jikesrvm.scheduler.VM_Thread.class, "run", "()V");
   public static final VM_NormalMethod threadStartoffMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_Thread;", "startoff", "()V");
-  public static final VM_Field threadStackField = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "stack", "[B");
+      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "startoff", "()V");
+  public static final VM_Field threadStackField = getField(org.jikesrvm.scheduler.VM_Thread.class, "stack", byte[].class);
   public static final VM_Field stackLimitField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;", "stackLimit", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.scheduler.VM_Thread.class, "stackLimit", org.vmmagic.unboxed.Address.class);
 
   public static final VM_Field beingDispatchedField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;", "beingDispatched", "Z");
-  public static final VM_Field threadSlotField = getField("Lorg/jikesrvm/scheduler/VM_Thread;", "threadSlot", "I");
+      getField(org.jikesrvm.scheduler.VM_Thread.class, "beingDispatched", boolean.class);
+  public static final VM_Field threadSlotField = getField(org.jikesrvm.scheduler.VM_Thread.class, "threadSlot", int.class);
   public static final VM_Field jniEnvField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;", "jniEnv", "Lorg/jikesrvm/jni/VM_JNIEnvironment;");
+      getField(org.jikesrvm.scheduler.VM_Thread.class, "jniEnv", org.jikesrvm.jni.VM_JNIEnvironment.class);
   public static final VM_Field threadContextRegistersField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;",
+      getField(org.jikesrvm.scheduler.VM_Thread.class,
                "contextRegisters",
-               "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
+               org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
   public static final VM_Field threadHardwareExceptionRegistersField =
-      getField("Lorg/jikesrvm/scheduler/VM_Thread;",
+      getField(org.jikesrvm.scheduler.VM_Thread.class,
                "hardwareExceptionRegisters",
-               "Lorg/jikesrvm/ArchitectureSpecific$VM_Registers;");
+               org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
 
   public static final VM_Field tracePrevAddressField =
-      getField("Lorg/jikesrvm/objectmodel/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
+      getField(org.jikesrvm.objectmodel.VM_MiscHeader.class, "prevAddress", org.vmmagic.unboxed.Word.class);
   public static final VM_Field traceOIDField =
-      getField("Lorg/jikesrvm/objectmodel/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
-  public static final VM_Field dispenserField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "dispenser", "I");
-  public static final VM_Field servingField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "serving", "I");
+      getField(org.jikesrvm.objectmodel.VM_MiscHeader.class, "oid", org.vmmagic.unboxed.Word.class);
+  public static final VM_Field dispenserField = getField(org.jikesrvm.mm.mmtk.Lock.class, "dispenser", int.class);
+  public static final VM_Field servingField = getField(org.jikesrvm.mm.mmtk.Lock.class, "serving", int.class);
   public static final VM_Field lockThreadField =
-      getField("Lorg/jikesrvm/mm/mmtk/Lock;", "thread", "Lorg/jikesrvm/scheduler/VM_Thread;");
-  public static final VM_Field lockStartField = getField("Lorg/jikesrvm/mm/mmtk/Lock;", "start", "J");
-  public static final VM_Field gcStatusField = getField("Lorg/mmtk/plan/Plan;", "gcStatus", "I");
-  public static final VM_Field tailField =
-      getField("Lorg/mmtk/utility/deque/LocalSSB;", "tail", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field SQCFField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "completionFlag", "I");
-  public static final VM_Field SQNCField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numConsumers", "I");
+      getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.VM_Thread.class);
+  public static final VM_Field gcStatusField = getField(org.mmtk.plan.Plan.class, "gcStatus", int.class);
+  public static final VM_Field SQCFField = getField(org.mmtk.utility.deque.SharedDeque.class, "completionFlag", int.class);
+  public static final VM_Field SQNCField = getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumers", int.class);
   public static final VM_Field SQNCWField =
-      getField("Lorg/mmtk/utility/deque/SharedDeque;", "numConsumersWaiting", "I");
+      getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumersWaiting", int.class);
   public static final VM_Field SQheadField =
-      getField("Lorg/mmtk/utility/deque/SharedDeque;", "head", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.mmtk.utility.deque.SharedDeque.class, "head", org.vmmagic.unboxed.Address.class);
   public static final VM_Field SQtailField =
-      getField("Lorg/mmtk/utility/deque/SharedDeque;", "tail", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field LQheadField =
-      getField("Lorg/mmtk/utility/deque/LocalQueue;", "head", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "bufsenqueued", "I");
+      getField(org.mmtk.utility.deque.SharedDeque.class, "tail", org.vmmagic.unboxed.Address.class);
+  public static final VM_Field SQBEField = getField(org.mmtk.utility.deque.SharedDeque.class, "bufsenqueued", int.class);
   public static final VM_Field synchronizedCounterField =
-      getField("Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;", "count", "I");
+      getField(org.jikesrvm.mm.mmtk.SynchronizedCounter.class, "count", int.class);
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod =
-      getMethod("Lorg/jikesrvm/memorymanagers/mminterface/MM_Interface;",
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
                 "arrayStoreWriteBarrier",
                 "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_NormalMethod putfieldWriteBarrierMethod =
-      getMethod("Lorg/jikesrvm/memorymanagers/mminterface/MM_Interface;",
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
                 "putfieldWriteBarrier",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
   public static final VM_NormalMethod putstaticWriteBarrierMethod =
-      getMethod("Lorg/jikesrvm/memorymanagers/mminterface/MM_Interface;",
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
                 "putstaticWriteBarrier",
-                "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
+                "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
   public static final VM_NormalMethod modifyCheckMethod =
-      getMethod("Lorg/jikesrvm/memorymanagers/mminterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
+          "modifyCheck", "(Ljava/lang/Object;)V");
 
-  public static final VM_Field registersIPField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "ip", "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field registersFPRsField = getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "fprs", "[D");
-  public static final VM_Field registersGPRsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
-  public static final VM_Field registersInUseField = getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "inuse", "Z");
-  public static final VM_Field registersLRField =
-      (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
-                                      "lr",
-                                      "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final VM_Field toSyncProcessorsField =
-      (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "toSyncProcessors", "I") : null;
-  public static final VM_Field registersFPField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
-                                   "fp",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
+  public static final VM_Field outputLockField = getField(org.jikesrvm.scheduler.VM_Scheduler.class, "outputLock", int.class);
 
-  public static final VM_Field outputLockField = getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "outputLock", "I");
-
-  public static final VM_Field processorsField =
-      getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "processors", "[Lorg/jikesrvm/scheduler/VM_Processor;");
+  // used in boot image writer
+  public static final VM_Field greenProcessorsField =
+      getField(org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler.class, "processors", org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor[].class);
   public static final VM_Field debugRequestedField =
-      getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "debugRequested", "Z");
+      getField(org.jikesrvm.scheduler.VM_Scheduler.class, "debugRequested", boolean.class);
   public static final VM_NormalMethod dumpStackAndDieMethod =
-      getMethod("Lorg/jikesrvm/scheduler/VM_Scheduler;", "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
+      getMethod(org.jikesrvm.scheduler.VM_Scheduler.class, "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final VM_Field latestContenderField =
-      getField("Lorg/jikesrvm/scheduler/VM_ProcessorLock;", "latestContender", "Lorg/jikesrvm/scheduler/VM_Processor;");
+      getField(org.jikesrvm.scheduler.VM_ProcessorLock.class, "latestContender", org.jikesrvm.scheduler.VM_Processor.class);
 
   public static final VM_Field classForTypeField =
-      getField("Lorg/jikesrvm/classloader/VM_Type;", "classForType", "Ljava/lang/Class;");
-  public static final VM_Field depthField = getField("Lorg/jikesrvm/classloader/VM_Type;", "depth", "I");
-  public static final VM_Field idField = getField("Lorg/jikesrvm/classloader/VM_Type;", "id", "I");
-  public static final VM_Field dimensionField = getField("Lorg/jikesrvm/classloader/VM_Type;", "dimension", "I");
+      getField(org.jikesrvm.classloader.VM_Type.class, "classForType", java.lang.Class.class);
+  public static final VM_Field depthField = getField(org.jikesrvm.classloader.VM_Type.class, "depth", int.class);
+  public static final VM_Field idField = getField(org.jikesrvm.classloader.VM_Type.class, "id", int.class);
+  public static final VM_Field dimensionField = getField(org.jikesrvm.classloader.VM_Type.class, "dimension", int.class);
 
   public static final VM_Field innermostElementTypeField =
-      getField("Lorg/jikesrvm/classloader/VM_Array;", "innermostElementType", "Lorg/jikesrvm/classloader/VM_Type;");
+      getField(org.jikesrvm.classloader.VM_Array.class, "innermostElementType", org.jikesrvm.classloader.VM_Type.class);
 
   public static final VM_Field JNIEnvSavedPRField =
-      getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "savedPRreg", "Lorg/jikesrvm/scheduler/VM_Processor;");
+      getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "savedPRreg", org.jikesrvm.scheduler.VM_Processor.class);
   public static final VM_Field JNIGlobalRefsField =
-    getField("Lorg/jikesrvm/jni/VM_JNIGlobalRefTable;", "refs", "[Ljava/lang/Object;");
+    getField(org.jikesrvm.jni.VM_JNIGlobalRefTable.class, "refs", java.lang.Object[].class);
   public static final VM_Field JNIRefsField =
-      getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefs", "Lorg/vmmagic/unboxed/AddressArray;");
-  public static final VM_Field JNIRefsTopField = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefsTop", "I");
-  public static final VM_Field JNIRefsMaxField = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefsMax", "I");
+      getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "JNIRefs", org.vmmagic.unboxed.AddressArray.class);
+  public static final VM_Field JNIRefsTopField = getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "JNIRefsTop", int.class);
+  public static final VM_Field JNIRefsMaxField = getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "JNIRefsMax", int.class);
   public static final VM_Field JNIRefsSavedFPField =
-      getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefsSavedFP", "I");
+      getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "JNIRefsSavedFP", int.class);
   public static final VM_Field JNITopJavaFPField =
-      getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNITopJavaFP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "JNITopJavaFP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field JNIPendingExceptionField =
-      getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
+      getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "pendingException", java.lang.Throwable.class);
   public static final VM_Field JNIExternalFunctionsField =
-      getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "externalJNIFunctions", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "externalJNIFunctions", org.vmmagic.unboxed.Address.class);
   public static final VM_Field JNIEnvSavedJTOCField =
-      (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;",
+      (VM.BuildForPowerPC) ? getField(org.jikesrvm.jni.VM_JNIEnvironment.class,
                                       "savedJTOC",
-                                      "Lorg/vmmagic/unboxed/Address;") : null;
+                                      org.vmmagic.unboxed.Address.class) : null;
 
   public static final VM_Field the_boot_recordField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "the_boot_record", "Lorg/jikesrvm/runtime/VM_BootRecord;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "the_boot_record", org.jikesrvm.runtime.VM_BootRecord.class);
   public static final VM_Field sysVirtualProcessorYieldIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysVirtualProcessorYieldIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysVirtualProcessorYieldIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field externalSignalFlagField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "externalSignalFlag", "I");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "externalSignalFlag", int.class);
   public static final VM_Field sysLongDivideIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongDivideIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysLongDivideIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysLongRemainderIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongRemainderIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysLongRemainderIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysLongToFloatIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongToFloatIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysLongToFloatIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysLongToDoubleIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysLongToDoubleIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysLongToDoubleIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysFloatToIntIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysFloatToIntIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysFloatToIntIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysDoubleToIntIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleToIntIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysDoubleToIntIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysFloatToLongIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysFloatToLongIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysFloatToLongIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysDoubleToLongIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleToLongIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysDoubleToLongIP", org.vmmagic.unboxed.Address.class);
   public static final VM_Field sysDoubleRemainderIPField =
-      getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "sysDoubleRemainderIP", "Lorg/vmmagic/unboxed/Address;");
+      getField(org.jikesrvm.runtime.VM_BootRecord.class, "sysDoubleRemainderIP", org.vmmagic.unboxed.Address.class);
 
   public static final VM_Field edgeCountersField =
-      getField("Lorg/jikesrvm/compilers/baseline/VM_EdgeCounts;", "data", "[[I");
+      getField(org.jikesrvm.compilers.baseline.VM_EdgeCounts.class, "data", int[][].class);
 
-  public static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");
-  public static final VM_Field inetAddressFamilyField = getField("Ljava/net/InetAddress;", "family", "I");
+  public static final VM_Field inetAddressAddressField = getField(java.net.InetAddress.class, "address", int.class);
+  public static final VM_Field inetAddressFamilyField = getField(java.net.InetAddress.class, "family", int.class);
 
   public static final VM_Field socketImplAddressField =
-      getField("Ljava/net/SocketImpl;", "address", "Ljava/net/InetAddress;");
-  public static final VM_Field socketImplPortField = getField("Ljava/net/SocketImpl;", "port", "I");
+      getField(java.net.SocketImpl.class, "address", java.net.InetAddress.class);
+  public static final VM_Field socketImplPortField = getField(java.net.SocketImpl.class, "port", int.class);
 
   //////////////////
   // Entrypoints that are valid only when the opt compiler is included in the build
@@ -411,28 +377,28 @@ public class VM_Entrypoints implements VM_Constants {
   static {
     if (VM.BuildForOptCompiler) {
       specializedMethodsField =
-          getField("Lorg/jikesrvm/compilers/opt/OPT_SpecializedMethodPool;",
+          getField(org.jikesrvm.compilers.opt.OPT_SpecializedMethodPool.class,
                    "specializedMethods",
-                   "[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
-      osrOrganizerQueueLockField = getField("Lorg/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
+                   org.jikesrvm.ArchitectureSpecific.VM_CodeArray[].class);
+      osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSR_OrganizerThread.class, "queueLock", int.class);
       optThreadSwitchFromOsrOptMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromOsrOpt", "()V");
       optThreadSwitchFromPrologueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromPrologue", "()V");
       optThreadSwitchFromBackedgeMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromBackedge", "()V");
       optThreadSwitchFromEpilogueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromEpilogue", "()V");
       yieldpointFromNativePrologueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromNativePrologue", "()V");
       yieldpointFromNativeEpilogueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
-      optResolveMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromNativeEpilogue", "()V");
+      optResolveMethod = getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_resolve", "()V");
 
       optNewArrayArrayMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
+          getMethod(org.jikesrvm.compilers.opt.VM_OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
 
-      sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+      sysArrayCopy = getMethod(java.lang.VMSystem.class, "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);
     } else {
       specializedMethodsField = null;
@@ -449,149 +415,6 @@ public class VM_Entrypoints implements VM_Constants {
     }
   }
 
-  public static final VM_NormalMethod osrGetRefAtMethod;
-  public static final VM_NormalMethod osrCleanRefsMethod;
-
-  static {
-    if (VM.BuildForAdaptiveSystem) {
-      osrGetRefAtMethod = getMethod("Lorg/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
-      osrCleanRefsMethod = getMethod("Lorg/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
-    } else {
-      osrGetRefAtMethod = null;
-      osrCleanRefsMethod = null;
-    }
-  }
-
-  //////////////////
-  // Entrypoints that are valid only when the adaptive optimization system is included in the build
-  //////////////////
-  public static final VM_Field methodListenerNumSamplesField;
-
-  public static final VM_Field edgeListenerUpdateCalledField;
-  public static final VM_Field edgeListenerSamplesTakenField;
-
-  public static final VM_Field yieldCountListenerNumYieldsField;
-
-  public static final VM_Field counterArrayManagerCounterArraysField;
-
-  public static final VM_Field invocationCountsField;
-  public static final VM_NormalMethod invocationCounterTrippedMethod;
-
-  // Counter-based sampling fields
-  public static final VM_Field globalCBSField;
-  public static final VM_Field processorCBSField;
-  public static final VM_Field cbsResetValueField;
-
-  static {
-    if (VM.BuildForAdaptiveSystem) {
-      methodListenerNumSamplesField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_MethodListener;", "numSamples", "I");
-      edgeListenerUpdateCalledField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_EdgeListener;", "updateCalled", "I");
-      edgeListenerSamplesTakenField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_EdgeListener;", "samplesTaken", "I");
-      yieldCountListenerNumYieldsField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_YieldCounterListener;", "numYields", "I");
-
-      counterArrayManagerCounterArraysField =
-          getField("Lorg/jikesrvm/adaptive/measurements/instrumentation/VM_CounterArrayManager;",
-                   "counterArrays",
-                   "[[D");
-
-      invocationCountsField = getField("Lorg/jikesrvm/adaptive/recompilation/VM_InvocationCounts;", "counts", "[I");
-      invocationCounterTrippedMethod =
-          getMethod("Lorg/jikesrvm/adaptive/recompilation/VM_InvocationCounts;", "counterTripped", "(I)V");
-
-      globalCBSField =
-          getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;",
-                   "globalCounter",
-                   "I");
-      processorCBSField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "processor_cbs_counter", "I");
-      cbsResetValueField =
-          getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;", "resetValue", "I");
-    } else {
-      methodListenerNumSamplesField = null;
-      edgeListenerUpdateCalledField = null;
-      edgeListenerSamplesTakenField = null;
-      yieldCountListenerNumYieldsField = null;
-      counterArrayManagerCounterArraysField = null;
-      invocationCountsField = null;
-      invocationCounterTrippedMethod = null;
-      globalCBSField = null;
-      processorCBSField = null;
-      cbsResetValueField = null;
-    }
-  }
-
   public static final VM_Field classLoaderDefinedPackages =
-      getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
-
-  /**
-   * Get description of virtual machine component (field or method).
-   * Note: This is method is intended for use only by VM classes that need
-   * to address their own fields and methods in the runtime virtual machine
-   * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "Lorg/jikesrvm/VM_Runtime;"
-   * @param memberName       member name       - something like "invokestatic"
-   * @param memberDescriptor member descriptor - something like "()V"
-   * @return corresponding VM_Member object
-   */
-  private static VM_Member getMember(String classDescriptor, String memberName, String memberDescriptor) {
-    VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
-    VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(memberName);
-    VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
-    try {
-      VM_TypeReference tRef =
-          VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), clsDescriptor);
-      VM_Class cls = (VM_Class) tRef.resolve();
-      cls.resolve();
-
-      VM_Member member;
-      if ((member = cls.findDeclaredField(memName, memDescriptor)) != null) {
-        return member;
-      }
-      if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null) {
-        return member;
-      }
-
-      // The usual causes for getMember() to fail are:
-      //  1. you mispelled the class name, member name, or member signature
-      //  2. the class containing the specified member didn't get compiled
-      //
-      VM.sysWrite("VM_Entrypoints.getMember: can't find class=" +
-                  classDescriptor +
-                  " member=" +
-                  memberName +
-                  " desc=" +
-                  memberDescriptor +
-                  "\n");
-      VM._assert(NOT_REACHED);
-    } catch (Exception e) {
-      e.printStackTrace();
-      VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" +
-                  classDescriptor +
-                  " member=" +
-                  memberName +
-                  " desc=" +
-                  memberDescriptor +
-                  "\n");
-      VM._assert(NOT_REACHED);
-    }
-    return null; // placate jikes
-  }
-
-  private static VM_NormalMethod getMethod(String klass, String member, String descriptor) {
-    VM_NormalMethod m = (VM_NormalMethod) getMember(klass, member, descriptor);
-    m.setRuntimeServiceMethod(true);
-    return m;
-  }
-
-  private static VM_Field getField(String klass, String member, String descriptor) {
-    return (VM_Field) getMember(klass, member, descriptor);
-  }
-
-  public static VM_Field getSysCallField(String name) {
-    return (VM_Field) getMember("Lorg/jikesrvm/VM_BootRecord;", name + "IP", "Lorg/vmmagic/unboxed/Address;");
-  }
-
+      getField(java.lang.ClassLoader.class, "definedPackages", java.util.HashMap.class);
 }

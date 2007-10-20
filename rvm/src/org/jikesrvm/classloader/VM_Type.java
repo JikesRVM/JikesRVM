@@ -15,9 +15,12 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -92,7 +95,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public static final VM_Array WordArrayType;
   public static final VM_Primitive AddressType;
   public static final VM_Array AddressArrayType;
-  public static final VM_Primitive ObjectReferenceType;
+  public static final VM_Class ObjectReferenceType;
   public static final VM_Array ObjectReferenceArrayType;
   public static final VM_Primitive OffsetType;
   public static final VM_Array OffsetArrayType;
@@ -118,7 +121,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
     OffsetType = VM_TypeReference.Offset.resolve().asPrimitive();
     ExtentType = VM_TypeReference.Extent.resolve().asPrimitive();
     CodeType = VM_TypeReference.Code.resolve().asPrimitive();
-    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asPrimitive();
+    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
     // Jikes RVM classes
     MagicType = VM_TypeReference.Magic.resolve().asClass();
     // Array types
@@ -146,6 +149,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * Type id -- used to index into typechecking datastructures
    */
+  @Entrypoint
   protected final int id;
 
   /**
@@ -156,6 +160,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * instance of java.lang.Class corresponding to this type
    */
+  @Entrypoint
   private final Class<?> classForType;
 
   /**
@@ -163,6 +168,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * classes. NB this field must appear in all VM_Types for fast type
    * checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
    */
+  @Entrypoint
   protected final int dimension;
   /**
    * Number of superclasses to Object. Known immediately for
@@ -170,6 +176,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * this field must appear in all VM_Types for fast object array
    * store checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
    */
+  @Entrypoint
   protected int depth;
   /**
    * cached VM_Array that corresponds to arrays of this type.
@@ -284,6 +291,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Define hashCode(), to allow use of consistent hash codes during
    * bootImage writing and run-time
    */
+  @Override
   public final int hashCode() {
     return typeRef.hashCode();
   }
@@ -560,6 +568,11 @@ public abstract class VM_Type extends VM_AnnotatedElement
     return null;
   }
 
+  /**
+   * Is the given slot accessible in this type's TIB? Will fail an assertion if
+   * not.
+   * @param slot the slot to check
+   */
   protected void checkTIBSlotIsAccessible(int slot) {
     if (!isInstantiated()) {
       VM._assert(false, toString() + "'s TIB is inaccessible as its not instantiated");
@@ -672,6 +685,16 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract void resolve();
 
   /**
+   * This method is only called by the bootimage writer.
+   * It is called after {@link #resolve()} has been called on all
+   * bootimaage types but before {@link #instantiate()} has been called
+   * on any bootimaage type.
+   * This provides a hook to compute various summaries that cannot be computed before types
+   * are resolved.
+   */
+  public abstract void allBootImageTypesResolved();
+
+  /**
    * Cause instantiation to take place.
    * This will cause the class's methods to be compiled and slots in the
    * jtoc to be filled-in.
@@ -729,16 +752,38 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract boolean isTIBSlotCode(int slot);
 
   /**
-   * Record the type information the memory manager holds about this
-   * type
-   * @param mmt the type to record
+   * Set the specialized method for a class or array.
    */
-  public abstract void setMMType(Object mmt);
+  public final void setSpecializedMethod(int id, VM_CodeArray code) {
+    getTypeInformationBlock()[TIB_FIRST_SPECIALIZED_METHOD_INDEX + id] = code;
+  }
 
   /**
-   * @return the type information the memory manager previously
-   * recorded about this type
+   * The memory manager's allocator id for this type.
+   */
+  private int mmAllocator;
+
+  /**
+   * Record the allocator information the memory manager holds about this
+   * type.
+   *
+   * @param mmType the type to record
+   */
+  public final void setMMAllocator(int allocator) {
+    this.mmAllocator = allocator;
+  }
+
+  /**
+   * This returns the allocator id as supplied by the memory manager.
+   * The method is located here as this is the only common superclass of VM_Array
+   * and VM_Class, and due to performance reasons this needs to be a non-abstract
+   * method. For VM_Primitive this field is unused.
+   *
+   * @return the allocator id previously recorded.
    */
   @Uninterruptible
-  public abstract Object getMMType();
+  @Inline
+  public final int getMMAllocator() {
+    return mmAllocator;
+  }
 }

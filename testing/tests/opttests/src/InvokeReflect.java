@@ -18,7 +18,7 @@ class InvokeReflect {
   static String  signatureToPrintOut = "()Z";
   static Class[] noparams            = {};
 
-  public static void main(String argv[]) throws Exception {
+  public static void main(String[] argv) throws Exception {
     if (argv.length == 0) { printUsage(); return; }
 
     for (int iArg=0; iArg<argv.length; iArg++) {

@@ -16,9 +16,9 @@ import org.jikesrvm.classloader.VM_Field;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Utility class to help sot fields.
+ * Utility class to help sort fields.
  */
-class SortableField implements Comparable {
+class SortableField implements Comparable<SortableField> {
   final VM_Field f;
   final Offset offset;
 
@@ -27,13 +27,9 @@ class SortableField implements Comparable {
     offset = f.getOffset();
   }
 
-  public int compareTo(Object y) {
-    if (y instanceof SortableField) {
-      Offset offset2 = ((SortableField) y).offset;
-      if (offset.sGT(offset2)) return 1;
-      if (offset.sLT(offset2)) return -1;
-      return 0;
-    }
-    return 1;
+  public int compareTo(SortableField y) {
+    if (offset.sGT(y.offset)) return 1;
+    if (offset.sLT(y.offset)) return -1;
+    return 0;
   }
 }

@@ -30,7 +30,7 @@ import org.vmmagic.pragma.*;
    * Create a new scanner.
    * @param d The GCspy driver that provides the callback.
    */
-  public LinearScan (AbstractDriver d) { driver = d; }
+  public LinearScan(AbstractDriver d) { driver = d; }
 
   /**
    * Scan an object. The object reference is passed to the scan method of the

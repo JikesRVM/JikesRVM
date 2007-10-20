@@ -13,7 +13,6 @@
 package org.mmtk.utility.gcspy.drivers;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.LinearScan;
 import org.mmtk.utility.gcspy.StreamConstants;
@@ -45,7 +44,7 @@ import org.vmmagic.pragma.*;
   protected ShortStream rootsStream;
   protected ShortStream refFromImmortalStream;
 
-  protected Subspace subspace;	             // A subspace for all of this space
+  protected Subspace subspace;               // A subspace for all of this space
   protected int allTileNum;                  // total number of tiles
 
   // Overall statistics
@@ -57,7 +56,7 @@ import org.vmmagic.pragma.*;
   protected int totalRoots           = 0;
   protected int totalRefFromImmortal = 0;
 
-  private final LinearScan scanner;	         // A scanner to trace objects
+  private final LinearScan scanner;          // A scanner to trace objects
 
   // Debugging
   protected Address lastAddress = Address.zero();
@@ -74,12 +73,11 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
-  public LinearSpaceDriver(
-                     ServerInterpreter server,
-		             String spaceName,
-                     Space mmtkSpace,
-                     int blockSize,
-                     boolean mainSpace) {
+  public LinearSpaceDriver(ServerInterpreter server,
+                           String spaceName,
+                           Space mmtkSpace,
+                           int blockSize,
+                           boolean mainSpace) {
 
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
@@ -101,7 +99,7 @@ import org.vmmagic.pragma.*;
     arrayObjectsStream    = createArrayObjectsStream();
     rootsStream           = createRootsStream();
     refFromImmortalStream = createRefFromImmortalStream();
-    serverSpace.resize(0);	// the collector must call resize() before gathering data
+    serverSpace.resize(0); // the collector must call resize() before gathering data
 
     // Initialise the statistics
     resetData();
@@ -132,7 +130,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,      // paint style
                      0,                                     // index of max stream (only needed if the presentation is *_VAR)
                      Color.Red,                             // tile colour
-		             true );			                    // summary enabled
+                     true);                                 // summary enabled
   }
 
   @Interruptible
@@ -150,7 +148,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -169,7 +167,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Green,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -188,7 +186,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Yellow,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -207,7 +205,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Cyan,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -226,7 +224,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -245,13 +243,13 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
-		             true);
+                     true);
   }
 
   /**
    * Reset the statistics for all the streams, including totals used for summaries
    */
-  public void resetData () {
+  public void resetData() {
     super.resetData();
 
     // Reset all the streams
@@ -325,11 +323,7 @@ import org.vmmagic.pragma.*;
    * @param total Whether to accumulate the values
    */
   public void scan(ObjectReference obj, boolean total) {
-    // get length of object and determine if it's an array
-    MMType type =  VM.objectModel.getObjectType(obj);
-    // VM_Type would say whether it was an array;
-    // MMType won't, so we'll just show reference arrays
-    boolean isArray = type.isReferenceArray();
+    boolean isArray = VM.objectModel.isArray(obj);
     int length = VM.objectModel.getCurrentSize(obj);
     Address addr = obj.toAddress();
 
@@ -355,9 +349,8 @@ import org.vmmagic.pragma.*;
           totalArrayObjects++;
           totalArrayUsedSpace += length;
         }
-      }
-      else {
-        if(!this.scanCheckPrimitiveArray(obj.toObject(), index, total, length) ) {
+      } else {
+        if(!this.scanCheckPrimitiveArray(obj.toObject(), index, total, length)) {
           // real object
           scalarObjectsStream.increment(index, (short)1);
           if (total) {
@@ -382,19 +375,20 @@ import org.vmmagic.pragma.*;
    */
   protected boolean scanCheckPrimitiveArray(Object obj, int index, boolean total, int length) {
     if(obj instanceof long[]   ||
-	   obj instanceof int[]    ||
-	   obj instanceof short[]  ||
-	   obj instanceof byte[]   ||
-	   obj instanceof double[] ||
-	   obj instanceof float[]   ) {
+       obj instanceof int[]    ||
+       obj instanceof short[]  ||
+       obj instanceof byte[]   ||
+       obj instanceof double[] ||
+       obj instanceof float[]) {
       arrayPrimitiveStream.increment(index, (short)1);
       if (total) {
         totalPrimitives++;
         totalScalarUsedSpace += length;
       }
       return true;
+    } else {
+      return false;
     }
-    else return false;
   }
 
   /**
@@ -402,7 +396,7 @@ import org.vmmagic.pragma.*;
    * Implemented using the algorithm pattern, subclasses can override parts of it.
    * @param event The event, defined in the Plan
    */
-  public void transmit (int event) {
+  public void transmit(int event) {
     if (!server.isConnected(event))
       return;
 
@@ -464,7 +458,7 @@ import org.vmmagic.pragma.*;
     }
     if (numBlocks < allTileNum)
       controlValues(CONTROL_UNUSED,
-		            subspace.getFirstIndex() + numBlocks,
+                    subspace.getFirstIndex() + numBlocks,
                     allTileNum - numBlocks);
   }
 
@@ -482,8 +476,9 @@ import org.vmmagic.pragma.*;
       // increment summary
       this.totalRoots++;
       return true;
+    } else {
+      return false;
     }
-    else return false;
   }
 
   /**
@@ -510,8 +505,9 @@ import org.vmmagic.pragma.*;
       // increment summary
       this.totalRefFromImmortal++;
       return true;
+    } else {
+      return false;
     }
-    else return false;
   }
 
 }

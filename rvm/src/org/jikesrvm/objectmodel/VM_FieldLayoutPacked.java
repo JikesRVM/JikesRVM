@@ -15,6 +15,7 @@ package org.jikesrvm.objectmodel;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.runtime.VM_Memory;
 
 /**
  * Layout fields in an object, packt like sardines in a crushd tin box.
@@ -26,9 +27,39 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
    * bytes.
    */
   private static class LayoutContext extends VM_FieldLayoutContext {
-    private static final int LOG_MAX_SLOT_SIZE = 3;
+    private static final int LOG_MAX_SLOT_SIZE = LOG_BYTES_IN_LONG;
     private static final int MAX_SLOT_SIZE = (1 << LOG_MAX_SLOT_SIZE);
-    final short[] slots = new short[LOG_MAX_SLOT_SIZE + 1];
+
+    private short slot0;
+    private short slot1;
+    private short slot2;
+
+    /**
+     * Get the value for a given slot.
+     */
+    private short get(int logSize) {
+      switch (logSize) {
+        case 0: return slot0;
+        case 1: return slot1;
+        case 2: return slot2;
+        case 3: return (short)VM_Memory.alignUp(getObjectSize(), MAX_SLOT_SIZE);
+        default: VM.sysFail("Invalid slot"); return -1;
+      }
+    }
+
+    /**
+     * Set the value for a given slot.
+     */
+    private void set(int logSize, int value) {
+      if (VM.VerifyAssertions) VM._assert(value >= 0 && value < Short.MAX_VALUE);
+      short shortValue = (short)value;
+      switch (logSize) {
+        case 0: slot0 = shortValue; break;
+        case 1: slot1 = shortValue; break;
+        case 2: slot2 = shortValue; break;
+        case 3: if (VM.VerifyAssertions) VM._assert(shortValue == 0);
+      }
+    }
 
     /**
      * Create a layout for an object without a superclass (ie j.l.Object).
@@ -36,10 +67,7 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
      * @param alignment
      */
     LayoutContext(byte alignment) {
-      super(alignment);
-      for (int i = 0; i < slots.length; i++) {
-        slots[i] = 0;
-      }
+      this(alignment, null);
     }
 
     /**
@@ -51,11 +79,9 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
      */
     LayoutContext(byte alignment, LayoutContext superLayout) {
       super(alignment, superLayout);
-      for (int i = 0; i < slots.length; i++) {
-        if (superLayout != null) {
-          slots[i] = superLayout.slots[i];
-        } else {
-          slots[i] = 0;
+      if (superLayout != null) {
+        for (int i = 0; i < LOG_MAX_SLOT_SIZE; i++) {
+          set(i, superLayout.get(i));
         }
       }
     }
@@ -72,45 +98,37 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
       adjustAlignment(size);
 
       /* Calculate the log of the size of the field */
-      int logSize = 0;
-      while ((1 << logSize) != size) {
-        logSize += 1;
-      }
-      int result = slots[logSize];
-      slots[logSize] += size;
+      int logSize = log2(size);
+      int result = 0;
 
-      /*
-      * Other size classes may have been pointing to this slot.
-      * Bump them up to the next multiple of their size class past
-      * the space allocated for this field.
-      */
-      for (int i = 0; i < slots.length; i++) {
-        if (slots[i] == result) {
-          slots[i] += VM_FieldLayoutPacked.max(size, 1 << i);
+      /* Find a free slot */
+      for(int i = logSize; i <= LOG_MAX_SLOT_SIZE; i++) {
+        int slot = get(i);
+        if (slot != 0 || i == LOG_MAX_SLOT_SIZE) {
+          result = slot;
+          set(i, 0);
+          /* Set any holes we have created */
+          for (i = i - 1; i >= logSize; i--) {
+            if (VM.VerifyAssertions) VM._assert(get(i) == 0);
+            set(i, result + (1 << i));
+          }
+          break;
         }
       }
 
-      /*
-      * At this point, each free slot pointer should be either identical to
-      * the free slot of the next largest size class, or not aligned
-      * to the next size class.  Make it so.
-      */
-      for (int i = slots.length - 2, nextSlotSize = MAX_SLOT_SIZE; i >= 0; i--, nextSlotSize >>= 1) {
-        if ((slots[i] & (nextSlotSize - 1)) == 0) {
-          // slot is aligned to the next size class
-          slots[i] = slots[i + 1];
-        }
-      }
+      /* Make sure the field fits */
       ensureObjectSize(result + size);
+
       if (DEBUG) {
         VM.sysWrite("  field: & offset ", result, " New object size = ", getObjectSize());
-        VM.sysWrite(" slots: ", slots[0], ",", slots[1]);
-        VM.sysWriteln(",", slots[2], ",", slots[3]);
+        VM.sysWrite(" slots: ");
+        for(int i=0; i < LOG_MAX_SLOT_SIZE; i++) {
+          VM.sysWrite(get(i), i == LOG_MAX_SLOT_SIZE - 1 ? "" : ", ");
+        }
+        VM.sysWriteln();
       }
 
-      /*
-      * Bounds check - scalar objects this size are impossible, surely ??
-      */
+      /* Bounds check - scalar objects this size are impossible, surely ?? */
       if (result >= Short.MAX_VALUE) {
         VM.sysFail("Scalar class size exceeds offset width");
       }
@@ -130,5 +148,4 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
   protected VM_FieldLayoutContext getLayoutContext(VM_Class klass) {
     return new LayoutContext((byte) klass.getAlignment(), (LayoutContext) klass.getFieldLayoutContext());
   }
-
 }

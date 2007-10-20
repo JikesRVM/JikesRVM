@@ -67,7 +67,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
   }
-  
+
   /**
    * Triggers a collection.
    *
@@ -88,14 +88,14 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
       VM.sysWriteln("Entered Collection.joinCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
-    
+
     while (Plan.isCollectionTriggered()) {
       /* allow a gc thread to run */
-      VM_Thread.yield();
+      VM_Scheduler.yield();
     }
     checkForOutOfMemoryError(true);
   }
-  
+
   /**
    * Triggers a collection.
    *
@@ -105,20 +105,23 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   @LogicallyUninterruptible
   public static void triggerCollectionStatic(int why) {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
-    
+
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
 
     checkForOutOfMemoryError(false);
-    
+
     Plan.setCollectionTriggered();
     if (why == EXTERNAL_GC_TRIGGER) {
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
+    } else if (why == INTERNAL_PHASE_GC_TRIGGER) {
+      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
+        VM.sysWrite("[Phase GC]");
     } else {
-      VM_Thread.getCurrentThread().reportCollectionAttempt();
+      VM_Scheduler.getCurrentThread().reportCollectionAttempt();
     }
 
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
@@ -128,14 +131,14 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
       VM.sysWriteln("Leaving Collection.triggerCollection().");
     }
   }
-  
+
   /**
    * Check if there is an out of memory error waiting.
    */
   @Inline
   @LogicallyUninterruptible
   private static void checkForOutOfMemoryError(boolean afterCollection) {
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     OutOfMemoryError oome = myThread.getOutOfMemoryError();
     if (oome != null && (!afterCollection || !myThread.physicalAllocationFailed())) {
       if (Options.verbose.getValue() >= 4) {
@@ -152,7 +155,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   public int maximumCollectionAttempt() {
     int max = 1;
-    for(int t=0; t < VM_Scheduler.threadHighWatermark; t++) {
+    for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
       VM_Thread thread = VM_Scheduler.threads[t];
       if (thread != null) {
         int current = thread.getCollectionAttempt();
@@ -166,7 +169,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Report that the the physical allocation has succeeded.
    */
   public void reportAllocationSuccess() {
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     myThread.clearOutOfMemoryError();
     myThread.resetCollectionAttempts();
     myThread.clearPhysicalAllocationFailed();
@@ -176,16 +179,30 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Report that a physical allocation has failed.
    */
   public void reportPhysicalAllocationFailed() {
-    VM_Thread.getCurrentThread().setPhysicalAllocationFailed();
+    VM_Scheduler.getCurrentThread().setPhysicalAllocationFailed();
+  }
+
+  /**
+   * Does the VM consider this an emergency allocation, where the normal
+   * heap size rules can be ignored.
+   */
+  public boolean isEmergencyAllocation() {
+    return VM_Scheduler.getCurrentThread().emergencyAllocation();
   }
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
-  public final void triggerAsyncCollection(int why) { 
+  public final void triggerAsyncCollection(int why) {
     Plan.setCollectionTriggered();
-    if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
+    if (Options.verbose.getValue() >= 1) {
+      if (why == INTERNAL_PHASE_GC_TRIGGER) {
+        VM.sysWrite("[Async-Phase GC]");
+      } else {
+        VM.sysWrite("[Async GC]");
+      }
+    }
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake, why);
   }
 
@@ -235,7 +252,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     VM_Processor vp = ((Selected.Collector) c).getProcessor();
     int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
-    VM_Thread t = VM_Thread.getCurrentThread();
+    VM_Thread t = VM_Scheduler.getCurrentThread();
     Address fp = VM_Magic.getFramePointer();
     while (true) {
       Address caller_ip = VM_Magic.getReturnAddress(fp);
@@ -263,6 +280,48 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
+  /** @return The number of active collector threads */
+  public final int activeGCThreads() {
+    return VM_CollectorThread.numCollectors();
+  }
+
+  /**
+   * @return The ordinal ID of the running collector thread w.r.t.
+   * the set of active collector threads (zero based)
+   */
+  public final int activeGCThreadOrdinal() {
+    return VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getGCOrdinal() - VM_CollectorThread.GC_ORDINAL_BASE;
+  }
+
+  /**
+   * Ensure all concurrent worker threads are scheduled.
+   */
+  public void scheduleConcurrentWorkers() {
+    scheduleConcurrentThreads();
+  }
+
+  /**
+   * Request each mutator flush remembered sets. This method
+   * will trigger the flush and then yield until all processors have
+   * flushed.
+   */
+  public void requestMutatorFlush() {
+    VM_Scheduler.requestMutatorFlush();
+  }
+
+  /**
+   * Possibly yield the current concurrent collector thread. Return
+   * true if yielded.
+   */
+  @Inline
+  public boolean yieldpoint() {
+    if (VM_Processor.getCurrentProcessor().takeYieldpoint != 0) {
+      VM_Thread.yieldpointFromBackedge();
+      return true;
+    }
+    return false;
+  }
+
   /***********************************************************************
    *
    * Finalizers
@@ -275,13 +334,17 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * has been called, and before mutators are allowed to run.
    */
   @Uninterruptible
-  public static void scheduleFinalizerThread () {
-
+  public static void scheduleFinalizerThread() {
     int finalizedCount = Finalizer.countToBeFinalized();
-    boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();
-    if (finalizedCount > 0 && !alreadyScheduled) {
-      VM_Thread t = VM_Scheduler.finalizerQueue.dequeue();
-      VM_Processor.getCurrentProcessor().scheduleThread(t);
+    if (finalizedCount > 0) {
+      VM_Scheduler.scheduleFinalizer();
     }
+  }
+
+  /**
+   * Schedule the concurrent collector threads.
+   */
+  public static void scheduleConcurrentThreads() {
+    VM_Scheduler.scheduleConcurrentCollectorThreads();
   }
 }

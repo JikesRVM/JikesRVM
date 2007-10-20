@@ -16,7 +16,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
@@ -33,18 +32,16 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
  */
-@Uninterruptible public abstract class TraceLocal extends TraceStep
-  implements Constants {
+@Uninterruptible
+public abstract class TraceLocal extends TransitiveClosure implements Constants {
   /****************************************************************************
    *
    * Instance variables
    */
-  // gray objects
+  /* gray object */
   protected final ObjectReferenceDeque values;
-  // root locs of white objs
+  /* delayed root slots */
   protected final AddressDeque rootLocations;
-  // interior root locations
-  protected final AddressPairDeque interiorRootLocations;
 
   /****************************************************************************
    *
@@ -57,12 +54,19 @@ import org.vmmagic.unboxed.*;
    * @param trace The global trace class to use.
    */
   public TraceLocal(Trace trace) {
+    this(-1, trace);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param specializedScan The specialized scan id.
+   * @param trace The global trace class to use.
+   */
+  public TraceLocal(int specializedScan, Trace trace) {
+    super(specializedScan);
     values = new ObjectReferenceDeque("value", trace.valuePool);
-    trace.valuePool.newConsumer();
-    rootLocations = new AddressDeque("rootLoc", trace.rootLocationPool);
-    trace.rootLocationPool.newConsumer();
-    interiorRootLocations = new AddressPairDeque(trace.interiorRootPool);
-    trace.interiorRootPool.newConsumer();
+    rootLocations = new AddressDeque("roots", trace.rootLocationPool);
   }
 
   /****************************************************************************
@@ -75,29 +79,30 @@ import org.vmmagic.unboxed.*;
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param objLoc The location containing the object reference to be
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
-  public final void traceObjectLocation(Address objLoc, boolean root) {
-    ObjectReference object = objLoc.loadObjectReference();
-    ObjectReference newObject = traceObject(object, root);
-    objLoc.store(newObject);
+  public final void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
+    ObjectReference newObject = traceObject(object, false);
+    slot.store(newObject);
   }
 
   /**
-   * Trace a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>trace</code> method.  This reference is presumed <i>not</i>
-   * to be from a root.
+   * Report a root edge to be processed during GC. As the given reference
+   * may theoretically point to an object required during root scanning,
+   * the caller has requested processing be delayed.
    *
-   * @param objLoc The location containing the object reference to be
+   * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
+   * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
-  public final void traceObjectLocation(Address objLoc) {
-    traceObjectLocation(objLoc, false);
+  public final void reportDelayedRootEdge(Address slot) {
+    rootLocations.push(slot);
   }
 
   /**
@@ -105,28 +110,41 @@ import org.vmmagic.unboxed.*;
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param object The object reference to be traced.
-   * @param interiorRef The interior reference inside obj that must be traced.
-   * @param root True if the reference to <code>obj</code> was held in a root.
-   * @return The possibly moved interior reference.
+   * @param slot The location containing the object reference to be
+   * traced.  The object reference is <i>NOT</i> an interior pointer.
+   * @param root True if <code>objLoc</code> is within a root.
    */
-  public final Address traceInteriorReference(ObjectReference object,
-    Address interiorRef,
-    boolean root) {
-    Offset offset = interiorRef.diff(object.toAddress());
-    ObjectReference newObject = traceObject(object, root);
+  @Inline
+  public final void processRootEdge(Address slot) {
+    ObjectReference object = slot.loadObjectReference();
+    ObjectReference newObject = traceObject(object, true);
+    slot.store(newObject);
+  }
+
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param target The object the interior edge points within.
+   * @param slot The location of the interior edge.
+   * @param root True if this is a root edge.
+   */
+  public final void processInteriorEdge(ObjectReference target, Address slot, boolean root) {
+    Address interiorRef = slot.loadAddress();
+    Offset offset = interiorRef.diff(target.toAddress());
+    ObjectReference newTarget = traceObject(target, root);
     if (VM.VERIFY_ASSERTIONS) {
-      if (offset.sLT(Offset.zero()) ||
-          offset.sGT(Offset.fromIntSignExtend(1<<24))) {
+      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {
         // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta to interior pointer");
-        Log.write("       object base = "); Log.writeln(object);
+        Log.write("       object base = "); Log.writeln(target);
         Log.write("       interior reference = "); Log.writeln(interiorRef);
         Log.write("       delta = "); Log.writeln(offset);
         VM.assertions._assert(false);
       }
     }
-    return newObject.toAddress().plus(offset);
+    slot.store(newTarget.toAddress().plus(offset));
   }
 
   /**
@@ -142,7 +160,11 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   protected void scanObject(ObjectReference object) {
-    Scan.scanObject(this, object);
+    if (specializedScan >= 0) {
+      VM.scanning.specializedScanObject(specializedScan, this, object);
+    } else {
+      VM.scanning.scanObject(this, object);
+    }
   }
 
 
@@ -157,38 +179,16 @@ import org.vmmagic.unboxed.*;
    * @param object The object to be enqueued
    */
   @Inline
-  public final void enqueue(ObjectReference object) {
+  public final void processNode(ObjectReference object) {
     values.push(object);
   }
 
   /**
-   * Report a new root location for the trace.
-   *
-   * @param location The slot of the root.
+   * Flush the local buffers of all deques.
    */
-  @Inline
-  public final void addRootLocation(Address location) {
-    rootLocations.push(location);
-  }
-
-  /**
-   * Report a new interior root location for the trace.
-   *
-   * @param object The object the location resides in.
-   * @param location The slot of the root.
-   */
-  @Inline
-  public final void addInteriorRootLocation(ObjectReference object,
-                                            Address location) {
-    interiorRootLocations.push(object.toAddress(), location);
-  }
-
-  /**
-   * Flush the local buffers of the root deques.
-   */
-  public final void flushRoots() {
+  public final void flush() {
+    values.flushLocal();
     rootLocations.flushLocal();
-    interiorRootLocations.flushLocal();
   }
 
   /**
@@ -204,6 +204,10 @@ import org.vmmagic.unboxed.*;
       return Plan.loSpace.isLive(object);
     else if (space == Plan.ploSpace)
       return Plan.ploSpace.isLive(object);
+    else if (Plan.USE_CODE_SPACE && space == Plan.smallCodeSpace)
+      return Plan.smallCodeSpace.isLive(object);
+    else if (Plan.USE_CODE_SPACE && space == Plan.largeCodeSpace)
+      return Plan.largeCodeSpace.isLive(object);
     else if (space == null) {
       if (VM.VERIFY_ASSERTIONS) {
         Log.write("space failure: "); Log.writeln(object);
@@ -255,6 +259,10 @@ import org.vmmagic.unboxed.*;
       return Plan.loSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.PLOS, object))
       return Plan.ploSpace.traceObject(this, object);
+    if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.SMALL_CODE, object))
+      return Plan.smallCodeSpace.traceObject(this, object);
+    if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
+      return Plan.largeCodeSpace.traceObject(this, object);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false, "No special case for space in traceObject");
     return ObjectReference.nullReference();
@@ -296,7 +304,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object that must not move during the collection.
    * @return True If the object will not move during collection
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())
       return true;
     if (Space.isInSpace(Plan.LOS, object))
@@ -304,6 +312,10 @@ import org.vmmagic.unboxed.*;
     if (Space.isInSpace(Plan.IMMORTAL, object))
       return true;
     if (Space.isInSpace(Plan.VM_SPACE, object))
+      return true;
+    if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.SMALL_CODE, object))
+      return true;
+    if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
       return true;
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false, "willNotMove not defined properly in subclass");
@@ -432,30 +444,17 @@ import org.vmmagic.unboxed.*;
   public void release() {
     values.reset();
     rootLocations.reset();
-    interiorRootLocations.reset();
   }
 
   /**
-   * Process all GC work.  This method iterates until all work queues
-   * are empty.
+   * Process any roots for which processing was delayed.
    */
   @Inline
-  public void startTrace() {
-    logMessage(4, "Working on GC in parallel");
-    logMessage(5, "processing root locations");
+  public void processRoots() {
+    logMessage(5, "processing delayed root objects");
     while (!rootLocations.isEmpty()) {
-      Address loc = rootLocations.pop();
-      traceObjectLocation(loc, true);
+      processRootEdge(rootLocations.pop());
     }
-    logMessage(5, "processing interior root locations");
-    while (!interiorRootLocations.isEmpty()) {
-      ObjectReference obj = interiorRootLocations.pop1().toObjectReference();
-      Address interiorLoc = interiorRootLocations.pop2();
-      Address interior = interiorLoc.loadAddress();
-      Address newInterior = traceInteriorReference(obj, interior, true);
-      interiorLoc.store(newInterior);
-    }
-    completeTrace();
   }
 
   /**
@@ -464,7 +463,10 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void completeTrace() {
-    logMessage(4, "Continuing GC in parallel");
+    logMessage(4, "Processing GC in parallel");
+    if (!rootLocations.isEmpty()) {
+      processRoots();
+    }
     logMessage(5, "processing gray objects");
     assertMutatorRemsetsFlushed();
     do {
@@ -475,6 +477,28 @@ import org.vmmagic.unboxed.*;
       processRememberedSets();
     } while (!values.isEmpty());
     assertMutatorRemsetsFlushed();
+  }
+
+  /**
+   * Process GC work until either complete or workLimit
+   * units of work are completed.
+   *
+   * @param workLimit The maximum units of work to perform.
+   * @return True if all work was completed within workLimit.
+   */
+  @Inline
+  public boolean incrementalTrace(int workLimit) {
+    logMessage(4, "Continuing GC in parallel (incremental)");
+    logMessage(5, "processing gray objects");
+    int units = 0;
+    do {
+      while (!values.isEmpty() && units < workLimit) {
+        ObjectReference v = values.pop();
+        scanObject(v);
+        units++;
+      }
+    } while (!values.isEmpty() && units < workLimit);
+    return values.isEmpty();
   }
 
   /**
@@ -515,16 +539,6 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Copying traces should override this stub
-   *
-   * @return The allocator id to use when copying.
-   */
-  public int getAllocator() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
-    return -1;
-  }
-
-  /**
    * Given a slot (ie the address of an ObjectReference), ensure that the
    * referent will not move for the rest of the GC. This is achieved by
    * calling the precopyObject method.
@@ -532,7 +546,7 @@ import org.vmmagic.unboxed.*;
    * @param slot The slot to check
    */
   @Inline
-  public final void precopyObjectLocation(Address slot) {
+  public final void processPrecopyEdge(Address slot) {
     ObjectReference child = slot.loadObjectReference();
     if (!child.isNull()) {
       child = precopyObject(child);

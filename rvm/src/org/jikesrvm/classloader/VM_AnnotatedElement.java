@@ -266,6 +266,22 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   }
 
   /**
+   * Return true if this element has a NoNullCheck annotation.
+   * @see org.vmmagic.pragma.NoNullCheck
+   */
+  public final boolean hasNoNullCheckAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NoNullCheck);
+  }
+
+  /**
+   * Return true if this element has a NoBoundsCheck annotation.
+   * @see org.vmmagic.pragma.NoBoundsCheck
+   */
+  public final boolean hasNoBoundsCheckAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NoBoundsCheck);
+  }
+
+  /**
    * Return true if this element has a RuntimeFinal annotation.
    * @see org.vmmagic.pragma.RuntimeFinal
    */

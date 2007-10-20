@@ -15,15 +15,15 @@ package org.jikesrvm.scheduler;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.VM_Services;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_Time;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -48,14 +48,15 @@ import org.vmmagic.unboxed.Word;
  <p><STRONG>Requirement 2:</STRONG>
  After a lock has been obtained, the code of this class must return
  without allowing a thread switch.  (The {@link
-org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer#unwindStackFrame exception handler}
+org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer#unwindStackFrame(org.jikesrvm.compilers.common.VM_CompiledMethod, org.jikesrvm.ArchitectureSpecific.VM_Registers)
+ exception handler}
  of the baseline compiler assumes that until lock() returns the lock
  has not been obtained.)
  </p>
 
  <p><STRONG>Section 1:</STRONG>
  support for {@link java.lang.Object#notify}, {@link
-java.lang.Object#notifyAll}, and {@link java.lang.Object#wait}.
+java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  When these methods are called, the indicated object must be locked
  by the current thread.  <p>
 
@@ -113,189 +114,88 @@ VM_ProcessorLock}, have been investigate, then a larger performance issue
  */
 
 @Uninterruptible
-public final class VM_Lock implements VM_Constants {
-
-  ////////////////////////////////////////////////////////////////////////
-  /// Section 1: Support for synchronizing methods of java.lang.Object ///
-  ////////////////////////////////////////////////////////////////////////
+public abstract class VM_Lock implements VM_Constants {
+  /****************************************************************************
+   * Constants
+   */
 
   /**
-   * Support for Java synchronization primitive.
-   *
-   * @param o the object synchronized on
-   * @see java.lang.Object#wait()
+   * Should we attempt to keep the roughly equal sized pools for free
+   * heavy-weight locks on each processor?
    */
-  @LogicallyUninterruptible
-  /* only loses control at expected points -- I think -dave */
-  public static void wait(Object o) {
-    if (STATS) waitOperations++;
-    VM_Thread t = VM_Thread.getCurrentThread();
-    t.proxy = new VM_Proxy(t); // cache the proxy before obtaining lock
-    VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
-    // this thread is supposed to own the lock on o
-    if (l.ownerId != t.getLockingId()) {
-      raiseIllegalMonitorStateException("waiting on", o);
-    }
-    // allow an entering thread a chance to get the lock
-    l.mutex.lock(); // until unlock(), thread-switching fatal
-    VM_Thread n = l.entering.dequeue();
-    if (n != null) n.schedule();
-    // squirrel away lock state in current thread
-    t.waitObject = l.lockedObject;
-    t.waitCount = l.recursionCount;
-    // release l and simultaneously put t on l's waiting queue
-    l.ownerId = 0;
-    Throwable rethrow = null;
-    try {
-      VM_Thread.yield(l.waiting, l.mutex); // thread-switching benign
-    } catch (Throwable thr) {
-      rethrow = thr; // An InterruptedException. We'll rethrow it after regaining the lock on o.
-    }
-    // regain lock
-    VM_ObjectModel.genericLock(o);
-    t.waitObject = null;
-    if (t.waitCount != 1) { // reset recursion count
-      l = VM_ObjectModel.getHeavyLock(o, true);
-      l.recursionCount = t.waitCount;
-    }
-    if (rethrow != null) {
-      VM_Runtime.athrow(rethrow); // doesn't return
-    }
-  }
+  protected static final boolean BALANCE_FREE_LOCKS = false;
 
-  /**
-   * Support for Java synchronization primitive.
-   *
-   * @param o the object synchronized on
-   * @param millis the number of milliseconds to wait for notification
-   * @see java.lang.Object#wait(longtime)
+  /** Control the gathering of statistics */
+  public static final boolean STATS = false;
+
+  /** The (fixed) number of entries in the lock table spine */
+  protected static final int LOCK_SPINE_SIZE = 128;
+  /** The log size of each chunk in the spine */
+  protected static final int LOG_LOCK_CHUNK_SIZE = 11;
+  /** The size of each chunk in the spine */
+  protected static final int LOCK_CHUNK_SIZE = 1 << LOG_LOCK_CHUNK_SIZE;
+  /** The mask used to get the chunk-level index */
+  protected static final int LOCK_CHUNK_MASK = LOCK_CHUNK_SIZE - 1;
+  /** The number of locks allocated at a time */
+  protected static final int LOCK_ALLOCATION_UNIT_SIZE = 128;
+  /** The maximum possible number of locks */
+  protected static final int MAX_LOCKS = LOCK_SPINE_SIZE * LOCK_CHUNK_SIZE;
+  /** The number of chunks to allocate on startup */
+  protected static final int INITIAL_CHUNKS = 1;
+
+  // Heavy lock table.
+
+  /** The table of locks. */
+  private static VM_Lock[][] locks;
+  /** Used during allocation of locks within the table. */
+  private static final VM_ProcessorLock lockAllocationMutex = new VM_ProcessorLock();
+  /** The number of chunks in the spine that have been physically allocated */
+  private static int chunksAllocated;
+  /** The number of locks in the table that have been given out to processors */
+  private static int lockUnitsAllocated;
+
+  // Global free list.
+
+  /** A global lock free list head */
+  private static VM_Lock globalFreeLock;
+  /** the number of locks held on the global free list. */
+  private static int globalFreeLocks;
+
+  // Statistics
+
+  /** Number of lock operations */
+  public static int lockOperations;
+  /** Number of unlock operations */
+  public static int unlockOperations;
+  /** Number of deflations */
+  public static int deflations;
+
+  /****************************************************************************
+   * Instance
    */
-  @LogicallyUninterruptible
-  /* only loses control at expected points -- I think -dave */
-  public static void wait(Object o, long millis) {
-    VM_Thread t = VM_Thread.getCurrentThread();
-    if (STATS) timedWaitOperations++;
-    // Get proxy and set wakeup time
-    t.wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
-    t.proxy = new VM_Proxy(t, t.wakeupCycle); // cache the proxy before obtaining locks
-    // Get monitor lock
-    VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
-    // this thread is supposed to own the lock on o
-    if (l.ownerId != t.getLockingId()) {
-      raiseIllegalMonitorStateException("waiting on", o);
-    }
-    // allow an entering thread a chance to get the lock
-    l.mutex.lock(); // until unlock(), thread-switching fatal
-    VM_Thread n = l.entering.dequeue();
-    if (n != null) n.schedule();
-    VM_Scheduler.wakeupMutex.lock();
-    // squirrel away lock state in current thread
-    t.waitObject = l.lockedObject;
-    t.waitCount = l.recursionCount;
-    // release locks and simultaneously put t on their waiting queues
-    l.ownerId = 0;
-    Throwable rethrow = null;
-    try {
-      VM_Thread.yield(l.waiting,
-                      l.mutex,
-                      VM_Scheduler.wakeupQueue,
-                      VM_Scheduler.wakeupMutex); // thread-switching benign
-    } catch (Throwable thr) {
-      rethrow = thr;
-    }
-    // regain lock
-    VM_ObjectModel.genericLock(o);
-    t.waitObject = null;
-    if (t.waitCount != 1) { // reset recursion count
-      l = VM_ObjectModel.getHeavyLock(o, true);
-      l.recursionCount = t.waitCount;
-    }
-    if (rethrow != null) {
-      VM_Runtime.athrow(rethrow);
-    }
-  }
-
-  /**
-   * Support for Java synchronization primitive.
-   *
-   * @param o the object synchronized on
-   * @see java.lang.Object#notify
-   */
-  public static void notify(Object o) {
-    if (STATS) notifyOperations++;
-    VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
-    if (l == null) return;
-    if (l.ownerId != VM_Processor.getCurrentProcessor().threadId) {
-      raiseIllegalMonitorStateException("notifying ", o);
-    }
-    l.mutex.lock(); // until unlock(), thread-switching fatal
-    VM_Thread t = l.waiting.dequeue();
-    if (false) { // this "optimization" seems tempting, but actually makes things worse (on Volano, at least) [--DL]
-      if (t != null) { // global queue: check to see if thread's stack in use by some other dispatcher
-        if (t.beingDispatched) {
-          l.entering.enqueue(t); // normal scheduling
-        } else {
-          VM_Processor.getCurrentProcessor().readyQueue.enqueueHighPriority(t); // optimized scheduling
-        }
-      }
-    } else {
-      if (t != null) l.entering.enqueue(t);
-    }
-    l.mutex.unlock(); // thread-switching benign
-  }
-
-  /**
-   * Support for Java synchronization primitive.
-   *
-   * @param o the object synchronized on
-   * @see java.lang.Object#notifyAll
-   */
-  public static void notifyAll(Object o) {
-    if (STATS) notifyAllOperations++;
-    VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
-    if (l == null) return;
-    if (l.ownerId != VM_Processor.getCurrentProcessor().threadId) {
-      raiseIllegalMonitorStateException("notifying ", o);
-    }
-    l.mutex.lock(); // until unlock(), thread-switching fatal
-    VM_Thread t = l.waiting.dequeue();
-    while (t != null) {
-      l.entering.enqueue(t);
-      t = l.waiting.dequeue();
-    }
-    l.mutex.unlock(); // thread-switching benign
-  }
-
-  ///////////////////////////////////////////////////
-  /// Section 2: Support for heavy-weight locking ///
-  ///////////////////////////////////////////////////
 
   /** The object being locked (if any). */
-  Object lockedObject;
+  protected Object lockedObject;
   /** The id of the thread that owns this lock (if any). */
-  int ownerId;
+  protected int ownerId;
   /** The number of times the owning thread (if any) has acquired this lock. */
-  int recursionCount;
-  /** A queue of threads contending for this lock (guarded by <code>mutex</code>). */
-  final VM_ThreadQueue entering;
-  /** A queue of (proxies for) threads awaiting notification on this object (guarded by <code>mutex</code>). */
-  final VM_ProxyWaitingQueue waiting;
+  protected int recursionCount;
   /** A spin lock to handle contention for the data structures of this lock. */
-  final VM_ProcessorLock mutex;
+  public final VM_ProcessorLock mutex;
+  /** Is this lock currently being used? */
+  protected boolean active;
+  /** The next free lock on the free lock list */
+  private VM_Lock nextFreeLock;
+  /** This lock's index in the lock table*/
+  protected int index;
 
   /**
    * A heavy weight lock to handle extreme contention and wait/notify
    * synchronization.
    */
-  VM_Lock() {
-    entering = new VM_ThreadQueue();
-    waiting = new VM_ProxyWaitingQueue();
+  public VM_Lock() {
     mutex = new VM_ProcessorLock();
   }
-
-  //////////////////////////////////////////////////////////////////////////
-  /// Section 2A: Support for locking (and unlocking) heavy-weight locks ///
-  //////////////////////////////////////////////////////////////////////////
 
   /**
    * Acquires this heavy-weight lock on the indicated object.
@@ -303,148 +203,134 @@ public final class VM_Lock implements VM_Constants {
    * @param o the object to be locked
    * @return true, if the lock succeeds; false, otherwise
    */
-  boolean lockHeavy(Object o) {
-    if (tentativeMicrolocking) {
-      if (!mutex.tryLock()) {
-        return false;
-      }
-    } else {
-      mutex.lock();  // Note: thread switching is not allowed while mutex is held.
-    }
-    if (lockedObject != o) { // lock disappeared before we got here
-      mutex.unlock(); // thread switching benign
-      return false;
-    }
-    if (STATS) lockOperations++;
-    int threadId = VM_Processor.getCurrentProcessor().threadId;
-    if (ownerId == threadId) {
-      recursionCount++;
-    } else if (ownerId == 0) {
-      ownerId = threadId;
-      recursionCount = 1;
-    } else if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-      VM_Thread.yield(entering, mutex); // thread-switching benign
-      // when this thread next gets scheduled, it will be entitled to the lock,
-      // but another thread might grab it first.
-      return false; // caller will try again
-    } else { // can't yield - must spin and let caller retry
-      // potential deadlock if user thread is contending for a lock with thread switching disabled
-      if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread().isGCThread());
-      mutex.unlock(); // thread-switching benign
-      return false; // caller will try again
-    }
-    mutex.unlock(); // thread-switching benign
-    return true;
-  }
+  public abstract boolean lockHeavy(Object o);
 
   /**
    * Releases this heavy-weight lock on the indicated object.
    *
    * @param o the object to be unlocked
    */
-  void unlockHeavy(Object o) {
-    boolean deflated = false;
-    mutex.lock(); // Note: thread switching is not allowed while mutex is held.
-    if (ownerId != VM_Processor.getCurrentProcessor().threadId) {
-      mutex.unlock(); // thread-switching benign
-      raiseIllegalMonitorStateException("heavy unlocking", o);
-    }
-    if (0 < --recursionCount) {
-      mutex.unlock(); // thread-switching benign
-      return;
-    }
-    if (STATS) unlockOperations++;
-    ownerId = 0;
-    VM_Thread t = entering.dequeue();
-    if (t != null) {
-      t.schedule();
-    } else if (entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
-      // Possible project: decide on a heuristic to control when lock should be deflated
-      Offset lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();
-      if (!lockOffset.isMax()) { // deflate heavy lock
-        deflate(o, lockOffset);
-        deflated = true;
-      }
-    }
-    mutex.unlock(); // does a VM_Magic.sync();  (thread-switching benign)
-    if (deflated &&
-        ((LOCK_ALLOCATION_UNIT_SIZE << 1) <= VM_Processor.getCurrentProcessor().freeLocks) &&
-        balanceFreeLocks) {
-      globalizeFreeLocks();
-    }
+  public abstract void unlockHeavy(Object o);
+
+  /**
+   * Set the owner of a lock
+   * @param id The thread id of the owner.
+   */
+  public void setOwnerId(int id) {
+    ownerId = id;
   }
 
   /**
-   * Disassociates this heavy-weight lock from the indicated object.
-   * This lock is not heald, nor are any threads on its queues.  Note:
-   * the mutex for this lock is held when deflate is called.
-   *
-   * @param o the object from which this lock is to be disassociated
+   * Get the thread id of the current owner of the lock.
    */
-  private void deflate(Object o, Offset lockOffset) {
-    if (VM.VerifyAssertions) {
-      VM._assert(lockedObject == o);
-      VM._assert(recursionCount == 0);
-      VM._assert(entering.isEmpty());
-      VM._assert(waiting.isEmpty());
-    }
-    if (STATS) deflations++;
-    VM_ThinLock.deflate(o, lockOffset, this);
-    lockedObject = null;
-    free(this);
+  public int getOwnerId() {
+    return ownerId;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  /// Section 3: Support for allocating (and recycling) heavy-weight locks ///
-  ////////////////////////////////////////////////////////////////////////////
+  /**
+   * Update the lock's recursion count.
+   */
+  public void setRecursionCount(int c) {
+    recursionCount = c;
+  }
 
-  // lock table implementation
-  //
-  boolean active;
-  private VM_Lock nextFreeLock;
-  int index;
+  /**
+   * Get the lock's recursion count.
+   */
+  public int getRecursionCount() {
+    return recursionCount;
+  }
 
-  // Maximum number of VM_Lock's that we can support
-  //
-  private static final int LOCK_ALLOCATION_UNIT_SIZE = 100;
-  private static final int LOCK_ALLOCATION_UNIT_COUNT = 2500;  // TEMP SUSAN
-  static final int MAX_LOCKS = LOCK_ALLOCATION_UNIT_SIZE * LOCK_ALLOCATION_UNIT_COUNT;
-  static final int INIT_LOCKS = 4096;
+  /**
+   * Set the object that this lock is referring to.
+   */
+  public void setLockedObject(Object o) {
+    lockedObject = o;
+  }
 
-  private static final VM_ProcessorLock lockAllocationMutex = new VM_ProcessorLock();
-  private static int lockUnitsAllocated;
-  private static VM_Lock globalFreeLock;
-  private static int globalFreeLocks;
+  /**
+   * Get the object that this lock is referring to.
+   */
+  public Object getLockedObject() {
+    return lockedObject;
+  }
+
+  /**
+   * Dump threads blocked trying to get this lock
+   */
+  protected abstract void dumpBlockedThreads();
+  /**
+   * Dump threads waiting to be notified on this lock
+   */
+  protected abstract void dumpWaitingThreads();
+
+  /**
+   * Reports the state of a heavy-weight lock, via {@link VM#sysWrite}.
+   */
+  private void dump() {
+    if (!active) {
+      return;
+    }
+    VM.sysWrite("Lock ");
+    VM.sysWriteInt(index);
+    VM.sysWrite(":\n");
+    VM.sysWrite(" lockedObject: ");
+    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject));
+    VM.sysWrite("   thin lock = ");
+    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject).loadAddress(VM_ObjectModel.defaultThinLockOffset()));
+    VM.sysWrite(" object type = ");
+    VM.sysWrite(VM_Magic.getObjectType(lockedObject).getDescriptor());
+    VM.sysWriteln();
+
+    VM.sysWrite(" ownerId: ");
+    VM.sysWriteInt(ownerId);
+    VM.sysWrite(" (");
+    VM.sysWriteInt(ownerId >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT);
+    VM.sysWrite(") recursionCount: ");
+    VM.sysWriteInt(recursionCount);
+    VM.sysWriteln();
+    dumpBlockedThreads();
+    dumpWaitingThreads();
+
+    VM.sysWrite(" mutexLatestContender: ");
+    if (mutex.latestContender == null) {
+      VM.sysWrite("<null>");
+    } else {
+      VM.sysWriteHex(mutex.latestContender.id);
+    }
+    VM.sysWrite("\n");
+  }
+
+  /**
+   * Is this lock blocking thread t?
+   */
+  protected abstract boolean isBlocked(VM_Thread t);
+
+  /**
+   * Is this thread t waiting on this lock?
+   */
+  protected abstract boolean isWaiting(VM_Thread t);
+
+  /****************************************************************************
+   * Static Lock Table
+   */
 
   /**
    * Sets up the data structures for holding heavy-weight locks.
    */
   @Interruptible
-  static void init() {
-    VM_Scheduler.locks = new VM_Lock[INIT_LOCKS + 1]; // don't use slot 0
+  public static void init() {
+    locks = new VM_Lock[LOCK_SPINE_SIZE][];
+    for (int i=0; i < INITIAL_CHUNKS; i++) {
+      chunksAllocated++;
+      locks[i] = new VM_Lock[LOCK_CHUNK_SIZE];
+    }
     if (VM.VerifyAssertions) {
       // check that each potential lock is addressable
-      VM._assert((VM_Scheduler.locks.length - 1 <=
+      VM._assert(((MAX_LOCKS - 1) <=
                   VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt()) ||
-                                                                                                            VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(
-                                                                                                                Word.fromIntSignExtend(
-                                                                                                                    -1)));
+                  VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
     }
-  }
-
-  @LogicallyUninterruptible
-  /* ok because the caller is prepared to lose control when it allocates a lock -- dave */
-  static void growLocks() {
-    VM_Lock[] oldLocks = VM_Scheduler.locks;
-    int newSize = 2 * oldLocks.length;
-    if (newSize > MAX_LOCKS + 1) {
-      VM.sysFail("Cannot grow lock array greater than maximum possible index");
-    }
-    VM_Lock[] newLocks = new VM_Lock[newSize];
-    for (int i = 0; i < oldLocks.length; i++) {
-      newLocks[i] = oldLocks[i];
-    }
-    VM_Scheduler.locks = newLocks;
   }
 
   /**
@@ -456,15 +342,15 @@ public final class VM_Lock implements VM_Constants {
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  @LogicallyUninterruptible
-  /* ok because the caller is prepared to lose control when it allocates a lock -- dave */
+  @LogicallyUninterruptible // The caller is prepared to lose control when it allocates a lock -- dave
   static VM_Lock allocate() {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) {
-      return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
+      /* Collector threads can't use heavy locks because they don't fix up their stacks after moving objects */
+      return null;
     }
-    if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
-      localizeFreeLocks();
+    if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && BALANCE_FREE_LOCKS) {
+      localizeFreeLocks(mine);
     }
     VM_Lock l = mine.freeLock;
     if (l != null) {
@@ -473,10 +359,10 @@ public final class VM_Lock implements VM_Constants {
       mine.freeLocks--;
       l.active = true;
     } else {
-      l = new VM_Lock(); // may cause thread switch (and processor loss)
+      l = new VM_Scheduler.LockModel(); // may cause thread switch (and processor loss)
       mine = VM_Processor.getCurrentProcessor();
       if (mine.lastLockIndex < mine.nextLockIndex) {
-        lockAllocationMutex.lock();
+        lockAllocationMutex.lock("lock allocation mutex - allocating");
         mine.nextLockIndex = 1 + (LOCK_ALLOCATION_UNIT_SIZE * lockUnitsAllocated++);
         lockAllocationMutex.unlock();
         mine.lastLockIndex = mine.nextLockIndex + LOCK_ALLOCATION_UNIT_SIZE - 1;
@@ -487,23 +373,26 @@ public final class VM_Lock implements VM_Constants {
         }
       }
       l.index = mine.nextLockIndex++;
-      while (l.index >= VM_Scheduler.locks.length) {
-        growLocks();
+      if (l.index >= numLocks()) {
+        /* We need to grow the table */
+        growLocks(l.index);
       }
-      VM_Scheduler.locks[l.index] = l;
+      addLock(l);
       l.active = true;
-      VM_Magic.sync(); // make sure other processors see lock initialization.  Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen
+      /* make sure other processors see lock initialization.
+       * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
+      VM_Magic.sync();
     }
     mine.locksAllocated++;
     return l;
   }
 
   /**
-   * Recycles a unused heavy-weight lock.  Locks are deallocated
+   * Recycles an unused heavy-weight lock.  Locks are deallocated
    * to processor specific lists, so normally no synchronization
    * is required to obtain or release a lock.
    */
-  static void free(VM_Lock l) {
+  protected static void free(VM_Lock l) {
     l.active = false;
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     l.nextFreeLock = mine.freeLock;
@@ -513,21 +402,48 @@ public final class VM_Lock implements VM_Constants {
   }
 
   /**
+   * Grow the locks table by allocating a new spine chunk.
+   */
+  @LogicallyUninterruptible // The caller is prepared to lose control when it allocates a lock -- dave
+  static void growLocks(int id) {
+    int spineId = id >> LOG_LOCK_CHUNK_SIZE;
+    if (spineId >= LOCK_SPINE_SIZE) {
+      VM.sysFail("Cannot grow lock array greater than maximum possible index");
+    }
+    for(int i=chunksAllocated; i <= spineId; i++) {
+      if (locks[i] != null) {
+        /* We were beaten to it */
+        continue;
+      }
+
+      /* Allocate the chunk */
+      VM_Lock[] newChunk = new VM_Lock[LOCK_CHUNK_SIZE];
+
+      lockAllocationMutex.lock("lock allocation mutex - growing");
+      if (locks[i] == null) {
+        /* We got here first */
+        locks[i] = newChunk;
+        chunksAllocated++;
+      }
+      lockAllocationMutex.unlock();
+    }
+  }
+
+  /**
    * Transfers free heavy-weight locks from a processor local
    * structure to a global one.
    *
    * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
    * directive is set for the current build.
    */
-  private static void globalizeFreeLocks() {
-    VM_Processor mine = VM_Processor.getCurrentProcessor();
+  protected static void globalizeFreeLocks(VM_Processor mine) {
     if (mine.freeLocks <= LOCK_ALLOCATION_UNIT_SIZE) {
       if (VM.VerifyAssertions) VM._assert(mine.freeLock != null);
       VM_Lock q = mine.freeLock;
       while (q.nextFreeLock != null) {
         q = q.nextFreeLock;
       }
-      lockAllocationMutex.lock();
+      lockAllocationMutex.lock("lock allocation mutex for globalizing locks");
       q.nextFreeLock = globalFreeLock;
       globalFreeLock = mine.freeLock;
       globalFreeLocks += mine.freeLocks;
@@ -541,7 +457,7 @@ public final class VM_Lock implements VM_Constants {
         p = q;
         q = q.nextFreeLock;
       }
-      lockAllocationMutex.lock();
+      lockAllocationMutex.lock("lock allocation mutex for globalizing locks");
       p.nextFreeLock = globalFreeLock;
       globalFreeLock = mine.freeLock;
       globalFreeLocks += LOCK_ALLOCATION_UNIT_SIZE;
@@ -558,11 +474,10 @@ public final class VM_Lock implements VM_Constants {
    * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
    * directive is set for the current build.
    */
-  private static void localizeFreeLocks() {
+  private static void localizeFreeLocks(VM_Processor mine) {
     if (true) return; // TEMP
-    VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (VM.VerifyAssertions) VM._assert(mine.freeLock == null);
-    lockAllocationMutex.lock();
+    lockAllocationMutex.lock("lock allocation mutex for localize");
     if (globalFreeLocks <= LOCK_ALLOCATION_UNIT_SIZE) {
       mine.freeLock = globalFreeLock;
       mine.freeLocks = globalFreeLocks;
@@ -584,79 +499,98 @@ public final class VM_Lock implements VM_Constants {
     lockAllocationMutex.unlock();
   }
 
-  @LogicallyUninterruptible
-  static void raiseIllegalMonitorStateException(String msg, Object o) {
-    throw new IllegalMonitorStateException(msg + o);
+  /**
+   * Return the number of lock slots that have been allocated. This provides
+   * the range of valid lock ids.
+   */
+  public static int numLocks() {
+    return chunksAllocated * LOCK_CHUNK_SIZE;
   }
 
-  ///////////////////////////////////////////////////////////////
-  /// Section 4: Support for debugging and performance tuning ///
-  ///////////////////////////////////////////////////////////////
+  /**
+   * Read a lock from the lock table by id.
+   *
+   * @param id The lock id
+   * @return The lock object.
+   */
+  @Inline
+  public static VM_Lock getLock(int id) {
+    return locks[id >> LOG_LOCK_CHUNK_SIZE][id & LOCK_CHUNK_MASK];
+  }
 
   /**
-   * Should we attempt to keep the roughly equal sized pools for free
-   * heavy-weight locks on each processor?
+   * Add a lock to the lock table
+   *
+   * @param l The lock object
    */
-  private static final boolean balanceFreeLocks = false;
+  @UninterruptibleNoWarn // aastore is ok in this case
+  public static void addLock(VM_Lock l) {
+    locks[l.index >> LOG_LOCK_CHUNK_SIZE][l.index & LOCK_CHUNK_MASK] = l;
+  }
 
   /**
-   * Should we give up or persist in the attempt to get a heavy-weight lock,
-   * if its <code>mutex</code> microlock is held by another procesor.
+   * Dump the lock table.
    */
-  private static final boolean tentativeMicrolocking = false;
-
-  /**
-   * Reports the state of a heavy-weight lock, via {@link VM#sysWrite}.
-   */
-  void dump() {
-    if (!active) {
-      return;
-    }
-    VM.sysWrite("Lock ");
-    VM.sysWriteInt(index);
-    VM.sysWrite(":\n");
-    VM.sysWrite(" lockedObject: 0x");
-    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject));
-    VM.sysWrite("   thin lock = ");
-    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject).loadAddress(VM_ObjectModel.defaultThinLockOffset()));
-    VM.sysWrite("\n");
-
-    VM.sysWrite(" ownerId: ");
-    VM.sysWriteInt(ownerId);
-    VM.sysWrite(" recursionCount: ");
-    VM.sysWriteInt(recursionCount);
-    VM.sysWrite("\n");
-    VM.sysWrite(" entering: ");
-    entering.dump();
-    VM.sysWrite(" waiting: ");
-    waiting.dump();
-
-    VM.sysWrite(" mutexLatestContender: ");
-    if (mutex.latestContender == null) {
-      VM.sysWrite("<null>");
-    } else {
-      VM.sysWriteHex(mutex.latestContender.id);
+  public static void dumpLocks() {
+    for (int i = 0; i < numLocks(); i++) {
+      VM_Lock l = getLock(i);
+      if (l != null) {
+        l.dump();
+      }
     }
     VM.sysWrite("\n");
   }
 
-  //////////////////////////////////////////////
-  //             Statistics                   //
-  //////////////////////////////////////////////
+  /**
+   * Count number of locks held by thread
+   * @param id the thread locking ID we're counting for
+   * @return number of locks held
+   */
+  public static int countLocksHeldByThread(int id) {
+    int count=0;
+    for (int i = 0; i < numLocks(); i++) {
+      VM_Lock l = getLock(i);
+      if (l != null && l.active && l.ownerId == id && l.recursionCount > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
 
+  /**
+   * scan lock queues for thread and report its state
+   */
+  @Interruptible
+  public static String getThreadState(VM_Thread t) {
+    for (int i = 0; i < numLocks(); i++) {
+      VM_Lock l = getLock(i);
+      if (l == null || !l.active) continue;
+      if (l.isBlocked(t)) return ("waitingForLock(blocked)" + i);
+      if (l.isWaiting(t)) return "waitingForNotification(waiting)";
+    }
+    return null;
+  }
+
+  /****************************************************************************
+   * Statistics
+   */
+
+  /**
+   * Set up callbacks to report statistics.
+   */
   @Interruptible
   public static void boot() {
-    VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
-    VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
+    if (STATS) {
+      VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
+      VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
+    }
   }
 
-  static final class AppRunStartMonitor implements VM_Callbacks.AppRunStartMonitor {
+  /**
+   * Initialize counts in preparation for gathering statistics
+   */
+  private static final class AppRunStartMonitor implements VM_Callbacks.AppRunStartMonitor {
     public void notifyAppRunStart(String app, int value) {
-      if (!STATS) return;
-      waitOperations = 0;
-      timedWaitOperations = 0;
-      notifyOperations = 0;
-      notifyAllOperations = 0;
       lockOperations = 0;
       unlockOperations = 0;
       deflations = 0;
@@ -665,28 +599,19 @@ public final class VM_Lock implements VM_Constants {
     }
   }
 
-  static final class ExitMonitor implements VM_Callbacks.ExitMonitor {
+  /**
+   * Report statistics at the end of execution.
+   */
+  private static final class ExitMonitor implements VM_Callbacks.ExitMonitor {
     public void notifyExit(int value) {
-      if (!STATS) return;
-
       int totalLocks = lockOperations + VM_ThinLock.fastLocks + VM_ThinLock.slowLocks;
 
-      VM.sysWrite("FatLocks: ");
-      VM.sysWrite(waitOperations);
-      VM.sysWrite(" wait operations\n");
-      VM.sysWrite("FatLocks: ");
-      VM.sysWrite(timedWaitOperations);
-      VM.sysWrite(" timed wait operations\n");
-      VM.sysWrite("FatLocks: ");
-      VM.sysWrite(notifyOperations);
-      VM.sysWrite(" notify operations\n");
-      VM.sysWrite("FatLocks: ");
-      VM.sysWrite(notifyAllOperations);
+      VM_Thread.dumpStats();
       VM.sysWrite(" notifyAll operations\n");
       VM.sysWrite("FatLocks: ");
       VM.sysWrite(lockOperations);
       VM.sysWrite(" locks");
-      VM_Stats.percentage(lockOperations, totalLocks, "all lock operations");
+      VM_Services.percentage(lockOperations, totalLocks, "all lock operations");
       VM.sysWrite("FatLocks: ");
       VM.sysWrite(unlockOperations);
       VM.sysWrite(" unlock operations\n");
@@ -697,15 +622,4 @@ public final class VM_Lock implements VM_Constants {
       VM_ThinLock.notifyExit(totalLocks);
     }
   }
-
-  static final boolean STATS = false;
-
-  static int waitOperations;
-  static int timedWaitOperations;
-  static int notifyOperations;
-  static int notifyAllOperations;
-  static int lockOperations;
-  static int unlockOperations;
-  static int deflations;
-
 }

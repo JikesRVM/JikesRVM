@@ -78,10 +78,10 @@ import org.vmmagic.pragma.*;
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(GenMS.MS, object)) {
       return true;
     }
-    return super.willNotMove(object);
+    return super.willNotMoveInCurrentCollection(object);
   }
 }

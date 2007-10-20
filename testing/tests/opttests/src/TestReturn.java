@@ -10,18 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestReturn
-{
-  public static void main(String args[])
-  {
-    // VM.boot();
+class TestReturn {
+  public static void main(String[] args) {
     run();
   }
 
   static boolean testSuccess = true;
 
-  public static boolean run()
-  {
+  public static boolean run() {
     System.out.print("TestReturn");
 
     /**/                                                       void_f();
@@ -106,6 +102,6 @@ class TestReturn
   static float    float_f()           { float   x   = 7;          return x; } // freturn
   static double   double_f()          { double  x   = 8;          return x; } // dreturn
   static Object   object_f()          { Object  x   = null;       return x; } // areturn
-  static int[]    primitive_array_f() { int     x[] = null;       return x; } // areturn
-  static Object[] object_array_f()    { Object  x[] = null;       return x; } // areturn
+  static int[]    primitive_array_f() { int[]   x = null;       return x; } // areturn
+  static Object[] object_array_f()    { Object[]  x = null;       return x; } // areturn
 }

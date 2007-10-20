@@ -14,15 +14,16 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.Constants;
 import org.jikesrvm.runtime.VM_Time;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import org.vmmagic.pragma.*;
 
 @Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
   /**
-   * Returns the number of collections that have occured.
+   * Returns the number of collections that have occurred.
    *
-   * @return The number of collections that have occured.
+   * @return The number of collections that have occurred.
    */
   @Uninterruptible
   public int getCollectionCount() {
@@ -30,37 +31,77 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Read cycle counter
+   * Read nanoTime (high resolution, monotonically increasing clock).
+   * Has same semantics as java.lang.System.nanoTime().
+   */
+  public long nanoTime() {
+    return VM_Time.nanoTime();
+  }
+
+  /**
+   * Read a cycle counter (high resolution, non-monotonic clock).
+   * This method should be used with care as the cycle counters (especially on IA32 SMP machines)
+   * are not a reliably time source.
    */
   public long cycles() {
     return VM_Time.cycles();
   }
 
   /**
-   * Convert cycles to milliseconds
+   * Convert nanoseconds to milliseconds
    */
-  public double cyclesToMillis(long c) {
-    return VM_Time.cyclesToMillis(c);
+  public double nanosToMillis(long c) {
+    return ((double)c)/1e6;
   }
 
   /**
-   * Convert cycles to seconds
+   * Convert nanoseconds to seconds
    */
-  public double cyclesToSecs(long c) {
-    return VM_Time.cyclesToSecs(c);
+  public double nanosToSecs(long c) {
+    return ((double)c)/1e9;
   }
 
   /**
-   * Convert milliseconds to cycles
+   * Convert milliseconds to nanoseconds
    */
-  public long millisToCycles(double t) {
-    return VM_Time.millisToCycles(t);
+  public long millisToNanos(double t) {
+    return (long)(t * 1e6);
   }
 
   /**
-   * Convert seconds to cycles
+   * Convert seconds to nanoseconds
    */
-  public long secsToCycles(double t) {
-    return VM_Time.secsToCycles(t);
+  public long secsToNanos(double t) {
+    return (long)(t * 1e9);
   }
+
+  /**
+   * Initialize performance counters
+   *
+   * @param metric An integer identifying the metric being read
+   */
+  public void perfCtrInit(int metric) {
+    sysCall.sysPerfCtrInit(metric);
 }
+
+  /**
+   * Read the current cycle count from the perfctr libraries
+   *
+   * @return the current cycle count from the perfctr libraries
+   */
+  public long perfCtrReadCycles() {
+    return sysCall.sysPerfCtrReadCycles();
+  }
+
+  /**
+   * Read the current event count for the metric being measured by the
+   * perfctr libraries
+   *
+   * @return the current event count for the metric being measured by the
+   * perfctr libraries
+   */
+  public long perfCtrReadMetric() {
+    return sysCall.sysPerfCtrReadMetric();
+}
+}
+

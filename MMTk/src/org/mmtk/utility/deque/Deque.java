@@ -58,8 +58,8 @@ import org.vmmagic.pragma.*;
   }
   @Inline
   protected final Offset bufferLastOffset(int arity) {
-    return Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS
-        - (USABLE_BUFFER_BYTES % (arity << LOG_BYTES_IN_ADDRESS)));
+    return Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS -
+        (USABLE_BUFFER_BYTES % (arity << LOG_BYTES_IN_ADDRESS)));
   }
 
   /****************************************************************************

@@ -52,7 +52,7 @@ class vTest4 implements abc {
 
 interface abc {
 
-  public int getVal();
+  int getVal();
 
-  public void putVal(int val);
+  void putVal(int val);
 }

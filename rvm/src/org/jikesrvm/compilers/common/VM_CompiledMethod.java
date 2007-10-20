@@ -24,6 +24,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -448,6 +449,16 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public int findLineNumberForInstruction(Offset instructionOffset) {
     return 0;
   }
+
+  /**
+   * Return whether or not the given address (which is purported to be inside
+   * of the compiled method's code array) corresponds to an uninterruptible context.
+   *
+   * @param ip a Address (should be an interior pointer to instructions)
+   * @return offset of addr from start of instructions in bytes
+   */
+  @Interruptible
+  public abstract boolean isWithinUninterruptibleCode(Offset instructionOffset);
 
   /**
    * Print this compiled method's portion of a stack trace

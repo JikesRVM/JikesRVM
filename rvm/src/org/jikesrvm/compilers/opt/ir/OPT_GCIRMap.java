@@ -90,8 +90,8 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
 
       // add this register to the regList, if it is a reference
       //  and not a physcial register
-      if (regOp.type.isReferenceType() && !regOp.register.isPhysical()) {
-        OPT_RegSpillListElement elem = new OPT_RegSpillListElement(regOp.register);
+      if (regOp.getType().isReferenceType() && !regOp.getRegister().isPhysical()) {
+        OPT_RegSpillListElement elem = new OPT_RegSpillListElement(regOp.getRegister());
         regList.add(elem);
       }
     }

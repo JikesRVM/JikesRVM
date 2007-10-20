@@ -18,6 +18,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
+/**
+ * This pragma indicates that a particular method should never be
+ * compiled by the optimizing compiler. It also implies that the
+ * method will never be inlined by the optimizing compiler.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Pragma

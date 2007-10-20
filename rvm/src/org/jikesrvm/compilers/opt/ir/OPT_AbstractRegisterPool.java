@@ -76,7 +76,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @param r the register to release
    */
   public void release(OPT_RegisterOperand r) {
-    OPT_Register reg = r.register;
+    OPT_Register reg = r.getRegister();
     if (reg.number == currentNum - 1) {
       currentNum--;
       registerListremove(end);
@@ -203,7 +203,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the newly created register object
    */
   public OPT_Register getReg(OPT_RegisterOperand template) {
-    return getReg(template.register);
+    return getReg(template.getRegister());
   }
 
   /**
@@ -270,7 +270,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the new temp
    */
   public OPT_RegisterOperand makeTemp(OPT_RegisterOperand template) {
-    OPT_RegisterOperand temp = new OPT_RegisterOperand(getReg(template), template.type);
+    OPT_RegisterOperand temp = new OPT_RegisterOperand(getReg(template), template.getType());
     temp.addFlags(template.getFlags());
     return temp;
   }

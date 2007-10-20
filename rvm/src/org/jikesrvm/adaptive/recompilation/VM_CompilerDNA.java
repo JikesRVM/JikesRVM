@@ -104,6 +104,10 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   private static double[][] compileTimeRatio;
 
+  static {
+    initializeCompilerRatioArrays();
+  }
+
   /**
    * This method returns the expected speedup from going from compiler1 to compiler2
    * @param compiler1
@@ -163,12 +167,8 @@ public class VM_CompilerDNA implements VM_Constants {
     if (VM_Controller.options.COMPILER_DNA_FILE_NAME.length() != 0) {
       //  Read the DNA values from disk
       readDNA(VM_Controller.options.COMPILER_DNA_FILE_NAME);
+      initializeCompilerRatioArrays();
     }
-
-    numCompilers = compilerNames.length;
-
-    benefitRatio = new double[numCompilers][numCompilers];
-    compileTimeRatio = new double[numCompilers][numCompilers];
 
     for (int i = 0; i < compilationRates.length; i++) {
       VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
@@ -176,6 +176,24 @@ public class VM_CompilerDNA implements VM_Constants {
     for (int i = 0; i < speedupRates.length; i++) {
       VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
     }
+
+    // Compute MAX_OPT_LEVEL
+    int maxProfitableCompiler = 0;
+    for (int compiler = 1; compiler < numCompilers; compiler++) {
+      if (compilationRates[compiler] > compilationRates[compiler - 1] ||
+          speedupRates[compiler] > speedupRates[compiler - 1]) {
+        maxProfitableCompiler = compiler;
+      }
+    }
+    int maxOptLevel = getOptLevel(maxProfitableCompiler);
+    VM_Controller.options.DERIVED_MAX_OPT_LEVEL = Math.min(maxOptLevel,VM_Controller.options.MAX_OPT_LEVEL);
+    VM_Controller.options.DERIVED_FILTER_OPT_LEVEL = VM_Controller.options.DERIVED_MAX_OPT_LEVEL;
+  }
+
+  private static void initializeCompilerRatioArrays() {
+    numCompilers = compilerNames.length;
+    benefitRatio = new double[numCompilers][numCompilers];
+    compileTimeRatio = new double[numCompilers][numCompilers];
 
     // fill in the upper triangular matrices
     for (int prevCompiler = 0; prevCompiler < numCompilers; prevCompiler++) {
@@ -194,18 +212,6 @@ public class VM_CompilerDNA implements VM_Constants {
         VM_AOSLogging.reportCompileTimeRatio(prevCompiler, nextCompiler, compileTimeRatio[prevCompiler][nextCompiler]);
       }
     }
-
-    // Compute MAX_OPT_LEVEL
-    int maxProfitableCompiler = 0;
-    for (int compiler = 1; compiler < numCompilers; compiler++) {
-      if (compilationRates[compiler] > compilationRates[compiler - 1] ||
-          speedupRates[compiler] > speedupRates[compiler - 1]) {
-        maxProfitableCompiler = compiler;
-      }
-    }
-    int maxOptLevel = getOptLevel(maxProfitableCompiler);
-    VM_Controller.options.DERIVED_MAX_OPT_LEVEL = Math.min(maxOptLevel,VM_Controller.options.MAX_OPT_LEVEL);
-    VM_Controller.options.DERIVED_FILTER_OPT_LEVEL = VM_Controller.options.DERIVED_MAX_OPT_LEVEL;
   }
 
   /**

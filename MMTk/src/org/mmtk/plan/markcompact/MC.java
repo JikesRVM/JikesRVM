@@ -15,7 +15,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Log;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
@@ -47,40 +47,49 @@ import org.vmmagic.unboxed.ObjectReference;
    * Class variables
    */
 
-  public static final MarkCompactSpace mcSpace
-    = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
 
+  public static final int SCAN_MARK    = 0;
+  public static final int SCAN_FORWARD = 1;
+
   /* Phases */
-  public static final int PREPARE_FORWARD     = new SimplePhase("fw-prepare", Phase.GLOBAL_FIRST  ).getId();
-  public static final int FORWARD_CLOSURE     = new SimplePhase("fw-closure", Phase.COLLECTOR_ONLY).getId();
-  public static final int RELEASE_FORWARD     = new SimplePhase("fw-release", Phase.GLOBAL_LAST   ).getId();
+  public static final short PREPARE_FORWARD     = Phase.createSimple("fw-prepare");
+  public static final short FORWARD_CLOSURE     = Phase.createSimple("fw-closure");
+  public static final short RELEASE_FORWARD     = Phase.createSimple("fw-release");
 
   /* FIXME these two phases need to be made per-collector phases */
-  public static final int CALCULATE_FP        = new SimplePhase("calc-fp",    Phase.MUTATOR_ONLY  ).getId();
-  public static final int COMPACT             = new SimplePhase("compact",    Phase.MUTATOR_ONLY  ).getId();
+  public static final short CALCULATE_FP        = Phase.createSimple("calc-fp");
+  public static final short COMPACT             = Phase.createSimple("compact");
+
+  // CHECKSTYLE:OFF
 
   /**
    * This is the phase that is executed to perform a mark-compact collection.
    *
    * FIXME: Far too much duplication and inside knowledge of StopTheWorld
    */
-  public ComplexPhase mcCollection = new ComplexPhase("collection", null, new int[] {
-      initPhase,
-      rootClosurePhase,
-      refTypeClosurePhase,
-      completeClosurePhase,
-      CALCULATE_FP,
-      PREPARE_FORWARD,
-      PREPARE_MUTATOR,
-      BOOTIMAGE_ROOTS,
-      ROOTS,
-      forwardPhase,
-      FORWARD_CLOSURE,
-      RELEASE_MUTATOR,
-      RELEASE_FORWARD,
-      COMPACT,
-      finishPhase});
+  public short mcCollection = Phase.createComplex("collection", null,
+      Phase.scheduleComplex  (initPhase),
+      Phase.scheduleComplex  (rootClosurePhase),
+      Phase.scheduleComplex  (refTypeClosurePhase),
+      Phase.scheduleComplex  (completeClosurePhase),
+      Phase.scheduleMutator  (CALCULATE_FP),
+      Phase.scheduleGlobal   (PREPARE_FORWARD),
+      Phase.scheduleCollector(PREPARE_FORWARD),
+      Phase.scheduleMutator  (PREPARE),
+      Phase.scheduleCollector(STACK_ROOTS),
+      Phase.scheduleCollector(ROOTS),
+      Phase.scheduleGlobal   (ROOTS),
+      Phase.scheduleComplex  (forwardPhase),
+      Phase.scheduleCollector(FORWARD_CLOSURE),
+      Phase.scheduleMutator  (RELEASE),
+      Phase.scheduleCollector(RELEASE_FORWARD),
+      Phase.scheduleGlobal   (RELEASE_FORWARD),
+      Phase.scheduleMutator  (COMPACT),
+      Phase.scheduleComplex  (finishPhase));
+
+  // CHECKSTYLE:ON
 
   /****************************************************************************
    * Instance variables
@@ -110,11 +119,15 @@ import org.vmmagic.unboxed.ObjectReference;
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       markTrace.prepare();
       mcSpace.prepare();
+      return;
+    }
+    if (phaseId == CLOSURE) {
+      markTrace.prepare();
       return;
     }
     if (phaseId == RELEASE) {
@@ -156,11 +169,11 @@ import org.vmmagic.unboxed.ObjectReference;
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
   }
-  
+
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
@@ -169,15 +182,15 @@ import org.vmmagic.unboxed.ObjectReference;
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
-   * @return False if the object will never move
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MARK_COMPACT, object))
-      return true;
-    return super.objectCanMove(object);
+      return false;
+    return super.willNeverMove(object);
   }
 }

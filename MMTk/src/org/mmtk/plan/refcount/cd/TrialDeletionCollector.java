@@ -17,7 +17,6 @@ import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.utility.scan.Scan;
 
 import org.mmtk.vm.VM;
 
@@ -39,19 +38,19 @@ import org.vmmagic.unboxed.ObjectReference;
    *
    * Instance variables
    */
-  public ObjectReferenceDeque workQueue;
-  public ObjectReferenceDeque blackQueue;
-  public ObjectReferenceDeque unfilteredPurpleBuffer;
-  public ObjectReferenceDeque maturePurpleBuffer;
-  public ObjectReferenceDeque filteredPurpleBuffer;
-  public ObjectReferenceDeque cycleBufferA;
-  public ObjectReferenceDeque cycleBufferB;
-  public ObjectReferenceDeque freeBuffer;
+  public final ObjectReferenceDeque workQueue;
+  public final ObjectReferenceDeque blackQueue;
+  public final ObjectReferenceDeque unfilteredPurpleBuffer;
+  public final ObjectReferenceDeque maturePurpleBuffer;
+  public final ObjectReferenceDeque filteredPurpleBuffer;
+  public final ObjectReferenceDeque cycleBufferA;
+  public final ObjectReferenceDeque cycleBufferB;
+  public final ObjectReferenceDeque freeBuffer;
 
-  public TrialDeletionCollectStep collectStep;
-  public TrialDeletionGreyStep greyStep;
-  public TrialDeletionScanStep scanStep;
-  public TrialDeletionScanBlackStep scanBlackStep;
+  public final TrialDeletionCollectStep collectStep;
+  public final TrialDeletionGreyStep greyStep;
+  public final TrialDeletionScanStep scanStep;
+  public final TrialDeletionScanBlackStep scanBlackStep;
 
   /****************************************************************************
    *
@@ -59,21 +58,13 @@ import org.vmmagic.unboxed.ObjectReference;
    */
   public TrialDeletionCollector() {
     workQueue = new ObjectReferenceDeque("cycle workqueue", global().workPool);
-    global().workPool.newConsumer();
     blackQueue = new ObjectReferenceDeque("cycle black workqueue", global().blackPool);
-    global().blackPool.newConsumer();
     unfilteredPurpleBuffer = new ObjectReferenceDeque("unfiltered purple buf", global().unfilteredPurplePool);
-    global().unfilteredPurplePool.newConsumer();
     maturePurpleBuffer = new ObjectReferenceDeque("mature purple buf", global().maturePurplePool);
-    global().maturePurplePool.newConsumer();
     filteredPurpleBuffer = new ObjectReferenceDeque("filtered purple buf", global().filteredPurplePool);
-    global().filteredPurplePool.newConsumer();
     cycleBufferA = new ObjectReferenceDeque("cycle buf A", global().cyclePoolA);
-    global().cyclePoolA.newConsumer();
     cycleBufferB = new ObjectReferenceDeque("cycle buf B", global().cyclePoolB);
-    global().cyclePoolB.newConsumer();
     freeBuffer = new ObjectReferenceDeque("free buffer", global().freePool);
-    global().freePool.newConsumer();
     collectStep = new TrialDeletionCollectStep();
     greyStep = new TrialDeletionGreyStep();
     scanStep = new TrialDeletionScanStep();
@@ -104,22 +95,30 @@ import org.vmmagic.unboxed.ObjectReference;
 
     // Phases that occur when we are doing a full collection
     if (phaseId == TrialDeletion.CD_FILTER_MATURE) {
-      if (collect) filterMaturePurpleBufs();
+      if (collect) {
+        filterMaturePurpleBufs();
+      }
       return true;
     }
 
     if (phaseId == TrialDeletion.CD_MARK_GREY) {
-      if (collect && primary) doMarkGreyPhase();
+      if (collect && primary) {
+        doMarkGreyPhase();
+      }
       return true;
     }
 
     if (phaseId == TrialDeletion.CD_SCAN) {
-      if (collect && primary) doScanPhase();
+      if (collect && primary) {
+        doScanPhase();
+      }
       return true;
     }
 
     if (phaseId == TrialDeletion.CD_COLLECT) {
-      if (collect && primary) doCollectPhase();
+      if (collect && primary) {
+        doCollectPhase();
+      }
       return true;
     }
 
@@ -203,7 +202,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * may never get processed).  It is therefore important that the
    * "insert" operation is used when adding to the purple queue,
    * rather than "push".
- */
+   */
 
   /**
    * Vist as many purple objects as time allows and transitively mark
@@ -246,7 +245,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
       if (!RCHeader.isGrey(object)) {
         RCHeader.makeGrey(object);
-        Scan.scanObject(greyStep, object);
+        VM.scanning.scanObject(greyStep, object);
       }
       object = workQueue.pop();
     }
@@ -284,7 +283,7 @@ import org.vmmagic.unboxed.ObjectReference;
           scanBlack(object);
         } else {
           RCHeader.makeWhite(object);
-          Scan.scanObject(scanStep, object);
+          VM.scanning.scanObject(scanStep, object);
         }
       }
       object = workQueue.pop();
@@ -304,7 +303,7 @@ import org.vmmagic.unboxed.ObjectReference;
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
       if (!RCHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
         RCHeader.makeBlack(object);
-        Scan.scanObject(scanBlackStep, object);
+        VM.scanning.scanObject(scanBlackStep, object);
       }
       object = blackQueue.pop();
     }
@@ -334,7 +333,7 @@ import org.vmmagic.unboxed.ObjectReference;
     while (!object.isNull()) {
       if (RCHeader.isWhite(object) && !RCHeader.isBuffered(object)) {
         RCHeader.makeBlack(object);
-        Scan.scanObject(collectStep, object);
+        VM.scanning.scanObject(collectStep, object);
         freeBuffer.push(object);
       }
       object = workQueue.pop();

@@ -284,8 +284,8 @@ public final class OPT_GlobalCSE extends OPT_CompilerPhase {
         // instructions result use the first definition of the result
         // by the earlier expression
         OPT_RegisterOperand formerDef = getResult(former);
-        OPT_Register reg = result.register;
-        formerDef.register.setSpansBasicBlock();
+        OPT_Register reg = result.getRegister();
+        formerDef.getRegister().setSpansBasicBlock();
         OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(reg);
         while (uses.hasMoreElements()) {
           OPT_RegisterOperand use = uses.next();

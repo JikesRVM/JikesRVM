@@ -62,7 +62,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     * from the register save area of '<tsfrom>' method.
     */
 
-    byte[] stack = thread.stack;
+    byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
     OSR_TempRegisters registers = new OSR_TempRegisters(thread.contextRegisters);
@@ -245,7 +245,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     // for 64-bit type values which have two int parts.
     // this holds the high part.
-    int lpart_one = 0;
+    int lvalue_one = 0;
+    int lvtype_one = 0;
 
     // now recover execution states
     OSR_MapIterator iterator = osrmap.getOsrMapIteratorForMCOffset(ipOffset);
@@ -281,17 +282,17 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       }
 
       // create a OSR_VariableElement for it.
-      int kind = iterator.getKind();
-      int num = iterator.getNumber();
-      int tcode = iterator.getTypeCode();
-      int vtype = iterator.getValueType();
+      boolean kind = iterator.getKind();
+      char num = iterator.getNumber();
+      byte tcode = iterator.getTypeCode();
+      byte vtype = iterator.getValueType();
       int value = iterator.getValue();
 
       iterator.moveToNext();
 
       if (VM.TraceOnStackReplacement) {
         VM.sysWrite((kind == LOCAL) ? "L" : "S");
-        VM.sysWrite(num);
+        VM.sysWrite((int)num);
         VM.sysWrite(" , ");
         if (vtype == ICONST) {
           VM.sysWrite("ICONST ");
@@ -319,12 +320,14 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
           break;
         }
         case HIGH_64BIT: {
-          lpart_one = value;
+          lvalue_one = value;
+          lvtype_one = vtype;
           break;
         }
         case LONG: {
-          long lbits = getLongBitsFrom(vtype, lpart_one, value, stack, fpOffset, registers);
-          lpart_one = 0;
+          long lbits = getLongBitsFrom(lvtype_one, lvalue_one, vtype, value, stack, fpOffset, registers);
+          lvalue_one = 0;
+          lvtype_one = 0;
           state.add(new OSR_VariableElement(kind, num, LONG, lbits));
 
           break;
@@ -365,8 +368,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     return state;
   }
 
-  /* auxillary functions to get value from different places.
-  */
+  /** auxillary functions to get value from different places. */
   private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {
@@ -391,40 +393,45 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     }
   }
 
-  private static long getLongBitsFrom(int vtype, int valueHigh, int valueLow, byte[] stack, Offset fpOffset,
+  private static long getLongBitsFrom(int vtypeHigh, int valueHigh, int vtypeLow, int valueLow, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
 
     // for LCONST type, the value is the value
-    if (vtype == LCONST || vtype == ACONST) {
-      return ((((long) valueHigh) << 32) | (((long) valueLow) & 0x0FFFFFFFF));
+    if (vtypeLow == LCONST || vtypeLow == ACONST) {
+      if (VM.VerifyAssertions) VM._assert(vtypeHigh == vtypeLow);
+      return ((((long) valueHigh) << 32) | (((long) valueLow) & 0x0FFFFFFFFL));
 
     } else if (VM.BuildFor32Addr) {
-      // for physical register type, it is the register number
-      // because all registers are saved in threadswitch's stack
-      // frame, we get value from it.
-      if (vtype == PHYREG) {
-        return ((((long) registers.gprs.get(valueHigh).toInt()) << 32) |
-                (((long) registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL));
+      if (VM.VerifyAssertions) VM._assert(vtypeHigh == PHYREG || vtypeHigh == SPILL);
+      if (VM.VerifyAssertions) VM._assert(vtypeLow == PHYREG || vtypeLow == SPILL);
+      /* For physical registers, value is the register number.
+       * For spilled locals, the value is the spilled position on FOO's stackframe. */
+      long lowPart, highPart;
 
-        // for spilled locals, the value is the spilled position
-        // it is on FOO's stackframe.
-        // ASSUMING, spill offset is offset to FP in bytes.
-      } else if (vtype == SPILL) {
-        long lvalue = ((long) VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh))) << 32;
-        return (lvalue | (((long) VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL));
+      if (vtypeLow == PHYREG) {
+        lowPart = ((long)registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL;
+      } else {
+        lowPart = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL;
       }
 
+      if (vtypeHigh == PHYREG) {
+        highPart = ((long)registers.gprs.get(valueHigh).toInt());
+      } else {
+        highPart = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh)));
+      }
+
+      return (highPart << 32) | lowPart;
     } else if (VM.BuildFor64Addr) {
       // for physical register type, it is the register number
       // because all registers are saved in threadswitch's stack
       // frame, we get value from it.
-      if (vtype == PHYREG) {
+      if (vtypeLow == PHYREG) {
         return registers.gprs.get(valueLow).toLong();
 
         // for spilled locals, the value is the spilled position
         // it is on FOO's stackframe.
         // ASSUMING, spill offset is offset to FP in bytes.
-      } else if (vtype == SPILL) {
+      } else if (vtypeLow == SPILL) {
         return VM_Magic.getLongAtOffset(stack, fpOffset.minus(valueLow));
       }
     }
@@ -452,9 +459,9 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   private static Object getObjectFrom(int vtype, int value, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
     if (vtype == ICONST) { //kv:todo : to become ACONST
-      // the only constant object is NULL, I believe.
-      if (VM.VerifyAssertions) VM._assert(value == 0);
-      return VM_Magic.addressAsObject(Address.zero());
+      // the only constant object for 64bit addressing is NULL
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr || value == 0);
+      return VM_Magic.addressAsObject(Address.fromIntSignExtend(value));
 
     } else if (vtype == PHYREG) {
       return registers.objs[value];

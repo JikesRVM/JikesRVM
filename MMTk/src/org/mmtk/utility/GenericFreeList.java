@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -21,7 +22,7 @@ import org.vmmagic.pragma.*;
  * abstractly, in "units", which the user may associate with some
  * other allocatable resource (e.g. heap blocks).  The user issues
  * requests for N units and the allocator returns the index of the
- * first of a contigious set of N units or fails, returning -1.  The
+ * first of a contiguous set of N units or fails, returning -1.  The
  * user frees the block of N units by calling <code>free()</code> with
  * the index of the first unit as the argument.<p>
  *
@@ -89,7 +90,8 @@ import org.vmmagic.pragma.*;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  */
-@Uninterruptible public final class GenericFreeList extends BaseGenericFreeList implements Constants {
+@Uninterruptible
+public final class GenericFreeList extends BaseGenericFreeList implements Constants {
 
   /****************************************************************************
    *
@@ -98,26 +100,91 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
+   *
+   * @param units The number of allocatable units for this free list
    */
   public GenericFreeList(int units) {
     this(units, units);
   }
+
+  /**
+   * Constructor
+   *
+   * @param units The number of allocatable units for this free list
+   * @param grain Units are allocated such that they will never cross this granularity boundary
+   */
   public GenericFreeList(int units, int grain) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS);
+    this(units, grain, 1);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param units The number of allocatable units for this free list
+   * @param grain Units are allocated such that they will never cross this granularity boundary
+   * @param heads The number of free lists which will share this instance
+   */
+  public GenericFreeList(int units, int grain, int heads) {
+    this.parent = null;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS && heads <= MAX_HEADS);
+    this.heads = heads;
+    head = -1;
 
     // allocate the data structure, including space for top & bottom sentinels
-    table = new int[(units + 2) << 1];
+    table = new int[(units + 1 + heads) << 1];
     initializeHeap(units, grain);
   }
 
   /**
+   * Resize the free list for a parent free list.
+   * This must not be called dynamically (ie not after bootstrap).
+   *
+   * @param units The number of allocatable units for this free list
+   * @param grain Units are allocated such that they will never cross this granularity boundary
+   */
+  @Interruptible
+  public void resizeFreeList(int units, int grain) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent == null && !Plan.isInitialized());
+    table = new int[(units + 1 + heads) << 1];
+    initializeHeap(units, grain);
+  }
+
+  /**
+   * Resize the free list for a child free list.
+   * This must not be called dynamically (ie not after bootstrap).
+   */
+  @Interruptible
+  public void resizeFreeList() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent != null && !Plan.isInitialized());
+    table = parent.getTable();
+  }
+
+  /**
+   * Constructor
+   *
+   * @param parent The parent, owning the data structures this instance will share
+   * @param ordinal The ordinal number of this child
+   */
+  public GenericFreeList(GenericFreeList parent, int ordinal) {
+    this.parent = parent;
+    this.table = parent.getTable();
+    this.heads = parent.getHeads();
+    this.head = -(1 + ordinal);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(-this.head <= this.heads);
+  }
+
+  /** Getter */
+  int[] getTable() { return table; }
+  int getHeads() { return heads; }
+
+  /**
    * Initialize a unit as a sentinel
    *
-   * @param unit The unit to be initilized
+   * @param unit The unit to be initialized
    */
   protected void setSentinel(int unit) {
-    setLoEntry(unit, SENTINEL_LO_INIT);
-    setHiEntry(unit, SENTINEL_HI_INIT);
+    setLoEntry(unit, NEXT_MASK & unit);
+    setHiEntry(unit, PREV_MASK & unit);
   }
 
   /**
@@ -186,7 +253,7 @@ import org.vmmagic.pragma.*;
    */
   protected int getNext(int unit) {
     int next = getHiEntry(unit) & NEXT_MASK;
-    return (next <= MAX_UNITS) ? next : HEAD;
+    return (next <= MAX_UNITS) ? next : head;
   }
 
   /**
@@ -196,9 +263,9 @@ import org.vmmagic.pragma.*;
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= HEAD) && (next <= MAX_UNITS));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= -heads) && (next <= MAX_UNITS));
     int oldValue = getHiEntry(unit);
-    int newValue = (next == HEAD) ? (oldValue | NEXT_MASK) : ((oldValue & ~NEXT_MASK) | next);
+    int newValue = (oldValue & ~NEXT_MASK) | (next & NEXT_MASK);
     setHiEntry(unit, newValue);
   }
 
@@ -211,7 +278,7 @@ import org.vmmagic.pragma.*;
    */
   protected int getPrev(int unit) {
     int prev = getLoEntry(unit) & PREV_MASK;
-    return (prev <= MAX_UNITS) ? prev : HEAD;
+    return (prev <= MAX_UNITS) ? prev : head;
   }
 
   /**
@@ -221,14 +288,46 @@ import org.vmmagic.pragma.*;
    * @param prev The value to be set.
    */
   protected void setPrev(int unit, int prev) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= HEAD) && (prev <= MAX_UNITS));
-    if (prev == HEAD)
-      setLoEntry(unit, (getLoEntry(unit) | PREV_MASK));
-    else
-      setLoEntry(unit, (getLoEntry(unit) & ~PREV_MASK) | prev);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= -heads) && (prev <= MAX_UNITS));
+    int oldValue = getLoEntry(unit);
+    int newValue = (oldValue & ~PREV_MASK) | (prev & PREV_MASK);
+    setLoEntry(unit, newValue);
   }
 
   /**
+   * Set the uncoalescable bit associated with this unit.
+   * This ensures this unit cannot be coalesced with units below
+   * it.
+   *
+   * @param unit The unit whose uncoalescable bit is to be set
+   */
+  public void setUncoalescable(int unit) {
+    setLoEntry(unit, getLoEntry(unit) | COALESC_MASK);
+  }
+
+  /**
+   * Clear the uncoalescable bit associated with this unit.
+   * This allows this unit to be coalesced with units below
+   * it.
+   *
+   * @param unit The unit whose uncoalescable bit is to be cleared
+   */
+  public void clearUncoalescable(int unit) {
+    setLoEntry(unit, getLoEntry(unit) & ~COALESC_MASK);
+  }
+
+  /**
+   * Return true if this unit may be coalesced with the unit below it.
+   *
+   * @param The unit in question
+   * @return True if this unit may be coalesced with the unit below it.
+   */
+  @Override
+  public boolean isCoalescable(int unit) {
+    return (getLoEntry(unit) & COALESC_MASK) == 0;
+  }
+
+ /**
    * Get the lump to the "left" of the current lump (i.e. "above" it)
    *
    * @param unit The index of the first unit in the lump in question
@@ -242,6 +341,7 @@ import org.vmmagic.pragma.*;
       return unit - 1;
   }
 
+
   /**
    * Get the contents of an entry
    *
@@ -249,10 +349,10 @@ import org.vmmagic.pragma.*;
    * @return The contents of the unit
    */
   private int getLoEntry(int unit) {
-    return table[(unit + 1) << 1];
+    return table[(unit + heads) << 1];
   }
   private int getHiEntry(int unit) {
-    return table[((unit + 1) << 1) + 1];
+    return table[((unit + heads) << 1) + 1];
   }
 
   /**
@@ -262,25 +362,22 @@ import org.vmmagic.pragma.*;
    * @param value The contents of the unit
    */
   private void setLoEntry(int unit, int value) {
-    table[(unit + 1) << 1] = value;
+    table[(unit + heads) << 1] = value;
   }
   private void setHiEntry(int unit, int value) {
-    table[((unit + 1) << 1) + 1] = value;
+    table[((unit + heads) << 1) + 1] = value;
   }
 
   private static final int TOTAL_BITS = 32;
-  private static final int UNIT_BITS = (TOTAL_BITS - 1);
-  private static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - 1);
+  private static final int UNIT_BITS = (TOTAL_BITS - 2);
+  public static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - MAX_HEADS - 1);
   private static final int NEXT_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
   private static final int PREV_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
   private static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
   private static final int MULTI_MASK = 1 << (TOTAL_BITS - 1);
+  private static final int COALESC_MASK = 1 << (TOTAL_BITS - 2);
   private static final int SIZE_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
 
-  // want the sentinels to be "used" & "single", and want first
-  // sentinel to initially point to itself.
-  private static final int SENTINEL_LO_INIT = PREV_MASK;
-  private static final int SENTINEL_HI_INIT = NEXT_MASK;
-
   private int[] table;
+  private final GenericFreeList parent;
 }

@@ -132,7 +132,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         OPT_Operand value = PutField.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
-            VM_TypeReference type = value.asRegister().type;
+            VM_TypeReference type = value.asRegister().getType();
             recordConcreteType(ir.method, f, type);
           } else {
             recordBottom(ir.method, f);
@@ -152,7 +152,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         OPT_Operand value = PutStatic.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
-            VM_TypeReference type = value.asRegister().type;
+            VM_TypeReference type = value.asRegister().getType();
             recordConcreteType(ir.method, f, type);
           } else {
             recordBottom(ir.method, f);

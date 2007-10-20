@@ -12,7 +12,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.MarkSweepMarkBits;
@@ -33,13 +33,19 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  */
-@Uninterruptible public final class MarkSweepSpace extends Space
-  implements Constants {
+@Uninterruptible
+public final class MarkSweepSpace extends SegregatedFreeListSpace implements Constants {
 
   /****************************************************************************
    *
    * Class variables
    */
+  /**
+   * Select between using mark bits in a side bitmap, or mark bits
+   * in the headers of object (or other sub-class scheme), and a single
+   * mark bit per block.
+   */
+  public static final boolean HEADER_MARK_BITS = VM.config.HEADER_MARK_BITS;
   /** highest bit bits we may use */
   private static final int MAX_BITS = 4;
 
@@ -83,96 +89,68 @@ import org.vmmagic.unboxed.*;
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
+   * @param vmRequest An object describing the virtual memory requested.
    */
-  public MarkSweepSpace(String name, int pageBudget, Address start,
-                        Extent bytes) {
-    super(name, false, false, start, bytes);
-    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
+    super(name, pageBudget, 0, vmRequest);
   }
 
   /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
    */
-  public MarkSweepSpace(String name, int pageBudget, int mb) {
-    super(name, false, false, mb);
-    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  @Inline
+  protected boolean maintainSideBitmap() {
+    return !HEADER_MARK_BITS;
   }
 
   /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
+   * Do we need to preserve free lists as we move blocks around.
    */
-  public MarkSweepSpace(String name, int pageBudget, float frac) {
-    super(name, false, false, frac);
-    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  @Inline
+  protected boolean preserveFreeList() {
+    return !LAZY_SWEEP;
+  }
+
+  /****************************************************************************
+   *
+   * Allocation
+   */
+
+  /**
+   * Prepare the next block in the free block list for use by the free
+   * list allocator.  In the case of lazy sweeping this involves
+   * sweeping the available cells.  <b>The sweeping operation must
+   * ensure that cells are pre-zeroed</b>, as this method must return
+   * pre-zeroed cells.
+   *
+   * @param block The block to be prepared for use
+   * @param sizeClass The size class of the block
+   * @return The address of the first pre-zeroed cell in the free list
+   * for this block, or zero if there are no available cells.
+   */
+  protected Address advanceToBlock(Address block, int sizeClass) {
+    if (HEADER_MARK_BITS) {
+      if (inMSCollection) markBlock(block);
+    }
+
+    if (LAZY_SWEEP) {
+      return makeFreeList(block, sizeClass);
+    } else {
+      return getFreeList(block);
+    }
   }
 
   /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
+   * Notify that a new block has been installed. This is to ensure that
+   * appropriate collection state can be initialized for the block
    *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
+   * @param block The new block
+   * @param sizeClass The block's sizeclass.
    */
-  public MarkSweepSpace(String name, int pageBudget, int mb, boolean top) {
-    super(name, false, false, mb, top);
-    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  public MarkSweepSpace(String name, int pageBudget, float frac, boolean top) {
-    super(name, false, false, frac, top);
-    pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+  protected void notifyNewBlock(Address block, int sizeClass) {
+    if (HEADER_MARK_BITS) {
+      if (inMSCollection) markBlock(block);
+    }
   }
 
   /****************************************************************************
@@ -186,11 +164,16 @@ import org.vmmagic.unboxed.*;
    * collections.
    */
   public void prepare() {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
+    if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
+      consumeBlocks();
+    } else {
+      flushAvailableBlocks();
+    }
+    if (HEADER_MARK_BITS) {
       allocState = markState;
       markState = deltaMarkState(true);
     } else {
-      MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
+      zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     }
     inMSCollection = true;
   }
@@ -200,17 +183,8 @@ import org.vmmagic.unboxed.*;
    * collector this means we can perform the sweep phase.
  */
   public void release() {
+    sweepConsumedBlocks();
     inMSCollection = false;
-  }
-
-  /**
-   * Return true if this mark-sweep space is currently being collected.
-   *
-   * @return True if this mark-sweep space is currently being collected.
-   */
-  @Inline
-  public boolean inMSCollection() {
-    return inMSCollection;
   }
 
   /**
@@ -221,6 +195,22 @@ import org.vmmagic.unboxed.*;
   @Inline
   public void release(Address start) {
     ((FreeListPageResource) pr).releasePages(start);
+  }
+
+  /**
+   * Should the sweep reclaim the cell containing this object. Is this object
+   * live. This is only used when maintainSideBitmap is false.
+   *
+   * @param object The object to query
+   * @param markState The markState ot compare against
+   * @return True if the cell should be reclaimed
+   */
+  @Inline
+  protected boolean isCellLive(ObjectReference object) {
+    if (!HEADER_MARK_BITS) {
+      return super.isCellLive(object);
+    }
+    return testMarkState(object, markState);
   }
 
   /****************************************************************************
@@ -242,16 +232,15 @@ import org.vmmagic.unboxed.*;
    * void method but for compliance to a more general interface).
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
+    if (HEADER_MARK_BITS) {
       if (testAndMark(object, markState)) {
-        MarkSweepLocal.liveBlock(object);
-        trace.enqueue(object);
+        markBlock(object);
+        trace.processNode(object);
       }
     } else {
-      if (MarkSweepLocal.liveObject(object)) {
-        trace.enqueue(object);
+      if (testAndSetLiveBit(object)) {
+        trace.processNode(object);
       }
     }
     return object;
@@ -264,10 +253,10 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public boolean isLive(ObjectReference object) {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
-	return testMarkState(object, markState);
+    if (HEADER_MARK_BITS) {
+      return testMarkState(object, markState);
     } else {
-      return MarkSweepLocal.isLiveObject(object);
+      return liveBitSet(object);
     }
   }
 
@@ -332,10 +321,8 @@ import org.vmmagic.unboxed.*;
   @Inline
   public void postCopy(ObjectReference object, boolean majorGC) {
     initializeHeader(object, false);
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
-      if (majorGC) MarkSweepLocal.liveBlock(object);
-    } else {
-      MarkSweepLocal.liveObject(object);
+    if (!HEADER_MARK_BITS) {
+      testAndSetLiveBit(object);
     }
   }
 
@@ -348,12 +335,14 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
-    if (MarkSweepLocal.HEADER_MARK_BITS)
-      if (alloc)
+    if (HEADER_MARK_BITS) {
+      if (alloc) {
         writeAllocState(object);
-      else
+      } else {
         writeMarkState(object);
-   }
+      }
+    }
+  }
 
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
@@ -364,11 +353,11 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   private static boolean testAndMark(ObjectReference object, Word value) {
-    Word oldValue, markBits;
-    oldValue = VM.objectModel.readAvailableBitsWord(object);
-    markBits = oldValue.and(MARK_BITS_MASK);
-    if (markBits.EQ(value)) return false;
-    VM.objectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BITS_MASK.not()).or(value));
+    int oldValue, markBits;
+    oldValue = VM.objectModel.readAvailableByte(object);
+    markBits = oldValue & MARK_BITS_MASK.toInt();
+    if (markBits == value.toInt()) return false;
+    VM.objectModel.writeAvailableByte(object, (byte)(oldValue & ~MARK_BITS_MASK.toInt() | value.toInt()));
     return true;
   }
 

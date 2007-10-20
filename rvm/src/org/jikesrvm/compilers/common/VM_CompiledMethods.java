@@ -36,10 +36,11 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * Create a VM_CompiledMethod appropriate for the given compilerType
    */
   public static synchronized VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
-    int id = ++currentCompiledMethodId;
+    int id = currentCompiledMethodId + 1;
     if (id == compiledMethods.length) {
       compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length);
     }
+    currentCompiledMethodId++;
     VM_CompiledMethod cm = null;
     if (compilerType == VM_CompiledMethod.BASELINE) {
       cm = new VM_BaselineCompiledMethod(id, m);
@@ -58,10 +59,11 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * Create a VM_CompiledMethod for the synthetic hardware trap frame
    */
   public static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
-    int id = ++currentCompiledMethodId;
+    int id = currentCompiledMethodId + 1;
     if (id == compiledMethods.length) {
       compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length);
     }
+    currentCompiledMethodId++;
     VM_CompiledMethod cm = new VM_HardwareTrapCompiledMethod(id, null);
     compiledMethods[id] = cm;
     return cm;

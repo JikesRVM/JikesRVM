@@ -19,19 +19,21 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Temporary resiter set.
+ * Temporary register set.
  * see: VM_Registers
  */
 public class OSR_TempRegisters implements VM_ArchConstants {
 
-  Address ip;        // next instruction address
-  WordArray gprs;
-  double[] fprs;
+  final Address ip;        // next instruction address
+  final WordArray gprs;
+  final double[] fprs;
 
-  /* if a GPR hold a reference to an object, we convert the raw memory
+  /**
+   * if a GPR hold a reference to an object, we convert the raw memory
    * address to a reference. When objs[i] is null, the GPR[i] is not
    * holding a reference.
-   */ Object[] objs;
+   */
+  final Object[] objs;
 
   public OSR_TempRegisters(VM_Registers contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);

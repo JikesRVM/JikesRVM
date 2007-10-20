@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.generational.copying;
 
+import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
@@ -55,9 +56,9 @@ import org.vmmagic.unboxed.*;
     if (object.isNull()) return object;
 
     if (Space.isInSpace(GenCopy.MS0, object))
-      return GenCopy.matureSpace0.traceObject(this, object);
+      return GenCopy.matureSpace0.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
     if (Space.isInSpace(GenCopy.MS1, object))
-      return GenCopy.matureSpace1.traceObject(this, object);
+      return GenCopy.matureSpace1.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
     return super.traceObject(object);
   }
 
@@ -70,9 +71,9 @@ import org.vmmagic.unboxed.*;
   public final boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(GenCopy.MS0, object))
-      return GenCopy.matureSpace0.isLive(object);
+      return GenCopy.hi ? GenCopy.matureSpace0.isLive(object) : true;
     if (Space.isInSpace(GenCopy.MS1, object))
-      return GenCopy.matureSpace1.isLive(object);
+      return GenCopy.hi ? true : GenCopy.matureSpace1.isLive(object);
     return super.isLive(object);
   }
 
@@ -91,13 +92,13 @@ import org.vmmagic.unboxed.*;
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(GenCopy.toSpaceDesc(), object)) {
       return true;
     }
     if (Space.isInSpace(GenCopy.fromSpaceDesc(), object)) {
       return false;
     }
-    return super.willNotMove(object);
+    return super.willNotMoveInCurrentCollection(object);
   }
 }

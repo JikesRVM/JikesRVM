@@ -18,6 +18,7 @@ import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -74,6 +75,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    */
   @SuppressWarnings({"unused", "UnusedDeclaration"})
   // used by native code
+  @Entrypoint
   private final Address externalJNIFunctions =
       VM.BuildForPowerOpenABI ? VM_Magic.objectAsAddress(LinkageTriplets) : VM_Magic.objectAsAddress(JNIFunctions);
 
@@ -81,6 +83,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * For saving processor register on entry to native,
    * to be restored on JNI call from native
    */
+  @Entrypoint
   protected VM_Processor savedPRreg;
 
   /**
@@ -92,31 +95,37 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /**
    * references passed to native code
    */
+  @Entrypoint
   public AddressArray JNIRefs;
 
   /**
    * address of current top ref in JNIRefs array
    */
+  @Entrypoint
   public int JNIRefsTop;
 
   /**
    * offset of end (last entry) of JNIRefs array
    */
+  @Entrypoint
   protected int JNIRefsMax;
 
   /**
    * previous frame boundary in JNIRefs array
    */
+  @Entrypoint
   public int JNIRefsSavedFP;
 
   /**
    * Top java frame when in C frames on top of the stack
    */
+  @Entrypoint
   protected Address JNITopJavaFP;
 
   /**
    * Currently pending exception (null if none)
    */
+  @Entrypoint
   protected Throwable pendingException;
 
   /**

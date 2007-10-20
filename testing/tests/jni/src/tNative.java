@@ -10,12 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class tNative
-{
+class tNative {
   public static native int nativeFoo(int count);
 
-  public static void main(String args[])
-  {
+  public static void main(String[] args) {
     System.out.println("Attempting to load dynamic library ...");
     System.out.println("(the LIBPATH env variable must be set for this directory)");
 

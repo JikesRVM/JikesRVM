@@ -21,6 +21,11 @@
 // Only called externally from Java programs.
 extern "C" void sysExit(int) __attribute__((noreturn));
 
+//Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
+#if defined (__SVR4) && defined (__sun)
+#define BSD_COMP
+#endif
+
 // AIX needs this to get errno right. JTD
 #define _THREAD_SAFE_ERRNO
 
@@ -44,13 +49,19 @@ extern "C" int sched_yield(void);
 #include <time.h>               // nanosleep() and other
 #include <utime.h>
 
-#ifdef RVM_FOR_LINUX
+#ifdef RVM_WITH_PERFCTR
+#  include "perfctr.h"
+#endif
+
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS) 
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/ioctl.h>
+#ifdef RVM_FOR_LINUX
 #include <asm/ioctls.h>
+#endif
 
 # include <sched.h>
 
@@ -72,12 +83,10 @@ extern "C" int sched_yield(void);
 #include <sys/types.h>
 #include <sys/sysctl.h>
 extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
-# if (defined HAS_DLCOMPAT)
-# include <dlfcn.h>
-# endif
+/* As of 10.4, dlopen comes with the OS */
+#include <dlfcn.h>
 #define MAP_ANONYMOUS MAP_ANON
 #include <sched.h>
-
 
 /* AIX/PowerPC */
 #else
@@ -105,7 +114,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include <pthread.h>
 
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS)
 # include "syswrap.h"
 #endif
 
@@ -196,9 +205,73 @@ pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool systemExiting = false;
 
+// alignment checking: hardware alignment checking variables and functions
+
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+
+volatile int numNativeAlignTraps;
+volatile int numEightByteAlignTraps;
+volatile int numBadAlignTraps;
+
+static volatile int numEnableAlignCheckingCalls = 0;
+static volatile int numDisableAlignCheckingCalls = 0;
+
+extern "C" void sysEnableAlignmentChecking() {
+  numEnableAlignCheckingCalls++;
+  if (numEnableAlignCheckingCalls > numDisableAlignCheckingCalls) {
+    asm("pushf\n\t"
+        "orl $0x00040000,(%esp)\n\t"
+        "popf");
+  }
+}
+
+extern "C" void sysDisableAlignmentChecking() {
+  numDisableAlignCheckingCalls++;
+  asm("pushf\n\t"
+      "andl $0xfffbffff,(%esp)\n\t"
+      "popf");
+}
+
+extern "C" void sysReportAlignmentChecking() {
+  fprintf(SysTraceFile, "\nAlignment checking report:\n\n");
+  fprintf(SysTraceFile, "# native traps (ignored by default):             %d\n", numNativeAlignTraps);
+  fprintf(SysTraceFile, "# 8-byte access traps (ignored by default):      %d\n", numEightByteAlignTraps);
+  fprintf(SysTraceFile, "# bad access traps (throw exception by default): %d (should be zero)\n\n", numBadAlignTraps);
+  fprintf(SysTraceFile, "# calls to sysEnableAlignmentChecking():         %d\n", numEnableAlignCheckingCalls);
+  fprintf(SysTraceFile, "# calls to sysDisableAlignmentChecking():        %d\n\n", numDisableAlignCheckingCalls);
+  fprintf(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
+  fprintf(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
+
+  // cause a native trap to see if traps are enabled
+  volatile int dummy[2];
+  volatile int prevNumNativeTraps = numNativeAlignTraps;
+  *(int*)((char*)dummy + 1) = 0x12345678;
+  int enabled = (numNativeAlignTraps != prevNumNativeTraps);
+
+  fprintf(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
+  fprintf(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
+  fprintf(SysTraceFile, "Current status of alignment checking:            %s (should be on)\n\n", (enabled ? "on" : "off"));
+}
+
+#else
+
+extern "C" void sysEnableAlignmentChecking() { }
+extern "C" void sysDisableAlignmentChecking() { }
+extern "C" void sysReportAlignmentChecking() { }
+
+#endif // RVM_WITH_ALIGNMENT_CHECKING
+
 extern "C" void
 sysExit(int value)
 {
+    // alignment checking: report info before exiting, then turn off checking
+    #ifdef RVM_WITH_ALIGNMENT_CHECKING
+    if (numEnableAlignCheckingCalls > 0) {
+      sysReportAlignmentChecking();
+      sysDisableAlignmentChecking();
+    }
+    #endif // RVM_WITH_ALIGNMENT_CHECKING
+	
     if (lib_verbose & value != 0) {
         fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
     }
@@ -310,7 +383,54 @@ loadResultBuf(char * dest, int limit, const char *src)
     }
 }
 
+/*
+ * Performance counter support using the 'perfctr' system.
+ * 
+ * The implementations are 'out of line' in perfctr.C
+ */
 
+extern "C" int
+sysPerfCtrInit(int metric)
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrInit(metric);
+#else
+  return 0;
+#endif
+}
+
+extern "C" long long
+sysPerfCtrReadCycles()
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrReadCycles();
+#else
+  return 0;
+#endif
+}
+
+extern "C" long long
+sysPerfCtrReadMetric()
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrReadMetric();
+#else
+  return 0;
+#endif
+}
+
+/*
+ * The following is unused at present
+ */
+extern "C" int
+sysPerfCtrRead(char *str)
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrRead(str);
+#else
+  return 0;
+#endif
+}
 
 //------------------------//
 // Filesystem operations. //
@@ -599,7 +719,7 @@ extern "C" void processTimerTick(void) {
     /*
      * Increment VM_Processor.timerTicks
      */
-    int* ttp = (int *) ((char *) VmToc + VM_Processor_timerTicks_offset);
+    int* ttp = (int *) ((char *) VmToc + VM_GreenProcessor_timerTicks_offset);
     *ttp = *ttp + 1;
 
     /*
@@ -612,7 +732,7 @@ extern "C" void processTimerTick(void) {
     /*
      * Increment VM_Processor.reportedTimerTicks
      */
-    int* rttp = (int *) ((char *) VmToc + VM_Processor_reportedTimerTicks_offset);
+    int* rttp = (int *) ((char *) VmToc + VM_GreenProcessor_reportedTimerTicks_offset);
     *rttp = *rttp + 1;
 
     /*
@@ -624,7 +744,7 @@ extern "C" void processTimerTick(void) {
     VM_Address *processors = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
-    for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
+    for (unsigned i = VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
         // Set takeYieldpoint field to 1; decrement timeSliceExpired field;
         // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
         *(int *)((char *)processors[i] + VM_Processor_takeYieldpoint_offset) = 1;
@@ -711,37 +831,8 @@ getTimeSlice_msec(void)
     return timeSlice_msec;
 }
 
-
-//
-// returns the time of day in the buffer provided
-//
-/*
-  extern "C" int
-  sysGetTimeOfDay(char * buffer) {
-  int rc;
-  struct timeval tv;
-  struct timezone tz;
-
-  rc = gettimeofday(&tv, &tz);
-  if (rc != 0) return rc;
-
-  buffer[0] = (tv.tv_sec >> 24) & 0x000000ff;
-  buffer[1] = (tv.tv_sec >> 16) & 0x000000ff;
-  buffer[2] = (tv.tv_sec >> 8) & 0x000000ff;
-  buffer[3] = tv.tv_sec & 0x000000ff;
-
-  buffer[4] = (tv.tv_usec >> 24) & 0x000000ff;
-  buffer[5] = (tv.tv_usec >> 16) & 0x000000ff;
-  buffer[6] = (tv.tv_usec >> 8) & 0x000000ff;
-  buffer[7] = tv.tv_usec & 0x000000ff;
-
-  return rc;
-  }
-*/
-
-
 extern "C" long long
-sysGetTimeOfDay()
+sysCurrentTimeMillis()
 {
     int rc;
     long long returnValue;
@@ -754,11 +845,37 @@ sysGetTimeOfDay()
     if (rc != 0) {
         returnValue = rc;
     } else {
-        returnValue = (long long) tv.tv_sec * 1000000;
-        returnValue += tv.tv_usec;
+        returnValue = ((long long) tv.tv_sec * 1000) + tv.tv_usec/1000;
     }
 
     return returnValue;
+}
+
+
+#ifdef __MACH__
+mach_timebase_info_data_t timebaseInfo;
+#endif
+
+extern "C" long long
+sysNanoTime()
+{
+	long long retVal;
+#ifndef __MACH__
+	struct timespec tp;
+    int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
+	if (rc != 0) {
+		retVal = rc;
+	    if (lib_verbose) {
+	        fprintf(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
+	    }
+	} else {
+		retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
+	}
+#else
+        Nanoseconds nanoTime;
+        retVal = mach_absolute_time() * timebaseInfo.numer / timebaseInfo.denom;
+#endif
+    return retVal;
 }
 
 
@@ -1474,6 +1591,12 @@ sysMalloc(int length)
     return malloc(length);
 }
 
+extern "C" void *
+sysCalloc(int length)
+{
+  return calloc(1, length);
+}
+
 // Release memory.
 //
 extern "C" void
@@ -1713,10 +1836,6 @@ findMappable()
 extern "C" void*
 sysDlopen(char *libname)
 {
-#if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
-   fprintf(SysTraceFile, "sys: dlopen not implemented yet\n");
-   return 0;
-#else
     void * libHandler;
     do {
         libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
@@ -1730,7 +1849,6 @@ sysDlopen(char *libname)
     }
 
     return libHandler;
-#endif
 }
 
 // Look up symbol in dynamic library.
@@ -1740,12 +1858,7 @@ sysDlopen(char *libname)
 extern "C" void*
 sysDlsym(VM_Address libHandler, char *symbolName)
 {
-#if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
-   fprintf(SysTraceFile, "sys: dlsym not implemented yet\n");
-   return 0;
-#else
     return dlsym((void *) libHandler, symbolName);
-#endif
 }
 
 //---------------------//

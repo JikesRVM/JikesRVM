@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -59,6 +60,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   /**
    * The next object ID to be used.
    */
+  @Entrypoint
   private static Word oid;
   /**
    * The current "time" for the trace being generated.
@@ -67,6 +69,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   /**
    * The address of the last object allocated into the header.
    */
+  @Entrypoint
   private static Word prevAddress;
 
   static {
@@ -204,7 +207,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   public static void dumpHeader(Object ref) {
     // by default nothing to do, unless the misc header is required
     if (MM_Constants.GENERATE_GC_TRACE) {
-      VM.sysWrite(" OID=", getOID(VM_Magic.objectAsAddress(ref)));
+      VM.sysWrite(" OID=", getOID(ref));
       VM.sysWrite(" LINK=", getLink(ref));
       VM.sysWrite(" DEATH=", getDeathTime(ref));
     }

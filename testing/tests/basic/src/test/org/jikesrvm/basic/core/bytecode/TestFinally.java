@@ -19,11 +19,9 @@ class TestFinally {
       int a = 1;
       int b = 0;
       return a / b;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return 1;
-    }
-    finally {
+    } finally {
       return 2;
     }
   }
@@ -32,8 +30,7 @@ class TestFinally {
   private static int foo2() {
     try {
       throw new Exception();
-    }
-    finally {
+    } finally {
       return 3;
     }
   }
@@ -46,8 +43,7 @@ class TestFinally {
     try {
       System.out.println("hi");      // jsr
       return;
-    }
-    finally {
+    } finally {
       System.out.println("bye");
     }                              // ret
   }

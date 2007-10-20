@@ -21,8 +21,7 @@ class StringRegion {
   static native int testStringRegion(String s); // 0 if OK
   static native int testStringCritical(String s); // 0 if OK
 
-  public static void main(String args[])
-  {
+  public static void main(String[] args) {
     System.loadLibrary("StringRegion");
 
     if (args.length != 0) {

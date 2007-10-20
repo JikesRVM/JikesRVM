@@ -25,7 +25,7 @@ import sor.JGFSORBench;
 import sparsematmult.JGFSparseMatmultBench;
 
 public class JGF_SerialBenchmark {
-  public static void main(String argv[]) {
+  public static void main(String[] argv) {
     final int size = Integer.parseInt(argv[0]);
 
     JGFInstrumentor.printHeader(1, size);

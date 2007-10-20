@@ -189,8 +189,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
 
         // insert the PI-node instructions for a and b
         if (a.isRegister() &&
-            !a.asRegister().register.isPhysical() &&
-            (a.asRegister().register.isInteger() || a.asRegister().register.isAddress())) {
+            !a.asRegister().getRegister().isPhysical() &&
+            (a.asRegister().getRegister().isInteger() || a.asRegister().getRegister().isAddress())) {
           // insert pi-nodes only for variables, not constants
           OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) a.copy(), a.copy(), null);
           OPT_RegisterOperand sGuard = (OPT_RegisterOperand) ifGuard.copy();
@@ -212,8 +212,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
           new2.prependInstruction(s);
         }
         if (b.isRegister() &&
-            !b.asRegister().register.isPhysical() &&
-            (b.asRegister().register.isInteger() || b.asRegister().register.isAddress())) {
+            !b.asRegister().getRegister().isPhysical() &&
+            (b.asRegister().getRegister().isInteger() || b.asRegister().getRegister().isAddress())) {
           OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) b.copy(), b.copy(), null);
           OPT_RegisterOperand sGuard = (OPT_RegisterOperand) ifGuard.copy();
           if (new1IsTaken) {
@@ -255,7 +255,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
         // Create a pi node for the index.
         OPT_Operand index = BoundsCheck.getIndex(instr);
         // create the instruction and insert it
-        if (index.isRegister() && !index.asRegister().register.isPhysical()) {
+        if (index.isRegister() && !index.asRegister().getRegister().isPhysical()) {
           OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) index.copy(), index.copy(), null);
           OPT_RegisterOperand sGuard = (OPT_RegisterOperand) BoundsCheck.getGuardResult(instr).copy();
           sGuard.setBoundsCheck();
@@ -266,7 +266,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
           // Create a pi node for the array.
           OPT_Operand array = BoundsCheck.getRef(instr);
           // create the instruction and insert it
-          if (array.isRegister() && !array.asRegister().register.isPhysical()) {
+          if (array.isRegister() && !array.asRegister().getRegister().isPhysical()) {
             OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) array.copy(), array.copy(), null);
             OPT_RegisterOperand sGuard = (OPT_RegisterOperand) BoundsCheck.getGuardResult(instr).copy();
             sGuard.setBoundsCheck();
@@ -329,9 +329,9 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
         // create the instruction and insert it
         if (obj.isRegister()) {
           OPT_RegisterOperand lval = (OPT_RegisterOperand) obj.copy();
-          lval.type = TypeCheck.getType(instr).getTypeRef();
+          lval.setType(TypeCheck.getType(instr).getTypeRef());
           lval.clearDeclaredType();
-          if (lval.type.isLoaded() && lval.type.isClassType() && lval.type.peekType().asClass().isFinal()) {
+          if (lval.getType().isLoaded() && lval.getType().isClassType() && lval.getType().peekType().asClass().isFinal()) {
             lval.setPreciseType();
           } else {
             lval.clearPreciseType();
@@ -361,7 +361,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
       OPT_Instruction s = e.next();
       if (s.operator == PI) {
         OPT_RegisterOperand result = GuardedUnary.getResult(s);
-        OPT_Operator mv = OPT_IRTools.getMoveOp(result.type);
+        OPT_Operator mv = OPT_IRTools.getMoveOp(result.getType());
         OPT_Operand val = GuardedUnary.getVal(s);
         Move.mutate(s, mv, result, val);
       }
@@ -379,7 +379,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
       throw new OPT_OptimizingCompilerException("Not a PI Node!");
     }
     OPT_Operand g = GuardedUnary.getGuard(def);
-    OPT_Instruction link = g.asRegister().register.defList.instruction;
+    OPT_Instruction link = g.asRegister().getRegister().defList.instruction;
     return link;
   }
 

@@ -22,7 +22,7 @@ import sparsematmult.JGFSparseMatmultBench;
 
 public class JGF_MultithreadedBenchmark {
 
-  public static void main(String argv[]) {
+  public static void main(String[] argv) {
 
     final int size = Integer.parseInt(argv[0]);
     final int threadCount = Integer.parseInt(argv[1]);
@@ -67,5 +67,3 @@ public class JGF_MultithreadedBenchmark {
     b11.JGFrun(size);
   }
 }
-
-

@@ -43,8 +43,8 @@ import org.vmmagic.unboxed.*;
    *
    * @param rps The space from which the instance should obtain buffers.
    */
-  public SortSharedDeque(RawPageSpace rps, int arity) {
-    super(rps, arity);
+  public SortSharedDeque(String name, RawPageSpace rps, int arity) {
+    super(name, rps, arity);
     stackBase = AddressArray.create(MAX_STACK_SIZE);
     stackLoc = 0;
   }
@@ -120,9 +120,9 @@ import org.vmmagic.unboxed.*;
         if (lKey.GT(rKey)) {
           lPtr.minus(BYTES_IN_ADDRESS).store(lSlot);
           lPtr = lPtr.plus(BYTES_IN_ADDRESS);
-        }
-        else
+        } else {
           break;
+        }
       }
       lPtr.minus(BYTES_IN_ADDRESS).store(rSlot);
       rPtr = rPtr.minus(BYTES_IN_ADDRESS);

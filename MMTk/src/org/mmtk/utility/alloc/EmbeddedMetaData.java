@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  * that is embeded in allocation spaces (rather than kept on the
  * side).  The basic idea is that meta data be embeded at a very
  * coarse power of two granularity for fast access, minimal wastage
- * and by making the regions coarse, the contigious meta-data will be
+ * and by making the regions coarse, the contiguous meta-data will be
  * relatively large and thus the probability of L1 conflict misses
  * will be reduced (as compared with embedding meta-data at the start
  * of each page which will cause those few cache lines corresponding

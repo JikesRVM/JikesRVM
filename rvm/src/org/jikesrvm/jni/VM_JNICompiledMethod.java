@@ -63,6 +63,10 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
+  public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
+    return false;
+  }
+
   public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     return -1;
   }

@@ -21,19 +21,16 @@ class BlockingThreadsWorker extends Thread {
   int        sleepTime;
   boolean    isFinished;
 
-  BlockingThreadsWorker(int time)
-  {
+  BlockingThreadsWorker(int time) {
     this.sleepTime = time;
     this.isFinished = false;
   }
 
-  public void start() //- overrides Thread
-  {
+  public void start() {
     super.start();
   }
 
-  public void run()  //- overrides Thread
-  {
+  public void run() {
     int loopctr = 5;
 
     if (trace) VM_Scheduler.trace("Worker","hello - time",sleepTime);

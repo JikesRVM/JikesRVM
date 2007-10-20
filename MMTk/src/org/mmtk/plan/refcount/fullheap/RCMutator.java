@@ -44,7 +44,6 @@ import org.vmmagic.unboxed.*;
  * @see RCCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class RCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************

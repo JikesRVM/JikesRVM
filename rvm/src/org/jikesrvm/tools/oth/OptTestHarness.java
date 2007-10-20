@@ -426,9 +426,9 @@ class OptTestHarness {
     private long start = 0;
     private long end = 0;
 
-    void reset() { start = VM_Time.cycles(); }
+    void reset() { start = VM_Time.nanoTime(); }
 
-    void stop() { if (end == 0) end = VM_Time.cycles(); }
+    void stop() { if (end == 0) end = VM_Time.nanoTime(); }
 
     void show() {
       stop();  // In case we got here due to a System.exit
@@ -436,7 +436,7 @@ class OptTestHarness {
       System.out.println("Performance of executed method");
       System.out.println("------------------------------");
       System.out.print("Elapsed wallclock time: ");
-      System.out.print(VM_Time.cyclesToMillis(end - start));
+      System.out.print(VM_Time.nanosToMillis(end - start));
       System.out.println(" msec");
     }
 

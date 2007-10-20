@@ -35,7 +35,8 @@
   <target name="fetch" depends="init-pmd-properties" if="pmd.from-web">
     <property name="pmd.web-archive" value="pmd-bin-${pmd.version}.zip"/>
     <mkdir dir="${pmd.package.dir}"/>
-    <get src="http://nchc.dl.sourceforge.net/sourceforge/pmd/${pmd.web-archive}"
+    <cachedGet key="${pmd.web-archive}"
+         src="http://nchc.dl.sourceforge.net/sourceforge/pmd/${pmd.web-archive}"
          dest="${pmd.package.dir}/${pmd.web-archive}"/>
     <unzip src="${pmd.package.dir}/${pmd.web-archive}" dest="${pmd.package.dir}"/>
     <writeComponentConstants dir="${pmd.dir}"/>

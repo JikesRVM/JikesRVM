@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.LargeObjectLocal;
@@ -71,12 +72,10 @@ import org.vmmagic.unboxed.*;
  * empty stubs for write barriers (to be overridden by sub-classes as
  * needed).
  *
- * @see SimplePhase#delegatePhase
  * @see CollectorContext
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  */
-
 @Uninterruptible  public abstract class MutatorContext implements Constants {
   /****************************************************************************
    * Instance fields
@@ -94,6 +93,12 @@ import org.vmmagic.unboxed.*;
   /** Per-mutator allocator into the large object space */
   protected LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
+  /** Per-mutator allocator into the small code space */
+  private  MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
+
+  /** Per-mutator allocator into the large code space */
+  private LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
+
   /** Per-mutator allocator into the primitive large object space */
   protected LargeObjectLocal plos = new LargeObjectLocal(Plan.ploSpace);
 
@@ -109,7 +114,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
-  public abstract void collectionPhase(int phaseId, boolean primary);
+  public abstract void collectionPhase(short phaseId, boolean primary);
 
   /****************************************************************************
    *
@@ -133,7 +138,12 @@ import org.vmmagic.unboxed.*;
     if (allocator == Plan.ALLOC_DEFAULT &&
         Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
       return Plan.ALLOC_LOS;
-    else if (allocator == Plan.ALLOC_NON_REFERENCE) {
+    else if (Plan.USE_CODE_SPACE && allocator == Plan.ALLOC_CODE) {
+      if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
+        return Plan.ALLOC_LARGE_CODE;
+      else
+        return allocator;
+    } else if (allocator == Plan.ALLOC_NON_REFERENCE) {
         if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.PLOS_SIZE_THRESHOLD)
           return Plan.ALLOC_PRIMITIVE_LOS;
     else
@@ -155,9 +165,11 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch (allocator) {
-    case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
-    case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
-    case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset, false);
+    case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset);
+    case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset);
+    case      Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      Plan.ALLOC_CODE: return smcode.alloc(bytes, align, offset);
+    case      Plan.ALLOC_LARGE_CODE: return lgcode.alloc(bytes, align, offset);
     default:
       VM.assertions.fail("No such allocator");
       return Address.zero();
@@ -180,6 +192,8 @@ import org.vmmagic.unboxed.*;
     case           Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref, false); return;
     case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref, true); return;
     case      Plan.ALLOC_IMMORTAL: Plan.immortalSpace.initializeHeader(ref);  return;
+    case          Plan.ALLOC_CODE: Plan.smallCodeSpace.initializeHeader(ref, true); return;
+    case    Plan.ALLOC_LARGE_CODE: Plan.largeCodeSpace.initializeHeader(ref, true); return;
     default:
       VM.assertions.fail("No such allocator");
     }
@@ -209,11 +223,10 @@ import org.vmmagic.unboxed.*;
    *
    * This method allows the correct allocator instance to be
    * established and associated with the thread (see {@link
-   * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int,
-   * boolean) Allocator.allocSlow()}).
+   * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int) Allocator.allocSlow()}).
    *
    * @see org.mmtk.utility.alloc.Allocator
-   * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int, boolean)
+   * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int)
    *
    * @param a An allocator instance.
    * @return An allocator instance associated with <i>this plan
@@ -223,7 +236,7 @@ import org.vmmagic.unboxed.*;
   public final Allocator getOwnAllocator(Allocator a) {
     Space space = Plan.getSpaceFromAllocatorAnyLocal(a);
     if (space == null)
-      VM.assertions.fail("PlanLocal.getOwnAllocator could not obtain space");
+      VM.assertions.fail("MutatorContext.getOwnAllocator could not obtain space");
     return getAllocatorFromSpace(space);
   }
 
@@ -242,6 +255,8 @@ import org.vmmagic.unboxed.*;
     if (a == immortal) return Plan.immortalSpace;
     if (a == los)      return Plan.loSpace;
     if (a == plos)     return Plan.ploSpace;
+    if (Plan.USE_CODE_SPACE && a == smcode)   return Plan.smallCodeSpace;
+    if (Plan.USE_CODE_SPACE && a == lgcode)   return Plan.largeCodeSpace;
 
     // a does not belong to this plan instance
     return null;
@@ -260,6 +275,8 @@ import org.vmmagic.unboxed.*;
     if (space == Plan.immortalSpace) return immortal;
     if (space == Plan.loSpace)       return los;
     if (space == Plan.ploSpace)      return plos;
+    if (Plan.USE_CODE_SPACE && space == Plan.smallCodeSpace) return smcode;
+    if (Plan.USE_CODE_SPACE && space == Plan.largeCodeSpace) return lgcode;
 
     // Invalid request has been made
     if (space == Plan.metaDataSpace) {
@@ -355,6 +372,19 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
+   * Read a reference type. In a concurrent collector this may
+   * involve adding the referent to the marking queue.
+   *
+   * @param referent The referent being read.
+   * @return The new referent.
+   */
+  @Inline
+  public ObjectReference referenceTypeReadBarrier(ObjectReference referent) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return ObjectReference.nullReference();
+  }
+
+  /**
    * Read a reference. Take appropriate read barrier action, and
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>
@@ -369,6 +399,13 @@ import org.vmmagic.unboxed.*;
     // read barrier currently unimplemented
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return Address.max();
+  }
+
+  /**
+   * Flush mutator context, in response to a requestMutatorFlush
+   */
+  public void flush() {
+    flushRememberedSets();
   }
 
   /**

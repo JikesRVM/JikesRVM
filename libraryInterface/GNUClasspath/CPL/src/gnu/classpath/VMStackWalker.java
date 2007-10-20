@@ -37,8 +37,7 @@ public final class VMStackWalker {
    *
    * @return the first non-null classloader on stack or null.ge
    */
-  public static ClassLoader firstNonNullClassLoader()
-  {
+  public static ClassLoader firstNonNullClassLoader() {
     for (Class<?> type : getClassContext()) {
       ClassLoader loader = type.getClassLoader();
       if (loader != null)

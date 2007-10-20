@@ -13,7 +13,7 @@
 class ExceptionTest5 {
 
 
-  static int testa[] = new int[3];
+  static int[] testa = new int[3];
   public static void main(String[] args) {
 
     run();
@@ -25,9 +25,9 @@ class ExceptionTest5 {
          throw new IndexOutOfBoundsException("I am IndexOBE");
       testa[3] = 0;
     } catch (NullPointerException n) {
-        System.out.println( n + ", but caught by NullPointCheckException");
+        System.out.println(n + ", but caught by NullPointCheckException");
     } catch (ArithmeticException a) {
-        System.out.println( a + ", but caught by ArithMeticException");
+        System.out.println(a + ", but caught by ArithMeticException");
     } catch (IndexOutOfBoundsException e5) {
       System.out.println(" IndexOutOfBoundsException caught");
     }

@@ -12,12 +12,11 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Options;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_DynamicTypeCheck;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -94,15 +93,15 @@ public class VM_StackTrace {
   private int walkFrames(boolean record) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
-    VM_Thread stackTraceThread = VM_Thread.getCurrentThread().getThreadForStackTrace();
+    VM_Thread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
     Address fp;
-    Address ip; 
-    if (stackTraceThread != VM_Thread.getCurrentThread()) {
+    Address ip;
+    if (stackTraceThread != VM_Scheduler.getCurrentThread()) {
       /* Stack trace for a sleeping thread */
       fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
       ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
     } else {
-      /* Stack trace for the current thread */ 
+      /* Stack trace for the current thread */
       fp = VM_Magic.getFramePointer();
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
@@ -322,7 +321,7 @@ public class VM_StackTrace {
      * at java.lang.LinkageError.<init>(LinkageError.java:72)
      * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:85)
      * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:75)
-     * 
+     *
      * and an OutOfMemoryError to look like:
      * at org.jikesrvm.scheduler.VM_Processor.dispatch(VM_Processor.java:211)
      * at org.jikesrvm.scheduler.VM_Thread.morph(VM_Thread.java:1125)
@@ -351,7 +350,7 @@ public class VM_StackTrace {
         }
         return element;
       }
-      
+
       // (1) remove any VM_StackTrace frames
       while((element < compiledMethods.length) &&
           (compiledMethods[element] != null) &&
@@ -434,7 +433,7 @@ public class VM_StackTrace {
           // looks like we've gone too low
           return max;
         }
-        Class frameClass = compiledMethods[i].method.getDeclaringClass().getClassForType();
+        Class<?> frameClass = compiledMethods[i].method.getDeclaringClass().getClassForType();
         if ((frameClass != org.jikesrvm.scheduler.VM_MainThread.class) &&
             (frameClass != org.jikesrvm.scheduler.VM_Thread.class) &&
             (frameClass != org.jikesrvm.runtime.VM_Reflection.class)){

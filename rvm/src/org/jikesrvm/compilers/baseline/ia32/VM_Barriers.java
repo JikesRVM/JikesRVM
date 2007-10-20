@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -42,6 +42,7 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+4 -> target_ref
     Offset of4 = Offset.fromIntSignExtend(4);
     Offset of8 = Offset.fromIntSignExtend(8);
+    genNullCheck(asm, 4);
     asm.emitPUSH_RegDisp(SP, of4);
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
@@ -55,12 +56,44 @@ class VM_Barriers implements VM_BaselineConstants {
     //  SP -> ref_to_store, SP+4 -> target_ref
     Offset of4 = Offset.fromIntSignExtend(4);
     Offset of8 = Offset.fromIntSignExtend(8);
+    genNullCheck(asm, 4);
     asm.emitPUSH_RegDisp(SP, of4);
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 4);
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+  }
+
+  static void compilePutstaticBarrier(VM_Assembler asm, byte reg, int locationMetadata) {
+    //  on entry java stack contains ...|ref_to_store|
+    //  SP -> ref_to_store
+    Offset of4 = Offset.fromIntSignExtend(4);
+    asm.emitPUSH_Reg(reg);
+    asm.emitPUSH_RegDisp(SP, of4);
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 3);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+  }
+
+  static void compilePutstaticBarrierImm(VM_Assembler asm, Offset fieldOffset, int locationMetadata) {
+    //  on entry java stack contains ...|ref_to_store|
+    //  SP -> ref_to_store
+    Offset of4 = Offset.fromIntSignExtend(4);
+    asm.emitPUSH_Imm(fieldOffset.toInt());
+    asm.emitPUSH_RegDisp(SP, of4);
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 3);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+  }
+
+  /**
+   * Generate a cheap nullcheck by attempting to load the TIB of the object
+   * at the given offset to SP.
+   */
+  private static void genNullCheck(VM_Assembler asm, int offset) {
+    asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend(offset));
+    VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T1);
   }
 
   static void compileModifyCheck(VM_Assembler asm, int offset) {
@@ -71,13 +104,6 @@ class VM_Barriers implements VM_BaselineConstants {
     genParameterRegisterLoad(asm, 1);
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.modifyCheckMethod.getOffset());
   }
-
-  // currently do not have a "write barrier for putstatic, emit nothing, for now...
-  // (the collectors still scan all of statics/jtoc during each GC)
-  //
-  static void compilePutstaticBarrier(VM_Assembler asm, byte reg) { }
-
-  static void compilePutstaticBarrierImm(VM_Assembler asm, int fieldOffset) { }
 
   /**
    * (Taken from VM_Compiler.java)
@@ -90,7 +116,6 @@ class VM_Barriers implements VM_BaselineConstants {
    * @param params number of parameter words (including "this" if any).
    */
   private static void genParameterRegisterLoad(VM_Assembler asm, int params) {
-    if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params - 1) << LG_WORDSIZE));
     }

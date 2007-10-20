@@ -16,6 +16,7 @@ import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -43,7 +44,8 @@ import org.vmmagic.unboxed.*;
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
  */
-@Uninterruptible public class GenMS extends Gen {
+@Uninterruptible
+public class GenMS extends Gen {
 
   /*****************************************************************************
    *
@@ -51,7 +53,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MATURE_FRACTION);
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   public static final int MS = msSpace.getDescriptor();
 
@@ -67,12 +69,13 @@ import org.vmmagic.unboxed.*;
    *
    * Collection
    */
-  /*
+
+  /**
    * Perform a (global) collection phase.
    */
   @Inline
   @Override
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -81,6 +84,10 @@ import org.vmmagic.unboxed.*;
         return;
       }
 
+      if (phaseId == CLOSURE) {
+        matureTrace.prepare();
+        return;
+      }
       if (phaseId == RELEASE) {
         matureTrace.release();
         msSpace.release();
@@ -112,7 +119,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
@@ -120,6 +127,16 @@ import org.vmmagic.unboxed.*;
     return super.getPagesRequired() + msSpace.requiredPages();
   }
 
+  /**
+   * Return the number of pages available for allocation into the mature
+   * space.
+   *
+   * @return The number of pages available for allocation into the mature
+   * space.
+   */
+  public int getMaturePhysicalPagesAvail() {
+    return msSpace.availablePhysicalPages();
+  }
 
   /*****************************************************************************
    *
@@ -138,15 +155,15 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
-   * @return False if the object will never move
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MS, object))
-      return false;
-    return super.objectCanMove(object);
+      return true;
+    return super.willNeverMove(object);
   }
 }

@@ -12,6 +12,9 @@
  -->
 <project name="SPECjbb2000" default="test" basedir=".">
 
+  <condition property="test.time.limit" value="4000">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
   <condition property="test.time.limit" value="2700" else="1000">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>

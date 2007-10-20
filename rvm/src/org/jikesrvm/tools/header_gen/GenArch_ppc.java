@@ -17,7 +17,7 @@ import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.ppc.VM_TrapConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
 final class GenArch_ppc extends GenArch {
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;
-    offset = VM_Entrypoints.registersLRField.getOffset();
+    offset = VM_ArchEntrypoints.registersLRField.getOffset();
     pln("VM_Registers_lr_offset = ", offset);
 
     p("static const int VM_Constants_JTOC_POINTER               = " + VM_RegisterConstants.JTOC_POINTER + ";\n");

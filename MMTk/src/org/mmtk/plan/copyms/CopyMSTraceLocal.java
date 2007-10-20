@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public CopyMSTraceLocal(Trace trace) {
-    super(trace);
+    super(CopyMS.SCAN_COPYMS, trace);
   }
 
   /****************************************************************************
@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(CopyMS.NURSERY, object))
-      return CopyMS.nurserySpace.traceObject(this, object);
+      return CopyMS.nurserySpace.traceObject(this, object, CopyMS.ALLOC_MS);
     if (Space.isInSpace(CopyMS.MARK_SWEEP, object))
       return CopyMS.msSpace.traceObject(this, object);
     return super.traceObject(object);
@@ -89,7 +89,7 @@ import org.vmmagic.unboxed.*;
   public ObjectReference precopyObject(ObjectReference object) {
     if (object.isNull()) return object;
     else if (Space.isInSpace(CopyMS.NURSERY, object))
-      return CopyMS.nurserySpace.traceObject(this, object);
+      return CopyMS.nurserySpace.traceObject(this, object, CopyMS.ALLOC_MS);
     else
       return object;
   }
@@ -100,15 +100,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object will not move during this collection.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return !Space.isInSpace(CopyMS.NURSERY, object);
-  }
-
-  /**
-   * @return The allocator to use when copying objects.
-   */
-  @Inline
-  public int getAllocator() {
-    return CopyMS.ALLOC_MS;
   }
 }

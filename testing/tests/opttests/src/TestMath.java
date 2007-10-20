@@ -10,15 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestMath
-   {
-   public static void main(String args[])
-      {
+class TestMath {
+   public static void main(String[] args) {
       run();
-      }
+   }
 
-   public static boolean run()
-      {
+   public static boolean run() {
       System.out.println("TestMath");
 
       System.out.println("-- Math.floor --");
@@ -46,5 +43,5 @@ class TestMath
       System.out.println("\nwant: -1.0 \ngot:  " + Math.ceil(-1.4));
 
       return true;
-      }
    }
+}

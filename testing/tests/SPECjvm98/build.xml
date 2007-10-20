@@ -158,7 +158,7 @@
           failonerror="true"
           output="${build.tests.dir}/derived_results.txt">
       <env key="RVM_ROOT" value="${jikesrvm.dir}"/>
-      <arg value="${test.SPECjvm98.sanitized.output.file}"/>
+      <arg value="${test.SPECjvm98.default.sanitized.output.file}"/>
     </exec>
 
     <score key="compress"/>

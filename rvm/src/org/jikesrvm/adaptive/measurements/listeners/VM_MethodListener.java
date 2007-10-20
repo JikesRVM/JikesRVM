@@ -13,7 +13,7 @@
 package org.jikesrvm.adaptive.measurements.listeners;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Uninterruptible;
@@ -114,7 +114,7 @@ public final class VM_MethodListener extends VM_Listener {
    */
   private void recordSample(int CMID) {
     // reserve the next available slot
-    int idx = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNumSamplesField.getOffset(), 1);
+    int idx = VM_Synchronization.fetchAndAdd(this, VM_AosEntrypoints.methodListenerNumSamplesField.getOffset(), 1);
     // make sure it is valid
     if (idx < sampleSize) {
       samples[idx] = CMID;

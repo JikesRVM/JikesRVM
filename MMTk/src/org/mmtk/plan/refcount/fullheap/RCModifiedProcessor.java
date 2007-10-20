@@ -12,7 +12,7 @@
  */
 package org.mmtk.plan.refcount.fullheap;
 
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.RCHeader;
 
 import org.vmmagic.pragma.*;
@@ -24,16 +24,18 @@ import org.vmmagic.unboxed.*;
  *
  * @see org.mmtk.plan.TraceLocal
  */
-@Uninterruptible public final class RCModifiedProcessor extends TraceStep {
+@Uninterruptible
+public final class RCModifiedProcessor extends TransitiveClosure {
 
   /**
-   * Trace a reference during GC.
+   * Trace an edge during GC.
    *
-   * @param objLoc The location containing the object reference to be
-   * traced.
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference.
    */
-  public void traceObjectLocation(Address objLoc) {
-    ObjectReference object = objLoc.loadObjectReference();
+  @Inline
+  public void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
     if (RC.isRCObject(object)) {
       RCHeader.incRC(object);
     }

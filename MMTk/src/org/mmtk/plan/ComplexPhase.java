@@ -14,9 +14,7 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
-import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -24,32 +22,32 @@ import org.vmmagic.pragma.*;
 /**
  * Phases of a garbage collection.
  *
- * A complex phase is a sequence of phases.  They are constructed
- * from arrays of either the phases or phase IDs.
+ * A complex phase is a sequence of phases.
  *
- * TODO write a replacePhase method.
  */
-@Uninterruptible public final class ComplexPhase extends Phase
+@Uninterruptible
+public final class ComplexPhase extends Phase
   implements Constants {
 
-  /*
+  /****************************************************************************
    * Instance fields
    */
 
   /**
    * The phases that comprise this phase.
    */
-  final int[] subPhases;
+  private final int[] scheduledSubPhases;
 
   /**
    * Construct a complex phase from an array of phase IDs.
    *
    * @param name The name of the phase.
-   * @param subPhases The IDs of the supphases
+   * @param scheduledSubPhases The sub phases
    */
-  public ComplexPhase(String name, int[] subPhases) {
+  protected ComplexPhase(String name, int[] scheduledSubPhases) {
     super(name);
-    this.subPhases = subPhases;
+    this.scheduledSubPhases = scheduledSubPhases;
+    checkPhases();
   }
 
   /**
@@ -58,62 +56,78 @@ import org.vmmagic.pragma.*;
    *
    * @param name The name of the phase.
    * @param timer The timer for this phase to contribute to.
-   * @param subPhases The IDs of the supphases
+   * @param scheduledSubPhases The sub phases
    */
-  public ComplexPhase(String name, Timer timer, int[] subPhases) {
+  protected ComplexPhase(String name, Timer timer, int[] scheduledSubPhases) {
     super(name, timer);
-    this.subPhases = subPhases;
+    this.scheduledSubPhases = scheduledSubPhases;
+    checkPhases();
+  }
+
+  /**
+   * Validate the scheduled sub phases.
+   */
+  private void checkPhases() {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(scheduledSubPhases.length > 0);
+      for(int scheduledPhase: scheduledSubPhases) {
+        VM.assertions._assert(getSchedule(scheduledPhase) > 0);
+        VM.assertions._assert(getPhaseId(scheduledPhase) > 0);
+      }
+    }
+  }
+
+  /**
+   * The number of scheduled sub phases.
+   */
+  protected int count() {
+    return scheduledSubPhases.length;
+  }
+
+  /**
+   * Return an individual scheduled sub phase.
+   *
+   * @param index The index
+   * @return The scheduled phase.
+   */
+  protected int get(int index) {
+    return scheduledSubPhases[index];
   }
 
   /**
    * Display a description of this phase, for debugging purposes.
    */
   protected void logPhase() {
-    Log.write("complex phase ");
+    Log.write("ComplexPhase(");
     Log.write(name);
-    for (int subPhase : subPhases) {
-      Log.write(" ");
-      Log.write(getName(subPhase));
+    Log.write(", < ");
+    for (int subPhase : scheduledSubPhases) {
+      short ordering = getSchedule(subPhase);
+      short phaseId = getPhaseId(subPhase);
+      Log.write(getScheduleName(ordering));
+      Log.write("(");
+      Log.write(getName(phaseId));
+      Log.write(") ");
     }
-    Log.writeln();
+    Log.write(">)");
   }
 
   /**
-   * Execute this phase, synchronizing initially.  Simply executes
-   * the component phases in turn.
+   * Replace a scheduled phase. Used for example to replace a placeholder.
    *
-   * TODO are we oversynchronizing here ??
+   * @param oldScheduledPhase The scheduled phase to replace.
+   * @param newScheduledPhase The new scheduled phase.
    */
-  protected void delegatePhase() {
-    int order = VM.collection.rendezvous(5000 + id);
-    if (order == 1 && timer != null) timer.start();
-
-    if (Options.verbose.getValue() >= 4) {
-      Log.write("Delegating complex phase ");
-      Log.writeln(name);
-    }
-    for (int subPhase : subPhases) {
-      Phase.delegatePhase(subPhase);
-    }
-
-    if (order == 1 && timer != null) timer.stop();
-  }
-
-  /**
-   * Replace a phase. For example to replace a placeholder
-   *
-   * @param oldId The phase to replace.
-   * @param newId The new phase.
-   */
-  public void replacePhase(int oldId, int newId) {
-    for (int i = 0; i < subPhases.length; i++) {
-      Phase p = getPhase(subPhases[i]);
-      if (p.getId() == oldId) {
-        // Replace
-        subPhases[i] = newId;
-      } else if (p instanceof ComplexPhase) {
-        // Recurse
-        ((ComplexPhase) p).replacePhase(oldId, newId);
+  public void replacePhase(int oldScheduledPhase, int newScheduledPhase) {
+    for (int i = 0; i < scheduledSubPhases.length; i++) {
+      int scheduledPhase = scheduledSubPhases[i];
+      if (scheduledPhase == oldScheduledPhase) {
+        /* Replace */
+        scheduledSubPhases[i] = newScheduledPhase;
+      } else if (getSchedule(scheduledPhase) == SCHEDULE_COMPLEX) {
+        /* Recurse */
+        ComplexPhase p = (ComplexPhase)getPhase(getPhaseId(scheduledPhase));
+        p.replacePhase(oldScheduledPhase, newScheduledPhase);
       }
     }
   }

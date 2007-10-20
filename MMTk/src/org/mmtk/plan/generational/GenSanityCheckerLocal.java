@@ -40,16 +40,12 @@ import org.vmmagic.unboxed.*;
 
     // Nursery
     if (space == Gen.nurserySpace) {
-      return global().preGCSanity()
-        ? SanityChecker.UNSURE
-        : SanityChecker.DEAD;
+      return global().preGCSanity() ? SanityChecker.UNSURE : SanityChecker.DEAD;
     }
 
     // Immortal spaces
     if (space == Gen.immortalSpace || space == Gen.vmSpace) {
-      return space.isReachable(object)
-        ? SanityChecker.ALIVE
-          : SanityChecker.DEAD;
+      return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
     }
 
     // Mature space (nursery collection)
@@ -58,9 +54,7 @@ import org.vmmagic.unboxed.*;
     }
 
     // Mature space (full heap collection)
-    return space.isReachable(object)
-      ? SanityChecker.ALIVE
-      : SanityChecker.DEAD;
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
 }

@@ -38,8 +38,7 @@ class TestStop {
     void performTask() {
       try {
         while (true) { Thread.yield(); }
-      }
-      catch (final Exception e) {
+      } catch (final Exception e) {
         tsay("received interrupt " + e);
       }
     }

@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Test GC with Native frames on stack
@@ -27,9 +28,9 @@ class TestGC {
    * Declare native methods that will call cause GC to occur
    */
 
-  static native Object testgc (Object obj1, Object obj2);
+  static native Object testgc(Object obj1, Object obj2);
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     boolean runningUnderJDK = true;
 
@@ -52,14 +53,14 @@ class TestGC {
 
     Object returnobj;
 
-    if ( ! runningUnderJDK ) {
+    if (!runningUnderJDK) {
 
         Address oldAddress1 = VM_Magic.objectAsAddress(str1);
         Address oldAddress2 = VM_Magic.objectAsAddress(str2);
         printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
         printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
 
-        returnobj = testgc( str1, str2 );
+        returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");
 
         Address newAddress1 = VM_Magic.objectAsAddress(str1);
@@ -72,9 +73,8 @@ class TestGC {
         printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));
         printVerbose("  str2 address = " + VM.addressAsHexString(newAddress2));
         printVerbose("  returnobj address = " + VM.addressAsHexString(VM_Magic.objectAsAddress(returnobj)));
-    }
-    else {
-        returnobj = testgc( str1, str2 );
+    } else {
+        returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");
     }
 
@@ -82,7 +82,7 @@ class TestGC {
     //   checkTest( 0, (str1==returnobj), "GC with copying during native code" );
     // else
     //   checkTest( 0, (str1==returnobj), "GC without copying during native code" );
-    checkTest( 0, (str1==returnobj), "GC during native code" );
+    checkTest(0, (str1==returnobj), "GC during native code");
   }
 
   static void printVerbose(String str) {

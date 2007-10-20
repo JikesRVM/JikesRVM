@@ -39,7 +39,7 @@ public class VM_AdaptiveInlining {
     // function for edge hotness.  The intent is that early on
     // (until decay decreases this initial weight), we are conservative in
     // marking an edge as hot.
-    VM_Controller.dcg = new VM_PartialCallGraph(options.AI_SEED_MULTIPLIER * (1 / options.AI_CONTROL_POINT));
+    VM_Controller.dcg = new VM_PartialCallGraph(options.AI_SEED_MULTIPLIER * (1 / options.AI_HOT_CALLSITE_THRESHOLD));
     VM_RuntimeMeasurements.registerDecayableObject(VM_Controller.dcg);
 
     // Track call density: fraction of timer interrupts taken in prologue/epilogue

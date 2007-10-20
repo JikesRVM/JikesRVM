@@ -18,16 +18,16 @@ public class threadTest1 {
     static       int  a          = 0;
     static       int  b          = 0;
 
-    static       int  aResult[] = new int[NUM_THREADS];
-    static       int  bResult[] = new int[NUM_THREADS];
+    static       int[]  aResult = new int[NUM_THREADS];
+    static       int[]  bResult = new int[NUM_THREADS];
 
-    public static void main (String args[]) {
+    public static void main(String[] args) {
 
         int xx;
         int yy;
         System.out.println(" Counter started.");
 
-        TestThread1 thread[] = new TestThread1[NUM_THREADS];
+        TestThread1[] thread = new TestThread1[NUM_THREADS];
 
          for (int i = 0; i < NUM_THREADS; i ++) {
                          aResult[i] = 0;
@@ -61,7 +61,7 @@ class TestThread1 extends Thread {
 
     TestThread1(int id) { _tid = id;}
 
-    public void run () {
+    public void run() {
 
        for (int i = 0; i < 10000; i++) {
             threadTest1.a++;

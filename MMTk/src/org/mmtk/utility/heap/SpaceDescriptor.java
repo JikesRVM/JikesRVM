@@ -24,9 +24,9 @@ import org.vmmagic.unboxed.*;
  * This class manages the encoding and decoding of space descriptors.<p>
  *
  * Space descriptors are integers that encode a space's mapping into
- * virtual memory.  For discontigious spaces, they indicate
+ * virtual memory.  For discontiguous spaces, they indicate
  * discontiguity and mapping must be done by consulting the space map.
- * For contigious spaces, the space's address range is encoded into
+ * For contiguous spaces, the space's address range is encoded into
  * the integer (using a fixed point notation).<p>
  *
  * The purpose of this class is to allow <code>static final int</code>
@@ -57,13 +57,16 @@ import org.vmmagic.unboxed.*;
   private static final int VM_MANTISSA_BITS = 14;
   private static final int VM_BASE_EXPONENT = BITS_IN_INT - VM_MANTISSA_BITS;
 
+  private static int discontiguousSpaceIndex = 0;
+  private static int DISCONTIG_INDEX_INCREMENT = 1<<VM_TYPE_BITS;
+
   /****************************************************************************
    *
    * Descriptor creation
    */
 
   /**
-   * Create a descriptor for a <i>contigious</i> space
+   * Create a descriptor for a <i>contiguous</i> space
    *
    * @param start The start address of the space
    * @param end The end address of the space
@@ -73,8 +76,7 @@ import org.vmmagic.unboxed.*;
   public static int createDescriptor(Address start, Address end) {
     int chunks = end.diff(start).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(!start.isZero() && chunks > 0
-          && chunks < (1 << VM_SIZE_BITS));
+      VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << VM_SIZE_BITS));
     boolean top = end.EQ(Space.HEAP_END);
     Word tmp = start.toWord();
     tmp = tmp.rshl(VM_BASE_EXPONENT);
@@ -86,21 +88,23 @@ import org.vmmagic.unboxed.*;
     int mantissa = tmp.toInt();
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
-    return (mantissa<<VM_MANTISSA_SHIFT)
-      | (exponent<<VM_EXPONENT_SHIFT)
-        | (chunks << VM_SIZE_SHIFT)
-        | ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
+    return (mantissa<<VM_MANTISSA_SHIFT) |
+           (exponent<<VM_EXPONENT_SHIFT) |
+           (chunks << VM_SIZE_SHIFT) |
+           ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
   }
 
   /**
-   * Create a descriptor for a <i>dis-contigious</i> (shared) space
+   * Create a descriptor for a <i>dis-contiguous</i> (shared) space
    *
    * @return An integer descriptor reflecting the fact that this space
-   * is shared (and thus discontigious and so must be established via
+   * is shared (and thus discontiguous and so must be established via
    * maps).
    */
   public static int createDescriptor() {
-    return VM_TYPE_SHARED;
+    discontiguousSpaceIndex += DISCONTIG_INDEX_INCREMENT;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((discontiguousSpaceIndex & VM_TYPE_CONTIGUOUS) != VM_TYPE_CONTIGUOUS);
+    return discontiguousSpaceIndex;
   }
 
   /****************************************************************************
@@ -109,10 +113,10 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Return true if this descriptor describes a contigious space
+   * Return true if this descriptor describes a contiguous space
    *
    * @param descriptor
-   * @return True if this descriptor describes a contigious space
+   * @return True if this descriptor describes a contiguous space
    */
   @Inline
   public static boolean isContiguous(int descriptor) {
@@ -120,11 +124,11 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return true if this descriptor describes a contigious space that
+   * Return true if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    *
    * @param descriptor
-   * @return True if this descriptor describes a contigious space that
+   * @return True if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    */
   @Inline

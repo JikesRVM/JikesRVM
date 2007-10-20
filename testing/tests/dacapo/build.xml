@@ -15,13 +15,14 @@
   <condition property="test.time.limit" value="1800">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-  <condition property="test.time.limit" value="3000" else="480">
+  <condition property="test.time.limit" value="4000" else="600">
     <equals arg1="${test.mode}" arg2="gcstress"/>
   </condition>
 
   <import file="../../../build/tests.xml"/>
+  <ant antfile="../../../build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
+  <property file="${components.file}"/>
 
-  <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
   <property name="test.class.path" value="${dacapo.jar}"/>
 
   <macrodef name="dacapo">
@@ -42,7 +43,6 @@
   <!-- **************************************************************************** -->
 
   <target name="test" depends="init">
-    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
     <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
 
     <startResults/>

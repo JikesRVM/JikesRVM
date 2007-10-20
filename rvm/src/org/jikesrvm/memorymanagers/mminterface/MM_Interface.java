@@ -21,13 +21,13 @@ import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_SpecializedMethod;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.mm.mmtk.Assert;
 import org.jikesrvm.mm.mmtk.Collection;
-import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.mm.mmtk.Options;
-import org.jikesrvm.mm.mmtk.ReferenceGlue;
+import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.VM_JavaHeader;
@@ -37,7 +37,6 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Memory;
@@ -45,9 +44,10 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Mmapper;
-import org.mmtk.utility.scan.MMType;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -73,9 +73,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
 
-  /** Used by mmtypes for arrays */
-  private static final int[] zeroLengthIntArray = new int[0];
-
   /***********************************************************************
    *
    * Initialization
@@ -97,6 +94,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void init() {
     VM_CollectorThread.init();
+    VM_ConcurrentCollectorThread.init();
     org.jikesrvm.mm.mmtk.Collection.init();
   }
 
@@ -139,8 +137,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void fullyBootedVM() {
     Selected.Plan.get().fullyBooted();
-    Lock.fullyBooted();
-    Barrier.fullyBooted();
   }
 
   /**
@@ -168,6 +164,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
+  @Entrypoint
   public static void putfieldWriteBarrier(Object ref, Offset offset, Object value, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
@@ -198,22 +195,23 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
                                         PUTFIELD_WRITE_BARRIER);
   }
 
-
   /**
    * Write barrier for putstatic operations.
    *
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
-  public static void putstaticWriteBarrier(Offset offset, Object value) {
-    // putstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
-//     Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
-//     VM_Interface.getPlan().writeBarrier(jtoc,
-//                                         jtoc.plus(offset),
-//                                         VM_Magic.objectAsAddress(value),
-//                                         PUTSTATIC_WRITE_BARRIER);
+  @Entrypoint
+  public static void putstaticWriteBarrier(Offset offset, Object value, int locationMetadata) {
+    ObjectReference src = ObjectReference.fromObject(VM_Magic.getJTOC());
+    Selected.Mutator.get().writeBarrier(src,
+                                        src.toAddress().plus(offset),
+                                        ObjectReference.fromObject(value),
+                                        offset,
+                                        locationMetadata,
+                                        PUTSTATIC_WRITE_BARRIER);
   }
 
   /**
@@ -227,6 +225,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param value the object that is the target of the new reference.
    */
   @Inline
+  @Entrypoint
   public static void arrayStoreWriteBarrier(Object ref, int index, Object value) {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
@@ -264,6 +263,22 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
                                                bytes);
   }
 
+  /***********************************************************************
+  *
+  * Read barriers
+  */
+
+  /**
+   * A reference type is being read.
+   *
+   * @param obj The non-null referent about to be released to the mutator.
+   * @return The object to release to the mutator.
+   */
+  public static Object referenceTypeReadBarrier(Object obj) {
+    ObjectReference result = Selected.Mutator.get().referenceTypeReadBarrier(ObjectReference.fromObject(obj));
+    return result.toObject();
+  }
+
   /**
    * Checks that if a garbage collection is in progress then the given
    * object is not movable.  If it is movable error messages are
@@ -271,6 +286,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @param object the object to check
    */
+  @Entrypoint
   public static void modifyCheck(Object object) {
     /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
@@ -298,7 +314,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @return The number of collections that have occured.
    */
-  @Uninterruptible
   public static int getCollectionCount() {
     return VM_CollectorThread.collectionCount;
   }
@@ -355,7 +370,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @param ref the address to log information about
    */
-  @Uninterruptible
   public static void dumpRef(ObjectReference ref) {
     DebugUtil.dumpRef(ref);
   }
@@ -367,7 +381,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return <code>true</code> if the reference is valid
    */
   @Inline
-  @Uninterruptible
   public static boolean validRef(ObjectReference ref) {
     return DebugUtil.validRef(ref);
   }
@@ -379,7 +392,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return <code>true</code> if the address refers to an in use area
    */
   @Inline
-  @Uninterruptible
   public static boolean addressInVM(Address address) {
     return Space.isMappedAddress(address);
   }
@@ -396,11 +408,21 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * in-use area
    */
   @Inline
-  @Uninterruptible
   public static boolean objectInVM(ObjectReference object) {
     return Space.isMappedObject(object);
   }
 
+  /**
+   * Return true if address is in a space which may contain stacks
+   *
+   * @param address The address to be checked
+   * @return true if the address is within a space which may contain stacks
+   */
+  public static boolean mightBeFP(Address address) {
+    return Space.isInSpace(Plan.LOS, address) ||
+    Space.isInSpace(Plan.IMMORTAL, address) ||
+    Space.isInSpace(Plan.VM_SPACE, address);
+  }
   /***********************************************************************
    *
    * Allocation
@@ -470,7 +492,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static int pickAllocator(VM_Type type, VM_Method method) {
-
     if (method != null) {
       // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
@@ -480,14 +501,15 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
           return Plan.ALLOC_GCSPY;
         }
       }
+      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA))
+        return Plan.ALLOC_DEFAULT;
       if (isPrefix("Lorg/mmtk/", clsBA) ||
           isPrefix("Lorg/jikesrvm/mm/", clsBA) ||
           isPrefix("Lorg/jikesrvm/memorymanagers/mminterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
-    MMType t = (MMType) type.getMMType();
-    return t.getAllocator();
+    return type.getMMAllocator();
   }
 
   /**
@@ -513,6 +535,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
         isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/memorymanagers/", typeBA) ||
         isPrefix("Lorg/jikesrvm/scheduler/VM_Processor;", typeBA) ||
+        isPrefix("Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/VM_JNIEnvironment;", typeBA)) {
       allocator = Plan.ALLOC_IMMORTAL;
     }
@@ -544,7 +567,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return the initialized Object
    */
   @Inline
-  @Uninterruptible
   public static Object allocateScalar(int size, Object[] tib, int allocator, int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
@@ -555,7 +577,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate an array object.
+   * Allocate an array object. This is the interruptible component, including throwing
+   * an OutOfMemoryError for arrays that are too large.
    *
    * @param numElements number of array elements
    * @param logElementSize size in bytes of an array element, log base 2.
@@ -570,17 +593,48 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Inline
-  @Uninterruptible
+  @Interruptible
   public static Object allocateArray(int numElements, int logElementSize, int headerSize, Object[] tib, int allocator,
                                      int align, int offset, int site) {
-    Selected.Mutator mutator = Selected.Mutator.get();
-
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
-      // asked to allocate more than Integer.MAX_VALUE bytes
-      Assert.failWithOutOfMemoryErrorStatic();
+      /* asked to allocate more than Integer.MAX_VALUE bytes */
+      throwLargeArrayOutOfMemoryError();
     }
     int size = elemBytes + headerSize;
+    return allocateArrayInternal(numElements, size, tib, allocator, align, offset, site);
+  }
+
+
+  /**
+   * Throw an out of memory error due to an array allocation request that is
+   * larger than the maximum allowed value. This is in a separate method
+   * so it can be forced out of line.
+   */
+  @NoInline
+  @Interruptible
+  private static void throwLargeArrayOutOfMemoryError() {
+    throw new OutOfMemoryError();
+  }
+
+  /**
+   * Allocate an array object.
+   *
+   * @param numElements The number of element bytes
+   * @param size size in bytes of array header
+   * @param tib type information block for array object
+   * @param allocator int that encodes which allocator should be used
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
+   * @param site allocation site.
+   * @return array object with header installed and all elements set
+   *         to zero/null
+   * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
+   */
+  @Inline
+  private static Object allocateArrayInternal(int numElements, int size, Object[] tib, int allocator,
+                                              int align, int offset, int site) {
+    Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
@@ -600,20 +654,16 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   @Inline
-  @Uninterruptible
   private static Address allocateSpace(Selected.Mutator mutator, int bytes, int align, int offset, int allocator,
                                        int site) {
-    // MMTk requests must be in multiples of MIN_ALIGNMENT
+    /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
-    /*
-     * Now make the request
-   */
+    /* Now make the request */
     Address region;
     region = mutator.alloc(bytes, align, offset, allocator, site);
-    /* TODO
-       if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
-    */
+
+    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
     return region;
@@ -630,20 +680,16 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   @Inline
-  @Uninterruptible
   public static Address allocateSpace(Selected.Collector collector, int bytes, int align, int offset, int allocator,
                                       ObjectReference from) {
-    // MMTk requests must be in multiples of MIN_ALIGNMENT
+    /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
-    /*
-     * Now make the request
-     */
+    /* Now make the request */
     Address region;
     region = collector.allocCopy(from, bytes, align, offset, allocator);
-    /* TODO
-    if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
-    */
+
+    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
     return region;
@@ -663,7 +709,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * constraints.
    */
   @Inline
-  @Uninterruptible
   public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
     Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
@@ -678,6 +723,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
+  @Interruptible
   public static VM_CodeArray allocateCode(int numInstrs, boolean isHot) {
     VM_Array type = VM_Type.CodeArrayType;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
@@ -794,8 +840,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   /*
  *  Will this object move (allows us to optimize some JNI calls)
  *  */
-  public static boolean objectCanMove(Object obj) {
-    return Selected.Plan.get().objectCanMove(ObjectReference.fromObject(obj));
+  public static boolean willNeverMove(Object obj) {
+    return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
   }
 
   /***********************************************************************
@@ -820,7 +866,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @return the object needing to be finialized
    */
-  @Interruptible
   public static Object getFinalizedObject() {
     return Finalizer.get().toObject();
   }
@@ -836,8 +881,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param obj the soft reference to be added to the list
    */
   @Interruptible
-  public static void addSoftReference(SoftReference<?> obj) {
-    ReferenceGlue.addSoftCandidate(obj);
+  public static void addSoftReference(SoftReference<?> obj, Object referent) {
+    ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /**
@@ -846,8 +891,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param obj the weak reference to be added to the list
    */
   @Interruptible
-  public static void addWeakReference(WeakReference<?> obj) {
-    ReferenceGlue.addWeakCandidate(obj);
+  public static void addWeakReference(WeakReference<?> obj, Object referent) {
+    ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /**
@@ -856,8 +901,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param obj the phantom reference to be added to the list
    */
   @Interruptible
-  public static void addPhantomReference(PhantomReference<?> obj) {
-    ReferenceGlue.addPhantomCandidate(obj);
+  public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
+    ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /***********************************************************************
@@ -879,19 +924,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     return HeapGrowthManager.getMaxHeapSize();
   }
 
-  /**
-   * Increase heap size for an emergency, such as processing an out of
-   * memory exception.
-   *
-   * @param growSize number of bytes to increase the heap size
-   */
-  public static void emergencyGrowHeap(int growSize) { // in bytes
-    // This can be undoable if the current thread doesn't cause 'em
-    // all to exit.
-    // if (VM.VerifyAssertions && growSize < 0) VM._assert(false);
-    HeapGrowthManager.overrideGrowHeapSize(Extent.fromIntSignExtend(growSize));
-  }
-
   /***********************************************************************
    *
    * Miscellaneous
@@ -905,22 +937,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void notifyClassResolved(VM_Type vmType) {
-    MMType type;
-    if (vmType.isArrayType()) {
-      /* A reference array */
-      if (vmType.asArray().getElementType().isReferenceType()) {
-        type = MMType.createRefArray(vmType.isAcyclicReference(), pickAllocatorForType(vmType));
-      } else {
-        /* An array of primitive types */
-        type = MMType.createPrimArray(pickAllocatorForType(vmType));
-      }
-    } else {
-      type =
-          MMType.createScalar(vmType.isAcyclicReference(),
-                              pickAllocatorForType(vmType),
-                              vmType.asClass().getReferenceOffsets());
-    }
-    vmType.setMMType(type);
+    vmType.setMMAllocator(pickAllocatorForType(vmType));
   }
 
   /**
@@ -931,7 +948,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * allocation scheme/area for a TIB, <code>true</code> otherwise
    */
   @Inline
-  @Uninterruptible
   public static boolean mightBeTIB(ObjectReference obj) {
     return !obj.isNull() &&
            Space.isMappedObject(obj) &&
@@ -944,7 +960,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @return True if GC is in progress.
    */
-  @Uninterruptible
   public static boolean gcInProgress() {
     return Plan.gcInProgress();
   }
@@ -955,6 +970,39 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void startGCspyServer() {
     GCspy.startGCspyServer();
+  }
+
+  /**
+   * Flush the mutator context.
+   */
+  public static void flushMutatorContext() {
+    Selected.Mutator.get().flush();
+  }
+
+  /**
+   * Return the number of specialized methods.
+   */
+  public static int numSpecializedMethods() {
+    return VM_SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
+  }
+
+  /**
+   * Initialize a specified specialized method.
+   *
+   * @param id the specializedMethod
+   */
+  @Interruptible
+  public static VM_SpecializedMethod createSpecializedMethod(int id) {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM_SpecializedScanMethod.ENABLED);
+      VM._assert(id < Selected.Constraints.get().numSpecializedScans());
+    }
+
+    /* What does the plan want us to specialize this to? */
+    Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
+
+    /* Create the specialized method */
+    return new VM_SpecializedScanMethod(id, VM_TypeReference.findOrCreate(traceClass));
   }
 
   /***********************************************************************

@@ -275,8 +275,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       OPT_RegisterOperand dest = ResultCarrier.getClearResult(inst);
       if (ae.tmp == null) {
         // (1) generate a new temporary, and store in the AE cache
-        OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.type);
-        ae.tmp = newRes.register;
+        OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.getType());
+        ae.tmp = newRes.getRegister();
         // (2) get the CSE value into newRes
         if (ae.isLoad()) {
           // the first appearance was a load.
@@ -302,7 +302,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         Move.mutate(inst, getMoveOp(dest), dest, newRes.copyD2U());
       } else {
         // already have a temp. replace the load with a move
-        OPT_RegisterOperand newRes = new OPT_RegisterOperand(ae.tmp, dest.type);
+        OPT_RegisterOperand newRes = new OPT_RegisterOperand(ae.tmp, dest.getType());
         Move.mutate(inst, getMoveOp(dest), dest, newRes);
       }
     } else {
@@ -343,8 +343,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       OPT_RegisterOperand dest = ResultCarrier.getClearResult(inst);
       if (ae.tmp == null) {
         // (1) generate a new temporary, and store in the AE cache
-        OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.type);
-        ae.tmp = newRes.register;
+        OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.getType());
+        ae.tmp = newRes.getRegister();
         // (2) Modify ae.inst to assign its result to the new temporary
         // and then insert a move from the new temporary to the old result
         // of ae.inst after ae.inst.
@@ -355,7 +355,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         Move.mutate(inst, getMoveOp(dest), dest, newRes.copyD2U());
       } else {
         // already have a temp. replace inst with a move
-        OPT_RegisterOperand newRes = new OPT_RegisterOperand(ae.tmp, dest.type);
+        OPT_RegisterOperand newRes = new OPT_RegisterOperand(ae.tmp, dest.getType());
         Move.mutate(inst, getMoveOp(dest), dest, newRes);
       }
     } else {
@@ -377,8 +377,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       OPT_RegisterOperand dest = GuardResultCarrier.getClearGuardResult(inst);
       if (ae.tmp == null) {
         // generate a new temporary, and store in the AE cache
-        OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.type);
-        ae.tmp = newRes.register;
+        OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.getType());
+        ae.tmp = newRes.getRegister();
         // (2) Modify ae.inst to assign its guard result to the new temporary
         // and then insert a guard move from the new temporary to the
         // old guard result of ae.inst after ae.inst.
@@ -389,7 +389,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         Move.mutate(inst, GUARD_MOVE, dest, newRes.copyD2U());
       } else {
         // already have a temp. replace inst with a guard move
-        OPT_RegisterOperand newRes = new OPT_RegisterOperand(ae.tmp, dest.type);
+        OPT_RegisterOperand newRes = new OPT_RegisterOperand(ae.tmp, dest.getType());
         Move.mutate(inst, GUARD_MOVE, dest, newRes);
       }
     } else {
@@ -418,7 +418,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
   }
 
   private OPT_Operator getMoveOp(OPT_RegisterOperand r) {
-    return OPT_IRTools.getMoveOp(r.type);
+    return OPT_IRTools.getMoveOp(r.getType());
   }
 
   /**
@@ -625,17 +625,17 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       while (i < cache.size()) {
         AvailableExpression ae = cache.get(i);
         OPT_Operand opx = ae.op1;
-        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).register == op.register) {
+        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).getRegister() == op.getRegister()) {
           cache.remove(i);
           continue;               // don't increment i, since we removed
         }
         opx = ae.op2;
-        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).register == op.register) {
+        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).getRegister() == op.getRegister()) {
           cache.remove(i);
           continue;               // don't increment i, since we removed
         }
         opx = ae.op3;
-        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).register == op.register) {
+        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).getRegister() == op.getRegister()) {
           cache.remove(i);
           continue;               // don't increment i, since we removed
         }

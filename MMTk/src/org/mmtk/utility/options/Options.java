@@ -24,6 +24,7 @@ public final class Options {
 
   /* Other options */
   public static BoundedNursery boundedNursery;
+  public static ConcurrentTrigger concurrentTrigger;
   public static CycleFilterThreshold cycleFilterThreshold;
   public static CycleMetaDataLimit cycleMetaDataLimit;
   public static CycleTriggerThreshold cycleTriggerThreshold;
@@ -39,12 +40,14 @@ public final class Options {
   public static GCspyWait gcspyWait;
   public static GCTimeCap gcTimeCap;
   public static GenCycleDetection genCycleDetection;
+  public static HarnessAll harnessAll;
   public static IgnoreSystemGC ignoreSystemGC;
   public static MarkSweepMarkBits markSweepMarkBits;
   public static MetaDataLimit metaDataLimit;
   public static NoFinalizer noFinalizer;
   public static NoReferenceTypes noReferenceTypes;
   public static NurserySize nurserySize;
+  public static PerfMetric perfMetric;
   public static PrintPhaseStats printPhaseStats;
   public static ProtectOnRelease protectOnRelease;
   public static SanityCheck sanityCheck;

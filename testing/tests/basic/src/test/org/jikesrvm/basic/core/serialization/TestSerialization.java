@@ -13,10 +13,10 @@
 package test.org.jikesrvm.basic.core.serialization;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 
 class TestSerialization {
@@ -59,7 +59,7 @@ class TestSerialization {
       System.out.println("write success. Checking consistency of data written ...");
       System.out.println("actual.length (" + bytes.length + ") vs expected.length (" + data.length);
       for (int i = 0; i < data.length && i < bytes.length; i++) {
-        if( data[i] != bytes[i] ) {
+        if(data[i] != bytes[i]) {
           System.out.println("data differs at " + i);
           break;
         }

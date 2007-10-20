@@ -10,7 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.vmmagic.pragma.*;
+
+import org.vmmagic.pragma.NoInline;
 
 class FixedLive {
 
@@ -21,11 +22,11 @@ class FixedLive {
 
   public static void main(String[] args)  throws Throwable {
     boolean base = true;
-    if (args.length == 0)
+    if (args.length == 0) {
       System.out.println("No argument.  Assuming base");
-    if (args[0].compareTo("opt") == 0 ||
-        args[0].compareTo("perf") == 0)
+    } else if (args[0].compareTo("opt") == 0 || args[0].compareTo("perf") == 0) {
       base = false;
+    }
     liveSize = base ? 30 : 100;
     exclude = base ? 0 : 2;
     sampleCount = -exclude;
@@ -53,8 +54,7 @@ class FixedLive {
     System.out.print("   allocation rate = " + allocRate + " Mb/s");
     if (sampleCount < 1) {
       System.out.println("  <--- Skipping");
-    }
-    else {
+    } else {
       System.out.println();
       sumTraceTime += traceElapsed;
       sumAllocTime += allocElapsed;
@@ -85,10 +85,10 @@ class FixedLive {
     sumTraceTime = chop(sumTraceTime);
     avgTraceRate = sumTraceRate / sampleCount;
     avgAllocRate = sumAllocRate / sampleCount;
-    diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate)
-      - 2 * avgTraceRate * sumTraceRate;
-    diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate)
-      - 2 * avgAllocRate * sumAllocRate;
+    diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate) -
+      2 * avgTraceRate * sumTraceRate;
+    diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate) -
+      2 * avgAllocRate * sumAllocRate;
     rmsTraceRate = Math.sqrt(diffSquaredSumTraceRate / sampleCount);
     rmsAllocRate = Math.sqrt(diffSquaredSumAllocRate / sampleCount);
     zTraceRate = rmsTraceRate / avgTraceRate;
@@ -104,15 +104,14 @@ class FixedLive {
   public static void showResults() {
     updateStats();
     System.out.println();
-    System.out.print("Overall:          tracing    rate = " + avgTraceRate + " Mb/s");
-    System.out.println("            allocation     rate = " + avgAllocRate + " Mb/s");
-    System.out.print("Overall:          tracing   sigma = " + rmsTraceRate + " Mb/s");
-    System.out.println("            allocation    sigma = " + rmsAllocRate + " Mb/s");
-    System.out.print("Overall:          tracing z-score = " + zTraceRate);
-    System.out.println("             allocation z-score = " + zAllocRate);
-    System.out.println("Overall:  Total Setup      Time = " + setupTime + " s");
-    System.out.println("Overall:  Total Allocation Time = " + sumAllocTime + " s");
-    System.out.println("Overall:  Total Tracing    Time = " + sumTraceTime + " s");
+    System.out.println("         Tracing rate: " + avgTraceRate + " Mb/s, sigma " + rmsTraceRate + " Mb/s, z-score " + zTraceRate);
+    System.out.println("      Allocation rate: " + avgAllocRate + " Mb/s, sigma " + rmsAllocRate + " Mb/s, z-score " + zAllocRate);
+    System.out.println();
+    System.out.println("     Total Setup Time: " + setupTime + " s");
+    System.out.println("Total Allocation Time: " + sumAllocTime + " s");
+    System.out.println("   Total Tracing Time: " + sumTraceTime + " s");
+    System.out.println();
+    System.out.println("Overall: SUCCESS");
   }
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated

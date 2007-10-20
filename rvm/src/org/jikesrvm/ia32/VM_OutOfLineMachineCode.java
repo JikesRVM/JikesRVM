@@ -18,6 +18,7 @@ import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.jni.ia32.VM_JNICompiler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
@@ -134,7 +135,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      * logically equivalent to ParamaterRegisterUnload in the compiler
      */
     int gprs;
-    Offset fpOffset = VM_Entrypoints.framePointerField.getOffset();
+    Offset fpOffset = VM_ArchEntrypoints.framePointerField.getOffset();
     byte T = T0;
     gprs = NUM_PARAMETER_GPRS;
     Offset offset = Offset.fromIntZeroExtend(5 << LG_WORDSIZE);              // we have exactly 5 paramaters
@@ -295,10 +296,10 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
       VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     }
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-    Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    Offset fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-    asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffset());
+    Offset ipOffset = VM_ArchEntrypoints.registersIPField.getOffset();
+    Offset fpOffset = VM_ArchEntrypoints.registersFPField.getOffset();
+    Offset gprsOffset = VM_ArchEntrypoints.registersGPRsField.getOffset();
+    asm.emitMOV_Reg_RegDisp(S0, PR, VM_ArchEntrypoints.framePointerField.getOffset());
     asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);        // registers.fp := pr.framePointer
     asm.emitPOP_Reg(T1);                      // T1 := return address
     asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
@@ -335,15 +336,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
       VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     }
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-    Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    Offset fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    Offset ipOffset = VM_ArchEntrypoints.registersIPField.getOffset();
+    Offset fpOffset = VM_ArchEntrypoints.registersFPField.getOffset();
+    Offset gprsOffset = VM_ArchEntrypoints.registersGPRsField.getOffset();
     Offset regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
 
     // (1) Save hardware state of thread we are switching off of.
     asm.emitMOV_Reg_RegDisp(S0, T0, regsOffset);      // S0 = T0.contextRegisters
     asm.emitPOP_RegDisp(S0, ipOffset);            // T0.contextRegisters.ip = returnAddress
-    asm.emitPUSH_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset()); // push PR.framePointer
+    asm.emitPUSH_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset()); // push PR.framePointer
     asm.emitPOP_RegDisp(S0, fpOffset);            // T0.contextRegisters.fp = pushed framepointer
     asm.emitADD_Reg_Imm(SP, 8);                   // discard 2 words of parameters (T0, T1)
     asm.emitMOV_Reg_RegDisp(S0, S0, gprsOffset);      // S0 = T0.contextRegisters.gprs;
@@ -362,7 +363,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // (3) Restore hardware state of thread we are switching to.
     asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := restoreRegs.fp
     VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerField.getOffset(),
+                                              VM_ArchEntrypoints.framePointerField.getOffset(),
                                               S0); // PR.framePointer = restoreRegs.fp
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := restoreRegs.gprs[]
     asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP << LG_WORDSIZE)); // SP := restoreRegs.gprs[#SP]
@@ -393,15 +394,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // Set PR.framePointer to be registers.fp
-    asm.emitMOV_Reg_RegDisp(S0, T0, VM_Entrypoints.registersFPField.getOffset());
-    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), S0);
+    asm.emitMOV_Reg_RegDisp(S0, T0, VM_ArchEntrypoints.registersFPField.getOffset());
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_ArchEntrypoints.framePointerField.getOffset(), S0);
 
     // Restore SP
-    asm.emitMOV_Reg_RegDisp(S0, T0, VM_Entrypoints.registersGPRsField.getOffset());
+    asm.emitMOV_Reg_RegDisp(S0, T0, VM_ArchEntrypoints.registersGPRsField.getOffset());
     asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP << LG_WORDSIZE));
 
     // Push registers.ip to stack (now that SP has been restored)
-    asm.emitPUSH_RegDisp(T0, VM_Entrypoints.registersIPField.getOffset());
+    asm.emitPUSH_RegDisp(T0, VM_ArchEntrypoints.registersIPField.getOffset());
 
     // Restore the GPRs except for S0, PR, and SP
     // (restored above and then modified by pushing registers.ip!)
@@ -458,7 +459,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // reload JTOC from vitual processor
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
 
     // T0 gets PR.statusField
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());

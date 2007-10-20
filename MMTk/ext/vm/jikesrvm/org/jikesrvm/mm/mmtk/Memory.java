@@ -15,6 +15,7 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
@@ -38,9 +39,11 @@ import org.vmmagic.pragma.*;
   protected final byte getLogBytesInWordConstant() { return VM_SizeConstants.LOG_BYTES_IN_WORD; }
   protected final byte getLogBytesInPageConstant() { return 12; }
   protected final byte getLogMinAlignmentConstant() { return VM_JavaHeader.LOG_MIN_ALIGNMENT;}
-  protected final byte getMaxAlignmentShiftConstant() { return VM_SizeConstants.LOG_BYTES_IN_LONG - VM_SizeConstants.LOG_BYTES_IN_INT; }
   protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; }
   protected final int getAlignmentValueConstant() { return VM_JavaHeader.ALIGNMENT_VALUE;}
+
+  /* On Intel we align code to 16 bytes as recommended in the optimization manual */
+  protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + VM_SizeConstants.LOG_BYTES_IN_LONG - VM_SizeConstants.LOG_BYTES_IN_INT; }
 
   private static ImmortalSpace bootSpace;
 
@@ -66,9 +69,9 @@ import org.vmmagic.pragma.*;
    */
   @Interruptible
   public final ImmortalSpace getVMSpace() {
-    if (bootSpace == null)
-      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY,
-                                    BOOT_SEGMENT_MB, false);
+    if (bootSpace == null) {
+      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create(BOOT_SEGMENT_MB));
+    }
     return bootSpace;
   }
 

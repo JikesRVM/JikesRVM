@@ -10,8 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestFieldAccess
-{
+class TestFieldAccess {
   static boolean s0 = true;
   static byte    s1 = -1;
   static char    s2 = 0x41;     // 'A'
@@ -34,16 +33,13 @@ class TestFieldAccess
 
   public String toString() { return "Instance of " + getClass().getName(); }
 
-  public static void main(String args[])
-  {
-    // VM.boot();
+  public static void main(String[] args) {
     run();
   }
 
   static boolean testSuccess = true;
 
-  public static boolean run()
-  {
+  public static boolean run() {
     System.out.print("TestFieldAccess");
 
     TestFieldAccess b = new TestFieldAccess();

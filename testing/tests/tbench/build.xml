@@ -1,0 +1,93 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="tbench" default="test" basedir=".">
+
+  <condition property="arg" value="perf" else="base">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="test.time.limit" value="1200" else="200">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+
+  <property name="test.time.limit" value="200"/>
+  <property name="test.initial.heapsize" value="500"/>
+  <property name="test.max.heapsize" value="500"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true"/>
+  </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="ring">
+    <attribute name="tag"/>
+    <attribute name="threadCount" default="60"/>
+    <attribute name="messageCount" default="50"/>
+    <sequential>
+      <rvm tag="@{tag}" class="test.org.jikesrvm.tbench.Zog" rvmArgs="-X:gc:verbose=4" args="@{threadCount} @{messageCount}"/>
+
+      <outputTestStart tag="@{tag}"/>
+      <outputStatisticStart/>
+
+      <property name="test.class.path" value="${build.classes}"/>
+
+      <extractStatistic tag="@{tag}" key="total.init.time" pattern="initTime = (.+) ns \((.+) us/thread\) \(@{threadCount} threads\)" select="\1"/>
+      <extractStatistic tag="@{tag}" key="thread-spawn.time" pattern="initTime = (.+) ns \((.+) us/thread\) \(@{threadCount} threads\)" select="\2"/>
+      <extractStatistic tag="@{tag}" key="total.run.time" pattern="runTime = (.+) ns \((.+) us/message\) \(@{messageCount} messages\)" select="\1"/>
+      <extractStatistic tag="@{tag}" key="message.time" pattern="runTime = (.+) ns \((.+) us/message\) \(@{messageCount} messages\)" select="\2"/>
+
+      <outputStatisticEnd/>
+      <outputTestResults tag="@{tag}"/>
+      <outputTestEnd/>
+
+      <displayTestResults tag="@{tag}"/>
+
+    </sequential>
+  </macrodef>
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+    <ring tag="RingComm20x20" threadCount="20" messageCount="20"/>
+    <ring tag="RingComm20x1000" threadCount="20" messageCount="1000"/>
+    <ring tag="RingComm135x10000" threadCount="135" messageCount="10000"/>
+    <ring tag="RingComm136x10000" threadCount="136" messageCount="10000"/>
+    <ring tag="RingComm137x10000" threadCount="137" messageCount="10000"/>
+    <ring tag="RingComm150x10000" threadCount="150" messageCount="10000"/>
+    <!--
+      this next test fails as it can not allocate stack due to fixed range
+      of virtual memory for certain spaces
+    -->
+    <ring tag="RingComm1000x10000" threadCount="1000" messageCount="10000"/>
+
+    <finishResults/>
+  </target>
+</project>

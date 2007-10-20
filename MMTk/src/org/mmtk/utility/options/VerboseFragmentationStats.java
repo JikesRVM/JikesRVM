@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Should we print verbose fragmentation statistics for the free list allocator?
  */
-public class VerboseFragmentationStats extends BooleanOption {
+public final class VerboseFragmentationStats extends BooleanOption {
   /**
    * Create the option.
    */

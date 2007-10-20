@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import java.lang.reflect.*;
+
+import java.lang.reflect.Method;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
 
 /**
  * A test to detect regressions in the quality of the optimizing compiler's
@@ -86,7 +87,7 @@ class InlineAllocation {
    * of the generated machine code.
    */
   public static void main(String[] args) throws Exception {
-    Class clazz = Class.forName("InlineAllocation");
+    Class<?> clazz = Class.forName("InlineAllocation");
     Method trivialJ = clazz.getDeclaredMethod("trivial", new Class[] {clazz});
     Method alloc1J = clazz.getDeclaredMethod("alloc1", (Class[])null);
     Method alloc2J = clazz.getDeclaredMethod("alloc2", (Class[])null);

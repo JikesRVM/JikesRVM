@@ -30,7 +30,7 @@ import org.jikesrvm.VM;
 
 public class OSR_MapIterator implements OSR_Constants {
   private int curidx;
-  private int[] maps;
+  private final int[] maps;
   private int curmid;
   private int curmpc;
 
@@ -52,7 +52,8 @@ public class OSR_MapIterator implements OSR_Constants {
     return this.moreElemnt;
   }
 
-  /* after finishing iteration of one method, move to the next,
+  /**
+   * after finishing iteration of one method, move to the next,
    * it if is empty, move further.
    */
   private void moveToNextMethodId() {
@@ -73,12 +74,12 @@ public class OSR_MapIterator implements OSR_Constants {
     }
   }
 
-  /* has next method id to iterate? */
+  /** has next method id to iterate? */
   private boolean hasMoreMethodId() {
     return this.moreMethId;
   }
 
-  /* has next element of this method id to iterate? */
+  /** has next element of this method id to iterate? */
   private boolean hasMoreElements() {
     return this.moreElemnt;
   }
@@ -100,38 +101,37 @@ public class OSR_MapIterator implements OSR_Constants {
 
   /* for the current element, provide a list of queries. */
 
-  /* what kind. */
-
-  public int getKind() {
-    return (maps[curidx] & KIND_MASK) >> KIND_SHIFT;
+  /** what kind. */
+  public boolean getKind() {
+    return (maps[curidx] & KIND_MASK) >> KIND_SHIFT != 0;
   }
 
-  /* type code. */
-  public int getTypeCode() {
-    return (maps[curidx] & TCODE_MASK) >> TCODE_SHIFT;
+  /** type code. */
+  public byte getTypeCode() {
+    return (byte)((maps[curidx] & TCODE_MASK) >> TCODE_SHIFT);
   }
 
-  /* number */
-  public int getNumber() {
-    return (maps[curidx] & NUM_MASK) >> NUM_SHIFT;
+  /** number */
+  public char getNumber() {
+    return (char)((maps[curidx] & NUM_MASK) >> NUM_SHIFT);
   }
 
-  /* value type */
-  public int getValueType() {
-    return (maps[curidx] & VTYPE_MASK) >> VTYPE_SHIFT;
+  /** value type */
+  public byte getValueType() {
+    return (byte)((maps[curidx] & VTYPE_MASK) >> VTYPE_SHIFT);
   }
 
-  /* value */
+  /** value */
   public int getValue() {
     return maps[curidx + 1];
   }
 
-  /* current mid */
+  /** current mid */
   public int getMethodId() {
     return this.curmid;
   }
 
-  /* current pc */
+  /** current pc */
   public int getBcIndex() {
     return this.curmpc;
   }

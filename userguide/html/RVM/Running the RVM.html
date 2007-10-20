@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>RVM : Running the RVM</title>
+        <title>$webwork.htmlEncode($page.space.name) : Running the RVM</title>
 	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
         <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
     </head>
@@ -11,11 +11,11 @@
 			    <td valign="top" class="pagebody">
 				    <div class="pageheader">
 					    <span class="pagetitle">
-                            RVM : Running the RVM
+                            $webwork.htmlEncode($page.space.name) : Running the RVM
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Mar 08, 2007 by <font color="#0050B2">pdonald</font>.
+					    This page last changed on Sep 05, 2007 by <font color="#0050B2">rgarner</font>.
 				    </div>
 
 				    <p>Jikes<a href="http://docs.codehaus.org/display/RVM/Trademarks" title="Trademarks">™</a> RVM executes Java virtual machine byte code instructions from <tt>.class</tt> files.   It does <em>not</em> compile Java<a href="http://docs.codehaus.org/display/RVM/Trademarks" title="Trademarks">™</a> source code. Therefore, you must compile all Java source files into bytecode using your favorite Java compiler.</p>
@@ -31,19 +31,18 @@
 <pre>rvm [rvm options...] class [args...]
 </pre>
 </div></div>
-<p>You may choose from a myriad of options for the <tt>rvm</tt> command-line. Options fall into two categories: <em>standard</em> and <em>non-standard</em>.  Non-standard options are preceded by "<b><tt>-X:</tt></b>".</p>
+<p>You may choose from a myriad of options for the <tt>rvm</tt> command-line. Options fall into two categories: <em>standard</em> and <em>non-standard</em>.  Non-standard options are preceded by "<tt><b>&#45;X:</b></tt>".</p>
 
 <h3><a name="RunningtheRVM-StandardCommandLineOptions"></a>Standard Command-Line Options</h3>
 
 <p>We currently support a subset of the JDK 1.5 standard options. Below is a list of all options and their descriptions. Unless otherwise noted each option is supported in Jikes RVM.</p>
-
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
 <th class='confluenceTh'> Description </th>
 </tr>
 <tr>
-<td class='confluenceTd'> {&#45;cp or &#45;classpath} &lt;directories and zip/jar files separated by ":"&gt; </td>
+<td class='confluenceTd'> {-cp or &#45;classpath} &lt;directories and zip/jar files separated by ":"&gt; </td>
 <td class='confluenceTd'> set search path for application classes and resources </td>
 </tr>
 <tr>
@@ -64,7 +63,7 @@
 </tr>
 <tr>
 <td class='confluenceTd'> &#45;fullversion </td>
-<td class='confluenceTd'> like "&#45;version", but with more information </td>
+<td class='confluenceTd'> like "-version", but with more information </td>
 </tr>
 <tr>
 <td class='confluenceTd'> &#45;? or &#45;help </td>
@@ -86,7 +85,7 @@
 
 <h3><a name="RunningtheRVM-NonStandardCommandLineOptions"></a>Non-Standard Command-Line Options</h3>
 
-<p>The non standard command-line options are grouped according to the subsystem that they control. The following sections list the available options in each group. </p>
+<p>The non standard command-line options are grouped according to the subsystem that they control. The following sections list the available options in each group.</p>
 
 <h4><a name="RunningtheRVM-CoreNonStandardCommandLineOptions"></a>Core Non-Standard Command-Line Options</h4>
 
@@ -121,7 +120,7 @@
 </tr>
 <tr>
 <td class='confluenceTd'> &#45;X:vmClasses=&lt;path&gt; </td>
-<td class='confluenceTd'> Load the com.ibm.jikesrvm.* and java.* classes from &lt;path&gt; </td>
+<td class='confluenceTd'> Load the com.ibm.jikesrvm.&#42; and java.&#42; classes from &lt;path&gt; </td>
 </tr>
 <tr>
 <td class='confluenceTd'> &#45;X:cpuAffinity=&lt;number&gt; </td>
@@ -152,10 +151,116 @@
 
 <h4><a name="RunningtheRVM-GarbageCollectorNonStandardCommandLineOptions"></a>Garbage Collector Non-Standard Command-Line Options</h4>
 
+<p>These options are all prefixed by <tt>&#45;X:gc:</tt>.</p>
+
+<p>Boolean options.</p>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
 <th class='confluenceTh'> Description </th>
+</tr>
+<tr>
+<td class='confluenceTd'> protectOnRelease </td>
+<td class='confluenceTd'> Should memory be protected on release? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> echoOptions </td>
+<td class='confluenceTd'> Echo when options are set? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> printPhaseStats </td>
+<td class='confluenceTd'> When printing statistics, should statistics for each gc-mutator phase be printed? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> xmlStats </td>
+<td class='confluenceTd'> Print end-of-run statistics in XML format </td>
+</tr>
+<tr>
+<td class='confluenceTd'> eagerCompleteSweep </td>
+<td class='confluenceTd'> Should we eagerly finish sweeping at the start of a collection </td>
+</tr>
+<tr>
+<td class='confluenceTd'> fragmentationStats </td>
+<td class='confluenceTd'> Should we print fragmentation statistics for the free list allocator? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> verboseFragmentationStats </td>
+<td class='confluenceTd'> Should we print verbose fragmentation statistics for the free list allocator? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> verboseTiming </td>
+<td class='confluenceTd'> Should we display detailed breakdown of where GC time is spent? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> noFinalizer </td>
+<td class='confluenceTd'> Should finalization be disabled? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> noReferenceTypes </td>
+<td class='confluenceTd'> Should reference type processing be disabled? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> fullHeapSystemGC </td>
+<td class='confluenceTd'> Should a major GC be performed when a system GC is triggered? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> ignoreSystemGC </td>
+<td class='confluenceTd'> Should we ignore calls to java.lang.System.gc? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> variableSizeHeap </td>
+<td class='confluenceTd'> Should we shrink/grow the heap to adjust to application working set? </td>
+</tr>
+<tr>
+<td class='confluenceTd'> eagerMmapSpaces </td>
+<td class='confluenceTd'> If true, all spaces are eagerly demand zero mmapped at boot time </td>
+</tr>
+<tr>
+<td class='confluenceTd'> sanityCheck </td>
+<td class='confluenceTd'> Perform sanity checks before and after each collection? </td>
+</tr>
+</tbody></table>
+<p>Value options.</p>
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option </th>
+<th class='confluenceTh'> Type </th>
+<th class='confluenceTh'> Description </th>
+</tr>
+<tr>
+<td class='confluenceTd'> markSweepMarkBits </td>
+<td class='confluenceTd'> int </td>
+<td class='confluenceTd'> Number of bits to use for the header cycle of mark sweep spaces </td>
+</tr>
+<tr>
+<td class='confluenceTd'> verbose </td>
+<td class='confluenceTd'> int </td>
+<td class='confluenceTd'> GC verbosity level </td>
+</tr>
+<tr>
+<td class='confluenceTd'> stressFactor </td>
+<td class='confluenceTd'> bytes </td>
+<td class='confluenceTd'> Force a collection after this much allocation </td>
+</tr>
+<tr>
+<td class='confluenceTd'> metaDataLimit </td>
+<td class='confluenceTd'> bytes </td>
+<td class='confluenceTd'> Trigger a GC if the meta data volume grows to this limit </td>
+</tr>
+<tr>
+<td class='confluenceTd'> boundedNursery </td>
+<td class='confluenceTd'> bytes </td>
+<td class='confluenceTd'> Bound the maximum size of the nursery to this value </td>
+</tr>
+<tr>
+<td class='confluenceTd'> fixedNursery </td>
+<td class='confluenceTd'> bytes </td>
+<td class='confluenceTd'> Fix the minimum and maximum size of the nursery to this value </td>
+</tr>
+<tr>
+<td class='confluenceTd'> debugAddress </td>
+<td class='confluenceTd'> address </td>
+<td class='confluenceTd'> Specify an address at runtime for use in debugging </td>
 </tr>
 </tbody></table>
 
@@ -186,6 +291,17 @@
 </tr>
 </tbody></table>
 
+<h2><a name="RunningtheRVM-RunningJikesRVMwithvalgrind"></a>Running Jikes RVM with valgrind</h2>
+
+<p>&nbsp;Jikes RVM can run under valgrind, as of SVN revision 6791 (29-Aug-2007).&nbsp; Applying a patch of this revision to release 3.2.1 should also produce a working system.&nbsp; Versions of valgrind CVS prior to release 3.0 are also known to have worked.</p>
+
+<p>To run a Jikes RVM build with valgrind, use the <tt>&#45;wrap</tt> flag to invoke valgrind, eg</p>
+<div class="code"><div class="codeContent">
+<pre class="code-java">rvm -wrap <span class="code-quote">"path/to/valgrind --smc-check=all &lt;valgrind-options&gt;"</span> &lt;jikesrvm-options&gt; ...</pre>
+</div></div>
+<p>this will insert the invocation of valgrind at the appropriate place for it to operate on Jikes RVM proper rather than a wrapper script.&nbsp;</p>
+
+<p>Under some circumstances, valgrind will load shared object libraries or allocate memory in areas of the heap that conflict with Jikes RVM.&nbsp; Using the flag &#45;X:gc:eagerMmapSpaces=true will prevent and/or detect this.&nbsp; If this flag reveals errors while mapping the spaces, you will need to rearrange the heap to avoid the addresses that valgrind is occupying.</p>
 
 				    
                     			    </td>
@@ -196,7 +312,7 @@
 				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jul 25, 2007 12:31</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Oct 19, 2007 15:08</font></td>
 		    </tr>
 	    </table>
     </body>

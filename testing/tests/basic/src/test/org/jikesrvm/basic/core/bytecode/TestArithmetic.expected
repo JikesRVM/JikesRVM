@@ -185,6 +185,38 @@ Expected: 40000000 Actual: 40000000
 Expected: 3f000000 Actual: 3f000000
 Expected: bf800000 Actual: bf800000
 Expected: 3f19999a Actual: 3f19999a
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: true Actual: true
+Expected: true Actual: true
+Expected: true Actual: true
+Expected: true Actual: true
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: -Infinity Actual: -Infinity
+Expected: -Infinity Actual: -Infinity
+Expected: -Infinity Actual: -Infinity
+Expected: 2147483647 Actual: 2147483647
+Expected: -2147483648 Actual: -2147483648
+Expected: 0 Actual: 0
 
 -- dtest --
 Expected: 4008000000000000 Actual: 4008000000000000
@@ -193,6 +225,38 @@ Expected: 4000000000000000 Actual: 4000000000000000
 Expected: 3fe0000000000000 Actual: 3fe0000000000000
 Expected: bff0000000000000 Actual: bff0000000000000
 Expected: 3fe3333333333333 Actual: 3fe3333333333333
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: NaN Actual: NaN
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: false Actual: false
+Expected: true Actual: true
+Expected: true Actual: true
+Expected: true Actual: true
+Expected: true Actual: true
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: Infinity Actual: Infinity
+Expected: -Infinity Actual: -Infinity
+Expected: -Infinity Actual: -Infinity
+Expected: -Infinity Actual: -Infinity
+Expected: 2147483647 Actual: 2147483647
+Expected: -2147483648 Actual: -2147483648
+Expected: 0 Actual: 0
 
 -- nanTestFloat --
   expr     expected    got    

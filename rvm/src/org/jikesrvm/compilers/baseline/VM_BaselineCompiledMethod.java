@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
 import org.jikesrvm.classloader.VM_Method;
@@ -186,6 +186,16 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
   }
 
   /**
+   * Return whether or not the instruction offset corresponds to an uninterruptible context.
+   *
+   * @param offset of addr from start of instructions in bytes
+   * @return true if the IP is within an Uninterruptible method, false otherwise.
+   */
+  public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
+    return method.isUninterruptible();
+  }
+
+  /**
    * Find bytecode index corresponding to one of this method's
    * machine instructions.
    *
@@ -281,13 +291,13 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
-  /** Set the lock acquistion offset for synchronized methods */
+  /** Set the lock acquisition offset for synchronized methods */
   public void setLockAcquisitionOffset(int off) {
     if (VM.VerifyAssertions) VM._assert((off & 0xFFFF) == off);
     lockOffset = (char) off;
   }
 
-  /** Get the lock acquistion offset */
+  /** Get the lock acquisition offset */
   public Offset getLockAcquisitionOffset() {
     return Offset.fromIntZeroExtend(lockOffset);
   }

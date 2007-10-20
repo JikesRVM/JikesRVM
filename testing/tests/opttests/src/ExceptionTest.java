@@ -19,7 +19,7 @@ class ExceptionTest {
 
      try {
        System.out.println("does it work? " + i + "   ");
-       if ((i < 0) || ( i > 2)) {
+       if ((i < 0) || (i > 2)) {
          System.out.println(" IndexOutOfBoundsException with index = " + i);
          throw new IndexOutOfBoundsException();
        }

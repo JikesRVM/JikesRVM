@@ -34,7 +34,6 @@ import org.vmmagic.pragma.*;
  * @see GCTraceCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public class GCTraceMutator extends SSMutator {
 
@@ -170,10 +169,10 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (!GCTrace.traceInducedGC ||
-        (phaseId != StopTheWorld.PREPARE_MUTATOR) &&
-        (phaseId != StopTheWorld.RELEASE_MUTATOR)) {
+        (phaseId != StopTheWorld.PREPARE) &&
+        (phaseId != StopTheWorld.RELEASE)) {
       // Delegate up.
       super.collectionPhase(phaseId, primary);
     }

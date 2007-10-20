@@ -1216,7 +1216,7 @@ createVM(int vmInSeparateThread)
     //    VM_Scheduler.threads[], VM_Scheduler.DebugRequested
     //
     DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
-    ProcessorsOffset = bootRecord.processorsOffset;
+    ProcessorsOffset = bootRecord.greenProcessorsOffset;
     DebugRequestedOffset = bootRecord.debugRequestedOffset;
 
     if (lib_verbose) {
@@ -1350,8 +1350,8 @@ createVM(int vmInSeparateThread)
     //
     VM_Address  jtoc = bootRecord.tocRegister;
     VM_Address *processors = *(VM_Address **)(bootRecord.tocRegister +
-                                              bootRecord.processorsOffset);
-    VM_Address  pr = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
+                                              bootRecord.greenProcessorsOffset);
+    VM_Address  pr = processors[VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
     VM_Address tid = bootRecord.tiRegister;
     VM_Address  ip = bootRecord.ipRegister;
     VM_Address  sp = bootRecord.spRegister;

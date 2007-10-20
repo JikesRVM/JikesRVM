@@ -27,4 +27,5 @@ import org.vmmagic.pragma.*;
 
   public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
 
+  public int numSpecializedScans() { return 1; }
 }

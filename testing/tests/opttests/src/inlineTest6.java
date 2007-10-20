@@ -10,11 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class inlineTest6
-{
-  static int
-  run()
-  {
+class inlineTest6 {
+
+  static int run() {
     int i = sum(100);
     int j = sum(200);
 

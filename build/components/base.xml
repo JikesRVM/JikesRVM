@@ -72,8 +72,50 @@
           <equals arg1="${ensure.valid}" arg2="false"/>
         </conditions>
         <sequential>
-        <echo message="@{name} does not exist or is of the wrong version. Rebuilding..."/>
+          <echo message="@{name} does not exist or is of the wrong version. Rebuilding..."/>
           <antcall target="build" inheritall="false" inheritrefs="false"/>
+        </sequential>
+      </if>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="cachedGet">
+    <attribute name="src"/>
+    <attribute name="dest"/>
+    <attribute name="key"/>
+    <sequential>
+      <if>
+        <conditions>
+          <and>
+            <isset property="components.cache.dir"/>
+            <not>
+              <available file="${components.cache.dir}/@{key}"/>
+            </not>
+          </and>
+        </conditions>
+        <sequential>
+          <echo message="Loading @{src} into cache..."/>
+          <get src="@{src}" dest="${components.cache.dir}/@{key}"/>
+        </sequential>
+      </if>
+      <if>
+        <conditions>
+          <isset property="components.cache.dir"/>
+        </conditions>
+        <sequential>
+          <echo message="Copying from cache to @{dest}..."/>
+          <copy file="${components.cache.dir}/@{key}" tofile="@{dest}"/>
+        </sequential>
+      </if>
+      <if>
+        <conditions>
+          <not>
+            <isset property="components.cache.dir"/>
+          </not>
+        </conditions>
+        <sequential>
+          <echo message="Downloading (no cache available)"/>
+          <get src="@{src}" dest="@{dest}"/>
         </sequential>
       </if>
     </sequential>

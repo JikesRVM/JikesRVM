@@ -101,7 +101,7 @@ public abstract class OPT_CompilerPhase {
   /**
    * Returns true if the phase wants the IR dumped before and/or after it runs.
    * By default, printing is not enabled.
-   * Subclasses should overide this method if they want to provide IR dumping.
+   * Subclasses should override this method if they want to provide IR dumping.
    *
    * @param options the compiler options for the compilation
    * @param before true when invoked before perform, false otherwise.
@@ -156,7 +156,7 @@ public abstract class OPT_CompilerPhase {
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
    */
-  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(Class klass) {
+  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(Class<? extends OPT_CompilerPhase> klass) {
     return getCompilerPhaseConstructor(klass, null);
   }
 
@@ -164,7 +164,7 @@ public abstract class OPT_CompilerPhase {
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
    */
-  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(Class<?> phaseType,
+  protected static Constructor<OPT_CompilerPhase> getCompilerPhaseConstructor(Class<? extends OPT_CompilerPhase> phaseType,
                                                                               Class<?>[] initTypes) {
     try {
       @SuppressWarnings("unchecked") // We are explicitly breaking type safety
@@ -191,7 +191,7 @@ public abstract class OPT_CompilerPhase {
   public final void performPhase(OPT_IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        // only print above centain opt level.
+        // only print above certain opt level.
         //if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
         dumpIR(ir, "Before " + getName());
         //}

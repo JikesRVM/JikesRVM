@@ -54,7 +54,7 @@ public final class OPT_MutateSplits extends OPT_CompilerPhase {
       OPT_Instruction s = e.nextElement();
       if (s.operator == SPLIT) {
         OPT_RegisterOperand lhs = Unary.getResult(s);
-        OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.type);
+        OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.getType());
         OPT_Operand rhs = Unary.getVal(s);
         Move.mutate(s, mv, lhs, rhs);
       }

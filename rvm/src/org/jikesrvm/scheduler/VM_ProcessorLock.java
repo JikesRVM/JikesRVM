@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -82,7 +83,6 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Lock */
 @Uninterruptible
 public final class VM_ProcessorLock implements VM_Constants {
-
   /**
    * Should contending <code>VM_Processor</code>s spin on processor local addresses (true)
    * or on a globally shared address (false).
@@ -99,15 +99,18 @@ public final class VM_ProcessorLock implements VM_Constants {
    * </ul>
    * Only the first two states are possible unless MCS locking is implemented.
    */
+  @Entrypoint
   VM_Processor latestContender;
 
   /**
    * Acquire a processor lock.
    */
-  public void lock() {
-    if (VM_Scheduler.numProcessors == 1) return;
+  public void lock(String reason) {
+    if (VM_Scheduler.getNumberOfProcessors() == 1) return;
     VM_Processor i = VM_Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) i.lockCount += 1;
+    if (VM.VerifyAssertions) {
+      i.registerLock(reason);
+    }
     VM_Processor p;
     int attempts = 0;
     Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
@@ -148,8 +151,8 @@ public final class VM_ProcessorLock implements VM_Constants {
    * Conditionally acquire a processor lock.
    * @return whether acquisition succeeded
    */
-  boolean tryLock() {
-    if (VM_Scheduler.numProcessors == 1) return true;
+  public boolean tryLock() {
+    if (VM_Scheduler.getNumberOfProcessors() == 1) return true;
     Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     if (VM_Magic.prepareAddress(this, latestContenderOffset).isZero()) {
       Address cp = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor());
@@ -165,12 +168,12 @@ public final class VM_ProcessorLock implements VM_Constants {
    * Release a processor lock.
    */
   public void unlock() {
-    if (VM_Scheduler.numProcessors == 1) return;
+    if (VM_Scheduler.getNumberOfProcessors() == 1) return;
     VM_Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that acquires the lock
     Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (!MCS_Locking) {
-      if (VM.VerifyAssertions) i.lockCount -= 1;
+      if (VM.VerifyAssertions) i.registerUnlock();
       VM_Magic.setObjectAtOffset(this, latestContenderOffset, null);  // latestContender = null;
       return;
     }
@@ -204,7 +207,7 @@ public final class VM_ProcessorLock implements VM_Constants {
         VM_Magic.setObjectAtOffset(this, latestContenderOffset, p); // other contenders can get at the lock
       }
     }
-    if (VM.VerifyAssertions) i.lockCount -= 1;
+    if (VM.VerifyAssertions) i.registerUnlock();
   }
 
   /**
@@ -215,7 +218,13 @@ public final class VM_ProcessorLock implements VM_Constants {
    */
   @NoInline
   private static void handleMicrocontention(int n) {
-    if (n <= 0) return;                                  // method call overhead is delay enough
+    VM_Magic.pause();    // reduce overhead of spin wait on IA
+    if (n <= 0) return;  // method call overhead is delay enough
+    if (n > 100) {
+      VM.sysWriteln("Unexpectedly large processor lock contention");
+      VM_Scheduler.dumpStack();
+      VM.sysFail("Unexpectedly large processor lock contention");
+    }
     int pid = VM_Processor.getCurrentProcessorId();
     if (pid < 0) pid = -pid;                            // native processors have negative ids
     delayIndex = (delayIndex + pid) % delayCount.length;

@@ -280,27 +280,38 @@ public final class Word {
   }
 
   /**
-   * Left-shift a word.  Equivalent to the integer <code>&lt;&lt;</code> operator
-   * @param w2
-   * @return
+   * Left-shift a word. Shifts of a size greater than the Word are undefined and
+   * have an architecture and compiler specific behaviour. On Intel the shift
+   * amount ignores the most significant bits, for example for a 32bit Word 1
+   * &lt;&lt; 32 == 1, the result will be 0 on PowerPC. Shifts may or may not be
+   * combined by the compiler, this yields differing behaviour, for example for a
+   * 32bit Word 1 &lt;&lt;32 may or may not equal 1 &lt;&lt; 16 &lt;&lt; 16.
+   *
+   * @param amt the amount to shift by
+   * @return new Word shifted by the given amount
    */
   public Word lsh(int amt) {
     return null;
   }
 
   /**
-   * Logical right-shift a word.  Equivalent to the integer <code>&gt;&gt;&gt;</code> operator
-   * @param w2
-   * @return
+   * Logical right-shift a word. Shifts of a size greater than the Word are undefined and
+   * have an architecture and compiler specific behaviour {@see #lsh(int)}.
+   *
+   * @param amt the amount to shift by
+   * @return new Word shifted by the given amount
    */
   public Word rshl(int amt) {
     return null;
   }
 
   /**
+   * Arithmetic right-shift a word. Shifts of a size greater than the Word are undefined and
+   * have an architecture and compiler specific behaviour {@see #lsh(int)}.
    * Arithmetic right-shift a word.  Equivalent to the integer <code>&gt;&gt;</code> operator
-   * @param w2
-   * @return
+   *
+   * @param amt the amount to shift by
+   * @return new Word shifted by the given amount
    */
   public Word rsha(int amt) {
     return null;

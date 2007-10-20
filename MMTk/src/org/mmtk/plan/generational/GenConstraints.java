@@ -40,4 +40,10 @@ import org.vmmagic.pragma.*;
 
   /** @return True if this plan requires a write barrier */
   public boolean needsWriteBarrier() { return true; }
+
+  /** @return True if this plan requires a static barrier */
+  public boolean needsStaticWriteBarrier() { return Gen.USE_STATIC_WRITE_BARRIER; }
+
+  /** @return The specialized scan methods required */
+  public int numSpecializedScans() { return 2; }
 }

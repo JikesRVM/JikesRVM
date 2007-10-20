@@ -24,6 +24,9 @@ import org.vmmagic.pragma.*;
   /** @return True if this Plan requires write barriers. */
   public boolean needsWriteBarrier() { return false; }
 
+  /** @return True of this Plan requires read barriers on reference types. */
+  public boolean needsReferenceTypeReadBarrier() { return false; }
+
   /** @return True of this Plan requires read barriers. */
   public boolean needsReadBarrier() { return false; }
 
@@ -63,4 +66,10 @@ import org.vmmagic.pragma.*;
 
   /** @return True if type information must be immortal */
   public boolean needsImmortalTypeInfo() { return false; }
+
+  /** @return The specialized scan methods required */
+  public int numSpecializedScans() { return 0; }
+
+  /** @return True if this plan requires concurrent worker threads */
+  public boolean needsConcurrentWorkers() { return false; }
 }

@@ -429,7 +429,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     // Has this loop already been optimised?
     OPT_Operand carriedLoopIterator = loop.getCarriedLoopIterator();
     if ((carriedLoopIterator instanceof OPT_RegisterOperand) &&
-        (isOptimizedLoop(carriedLoopIterator.asRegister().register))) {
+        (isOptimizedLoop(carriedLoopIterator.asRegister().getRegister()))) {
       return false;
     }
 
@@ -631,8 +631,8 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         while (operands.hasMoreElements()) {
           OPT_Operand operand = operands.next();
           if (operand.isRegister()) {
-            registers.add(operand.asRegister().register);
-            types.add(operand.asRegister().type);
+            registers.add(operand.asRegister().getRegister());
+            types.add(operand.asRegister().getType());
             if (escapes) {
               definingInstructions.add(instruction);
             } else {
@@ -662,7 +662,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
                                 HashMap<OPT_Register, OPT_Register> subOptimalRegMap,
                                 HashMap<OPT_Register, OPT_Register> optimalRegMap) {
     // Get the carried loop iterator's register
-    OPT_Register carriedLoopIteratorRegister = ((OPT_RegisterOperand) loop.getCarriedLoopIterator()).register;
+    OPT_Register carriedLoopIteratorRegister = ((OPT_RegisterOperand) loop.getCarriedLoopIterator()).getRegister();
     for (int i = 0; i < registers.size(); i++) {
       OPT_Register register = registers.get(i);
       VM_TypeReference type = types.get(i);
@@ -672,18 +672,18 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       // new operand for optimized loop
       OPT_Operand op0 = ir.regpool.makeTemp(type);
       Phi.setValue(phi, OPTIMIZED_LOOP_OPERAND, op0);
-      optimalRegMap.put(register, op0.asRegister().register);
+      optimalRegMap.put(register, op0.asRegister().getRegister());
 
       // new operand for unoptimized loop
       OPT_Operand op1 = ir.regpool.makeTemp(type);
       Phi.setValue(phi, UNOPTIMIZED_LOOP_OPERAND, op1);
-      subOptimalRegMap.put(register, op1.asRegister().register);
+      subOptimalRegMap.put(register, op1.asRegister().getRegister());
 
       // Add the new created carried loop iterator registers to
       // internal set to mark the optimized loops
       if (register == carriedLoopIteratorRegister) {
-        setOptimizedLoop(op0.asRegister().register);
-        setOptimizedLoop(op1.asRegister().register);
+        setOptimizedLoop(op0.asRegister().getRegister());
+        setOptimizedLoop(op1.asRegister().getRegister());
       }
 
       phiInstructions.add(phi);
@@ -728,7 +728,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         while (operands.hasMoreElements()) {
           OPT_Operand operand = operands.next();
           if (operand.isRegister()) {
-            OPT_Register register = operand.asRegister().register;
+            OPT_Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
               instruction.replaceRegister(register, regMap.get(register));
               regToBlockMap.put(regMap.get(register), copy);
@@ -739,7 +739,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         while (operands.hasMoreElements()) {
           OPT_Operand operand = operands.next();
           if (operand instanceof OPT_RegisterOperand) {
-            OPT_Register register = operand.asRegister().register;
+            OPT_Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
               instruction.replaceRegister(register, regMap.get(register));
             }
@@ -848,7 +848,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         while (operands.hasMoreElements()) {
           OPT_Operand operand = operands.next();
           if (operand instanceof OPT_RegisterOperand) {
-            OPT_Register register = operand.asRegister().register;
+            OPT_Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
               instruction.replaceRegister(register, regMap.get(register));
               regToBlockMap.put(regMap.get(register), copy);
@@ -859,7 +859,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         while (operands.hasMoreElements()) {
           OPT_Operand operand = operands.next();
           if (operand.isRegister()) {
-            OPT_Register register = operand.asRegister().register;
+            OPT_Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
               instruction.replaceRegister(register, regMap.get(register));
             }
@@ -1022,9 +1022,9 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
               // yes - just create a guard move
               alreadyChecked = true;
               OPT_RegisterOperand guardResult = BoundsCheck.getGuardResult(instr).copyRO();
-              guardResult.setRegister(optimalRegMap.get(guardResult.register));
+              guardResult.setRegister(optimalRegMap.get(guardResult.getRegister()));
               OPT_RegisterOperand guardSource = BoundsCheck.getGuardResult(old_instr).copyRO();
-              guardSource.setRegister(optimalRegMap.get(guardSource.register));
+              guardSource.setRegister(optimalRegMap.get(guardSource.getRegister()));
               OPT_Instruction tempInstr = Move.create(GUARD_MOVE, guardResult, guardSource);
               tempInstr.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
               block.appendInstruction(tempInstr);
@@ -1108,11 +1108,11 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         OPT_Operand ref = OPT_AnnotatedLSTNode.follow(NullCheck.getRef(instr));
         // the guard result to define
         OPT_RegisterOperand guardResult = NullCheck.getGuardResult(instr).copyRO();
-        guardResult.setRegister(optimalRegMap.get(guardResult.register));
+        guardResult.setRegister(optimalRegMap.get(guardResult.getRegister()));
         // check if we've generated this test already
-        if (ref.isRegister() && refToGuardMap.containsKey(ref.asRegister().register)) {
+        if (ref.isRegister() && refToGuardMap.containsKey(ref.asRegister().getRegister())) {
           // yes - generate just a guard move
-          branch = Move.create(GUARD_MOVE, guardResult, refToGuardMap.get(ref.asRegister().register).copy());
+          branch = Move.create(GUARD_MOVE, guardResult, refToGuardMap.get(ref.asRegister().getRegister()).copy());
           branch.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
           block.appendInstruction(branch);
         } else {
@@ -1134,7 +1134,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
                              unoptimizedLoopEntry.makeJumpTarget(),
                              OPT_BranchProfileOperand.unlikely());
             if (ref.isRegister()) {
-              refToGuardMap.put(ref.asRegister().register, guardResult);
+              refToGuardMap.put(ref.asRegister().getRegister(), guardResult);
             }
             branch.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
             block.appendInstruction(branch);
@@ -1195,15 +1195,15 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
 
     // register to hold result (NB it's a guard for the optimal loop)
     OPT_RegisterOperand guardResult = BoundsCheck.getGuardResult(boundCheckInstr).copyRO();
-    guardResult.setRegister(optimalRegMap.get(guardResult.register));
+    guardResult.setRegister(optimalRegMap.get(guardResult.getRegister()));
 
     // the guard on the bound check (mapped from the optimal loop as
     // it should already have been generated or may already be out of
     // the loop)
     OPT_Operand origGuard = BoundsCheck.getGuard(boundCheckInstr);
     OPT_Operand guard = origGuard.copy();
-    if (origGuard.isRegister() && optimalRegMap.containsKey(origGuard.asRegister().register)) {
-      guard.asRegister().setRegister(optimalRegMap.get(origGuard.asRegister().register));
+    if (origGuard.isRegister() && optimalRegMap.containsKey(origGuard.asRegister().getRegister())) {
+      guard.asRegister().setRegister(optimalRegMap.get(origGuard.asRegister().getRegister()));
     }
 
     if (lowerBoundTestRedundant && upperBoundTestRedundant) {
@@ -1403,7 +1403,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
               OPT_Operand rval = Phi.getValue(origInstr, index);
               if (rval.isRegister()) {
                 // Sort out registers
-                OPT_Register origRegPhiRval = rval.asRegister().register;
+                OPT_Register origRegPhiRval = rval.asRegister().getRegister();
                 OPT_Register subOptRegPhiRval;
                 OPT_Register optRegPhiRval;
                 if (!subOptimalRegMap.containsKey(origRegPhiRval)) {

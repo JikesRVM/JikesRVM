@@ -17,34 +17,63 @@ import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible public abstract class Statistics {
   /**
-   * Returns the number of collections that have occured.
+   * Returns the number of collections that have occurred.
    *
-   * @return The number of collections that have occured.
+   * @return The number of collections that have occurred.
    */
   public abstract int getCollectionCount();
 
   /**
    * Read cycle counter
    */
+  public abstract long nanoTime();
+
+  /**
+   * Convert nanoseconds to milliseconds
+   */
+  public abstract double nanosToMillis(long c);
+
+  /**
+   * Convert nanoseconds to seconds
+   */
+  public abstract double nanosToSecs(long c);
+
+  /**
+   * Convert milliseconds to nanoseconds
+   */
+  public abstract long millisToNanos(double t);
+
+  /**
+   * Convert seconds to nanoseconds
+   */
+  public abstract long secsToNanos(double t);
+
+  /**
+   * Read the cycle counter
+   */
   public abstract long cycles();
 
   /**
-   * Convert cycles to milliseconds
+   * Initialize performance counters
+   *
+   * @param metric An integer identifying the metric being read
    */
-  public abstract double cyclesToMillis(long c);
+  public abstract void perfCtrInit(int metric);
 
   /**
-   * Convert cycles to seconds
+   * Read the current cycle count from the perfctr libraries
+   *
+   * @return the current cycle count from the perfctr libraries
    */
-  public abstract double cyclesToSecs(long c);
+  public abstract long perfCtrReadCycles();
 
   /**
-   * Convert milliseconds to cycles
+   * Read the current event count for the metric being measured by the
+   * perfctr libraries
+   *
+   * @return the current event count for the metric being measured by the
+   * perfctr libraries
    */
-  public abstract long millisToCycles(double t);
+  public abstract long perfCtrReadMetric();
 
-  /**
-   * Convert seconds to cycles
-   */
-  public abstract long secsToCycles(double t);
 }

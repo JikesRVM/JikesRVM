@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * An element in the opt compiler's optimization plan
@@ -34,9 +34,9 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
    */
   private OPT_CompilerPhase myPhase;
   /**
-   * Accumulated cycles spent in the element.
+   * Accumulated nanoseconds spent in the element.
    */
-  long cycles;
+  long phaseNanos = 0;
 
   /**
    * Counters to be used by myPhase to gather phase specific stats.
@@ -79,15 +79,18 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
    */
   public void perform(OPT_IR ir) {
     long start = 0;
-    if (VM.MeasureCompilation && VM.runningVM) {
-      start = VM_Thread.getCurrentThread().accumulateCycles();
-    }
-    OPT_CompilerPhase cmpPhase = myPhase.newExecution(ir);
-    cmpPhase.setContainer(this);
-    cmpPhase.performPhase(ir);
-    if (VM.MeasureCompilation && VM.runningVM) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
-      cycles += end - start;
+    try {
+      if (VM.MeasureCompilationPhases && VM.runningVM) {
+        start = VM_Scheduler.getCurrentThread().startTimedInterval();
+      }
+      OPT_CompilerPhase cmpPhase = myPhase.newExecution(ir);
+      cmpPhase.setContainer(this);
+      cmpPhase.performPhase(ir);
+    } finally {
+      if (VM.MeasureCompilationPhases && VM.runningVM) {
+        long end = VM_Scheduler.getCurrentThread().endTimedInterval();
+        phaseNanos += end - start;
+      }
     }
   }
 
@@ -107,7 +110,7 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
    * @param totalTime Total opt compilation time in ms.
    */
   public void reportStats(int indent, int timeCol, double totalTime) {
-    if (cycles == 0) return;
+    if (phaseNanos == 0) return;
     int curCol = 0;
     for (curCol = 0; curCol < indent; curCol++) {
       VM.sysWrite(" ");
@@ -123,7 +126,7 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
       VM.sysWrite(" ");
       curCol++;
     }
-    double myTime = VM_Time.cyclesToMillis(cycles);
+    double myTime = VM_Time.nanosToMillis(phaseNanos);
     prettyPrintTime(myTime, totalTime);
     myPhase.reportAdditionalStats();
     VM.sysWriteln();
@@ -134,6 +137,6 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
    * @return time spend in the plan (in ms)
    */
   public double elapsedTime() {
-    return VM_Time.cyclesToMillis(cycles);
+    return VM_Time.nanosToMillis(phaseNanos);
   }
 }

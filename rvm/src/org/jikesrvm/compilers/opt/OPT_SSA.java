@@ -125,9 +125,9 @@ class OPT_SSA {
         if (lhs.similar(op)) {
           if (aux == null) {
             aux = ir.regpool.makeTemp(lhs);
-            c.insertBefore(makeMoveInstruction(ir, aux.register, lhs.register, lhs.type));
+            c.insertBefore(makeMoveInstruction(ir, aux.getRegister(), lhs.getRegister(), lhs.getType()));
           }
-          op.asRegister().register = aux.register;
+          op.asRegister().setRegister(aux.getRegister());
         }
       }
       i = i.nextInstructionInCodeOrder();

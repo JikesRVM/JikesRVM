@@ -348,7 +348,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Store.create(PPC_STFD, val, A(FP), IC(offset), null, TG()));
     OPT_RegisterOperand i1 = Unary.getClearResult(s);
     if (VM.BuildFor32Addr) {
-      OPT_RegisterOperand i2 = I(regpool.getSecondReg(i1.register));
+      OPT_RegisterOperand i2 = I(regpool.getSecondReg(i1.getRegister()));
       EMIT(MIR_Load.create(PPC_LWZ, i1, A(FP), IC(offset), null, TG()));
       EMIT(MIR_Load.mutate(s, PPC_LWZ, i2, A(FP), IC(offset + 4), null, TG()));
     } else {
@@ -368,7 +368,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_RegisterOperand i1 = (OPT_RegisterOperand) Unary.getClearVal(s);
     EMIT(MIR_Store.create(PPC_STAddr, i1, A(FP), IC(offset), null, TG()));
     if (VM.BuildFor32Addr) {
-      OPT_RegisterOperand i2 = I(regpool.getSecondReg(i1.register));
+      OPT_RegisterOperand i2 = I(regpool.getSecondReg(i1.getRegister()));
       EMIT(MIR_Store.create(PPC_STW, i2, A(FP), IC(offset + 4), null, TG()));
     }
     EMIT(MIR_Load.mutate(s, PPC_LFD, Unary.getClearResult(s), A(FP), IC(offset), null, TG()));
@@ -382,15 +382,15 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       int numFormals = Prologue.getNumberOfFormals(s);
       int numLongs = 0;
       for (int i = 0; i < numFormals; i++) {
-        if (Prologue.getFormal(s, i).type.isLongType()) numLongs++;
+        if (Prologue.getFormal(s, i).getType().isLongType()) numLongs++;
       }
       if (numLongs != 0) {
         OPT_Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
         for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
           OPT_RegisterOperand sForm = Prologue.getClearFormal(s, sidx);
           Prologue.setFormal(s2, s2idx++, sForm);
-          if (sForm.type.isLongType()) {
-            Prologue.setFormal(s2, s2idx++, I(regpool.getSecondReg(sForm.register)));
+          if (sForm.getType().isLongType()) {
+            Prologue.setFormal(s2, s2idx++, I(regpool.getSecondReg(sForm.getRegister())));
           }
         }
         EMIT(s2);
@@ -424,8 +424,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_RegisterOperand result = Call.getClearResult(s);
     OPT_RegisterOperand result2 = null;
     if (VM.BuildFor32Addr) {
-      if (result != null && result.type.isLongType()) {
-        result2 = I(regpool.getSecondReg(result.register));
+      if (result != null && result.getType().isLongType()) {
+        result2 = I(regpool.getSecondReg(result.getRegister()));
       }
     }
 
@@ -460,8 +460,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       if (VM.BuildFor32Addr) {
         if (param instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rparam = (OPT_RegisterOperand) param;
-          if (rparam.type.isLongType()) {
-            MIR_Call.setParam(s, mirCallIdx++, L(regpool.getSecondReg(rparam.register)));
+          if (rparam.getType().isLongType()) {
+            MIR_Call.setParam(s, mirCallIdx++, L(regpool.getSecondReg(rparam.getRegister())));
           }
         }
       }
@@ -491,8 +491,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_RegisterOperand result = Call.getClearResult(s);
     OPT_RegisterOperand result2 = null;
     if (VM.BuildFor32Addr) {
-      if (result != null && result.type.isLongType()) {
-        result2 = I(regpool.getSecondReg(result.register));
+      if (result != null && result.getType().isLongType()) {
+        result2 = I(regpool.getSecondReg(result.getRegister()));
       }
     }
 
@@ -527,8 +527,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       if (VM.BuildFor32Addr) {
         if (param instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rparam = (OPT_RegisterOperand) param;
-          if (rparam.type.isLongType()) {
-            MIR_Call.setParam(s, mirCallIdx++, L(regpool.getSecondReg(rparam.register)));
+          if (rparam.getType().isLongType()) {
+            MIR_Call.setParam(s, mirCallIdx++, L(regpool.getSecondReg(rparam.getRegister())));
           }
         }
       }
@@ -539,7 +539,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (value != null) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand) value;
       if (VM.BuildFor32Addr && value.getType().isLongType()) {
-        OPT_Register pair = regpool.getSecondReg(rop.register);
+        OPT_Register pair = regpool.getSecondReg(rop.getRegister());
         EMIT(MIR_Return.mutate(s, PPC_BLR, rop.copyU2U(), I(pair)));
       } else {
         EMIT(MIR_Return.mutate(s, PPC_BLR, rop.copyU2U(), null));
@@ -716,8 +716,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void CMP_ZERO(OPT_Instruction s, OPT_Operator op, OPT_RegisterOperand def, OPT_Operand left,
                                 OPT_ConditionOperand cond) {
     if (VM.VerifyAssertions) VM._assert(!cond.isUNSIGNED());
-    if (!def.register.spansBasicBlock()) {
-      def.register = regpool.getPhysicalRegisterSet().getTemp();
+    if (!def.getRegister().spansBasicBlock()) {
+      def.setRegister(regpool.getPhysicalRegisterSet().getTemp());
     }
     EMIT(MIR_Unary.create(op, def, left));
     EMIT(MIR_CondBranch.mutate(s,
@@ -731,8 +731,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void CMP_ZERO(OPT_Instruction s, OPT_Operator op, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                 OPT_Operand right, OPT_ConditionOperand cond) {
     if (VM.VerifyAssertions) VM._assert(!cond.isUNSIGNED());
-    if (!def.register.spansBasicBlock()) {
-      def.register = regpool.getPhysicalRegisterSet().getTemp();
+    if (!def.getRegister().spansBasicBlock()) {
+      def.setRegister(regpool.getPhysicalRegisterSet().getTemp());
     }
     EMIT(MIR_Binary.create(op, def, left, right));
     EMIT(MIR_CondBranch.mutate(s,
@@ -1288,7 +1288,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(MIR_Binary.create(PPC_SRAWI, c, left, IC(power)));
       EMIT(MIR_Unary.create(PPC_ADDZE, def, c.copyD2U()));
     } else {
-      IntConstant(c.register, right.value);
+      IntConstant(c.getRegister(), right.value);
       EMIT(MIR_Binary.mutate(s, PPC_DIVW, def, left, c));
     }
   }
@@ -1311,7 +1311,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(MIR_Binary.create(PPC_SLWI, I(temp), I(temp), IC(power)));
       EMIT(MIR_Binary.create(PPC_SUBF, def, I(temp), left.copyU2U()));
     } else {
-      IntConstant(c.register, right.value);
+      IntConstant(c.getRegister(), right.value);
       EMIT(MIR_Binary.mutate(s, PPC_DIVW, I(temp), left, c));
       EMIT(MIR_Binary.create(PPC_MULLW, I(temp), I(temp), c.copyU2U()));
       EMIT(MIR_Binary.create(PPC_SUBF, def, I(temp), left.copyU2U()));
@@ -1322,7 +1322,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
    * Conversion
    */
   protected final void INT_2LONG(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left) {
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     if (VM.BuildFor32Addr) {
       OPT_Register defLow = regpool.getSecondReg(defHigh);
       EMIT(MIR_Move.mutate(s, PPC_MOVE, I(defLow), left));
@@ -1341,14 +1341,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
    * taken from: The PowerPC Compiler Writer's Guide, pp. 83
    */
   protected final void INT_2DOUBLE(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left) {
-    OPT_Register res = def.register;
-    OPT_Register src = left.register;
+    OPT_Register res = def.getRegister();
+    OPT_Register src = left.getRegister();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand temp = regpool.makeTempInt();
     int p = burs.ir.stackManager.allocateSpaceForConversion();
     EMIT(MIR_Unary.mutate(s, PPC_LDIS, temp, IC(0x4330)));
     // TODO: valid location?
-    EMIT(MIR_Store.create(PPC_STW, I(temp.register), A(FP), IC(p), new OPT_TrueGuardOperand()));
+    EMIT(MIR_Store.create(PPC_STW, I(temp.getRegister()), A(FP), IC(p), new OPT_TrueGuardOperand()));
     OPT_Register t1 = regpool.getInteger();
     EMIT(MIR_Binary.create(PPC_XORIS, I(t1), I(src), IC(0x8000)));
     EMIT(MIR_Store.create(PPC_STW, I(t1), A(FP), IC(p + 4), new OPT_TrueGuardOperand()));
@@ -1361,7 +1361,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   // LONG arithmetic:
   protected final void LONG_2INT(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left) {
     if (VM.BuildFor32Addr) {
-      OPT_Register srcHigh = left.register;
+      OPT_Register srcHigh = left.getRegister();
       OPT_Register srcLow = regpool.getSecondReg(srcHigh);
       EMIT(MIR_Move.mutate(s, PPC_MOVE, def, I(srcLow)));
     } else {
@@ -1370,8 +1370,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   protected final void LONG_MOVE(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left) {
-    OPT_Register defReg = def.register;
-    OPT_Register leftReg = left.register;
+    OPT_Register defReg = def.getRegister();
+    OPT_Register leftReg = left.getRegister();
     if (VM.BuildFor32Addr) {
       EMIT(MIR_Move.create(PPC_MOVE, I(defReg), I(leftReg)));
       EMIT(MIR_Move.create(PPC_MOVE, I(regpool.getSecondReg(defReg)), I(regpool.getSecondReg(leftReg))));
@@ -1390,7 +1390,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       long value = left.value;
       int valueHigh = (int) (value >> 32);
       int valueLow = (int) (value & 0xffffffff);
-      OPT_Register register = def.register;
+      OPT_Register register = def.getRegister();
       IntConstant(register, valueHigh);
       IntConstant(regpool.getSecondReg(register), valueLow);
     } else {
@@ -1399,7 +1399,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       int bytes23 = (int) ((value & 0x00000000ffff0000L) >>> 16);
       int bytes45 = (int) ((value & 0x0000ffff00000000L) >>> 32);
       int bytes67 = (int) ((value & 0xffff000000000000L) >>> 48);
-      OPT_Register register = def.register;
+      OPT_Register register = def.getRegister();
       OPT_Register temp1 = regpool.getLong();
       if (OPT_Bits.fits(value, 16)) {
         EMIT(MIR_Unary.create(PPC_LDI, L(register), IC(bytes01)));
@@ -1424,9 +1424,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_ADD(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                 OPT_RegisterOperand right) {
     if (VM.BuildFor32Addr) {
-      OPT_Register defReg = def.register;
-      OPT_Register leftReg = left.register;
-      OPT_Register rightReg = right.register;
+      OPT_Register defReg = def.getRegister();
+      OPT_Register leftReg = left.getRegister();
+      OPT_Register rightReg = right.getRegister();
       EMIT(MIR_Binary.create(PPC_ADDC,
                              I(regpool.getSecondReg(defReg)),
                              I(regpool.getSecondReg(leftReg)),
@@ -1441,9 +1441,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_SUB(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                 OPT_RegisterOperand right) {
     if (VM.BuildFor32Addr) {
-      OPT_Register defReg = def.register;
-      OPT_Register leftReg = right.register;
-      OPT_Register rightReg = left.register;
+      OPT_Register defReg = def.getRegister();
+      OPT_Register leftReg = right.getRegister();
+      OPT_Register rightReg = left.getRegister();
       EMIT(MIR_Binary.create(PPC_SUBFC,
                              I(regpool.getSecondReg(defReg)),
                              I(regpool.getSecondReg(leftReg)),
@@ -1456,8 +1456,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   protected final void LONG_NEG(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left) {
     if (VM.BuildFor32Addr) {
-      OPT_Register defReg = def.register;
-      OPT_Register leftReg = left.register;
+      OPT_Register defReg = def.getRegister();
+      OPT_Register leftReg = left.getRegister();
       EMIT(MIR_Binary.create(PPC_SUBFIC, I(regpool.getSecondReg(defReg)), I(regpool.getSecondReg(leftReg)), IC(0)));
       EMIT(MIR_Unary.create(PPC_SUBFZE, I(defReg), I(leftReg)));
     } else {
@@ -1466,8 +1466,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   protected final void LONG_NOT(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left) {
-    OPT_Register defReg = def.register;
-    OPT_Register leftReg = left.register;
+    OPT_Register defReg = def.getRegister();
+    OPT_Register leftReg = left.getRegister();
     if (VM.BuildFor32Addr) {
       EMIT(MIR_Binary.create(PPC_NOR, I(defReg), I(leftReg), I(leftReg)));
       EMIT(MIR_Binary.create(PPC_NOR,
@@ -1481,9 +1481,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   protected final void LONG_LOG(OPT_Instruction s, OPT_Operator operator, OPT_RegisterOperand def,
                                 OPT_RegisterOperand left, OPT_RegisterOperand right) {
-    OPT_Register defReg = def.register;
-    OPT_Register leftReg = left.register;
-    OPT_Register rightReg = right.register;
+    OPT_Register defReg = def.getRegister();
+    OPT_Register leftReg = left.getRegister();
+    OPT_Register rightReg = right.getRegister();
     if (VM.BuildFor32Addr) {
       EMIT(MIR_Binary.create(operator, I(defReg), I(leftReg), I(rightReg)));
       EMIT(MIR_Binary.create(operator,
@@ -1502,11 +1502,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_SHL(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                 OPT_RegisterOperand right) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Register leftHigh = left.register;
+    OPT_Register leftHigh = left.getRegister();
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
-    OPT_Register shift = right.register;
+    OPT_Register shift = right.getRegister();
     OPT_Register t0 = regpool.getInteger();
     OPT_Register t31 = regpool.getInteger();
     EMIT(MIR_Binary.create(PPC_SUBFIC, I(t31), I(shift), IC(32)));
@@ -1522,9 +1522,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_SHL_IMM(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                     OPT_IntConstantOperand right) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Register leftHigh = left.register;
+    OPT_Register leftHigh = left.getRegister();
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
     int shift = right.value;
     if (shift < 32) {
@@ -1547,11 +1547,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_USHR(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                  OPT_RegisterOperand right) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Register leftHigh = left.register;
+    OPT_Register leftHigh = left.getRegister();
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
-    OPT_Register shift = right.register;
+    OPT_Register shift = right.getRegister();
     OPT_Register t0 = regpool.getInteger();
     OPT_Register t31 = regpool.getInteger();
     EMIT(MIR_Binary.create(PPC_SUBFIC, I(t31), I(shift), IC(32)));
@@ -1567,9 +1567,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_USHR_IMM(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                      OPT_IntConstantOperand right) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Register leftHigh = left.register;
+    OPT_Register leftHigh = left.getRegister();
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
     int shift = right.value;
     if (shift < 32) {
@@ -1598,9 +1598,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_SHR_IMM(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                     OPT_IntConstantOperand right) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Register leftHigh = left.register;
+    OPT_Register leftHigh = left.getRegister();
     OPT_Register leftLow = regpool.getSecondReg(leftHigh);
     int shift = right.value;
     if (shift < 32) {
@@ -1627,11 +1627,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_MUL(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                 OPT_RegisterOperand right) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register dH = def.register;
+    OPT_Register dH = def.getRegister();
     OPT_Register dL = regpool.getSecondReg(dH);
-    OPT_Register lH = left.register;
+    OPT_Register lH = left.getRegister();
     OPT_Register lL = regpool.getSecondReg(lH);
-    OPT_Register rH = right.register;
+    OPT_Register rH = right.getRegister();
     OPT_Register rL = regpool.getSecondReg(rH);
     OPT_Register tH = regpool.getInteger();
     OPT_Register t = regpool.getInteger();
@@ -1652,7 +1652,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(MIR_Binary.create(PPC64_SRADI, c, left, IC(power)));
       EMIT(MIR_Unary.create(PPC_ADDZE, def, c.copyD2U()));
     } else {
-      IntConstant(c.register, right.value);
+      IntConstant(c.getRegister(), right.value);
       EMIT(MIR_Binary.mutate(s, PPC64_DIVD, def, left, c));
     }
   }
@@ -1676,7 +1676,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(MIR_Binary.create(PPC64_SLDI, L(temp), L(temp), IC(power)));
       EMIT(MIR_Binary.create(PPC_SUBF, def, L(temp), left.copyU2U()));
     } else {
-      IntConstant(c.register, right.value);
+      IntConstant(c.getRegister(), right.value);
       EMIT(MIR_Binary.mutate(s, PPC64_DIVD, L(temp), left, c));
       EMIT(MIR_Binary.create(PPC64_MULLD, L(temp), L(temp), c.copyU2U()));
       EMIT(MIR_Binary.create(PPC_SUBF, def, L(temp), left.copyU2U()));
@@ -1686,7 +1686,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_LOAD_addi(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                       OPT_IntConstantOperand right, OPT_LocationOperand loc, OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     int imm = right.value;
     if (VM.VerifyAssertions) VM._assert(imm < (0x8000 - 4));
@@ -1708,7 +1708,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                        OPT_RegisterOperand right, OPT_AddressConstantOperand Value,
                                        OPT_LocationOperand loc, OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     Offset value = AV(Value).toWord().toOffset();
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, IC(OPT_Bits.PPCMaskUpper16(value))));
@@ -1730,7 +1730,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_LOAD_addx(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                       OPT_RegisterOperand right, OPT_LocationOperand loc, OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     OPT_Instruction inst = MIR_Load.create(PPC_LWZX, I(defHigh), left, right, loc, guard);
     inst.copyPosition(s);
@@ -1751,7 +1751,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_STORE_addi(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                        OPT_IntConstantOperand right, OPT_LocationOperand loc, OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     int imm = right.value;
     if (VM.VerifyAssertions) {
@@ -1775,7 +1775,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                         OPT_RegisterOperand right, OPT_AddressConstantOperand Value,
                                         OPT_LocationOperand loc, OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     Offset value = AV(Value).toWord().toOffset();
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, IC(OPT_Bits.PPCMaskUpper16(value))));
@@ -1797,7 +1797,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void LONG_STORE_addx(OPT_Instruction s, OPT_RegisterOperand def, OPT_RegisterOperand left,
                                        OPT_RegisterOperand right, OPT_LocationOperand loc, OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-    OPT_Register defHigh = def.register;
+    OPT_Register defHigh = def.getRegister();
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     OPT_Instruction inst = MIR_Store.create(PPC_STWX, I(defHigh), left, right, loc, guard);
     inst.copyPosition(s);
@@ -1921,7 +1921,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         } else if (cond.isHIGHER_EQUAL()) {
           // have flip the operands and use non-immediate so trap handler can recognize.
           OPT_RegisterOperand tmp = regpool.makeTempInt();
-          IntConstant(tmp.register, v2.value);
+          IntConstant(tmp.getRegister(), v2.value);
           EMIT(MIR_Trap.mutate(s, PPC_TW, gRes, new OPT_PowerPCTrapOperand(cond.flipOperands()), tmp, v1, tc));
         } else {
           throw new OPT_OptimizingCompilerException("Unexpected case of trap_if" + s);
@@ -1946,7 +1946,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
             // the two pieces of a long register from a LONG_ZERO_CHECK.
             // A little awkward, but probably the easiest workaround...
             OPT_RegisterOperand rr = regpool.makeTempInt();
-            EMIT(MIR_Binary.create(PPC_OR, rr, v1, I(regpool.getSecondReg(v1.register))));
+            EMIT(MIR_Binary.create(PPC_OR, rr, v1, I(regpool.getSecondReg(v1.getRegister()))));
             v1 = rr.copyD2U();
             v2 = IC(0);
             EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, new OPT_PowerPCTrapOperand(cond), v1, v2, tc));
@@ -2082,8 +2082,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
           OPT_RegisterOperand rparam = (OPT_RegisterOperand) param;
           // the second half is appended at the end
           // OPT_LinearScan will update the map.
-          if (rparam.type.isLongType()) {
-            OsrPoint.setElement(s, pidx++, L(burs.ir.regpool.getSecondReg(rparam.register)));
+          if (rparam.getType().isLongType()) {
+            OsrPoint.setElement(s, pidx++, L(burs.ir.regpool.getSecondReg(rparam.getRegister())));
           }
         }
       }

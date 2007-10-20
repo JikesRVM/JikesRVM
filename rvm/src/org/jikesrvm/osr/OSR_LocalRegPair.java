@@ -17,35 +17,36 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.vmmagic.unboxed.Word;
 
 /**
- * An OSR_LocalRegPair keeps the type information and localtion of
+ * An OSR_LocalRegPair keeps the type information and location of
  * a local variable/stack slot from byte code to machine code.
  */
 public class OSR_LocalRegPair implements OSR_Constants {
 
-  // is it a local or stack?
-  public int kind;
+  /** is it a local or stack? */
+  public final boolean kind;
 
-  // what's the number of local of stack
+  /** what's the number of local of stack */
   public int num;
 
-  // what's the type code? ('I', 'J', 'D', etc)
-  public byte typeCode;
+  /** what's the type code? ('I', 'J', 'D', etc) */
+  public final byte typeCode;
 
-  /* what's the register oprand, from which we can get the symbolic register.
+  /**
+   * What's the register operand, from which we can get the symbolic register.
    * The operand could be symbolic register, or constants, we need to take
    * it out later.
    */
-  public OPT_Operand operand;
+  public final OPT_Operand operand;
 
   /* rest part only available after updated by OPT_LinearScan.updateOSRMaps. */
 
   /* A reg value could be an integer constant (ICONST),
   *                      a physical register (PHYREG), or
   *                      a spill on the stack (SPILL).
-  * The  valueType is one of them, combined with the typeCode, one shuld be
+  * The  valueType is one of them, combined with the typeCode, one should be
   * able to recover the value of a variable.
   */
-  public int valueType;
+  public byte valueType;
 
   /* The meaning of value field depends on valueType
   * for ICONST, ACONST and LCONST, it is the value of the constant,
@@ -61,12 +62,12 @@ public class OSR_LocalRegPair implements OSR_Constants {
 
   /* The LiveAnalysis phase builds the linked list of tuples, and
    * the long type variables will get another half register
-   * ( splitted in BURS ).
+   * ( split in BURS ).
    * After register allocation, we should not use <code>operand</code>
    * anymore. The physical register number, spilled location, or
    * constant value is represented by (valueType, value)
    */
-  public OSR_LocalRegPair(int kind, int num, byte type, OPT_Operand op) {
+  public OSR_LocalRegPair(boolean kind, int num, byte type, OPT_Operand op) {
     this.kind = kind;
     this.num = num;
     this.typeCode = type;
@@ -77,13 +78,14 @@ public class OSR_LocalRegPair implements OSR_Constants {
     return new OSR_LocalRegPair(kind, num, typeCode, operand);
   }
 
-  /* converts tuple to string as
-   *  ( L/S num, type, valueType, value, oprand )
+  /**
+   * converts tuple to string as
+   * ( L/S num, type, valueType, value, operand )
    */
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
 
-    buf.append((char) kind);
+    buf.append(kind == LOCAL ? 'L' : 'S');
     buf.append(num).append(" , ");
 
     char tcode = (char) typeCode;

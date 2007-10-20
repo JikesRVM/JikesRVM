@@ -14,6 +14,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
@@ -31,7 +32,7 @@ public abstract class VM_LazyCompilationTrampolineGenerator implements VM_Baseli
   public static ArchitectureSpecific.VM_CodeArray getTrampoline() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     // get JTOC into ECX
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_ArchEntrypoints.jtocField.getOffset());
     // jmp to real lazy mathod invoker
     asm.emitJMP_RegDisp(ECX, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     return asm.getMachineCodes();

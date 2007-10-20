@@ -12,8 +12,6 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.utility.scan.MMType;
-
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
@@ -117,6 +115,13 @@ import org.vmmagic.unboxed.*;
   public abstract byte[] getTypeDescriptor(ObjectReference ref);
 
   /**
+   * Is the passed object an array?
+   *
+   * @param object address of the object
+   */
+  public abstract boolean isArray(ObjectReference object);
+
+  /**
    * Get the length of an array object.
    *
    * @param object address of the object
@@ -148,6 +153,21 @@ import org.vmmagic.unboxed.*;
    * @return the value of the bits
    */
   public abstract Word prepareAvailableBits(ObjectReference object);
+
+  /**
+   * Sets the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @param val the new value of the byte
+   */
+  public abstract void writeAvailableByte(ObjectReference object, byte val);
+  /**
+   * Read the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @return the value of the byte
+   */
+  public abstract byte readAvailableByte(ObjectReference object);
 
   /**
    * Sets the bits available for memory manager use in an object.
@@ -201,12 +221,11 @@ import org.vmmagic.unboxed.*;
   public abstract boolean isAcyclic(ObjectReference typeRef);
 
   /**
-   * Return the type object for a give object
+   * Dump debugging information for an object.
    *
-   * @param object The object whose type is required
-   * @return The type object for <code>object</code>
+   * @param object The object whose information is to be dumped
    */
-  public abstract MMType getObjectType(ObjectReference object);
+  public abstract void dumpObject(ObjectReference object);
 
   /*
    * NOTE: The following methods must be implemented by subclasses of this

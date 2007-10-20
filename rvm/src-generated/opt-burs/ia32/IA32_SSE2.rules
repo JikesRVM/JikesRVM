@@ -24,11 +24,6 @@ PRODUCTION
 ##################################
 # Basic Floating-Point ALU operations
 ##################################
-r: REGISTER
-0
-NOFLAGS
-// No code emitted
-
 #####
 # ADD/SUB/MUL/DIV
 #####
@@ -141,7 +136,7 @@ r:	DOUBLE_LOAD(riv, riv)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, Load.getResult(P(p)), MO_L(P(p), QW)));
 
-r:	DOUBLE_ALOAD(r, riv)
+r:	DOUBLE_ALOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
@@ -151,7 +146,7 @@ r:	FLOAT_LOAD(riv, riv)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, Load.getResult(P(p)), MO_L(P(p), DW)));
 
-r:	FLOAT_ALOAD(r, riv)
+r:	FLOAT_ALOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));
@@ -161,7 +156,7 @@ stm:	DOUBLE_STORE(r, OTHER_OPERAND(riv, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_S(P(p), QW), Store.getValue(P(p))));
 
-stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(r, riv))
+stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(riv, riv))
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
@@ -171,7 +166,7 @@ stm:	FLOAT_STORE(r, OTHER_OPERAND(riv, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_S(P(p), DW), Store.getValue(P(p))));
 
-stm:	FLOAT_ASTORE(r, OTHER_OPERAND(r, riv))
+stm:	FLOAT_ASTORE(r, OTHER_OPERAND(riv, riv))
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));
@@ -198,6 +193,26 @@ r:	DOUBLE_2FLOAT(r)
 20
 EMIT_INSTRUCTION
 SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+
+r: FLOAT_2INT(r)
+20
+EMIT_INSTRUCTION
+EMIT(P(p)); /* leave for complex operators */
+
+r: FLOAT_2LONG(r)
+20
+EMIT_INSTRUCTION
+EMIT(P(p)); /* leave for complex operators */
+
+r: DOUBLE_2INT(r)
+20
+EMIT_INSTRUCTION
+EMIT(P(p)); /* leave for complex operators */
+
+r: DOUBLE_2LONG(r)
+20
+EMIT_INSTRUCTION
+EMIT(P(p)); /* leave for complex operators */
 
 #####
 # FLOAT_AS_INT_BITS

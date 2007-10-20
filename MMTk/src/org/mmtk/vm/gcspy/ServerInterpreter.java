@@ -38,14 +38,14 @@ import org.vmmagic.unboxed.Address;
    * @param verbose Whether the server is to run verbosely
    */
   @Interruptible
-  public abstract void init (String name, int port, boolean verbose);
+  public abstract void init(String name, int port, boolean verbose);
 
   /**
    * Add an event to the ServerInterpreter.
    * @param num the event number
    * @param name the event name
    */
-  public abstract void addEvent (int num, String name);
+  public abstract void addEvent(int num, String name);
 
   /**
    * Set the general info for the ServerInterpreter.
@@ -95,7 +95,7 @@ import org.vmmagic.unboxed.Address;
    * @param event The current event
    * @return true if we are connected
    */
-  public abstract boolean isConnected (int event);
+  public abstract boolean isConnected(int event);
 
   /**
    * Start compensation timer so that time spent gathering data is
@@ -114,7 +114,7 @@ import org.vmmagic.unboxed.Address;
    * This is a point at which the server can pause, play one, etc.
    * @param event The current event
    */
-  public abstract void serverSafepoint (int event);
+  public abstract void serverSafepoint(int event);
 
   /**
    * Discover the smallest header size for objects.

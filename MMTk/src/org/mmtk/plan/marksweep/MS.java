@@ -15,6 +15,7 @@ package org.mmtk.plan.marksweep;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -37,7 +38,8 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class MS extends StopTheWorld {
+@Uninterruptible
+public class MS extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -47,22 +49,16 @@ import org.vmmagic.unboxed.*;
    * Class variables
    */
 
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
+
+  public static final int SCAN_MARK = 0;
 
   /****************************************************************************
    * Instance variables
    */
 
   public final Trace msTrace = new Trace(metaDataSpace);
-
-  /**
-   * Boot-time initialization
-   */
-  @Interruptible
-  public void boot() {
-    super.boot();
-  }
 
   /*****************************************************************************
    *
@@ -75,7 +71,7 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
@@ -84,6 +80,10 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
+    if (phaseId == CLOSURE) {
+      msTrace.prepare();
+      return;
+    }
     if (phaseId == RELEASE) {
       msTrace.release();
       msSpace.release();
@@ -114,7 +114,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
@@ -123,16 +123,15 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
-   * @return False if the object will never move
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MARK_SWEEP, object))
-      return false;
-    return super.objectCanMove(object);
+      return true;
+    return super.willNeverMove(object);
   }
-
 }

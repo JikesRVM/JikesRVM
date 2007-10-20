@@ -15,10 +15,7 @@ package org.mmtk.plan.semispace;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.CallSite;
-import org.mmtk.utility.scan.*;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -38,7 +35,6 @@ import org.vmmagic.pragma.*;
  * @see SSCollector
  * @see StopTheWorldMutator
  * @see MutatorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class SSMutator extends StopTheWorldMutator {
   /****************************************************************************
@@ -76,7 +72,7 @@ import org.vmmagic.pragma.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SS.ALLOC_SS)
-      return ss.alloc(bytes, align, offset, false);
+      return ss.alloc(bytes, align, offset);
     else
       return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -131,24 +127,6 @@ import org.vmmagic.pragma.*;
     return super.getAllocatorFromSpace(space);
   }
 
-  /**
-   * Give the compiler/runtime statically generated alloction advice
-   * which will be passed to the allocation routine at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return Allocation advice to be passed to the allocation routine
-   * at runtime
-   */
-  public final AllocAdvice getAllocAdvice(MMType type, int bytes, CallSite callsite, AllocAdvice hint) {
-    return null;
-  }
-
-
   /****************************************************************************
    *
    * Collection
@@ -161,13 +139,13 @@ import org.vmmagic.pragma.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == SS.PREPARE_MUTATOR) {
+  public void collectionPhase(short phaseId, boolean primary) {
+    if (phaseId == SS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       return;
     }
 
-    if (phaseId == SS.RELEASE_MUTATOR) {
+    if (phaseId == SS.RELEASE) {
       super.collectionPhase(phaseId, primary);
       // rebind the allocation bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());

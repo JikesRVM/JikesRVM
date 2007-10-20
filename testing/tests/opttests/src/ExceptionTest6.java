@@ -41,7 +41,7 @@ class ExceptionTest6 {
 
 
           } catch (IndexOutOfBoundsException e3) {
-            System.out.println(" so [2]." );
+            System.out.println(" so [2].");
           }
 
         }
@@ -62,7 +62,7 @@ class ExceptionTest6 {
 
      try {
        System.out.println("does it work? " + i + "   ");
-       if ((i < 0) || ( i > 2)) {
+       if ((i < 0) || (i > 2)) {
          System.out.println(" IndexOutOfBoundsException with index = " + i);
          throw new IndexOutOfBoundsException();
        }

@@ -17,6 +17,7 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.vmmagic.unboxed.Offset;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Represents a constant object operand (for example, from an
@@ -37,6 +38,11 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
   public final Offset offset;
 
   /**
+   * Can this object be moved in memory?
+   */
+  public final boolean moveable;
+
+  /**
    * Construct a new object constant operand
    *
    * @param v the object constant
@@ -46,6 +52,9 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
     if (VM.VerifyAssertions) VM._assert(v != null);
     value = v;
     offset = i;
+    // prior to writing the boot image we don't know where objects will reside,
+    // so we must treat them as moveable when writing the boot image
+    moveable = !VM.runningVM || !MM_Interface.willNeverMove(v);
   }
 
   /**
@@ -88,6 +97,16 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
   public final boolean isRef() {
     return true;
   }
+
+  /**
+   * Is the operand a moveable {@link OPT_ObjectConstantOperand}?
+   *
+   * @return moveable
+   */
+  public boolean isMoveableObjectConstant() {
+    return moveable;
+  }
+
 
   /**
    * Are two operands semantically equivalent?

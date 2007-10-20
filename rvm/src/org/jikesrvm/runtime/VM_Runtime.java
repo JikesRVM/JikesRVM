@@ -30,11 +30,11 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -60,7 +60,7 @@ import org.vmmagic.unboxed.Offset;
  * (by writing
  * straight line code with no "non-magic" method invocations) or we
  * must turn off the
- * collector (so that a gc request inititiated by another thread will
+ * collector (so that a gc request initiated by another thread will
  * not run until we're
  * done manipulating the bare pointers). Furthermore, while
  * the collector is turned off,
@@ -100,6 +100,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *                 class/array/interface
    * @return true iff is object instance of target type?
    */
+  @Entrypoint
   static boolean instanceOf(Object object, int targetID) throws NoClassDefFoundError {
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
@@ -138,6 +139,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return true iff is object instance of target type?
    */
   @Uninterruptible
+  @Entrypoint
   static boolean instanceOfResolvedClass(Object object, int id) {
     if (object == null) {
       return false; // null is not an instance of any type
@@ -159,6 +161,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *         target type
    */
   @Uninterruptible
+  @Entrypoint
   static boolean instanceOfFinal(Object object, Offset targetTibOffset) {
     if (object == null) {
       return false; // null is not an instance of any type
@@ -175,6 +178,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param object object to be tested
    * @param id of type reference corresponding to target class/array/interface
    */
+  @Entrypoint
   static void checkcast(Object object, int id) throws ClassCastException, NoClassDefFoundError {
     if (object == null) {
       return; // null may be cast to any type
@@ -203,6 +207,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param id of type corresponding to target class
    */
   @Uninterruptible
+  @Entrypoint
   static void checkcastResolvedClass(Object object, int id) {
     if (object == null) return; // null can be cast to any type
 
@@ -221,6 +226,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * quick version for final classes, array of final class or array of primitives
    */
   @Uninterruptible
+  @Entrypoint
   static void checkcastFinal(Object object, Offset targetTibOffset) {
     if (object == null) return; // null can be cast to any type
 
@@ -248,6 +254,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Throw exception iff array assignment is illegal.
    */
+  @Entrypoint
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
     if (arrayElement == null) {
       return; // null may be assigned to any type
@@ -304,6 +311,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
+  @Entrypoint
   static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekType();
@@ -362,11 +370,12 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
+  @Entrypoint
   public static Object resolvedNewScalar(int size, Object[] tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
-    checkAllocationCountDownToGC();
+    if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
     // Allocate the object and initialize its header
     Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
@@ -385,6 +394,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */
+  @Entrypoint
   public static Object unresolvedNewArray(int numElements, int id, int site)
       throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
@@ -439,6 +449,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
+  @Entrypoint
   public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, Object[] tib,
                                         int allocator, int align, int offset, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
@@ -446,7 +457,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (numElements < 0) raiseNegativeArraySizeException();
 
     // GC stress testing
-    checkAllocationCountDownToGC();
+    if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, headerSize, tib, allocator, align, offset, site);
@@ -580,17 +591,10 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Report unexpected method call: abstract method (verification error).
    */
+  @Entrypoint
   static void unexpectedAbstractMethodCall() {
     VM.sysWrite("VM_Runtime.unexpectedAbstractMethodCall\n");
     throw new AbstractMethodError();
-  }
-
-  /**
-   * Report unimplemented bytecode.
-   */
-  static void unimplementedBytecode(int bytecode) {
-    VM.sysWrite(bytecode);
-    VM.sysFail("VM_Runtime.unimplementedBytecode\n");
   }
 
   //---------------------------------------------------------------//
@@ -607,6 +611,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * This method is public so that it can be invoked by java.lang.VMClass.
    */
   @NoInline
+  @Entrypoint
   public static void athrow(Throwable exceptionObject) {
     VM_Registers registers = new VM_Registers();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
@@ -635,21 +640,22 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           onto the stack immediately above this frame, for use by
    *           VM_HardwareTrapGCMapIterator during garbage collection.
    */
+  @Entrypoint
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
-    VM_Thread myThread = VM_Thread.getCurrentThread();
-    VM_Registers exceptionRegisters = myThread.hardwareExceptionRegisters;
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    VM_Registers exceptionRegisters = myThread.getHardwareExceptionRegisters();
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
-        myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
+        myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
         !myThread.hasNativeStackFrame()) {
       // expand stack by the size appropriate for normal or native frame
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
+        VM_Thread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
       } else {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GROW, exceptionRegisters);
+        VM_Thread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_GROW, exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse);
       exceptionRegisters.inuse = false;
@@ -662,6 +668,48 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (canForceGC()) {
       //VM.sysWrite("FORCING GC: in deliverHardwareException\n");
       System.gc();
+    }
+
+    // Sanity checking.
+    // Hardware traps in uninterruptible code should be considered hard failures.
+    if (!VM.sysFailInProgress()) {
+      Address fp = exceptionRegisters.getInnermostFramePointer();
+      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        Address ip = exceptionRegisters.getInnermostInstructionAddress();
+        Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
+        if (compiledMethod.isWithinUninterruptibleCode(instructionOffset)) {
+          switch (trapCode) {
+          case TRAP_NULL_POINTER:
+            VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
+            break;
+          case TRAP_ARRAY_BOUNDS:
+            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo, ").");
+            break;
+          case TRAP_DIVIDE_BY_ZERO:
+            VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
+            break;
+          case TRAP_STACK_OVERFLOW:
+          case TRAP_JNI_STACK:
+            VM.sysWriteln("\nFatal error: StackOverflowError within uninterruptible region.");
+            break;
+          case TRAP_CHECKCAST:
+            VM.sysWriteln("\nFatal error: ClassCastException within uninterruptible region.");
+            break;
+          case TRAP_MUST_IMPLEMENT:
+            VM.sysWriteln("\nFatal error: IncompatibleClassChangeError within uninterruptible region.");
+            break;
+          case TRAP_STORE_CHECK:
+            VM.sysWriteln("\nFatal error: ArrayStoreException within uninterruptible region.");
+            break;
+          default:
+            VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
+          break;
+          }
+          VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
+        }
+      }
     }
 
     Throwable exceptionObject;
@@ -707,6 +755,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * does not return (stack is unwound and execution resumes in a catch block)
    */
   @NoInline
+  @Entrypoint
   static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) {
     VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
@@ -718,6 +767,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * then recover the array index from a trap instruction.
    */
   @NoInline
+  @Entrypoint
   static void raiseArrayIndexOutOfBoundsException(int index) {
     throw new java.lang.ArrayIndexOutOfBoundsException(index);
   }
@@ -743,6 +793,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * raise a null pointer exception.
    */
   @NoInline
+  @Entrypoint
   public static void raiseNullPointerException() {
     throw new java.lang.NullPointerException();
   }
@@ -765,6 +816,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * raise an arithmetic exception.
    */
   @NoInline
+  @Entrypoint
   static void raiseArithmeticException() {
     throw new java.lang.ArithmeticException();
   }
@@ -774,6 +826,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Used to handle error cases in invokeinterface dispatching.
    */
   @NoInline
+  @Entrypoint
   static void raiseAbstractMethodError() {
     throw new java.lang.AbstractMethodError();
   }
@@ -783,6 +836,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Used to handle error cases in invokeinterface dispatching.
    */
   @NoInline
+  @Entrypoint
   static void raiseIllegalAccessError() {
     throw new java.lang.IllegalAccessError();
   }
@@ -852,7 +906,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Deliver an exception to current java thread.
    * <STRONG> Precondition: </STRONG> VM.disableGC has already been called.
-   * --dave
    *  <ol>
    *   <li> exceptionRegisters may not match any reasonable stack
    *          frame at this point.
@@ -867,16 +920,13 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * </ul>
    */
   private static void deliverException(Throwable exceptionObject, VM_Registers exceptionRegisters) {
-    if (VM.debugOOM) {
+    if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
-    }
-    if (VM.BuildForIA32) {
-      VM_Magic.clearFloatingPointState();
     }
 
     // walk stack and look for a catch block
     //
-    if (VM.debugOOM) {
+    if (VM.TraceExceptionDelivery) {
       VM.sysWrite("Hunting for a catch block...");
     }
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
@@ -892,7 +942,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
         if (catchBlockOffset >= 0) {
           // found an appropriate catch block
-          if (VM.debugOOM) {
+          if (VM.TraceExceptionDelivery) {
             VM.sysWriteln("found one; delivering.");
           }
           Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
@@ -907,76 +957,36 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       fp = exceptionRegisters.getInnermostFramePointer();
     }
 
-    if (VM.debugOOM) {
+    if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("Nope.");
       VM.sysWriteln("VM_Runtime.deliverException() found no catch block.");
     }
     /* No appropriate catch block found. */
 
-    VM_Thread.getCurrentThread().uncaughtExceptionCount++;
-
-    /* Grow the heap.
-     * This could be (but isn't) undoable.  That doesn't matter here, since
-     * we're dying in any case.
-     *
-     * There's no way to give the additional memory exclusively to this
-     * particular thread; too bad. */
-    if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError) {
-      MM_Interface.emergencyGrowHeap(5 * (1 << 20)); // ask for 5 megs and pray
-    }
-    handlePossibleRecursiveException();
-    VM.enableGC();
-    VM_Thread vmThr = VM_Thread.getCurrentThread();
-    Thread thr = vmThr.peekJavaLangThread();
-    if (thr == null) {
-      VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(), "\" while booting: ");
-    } else {
-      // This is output like that of the Sun JDK.
-      VM.sysWrite("Exception in thread \"", thr.getName(), "\": ");
-    }
-    exceptionObject.printStackTrace();
-    VM_Thread.terminate();
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    VM_Scheduler.getCurrentThread().handleUncaughtException(exceptionObject);
   }
 
-  /** Handle the case of exception handling triggering new exceptions. */
-  private static void handlePossibleRecursiveException() {
-    int numUncaughtExceptions = VM_Thread.getCurrentThread().uncaughtExceptionCount;
-    if (numUncaughtExceptions > 1 &&
-        numUncaughtExceptions <=
-        VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      VM.sysWrite("We got an uncaught exception while (recursively) handling ");
-      VM.sysWrite(numUncaughtExceptions - 1);
-      VM.sysWrite(" uncaught exception");
-      if (numUncaughtExceptions - 1 != 1) {
-        VM.sysWrite("s");
-      }
-      VM.sysWriteln(".");
-    }
-    if (numUncaughtExceptions > VM.maxSystemTroubleRecursionDepth) {
-      VM.dieAbruptlyRecursiveSystemTrouble();
-      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-    }
-  }
 
   /**
-   * The current frame is expected to be one of the JNI functions
-   * called from C,
-   * below which is one or more native stack frames
-   * Skip over all frames below with saved code pointers outside of heap
-   * (C frames),
-   * stopping at the native frame immediately preceding the glue frame which
-   * contains
-   * the method ID of the native method
-   * (this is necessary to allow retrieving the
-   * return address of the glue frame)
-   * Ton Ngo 7/30/01
+   * Skip over all frames below currfp with saved code pointers outside of heap
+   * (C frames), stopping at the native frame immediately preceding the glue
+   * frame which contains the method ID of the native method (this is necessary
+   * to allow retrieving the return address of the glue frame)
+   *
+   * @param currfp The current frame is expected to be one of the JNI functions
+   *            called from C, below which is one or more native stack frames
    */
   @Uninterruptible
   public static Address unwindNativeStackFrame(Address currfp) {
-    Address ip, callee_fp;
+    // Remembered address of previous FP
+    Address callee_fp;
+    // Address of native frame
     Address fp = VM_Magic.getCallerFramePointer(currfp);
+    // Instruction pointer for current native frame
+    Address ip;
 
+    // Loop until either we fall off the stack or we find an instruction address
+    // in one of our heaps
     do {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
@@ -1093,9 +1103,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @Inline
   private static boolean canForceGC() {
-    return VM.ForceFrequentGC &&
-           VM_Scheduler.allProcessorsInitialized &&
-           VM_Processor.getCurrentProcessor().threadSwitchingEnabled();
+    return VM.ForceFrequentGC && VM_Scheduler.safeToForceGCs();
   }
-
 }

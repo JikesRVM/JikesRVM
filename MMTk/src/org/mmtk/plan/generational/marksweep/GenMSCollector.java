@@ -41,7 +41,6 @@ import org.vmmagic.unboxed.*;
  * @see GenCollector
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenMSCollector extends GenCollector {
 
@@ -89,7 +88,7 @@ import org.vmmagic.unboxed.*;
     if (Stats.GATHER_MARK_CONS_STATS) {
       if (Space.isInSpace(GenMS.NURSERY, original)) GenMS.nurseryMark.inc(bytes);
     }
-    return mature.alloc(bytes, align, offset, GenMS.msSpace.inMSCollection());
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
@@ -117,7 +116,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Is this thread to do the one-off thread-local tasks
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, primary);
@@ -126,12 +125,7 @@ import org.vmmagic.unboxed.*;
         return;
       }
 
-      if (phaseId == GenMS.START_CLOSURE) {
-        matureTrace.startTrace();
-        return;
-      }
-
-      if (phaseId == GenMS.COMPLETE_CLOSURE) {
+      if (phaseId == GenMS.CLOSURE) {
         matureTrace.completeTrace();
         return;
       }
@@ -139,8 +133,7 @@ import org.vmmagic.unboxed.*;
       if (phaseId == GenMS.RELEASE) {
         matureTrace.release();
         if (global().gcFullHeap) {
-          mature.releaseCollector();
-          mature.releaseMutator();
+          mature.release();
         }
         super.collectionPhase(phaseId, primary);
         return;

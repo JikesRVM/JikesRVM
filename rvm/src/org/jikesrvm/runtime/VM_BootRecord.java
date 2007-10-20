@@ -14,6 +14,7 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -96,6 +97,7 @@ public class VM_BootRecord {
    * hand, simply addresses the boot record as the first object in
    * the boot image).
    */
+  @Entrypoint
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
@@ -191,9 +193,9 @@ public class VM_BootRecord {
    */
   public Offset dumpStackAndDieOffset;
   /**
-   * jtoc offset of VM_Scheduler.processors[]
+   * jtoc offset of VM_GreenScheduler.processors[]
    */
-  public Offset processorsOffset;
+  public Offset greenProcessorsOffset;
   /**
    * jtoc offset of VM_Scheduler.debugRequested
    */
@@ -201,6 +203,7 @@ public class VM_BootRecord {
   /**
    * an external signal has been sent e.g. kill -signalnumber processid
    */
+  @Entrypoint
   int externalSignalFlag;
 
   // Host operating system entrypoints - see "sys.C"
@@ -222,6 +225,7 @@ public class VM_BootRecord {
   // memory
   public Address sysCopyIP;
   public Address sysMallocIP;
+  public Address sysCallocIP;
   public Address sysFreeIP;
   public Address sysZeroIP;
   public Address sysZeroPagesIP;
@@ -249,6 +253,7 @@ public class VM_BootRecord {
   public Address sysNumProcessorsIP;
   public Address sysVirtualProcessorCreateIP;
   public Address sysVirtualProcessorBindIP;
+  @Entrypoint
   public Address sysVirtualProcessorYieldIP;
   public Address sysVirtualProcessorEnableTimeSlicingIP;
   public Address sysPthreadSelfIP;
@@ -259,21 +264,31 @@ public class VM_BootRecord {
   public Address sysStashVmProcessorInPthreadIP;
 
   // arithmetic
+  @Entrypoint
   public Address sysLongDivideIP;
+  @Entrypoint
   public Address sysLongRemainderIP;
+  @Entrypoint
   public Address sysLongToFloatIP;
+  @Entrypoint
   public Address sysLongToDoubleIP;
+  @Entrypoint
   public Address sysFloatToIntIP;
+  @Entrypoint
   public Address sysDoubleToIntIP;
+  @Entrypoint
   public Address sysFloatToLongIP;
+  @Entrypoint
   public Address sysDoubleToLongIP;
+  @Entrypoint
   public Address sysDoubleRemainderIP;
   public Address sysPrimitiveParseFloatIP;
   public Address sysPrimitiveParseIntIP;
   public Address sysParseMemorySizeIP;
 
   // time
-  Address sysGetTimeOfDayIP;
+  Address sysCurrentTimeMillisIP;
+  Address sysNanoTimeIP;
   Address sysNanosleepIP;
 
   // shared libraries
@@ -331,6 +346,11 @@ public class VM_BootRecord {
   public Address sysVMMathLog10IP;
   public Address sysVMMathLog1pIP;
 
+  // system calls for alignment checking
+  public Address sysEnableAlignmentCheckingIP;
+  public Address sysDisableAlignmentCheckingIP;
+  public Address sysReportAlignmentCheckingIP;
+
   /* FIXME: We *really* don't want all these syscalls here unconditionally --- need to push them out somehow */
   // GCspy entry points
   public Address gcspyDriverAddStreamIP;
@@ -367,4 +387,11 @@ public class VM_BootRecord {
 
   public Address gcspyFormatSizeIP;
   public Address gcspySprintfIP;
+
+   // perfctr
+   public Address sysPerfCtrInitIP;
+   public Address sysPerfCtrReadIP;
+   public Address sysPerfCtrReadCyclesIP;
+   public Address sysPerfCtrReadMetricIP;
+
 }

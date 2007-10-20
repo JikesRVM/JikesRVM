@@ -1,0 +1,65 @@
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
+# This is the base buildit configuration file.
+# Buildit has three files of the same format
+#   1. buildit.base_config file at the location of buildit
+#   2. .buildit_config in the user's home directory
+#   3. .buildit_cache in the user's home directory  
+#
+# Use the examples that follow to set the appropriate configuration 
+# in your .buildit_config file to enable more functionality in buildit. 
+#
+# Format is key=value
+# Do not quote values
+
+# =================================================
+# EXAMPLES
+# =================================================
+#
+# Special user/root on a machine
+#rvmx86lnx32.user=test
+#rvmx86lnx32.home=/home/test/$ENV{USER}
+
+# Setup to email reports (must escape @)
+#global.report-email=someone\@domain.abc
+#global.mail.server=mail.domain.abc
+
+# Additional setup to allow emailed report links to work
+#global.upload.base=public_html/
+#global.upload.host=machine.domain.abc
+#global.upload.url=http://machine.domain.abc/~$ENV{USER}
+
+# =================================================
+
+# Benchmarks directory
+global.ext.lib.dir=/usr/share/benchmarks
+
+# Components cache directory. Relative to home directory
+global.components.cache.dir=.buildit_components_cache
+
+# Default JAVA_HOME values
+global.javahome.ppc32-linux=/opt/ibm-java2-ppc-50
+global.javahome.ia32-linux=/opt/jdk1.5.0
+
+# Architecture mappings
+global.arch.i686=ia32
+global.arch.x86_64=ia32
+global.arch.ppc=ppc32
+global.arch.ppc64=ppc32
+
+# Operating system mappings
+global.os.GNU/Linux=linux
+
+# Execution environment
+global.display-wrapper.exe=/usr/bin/xvfb-run

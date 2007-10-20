@@ -102,7 +102,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
           OPT_BasicBlock tableBlock = p.getBasicBlock();
           OPT_BasicBlock nextBlock = tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
           nextBlock.firstInstruction().setmcOffset(-1);
-          OPT_Register regI = MIR_LowTableSwitch.getIndex(p).register;
+          OPT_Register regI = MIR_LowTableSwitch.getIndex(p).getRegister();
           int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
           tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, nextBlock.makeJumpTarget()));
 

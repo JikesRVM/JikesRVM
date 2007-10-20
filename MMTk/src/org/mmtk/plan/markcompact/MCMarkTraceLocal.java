@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public MCMarkTraceLocal(Trace trace) {
-    super(trace);
+    super(MC.SCAN_MARK, trace);
   }
 
   /****************************************************************************
@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
         // Currently, Jikes RVM does not require many objects to be precopied.
         ObjectReference newObject = VM.objectModel.copy(object, MC.ALLOC_IMMORTAL);
         MarkCompactSpace.setForwardingPointer(object, newObject);
-        enqueue(newObject);
+        processNode(newObject);
         return newObject;
       }
       // Somebody else got to it first
@@ -104,7 +104,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object will not move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     // All objects in the MC space may move
     return !Space.isInSpace(MC.MARK_COMPACT, object);
   }

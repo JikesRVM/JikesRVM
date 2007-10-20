@@ -39,7 +39,6 @@ import org.vmmagic.pragma.*;
  * @see MSMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class MSCollector extends StopTheWorldCollector {
 
@@ -73,7 +72,7 @@ import org.vmmagic.pragma.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();
@@ -81,12 +80,7 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    if (phaseId == MS.START_CLOSURE) {
-      trace.startTrace();
-      return;
-    }
-
-    if (phaseId == MS.COMPLETE_CLOSURE) {
+    if (phaseId == MS.CLOSURE) {
       trace.completeTrace();
       return;
     }

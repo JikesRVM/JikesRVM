@@ -12,11 +12,13 @@
  */
 package org.mmtk.plan.refcount;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.StopTheWorldMutator;
 import org.mmtk.plan.refcount.cd.CDMutator;
 import org.mmtk.plan.refcount.cd.NullCDMutator;
 import org.mmtk.plan.refcount.cd.TrialDeletionMutator;
 import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
 
@@ -44,7 +46,6 @@ import org.vmmagic.unboxed.*;
  * @see RCBaseCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public class RCBaseMutator extends StopTheWorldMutator {
 
@@ -54,6 +55,8 @@ import org.vmmagic.unboxed.*;
 
   public ExplicitFreeListLocal rc;
   public ExplicitLargeObjectLocal los;
+  private ExplicitFreeListLocal smcode = Plan.USE_CODE_SPACE ? new ExplicitFreeListLocal(RCBase.smallCodeSpace) : null;
+  private ExplicitLargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new ExplicitLargeObjectLocal(Plan.largeCodeSpace) : null;
 
   public ObjectReferenceDeque modBuffer;
   public DecBuffer decBuffer;
@@ -105,11 +108,19 @@ import org.vmmagic.unboxed.*;
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch(allocator) {
       case RCBase.ALLOC_RC:
-        return rc.alloc(bytes, align, offset, false);
+        return rc.alloc(bytes, align, offset);
       case RCBase.ALLOC_LOS:
-        return los.alloc(bytes, align, offset, false);
+      case RCBase.ALLOC_PRIMITIVE_LOS:
+          return los.alloc(bytes, align, offset);
+      case RCBase.ALLOC_IMMORTAL:
+        return immortal.alloc(bytes, align, offset);
+      case Plan.ALLOC_CODE:
+        return smcode.alloc(bytes, align, offset);
+      case Plan.ALLOC_LARGE_CODE:
+        return lgcode.alloc(bytes, align, offset);
       default:
-        return super.alloc(bytes, align, offset, allocator, site);
+        VM.assertions.fail("RC not aware of allocator");
+        return Address.zero();
     }
   }
 
@@ -128,15 +139,18 @@ import org.vmmagic.unboxed.*;
       int bytes, int allocator) {
     switch(allocator) {
     case RCBase.ALLOC_RC:
-      ExplicitFreeListLocal.unsyncLiveObject(ref);
+    case Plan.ALLOC_CODE:
+      ExplicitFreeListSpace.unsyncSetLiveBit(ref);
     case RCBase.ALLOC_LOS:
+    case Plan.ALLOC_LARGE_CODE:
     case RCBase.ALLOC_IMMORTAL:
       if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+    case RCBase.ALLOC_PRIMITIVE_LOS:
       RCHeader.initializeHeader(ref, typeRef, true);
       decBuffer.push(ref);
       break;
   default:
-      if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+      VM.assertions.fail("RC not aware of allocator");
       break;
     }
   }
@@ -153,8 +167,10 @@ import org.vmmagic.unboxed.*;
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == rc ) return RCBase.rcSpace;
+    if (a == rc)  return RCBase.rcSpace;
     if (a == los) return RCBase.loSpace;
+    if (a == smcode) return RCBase.smallCodeSpace;
+    if (a == lgcode) return RCBase.largeCodeSpace;
     return super.getSpaceFromAllocator(a);
   }
 
@@ -170,6 +186,8 @@ import org.vmmagic.unboxed.*;
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == RCBase.rcSpace) return rc;
     if (space == RCBase.loSpace) return los;
+    if (space == RCBase.smallCodeSpace) return smcode;
+    if (space == RCBase.largeCodeSpace) return lgcode;
     return super.getAllocatorFromSpace(space);
   }
 
@@ -185,20 +203,23 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == RCBase.PREPARE_MUTATOR) {
+    if (phaseId == RCBase.PREPARE) {
       rc.prepare();
       los.prepare();
+      smcode.prepare();
+      lgcode.prepare();
       decBuffer.flushLocal();
       modBuffer.flushLocal();
       return;
     }
 
-    if (phaseId == RCBase.RELEASE_MUTATOR) {
+    if (phaseId == RCBase.RELEASE) {
       los.release();
-      rc.releaseCollector();
-      rc.releaseMutator(); // FIXME see block comment at top of this class
+      rc.release();
+      smcode.release();
+      lgcode.release();
       return;
     }
 

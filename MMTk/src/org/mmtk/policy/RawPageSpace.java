@@ -12,8 +12,9 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.FreeListPageResource;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
@@ -38,53 +39,15 @@ import org.vmmagic.unboxed.*;
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
+   * @param vmRequest An object describing the virtual memory requested.
    */
-  public RawPageSpace(String name, int pageBudget, Address start,
-                      Extent bytes) {
-    super(name, false, false, start, bytes);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
-  }
-
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   */
-  public RawPageSpace(String name, int pageBudget, int mb) {
-    super(name, false, false, mb);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
-  }
-
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  public RawPageSpace(String name, int pageBudget, int mb, boolean top) {
-    super(name, false, false, mb, top);
-    pr = new FreeListPageResource(pageBudget, this, start, extent);
+  public RawPageSpace(String name, int pageBudget, VMRequest vmRequest) {
+    super(name, false, false, vmRequest);
+    if (vmRequest.isDiscontiguous()) {
+      pr = new FreeListPageResource(pageBudget, this, 0);
+    } else {
+      pr = new FreeListPageResource(pageBudget, this, start, extent);
+    }
   }
 
   public void prepare() { }
@@ -111,8 +74,7 @@ import org.vmmagic.unboxed.*;
    * @return <code>zero</code>: calling this is an error.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }

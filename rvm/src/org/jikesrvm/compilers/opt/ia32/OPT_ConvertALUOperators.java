@@ -12,27 +12,19 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
-import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_Simplifier;
-import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CondMove;
-import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
-import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
-import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.ia32.VM_ArchConstants;
-import org.vmmagic.pragma.NoOptCompile;
 
 /**
  * <ul>
@@ -303,14 +295,14 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
         for (OPT_OperandEnumeration defs = s.getPureDefs(); defs.hasMoreElements();) {
           OPT_Operand op = defs.next();
           if (op.isRegister()) {
-            markDead(op.asRegister().register);
+            markDead(op.asRegister().getRegister());
           }
         }
         for (OPT_OperandEnumeration uses = s.getUses(); // includes def/uses
              uses.hasMoreElements();) {
           OPT_Operand op = uses.next();
           if (op.isRegister()) {
-            markLive(op.asRegister().register);
+            markLive(op.asRegister().getRegister());
           }
         }
       }

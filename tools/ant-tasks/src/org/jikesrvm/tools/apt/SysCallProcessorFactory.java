@@ -20,51 +20,31 @@ import com.sun.mirror.declaration.AnnotationTypeDeclaration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-/**
- * Fctory class for APT - dispatches annotations to their handling classes.
- */
+/** Factory class for APT - dispatches annotations to their handling classes. */
 public class SysCallProcessorFactory implements AnnotationProcessorFactory {
-
-  /**
-   * These are the annotations we know about
-   */
-  private static Collection<String> supportedAnnotations =
-    Collections.unmodifiableCollection(
-        Arrays.asList(
-            SysCallProcessor.GEN_IMPL_ANNOTATION,
-            SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION));
-
-  /**
-   * Options that can be passed to us with "-A" - none at the moment.
-   */
-  private static Collection<String> supportedOptions =
-    Collections.emptySet();
-
-  /**
-   * The factory method
-   */
-  public AnnotationProcessor getProcessorFor(
-      Set<AnnotationTypeDeclaration> decs, AnnotationProcessorEnvironment env) {
-    if (decs == null || decs.isEmpty())
+  /** The factory method */
+  public AnnotationProcessor getProcessorFor(final Set<AnnotationTypeDeclaration> decs,
+                                             final AnnotationProcessorEnvironment env) {
+    if (null == decs || decs.isEmpty()) {
       return AnnotationProcessors.NO_OP;
-    else
+    } else {
       return new SysCallProcessor(env);
+    }
   }
 
-  /**
-   * Required method - tells aps which annotations we support
-   */
+  /** @return the set of annotation names we process. */
   public Collection<String> supportedAnnotationTypes() {
-    return supportedAnnotations;
+    final List<String> list =
+        Arrays.asList(SysCallProcessor.GEN_IMPL_ANNOTATION, SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION);
+    return Collections.unmodifiableCollection(list);
   }
 
-  /**
-   * Required method - tells aps which options we support
-   */
+  /** @return  the set of options we support. */
+  @SuppressWarnings({"unchecked"})
   public Collection<String> supportedOptions() {
-    return supportedOptions;
+    return Collections.EMPTY_SET;
   }
-
 }

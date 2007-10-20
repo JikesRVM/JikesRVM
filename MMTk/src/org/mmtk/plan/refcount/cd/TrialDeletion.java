@@ -12,9 +12,7 @@
  */
 package org.mmtk.plan.refcount.cd;
 
-import org.mmtk.plan.ComplexPhase;
 import org.mmtk.plan.Phase;
-import org.mmtk.plan.SimplePhase;
 import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.Log;
@@ -37,34 +35,37 @@ import org.vmmagic.unboxed.*;
    * Class variables
    */
  // Collection phases
-  public static final int CD_PREPARE_FILTER   = new SimplePhase("td.prepare-filter",     Phase.GLOBAL_ONLY     ).getId();
-  public static final int CD_PREPARE_COLLECT  = new SimplePhase("td.prepare-collect",    Phase.GLOBAL_ONLY     ).getId();
-  public static final int CD_FILTER_PURPLE    = new SimplePhase("td.filter-purple",      Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_FREE_FILTERED    = new SimplePhase("td.free-filtered",      Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_FILTER_MATURE    = new SimplePhase("td.filter-mature",      Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_MARK_GREY        = new SimplePhase("td.mark-grey",          Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_SCAN             = new SimplePhase("td.scan",               Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_COLLECT          = new SimplePhase("td.collect",            Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_FREE             = new SimplePhase("td.free",               Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_FLUSH_FILTERED   = new SimplePhase("td.flush-filtered",     Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_PROCESS_DECS     = new SimplePhase("td.process-decs",       Phase.COLLECTOR_ONLY  ).getId();
-  public static final int CD_RELEASE          = new SimplePhase("td.release",            Phase.GLOBAL_ONLY     ).getId();
+  public static final short CD_PREPARE_FILTER   = Phase.createSimple("td.prepare-filter");
+  public static final short CD_PREPARE_COLLECT  = Phase.createSimple("td.prepare-collect");
+  public static final short CD_FILTER_PURPLE    = Phase.createSimple("td.filter-purple");
+  public static final short CD_FREE_FILTERED    = Phase.createSimple("td.free-filtered");
+  public static final short CD_FILTER_MATURE    = Phase.createSimple("td.filter-mature");
+  public static final short CD_MARK_GREY        = Phase.createSimple("td.mark-grey");
+  public static final short CD_SCAN             = Phase.createSimple("td.scan");
+  public static final short CD_COLLECT          = Phase.createSimple("td.collect");
+  public static final short CD_FREE             = Phase.createSimple("td.free");
+  public static final short CD_FLUSH_FILTERED   = Phase.createSimple("td.flush-filtered");
+  public static final short CD_PROCESS_DECS     = Phase.createSimple("td.process-decs");
+  public static final short CD_RELEASE          = Phase.createSimple("td.release");
+
+  // CHECKSTYLE:OFF
 
   /* Cycle detection */
-  private static final int cdPhase = new ComplexPhase("trial deletion", new int[] {
-      CD_PREPARE_FILTER,
-      CD_FILTER_PURPLE,
-      CD_FREE_FILTERED,
-      CD_PREPARE_COLLECT,
-      CD_FILTER_MATURE,
-      CD_MARK_GREY,
-      CD_SCAN,
-      CD_COLLECT,
-      CD_FREE,
-      CD_FLUSH_FILTERED,
-      CD_PROCESS_DECS,
-      CD_RELEASE
-  }).getId();
+  private static final short cdPhase = Phase.createComplex("trial deletion",
+      Phase.scheduleGlobal   (CD_PREPARE_FILTER),
+      Phase.scheduleCollector(CD_FILTER_PURPLE),
+      Phase.scheduleCollector(CD_FREE_FILTERED),
+      Phase.scheduleGlobal   (CD_PREPARE_COLLECT),
+      Phase.scheduleCollector(CD_FILTER_MATURE),
+      Phase.scheduleCollector(CD_MARK_GREY),
+      Phase.scheduleCollector(CD_SCAN),
+      Phase.scheduleCollector(CD_COLLECT),
+      Phase.scheduleCollector(CD_FREE),
+      Phase.scheduleCollector(CD_FLUSH_FILTERED),
+      Phase.scheduleCollector(CD_PROCESS_DECS),
+      Phase.scheduleGlobal   (CD_RELEASE));
+
+  // CHECKSTYLE:ON
 
   public static final int NO_PROCESSING   = 0;
   public static final int FILTER_PURPLE   = 1;
@@ -83,25 +84,24 @@ import org.vmmagic.unboxed.*;
   public final SharedDeque cyclePoolB;
   public final SharedDeque freePool;
   public int cdMode;
-  private long startCycles;
+  private long startNanos;
 
   /****************************************************************************
    *
    * Initialization
    */
 
-
   public TrialDeletion(RCBase global) {
-    workPool = new SharedDeque(RCBase.metaDataSpace, 1);
-    blackPool = new SharedDeque(RCBase.metaDataSpace, 1);
-    unfilteredPurplePool = new SharedDeque(RCBase.metaDataSpace, 1);
-    maturePurplePool = new SharedDeque(RCBase.metaDataSpace, 1);
-    filteredPurplePool = new SharedDeque(RCBase.metaDataSpace, 1);
-    cyclePoolA = new SharedDeque(RCBase.metaDataSpace, 1);
-    cyclePoolB = new SharedDeque(RCBase.metaDataSpace, 1);
-    freePool = new SharedDeque(RCBase.metaDataSpace, 1);
+    workPool = new SharedDeque("workPool",RCBase.metaDataSpace, 1);
+    blackPool = new SharedDeque("blackPool",RCBase.metaDataSpace, 1);
+    unfilteredPurplePool = new SharedDeque("unfilteredPurplePool",RCBase.metaDataSpace, 1);
+    maturePurplePool = new SharedDeque("maturePurplePool",RCBase.metaDataSpace, 1);
+    filteredPurplePool = new SharedDeque("filteredPurplePool",RCBase.metaDataSpace, 1);
+    cyclePoolA = new SharedDeque("cyclePoolA",RCBase.metaDataSpace, 1);
+    cyclePoolB = new SharedDeque("cyclePoolB",RCBase.metaDataSpace, 1);
+    freePool = new SharedDeque("freePool",RCBase.metaDataSpace, 1);
     cdMode = NO_PROCESSING;
-    global.insertPhaseAfter(RCBase.RELEASE, cdPhase);
+    global.insertPhaseAfter(Phase.scheduleGlobal(RCBase.RELEASE), Phase.scheduleComplex(cdPhase));
   }
 
   /**
@@ -111,11 +111,20 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public boolean collectionPhase(int phaseId) {
-
     if (phaseId == CD_PREPARE_FILTER) {
+      cdMode = NO_PROCESSING;
       if (shouldFilterPurple()) {
         cdMode = FILTER_PURPLE;
       }
+      workPool.prepareNonBlocking();
+      blackPool.prepareNonBlocking();
+      filteredPurplePool.prepareNonBlocking();
+      cyclePoolA.prepareNonBlocking();
+      cyclePoolB.prepareNonBlocking();
+
+      maturePurplePool.prepare();
+      unfilteredPurplePool.prepare();
+      freePool.prepare();
       return true;
     }
 
@@ -123,9 +132,9 @@ import org.vmmagic.unboxed.*;
       if (cdMode == FILTER_PURPLE) {
         if (shouldCollectCycles()) {
           cdMode = FULL_COLLECTION;
-          startCycles = VM.statistics.cycles();
+          startNanos = VM.statistics.nanoTime();
           if (Options.verbose.getValue() > 0) {
-            Log.write("(CD ");
+            Log.write("(CD-TD ");
             Log.flush();
           }
         }
@@ -134,9 +143,20 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == CD_RELEASE) {
+      if (cdMode != NO_PROCESSING) {
+        unfilteredPurplePool.reset();
+      }
       if (cdMode == FULL_COLLECTION) {
+        workPool.reset();
+        blackPool.reset();
+        maturePurplePool.reset();
+        filteredPurplePool.reset();
+        cyclePoolA.reset();
+        cyclePoolB.reset();
+        freePool.reset();
+
         if (Options.verbose.getValue() > 0) {
-          Log.write(VM.statistics.cyclesToMillis(VM.statistics.cycles() - startCycles));
+          Log.write(VM.statistics.nanosToMillis(VM.statistics.nanoTime() - startNanos));
           Log.write(" ms)");
         }
       }

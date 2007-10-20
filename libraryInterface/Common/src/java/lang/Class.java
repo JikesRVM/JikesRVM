@@ -53,12 +53,10 @@ import org.jikesrvm.VM_UnimplementedError;
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Class<T> implements Serializable, Type, AnnotatedElement, GenericDeclaration {
-  private static final class StaticData
-  {
+  private static final class StaticData {
     static final ProtectionDomain unknownProtectionDomain;
 
-    static
-    {
+    static {
       Permissions permissions = new Permissions();
       permissions.add(new AllPermission());
       unknownProtectionDomain = new ProtectionDomain(null, permissions);
@@ -111,10 +109,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
           try {
             security.checkPermission(new RuntimePermission("getClassLoader"));
           } catch (SecurityException e) {
-            throw new ClassNotFoundException(
-                                             "Security exception when"
-                                             + " trying to get a classloader so we can load the"
-                                             + " class named \"" + className +"\"", e);
+            throw new ClassNotFoundException("Security exception when" +
+                                             " trying to get a classloader so we can load the" +
+                                             " class named \"" + className +"\"", e);
           }
         }
       }
@@ -123,17 +120,14 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return forNameInternal(className, initialize, classLoader);
   }
 
-  public Class<?>[] getClasses()
-    throws SecurityException
-  {
+  public Class<?>[] getClasses() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Class[0];
 
     ArrayList<Class<?>> publicClasses = new ArrayList<Class<?>>();
     for (Class<?> c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
-      VM_TypeReference[] declaredClasses
-        = c.type.asClass().getDeclaredClasses();
+      VM_TypeReference[] declaredClasses = c.type.asClass().getDeclaredClasses();
       if (declaredClasses != null) {
         for (VM_TypeReference declaredClass : declaredClasses) {
           if (declaredClass != null) {
@@ -163,14 +157,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Class<?> getComponentType() {
-    return type.isArrayType()
-      ? type.asArray().getElementType().getClassForType()
-      : null;
+    return type.isArrayType() ? type.asArray().getElementType().getClassForType(): null;
   }
 
   public Constructor<?> getConstructor(Class<?>[] parameterTypes)
-    throws NoSuchMethodException, SecurityException
-  {
+    throws NoSuchMethodException, SecurityException {
+
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
@@ -182,12 +174,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       }
     }
 
-    throw new NoSuchMethodException("<init> " + parameterTypes );
+    throw new NoSuchMethodException("<init> " + parameterTypes);
   }
 
-  public Constructor<?>[] getConstructors()
-    throws SecurityException
-  {
+  public Constructor<?>[] getConstructors() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Constructor[0];
 
@@ -201,9 +191,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return coll.constructorArray();
   }
 
-  public Class<?>[] getDeclaredClasses()
-    throws SecurityException
-  {
+  public Class<?>[] getDeclaredClasses() throws SecurityException {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Class[0];
 
@@ -238,8 +226,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Constructor<?> getDeclaredConstructor(Class<?>[] parameterTypes)
-    throws NoSuchMethodException, SecurityException
-  {
+    throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
@@ -251,7 +238,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       }
     }
 
-    throw new NoSuchMethodException("<init> " + parameterTypes );
+    throw new NoSuchMethodException("<init> " + parameterTypes);
   }
 
   public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
@@ -267,8 +254,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Field getDeclaredField(String name)
-    throws NoSuchFieldException, SecurityException
-  {
+    throws NoSuchFieldException, SecurityException {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchFieldException();
 
@@ -297,8 +283,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Method getDeclaredMethod(String name, Class<?>[] parameterTypes)
-    throws NoSuchMethodException, SecurityException
-  {
+    throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.DECLARED);
 
     if (!type.isClassType())  {
@@ -306,10 +291,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
-    if (aName == null
-        || aName == VM_ClassLoader.StandardClassInitializerMethodName
-        || aName == VM_ClassLoader.StandardObjectInitializerMethodName)
-      {
+    if (aName == null ||
+        aName == VM_ClassLoader.StandardClassInitializerMethodName ||
+        aName == VM_ClassLoader.StandardObjectInitializerMethodName) {
         // null means that we don't have such an atom;
         // <init> and <clinit> are not methods.
         throw new NoSuchMethodException(name + parameterTypes);
@@ -393,7 +377,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return coll.fieldArray();
   }
 
-  public Class<?>[] getInterfaces () {
+  public Class<?>[] getInterfaces() {
     if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
       return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
@@ -544,7 +528,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Class<?> getSuperclass () {
+  public Class<?> getSuperclass() {
     if (type.isArrayType()) {
       return VM_Type.JavaLangObjectType.getClassForType();
     } else if (type.isClassType()) {
@@ -681,8 +665,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       VM_Atom descriptor = VM_Atom
         .findOrCreateAsciiAtom(className.replace('.','/'))
         .descriptorFromClassName();
-      VM_TypeReference tRef
-        = VM_TypeReference.findOrCreate(classLoader, descriptor);
+      VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
       VM_Type ans = tRef.resolve();
       VM_Callbacks.notifyForName(ans);
       if (initialize && !ans.isInitialized()) {
@@ -744,11 +727,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     String qualifiedClassName = getName();
     int classIndex = qualifiedClassName.lastIndexOf('.');
     if (classIndex == -1) return resName; // from a default package
-    return qualifiedClassName.substring(0, classIndex + 1).replace('.', '/')
-      + resName;
+    return qualifiedClassName.substring(0, classIndex + 1).replace('.', '/') + resName;
   }
 
-  private static boolean validArrayDescriptor (String name) {
+  private static boolean validArrayDescriptor(String name) {
     int i;
     int length = name.length();
 
@@ -843,8 +825,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public boolean isAnonymousClass() {
     if (type.isClassType()) {
       return type.asClass().isAnonymousClass();
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -852,8 +833,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public boolean isLocalClass() {
     if (type.isClassType()) {
       return type.asClass().isLocalClass();
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -861,8 +841,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public boolean isMemberClass() {
     if (type.isClassType()) {
       return type.asClass().isMemberClass();
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -892,8 +871,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Type[] getGenericInterfaces()  {
     if (type.isPrimitiveType()) {
       return new Type[0];
-    }
-    else if (type.isArrayType()) {
+    } else if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
       return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
                            VM_Type.JavaIoSerializableType.getClassForType()};
@@ -911,22 +889,17 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Type getGenericSuperclass() {
     if (type.isArrayType()) {
       return Object.class;
-    }
-    else if (type.isPrimitiveType() ||
-             (type.isClassType() && type.asClass().isInterface()) ||
-             (this == Object.class)
-             )
-      {
-        return null;
-      }
-    else {
-      VM_Class klass = type.asClass();
-      VM_Atom sig = klass.getSignature();
-      if (sig == null) {
-        return getSuperclass();
-      }
-      else {
-        return JikesRVMHelpers.getSuperclassType(this, sig);
+     } else if (type.isPrimitiveType() ||
+               (type.isClassType() && type.asClass().isInterface()) ||
+               this == Object.class) {
+      return null;
+     } else {
+       VM_Class klass = type.asClass();
+       VM_Atom sig = klass.getSignature();
+       if (sig == null) {
+         return getSuperclass();
+       } else {
+         return JikesRVMHelpers.getSuperclassType(this, sig);
       }
     }
   }
@@ -934,8 +907,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public TypeVariable<?>[] getTypeParameters() {
     if (!type.isClassType()) {
       return new TypeVariable[0];
-    }
-    else {
+    } else {
       VM_Class klass = type.asClass();
       VM_Atom sig = klass.getSignature();
       if (sig == null) {
@@ -949,8 +921,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public String getSimpleName() {
     if (type.isArrayType()) {
       return getComponentType().getSimpleName() + "[]";
-    }
-    else {
+    } else {
       String fullName = getName();
       return fullName.substring(fullName.lastIndexOf(".") + 1);
     }
@@ -976,13 +947,11 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (type.isClassType()) {
       VM_TypeReference enclosingClass = type.asClass().getEnclosingClass();
       if(enclosingClass != null) {
-        return create(enclosingClass.resolve());
-      }
-      else {
+        return enclosingClass.resolve().getClassForType();
+      } else {
         return null;
       }
-    }
-    else {
+    } else {
       return null;
     }
   }
@@ -1007,19 +976,15 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (isEnum()) {
       try {
         return (Object[])getMethod("values", new Class[0]).invoke(null, new Object[0]);
-      }
-      catch (NoSuchMethodException exception) {
+      } catch (NoSuchMethodException exception) {
         throw new Error("Enum lacks values() method");
-      }
-      catch (IllegalAccessException exception) {
+      } catch (IllegalAccessException exception) {
         throw new Error("Unable to access Enum class");
-      }
-      catch (InvocationTargetException exception) {
+      } catch (InvocationTargetException exception) {
         throw new RuntimeException("The values method threw an exception",
                                    exception);
       }
-    }
-    else {
+    } else {
       return null;
     }
   }
@@ -1027,8 +992,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public boolean isEnum() {
     if(type.isClassType()) {
       return type.asClass().isEnum();
-    }
-    else {
+    } else {
       return false;
     }
   }

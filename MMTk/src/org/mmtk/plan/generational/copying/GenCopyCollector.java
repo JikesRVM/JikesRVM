@@ -39,7 +39,6 @@ import org.vmmagic.pragma.*;
  * @see GenCollector
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenCopyCollector extends GenCollector {
 
@@ -90,7 +89,7 @@ import org.vmmagic.pragma.*;
                      allocator == GenCopy.ALLOC_MATURE_MAJORGC);
     }
 
-    Address result = mature.alloc(bytes, align, offset, true);
+    Address result = mature.alloc(bytes, align, offset);
     return result;
   }
 
@@ -124,18 +123,13 @@ import org.vmmagic.pragma.*;
    * @param primary True if this thread should peform local single-threaded
    * actions.
    */
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
       }
-      if (phaseId == GenCopy.START_CLOSURE) {
-        matureTrace.startTrace();
-        return;
-      }
-
-      if (phaseId == GenCopy.COMPLETE_CLOSURE) {
+      if (phaseId == GenCopy.CLOSURE) {
         matureTrace.completeTrace();
         return;
       }

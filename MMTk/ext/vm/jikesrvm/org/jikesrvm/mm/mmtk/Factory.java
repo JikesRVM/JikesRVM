@@ -14,6 +14,7 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import org.mmtk.vm.ReferenceProcessor.Semantics;
 
 import org.jikesrvm.VM;
 
@@ -24,6 +25,9 @@ import org.jikesrvm.VM;
  * @see org.mmtk.vm.Factory
  */
 public final class Factory extends org.mmtk.vm.Factory {
+
+  private static final String DEFAULT_MMTK_PROPERTIES = ".mmtk.properties";
+  private static final String CONFIG_FILE_PROPERTY = "mmtk.properties";
 
   /**
    * Create a new ActivePlan instance using the appropriate VM-specific
@@ -85,6 +89,22 @@ public final class Factory extends org.mmtk.vm.Factory {
       return new Collection();
     } catch (Exception e) {
       VM.sysFail("Failed to allocate new Collection!");
+      return null; // never get here
+    }
+  }
+
+  /**
+   * Create a new BuildTimeConfig instance using the appropriate VM-specific
+   * concrete BuildTimeConfig sub-class.
+   *
+   * @see Collection
+   * @return A concrete VM-specific Collection instance.
+   */
+  public org.mmtk.vm.BuildTimeConfig newBuildTimeConfig() {
+    try {
+      return new BuildTimeConfig(CONFIG_FILE_PROPERTY, DEFAULT_MMTK_PROPERTIES);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new BuildTimeConfiguration!");
       return null; // never get here
     }
   }
@@ -156,17 +176,17 @@ public final class Factory extends org.mmtk.vm.Factory {
   }
 
   /**
-   * Create a new ReferenceGlue instance using the appropriate VM-specific
-   * concrete ReferenceGlue sub-class.
+   * Create a new ReferenceProcessor instance using the appropriate VM-specific
+   * concrete ReferenceProcessor sub-class.
    *
-   * @see ReferenceGlue
-   * @return A concrete VM-specific ReferenceGlue instance.
+   * @see ReferenceProcessor
+   * @return A concrete VM-specific ReferenceProcessor instance.
    */
-  public org.mmtk.vm.ReferenceGlue newReferenceGlue() {
+  public org.mmtk.vm.ReferenceProcessor newReferenceProcessor(Semantics semantics) {
     try {
-      return new ReferenceGlue();
+      return ReferenceProcessor.get(semantics);
     } catch (Exception e) {
-      VM.sysFail("Failed to allocate new ReferenceGlue!");
+      VM.sysFail("Failed to allocate new ReferenceProcessor!");
       return null; // never get here
     }
   }

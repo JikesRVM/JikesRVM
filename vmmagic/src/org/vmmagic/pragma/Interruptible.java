@@ -18,6 +18,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
+/**
+ * A pragma that can be used to declare that a particular method is interruptible.
+ * Used to override the class-wide pragma {@link Uninterruptible}.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Pragma

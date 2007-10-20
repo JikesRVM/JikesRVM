@@ -10,7 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import java.lang.ref.*;
+
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 //import org.jikesrvm.*;
 
 /**
@@ -19,9 +23,9 @@ import java.lang.ref.*;
 class ReferenceTest {
 
 
-  public static double checkReferenceArray (Reference [] ra, ReferenceQueue rq) {
+  public static <T> double checkReferenceArray(Reference<T> [] ra, ReferenceQueue<T> rq) {
     // Verify that all references on rq belong to ra and that if so they are cleared
-    for (Reference r = rq.poll(); r != null; r = rq.poll()) {
+    for (Reference<?> r = rq.poll(); r != null; r = rq.poll()) {
       int i;
       for (i=0; i<ra.length; i++)
           if (ra[i] == r)
@@ -30,7 +34,7 @@ class ReferenceTest {
     }
     // Return fraction of ra array whose references are not cleared
     int count = 0;
-    for (Reference aRa : ra)
+    for (Reference<T> aRa : ra)
       if (aRa.get() != null)
         count++;
     return count / ((double) ra.length);
@@ -39,11 +43,11 @@ class ReferenceTest {
   static int microUnitSize = 100;     // conservative upper bound for small object
   static int allocateUnitSize = 5000;
 
-  public static int MBtoUnits (double amt) {  // in Mbytes
+  public static int MBtoUnits(double amt) {  // in Mbytes
       return (int) ((amt * (1 << 20)) / allocateUnitSize);
   }
 
-  public static Object[] allocateUnit () {
+  public static Object[] allocateUnit() {
     int t = allocateUnitSize / microUnitSize;
     Object[] result = new Object[t];
     for (int i=0; i<t; i++)
@@ -51,19 +55,26 @@ class ReferenceTest {
     return result;
   }
 
-  private static Object dummy;
-  public static void allocateDiscard (double amt) { // amt in Mb
+  static Object dummy;
+  public static void allocateDiscard(double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
     for (int i=0; i<rounds; i++)
         dummy = allocateUnit();
   }
 
-  public static Object allocateHold (double amt) { // amt in Mb
-    int rounds = MBtoUnits(amt);
-    Object [] a = new Object[rounds];
-    for (int i=0; i<rounds; i++)
-        a[i] = allocateUnit();
-    return a;
+  private static Object outOfMemoryHandle;
+
+  public static void allocateUntilOOM() {
+    try {
+      while(true) {
+        Object[] myArray = new Object[10000];
+        myArray[0] = outOfMemoryHandle;
+        outOfMemoryHandle = myArray;
+      }
+    } catch (OutOfMemoryError oome) {
+      outOfMemoryHandle = null;
+      System.out.println("Caught OutOfMemoryError");
+    }
   }
 
   public static double allocateUntilNextGC() {
@@ -84,22 +95,17 @@ class ReferenceTest {
     static final int WEAK = 0;
     static final int SOFT = 1;
 
-  public static Reference [] allocateReferenceArray (int type, double amt, ReferenceQueue rq) { // amt in Mb
+  public static Reference<Object[]> [] allocateReferenceArray(int type, double amt, ReferenceQueue<Object[]> rq) { // amt in Mb
     int rounds = MBtoUnits(amt);
-    Reference [] ra = new Reference[rounds];
-    for (int i=0; i<rounds; i++)
-    {
-      final Reference reference;
-      if(type == WEAK)
-      {
-        reference = new WeakReference(allocateUnit(), rq);
-      }
-      else if(type == SOFT)
-      {
-        reference = new SoftReference(allocateUnit(), rq);
-      }
-      else
-      {
+    @SuppressWarnings("unchecked")
+    Reference<Object[]> [] ra = new Reference[rounds];
+    for (int i=0; i<rounds; i++) {
+      final Reference<Object[]> reference;
+      if(type == WEAK) {
+        reference = new WeakReference<Object[]>(allocateUnit(), rq);
+      } else if(type == SOFT) {
+        reference = new SoftReference<Object[]>(allocateUnit(), rq);
+      } else {
         reference = null;
       }
       ra[i] = reference;
@@ -121,19 +127,19 @@ class ReferenceTest {
   private static final int GOOD = 1;
   private static final int POOR = 2;
 
-  private static void check (String msg, boolean correct, int quality) {
+  private static void check(String msg, boolean correct, int quality) {
       System.out.print(msg + "     ");
       System.out.print(correct ? "PASS" : "FAIL");
       if (correct) {
         if (quality == GOOD) System.out.print("   GOOD");
         if (quality == POOR) System.out.print("   POOR");
-      }
-      else
+      } else {
         failCount++;
+      }
       System.out.println();
   }
 
-  private static void check (String msg, boolean correct) {
+  private static void check(String msg, boolean correct) {
       check(msg, correct, NO_QUALITY);
   }
 
@@ -148,9 +154,9 @@ class ReferenceTest {
 
       // ------ Test weak references -----------
       System.out.println("\nChecking weak references and reference queue");
-      ReferenceQueue wrq = new ReferenceQueue();
+      ReferenceQueue<Object[]> wrq = new ReferenceQueue<Object[]>();
       allocateUntilNextGC();
-      Reference [] wra = allocateReferenceArray(WEAK, 0.5 * initialHeapSize, wrq);
+      Reference<Object[]> [] wra = allocateReferenceArray(WEAK, 0.5 * initialHeapSize, wrq);
       double weakAvail = checkReferenceArray(wra, wrq);
       check("Fraction of weak references before GC still live = " + weakAvail, (weakAvail == 1.0));
       allocateDiscard(0.75 * initialHeapSize);
@@ -159,12 +165,12 @@ class ReferenceTest {
 
       // ------ Test soft references -----------
       System.out.println("\nChecking soft references and reference queue");
-      ReferenceQueue srq = new ReferenceQueue();
+      ReferenceQueue<Object[]> srq = new ReferenceQueue<Object[]>();
       allocateUntilNextGC();
-      Reference [] sra = allocateReferenceArray(SOFT, 0.75 * initialHeapSize, srq);
+      Reference<Object[]> [] sra = allocateReferenceArray(SOFT, 0.75 * initialHeapSize, srq);
       double softAvail = checkReferenceArray(sra, srq);
       check("Fraction of soft references before GC still live = " + softAvail, (softAvail == 1.0));
-      allocateHold(0.5 * initialHeapSize);
+      allocateUntilOOM();
       softAvail = checkReferenceArray(sra, srq);
       check("Fraction of soft references after  GC still live = " + softAvail,
             (softAvail >= 0.00) && (softAvail <= 0.67),

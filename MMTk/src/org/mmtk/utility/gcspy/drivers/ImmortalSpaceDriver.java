@@ -12,8 +12,8 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.VM;
@@ -35,6 +35,7 @@ import org.vmmagic.pragma.*;
 
   // Instance variables
   private AbstractDriver[] registeredDrivers;
+  private ImmortalSpaceDriver.Closure closure;
 
   /**
    * Create a new driver for an immortal Contiguous MMTk space.
@@ -47,7 +48,7 @@ import org.vmmagic.pragma.*;
    */
   public ImmortalSpaceDriver(
                      ServerInterpreter server,
-		             String spaceName,
+                     String spaceName,
                      Space mmtkSpace,
                      int blockSize,
                      boolean mainSpace) {
@@ -64,6 +65,8 @@ import org.vmmagic.pragma.*;
 
     // initially no registered drivers for reference notification
     registeredDrivers = new AbstractDriver[0];
+
+    closure = new ImmortalSpaceDriver.Closure();
   }
 
   /**
@@ -83,20 +86,10 @@ import org.vmmagic.pragma.*;
    * @param total Whether to accumulate the values
    */
   public void scan(ObjectReference object, boolean total) {
-    // get type of object
-    MMType type = VM.objectModel.getObjectType(object);
     Address addr = object.toAddress();
 
     if (subspace.addressInRange(addr)) {
-      // Address in Range, locate references
-      int references = type.getReferences(object);
-      for (int i = 0; i < references; i++) {
-        Address target = type.getSlot(object, i).loadAddress();
-        // notify registered drivers
-        for (int j = 0; j < this.registeredDrivers.length; j++)
-          registeredDrivers[j].handleReferenceFromImmortalSpace(target);
-      }
-      // Work done, call scan() in superclass for default handling
+      VM.scanning.scanObject(closure, object);
       super.scan(object, total);
     }
   }
@@ -110,4 +103,21 @@ import org.vmmagic.pragma.*;
     this.registeredDrivers = drivers;
   }
 
+  /**
+   * Used to visit the edges in the immortal object.
+   */
+  @Uninterruptible
+  private class Closure extends TransitiveClosure {
+    /**
+     * Process an edge.
+     */
+    public void processEdge(ObjectReference source, Address slot) {
+      // Address in Range, locate references
+      Address target = slot.loadAddress();
+      // notify registered drivers
+      for (int j = 0; j < registeredDrivers.length; j++) {
+        registeredDrivers[j].handleReferenceFromImmortalSpace(target);
+      }
+    }
+  }
 }

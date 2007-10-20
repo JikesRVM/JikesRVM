@@ -18,6 +18,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
@@ -31,7 +32,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.NoInline;
@@ -88,7 +88,7 @@ public abstract class VM_CompilerFramework
 
   /**
    * The height of the expression stack at the start of each bytecode.
-   * Only saved for some architecutres, on others this field will be null.
+   * Only saved for some architectures, on others this field will be null.
    * See the VM_Compiler constructor.
    */
   protected int[] stackHeights;
@@ -142,6 +142,14 @@ public abstract class VM_CompilerFramework
     } else {
       isUninterruptible = method.isUninterruptible();
       isUnpreemptible = method.isUnpreemptible();
+    }
+
+    // Double check logically uninterruptible methods have been annotated as
+    // uninterruptible
+    // TODO: remove logically uninterruptible annotations
+    if (VM.VerifyAssertions && method.hasLogicallyUninterruptibleAnnotation()) {
+      VM._assert(isUninterruptible, "LogicallyUninterruptible but not Uninterruptible method: ",
+        method.toString());
     }
   }
 
@@ -210,7 +218,6 @@ public abstract class VM_CompilerFramework
       biStart = bcodes.index();
       bytecodeMap[biStart] = asm.getMachineCodeIndex();
       asm.resolveForwardReferences(biStart);
-      asm.patchLoadRetAddrConst(biStart);
       starting_bytecode();
       int code = bcodes.nextInstruction();
       switch (code) {
@@ -1928,10 +1935,10 @@ public abstract class VM_CompilerFramework
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
                 switch (targetidx) {
                   case org.jikesrvm.osr.OSR_Constants.GETREFAT:
-                    methodRef = VM_Entrypoints.osrGetRefAtMethod;
+                    methodRef = VM_AosEntrypoints.osrGetRefAtMethod;
                     break;
                   case org.jikesrvm.osr.OSR_Constants.CLEANREFS:
-                    methodRef = VM_Entrypoints.osrCleanRefsMethod;
+                    methodRef = VM_AosEntrypoints.osrCleanRefsMethod;
                     break;
                   default:
                     if (VM.TraceOnStackReplacement) {

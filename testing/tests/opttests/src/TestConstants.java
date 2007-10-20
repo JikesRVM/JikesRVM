@@ -10,18 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestConstants
-{
-  public static void main(String args[])
-  {
-    // VM.boot();
+class TestConstants {
+  public static void main(String[] args) {
     run();
   }
 
   static boolean testSuccess = true;
 
-  public static boolean run()
-  {
+  public static boolean run() {
     System.out.print("TestConstants");
 
     aconst();
@@ -40,9 +36,7 @@ class TestConstants
     return testSuccess;
   }
 
-  static void
-  aconst()
-  {
+  static void aconst() {
     Object x;
     x = null;
     if (x != null) {
@@ -52,9 +46,7 @@ class TestConstants
     }
   }
 
-  static void
-  iconst()
-  {
+  static void iconst() {
     int  x;
     x = -1;
     if (x != -1) {
@@ -106,9 +98,7 @@ class TestConstants
     }
   }
 
-  static void
-  lconst()
-  {
+  static void lconst() {
     long x;
     x =  0;
     if (x != 0L) {
@@ -125,9 +115,7 @@ class TestConstants
     }
   }
 
-  static void
-  fconst()
-  {
+  static void fconst() {
     float x;
     x =  0;
     if (x != 0.0) {
@@ -151,9 +139,7 @@ class TestConstants
     }
   }
 
-  static void
-  dconst()
-  {
+  static void dconst() {
     double x;
     x =  0;
     if (x != 0.0) {
@@ -170,9 +156,7 @@ class TestConstants
     }
   }
 
-  static void
-  misc()
-  {
+  static void misc() {
     byte  x0 =                 127;
     if (x0 != 127) {
       System.out.print("\nwant: 127\n got: ");

@@ -113,6 +113,13 @@ none
 
 
 
+# pause (spin-loop delay)
+PAUSE
+Empty
+none
+
+
+
 # float/double addition
 FP_ADD
 Binary
@@ -634,7 +641,7 @@ C0_C1_C2_C3
 
 ####################
 IA32_FLDCW
-MIR_Nullary
+MIR_UnaryNoRes
 none
 C0_C1_C2_C3
 
@@ -936,7 +943,14 @@ AF_CF_OF_PF_SF_ZF
 
 
 ####################
-IA32_PREFETCH
+IA32_PAUSE
+MIR_Empty
+none
+
+
+
+####################
+IA32_PREFETCHNTA
 MIR_CacheOp
 none
 

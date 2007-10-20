@@ -14,7 +14,7 @@ public class hanoi {
   static int[] num = new int[4];
   static int cnt;
 
-  public static void main(String arg[]) {
+  public static void main(String[] arg) {
     int disk = 3;
     if (arg.length > 0) disk = Integer.parseInt(arg[0]);
     long start = System.currentTimeMillis();

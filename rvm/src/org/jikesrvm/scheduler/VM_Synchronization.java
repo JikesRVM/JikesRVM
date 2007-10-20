@@ -29,6 +29,14 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 public class VM_Synchronization {
 
+  /**
+   * Atomically swap test value to new value in the specified object and the specified field
+   * @param base object containing field
+   * @param offset position of field
+   * @param testValue expected value of field
+   * @param newValue new value of field
+   * @return true => successful swap, false => field not equal to testValue
+   */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) {
     int oldValue;
@@ -39,6 +47,14 @@ public class VM_Synchronization {
     return true;
   }
 
+  /**
+   * Atomically swap test value to new value in the specified object and the specified field
+   * @param base object containing field
+   * @param offset position of field
+   * @param testValue expected value of field
+   * @param newValue new value of field
+   * @return true => successful swap, false => field not equal to testValue
+   */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, long testValue, long newValue) {
     long oldValue;
@@ -49,6 +65,14 @@ public class VM_Synchronization {
     return true;
   }
 
+  /**
+   * Atomically swap test value to new value in the specified object and the specified field
+   * @param base object containing field
+   * @param offset position of field
+   * @param testValue expected value of field
+   * @param newValue new value of field
+   * @return true => successful swap, false => field not equal to testValue
+   */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
     if (MM_Constants.NEEDS_WRITE_BARRIER) {

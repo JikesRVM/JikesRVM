@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public MCForwardTraceLocal(Trace trace) {
-    super(trace);
+    super(MC.SCAN_FORWARD, trace);
   }
 
   /****************************************************************************
@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object will not move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return !Space.isInSpace(MC.MARK_COMPACT, object);
   }
 

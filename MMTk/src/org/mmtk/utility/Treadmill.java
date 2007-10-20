@@ -33,8 +33,8 @@ import org.vmmagic.pragma.*;
  *
  * Access to the instances may be synchronized depending on the constructor argument.
  */
-@Uninterruptible public final class Treadmill
-  implements Constants {
+@Uninterruptible
+public final class Treadmill implements Constants {
 
   /****************************************************************************
    *
@@ -42,7 +42,8 @@ import org.vmmagic.pragma.*;
    */
   private DoublyLinkedList fromSpace;
   private DoublyLinkedList toSpace;
-  private DoublyLinkedList nursery;
+  private DoublyLinkedList collectNursery;
+  private DoublyLinkedList allocNursery;
 
   /****************************************************************************
    *
@@ -55,47 +56,83 @@ import org.vmmagic.pragma.*;
   public Treadmill(int granularity, boolean shared) {
     fromSpace = new DoublyLinkedList(granularity, shared);
     toSpace = new DoublyLinkedList(granularity, shared);
-    nursery = new DoublyLinkedList(granularity, shared);
+    allocNursery = new DoublyLinkedList(granularity, shared);
+    collectNursery = new DoublyLinkedList(granularity, shared);
   }
 
+  /**
+   * Add a node to the treadmill. This is usually performed on allocation.
+   */
   @Inline
   public void addToTreadmill(Address node) {
-    nursery.add(node);
+    allocNursery.add(node);
   }
 
+  /**
+   * Remove a node from the nursery list.
+   */
   @Inline
-  public Address pop(boolean fromNursery) {
-    return (fromNursery) ? nursery.pop() : fromSpace.pop();
+  public Address popNursery() {
+    return collectNursery.pop();
   }
 
+  /**
+   * Remove a node from the mature list.
+   */
+  @Inline
+  public Address pop() {
+    return fromSpace.pop();
+  }
+
+  /**
+   * Copy a node (during gc tracing).
+   */
   @Inline
   public void copy(Address node, boolean isInNursery) {
-    if (isInNursery)
-      nursery.remove(node);
-    else
+    if (isInNursery) {
+      collectNursery.remove(node);
+    } else {
       fromSpace.remove(node);
+    }
     toSpace.add(node);
   }
 
+  /**
+   * Is the to-space empty?
+   */
   @Inline
   public boolean toSpaceEmpty() {
     return toSpace.isEmpty();
   }
 
+  /**
+   * Is the from-space empty?
+   */
   @Inline
   public boolean fromSpaceEmpty() {
     return fromSpace.isEmpty();
   }
 
+  /**
+   * Is the nursery empty?
+   */
   @Inline
   public boolean nurseryEmpty() {
-    return nursery.isEmpty();
+    return collectNursery.isEmpty();
   }
 
-  public void flip() {
-    DoublyLinkedList tmp = fromSpace;
-    fromSpace = toSpace;
-    toSpace = tmp;
+  /**
+   * Flip the roles of the spaces in preparation for a collection.
+   */
+  public void flip(boolean fullHeap) {
+    DoublyLinkedList tmp = allocNursery;
+    allocNursery = collectNursery;
+    collectNursery = tmp;
+    if (fullHeap) {
+      tmp = fromSpace;
+      fromSpace = toSpace;
+      toSpace = tmp;
+    }
   }
 
   /****************************************************************************
@@ -134,7 +171,7 @@ import org.vmmagic.pragma.*;
    * @param tmDriver the GCSpy space driver
    */
   public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
-    this.nursery.gcspyGatherData(tmDriver);
+    this.allocNursery.gcspyGatherData(tmDriver);
   }
 
   /**

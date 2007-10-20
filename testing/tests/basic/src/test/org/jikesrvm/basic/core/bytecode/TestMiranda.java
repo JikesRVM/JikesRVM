@@ -24,7 +24,7 @@ public class TestMiranda {
    */
   static interface Interface {
     /** A method that can be implemented */
-    int someMethod (int i, int j);
+    int someMethod(int i, int j);
   }
 
   /**
@@ -43,7 +43,7 @@ public class TestMiranda {
    */
   private static class ConcreteClass extends AbstractClass {
     /** Implementation of the Miranda method our test will call */
-    public int someMethod (int i, int j) {
+    public int someMethod(int i, int j) {
       return i*j;
     }
   }
@@ -51,7 +51,7 @@ public class TestMiranda {
   /**
    * Stand alone entry point
    */
-  public static void main (String[] args) {
+  public static void main(String[] args) {
     AbstractClass test = new ConcreteClass();
     testSomeClass(test);
   }
@@ -61,7 +61,7 @@ public class TestMiranda {
    * implementation of Interface
    */
   @NoInline
-  private static void testSomeClass (AbstractClass test) {
+  private static void testSomeClass(AbstractClass test) {
     System.out.println("AbstractClass.someMethod(6,7) Expected: 42 Actual: " + test.someMethod(6,7));
   }
 }

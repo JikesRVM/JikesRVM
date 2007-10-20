@@ -87,7 +87,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
     if (s < 0) {
       return null;
     }
-    OPT_Register r = NewArray.getResult(inst).register;
+    OPT_Register r = NewArray.getResult(inst).getRegister();
     VM_Array a = NewArray.getType(inst).getVMType().asArray();
     // TODO :handle these cases
     if (containsUnsupportedUse(ir, r, s)) {

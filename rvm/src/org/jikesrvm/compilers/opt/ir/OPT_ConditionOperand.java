@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.vmmagic.unboxed.Address;
+import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * Encodes the condition codes for branches.
@@ -452,6 +453,9 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         return evaluate(v1.asAddressConstant().value, Address.zero());
       } else if (v2.isIntConstant()) {
         return evaluate(v1.asAddressConstant().value, Address.fromIntSignExtend(v2.asIntConstant().value));
+      } else if (v2.isObjectConstant() && !v2.isMoveableObjectConstant()) {
+        return evaluate(v1.asAddressConstant().value,
+            VM_Magic.objectAsAddress(v2.asObjectConstant().value));
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
@@ -460,6 +464,9 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         return evaluate(v1.asIntConstant().value, 0);
       } else if (v2.isAddressConstant()) {
         return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value), v2.asAddressConstant().value);
+      } else if (v2.isObjectConstant() && !v2.isMoveableObjectConstant()) {
+        return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value),
+            VM_Magic.objectAsAddress(v2.asObjectConstant().value));
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
@@ -475,16 +482,28 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       }
     } else if (v1.isObjectConstant()) {
       if (v2.isObjectConstant()) {
-        if (isEQUAL()) {
+        if (!v1.isMoveableObjectConstant() && !v2.isMoveableObjectConstant()) {
+          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+              VM_Magic.objectAsAddress(v2.asObjectConstant().value));
+        } else if (isEQUAL()) {
           return (v1.asObjectConstant().value == v2.asObjectConstant().value) ? TRUE : FALSE;
         } else if (isNOT_EQUAL()) {
           return (v1.asObjectConstant().value != v2.asObjectConstant().value) ? TRUE : FALSE;
         }
-      } else if (v2.isNullConstant() || (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
-        if (isEQUAL()) {
-          return FALSE;
-        } else if (isNOT_EQUAL()) {
-          return TRUE;
+      }
+      if (v2.isNullConstant() || (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
+        return evaluate(1,0);
+      }
+      if (!v1.isMoveableObjectConstant()) {
+        if (v2.isIntConstant()) {
+          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+              Address.fromIntSignExtend(v2.asIntConstant().value));
+        } else if (v2.isAddressConstant()) {
+          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+              v2.asAddressConstant().value);
+        } else if (v2.isNullConstant()) {
+          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+              Address.zero());
         }
       }
     } else if (v1.isNullConstant()) {
@@ -495,7 +514,10 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isAddressConstant()) {
         return evaluate(Address.zero(), v2.asAddressConstant().value);
       } else if (v2.isObjectConstant()) {
-        if (isEQUAL()) {
+        if (!v2.isMoveableObjectConstant()) {
+          return evaluate(Address.zero(),
+              VM_Magic.objectAsAddress(v2.asObjectConstant().value));
+        } else if (isEQUAL()) {
           return FALSE;
         } else if (isNOT_EQUAL()) {
           return TRUE;

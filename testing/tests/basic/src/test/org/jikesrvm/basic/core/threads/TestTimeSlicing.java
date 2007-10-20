@@ -67,13 +67,13 @@ class TestTimeSlicing {
     void performTask() {
       while (values[id] < LAST_COUNT) {
         boolean increment = false;
-        if( 0 == id && values[previous] == values[id] ) {
+        if(0 == id && values[previous] == values[id]) {
           increment = true;
-        } else if( 0 != id && values[previous] - 1 == values[id] ) {
+        } else if(0 != id && values[previous] - 1 == values[id]) {
           increment = true;
         }
 
-        if( increment ) {
+        if(increment) {
           values[id]++;
           tsay("incremented to count: " + values[id]);
         }

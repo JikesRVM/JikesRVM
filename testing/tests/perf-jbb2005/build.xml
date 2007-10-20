@@ -1,0 +1,109 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="perf-jbb2005" default="test" basedir=".">
+
+  <property file="jbb2005.properties" prefix="jbb2005"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="specjbb2005.dir" location="${external.lib.dir}/SPECjbb2005"/>
+  <property name="test.class.path" value="${specjbb2005.dir}/jbb.jar:${specjbb2005.dir}/check.jar"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Prepare dirs for tests                        * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="prepare-dirs" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="specjbb2005.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <copy todir="${build.tests.dir}">
+      <fileset dir="${specjbb2005.dir}">
+        <include name="xml/**"/>
+      </fileset>
+      <fileset dir=".">
+        <include name="*.props"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="prepare-dirs">
+
+    <startResults/>
+
+    <jbb2005 tag="jbb2005" useSmallHeap="false"/>
+    <jbb2005 tag="jbb2005GC" useSmallHeap="true"/>
+
+    <finishResults/>
+  </target>
+
+  <macrodef name="jbb2005">
+    <attribute name="tag"/>
+    <attribute name="useSmallHeap"/>
+    <sequential>
+
+      <fail unless="jbb2005.largeHeap" message="jbb2005.largeHeap not specified"/>
+      <fail unless="jbb2005.smallHeap" message="jbb2005.smallHeap not specified"/>
+
+      <condition property="jbb2005.@{tag}.heapSize"
+                 value="${jbb2005.smallHeap}"
+                 else="${jbb2005.largeHeap}">
+        <equals arg1="@{useSmallHeap}" arg2="true"/>
+      </condition>
+
+      <condition property="jbb2005.@{tag}.timeLimit"
+                 value="${jbb2005.smallHeap-@{useSmallHeap}.timeLimit}"
+                 else="${test.time.limit}">
+        <isset property="jbb2005.smallHeap-@{useSmallHeap}.timeLimit"/>
+      </condition>
+
+      <prepareRvm tag="@{tag}" class="spec.jbb.JBBmain" requires-display="true"
+         rvmArgs="-X:gc:harnessAll=true ${test.perf.extra.args}"
+         args="-propfile SPECjbb.perf.props"
+         timeLimit="${jbb2005.@{tag}.timeLimit}"
+         initialHeapSize="${jbb2005.@{tag}.heapSize}"
+         maxHeapSize="${jbb2005.@{tag}.heapSize}"/>
+
+      <outputMultiExecutionTestStart tag="@{tag}"/>
+
+      <forEach list="${test.perf.jbb-executions}" property="execution">
+        <sequential>
+          <invokeRvm tag="@{tag}" execution="@{execution}"/>
+          <outputExecutionStart tag="@{tag}" execution="@{execution}"/>
+          <outputStatisticStart/>
+          <extractMMTkStatistics tag="@{tag}" execution="@{execution}" statistics="time.mu time.gc GC majorGC"/>
+          <findStatistic tag="@{tag}" execution="@{execution}" pattern="JVM Check OK" key="jvm.check"/>
+          <findStatistic tag="@{tag}" execution="@{execution}" pattern="Run will be COMPLIANT" key="compliant.check"/>
+          <findStatistic tag="@{tag}" execution="@{execution}" pattern="No errors.  Valid run." key="errors.check"/>
+          <extractStatistic tag="@{tag}" execution="@{execution}" pattern="Valid run, Score is\s*(\S*)" key="score"/>
+          <outputStatisticEnd/>
+          <outputExecutionResults tag="@{tag}" execution="@{execution}"/>
+          <outputExecutionEnd/>
+          <displayExecutionResults tag="@{tag}" execution="@{execution}"/>
+        </sequential>
+      </forEach>
+
+      <outputMultiExecutionTestEnd/>
+    </sequential>
+  </macrodef>
+
+
+</project>

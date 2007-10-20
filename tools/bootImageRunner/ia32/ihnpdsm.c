@@ -73,6 +73,22 @@
 #include "ihnpdsm.h"
 #include "../cAttributePortability.h"
 
+#if defined (__SVR4) && defined (__sun)
+#undef CS
+#undef SS
+#undef FS
+#undef GS
+#undef ES
+#undef EAX
+#undef ECX
+#undef EDX
+#undef EBX
+#undef ESP
+#undef EBP
+#undef ESI
+#undef EDI
+#endif
+
 /***************************************************************************/
 /*       Set the default state of the conditionally invalid opcodes        */
 /***************************************************************************/

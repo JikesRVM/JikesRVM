@@ -17,11 +17,12 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.VM;
+import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -41,21 +42,26 @@ import org.vmmagic.unboxed.*;
  * See also Plan.java for general comments on local vs global plan
  * classes.
  */
-@Uninterruptible public abstract class Gen extends StopTheWorld {
+@Uninterruptible
+public abstract class Gen extends StopTheWorld {
 
   /*****************************************************************************
    *
    * Constants
    */
-  protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final float MATURE_FRACTION = (float) 0.5; // est yield
+  protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
+  protected static final float MATURE_FRACTION = 0.5f; // est yield
   public static final boolean IGNORE_REMSETS = false;
+  public static final boolean USE_STATIC_WRITE_BARRIER = false;
 
   // Allocators
   public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
   public static final int ALLOC_MATURE         = StopTheWorld.ALLOCATORS + 1;
   public static final int ALLOC_MATURE_MINORGC = StopTheWorld.ALLOCATORS + 2;
   public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
+
+  public static final int SCAN_NURSERY = 0;
+  public static final int SCAN_MATURE  = 1;
 
   /*****************************************************************************
    *
@@ -71,7 +77,7 @@ import org.vmmagic.unboxed.*;
   public static SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   public static final Address NURSERY_START = nurserySpace.getStart();
@@ -93,8 +99,8 @@ import org.vmmagic.unboxed.*;
   /**
    * Remset pools
    */
-  public final SharedDeque arrayRemsetPool = new SharedDeque(metaDataSpace, 2);
-  public final SharedDeque remsetPool = new SharedDeque(metaDataSpace, 1);
+  public final SharedDeque arrayRemsetPool = new SharedDeque("arrayRemSets",metaDataSpace, 2);
+  public final SharedDeque remsetPool = new SharedDeque("remSets",metaDataSpace, 1);
 
   /*
    * Class initializer
@@ -114,7 +120,7 @@ import org.vmmagic.unboxed.*;
    *
    * Collection
    */
-  
+
   /**
    * Force the next collection to be full heap.
    */
@@ -128,7 +134,7 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to execute.
    */
   @NoInline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
       gcFullHeap = requiresFullHeapCollection();
@@ -138,7 +144,6 @@ import org.vmmagic.unboxed.*;
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
       if (!traceFullHeap()) {
-        nurseryTrace.prepare();
         ploSpace.prepare(false);
       } else {
         if (gcFullHeap) {
@@ -154,6 +159,12 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
+    if (phaseId == CLOSURE) {
+      if (!traceFullHeap()) {
+        nurseryTrace.prepare();
+      }
+      return;
+    }
     if (phaseId == RELEASE) {
       nurserySpace.release();
       remsetPool.clearDeque(1);
@@ -181,18 +192,26 @@ import org.vmmagic.unboxed.*;
    * @return True if a collection is requested by the plan.
    */
   public final boolean collectionRequired(boolean spaceFull) {
-    boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
-    
-    return super.collectionRequired(spaceFull) || nurseryFull; 
+    int nurseryPages = nurserySpace.reservedPages();
+
+    if (nurseryPages > Options.nurserySize.getMaxNursery()) {
+      return true;
+    }
+
+    if (nurseryPages >= getMaturePhysicalPagesAvail()) {
+      return true;
+    }
+
+    return super.collectionRequired(spaceFull);
   }
-  
+
   /**
    * Determine if this GC should be a full heap collection.
-   * 
+   *
    * @return True is this GC should be a full heap collection.
    */
   protected boolean requiresFullHeapCollection() {
-    if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
+    if (collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
 
@@ -201,17 +220,20 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
-    if (loSpace.allocationFailed()) {
+    if (loSpace.allocationFailed() ||
+        (USE_CODE_SPACE && (largeCodeSpace.allocationFailed() || smallCodeSpace.allocationFailed()))) {
       // We need space from the nursery
       return true;
     }
 
-    // Estimate the yield from nursery PLOS pages
+    if (nurserySpace.reservedPages() >= getMaturePhysicalPagesAvail()) {
+      // Ensure we have the physical copy reserve required
+      return true;
+    }
+
+    int smallNurseryPages = nurserySpace.committedPages();
     int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
     int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
-
-    // Estimate the yield from small nursery pages
-    int smallNurseryPages = nurserySpace.committedPages();
     int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
 
     if ((plosYield + smallNurseryYield) < getPagesRequired()) {
@@ -235,25 +257,12 @@ import org.vmmagic.unboxed.*;
 
     return false;
   }
-  
+
 
   /*****************************************************************************
    *
    * Correctness
    */
-
-  /**
-   * Remset entries should never be produced by MMTk code.  If the host JVM
-   * produces remset entries during GC, it is the responsibility of the host
-   * JVM to flush those remset entries out of the mutator contexts.
-   */
-  public static void assertMutatorRemsetsFlushed() {
-    if (VM.VERIFY_ASSERTIONS) {
-      GenMutator mutator = null;
-      while ((mutator = (GenMutator) VM.activePlan.getNextMutator()) != null)
-        mutator.assertRemsetFlushed();
-    }
-  }
 
   /*****************************************************************************
    *
@@ -292,11 +301,20 @@ import org.vmmagic.unboxed.*;
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
-  
+
+  /**
+   * Return the number of pages available for allocation into the mature
+   * space.
+   *
+   * @return The number of pages available for allocation into the mature
+   * space.
+   */
+  public abstract int getMaturePhysicalPagesAvail();
+
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
@@ -355,15 +373,15 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
-   * @param object
-   * @return
+   * @param object Object in question
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(NURSERY, object))
-      return true;
-    return super.objectCanMove(object);
+      return false;
+    return super.willNeverMove(object);
   }
 }

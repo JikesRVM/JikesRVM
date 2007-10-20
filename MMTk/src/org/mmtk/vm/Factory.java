@@ -66,6 +66,15 @@ public abstract class Factory {
   public abstract Collection newCollection();
 
   /**
+   * Create a new Config instance using the appropriate VM-specific
+   * concrete Config sub-class.
+   *
+   * @see Collection
+   * @return A concrete VM-specific Collection instance.
+   */
+  public abstract BuildTimeConfig newBuildTimeConfig();
+
+  /**
    * Create a new Lock instance using the appropriate VM-specific
    * concrete Lock sub-class.
    *
@@ -103,13 +112,13 @@ public abstract class Factory {
   public abstract Options newOptions();
 
   /**
-   * Create a new ReferenceGlue instance using the appropriate VM-specific
-   * concrete ReferenceGlue sub-class.
+   * Create a new ReferenceProcessor instance using the appropriate VM-specific
+   * concrete ReferenceProcessor sub-class.
    *
-   * @see ReferenceGlue
-   * @return A concrete VM-specific ReferenceGlue instance.
+   * @see ReferenceProcessor
+   * @return A concrete VM-specific ReferenceProcessor instance.
    */
-  public abstract ReferenceGlue newReferenceGlue();
+  public abstract ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics);
 
   /**
    * Create a new Scanning instance using the appropriate VM-specific

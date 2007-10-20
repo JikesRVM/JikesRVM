@@ -12,9 +12,9 @@
  */
 class bug {
 
-   static byte x[] = {-1};
+   static byte[] x = {-1};
 
-   public static void main(String args[]) {
+   public static void main(String[] args) {
       int X = x[0];
       int Y;
       if (X == 0)

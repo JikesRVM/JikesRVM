@@ -74,8 +74,8 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       VM.sysWriteln("BASE execStateExtractor starting ...");
     }
 
-    VM_Registers contextRegisters = thread.contextRegisters;
-    byte[] stack = thread.stack;
+    VM_Registers contextRegisters = (VM_Registers)thread.getContextRegisters();
+    byte[] stack = thread.getStack();
 
     if (VM.VerifyAssertions) {
       int fooCmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
@@ -246,9 +246,9 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     return state;
   }
 
-  /* go over local/stack array, and build OSR_VariableElement. */
+  /** go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValueFromLocations(byte[] stack, Offset methFPoff, byte[] types,
-                                                    VM_BaselineCompiledMethod compiledMethod, int kind,
+                                                    VM_BaselineCompiledMethod compiledMethod, boolean kind,
                                                     OSR_TempRegisters registers, OSR_ExecutionState state) {
     int start = 0;
     if (kind == LOCAL) {
@@ -394,7 +394,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
   /* go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       VM_BaselineCompiledMethod compiledMethod, int kind, OSR_ExecutionState state) {
+                                       VM_BaselineCompiledMethod compiledMethod, boolean kind, OSR_ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
@@ -412,7 +412,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           int value = VM_Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
-          int tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
+          byte tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
 
           state.add(new OSR_VariableElement(kind, i, tcode, value));
           break;
@@ -425,7 +425,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
                   BYTES_IN_STACKSLOT);
           long value = VM_Magic.getLongAtOffset(stack, memoff);
 
-          int tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
+          byte tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
 
           state.add(new OSR_VariableElement(kind, i, tcode, value));
 

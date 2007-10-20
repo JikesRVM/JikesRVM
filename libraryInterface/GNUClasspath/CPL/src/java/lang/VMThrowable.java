@@ -14,7 +14,6 @@ package java.lang;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_StackTrace;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 /**
  * Implementation of throwables for JikesRVM.
@@ -22,7 +21,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 public final class VMThrowable {
   /** The stack trace for this throwable */
   private VM_StackTrace stackTrace;
-  
+
   /**
    * Zero length array of stack trace elements, returned when handling an OOM or
    * an unexpected error
@@ -41,8 +40,7 @@ public final class VMThrowable {
   static VMThrowable fillInStackTrace(Throwable parent){
     if (!VM.fullyBooted) {
       return null;
-    }
-    if (VM_Thread.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+    } else if (VM_Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
       VM.sysWriteln("Exception in GC thread");
       VM_Scheduler.dumpVirtualMachine();
       return null;
@@ -62,9 +60,7 @@ public final class VMThrowable {
   StackTraceElement[] getStackTrace(Throwable parent) {
     if (stackTrace == null) {
       return zeroLengthStackTrace;
-    }
-    
-    if (VM_Thread.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+    } else if (VM_Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
       VM.sysWriteln("VMThrowable.getStackTrace called from GC thread: dumping stack using scheduler");
       VM_Scheduler.dumpStack();
       return zeroLengthStackTrace;

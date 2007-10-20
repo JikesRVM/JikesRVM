@@ -21,16 +21,15 @@ public class PhantomReference<T> extends Reference<T> {
 
   public PhantomReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addPhantomReference(this);
+    MM_Interface.addPhantomReference(this,referent);
   }
 
   /**
    * Returns the object this reference refers to. Phantom references
-  always return <code>null</code>.
+   * always return <code>null</code>.
    * @return <code>null</code>
    */
   public T get() {
     return null;
   }
-
 }

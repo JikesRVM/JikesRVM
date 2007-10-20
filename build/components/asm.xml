@@ -1,0 +1,55 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="asm" default="build" basedir=".">
+
+  <import file="base.xml"/>
+
+  <property name="asm.version" value="3.0"/>
+  <property name="asm.description" value="ASM bytecode manipulation framework"/>
+
+  <property name="asm.dir" location="${components.dir}/asm/${asm.version}/asm-${asm.version}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing ASM                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-asm-properties" depends="prepare-ant-tasks">
+    <condition property="asm.from-web" value="true">
+      <or>
+        <not>
+          <available file="${asm.dir}/asm.jar"/>
+        </not>
+        <isset property="asm.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-asm-properties" if="asm.from-web">
+    <mkdir dir="${asm.dir}"/>
+    <cachedGet key="asm-${asm.version}.jar"
+         src="http://download.fr2.forge.objectweb.org/asm/asm-3.0.jar"
+         dest="${asm.dir}/asm.jar"/>
+    <writeComponentConstants dir="${asm.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="asm.jar" value="${asm.dir}/asm.jar"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="asm" dir="${asm.dir}"/>
+  </target>
+
+</project>

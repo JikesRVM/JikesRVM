@@ -12,10 +12,11 @@
  */
 package org.mmtk.plan.nogc;
 
-import org.mmtk.plan.*;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * This class implements <i>per-collector thread</i> behavior and state
@@ -28,9 +29,7 @@ import org.vmmagic.pragma.*;
  *
  * @see NoGC
  * @see NoGCMutator
- * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class NoGCCollector extends CollectorContext {
 
@@ -54,12 +53,17 @@ import org.vmmagic.pragma.*;
    *
    * Collection
    */
-  
+
   /**
    * Perform a garbage collection
    */
   public final void collect() {
     VM.assertions.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
+  }
+
+  /** Perform some concurrent garbage collection */
+  public final void concurrentCollect() {
+    VM.assertions.fail("Concurrent GC Triggered in NoGC Plan.");
   }
 
   /**
@@ -68,26 +72,17 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     VM.assertions.fail("GC Triggered in NoGC Plan.");
-    /*
-     if (phaseId == NoGC.PREPARE) {
-     }
+  }
 
-     if (phaseId == NoGC.BEGIN_CLOSURE) {
-     trace.startTrace();
-     return;
-     }
-
-     if (phaseId == NoGC.COMPLETE_CLOSURE) {
-     trace.completeTrace();
-     return;
-     }
-
-     if (phaseId == NoGC.RELEASE) {
-     }
-     super.collectionPhase(phaseId, participating, primary);
-     */
+  /**
+   * Perform some concurrent collection work.
+   *
+   * @param phaseId The unique phase identifier
+   */
+  public void concurrentCollectionPhase(short phaseId) {
+    VM.assertions.fail("GC Triggered in NoGC Plan.");
   }
 
   /****************************************************************************

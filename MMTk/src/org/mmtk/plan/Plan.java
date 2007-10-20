@@ -12,18 +12,22 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.SegregatedFreeListSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
+import org.mmtk.utility.heap.Map;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
+import org.mmtk.utility.statistics.PerfCounter;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
@@ -46,13 +50,13 @@ import org.vmmagic.unboxed.*;
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
- * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * methods of PlanLocal allow fast, unsynchronized access to functions such as
  * allocation and collection.
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance proprties of MMTk plans.
+ * performance properties of MMTk plans.
  */
 @Uninterruptible
 public abstract class Plan implements Constants {
@@ -70,12 +74,8 @@ public abstract class Plan implements Constants {
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   /* Space Size Constants. */
-  public static final int IMMORTAL_MB = 32;
-  public static final int META_DATA_MB = 32;
-  public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
-  public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
-  public static final float LOS_FRAC = (float) 0.03;
-  public static final float PLOS_FRAC = (float) 0.07;
+  public static final boolean USE_CODE_SPACE = true;
+  public static final float PLOS_FRAC = 0.07f;
   public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
   public static final int HEAP_FULL_PERCENTAGE = 2;
 
@@ -86,23 +86,25 @@ public abstract class Plan implements Constants {
   public static final int ALLOC_LOS = 3;
   public static final int ALLOC_PRIMITIVE_LOS = 4;
   public static final int ALLOC_GCSPY = 5;
-  public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
-  public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
-  public static final int ALLOC_STACK = ALLOC_DEFAULT;
+  public static final int ALLOC_CODE = 6;
+  public static final int ALLOC_LARGE_CODE = 7;
+  public static final int ALLOC_HOT_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
+  public static final int ALLOC_COLD_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
+  public static final int ALLOC_STACK = ALLOC_LOS;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
-  public static final int ALLOCATORS = 6;
+  public static final int ALLOCATORS = 8;
   public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
-  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
-  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE >> 1;
+  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
+  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE >> 1;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
-  
+
   /****************************************************************************
    * Class variables
    */
@@ -111,17 +113,23 @@ public abstract class Plan implements Constants {
   public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
-  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
+  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
-  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** Large objects are allocated into a special large object space. */
-  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
+  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   /** Primitive (non-ref) large objects are allocated into a special primitive
       large object space. */
-  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);
+  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, VMRequest.create(PLOS_FRAC, true));
+
+  /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create());
+
+  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
+  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
@@ -129,9 +137,15 @@ public abstract class Plan implements Constants {
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
   public static final int PLOS = ploSpace.getDescriptor();
+  public static final int SANITY = sanitySpace.getDescriptor();
+  public static final int SMALL_CODE = USE_CODE_SPACE ? smallCodeSpace.getDescriptor() : 0;
+  public static final int LARGE_CODE = USE_CODE_SPACE ? largeCodeSpace.getDescriptor() : 0;
 
   /** Timer that counts total time */
   public static final Timer totalTime = new Timer("time");
+
+  /** Performance counters */
+  public static PerfCounter totalPerfCnt = new PerfCounter("perf");
 
   /** Support for time-limited GCs */
   protected static long timeCap;
@@ -150,6 +164,7 @@ public abstract class Plan implements Constants {
     Options.noFinalizer = new NoFinalizer();
     Options.noReferenceTypes = new NoReferenceTypes();
     Options.fullHeapSystemGC = new FullHeapSystemGC();
+    Options.harnessAll = new HarnessAll();
     Options.ignoreSystemGC = new IgnoreSystemGC();
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
@@ -157,6 +172,8 @@ public abstract class Plan implements Constants {
     Options.eagerMmapSpaces = new EagerMmapSpaces();
     Options.sanityCheck = new SanityCheck();
     Options.debugAddress = new DebugAddress();
+    Options.perfMetric = new PerfMetric();
+    Map.finalizeStaticSpaceMap();
   }
 
   /****************************************************************************
@@ -182,7 +199,9 @@ public abstract class Plan implements Constants {
    */
   @Interruptible
   public void postBoot() {
+    VM.statistics.perfCtrInit(Options.perfMetric.getValue());
     if (Options.verbose.getValue() > 2) Space.printVMMap();
+    if (Options.verbose.getValue() > 3) VM.config.printConfig();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
   }
@@ -194,6 +213,7 @@ public abstract class Plan implements Constants {
   @Interruptible
   public void fullyBooted() {
     initialized = true;
+    if (Options.harnessAll.getValue()) harnessBegin();
   }
 
   /**
@@ -201,7 +221,9 @@ public abstract class Plan implements Constants {
    *
    * @param value The exit value
    */
+  @Interruptible
   public void notifyExit(int value) {
+    if (Options.harnessAll.getValue()) harnessEnd();
     if (Options.verbose.getValue() == 1) {
       Log.write("[End ");
       totalTime.printTotalSecs();
@@ -256,16 +278,16 @@ public abstract class Plan implements Constants {
   /**
    * Perform a (global) collection phase.
    */
-  public abstract void collectionPhase(int phase);
+  public abstract void collectionPhase(short phase);
 
   /**
    * Replace a phase.
    *
-   * @param oldPhase The phase to be replaced
-   * @param newPhase The phase to replace with
+   * @param oldScheduledPhase The scheduled phase to insert after
+   * @param scheduledPhase The scheduled phase to insert
    */
   @Interruptible
-  public void replacePhase(int oldPhase, int newPhase) {
+  public void replacePhase(int oldScheduledPhase, int scheduledPhase) {
     VM.assertions.fail("replacePhase not implemented for this plan");
   }
 
@@ -273,16 +295,13 @@ public abstract class Plan implements Constants {
   /**
    * Insert a phase.
    *
-   * @param marker The phase to insert after
-   * @param newPhase The phase to replace with
+   * @param markerScheduledPhase The scheduled phase to insert after
+   * @param scheduledPhase The scheduled phase to insert
    */
   @Interruptible
-  public void insertPhaseAfter(int marker, int newPhase) {
-    int newComplexPhase = (new ComplexPhase("auto-gen",
-                                            null,
-                                            new int[] {marker,newPhase})
-                          ).getId();
-    replacePhase(marker, newComplexPhase);
+  public void insertPhaseAfter(int markerScheduledPhase, int scheduledPhase) {
+    short tempPhase = Phase.createComplex("auto-gen", null, markerScheduledPhase, scheduledPhase);
+    replacePhase(markerScheduledPhase, Phase.scheduleComplex(tempPhase));
   }
 
   /**
@@ -291,23 +310,23 @@ public abstract class Plan implements Constants {
   public boolean lastCollectionFullHeap() {
     return true;
   }
-  
+
   /**
    * @return Is last GC a full collection?
    */
-  public final boolean lastCollectionEmergency() {
+  public static boolean isEmergencyCollection() {
     return emergencyCollection;
   }
-  
+
   /**
    * @return True if we have run out of heap space.
    */
   public final boolean lastCollectionFailed() {
-    return !userTriggeredCollection && 
-      (getPagesAvail() < getHeapFullThreshold() ||
-       getPagesAvail() < requiredAtStart);
+    return !(collectionTrigger == Collection.EXTERNAL_GC_TRIGGER ||
+             collectionTrigger == Collection.INTERNAL_PHASE_GC_TRIGGER) &&
+      (getPagesAvail() < getHeapFullThreshold() || getPagesAvail() < requiredAtStart);
   }
-  
+
   /**
    * Force the next collection to be full heap.
    */
@@ -348,15 +367,16 @@ public abstract class Plan implements Constants {
    */
 
   protected static int requiredAtStart;
-  protected static boolean userTriggeredCollection;
+  protected static int collectionTrigger;
   protected static boolean emergencyCollection;
   protected static boolean awaitingAsyncCollection;
-  
+  protected static boolean stacksPrepared;
+
   private static boolean initialized = false;
   private static boolean collectionTriggered;
+  @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
-  private static boolean emergencyAllocation;
-  
+
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
     return initialized;
@@ -368,7 +388,7 @@ public abstract class Plan implements Constants {
   public static boolean isCollectionTriggered() {
     return collectionTriggered;
   }
-  
+
   /**
    * Set that a collection has been triggered.
    */
@@ -384,26 +404,13 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * Are we in a region of emergency allocation?
+   * Return true if stacks have been prepared in this collection cycle.
+   *
+   * @return True if stacks have been prepared in this collection cycle.
    */
-  public static boolean isEmergencyAllocation() {
-    return emergencyAllocation;
+  public static boolean stacksPrepared() {
+    return stacksPrepared;
   }
-
-  /**
-   * Start a region of emergency allocation.
-   */
-  public static void startEmergencyAllocation() {
-    emergencyAllocation = true;
-  }
-
-  /**
-   * Finish a region of emergency allocation.
-   */
-  public static void finishEmergencyAllocation() {
-    emergencyAllocation = false;
-  }
-  
   /**
    * Return true if a collection is in progress.
    *
@@ -428,17 +435,112 @@ public abstract class Plan implements Constants {
    * @param s The new GC status.
    */
   public static void setGCStatus(int s) {
+    if (gcStatus == NOT_IN_GC) {
+      /* From NOT_IN_GC to any phase */
+      stacksPrepared = false;
+      if (Stats.gatheringStats()) {
+        Stats.startGC();
+        VM.activePlan.global().printPreStats();
+      }
+    }
     VM.memory.isync();
     gcStatus = s;
     VM.memory.sync();
+    if (gcStatus == NOT_IN_GC) {
+      /* From any phase to NOT_IN_GC */
+      if (Stats.gatheringStats()) {
+        Stats.endGC();
+        VM.activePlan.global().printPostStats();
+      }
+    }
   }
 
   /**
-   * A user-triggered GC has been initiated.  By default, do nothing,
-   * but this may be overridden.
+   * Print out statistics at the start of a GC
    */
-  public static void setUserTriggeredCollection(boolean value) {
-    userTriggeredCollection = value;
+  public void printPreStats() {
+    if ((Options.verbose.getValue() == 1) ||
+        (Options.verbose.getValue() == 2)) {
+      Log.write("[GC "); Log.write(Stats.gcCount());
+      if (Options.verbose.getValue() == 1) {
+        Log.write(" Start ");
+        Plan.totalTime.printTotalSecs();
+        Log.write(" s");
+      } else {
+        Log.write(" Start ");
+        Plan.totalTime.printTotalMillis();
+        Log.write(" ms");
+      }
+      Log.write("   ");
+      Log.write(Conversions.pagesToKBytes(getPagesUsed()));
+      Log.write("KB ");
+      Log.flush();
+    }
+    if (Options.verbose.getValue() > 2) {
+      Log.write("Collection "); Log.write(Stats.gcCount());
+      Log.write(":        ");
+      printUsedPages();
+      Log.write("  Before Collection: ");
+      Space.printUsageMB();
+      if (Options.verbose.getValue() >= 4) {
+        Log.write("                     ");
+        Space.printUsagePages();
+      }
+    }
+  }
+
+  /**
+   * Print out statistics at the end of a GC
+   */
+  public final void printPostStats() {
+    if ((Options.verbose.getValue() == 1) ||
+        (Options.verbose.getValue() == 2)) {
+      Log.write("-> ");
+      Log.writeDec(Conversions.pagesToBytes(getPagesUsed()).toWord().rshl(10));
+      Log.write("KB   ");
+      if (Options.verbose.getValue() == 1) {
+        totalTime.printLast();
+        Log.writeln(" ms]");
+      } else {
+        Log.write("End ");
+        totalTime.printTotal();
+        Log.writeln(" ms]");
+      }
+    }
+    if (Options.verbose.getValue() > 2) {
+      Log.write("   After Collection: ");
+      Space.printUsageMB();
+      if (Options.verbose.getValue() >= 4) {
+        Log.write("                     ");
+        Space.printUsagePages();
+      }
+      Log.write("                     ");
+      printUsedPages();
+      Log.write("    Collection time: ");
+      totalTime.printLast();
+      Log.writeln(" ms");
+    }
+  }
+
+  public final void printUsedPages() {
+    Log.write("reserved = ");
+    Log.write(Conversions.pagesToMBytes(getPagesReserved()));
+    Log.write(" MB (");
+    Log.write(getPagesReserved());
+    Log.write(" pgs)");
+    Log.write("      total = ");
+    Log.write(Conversions.pagesToMBytes(getTotalPages()));
+    Log.write(" MB (");
+    Log.write(getTotalPages());
+    Log.write(" pgs)");
+    Log.writeln();
+  }
+
+  /**
+   * Set the collection trigger.
+   */
+  public static void setCollectionTrigger(int trigger) {
+    collectionTrigger = trigger;
   }
 
   /****************************************************************************
@@ -527,12 +629,11 @@ public abstract class Plan implements Constants {
   @Interruptible
   public static void harnessEnd()  {
     Stats.stopAll();
-    Stats.printStats();
     insideHarness = false;
   }
 
   /****************************************************************************
-   * VM.me.Accounting
+   * VM Accounting
    */
 
   /* Global accounting and static access */
@@ -550,12 +651,12 @@ public abstract class Plan implements Constants {
   public static Extent freeMemory() {
     return totalMemory().minus(usedMemory());
   }
-  
+
   /**
-   * Return the amount of <i>available memory</i>, in bytes.  Note 
-   * that this accounts for unused memory that is held in reserve 
+   * Return the amount of <i>available memory</i>, in bytes.  Note
+   * that this accounts for unused memory that is held in reserve
    * for copying, and therefore unavailable for allocation.
-   * 
+   *
    * @return The amount of <i>available memory</i>, in bytes.
    */
   public static Extent availableMemory() {
@@ -631,7 +732,7 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * Return the number of pages reserved for collection.  
+   * Return the number of pages reserved for collection.
    * In most cases this is a copy reserve, all subclasses that
    * manage a copying space must add the copying contribution.
    *
@@ -653,16 +754,16 @@ public abstract class Plan implements Constants {
     return loSpace.reservedPages() + ploSpace.reservedPages() +
            immortalSpace.reservedPages() + metaDataSpace.reservedPages();
   }
-  
+
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
   public int getPagesRequired() {
-    return loSpace.requiredPages() + ploSpace.requiredPages() + 
+    return loSpace.requiredPages() + ploSpace.requiredPages() +
       metaDataSpace.requiredPages() + immortalSpace.requiredPages();
   }
 
@@ -717,7 +818,7 @@ public abstract class Plan implements Constants {
         /* This is not, in general, in a GC safe point. */
         return false;
       }
-      /* Someone else initiated a collection, we should join it */      
+      /* Someone else initiated a collection, we should join it */
       logPoll(space, "Joining collection");
       VM.collection.joinCollection();
       return true;
@@ -725,7 +826,7 @@ public abstract class Plan implements Constants {
 
     if (collectionRequired(spaceFull)) {
       if (space == metaDataSpace) {
-        /* In general we must not trigger a GC on metadata allocation since 
+        /* In general we must not trigger a GC on metadata allocation since
          * this is not, in general, in a GC safe point.  Instead we initiate
          * an asynchronous GC, which will occur at the next safe point.
          */
@@ -737,10 +838,16 @@ public abstract class Plan implements Constants {
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
-    
+
+    if (concurrentCollectionRequired()) {
+      logPoll(space, "Triggering collection");
+      VM.collection.triggerCollection(Collection.INTERNAL_PHASE_GC_TRIGGER);
+      return true;
+    }
+
     return false;
   }
-  
+
   /**
    * Check whether an asynchronous collection is pending.<p>
    *
@@ -773,28 +880,37 @@ public abstract class Plan implements Constants {
    */
   private void logPoll(Space space, String message) {
     if (Options.verbose.getValue() >= 3) {
-      Log.write("  [POLL] "); 
-      Log.write(space.getName()); 
-      Log.write(": "); 
-      Log.writeln(message); 
+      Log.write("  [POLL] ");
+      Log.write(space.getName());
+      Log.write(": ");
+      Log.writeln(message);
     }
   }
-  
+
   /**
    * This method controls the triggering of a GC. It is called periodically
    * during allocation. Returns true to trigger a collection.
-   * 
+   *
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
   protected boolean collectionRequired(boolean spaceFull) {
     boolean stressForceGC = stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
 
-    return spaceFull || stressForceGC || heapFull || metaDataFull;
+    return spaceFull || stressForceGC || heapFull;
   }
-  
+
+  /**
+   * This method controls the triggering of an atomic phase of a concurrent
+   * collection. It is called periodically during allocation.
+   *
+   * @return True if a collection is requested by the plan.
+   */
+  protected boolean concurrentCollectionRequired() {
+    return false;
+  }
+
   /**
    * Start GCspy server.
    *
@@ -811,25 +927,39 @@ public abstract class Plan implements Constants {
    * whether it needs to copy IO buffers etc.
    *
    * @param object The object in question
-   * @return True if it is possible that the object will ever move
+   * @return True if it is not possible that the object will ever move.
    */
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())
-      return false;
+      return true;
     if (Space.isInSpace(LOS, object))
-      return false;
+      return true;
     if (Space.isInSpace(PLOS,object))
-      return false;
+      return true;
     if (Space.isInSpace(IMMORTAL, object))
-      return false;
+      return true;
     if (Space.isInSpace(VM_SPACE, object))
-      return false;
+      return true;
+    if (USE_CODE_SPACE && Space.isInSpace(SMALL_CODE, object))
+      return true;
+    if (USE_CODE_SPACE && Space.isInSpace(LARGE_CODE, object))
+      return true;
 
     /*
-     * Default to true - this preserves correctness over efficiency.
+     * Default to false- this preserves correctness over efficiency.
      * Individual plans should override for non-moving spaces they define.
      */
-    return true;
+    return false;
   }
 
+  /****************************************************************************
+   * Specialized Scanning
+   */
+
+  /**
+   * Get the specialized scan with the given id.
+   */
+  public final Class<?> getSpecializedScanClass(int id) {
+    return TransitiveClosure.getSpecializedScanClass(id);
+  }
 }

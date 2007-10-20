@@ -18,7 +18,7 @@ import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;
@@ -32,7 +32,7 @@ public class ScanBootImage implements Constants {
   private static final boolean DEBUG = false;
   private static final boolean FILTER = true;
 
-  private static final int LOG_CHUNK_BYTES = 10;
+  private static final int LOG_CHUNK_BYTES = 12;
   private static final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
   private static final int LONG_MASK = 0x1;
   private static final int RUN_MASK = 0x2;
@@ -66,7 +66,7 @@ public class ScanBootImage implements Constants {
 
     /* figure out striding */
     int stride = VM_CollectorThread.numCollectors()<<LOG_CHUNK_BYTES;
-    VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
     int start = (collector.getGCOrdinal() - 1)<<LOG_CHUNK_BYTES;
     Address cursor = mapStart.plus(start);
 
@@ -87,9 +87,6 @@ public class ScanBootImage implements Constants {
       Log.write(" refs: "); Log.write(refs);
       Log.write(">");
     }
-
-    /* sync up all collection threads */
-    VM_CollectorThread.gcBarrier.rendezvous(4300);
   }
 
   /**
@@ -131,7 +128,7 @@ public class ScanBootImage implements Constants {
       if (DEBUG) refs++;
       if (!FILTER || slot.loadAddress().GT(mapEnd)) {
         if (DEBUG) roots++;
-        trace.addRootLocation(slot);
+        trace.processRootEdge(slot);
       }
       if (runlength != 0) {
         for (int i = 0; i < runlength; i++) {
@@ -140,7 +137,7 @@ public class ScanBootImage implements Constants {
           if (DEBUG) refs++;
           if (!FILTER || slot.loadAddress().GT(mapEnd)) {
             if (DEBUG) roots++;
-            trace.addRootLocation(slot);
+            trace.processRootEdge(slot);
           }
         }
       }
@@ -276,8 +273,7 @@ public class ScanBootImage implements Constants {
       return lastOffset + BYTES_IN_WORD;
     } else {
       if (((index & (CHUNK_BYTES - 1)) == 0) ||
-          (((int) code[index] &LONG_MASK) == LONG_MASK))
-      {
+          (((int) code[index] &LONG_MASK) == LONG_MASK)) {
         return decodeWord(code, index);
       } else {
         return lastOffset + (((int) code[index]) & 0xff);

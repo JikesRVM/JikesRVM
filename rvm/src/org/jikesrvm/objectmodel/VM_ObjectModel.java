@@ -22,6 +22,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -138,7 +139,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   private static final boolean PACKED = true;
 
   /** Layout widget */
-  private static VM_FieldLayout layout;
+  private static final VM_FieldLayout layout;
 
   static {
     if (PACKED) {
@@ -460,6 +461,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Generic lock
    */
+  @Entrypoint
   public static void genericLock(Object o) {
     VM_JavaHeader.genericLock(o);
   }
@@ -467,6 +469,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Generic unlock
    */
+  @Entrypoint
   public static void genericUnlock(Object o) {
     VM_JavaHeader.genericUnlock(o);
   }
@@ -504,8 +507,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Non-atomic read of byte containing available bits
    */
-  public static int readAvailableBitsByte(Object o) {
-    return VM_JavaHeader.readAvailableBitsByte(o);
+  public static byte readAvailableByte(Object o) {
+    return VM_JavaHeader.readAvailableByte(o);
   }
 
   /**
@@ -518,8 +521,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Non-atomic write of byte containing available bits
    */
-  public static void writeAvailableBitsByte(Object o, byte val) {
-    VM_JavaHeader.writeAvailableBitsByte(o, val);
+  public static void writeAvailableByte(Object o, byte val) {
+    VM_JavaHeader.writeAvailableByte(o, val);
   }
 
   /**

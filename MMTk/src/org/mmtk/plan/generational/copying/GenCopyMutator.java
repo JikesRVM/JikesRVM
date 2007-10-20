@@ -39,7 +39,6 @@ import org.vmmagic.pragma.*;
  * @see GenMutator
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenCopyMutator extends GenMutator {
   /******************************************************************
@@ -83,7 +82,7 @@ import org.vmmagic.pragma.*;
   @Inline
   public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenCopy.ALLOC_MATURE) {
-      return mature.alloc(bytes, align, offset, false);
+      return mature.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -151,9 +150,9 @@ import org.vmmagic.pragma.*;
    * @param primary True if this thread should peform local single-threaded
    * actions.
    */
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
-      if (phaseId == GenCopy.PREPARE_MUTATOR) {
+      if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
         return;

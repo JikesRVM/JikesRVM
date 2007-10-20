@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.Address;
  *
  * Note: this (array) object is drawn upside down compared to other objects
  * because the hardware stack grows from high memory to low memory, but
- * array objects are layed out from low memory to high (header first).
+ * array objects are laid out from low memory to high (header first).
  * <pre>
  *  hi-memory
  *                 +===============+
@@ -131,8 +131,8 @@ public interface VM_StackframeLayoutConstants {
   int STACKFRAME_HEADER_SIZE = 3 * BYTES_IN_STACKSLOT; // size of frame header, in bytes
 
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID depending on ABI.
-  int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI ? 2 * BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
-  int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI ? BYTES_IN_STACKSLOT : 2 * BYTES_IN_STACKSLOT;
+  int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI || VM.BuildForMachOABI ? 2 * BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
+  int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI || VM.BuildForMachOABI ? BYTES_IN_STACKSLOT : 2 * BYTES_IN_STACKSLOT;
 
   int STACKFRAME_FRAME_POINTER_OFFSET = 0;    // base of this frame
 
@@ -144,7 +144,7 @@ public interface VM_StackframeLayoutConstants {
   //
   int STACKFRAME_ALIGNMENT = VM_SizeConstants.BYTES_IN_DOUBLE;
 
-  // Sizes for stacks and subregions thereof.
+  // Sizes for stacks and sub-regions thereof.
   // Values are in bytes and must be a multiple of 8 (size of a stack slot on 64-architecture).
   //
   int STACK_SIZE_GROW = 8 * 1024; // how much to grow normal stack when overflow detected
@@ -161,8 +161,8 @@ public interface VM_StackframeLayoutConstants {
   //   to ensure that frames allocated by stack growing code will fit within guard region.
   // - STACK_SIZE_GROW must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
   //   to ensure that, if stack is grown prior to disabling gc or calling native code,
-  //   the new stack will accomodate that code without generating a stack overflow trap.
-  // - Values chosen for STACK_SIZE_NATIVE and STACK_SIZE_GCDISABLED are pure guesswork
+  //   the new stack will accommodate that code without generating a stack overflow trap.
+  // - Values chosen for STACK_SIZE_NATIVE and STACK_SIZE_GCDISABLED are pure guess work
   //   selected by trial and error.
   //
 

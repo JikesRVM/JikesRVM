@@ -33,7 +33,6 @@ import org.vmmagic.unboxed.*;
  * @see CopyMSMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class CopyMSCollector extends StopTheWorldCollector {
 
@@ -83,7 +82,7 @@ import org.vmmagic.unboxed.*;
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == CopyMS.ALLOC_MS);
     }
-    return mature.alloc(bytes, align, offset, CopyMS.msSpace.inMSCollection());
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
@@ -111,7 +110,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Use this thread for single-threaded local activities.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == CopyMS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       mature.prepare();
@@ -119,19 +118,13 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == CopyMS.START_CLOSURE) {
-      trace.startTrace();
-      return;
-    }
-
-    if (phaseId == CopyMS.COMPLETE_CLOSURE) {
+    if (phaseId == CopyMS.CLOSURE) {
       trace.completeTrace();
       return;
     }
 
     if (phaseId == CopyMS.RELEASE) {
-      mature.releaseCollector();
-      mature.releaseMutator();
+      mature.release();
       trace.release();
       super.collectionPhase(phaseId, primary);
       return;

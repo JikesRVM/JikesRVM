@@ -16,7 +16,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;
@@ -50,7 +50,7 @@ public final class ScanStatics implements Constants {
     // The number of collector threads
     final int numberOfCollectors = VM_CollectorThread.numCollectors();
     // This thread as a collector
-    final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
     // The number of static references
     final int numberOfReferences = VM_Statics.getNumberOfReferenceSlots();
     // The size to give each thread
@@ -65,7 +65,7 @@ public final class ScanStatics implements Constants {
     // Process region
     for (int slot=start; slot < end; slot+=refSlotSize) {
       Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
-      trace.addRootLocation(slots.plus(slotOffset));
+      trace.processRootEdge(slots.plus(slotOffset));
     }
   }
 }

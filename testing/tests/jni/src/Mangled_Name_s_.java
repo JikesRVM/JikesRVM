@@ -19,14 +19,14 @@ class Mangled_Name_s_ {
     setVerboseOff();
 
   // method name for special case
-  public static native int _underscore ();
-  public static native int with_underscore ();
+  public static native int _underscore();
+  public static native int with_underscore();
   public static native int overload();
   public static native int overload(int i);
-  public static native int overload(boolean b, int i, String args[]);
+  public static native int overload(boolean b, int i, String[] args);
 
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     int returnValue;
     boolean returnBoolean;
 

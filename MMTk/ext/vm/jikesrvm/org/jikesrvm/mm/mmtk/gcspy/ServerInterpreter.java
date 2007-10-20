@@ -41,7 +41,7 @@ import org.vmmagic.pragma.*;
    * @param verbose Whether the server is to run verbosely
    */
   @Interruptible
-  public void init (String name, int port, boolean verbose) {
+  public void init(String name, int port, boolean verbose) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(!initialised, "Tried to re-init server interpreter");
@@ -68,7 +68,7 @@ import org.vmmagic.pragma.*;
    * @param num the event number
    * @param name the event name
    */
-  public void addEvent (int num, String name) {
+  public void addEvent(int num, String name) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(initialised,
@@ -114,7 +114,7 @@ import org.vmmagic.pragma.*;
    * @param event The current event
    * @return true if we are connected
    */
-  public boolean isConnected (int event) {
+  public boolean isConnected(int event) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
         Log.writeln("ServerInterpreter.isConnected, server=", server);
@@ -123,9 +123,9 @@ import org.vmmagic.pragma.*;
         return false;
       int res = sysCall.gcspyMainServerIsConnected(server, event);
       return (res != 0);
-      }
-    else
+    } else {
       return false;
+    }
   }
 
   /**
@@ -161,7 +161,7 @@ import org.vmmagic.pragma.*;
    * This is a point at which the server can pause, play one, etc.
    * @param event The current event
    */
-  public void serverSafepoint (int event) {
+  public void serverSafepoint(int event) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
         Log.writeln("ServerInterpreter.serverSafepoint, server=", server);

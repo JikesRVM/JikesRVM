@@ -21,8 +21,7 @@ public class TestProcessDestroy {
           try {
             Thread.sleep(3000); // give it a chance to start
             proc.destroy();
-          }
-          catch (InterruptedException e) {
+          } catch (InterruptedException e) {
           }
         }
       }.start();
@@ -31,8 +30,7 @@ public class TestProcessDestroy {
       int exitCode = proc.waitFor();
       System.out.println("Process exited with code " + exitCode);
       System.out.println("TestProcessDestroy SUCCESS");
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
       System.out.println("TestProcessDestroy FAILURE");
     }

@@ -37,13 +37,11 @@ class JNI12 {
   static native int testWeakPersistenceAndDestruction(Object m);
 
 
-  public void dummyFunc () {
-  }
+  public void dummyFunc() { }
   public int dummyFld;
 
-  public static void main(String args[])
-    throws NoSuchMethodException, NoSuchFieldException
-  {
+  public static void main(String[] args) throws NoSuchMethodException,
+                                                NoSuchFieldException {
     System.loadLibrary("JNI12");
 
     if (args.length != 0) {
@@ -69,7 +67,7 @@ class JNI12 {
 
     Object heldGlobal = testGlobalCreationAndReturn(dummyM);
     if (heldGlobal == null) {
-      if (verbose )
+      if (verbose)
         System.err.println("testGlobalCreationAndReturn returned null!");
       heldGlobal = new Object();
     }
@@ -83,7 +81,7 @@ class JNI12 {
 
     Object heldWeak = testWeakCreationAndReturn(dummyM);
     if (heldWeak == null) {
-      if (verbose )
+      if (verbose)
         System.err.println("testWeakCreationAndReturn returned null!");
       heldWeak = new Object();
     }

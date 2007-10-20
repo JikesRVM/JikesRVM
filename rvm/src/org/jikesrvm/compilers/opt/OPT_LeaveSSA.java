@@ -214,7 +214,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       while (ee.hasMoreElements()) {
         OPT_Operand o = ee.next();
         if (o instanceof OPT_RegisterOperand) {
-          OPT_Register r1 = ((OPT_RegisterOperand) o).register;
+          OPT_Register r1 = ((OPT_RegisterOperand) o).getRegister();
           if (r1.isValidation()) continue;
           OPT_Operand r2 = s.peek(r1);
           if (r2 != null) {
@@ -232,7 +232,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     while (e.hasMoreElements()) {
       OPT_Instruction i = e.next();
       if (globalRenameTable.contains(i)) {
-        OPT_Register original = Move.getVal(i).asRegister().register;
+        OPT_Register original = Move.getVal(i).asRegister().getRegister();
         OPT_RegisterOperand rename = Move.getResult(i);
         if (DEBUG) VM.sysWriteln("record rename " + rename + " for " + original);
         s.push(original, rename);
@@ -251,7 +251,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     while (e.hasMoreElements()) {
       OPT_Instruction i = e.next();
       if (globalRenameTable.contains(i)) {
-        OPT_Register original = Move.getVal(i).asRegister().register;
+        OPT_Register original = Move.getVal(i).asRegister().getRegister();
         s.pop(original);
       }
     }
@@ -265,7 +265,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
         OPT_OperandEnumeration oe = inst.getUses();
         while (oe.hasMoreElements()) {
           OPT_Operand op = oe.next();
-          if (op.isRegister() && op.asRegister().register == r) {
+          if (op.isRegister() && op.asRegister().getRegister() == r) {
             return true;
           }
         }
@@ -335,13 +335,13 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
         for (int index = 0; index < Phi.getNumberOfPreds(phi); index++) {
           if (Phi.getPred(phi, index).block != bb) continue;
           OPT_Operand rval = Phi.getValue(phi, index);
-          if (rval.isRegister() && Phi.getResult(phi).asRegister().register == rval.asRegister().register) {
+          if (rval.isRegister() && Phi.getResult(phi).asRegister().getRegister() == rval.asRegister().getRegister()) {
             continue;
           }
           Copy c = new Copy(phi, index);
           copySet.add(0, c);
           if (c.source instanceof OPT_RegisterOperand) {
-            OPT_Register r = c.source.asRegister().register;
+            OPT_Register r = c.source.asRegister().getRegister();
             usedByAnother.add(r);
           }
         }
@@ -357,7 +357,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     // the set of needed copies.
     for (Iterator<Copy> copySetIter = copySet.iterator(); copySetIter.hasNext();) {
       Copy c = copySetIter.next();
-      if (!usedByAnother.contains(c.destination.register)) {
+      if (!usedByAnother.contains(c.destination.getRegister())) {
         workList.add(0, c);
         copySetIter.remove();
       }
@@ -367,15 +367,15 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       // while there are copies that can be correctly inserted.
       while (!workList.isEmpty()) {
         Copy c = workList.remove(0);
-        OPT_Register r = c.destination.register;
-        VM_TypeReference tt = c.destination.type;
+        OPT_Register r = c.destination.getRegister();
+        VM_TypeReference tt = c.destination.getType();
         if (VM.VerifyAssertions && tt == null) {
           tt = VM_TypeReference.Int;
           VM.sysWrite("OPT_SSA, warning: null type in " + c.destination + "\n");
         }
 
         OPT_Register rr = null;
-        if (c.source.isRegister()) rr = c.source.asRegister().register;
+        if (c.source.isRegister()) rr = c.source.asRegister().getRegister();
         boolean shouldSplitBlock =
             !c.phi.getBasicBlock().isExceptionHandlerBasicBlock() &&
             ((out.contains(r) && SplitBlockToAvoidRenaming) ||
@@ -431,7 +431,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
               HashMap<OPT_Register, OPT_Register> newNames = new HashMap<OPT_Register, OPT_Register>(4);
               currentNames.put(criticalBlock, newNames);
             }
-            OPT_Register sr = c.source.asRegister().register;
+            OPT_Register sr = c.source.asRegister().getRegister();
             HashMap<OPT_Register, OPT_Register> criticalBlockNames = currentNames.get(criticalBlock);
             OPT_Register nameForSR = criticalBlockNames.get(sr);
             if (nameForSR == null) {
@@ -444,7 +444,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
             criticalBlockNames.put(sr, r);
             criticalBlock.appendInstructionRespectingTerminalBranch(ci);
           } else {
-            OPT_Register sr = c.source.asRegister().register;
+            OPT_Register sr = c.source.asRegister().getRegister();
             OPT_Register nameForSR = bbNames.get(sr);
             if (nameForSR == null) nameForSR = sr;
             if (DEBUG) VM.sysWriteln("not splitting edge: " + bb + "->" + c.phi.getBasicBlock());
@@ -486,11 +486,11 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
         // safely.  so now add any copies _to_ the source of the
         // current copy to the work list.
         if (c.source instanceof OPT_RegisterOperand) {
-          OPT_Register saved = c.source.asRegister().register;
+          OPT_Register saved = c.source.asRegister().getRegister();
           Iterator<Copy> copySetIter = copySet.iterator();
           while (copySetIter.hasNext()) {
             Copy cc = copySetIter.next();
-            if (cc.destination.asRegister().register == saved) {
+            if (cc.destination.asRegister().getRegister() == saved) {
               workList.add(0, cc);
               copySetIter.remove();
             }
@@ -505,12 +505,12 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       // safely overwritten.  so, add that copy to the work list.
       if (!copySet.isEmpty()) {
         Copy c = copySet.remove(0);
-        OPT_Register tt = ir.regpool.getReg(c.destination.register);
+        OPT_Register tt = ir.regpool.getReg(c.destination.getRegister());
         OPT_SSA.addAtEnd(ir,
                          bb,
-                         OPT_SSA.makeMoveInstruction(ir, tt, c.destination.register, c.destination.type),
+                         OPT_SSA.makeMoveInstruction(ir, tt, c.destination.getRegister(), c.destination.getType()),
                          c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
-        bbNames.put(c.destination.register, tt);
+        bbNames.put(c.destination.getRegister(), tt);
         workList.add(0, c);
       }
     }
@@ -622,7 +622,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       if (!Phi.conforms(inst)) continue;
       OPT_Operand res = Phi.getResult(inst);
       if (!(res instanceof OPT_RegisterOperand)) continue;
-      OPT_Register r = res.asRegister().register;
+      OPT_Register r = res.asRegister().getRegister();
       if (!r.isValidation()) continue;
 
       // force all operands of Phis into registers.
@@ -663,12 +663,12 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
   private void unSSAGuardsDetermineReg(OPT_IR ir) {
     OPT_Instruction inst = guardPhis;
     while (inst != null) {
-      OPT_Register r = Phi.getResult(inst).asRegister().register;
+      OPT_Register r = Phi.getResult(inst).asRegister().getRegister();
       int values = Phi.getNumberOfValues(inst);
       for (int i = 0; i < values; ++i) {
         OPT_Operand op = Phi.getValue(inst, i);
         if (op instanceof OPT_RegisterOperand) {
-          guardUnion(op.asRegister().register, r);
+          guardUnion(op.asRegister().getRegister(), r);
         } else {
           if (VM.VerifyAssertions) {
             VM._assert(op instanceof OPT_TrueGuardOperand || op instanceof OPT_UnreachableOperand);
@@ -690,12 +690,12 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(r);
       while (uses.hasMoreElements()) {
         OPT_RegisterOperand use = uses.next();
-        use.register = nreg;
+        use.setRegister(nreg);
       }
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(r);
       while (defs.hasMoreElements()) {
         OPT_RegisterOperand def = defs.next();
-        def.register = nreg;
+        def.setRegister(nreg);
       }
     }
     OPT_Instruction inst = guardPhis;
@@ -763,7 +763,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
           OPT_Operand op = Phi.getValue(s, index);
           if (op.isRegister()) {
             // Get rval
-            OPT_Register rval = op.asRegister().register;
+            OPT_Register rval = op.asRegister().getRegister();
             if (rval.isValidation()) {
               continue; // ignore guards
             } else {
@@ -789,7 +789,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
             // ignore heap operands
           } else {
             // Get lval
-            OPT_Register lval = op.asRegister().register;
+            OPT_Register lval = op.asRegister().getRegister();
             // Make lval'
             OPT_Register lvalPrime = ir.regpool.getReg(lval);
             // Make copy instruction

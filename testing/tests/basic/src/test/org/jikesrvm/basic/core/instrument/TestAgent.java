@@ -13,7 +13,7 @@
 package test.org.jikesrvm.basic.core.instrument;
 
 public class TestAgent {
-	public static void main(String[] args) {
-		System.out.println("TestAgent executed.");
-	}
+  public static void main(String[] args) {
+    System.out.println("TestAgent executed.");
+  }
 }

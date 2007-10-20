@@ -20,6 +20,7 @@ import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.Intrinsic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -436,6 +437,7 @@ public final class VM_Magic {
   //             Type Conversion.          //
   //---------------------------------------//
 
+  @Entrypoint
   private static VM_ObjectAddressRemapper objectAddressRemapper;
 
   /**
@@ -484,21 +486,17 @@ public final class VM_Magic {
   }
 
   /**
-   * Cast bits of code array into an address
+   * Cast bits of code array into an object
    * Note: for use by VM_Statics when assigning slots to static method pointers
    * @param code the code array to convert
-   * @return word that
+   * @return object reference
    */
-  public static Address codeArrayToAddress(VM_CodeArray code) {
+  public static Object codeArrayAsObject(VM_CodeArray code) {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
-    if (objectAddressRemapper == null) {
-      return Address.zero();                 // tool isn't interested in remapping
-    }
-
-    return objectAddressRemapper.objectAsAddress(code);
+    return code;
   }
 
   /**
@@ -530,6 +528,17 @@ public final class VM_Magic {
    * @return object reference as processor (no checking on cast)
    */
   public static VM_Processor objectAsProcessor(Object object) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
+  }
+
+  /**
+   * Cast object.
+   * Note:     for use by gc to avoid checkcast during GC
+   * @param object object reference
+   * @return object reference as thread (no checking on cast)
+   */
+  public static VM_Thread objectAsThread(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -763,13 +772,6 @@ public final class VM_Magic {
     return null;
   }
 
-  /**
-   * Clear the hardware floating point state. NOTE: IA-specific
-   */
-  public static void clearFloatingPointState() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-  }
-
   //---------------------------------------//
   //            Cache Management.          //
   //---------------------------------------//
@@ -791,6 +793,21 @@ public final class VM_Magic {
    * prefetched instructions on this processor.
    */
   public static void isync() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  /****************************************************************
+   *
+   *    Misc
+   *
+   */
+
+  /**
+   * On IA32, emit a PAUSE instruction, to optimize spin-wait loops.
+   */
+  public static void pause() {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }

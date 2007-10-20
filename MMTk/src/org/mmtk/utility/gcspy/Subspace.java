@@ -51,11 +51,11 @@ import org.vmmagic.pragma.*;
    * @param blockSize The size of blocks in this space
    * @param blockNum The number of blocks in this subspace
    */
-  public Subspace (Address start,
-                   Address end,
-                   int firstIndex,
-                   int blockSize,
-                   int blockNum) {
+  public Subspace(Address start,
+                  Address end,
+                  int firstIndex,
+                  int blockSize,
+                  int blockNum) {
     reset(start, end, firstIndex, blockSize, blockNum);
   }
 
@@ -71,11 +71,11 @@ import org.vmmagic.pragma.*;
    * @param blockSize The size of blocks in this subspace
    * @param blockNum The number of blocks in this subspace
    */
-  private void reset (Address start,
-                      Address end,
-                      int firstIndex,
-                      int blockSize,
-                      int blockNum) {
+  private void reset(Address start,
+                     Address end,
+                     int firstIndex,
+                     int blockSize,
+                     int blockNum) {
     //TODO sanity check on addresses and block size and number
     reset(start, end, firstIndex, blockNum);
     blockSize_ = blockSize;
@@ -91,10 +91,10 @@ import org.vmmagic.pragma.*;
    * @param firstIndex The index of the first block of the subspace
    * @param blockNum The number of blocks in this subspace
    */
-  public void reset (Address start,
-                     Address end,
-                     int firstIndex,
-                     int blockNum) {
+  public void reset(Address start,
+                    Address end,
+                    int firstIndex,
+                    int blockNum) {
     start_ = start;
     end_ = end;
     firstIndex_ = firstIndex;

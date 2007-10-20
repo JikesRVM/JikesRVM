@@ -35,10 +35,10 @@ class NativeException {
   }
 
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     boolean returnFlag;
-    int intArray[] = new int[10];
+    int[] intArray = new int[10];
 
     System.loadLibrary("NativeException");
 
@@ -120,11 +120,9 @@ class NativeException {
       Class ecls = Class.forName("java.lang.Exception");
       returnFlag = testExceptionThrowNew(ecls);
       returnFlag = false;  // shouldn't be here
-    }
-    catch (ClassNotFoundException e1) {
+    } catch (ClassNotFoundException e1) {
       returnFlag = false;  // shouldn't be here
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       printVerbose("Caught exception:  got " + e.toString());
       returnFlag = true;
     }

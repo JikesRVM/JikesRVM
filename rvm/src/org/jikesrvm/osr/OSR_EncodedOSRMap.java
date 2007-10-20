@@ -254,7 +254,7 @@ if (VM.TraceOnStackReplacement) {
       first |= NEXT_BIT;
     }
 
-    first |= (tuple.kind << KIND_SHIFT);
+    first |= (tuple.kind ? 1 : 0) << KIND_SHIFT;
 
     first |= (tuple.valueType << VTYPE_SHIFT);
 
@@ -296,7 +296,7 @@ if (VM.TraceOnStackReplacement) {
 
           if (!isLast) first |= NEXT_BIT;
 
-          first |= (tuple.kind << KIND_SHIFT);
+          first |= (tuple.kind ? 1 : 0) << KIND_SHIFT;
           first |= (tuple.valueType << VTYPE_SHIFT);
         }
         first |= (LONG << TCODE_SHIFT);
@@ -332,7 +332,7 @@ if (VM.TraceOnStackReplacement) {
 * it may be the last, and it is not the first half.*/
           first = (tuple.num << NUM_SHIFT) & NUM_MASK;
           if (!isLast) first |= NEXT_BIT;
-          first |= (tuple.kind << KIND_SHIFT);
+          first |= (tuple.kind ? 1 : 0) << KIND_SHIFT;
           first |= (tuple.valueType << VTYPE_SHIFT);
         }
         first |= (WORD << TCODE_SHIFT);

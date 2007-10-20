@@ -44,8 +44,7 @@ import org.jikesrvm.util.VM_HashMap;
  * Jikes RVM impl of VMClassLoader.
  * See GNU classpath reference impl for javadoc.
  */
-final class VMClassLoader
-{
+final class VMClassLoader {
   /**
    * A map of maps. The first map is indexed by the classloader. The
    * map this finds then maps String class names to classes
@@ -60,12 +59,10 @@ final class VMClassLoader
   private static final VM_HashMap<String,ZipFile> bootjars =
     new VM_HashMap<String,ZipFile>();
 
-  static
-  {
+  static {
     String[] packages = getBootPackages();
 
-    if( packages != null)
-    {
+    if (packages != null) {
       String specName =
         SystemProperties.getProperty("java.specification.name");
       String vendor =
@@ -90,10 +87,9 @@ final class VMClassLoader
   }
 
   static Class<?> defineClass(ClassLoader cl, String name,
-      byte[] data, int offset, int len,
-      ProtectionDomain pd)
-      throws ClassFormatError
-      {
+                              byte[] data, int offset, int len,
+                              ProtectionDomain pd)
+                              throws ClassFormatError {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
     Class<?> ans = vmType.getClassForType();
     JikesRVMSupport.setClassProtectionDomain(ans, pd);
@@ -104,7 +100,7 @@ final class VMClassLoader
     }
     mapForCL.put(name, ans);
     return ans;
-      }
+  }
 
   static void resolveClass(Class<?> c) {
     VM_Type cls = JikesRVMSupport.getTypeForClass(c);
@@ -114,73 +110,54 @@ final class VMClassLoader
   }
 
   static Class<?> loadClass(String name, boolean resolve)
-  throws ClassNotFoundException
-  {
+  throws ClassNotFoundException {
     return VM_BootstrapClassLoader.getBootstrapClassLoader().loadClass(name, resolve);
   }
 
-  static URL getResource(String name)
-  {
+  static URL getResource(String name) {
     Enumeration<URL> e = getResources(name);
     if (e.hasMoreElements())
       return e.nextElement();
     return null;
   }
 
-  static Enumeration<URL> getResources(String name)
-  {
+  static Enumeration<URL> getResources(String name) {
     StringTokenizer st = new StringTokenizer(
         SystemProperties.getProperty("java.boot.class.path", "."),
         File.pathSeparator);
     Vector<URL> v = new Vector<URL>();
-    while (st.hasMoreTokens())
-    {
+    while (st.hasMoreTokens()) {
       File file = new File(st.nextToken());
-      if (file.isDirectory())
-      {
-        try
-        {
+      if (file.isDirectory()) {
+        try {
           File f = new File(file, name);
           if (!f.exists()) continue;
           v.add(new URL("file://" + f.getAbsolutePath()));
-        }
-        catch (MalformedURLException e)
-        {
+        } catch (MalformedURLException e) {
           throw new Error(e);
         }
-      }
-      else if (file.isFile())
-      {
+      } else if (file.isFile()) {
         ZipFile zip;
-        synchronized(bootjars)
-        {
+        synchronized(bootjars) {
           zip = bootjars.get(file.getName());
         }
-        if(zip == null)
-        {
-          try
-          {
+        if(zip == null) {
+          try {
             zip = new ZipFile(file);
-            synchronized(bootjars)
-            {
+            synchronized(bootjars) {
               bootjars.put(file.getName(), zip);
             }
-          }
-          catch (IOException e)
-          {
+          } catch (IOException e) {
             continue;
           }
         }
         String zname = name.startsWith("/") ? name.substring(1) : name;
         if (zip.getEntry(zname) == null)
           continue;
-        try
-        {
-          v.add(new URL("jar:file://"
-              + file.getAbsolutePath() + "!/" + zname));
-        }
-        catch (MalformedURLException e)
-        {
+        try {
+          v.add(new URL("jar:file://" +
+                        file.getAbsolutePath() + "!/" + zname));
+        } catch (MalformedURLException e) {
           throw new Error(e);
         }
       }

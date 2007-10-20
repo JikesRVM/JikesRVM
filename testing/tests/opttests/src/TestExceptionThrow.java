@@ -13,28 +13,22 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 
-class MyErrorBase extends Throwable
-   {
+class MyErrorBase extends Throwable {
      private static final long serialVersionUID = 0L;
-   }
+}
 
-class MyError extends MyErrorBase
-   {
+class MyError extends MyErrorBase {
      private static final long serialVersionUID = 0L;
-   }
+}
 
-class NotMyError extends Throwable
-   {
+class NotMyError extends Throwable {
      private static final long serialVersionUID = 0L;
-   }
+}
 
-class TestExceptionThrow
-   {
-   public static void main(String args[])
-      throws Throwable
-      {
+class TestExceptionThrow {
+   public static void main(String[] args) throws Throwable {
       run();
-      }
+   }
 
    public static boolean run() throws Throwable {
       boolean correct = true;
@@ -68,47 +62,37 @@ class TestExceptionThrow
    }
 
 
-   public static boolean run1()
-      throws Throwable
-      {
+   public static boolean run1() throws Throwable {
       System.out.println("TestExceptionThrow");
       int a = 1;
       int b = 2;
       // test "user" exceptions
-      try
-         {
+      try {
          int c = a + b * foo1();
          System.out.println(c);
-         }
-      catch (MyErrorBase  e)
-         {
+      } catch (MyErrorBase  e) {
          System.out.println("caught: " + e);
-         }
-
+      }
 
       // test "vm" exceptions
-      try
-         {
+      try {
          FileInputStream s = new FileInputStream("xyzzy");
          System.out.println(s);
-         }
-      catch (IOException e)
-         {
+      } catch (IOException e) {
          System.out.println("caught: " + e.getClass());
-         }
+      }
       return true;
+   }
+
+   static int foo1() throws MyError,NotMyError {
+      if (true) {
+        throw new    MyError();
+      } else {
+        throw new NotMyError();
       }
+   }
 
-   static int foo1()
-      throws MyError,NotMyError
-      {
-      if (true ) throw new    MyError();
-      else       throw new NotMyError();
-      }
-
-
-
-    static int testa[] = new int[3];
+    static int[] testa = new int[3];
 
      public static boolean run2() {
        try {
@@ -145,10 +129,7 @@ class TestExceptionThrow
      }
 
 
-
-
-
-   static int test3[] = null; //new int[3];
+   static int[] test3 = null; //new int[3];
 
    public static boolean run3() {
       try {
@@ -172,15 +153,14 @@ class TestExceptionThrow
    static int divide(int a, int b) {
      try {
          return a/b;
-     }
-     catch(ArithmeticException e) {
+     } catch(ArithmeticException e) {
          return a + 1;
      }
    }
 
 
 
-   static int test5[] = null; //new int[3];
+   static int[] test5 = null; //new int[3];
 
    public static boolean run5() {
     try {
@@ -213,51 +193,43 @@ class TestExceptionThrow
    static int access(int i) {
      try {
          return testa[i];
-     }
-     catch(ArrayIndexOutOfBoundsException e) {
+     } catch(ArrayIndexOutOfBoundsException e) {
          return i + 1;
      }
    }
 
 
-   public static boolean run7()
-      throws Throwable
-      {
+   public static boolean run7() throws Throwable {
       System.out.println("TestThrow");
 
       // test "user" exceptions
-      try
-         {
+      try {
          int a = 1;
          int b = 2;
          int c = a + b * foo7();
          System.out.println(c);
-         }
-      catch (MyErrorBase  e)
-         {
+      } catch (MyErrorBase  e) {
          System.out.println("caught: " + e);
-      // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
-         }
+         // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
+      }
 
       // test "vm" exceptions
-      try
-         {
+      try {
          FileInputStream s = new FileInputStream("xyzzy");
          System.out.println(s);
-         }
-      catch (IOException e)
-         {
+      } catch (IOException e) {
          System.out.println("caught: " + e.getClass());
-         }
+      }
       return true;
-      }
+   }
 
-   static int foo7()
-      throws MyError,NotMyError
-      {
-      if (true ) throw new    MyError();
-      else       throw new NotMyError();
+   static int foo7() throws MyError,NotMyError {
+      if (true) {
+        throw new MyError();
+      } else {
+        throw new NotMyError();
       }
+   }
 
 
      // very similar to run5(), but throw is inline instead of in callee method
@@ -267,9 +239,9 @@ class TestExceptionThrow
          throw new IndexOutOfBoundsException("I am IndexOBE");
        testa[3] = 0;
      } catch (NullPointerException n) {
-       System.out.println( n + ", but caught by NullPointCheckException");
+       System.out.println(n + ", but caught by NullPointCheckException");
      } catch (ArithmeticException a) {
-       System.out.println( a + ", but caught by ArithMeticException");
+       System.out.println(a + ", but caught by ArithMeticException");
      } catch (IndexOutOfBoundsException e5) {
        System.out.println(" IndexOutOfBoundsException caught");
      }
@@ -311,7 +283,7 @@ class TestExceptionThrow
   public static void foo9(int i) {
     try {
       System.out.println("does it work? " + i + "   ");
-      if ((i < 0) || ( i > 2)) {
+      if ((i < 0) || (i > 2)) {
         System.out.println(" IndexOutOfBoundsException with index = " + i);
         throw new IndexOutOfBoundsException();
       }
@@ -333,8 +305,7 @@ class TestExceptionThrow
      }
      try {
         int x = b10/a10;
-     }
-     catch (Exception e) {
+     } catch (Exception e) {
      }
      return true;
   }
@@ -351,11 +322,11 @@ class TestExceptionThrow
   public static String run11b() { return "test";};
 
   public static void run11aux(Object a) {
-     if( run11s1.equals("") )
+     if(run11s1.equals(""))
         run11a("Global");
      try{
         run11s2.append(run11b());
-     } catch ( Exception e ){
+     } catch (Exception e){
      }
      run11s2.append(run11b());
      if (run11s2 != null)

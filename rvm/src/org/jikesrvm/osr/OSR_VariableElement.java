@@ -28,19 +28,20 @@ public class OSR_VariableElement implements OSR_Constants {
   // instance fields
   //////////////////////////////////
 
-  /* the kind of this element : LOCAL or STACK
-   */
-  private int kind;
+  /** the kind of this element : LOCAL or STACK */
+  private final boolean kind;
 
-  /* the number of element, e.g., with kind we
+  /**
+   * the number of element, e.g., with kind we
    * can know it is L0 or S1.
    */
-  private int num;
+  private final char num;
 
-  /* type code, can only be INT, FLOAT, LONG, DOUBLE, RET_ADDR, WORD or REF */
-  private int tcode;
+  /** type code, can only be INT, FLOAT, LONG, DOUBLE, RET_ADDR, WORD or REF */
+  private final byte tcode;
 
-  /* The value of this element.
+  /**
+   * The value of this element.
    * For type INT, FLOAT, RET_ADDR and WORD (32-bit), the lower 32 bits are valid.
    * For type LONG and DOUBLE and WORD(64-bit), 64 bits are valid.
    * For REF type, next field 'ref' is valid.
@@ -49,10 +50,10 @@ public class OSR_VariableElement implements OSR_Constants {
    *                         or VM_Magic.longBitsAsDouble
    * to convert bits to floating-point value.
    */
-  private long value;
+  private final long value;
 
-  /* for reference type value */
-  private Object ref;
+  /** for reference type value */
+  private final Object ref;
 
   //////////////////////////////////
   // class auxiliary methods
@@ -94,79 +95,85 @@ public class OSR_VariableElement implements OSR_Constants {
   // Initializer
   /////////////////////////////////////
 
-  /* for 32-bit value */
-
-  public OSR_VariableElement(int what_kind, int which_num, int type, int ibits) {
+  /** Constructor for 32-bit value */
+  public OSR_VariableElement(boolean what_kind, int which_num, byte type, int ibits) {
     if (VM.VerifyAssertions) {
       VM._assert(isIBitsType(type));
+      VM._assert(which_num < 0xFFFF);
     }
 
     this.kind = what_kind;
-    this.num = which_num;
+    this.num = (char)which_num;
     this.tcode = type;
     this.value = (long) ibits & 0x0FFFFFFFFL;
+    this.ref = null;
   }
 
-  /* for 64-bit value */
-  public OSR_VariableElement(int what_kind, int which_num, int type, long lbits) {
+  /** Constructor for 64-bit value */
+  public OSR_VariableElement(boolean what_kind, int which_num, byte type, long lbits) {
     if (VM.VerifyAssertions) {
       VM._assert(isLBitsType(type));
+      VM._assert(which_num < 0xFFFF);
     }
 
     this.kind = what_kind;
-    this.num = which_num;
+    this.num = (char)which_num;
     this.tcode = type;
     this.value = lbits;
+    this.ref = null;
   }
 
-  /* for reference type */
-  public OSR_VariableElement(int what_kind, int which_num, int type, Object ref) {
+  /** Constructor for reference type */
+  public OSR_VariableElement(boolean what_kind, int which_num, byte type, Object ref) {
     if (VM.VerifyAssertions) {
       VM._assert(isRefType(type));
+      VM._assert(which_num < 0xFFFF);
     }
 
     this.kind = what_kind;
-    this.num = which_num;
+    this.num = (char)which_num;
     this.tcode = type;
+    this.value = 0;
     this.ref = ref;
   }
 
-  /* for word type */
-  public OSR_VariableElement(int what_kind, int which_num, int type, Word word) {
+  /** Constructor for word type */
+  public OSR_VariableElement(boolean what_kind, int which_num, byte type, Word word) {
     if (VM.VerifyAssertions) {
       VM._assert(isWordType(type));
+      VM._assert(which_num < 0xFFFF);
     }
 
     this.kind = what_kind;
-    this.num = which_num;
+    this.num = (char)which_num;
     this.tcode = type;
     if (VM.BuildFor32Addr) {
       this.value = ((long) word.toInt()) & 0x0FFFFFFFFL;
     } else {
       this.value = word.toLong();
     }
+    this.ref = null;
   }
 
   ////////////////////////////////
   // instance method
   ////////////////////////////////
 
-  /* local or stack element */
-
+  /** local or stack element */
   boolean isLocal() {
     return kind == LOCAL;
   }
 
-  /* get type code */
-  int getTypeCode() {
+  /** get type code */
+  byte getTypeCode() {
     return tcode;
   }
 
-  int getNumber() {
+  char getNumber() {
     return num;
   }
 
-  /* is reference type */
+  /** is reference type */
   boolean isRefType() {
     return (this.tcode == REF);
   }
@@ -175,7 +182,7 @@ public class OSR_VariableElement implements OSR_Constants {
     return ref;
   }
 
-  /* is word type */
+  /** is word type */
   boolean isWordType() {
     return (this.tcode == WORD);
   }
@@ -202,7 +209,7 @@ public class OSR_VariableElement implements OSR_Constants {
     } else {
       buf.append('S');
     }
-    buf.append(num);
+    buf.append((int)num);
     buf.append(",");
 
     char t = 'V';

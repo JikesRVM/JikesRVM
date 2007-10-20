@@ -37,4 +37,6 @@ import org.vmmagic.pragma.*;
   public int gcHeaderBits() { return MarkCompactSpace.LOCAL_GC_BITS_REQUIRED; }
 
   public int gcHeaderWords() { return MarkCompactSpace.GC_HEADER_WORDS_REQUIRED; }
+
+  public int numSpecializedScans() { return 2; }
 }

@@ -41,7 +41,7 @@ public class ToAsciiTask
     FileInputStream inputStream = null;
     FileOutputStream outputStream = null;
     try {
-      if( dest.exists() ) dest.delete();
+      if (dest.exists()) dest.delete();
 
       inputStream = new FileInputStream(src);
       outputStream = new FileOutputStream(dest);

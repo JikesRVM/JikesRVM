@@ -26,7 +26,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   private static final int NO_OFFSET = Short.MIN_VALUE + 1;
 
   /**
-   * The class that declared this member, avaliable by calling
+   * The class that declared this member, available by calling
    * getDeclaringClass once the class is loaded.
    */
   private final VM_TypeReference declaringClass;
@@ -132,10 +132,12 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * Define hashcode in terms of VM_Atom.hashCode to enable
    * consistent hash codes during bootImage writing and run-time.
    */
+  @Override
   public int hashCode() {
     return memRef.hashCode();
   }
 
+  @Override
   public final String toString() {
     return declaringClass + "." + getName() + " " + getDescriptor();
   }

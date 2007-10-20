@@ -14,12 +14,13 @@ package org.jikesrvm.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Word;
 
 /**
  * A field of a java class.
@@ -169,7 +170,7 @@ public final class VM_Field extends VM_Member {
    * place a reading the field.
    * @return whether the method has a pure annotation
    */
-  public final boolean isRuntimeFinal() {
+  public boolean isRuntimeFinal() {
    return hasRuntimeFinalAnnotation();
   }
 
@@ -177,7 +178,7 @@ public final class VM_Field extends VM_Member {
    * Get the value from the runtime final field
    * @return whether the method has a pure annotation
    */
-  public final boolean getRuntimeFinalValue() {
+  public boolean getRuntimeFinalValue() {
     org.vmmagic.pragma.RuntimeFinal ann;
     if (VM.runningVM) {
       ann = getAnnotation(org.vmmagic.pragma.RuntimeFinal.class);
@@ -203,7 +204,7 @@ public final class VM_Field extends VM_Member {
   }
 
   //-------------------------------------------------------------------//
-  // Lowlevel support for various reflective operations                //
+  // Low level support for various reflective operations               //
   // Because different clients have different error checking           //
   // requirements, these operations are completely unsafe and we       //
   // assume that the client has done the required error checking.      //
@@ -242,6 +243,14 @@ public final class VM_Field extends VM_Member {
       return VM_Statics.getSlotContentsAsObject(getOffset());
     } else {
       return VM_Magic.getObjectAtOffset(obj, getOffset());
+    }
+  }
+
+  public Word getWordValueUnchecked(Object obj) {
+    if (isStatic()) {
+      return VM_Statics.getSlotContentsAsAddress(getOffset()).toWord();
+    } else {
+      return VM_Magic.getWordAtOffset(obj, getOffset());
     }
   }
 
@@ -319,7 +328,7 @@ public final class VM_Field extends VM_Member {
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
       if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
-        MM_Interface.putstaticWriteBarrier(getOffset(), ref);
+        MM_Interface.putstaticWriteBarrier(getOffset(), ref, getId());
       } else {
         VM_Statics.setSlotContents(getOffset(), ref);
       }
@@ -329,6 +338,19 @@ public final class VM_Field extends VM_Member {
       } else {
         VM_Magic.setObjectAtOffset(obj, getOffset(), ref);
       }
+    }
+  }
+
+  /**
+   * assign one object ref from heap using RVM object model, GC safe.
+   * @param obj the object whose field is to be modified, or null if the field is static.
+   * @param ref the object reference to be assigned.
+   */
+  public void setWordValueUnchecked(Object obj, Word ref) {
+    if (isStatic()) {
+      VM_Statics.setSlotContents(getOffset(), ref);
+    } else {
+      VM_Magic.setWordAtOffset(obj, getOffset(), ref);
     }
   }
 

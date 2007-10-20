@@ -33,6 +33,7 @@ public final class VM_DecayOrganizer extends VM_Organizer {
   /**
    * Initialization: install and activate our listener.
    */
+  @Override
   public void initialize() {
     VM_RuntimeMeasurements.installTimerNullListener((VM_YieldCounterListener) listener);
   }

@@ -43,7 +43,7 @@ class TestClassLoading {
       c.newInstance();
       System.out.println("true");
     } catch (final Throwable throwable) {
-      System.out.println("false due to " + throwable.getClass().getName() );
+      System.out.println("false due to " + throwable.getClass().getName());
     }
   }
 }

@@ -16,7 +16,7 @@ package org.mmtk.utility.options;
 /**
  * Should a major GC be performed when a system GC is triggered?
  */
-public class SanityCheck extends BooleanOption {
+public final class SanityCheck extends BooleanOption {
   /**
    * Create the option.
    */

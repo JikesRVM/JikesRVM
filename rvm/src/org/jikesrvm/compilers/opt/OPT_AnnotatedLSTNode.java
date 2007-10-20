@@ -815,7 +815,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       }
       // Get definitions of register
       OPT_RegisterOperand rop = use.asRegister();
-      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.register);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.getRegister());
       // Does register have definitions?
       if (!defs.hasMoreElements()) {
         // No - Register musn't be defined in this block
@@ -850,7 +850,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     // Is operand a register?
     if (op instanceof OPT_RegisterOperand) {
       // Yes - check the definitions out
-      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).register);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).getRegister());
       // Does this register have any defintions?
       if (!defs.hasMoreElements()) {
         // No - must have been defined in previous block so just return register
@@ -1119,7 +1119,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
         }
         // Calculate stride value
         OPT_RegisterOperandEnumeration iteratorDefs =
-            OPT_DefUse.defs(((OPT_RegisterOperand) carriedLoopIterator).register);
+            OPT_DefUse.defs(((OPT_RegisterOperand) carriedLoopIterator).getRegister());
         // Loop over definitions of the iterator operand ignoring moves
         while (iteratorDefs.hasMoreElements()) {
           OPT_Operand curDef = follow(iteratorDefs.next());

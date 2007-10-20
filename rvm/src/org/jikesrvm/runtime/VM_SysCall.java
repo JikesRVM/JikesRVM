@@ -75,6 +75,9 @@ public abstract class VM_SysCall {
   public abstract Address sysMalloc(int length);
 
   @SysCallTemplate
+  public abstract Address sysCalloc(int length);
+
+  @SysCallTemplate
   public abstract void sysFree(Address location);
 
   @SysCallTemplate
@@ -85,6 +88,18 @@ public abstract class VM_SysCall {
 
   @SysCallTemplate
   public abstract void sysSyncCache(Address address, int size);
+
+  /*
+   * Interface to performance counters
+   */
+  @SysCallTemplate
+  public abstract void sysPerfCtrInit(int metric);
+  @SysCallTemplate
+  public abstract void sysPerfCtrRead(byte[] name);
+  @SysCallTemplate
+  public abstract long sysPerfCtrReadMetric();
+  @SysCallTemplate
+  public abstract long sysPerfCtrReadCycles();
 
   // files
   @SysCallTemplate
@@ -244,7 +259,10 @@ public abstract class VM_SysCall {
 
   // time
   @SysCallTemplate
-  public abstract long sysGetTimeOfDay();
+  public abstract long sysCurrentTimeMillis();
+
+  @SysCallTemplate
+  public abstract long sysNanoTime();
 
   @SysCallTemplate
   public abstract void sysNanosleep(long howLongNanos);
@@ -318,6 +336,16 @@ public abstract class VM_SysCall {
 
   @SysCallTemplate
   public abstract void sysWaitForMultithreadingStart();
+
+  // system calls for alignment checking
+  @SysCallTemplate
+  public abstract void sysEnableAlignmentChecking();
+
+  @SysCallTemplate
+  public abstract void sysDisableAlignmentChecking();
+
+  @SysCallTemplate
+  public abstract void sysReportAlignmentChecking();
 
   @SysCallTemplate
   public abstract Address gcspyDriverAddStream(Address driver, int id);

@@ -41,7 +41,7 @@
     <attribute name="initialHeapSize" default="60"/>
     <sequential>
       <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}"/>
-      <findStatistic tag="@{class}" pattern="Overall:" key="overall"/>
+      <findStatistic tag="@{class}" pattern="Overall: SUCCESS" key="success"/>
       <outputResults tag="@{class}"/>
     </sequential>
   </macrodef>
@@ -73,7 +73,31 @@
 
     <gcTest class="InlineAllocation"/>
     <gcTest class="ReferenceTest"/>
-    <gcTest class="FixedLive" initialHeapSize="120"/>
+    <gcTest class="ReferenceStress"/>
+
+    <!-- FixedLive has specific statistics -->
+    <rvm tag="FixedLive" class="FixedLive" args="${arg}" initialHeapSize="120"/>
+    <outputTestStart tag="FixedLive"/>
+    <findStatistic tag="FixedLive" pattern="Overall: SUCCESS" key="success"/>
+    <if>
+      <conditions>
+        <equals arg1="${test.mode}" arg2="performance"/>
+      </conditions>
+      <sequential>
+        <outputStatisticStart/>
+        <extractStatistic tag="FixedLive" key="TracingRate" pattern="Tracing rate: (.*) Mb/s, sigma .* Mb/s, z-score .*"/>
+        <extractStatistic tag="FixedLive" key="TracingRateSigma" pattern="Tracing rate: .* Mb/s, sigma (.*) Mb/s, z-score .*"/>
+        <extractStatistic tag="FixedLive" key="TracingRateZScore" pattern="Tracing rate: .* Mb/s, sigma .* Mb/s, z-score (.*)"/>
+        <extractStatistic tag="FixedLive" key="AllocationRate" pattern="Allocation rate: (.*) Mb/s, sigma .* Mb/s, z-score .*"/>
+        <extractStatistic tag="FixedLive" key="AllocationRateSigma" pattern="Allocation rate: .* Mb/s, sigma (.*) Mb/s, z-score .*"/>
+        <extractStatistic tag="FixedLive" key="AllocationRateZScore" pattern="Allocation rate: .* Mb/s, sigma .* Mb/s, z-score (.*)"/>
+        <outputStatisticEnd/>
+      </sequential>
+    </if>
+    <outputTestResults tag="FixedLive"/>
+    <outputTestEnd/>
+    <displayTestResults tag="FixedLive"/>
+
     <gcTest class="LargeAlloc"/>
     <gcTest class="Exhaust" initialHeapSize="50"/>
 

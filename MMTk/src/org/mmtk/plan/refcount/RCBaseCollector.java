@@ -18,7 +18,6 @@ import org.mmtk.plan.refcount.cd.NullCDCollector;
 import org.mmtk.plan.refcount.cd.TrialDeletionCollector;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.utility.scan.Scan;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -45,7 +44,6 @@ import org.vmmagic.unboxed.*;
  * @see RCBaseMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class RCBaseCollector extends StopTheWorldCollector {
 
@@ -70,11 +68,8 @@ import org.vmmagic.unboxed.*;
    */
   public RCBaseCollector() {
     newRootSet = new ObjectReferenceDeque("new root", global().newRootPool);
-    global().newRootPool.newConsumer();
     oldRootSet = new ObjectReferenceDeque("old root", global().oldRootPool);
-    global().oldRootPool.newConsumer();
     modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
-    global().modPool.newConsumer();
     decBuffer = new DecBuffer(global().decPool);
     sanityChecker = new RCSanityCheckerLocal();
     switch (RCBase.CYCLE_DETECTOR) {
@@ -99,7 +94,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       if (RCBase.WITH_COALESCING_RC) {
         processModBuffer();
@@ -109,12 +104,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == RCBase.START_CLOSURE) {
-      getCurrentTrace().startTrace();
-      return;
-    }
-
-    if (phaseId == RCBase.COMPLETE_CLOSURE) {
+    if (phaseId == RCBase.CLOSURE) {
       getCurrentTrace().completeTrace();
       processNewRootSet();
       return;
@@ -153,6 +143,7 @@ import org.vmmagic.unboxed.*;
     while (!(current = oldRootSet.pop()).isNull()) {
       decBuffer.push(current);
     }
+    decBuffer.flushLocal();
   }
 
   /**
@@ -195,11 +186,11 @@ import org.vmmagic.unboxed.*;
    * Process the modified object buffers.
    */
   public void processModBuffer() {
-    TraceStep modProcessor = getModifiedProcessor();
+    TransitiveClosure modProcessor = getModifiedProcessor();
     ObjectReference current;
     while (!(current = modBuffer.pop()).isNull()) {
       RCHeader.makeUnlogged(current);
-      Scan.scanObject(modProcessor, current);
+      VM.scanning.scanObject(modProcessor, current);
     }
   }
 
@@ -220,7 +211,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /** @return The TraceStep to use when processing modified objects. */
-  protected abstract TraceStep getModifiedProcessor();
+  protected abstract TransitiveClosure getModifiedProcessor();
 
   /** @return The active cycle detector instance */
   @Inline

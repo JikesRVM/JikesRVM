@@ -15,6 +15,7 @@ package org.mmtk.plan.semispace;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.*;
+import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -40,7 +41,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */
-  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30;
+  private static final float SEMISPACE_VIRT_MEM_FRAC = 0.30f;
 
   /****************************************************************************
    *
@@ -51,11 +52,11 @@ public class SS extends StopTheWorld {
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, false);
+  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create());
   public static final int SS0 = copySpace0.getDescriptor();
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, SEMISPACE_VIRT_MEM_FRAC, true);
+  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create());
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;
@@ -68,15 +69,9 @@ public class SS extends StopTheWorld {
   /**
    * Class variables
    */
-  protected static final int ALLOC_SS = Plan.ALLOC_DEFAULT;
+  public static final int ALLOC_SS = Plan.ALLOC_DEFAULT;
 
-  /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).  This is where key <i>global</i>
-   * instances are allocated.  These instances will be incorporated
-   * into the boot image by the build process.
-   */
-  static {} //NOPMD
+  public static final int SCAN_SS = 0;
 
   /**
    * Constructor
@@ -113,13 +108,18 @@ public class SS extends StopTheWorld {
    * @param phaseId Collection phase
    */
   @Inline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == SS.PREPARE) {
       hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions
       copySpace0.prepare(hi);
       copySpace1.prepare(!hi);
+      ssTrace.prepare();
       super.collectionPhase(phaseId);
+      return;
+    }
+    if (phaseId == CLOSURE) {
+      ssTrace.prepare();
       return;
     }
     if (phaseId == SS.RELEASE) {
@@ -176,7 +176,7 @@ public class SS extends StopTheWorld {
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
@@ -185,15 +185,15 @@ public class SS extends StopTheWorld {
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
-   * @return False if the object will never move
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(SS0, object) || Space.isInSpace(SS1, object))
-      return true;
-    return super.objectCanMove(object);
+      return false;
+    return super.willNeverMove(object);
   }
 }

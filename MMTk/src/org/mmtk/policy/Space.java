@@ -13,11 +13,12 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
@@ -29,7 +30,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class defines and manages spaces.  Each policy is an instance
- * of a space.  A space is a region of virtual memory (contigious or
+ * of a space.  A space is a region of virtual memory (contiguous or
  * discontigous) which is subject to the same memory management
  * regime.  Multiple spaces (instances of this class or its
  * descendants) may have the same policy (eg there could be numerous
@@ -41,9 +42,9 @@ import org.vmmagic.unboxed.*;
  * policy, spaces also manage memory consumption (<i>used</i> virtual
  * memory).<p>
  *
- * Discontigious spaces are currently unsupported.
  */
-@Uninterruptible public abstract class Space implements Constants {
+@Uninterruptible
+public abstract class Space implements Constants {
 
   /****************************************************************************
    *
@@ -53,18 +54,22 @@ import org.vmmagic.unboxed.*;
   private static boolean DEBUG = false;
 
   // the following is somewhat arbitrary for the 64 bit system at this stage
-  private static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
-  private static Address HEAP_START = chunkAlign(VM.HEAP_START, true);
-  private static Address AVAILABLE_START = chunkAlign(VM.AVAILABLE_START, false);
-  private static Address AVAILABLE_END = chunkAlign(VM.AVAILABLE_END, true);
-  private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
-  public static final Address HEAP_END = chunkAlign(VM.HEAP_END, false);
-
+  public static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
   public static final int LOG_BYTES_IN_CHUNK = 22;
   public static final int BYTES_IN_CHUNK = 1 << LOG_BYTES_IN_CHUNK;
+  public static final int PAGES_IN_CHUNK = 1 << (LOG_BYTES_IN_CHUNK - LOG_BYTES_IN_PAGE);
   private static final int LOG_MAX_CHUNKS = LOG_ADDRESS_SPACE - LOG_BYTES_IN_CHUNK;
   public static final int MAX_CHUNKS = 1 << LOG_MAX_CHUNKS;
   public static final int MAX_SPACES = 20; // quite arbitrary
+
+  public static final Address HEAP_START = chunkAlign(VM.HEAP_START, true);
+  public static final Address AVAILABLE_START = chunkAlign(VM.AVAILABLE_START, false);
+  public static final Address AVAILABLE_END = chunkAlign(VM.AVAILABLE_END, true);
+  public static final Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
+  public static final int AVAILABLE_PAGES = AVAILABLE_BYTES.toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+  public static final Address HEAP_END = chunkAlign(VM.HEAP_END, false);
+
+  private static final boolean FORCE_SLOW_MAP_LOOKUP = false;
 
   private static final int PAGES = 0;
   private static final int MB = 1;
@@ -80,16 +85,20 @@ import org.vmmagic.unboxed.*;
    *
    * Instance variables
    */
-  private int descriptor;
-  private int index;
-  private String name;
-  protected Address start;
-  protected Extent extent;
-  protected boolean immortal;
-  protected boolean movable;
-  
-  private boolean allocationFailed;
+  private final String name;
+  private final int descriptor;
+  private final int index;
+
+  protected final boolean immortal;
+  protected final boolean movable;
+  protected final boolean contiguous;
+
   protected PageResource pr;
+  protected final Address start;
+  protected final Extent extent;
+  protected Address lastDiscontiguousRegion;
+
+  private boolean allocationFailed;
 
   /****************************************************************************
    *
@@ -97,69 +106,57 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * This is the base constructor for <i>contigious</i> spaces
-   * (i.e. those that occupy a single contigious range of virtual
-   * memory which is identified at construction time).<p>
-   *
-   * The caller specifies the region of virtual memory to be used for
-   * this space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
+   * This is the base constructor for <i>all</i> spaces.<p>
    *
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
+   * @param vmRequest An object describing the virtual memory requested.
+   * @param pr The page resource associated with this space
    */
-  Space(String name, boolean movable, boolean immortal, Address start,
-      Extent bytes) {
+  protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
     this.name = name;
     this.movable = movable;
     this.immortal = immortal;
-    this.start = start;
-    index = spaceCount++;
+    this.index = spaceCount++;
     spaces[index] = this;
 
-    /* ensure requests are chunk aligned */
-    if (bytes.NE(chunkAlign(bytes, false))) {
-      Log.write("Warning: ");
-      Log.write(name);
-      Log.write(" space request for ");
-      Log.write(bytes.toLong()); Log.write(" bytes rounded up to ");
-      bytes = chunkAlign(bytes, false);
-      Log.write(bytes.toLong()); Log.writeln(" bytes");
-      Log.writeln("(requests should be Space.BYTES_IN_CHUNK aligned)");
+    if (vmRequest.type == VMRequest.REQUEST_DISCONTIGUOUS) {
+      this.contiguous = false;
+      this.descriptor = SpaceDescriptor.createDescriptor();
+      this.start = Address.zero();
+      this.extent = Extent.zero();
+      this.lastDiscontiguousRegion = Address.zero();
+      VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
+      return;
     }
-    this.extent = bytes;
 
-    VM.memory.setHeapRange(index, start, start.plus(bytes));
-    createDescriptor(false);
-    Map.insert(start, extent, descriptor, this);
+    Address start;
+    Extent extent;
 
-    if (DEBUG) {
-      Log.write(name); Log.write(" ");
-      Log.write(start); Log.write(" ");
-      Log.write(start.plus(extent)); Log.write(" ");
-      Log.writeln(bytes.toWord());
+    if (vmRequest.type == VMRequest.REQUEST_FRACTION) {
+      extent = getFracAvailable(vmRequest.frac);
+    } else {
+      extent = vmRequest.extent;
     }
-  }
 
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   */
-  Space(String name, boolean movable, boolean immortal, int mb) {
-    this(name, movable, immortal, heapCursor,
-         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
-    heapCursor = heapCursor.plus(extent);
+    if (extent.NE(chunkAlign(extent, false))) {
+      VM.assertions.fail(name + " requested non-aligned extent: " + extent.toLong() + " bytes");
+    }
+
+    if (vmRequest.type == VMRequest.REQUEST_FIXED) {
+      start = vmRequest.start;
+      if (start.NE(chunkAlign(start, false))) {
+        VM.assertions.fail(name + " starting on non-aligned boundary: " + start.toLong() + " bytes");
+      }
+    } else if (vmRequest.top) {
+      heapLimit = heapLimit.minus(extent);
+      start = heapLimit;
+    } else {
+      start = heapCursor;
+      heapCursor = heapCursor.plus(extent);
+    }
+
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
       Log.write(name); Log.write("\" at ");
@@ -168,119 +165,33 @@ import org.vmmagic.unboxed.*;
       Log.write(heapLimit); Log.writeln(")");
       VM.assertions.fail("exiting");
     }
-  }
 
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   */
-  Space(String name, boolean movable, boolean immortal, float frac) {
-    this(name, movable, immortal, heapCursor, getFracAvailable(frac));
-    heapCursor = heapCursor.plus(extent);
-  }
+    this.contiguous = true;
+    this.start = start;
+    this.extent = extent;
+    this.descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
 
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  Space(String name, boolean movable, boolean immortal, int mb, boolean top) {
-    this(name, movable, immortal,
-         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
-  }
+    VM.memory.setHeapRange(index, start, start.plus(extent));
+    Map.insert(start, extent, descriptor, this);
 
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  Space(String name, boolean movable, boolean immortal, float frac,
-        boolean top) {
-    this(name, movable, immortal, getFracAvailable(frac), top);
-  }
-
-  /**
-   * This is a private constructor that creates a contigious space at
-   * the top or bottom of the available virtual memory, if
-   * possible.<p>
-   *
-   * The caller specifies the size of the region of virtual memory and
-   * whether it should be at the top or bottom of the available
-   * address space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param bytes The size of the space in virtual memory, in bytes
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  private Space(String name, boolean movable, boolean immortal, Extent bytes,
-      boolean top) {
-    this(name, movable, immortal, (top) ? heapLimit.minus(bytes) : HEAP_START,
-        bytes);
-    if (top) { // request for the top of available memory
-      /*      if (heapLimit.NE(HEAP_END)) {
-        Log.write("Unable to satisfy virtual address space request \"");
-        Log.write(name); Log.write("\" at ");
-        Log.writeln(heapLimit);
-        VM.assertions.fail("exiting");
-	} */
-      heapLimit = heapLimit.minus(extent);
-    } else { // request for the bottom of available memory
-      if (heapCursor.GT(HEAP_START)) {
-        Log.write("Unable to satisfy virtual address space request \"");
-        Log.write(name); Log.write("\" at ");
-        Log.writeln(heapCursor);
-        VM.assertions.fail("exiting");
-      }
-      heapCursor = heapCursor.plus(extent);
+    if (DEBUG) {
+      Log.write(name); Log.write(" ");
+      Log.write(start); Log.write(" ");
+      Log.write(start.plus(extent)); Log.write(" ");
+      Log.writeln(extent.toWord());
     }
   }
-
 
   /****************************************************************************
    *
    * Accessor methods
    */
+
+  /** Start of discontig getter @return The start of the discontiguous space */
+  public static Address getDiscontigStart() { return heapCursor; }
+
+  /** End of discontig getter @return The end of the discontiguous space */
+  public static Address getDiscontigEnd() { return heapLimit; }
 
   /** Name getter @return The name of this space */
   public final String getName() { return name; }
@@ -305,10 +216,10 @@ import org.vmmagic.unboxed.*;
 
   /** Allocationfailed getter @return true if an allocation has failed since GC */
   public final boolean allocationFailed() { return allocationFailed; }
-  
+
   /** Clear Allocationfailed flag */
   public final void clearAllocationFailed() { allocationFailed = false; }
-  
+
   /** ReservedPages getter @return The number of reserved pages */
   public final int reservedPages() { return pr.reservedPages(); }
 
@@ -317,7 +228,10 @@ import org.vmmagic.unboxed.*;
 
   /** RequiredPages getter @return The number of required pages */
   public final int requiredPages() { return pr.requiredPages(); }
-  
+
+  /** AvailablePages getter @return The number of pages available for allocation */
+  public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
+
   /** Cumulative committed pages getter @return Cumulative committed pages. */
   public static long cumulativeCommittedPages() {
     return PageResource.cumulativeCommittedPages();
@@ -390,18 +304,33 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public static boolean isInSpace(int descriptor, ObjectReference object) {
-    if (!SpaceDescriptor.isContiguous(descriptor)) {
-      return getDescriptorForObject(object) == descriptor;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
+    return isInSpace(descriptor, VM.objectModel.refToAddress(object));
+  }
+
+  /**
+   * Return true if the given address is the space associated with the
+   * given descriptor.
+   *
+   * @param descriptor The descriptor for a space
+   * @param address The address in question.
+   * @return True if the given address is in the space associated with
+   * the descriptor.
+   */
+  @Inline
+  public static boolean isInSpace(int descriptor, Address address) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!address.isZero());
+    if (FORCE_SLOW_MAP_LOOKUP || !SpaceDescriptor.isContiguous(descriptor)) {
+      return getDescriptorForAddress(address) == descriptor;
     } else {
-      Address addr = VM.objectModel.refToAddress(object);
       Address start = SpaceDescriptor.getStart(descriptor);
       if (!VM.VERIFY_ASSERTIONS &&
           SpaceDescriptor.isContiguousHi(descriptor))
-        return addr.GE(start);
+        return address.GE(start);
       else {
         Extent size = Word.fromIntSignExtend(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
         Address end = start.plus(size);
-        return addr.GE(start) && addr.LT(end);
+        return address.GE(start) && address.LT(end);
       }
     }
   }
@@ -414,19 +343,20 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public static Space getSpaceForObject(ObjectReference object) {
-    return Map.getSpaceForObject(object);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
+    return Map.getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
 
   /**
-   * Return the descriptor for a given object
+   * Return the descriptor for a given address.
    *
-   * @param object The object in question
-   * @return The descriptor for the space containing the object
+   * @param address The address in question.
+   * @return The descriptor for the space containing the address.
    */
   @Inline
-  public static int getDescriptorForObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    return Map.getDescriptorForObject(object);
+  public static int getDescriptorForAddress(Address address) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!address.isZero());
+    return Map.getDescriptorForAddress(address);
   }
 
 
@@ -456,8 +386,8 @@ import org.vmmagic.unboxed.*;
    * failure.
    */
   public final Address acquire(int pages) {
-    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !Plan.isEmergencyAllocation();
-    
+    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !VM.collection.isEmergencyAllocation();
+
     /* First check page budget and poll if necessary */
     if (!pr.reservePages(pages)) {
       /* Need to poll, either fixing budget or requiring GC */
@@ -471,7 +401,7 @@ import org.vmmagic.unboxed.*;
     Address rtn = pr.getNewPages(pages);
     if (rtn.isZero()) {
       /* Failed, so force a GC */
-      if (Plan.isEmergencyAllocation()) {
+      if (VM.collection.isEmergencyAllocation()) {
         pr.clearRequest(pages);
         VM.assertions.fail("Failed emergency allocation");
       }
@@ -482,9 +412,46 @@ import org.vmmagic.unboxed.*;
       pr.clearRequest(pages);
       return Address.zero();
     }
-    
+
     if (allowPoll) VM.collection.reportAllocationSuccess();
     return rtn;
+  }
+
+  /**
+   * Extend the virtual memory associated with a particular discontiguous
+   * space.  This simply involves requesting a suitable number of chunks
+   * from the pool of chunks available to discontiguous spaces.
+   *
+   * @param bytes The amount by which the space needs to be extended
+   * (will be rounded up to chunks)
+   * @return The address of the new discontiguous space.
+   */
+  public Address growDiscontiguousSpace(int chunks) {
+    this.lastDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, lastDiscontiguousRegion);
+    return lastDiscontiguousRegion;
+  }
+
+  /**
+   * Return the number of chunks required to satisfy a request for a certain number of pages
+   *
+   * @param pages The number of pages desired
+   * @return The number of chunks needed to satisfy the request
+   */
+  public static int requiredChunks(int pages) {
+    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
+    return extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
+  }
+
+  /**
+   * Release one or more contiguous chunks associated with a discontiguous
+   * space.
+   *
+   * @param chunk THe address of the start of the contiguous chunk or chunks
+   * @return The number of chunks freed
+   */
+  public int releaseDiscontiguousChunks(Address chunk) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
+    return Map.freeContiguousChunks(chunk);
   }
 
   /**
@@ -495,7 +462,7 @@ import org.vmmagic.unboxed.*;
   public abstract void release(Address start);
 
   /**
-   * Clear the allocation failed flag for all spaces. 
+   * Clear the allocation failed flag for all spaces.
    *
    */
   public static void clearAllAllocationFailed() {
@@ -536,12 +503,16 @@ import org.vmmagic.unboxed.*;
    * Print out a map of virtual memory useage by all spaces
    */
   public static void printVMMap() {
+    Log.write("HEAP_START: "); Log.writeln(HEAP_START);
+    Log.write("AVAILABLE_START: "); Log.writeln(AVAILABLE_START);
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       Log.write(space.name); Log.write(" ");
       Log.write(space.start); Log.write("->");
       Log.writeln(space.start.plus(space.extent.minus(1)));
     }
+    Log.write("HEAP_END: "); Log.writeln(HEAP_END);
+    Log.write("AVAILABLE_END: "); Log.writeln(AVAILABLE_END);
   }
 
   /**
@@ -619,8 +590,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */
-  public abstract ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object);
+  public abstract ObjectReference traceObject(TransitiveClosure trace, ObjectReference object);
 
 
   /**
@@ -650,7 +620,7 @@ import org.vmmagic.unboxed.*;
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
-  private static Address chunkAlign(Address addr, boolean down) {
+  public static Address chunkAlign(Address addr, boolean down) {
     if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
     return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
   }
@@ -662,21 +632,9 @@ import org.vmmagic.unboxed.*;
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
-  private static Extent chunkAlign(Extent bytes, boolean down) {
+  public static Extent chunkAlign(Extent bytes, boolean down) {
     if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
     return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
-  }
-
-  /**
-   * Initialize/create the descriptor for this space
-   *
-   * @param shared True if this is a shared (discontigious) space
-   */
-  private void createDescriptor(boolean shared) {
-    if (shared)
-      descriptor = SpaceDescriptor.createDescriptor();
-    else
-      descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
   }
 
   /**

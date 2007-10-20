@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Should we shrink/grow the heap to adjust to application working set?
  */
-public class VariableSizeHeap extends BooleanOption {
+public final class VariableSizeHeap extends BooleanOption {
   /**
    * Create the option.
    */

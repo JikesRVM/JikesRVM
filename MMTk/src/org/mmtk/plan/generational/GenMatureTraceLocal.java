@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public GenMatureTraceLocal(Trace trace, GenCollector plan) {
-    super(trace);
+    super(Gen.SCAN_MATURE, trace);
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }
@@ -80,10 +80,10 @@ import org.vmmagic.pragma.*;
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.toAddress().GE(Gen.NURSERY_START))
       return object.toAddress().GE(Gen.NURSERY_END);
-    return super.willNotMove(object);
+    return super.willNotMoveInCurrentCollection(object);
   }
 
   /**
@@ -102,21 +102,11 @@ import org.vmmagic.pragma.*;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
-      return Gen.nurserySpace.traceObject(this, object);
+        return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
       else
         return Gen.ploSpace.traceObject(this, object);
     }
     return super.traceObject(object);
-  }
-
-  /**
-   * Where do we send copied objects ?
-   *
-   * @return The allocator for copied objects
-   */
-  @Inline
-  public final int getAllocator() {
-    return Gen.ALLOC_MATURE_MAJORGC;
   }
 
   /**

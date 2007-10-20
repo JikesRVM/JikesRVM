@@ -28,26 +28,39 @@ import org.vmmagic.unboxed.Offset;
  */
 public final class VM_StackBrowser implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 
+  /** Method associated with current stack location */
   private VM_Method currentMethod;
+  /** Bytecode associated with current stack location */
   private int currentBytecodeIndex;
 
+  /** The frame pointer for the current stack location */
   private Address currentFramePointer;
+  /** The offset of the current instruction within its method */
   private Offset currentInstructionPointer;
+  /** The current compiled method */
   private VM_CompiledMethod currentCompiledMethod;
+  /** The current inline encoding index for opt compiled methods */
   private int currentInlineEncodingIndex;
 
+  /** Initialise state of browser */
   @NoInline
   public void init() {
     currentFramePointer = VM_Magic.getFramePointer();
     upOneFrame();
   }
 
+  /**
+   * Browse up one frame
+   * @param set should the state of the stack browser be effected?
+   * @return do more frames exist?
+   */
   private boolean upOneFrameInternal(boolean set) {
     Address fp;
     if (currentMethod != null && currentMethod.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+      // Elide native frames
       fp = VM_Runtime.unwindNativeStackFrame(currentFramePointer);
     } else {
-      fp = currentFramePointer;
+        fp = currentFramePointer;
     }
 
     Address prevFP = fp;
@@ -77,61 +90,73 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
       currentInstructionPointer = cm.getInstructionOffset(newIP);
       cm.set(this, currentInstructionPointer);
     }
-
     return true;
   }
 
+  /** Browse up one frame failing if we fall off the stack */
   private void upOneFrame() {
     boolean ok = upOneFrameInternal(true);
     if (VM.VerifyAssertions) VM._assert(ok, "tried to browse off stack");
   }
 
+  /** Are there more stack frames? */
   public boolean hasMoreFrames() {
     return upOneFrameInternal(false);
   }
 
+  /** Browse up one frame eliding native frames */
   public void up() {
     if (!currentCompiledMethod.up(this)) {
       upOneFrame();
     }
   }
 
+  /** Set the current bytecode index, called only by the appropriate compiled method code */
   public void setBytecodeIndex(int bytecodeIndex) {
     currentBytecodeIndex = bytecodeIndex;
   }
 
-  public int getBytecodeIndex() {
-    return currentBytecodeIndex;
-  }
-
+  /** Set the current method, called only by the appropriate compiled method code */
   public void setMethod(VM_Method method) {
     currentMethod = method;
   }
 
-  public VM_Method getMethod() {
-    return currentMethod;
-  }
-
-  public VM_CompiledMethod getCompiledMethod() {
-    return currentCompiledMethod;
-  }
-
+  /** Set the current compiled method, called only by the appropriate compiled method code */
   public void setCompiledMethod(VM_CompiledMethod cm) {
     currentCompiledMethod = cm;
   }
 
-  public VM_Class getCurrentClass() {
-    return getMethod().getDeclaringClass();
-  }
-
-  public ClassLoader getClassLoader() {
-    return getCurrentClass().getClassLoader();
-  }
-
+  /** Set the inline encoding for opt compiled methods only */
   public void setInlineEncodingIndex(int index) {
     currentInlineEncodingIndex = index;
   }
 
+  /** The bytecode index associated with the current stack frame */
+  public int getBytecodeIndex() {
+    return currentBytecodeIndex;
+  }
+
+  /** The method associated with the current stack frame */
+  public VM_Method getMethod() {
+    return currentMethod;
+  }
+
+  /** The compiled method associated with the current stack frame */
+  public VM_CompiledMethod getCompiledMethod() {
+    return currentCompiledMethod;
+  }
+
+  /** The class of the method associated with the current stack frame */
+  public VM_Class getCurrentClass() {
+    return getMethod().getDeclaringClass();
+  }
+
+  /** The class loader of the method associated with the current stack frame */
+  public ClassLoader getClassLoader() {
+    return getCurrentClass().getClassLoader();
+  }
+
+  /** Get the inline encoding associated with the current stack location, called only by opt compiled methods */
   public int getInlineEncodingIndex() {
     return currentInlineEncodingIndex;
   }

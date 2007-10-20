@@ -18,10 +18,10 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_GenericStackManager;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_RegisterAllocatorState;
+import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.DOUBLE_VALUE;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.FLOAT_VALUE;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.INT_REG;
-import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.INT_VALUE;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
@@ -48,14 +48,14 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNINIT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNSAVE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FRSTOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVQ;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LEA;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVQ;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_POP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_RET_opcode;
@@ -75,8 +75,8 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ia32.VM_ArchConstants;
-
 import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -385,10 +385,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     }
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_MemoryOperand M =
-        OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
+        OPT_MemoryOperand.BD(ir.regpool.makePROp(),
                              VM_Entrypoints.activeThreadStackLimitField.getOffset(),
                              (byte) WORDSIZE,
                              null,
@@ -423,13 +422,12 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     }
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_Register ECX = phys.getECX();
 
     //    ECX := active Thread Stack Limit
     OPT_MemoryOperand M =
-        OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
+        OPT_MemoryOperand.BD(ir.regpool.makePROp(),
                              VM_Entrypoints.activeThreadStackLimitField.getOffset(),
                              (byte) WORDSIZE,
                              null,
@@ -465,10 +463,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   public void insertNormalPrologue() {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register ESP = phys.getESP();
-    OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome =
-        OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
-                             VM_Entrypoints.framePointerField.getOffset(),
+        OPT_MemoryOperand.BD(ir.regpool.makePROp(),
+                             VM_ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -648,9 +645,6 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param ret the return instruction.
    */
   private void insertEpilogue(OPT_Instruction ret) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register PR = phys.getPR();
-
     // 1. Restore any saved registers
     if (ir.compiledMethod.isSaveVolatile()) {
       restoreVolatileRegisters(ret);
@@ -662,8 +656,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     OPT_MemoryOperand fpHome =
-        OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
-                             VM_Entrypoints.framePointerField.getOffset(),
+        OPT_MemoryOperand.BD(ir.regpool.makePROp(),
+                             VM_ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -682,11 +676,11 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Get the spill location previously assigned to the symbolic
     // register.
-    int location = OPT_RegisterAllocatorState.getSpill(symb.register);
+    int location = OPT_RegisterAllocatorState.getSpill(symb.getRegister());
 
     // Create a memory operand M representing the spill location.
     OPT_Operand M = null;
-    int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb.register);
+    int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb.getRegister());
     int size = OPT_PhysicalRegisterSet.getSpillSize(type);
 
     M = new OPT_StackLocationOperand(true, -location, (byte) size);
@@ -699,8 +693,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * Does a memory operand hold a symbolic register?
    */
   private boolean hasSymbolicRegister(OPT_MemoryOperand M) {
-    if (M.base != null && !M.base.register.isPhysical()) return true;
-    if (M.index != null && !M.index.register.isPhysical()) return true;
+    if (M.base != null && !M.base.getRegister().isPhysical()) return true;
+    if (M.index != null && !M.index.getRegister().isPhysical()) return true;
     return false;
   }
 
@@ -936,7 +930,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {
           OPT_MemoryOperand M = op.asMemory();
-          if ((M.base != null && M.base.register == ESP) || (M.index != null && M.index.register == ESP)) {
+          if ((M.base != null && M.base.getRegister() == ESP) || (M.index != null && M.index.getRegister() == ESP)) {
             M.disp = M.disp.minus(ESPOffset);
           }
         }

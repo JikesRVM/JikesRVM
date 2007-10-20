@@ -38,7 +38,7 @@ public class JNI_OnLoad {
     }
   }
 
-  private final static native int testJNIOnLoad();
+  private static native int testJNIOnLoad();
 
   public static native void setVerboseOff();
 

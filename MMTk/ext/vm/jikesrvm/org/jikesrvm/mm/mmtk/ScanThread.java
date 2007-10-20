@@ -155,7 +155,7 @@ import org.vmmagic.pragma.*;
     }
 
     /* Grab the ScanThread instance associated with this thread */
-    ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getThreadScanner();
+    ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getThreadScanner();
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
@@ -215,10 +215,10 @@ import org.vmmagic.pragma.*;
    */
   private void scanThreadInternal(Address gprs, int verbosity) {
     if (verbosity >= 1) Log.writeln("--- Start Of Stack Scan ---\n");
-    if (VM.VerifyAssertions) assertImmovable();
+    if (VM.VerifyAssertions) assertImmovableInCurrentCollection();
 
     /* first find any references to exception handlers in the registers */
-    getHWExceptionRegisters(verbosity);
+    getHWExceptionRegisters();
 
     /* reinitialize the stack iterator group */
     iteratorGroup.newStackWalk(thread, gprs);
@@ -239,7 +239,7 @@ import org.vmmagic.pragma.*;
     }
 
     /* If a thread started via createVM or attachVM, base may need scaning */
-    checkJNIBase(verbosity);
+    checkJNIBase();
 
     if (verbosity >= 1) Log.writeln("--- End Of Stack Scan ---\n");
   }
@@ -251,12 +251,11 @@ import org.vmmagic.pragma.*;
    * then scanning for code pointers is not required, so we don't need
    * to do anything. (SB: Why only code pointers?)
    *
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
-  private void getHWExceptionRegisters(int verbosity) {
-    if (processCodeLocations && thread.hardwareExceptionRegisters.inuse) {
-      Address ip = thread.hardwareExceptionRegisters.ip;
+  private void getHWExceptionRegisters() {
+    ArchitectureSpecific.VM_Registers hwExReg = thread.getHardwareExceptionRegisters();
+    if (processCodeLocations && hwExReg.inuse) {
+      Address ip = hwExReg.ip;
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) {
         VM._assert(compiledMethod != null);
@@ -264,9 +263,9 @@ import org.vmmagic.pragma.*;
       }
       compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
-      Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
+      Address ipLoc = hwExReg.getIPLocation();
       if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
-      codeLocationsPush(code, ipLoc);
+      processCodeLocation(code, ipLoc);
     }
   }
 
@@ -278,7 +277,7 @@ import org.vmmagic.pragma.*;
    * @param ipLoc The location of the pointer into this code object
    */
   @Inline
-  private void codeLocationsPush(ObjectReference code, Address ipLoc) {
+  private void processCodeLocation(ObjectReference code, Address ipLoc) {
     if (VALIDATE_REFS) {
       Address ip = ipLoc.loadAddress();
       Offset offset = ip.diff(code.toAddress());
@@ -293,7 +292,7 @@ import org.vmmagic.pragma.*;
         if (!failed) failed = true;
       }
     }
-    trace.addInteriorRootLocation(code, ipLoc);
+    trace.processInteriorEdge(code, ipLoc, true);
   }
 
   /***********************************************************************
@@ -398,7 +397,7 @@ import org.vmmagic.pragma.*;
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
       if (verbosity >= 3) dumpRef(refaddr, verbosity);
-      trace.addRootLocation(refaddr);
+      trace.reportDelayedRootEdge(refaddr);
     }
   }
 
@@ -423,7 +422,7 @@ import org.vmmagic.pragma.*;
     ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
 
     pushFrameIP(code, verbosity);
-    scanFrameForCode(code, verbosity);
+    scanFrameForCode(code);
   }
 
   /**
@@ -463,7 +462,7 @@ import org.vmmagic.pragma.*;
       }
       /* skip native code, as it is not (cannot be) moved */
       if (compiledMethodType != VM_CompiledMethod.JNI)
-        codeLocationsPush(code, initialIPLoc);
+        processCodeLocation(code, initialIPLoc);
       else if (verbosity >=3) {
         Log.writeln("GC Warning: SKIPPING return address for JNI code");
       }
@@ -476,7 +475,7 @@ import org.vmmagic.pragma.*;
       }
       /* skip boot image code, as it is not (cannot be) moved */
       if (!DebugUtil.addrInBootImage(returnAddress))
-        codeLocationsPush(code, returnAddressLoc);
+        processCodeLocation(code, returnAddressLoc);
     }
   }
 
@@ -486,15 +485,13 @@ import org.vmmagic.pragma.*;
    * which happen to be pointers into code.<p>
    *
    * @param code The code object associated with this frame.
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
-  private void scanFrameForCode(ObjectReference code, int verbosity) {
+  private void scanFrameForCode(ObjectReference code) {
     iterator.reset();
     for (Address retaddrLoc = iterator.getNextReturnAddressAddress();
          !retaddrLoc.isZero();
          retaddrLoc = iterator.getNextReturnAddressAddress())
-      codeLocationsPush(code, retaddrLoc);
+      processCodeLocation(code, retaddrLoc);
   }
 
 
@@ -513,15 +510,13 @@ import org.vmmagic.pragma.*;
    * FIXME: SB: Why is this AIX specific?  Why depend on the
    * preprocessor?
    *
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
-  private void checkJNIBase(int verbosity) {
+  private void checkJNIBase() {
     if (VM.BuildForAix) {
       VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
       while(!refaddr.isZero()) {
-        trace.addRootLocation(refaddr);
+        trace.reportDelayedRootEdge(refaddr);
         refaddr = iterator.getNextReferenceAddress();
       }
     }
@@ -545,16 +540,16 @@ import org.vmmagic.pragma.*;
    * & Java stacks then we could allow the Java stacks to be moved,
    * but we can't move the native stack.
    */
-  private void assertImmovable() {
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
-    VM._assert(thread.jniEnv == null || trace.willNotMove(ObjectReference.fromObject(thread.jniEnv)));
-    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMove(ObjectReference.fromObject(thread.jniEnv.refsArray())));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.contextRegisters)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.contextRegisters.gprs)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters.gprs)));
+  private void assertImmovableInCurrentCollection() {
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
+    VM._assert(thread.jniEnv == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv)));
+    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv.refsArray())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters.gprs)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters().gprs)));
   }
 
   /**
@@ -650,8 +645,7 @@ import org.vmmagic.pragma.*;
         Log.write(codeBase);
         Log.write("     code offset = ");
         Log.writeln(ip.diff(codeBase.toAddress()));
-    }
-    else {
+    } else {
       Log.write("   Method is uncompiled - ip = ");
       Log.writeln(ip);
     }
@@ -687,7 +681,7 @@ import org.vmmagic.pragma.*;
       Log.write(value);
       Log.write(" ");
       Log.flush();
-      if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end) )
+      if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end))
         MM_Interface.dumpRef(value);
       else
         Log.writeln();

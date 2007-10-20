@@ -10,17 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestArithmetic
-{
-  public static void main(String args[])
-  {
+class TestArithmetic {
+  public static void main(String[] args){
     run();
   }
 
   static boolean testSuccess = true;
 
-  public static boolean run()
-  {
+  public static boolean run() {
     boolean retSuccess = true;
     System.out.print("TestArithmetic");
 
@@ -70,9 +67,7 @@ class TestArithmetic
     itest(3,2);
   }
 
-  static void
-  itest(int a,int b)
-  {
+  static void itest(int a,int b) {
 
     if ((a+1) != 4) {
       System.out.print("\n ****** want: 4\n got: ");
@@ -106,7 +101,7 @@ class TestArithmetic
 
     if ((-a) != -3) {
       System.out.print("\n ****** want: -3\n got: ");
-      System.out.println(   -   a);  // ineg
+      System.out.println(-a);  // ineg
       testSuccess = false;
     }
 
@@ -169,16 +164,14 @@ class TestArithmetic
     System.out.println(ldiv(4L,-2L));
     System.out.println(ldiv(4L,2L));
     System.out.println(ldiv(-40000000000L,2L));
-    System.out.println(ldiv( 40000000000L,-2L));
-    System.out.println(ldiv( 40000000000L,2L));
+    System.out.println(ldiv(40000000000L,-2L));
+    System.out.println(ldiv(40000000000L,2L));
     System.out.println(ldiv(-40000000000L, 20000000000L));
-    System.out.println(ldiv( 40000000000L,-20000000000L));
-    System.out.println(ldiv( 40000000000L, 20000000000L));
+    System.out.println(ldiv(40000000000L,-20000000000L));
+    System.out.println(ldiv(40000000000L, 20000000000L));
   }
 
-  static void
-  ltest(long a, long b)
-  {
+  static void ltest(long a, long b) {
     if ((a+b) != 10000000002L) {
       System.out.print("\n ****** want: 10000000002\n got: ");
       System.out.println(a +  b);  // ladd
@@ -211,13 +204,13 @@ class TestArithmetic
 
     if ((-b) != -2) {
       System.out.print("\n ****** want: -2\n got: ");
-      System.out.println(  -  b);  // lneg
+      System.out.println(-b);  // lneg
       testSuccess = false;
     }
 
     if ((-a) !=  -10000000000L) {
       System.out.print("\n ****** want: -10000000000\n got: ");
-      System.out.println(  -  a);  // lneg
+      System.out.println(-a);  // lneg
       testSuccess = false;
     }
 
@@ -290,9 +283,7 @@ class TestArithmetic
     ftest(a,b);
   }
 
-  static void
-  ftest(float a, float b)
-  {
+  static void ftest(float a, float b) {
     if ((a + b) != 3.0) {
       System.out.print("\n ****** want: 3.0\n got: ");
       System.out.println(a + b);  // fadd
@@ -319,7 +310,7 @@ class TestArithmetic
 
     if ((-a) != -1.0) {
       System.out.print("\n ****** want: -1.0\n got: ");
-      System.out.println(  - a);  // fneg
+      System.out.println(-a);  // fneg
       testSuccess = false;
     }
 
@@ -342,9 +333,7 @@ class TestArithmetic
     dtest(a,b);
   }
 
-  static void
-  dtest(double a, double b)
-  {
+  static void dtest(double a, double b) {
     if ((a+b) != 3.0) {
       System.out.print("\n ****** want: 3.0\n got: ");
       System.out.println(a + b);  // dadd
@@ -371,7 +360,7 @@ class TestArithmetic
 
     if ((-a) != -1.0) {
       System.out.print("\n ****** want: -1.0\n got: ");
-      System.out.println(  - a);  // dneg
+      System.out.println(-a);  // dneg
       testSuccess = false;
     }
 

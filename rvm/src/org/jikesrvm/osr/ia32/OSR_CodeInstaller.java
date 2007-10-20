@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
@@ -39,7 +39,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
     VM_Thread thread = state.getThread();
-    byte[] stack = thread.stack;
+    byte[] stack = thread.getStack();
 
     Offset tsfromFPOffset = state.getTSFPOffset();
     Offset fooFPOffset = state.getFPOffset();
@@ -80,8 +80,8 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // restore saved EBX
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
-      // donot pop return address and parameters,
+      asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
+      // do not pop return address and parameters,
       // we make a faked call to newly compiled method
       asm.emitJMP_Reg(S0);
     } else if (cType == VM_CompiledMethod.OPT) {
@@ -108,11 +108,11 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // adjust SP to frame pointer
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
 
       // we need a scratch registers here, using scratch register here
       // get JTOC content into S0 (ECX)
-      asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.jtocField.getOffset());
+      asm.emitMOV_Reg_RegDisp(S0, PR, VM_ArchEntrypoints.jtocField.getOffset());
       // move the address to S0
       asm.emitMOV_Reg_RegDisp(S0, S0, cm.getOsrJTOCoffset());
       // branch to the newly compiled instructions

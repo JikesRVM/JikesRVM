@@ -37,7 +37,7 @@ class StringFunctions {
   public StringFunctions() {
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     int returnValue;
     String returnString;

@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * @see SSGCspyMutator
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
+ * @see org.mmtk.plan.SimplePhase
  */
 @Uninterruptible public class SSGCspyCollector extends SSCollector {
 
@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
    * </ul>
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
 
     //TODO do we need to worry any longer about primary??
@@ -159,10 +159,7 @@ import org.vmmagic.pragma.*;
 
         fromSpaceDriver().transmit(event);
         // Mutator.gcspyGatherData follows so leave safepoint to there.
-      }
-
-
-      else if (event == SSGCspy.SEMISPACE_COPIED) {
+      } else if (event == SSGCspy.SEMISPACE_COPIED) {
         if (DEBUG) debugSpaces(SSGCspy.toSpace());
 
         // We need to reset, scan and send values for tospace
@@ -178,10 +175,8 @@ import org.vmmagic.pragma.*;
         GCspy.server.stopCompensationTimer();
         toSpaceDriver().transmit(event);
 
-        // We'll leave the safepoint to RELEASE_MUTATOR
-      }
-
-      else if (event == SSGCspy.AFTER_COLLECTION) {
+        // We'll leave the safepoint to RELEASE
+      } else if (event == SSGCspy.AFTER_COLLECTION) {
         if (DEBUG) {
           Log.write("SSGCspyCollector.gcspyGatherData transmit toSpaceDriver, ");
           Log.writeln(SSGCspy.toSpace().getName());

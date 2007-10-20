@@ -12,7 +12,7 @@
  */
 package org.mmtk.plan.refcount.generational;
 
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.Space;
 
@@ -25,7 +25,8 @@ import org.vmmagic.unboxed.*;
  *
  * @see org.mmtk.plan.TraceLocal
  */
-@Uninterruptible public final class GenRCModifiedProcessor extends TraceStep {
+@Uninterruptible
+public final class GenRCModifiedProcessor extends TransitiveClosure {
   private final GenRCTraceLocal trace;
 
 
@@ -34,19 +35,19 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Trace a reference during GC.
+   * Trace an edge during GC.
    *
-   * @param objLoc The location containing the object reference to be
-   * traced.
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference.
    */
   @Inline
-  public void traceObjectLocation(Address objLoc) {
-    ObjectReference object = objLoc.loadObjectReference();
+  public void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
     if (!object.isNull()) {
       if (Space.isInSpace(GenRC.NS, object)) {
-        object = GenRC.nurserySpace.traceObject(trace, object);
+        object = GenRC.nurserySpace.traceObject(trace, object, GenRC.ALLOC_RC);
         RCHeader.incRC(object);
-        objLoc.store(object);
+        slot.store(object);
       } else if (GenRC.isRCObject(object)) {
         RCHeader.incRC(object);
       }

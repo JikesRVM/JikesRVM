@@ -47,8 +47,7 @@ public class TestFileChannel {
     } catch (Exception e) {
       System.out.println("TestFileChannel FAILURE");
       e.printStackTrace(System.out);
-    }
-    finally {
+    } finally {
       if (null != file) {
         file.delete();
       }

@@ -38,12 +38,12 @@ import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_END;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SET_CAUGHT_EXCEPTION;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CAUGHT_EXCEPTION;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
@@ -367,18 +367,18 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
                                             OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
-    OPT_DepGraphNode sourceNode = regOp.register.dNode();
+    OPT_DepGraphNode sourceNode = regOp.getRegister().dNode();
 
     // if there is an element in the regTableDef[regNum] slot, set
     // the flow dependence edge.
     if (sourceNode != null) {
-      if (regOp.register.isValidation()) {
+      if (regOp.getRegister().isValidation()) {
         sourceNode.insertOutEdge(destNode, GUARD_TRUE);
       } else {
         for (OPT_PhysicalDefUse.PDUEnumeration e =
             OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir); e.hasMoreElements();) {
           OPT_Register r = e.nextElement();
-          if (regOp.register == r) {
+          if (regOp.getRegister() == r) {
             sourceNode.insertOutEdge(destNode, REG_MAY_DEF);
             return;
           }
@@ -398,23 +398,23 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
                                             OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
-    OPT_DepGraphNode sourceNode = regOp.register.dNode();
+    OPT_DepGraphNode sourceNode = regOp.getRegister().dNode();
 
     if (sourceNode != null) {
       // create output dependence edge from sourceNode to destNode.
-      int type = regOp.register.isValidation() ? GUARD_OUTPUT : REG_OUTPUT;
+      int type = regOp.getRegister().isValidation() ? GUARD_OUTPUT : REG_OUTPUT;
       sourceNode.insertOutEdge(destNode, type);
 
       // pin the def below the previous exception node if the register
       // being defined may be live in some reachable catch block
-      if (lastExceptionNode != null && regOp.register.spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
-        if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.register)) {
+      if (lastExceptionNode != null && regOp.getRegister().spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
+        if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.getRegister())) {
           lastExceptionNode.insertOutEdge(destNode, EXCEPTION_R);
         }
       }
     }
     // update depGraphNode information in register.
-    regOp.register.setdNode(destNode);
+    regOp.getRegister().setdNode(destNode);
   }
 
   /**
@@ -427,9 +427,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
                                              OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
-    OPT_DepGraphNode sourceNode = regOp.register.dNode();
+    OPT_DepGraphNode sourceNode = regOp.getRegister().dNode();
     if (sourceNode != null) {
-      int type = regOp.register.isValidation() ? GUARD_ANTI : REG_ANTI;
+      int type = regOp.getRegister().isValidation() ? GUARD_ANTI : REG_ANTI;
       // create antidependence edge.
       // NOTE: sourceNode contains the def and destNode contains the use.
       destNode.insertOutEdge(sourceNode, type);
@@ -449,12 +449,12 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
 
     // pin the def above the next exception node if the register
     // being defined may be live in some reachable catch block
-    if (lastExceptionNode != null && regOp.register.spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
-      if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.register)) {
+    if (lastExceptionNode != null && regOp.getRegister().spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
+      if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.getRegister())) {
         destNode.insertOutEdge(lastExceptionNode, EXCEPTION_R);
       }
     }
-    regOp.register.setdNode(destNode);
+    regOp.getRegister().setdNode(destNode);
   }
 
   /**
@@ -541,7 +541,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         OPT_Operand op = ops.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rOp = (OPT_RegisterOperand) op;
-          rOp.register.setdNode(null);
+          rOp.getRegister().setdNode(null);
         }
       }
       if (p == end) break;

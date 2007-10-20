@@ -87,7 +87,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Cyan,
-		             true);
+                     true);
   }
 
   /**
@@ -106,7 +106,7 @@ import org.vmmagic.pragma.*;
    * @param addr Remset Address
    * @return true if the given Address is in this subspace.
    */
-  public boolean handleRemsetAddress (Address addr) {
+  public boolean handleRemsetAddress(Address addr) {
     if(subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
@@ -114,9 +114,9 @@ import org.vmmagic.pragma.*;
       // increment summary
       this.totalRemset++;
       return true;
-    }
-    else
+    } else {
       return false;
+    }
   }
 
   /**

@@ -40,7 +40,6 @@ import org.vmmagic.pragma.*;
  * @see RCMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class RCCollector extends RCBaseCollector
   implements Constants {
@@ -81,7 +80,7 @@ import org.vmmagic.pragma.*;
   }
 
   /** @return The current modified object processor. */
-  public final TraceStep getModifiedProcessor() {
+  public final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
 }

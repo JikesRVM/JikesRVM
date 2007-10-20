@@ -35,7 +35,6 @@ import org.vmmagic.unboxed.*;
  * @see CopyMSCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class CopyMSMutator extends StopTheWorldMutator {
 
@@ -78,9 +77,9 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == CopyMS.ALLOC_DEFAULT)
-      return nursery.alloc(bytes, align, offset, false);
+      return nursery.alloc(bytes, align, offset);
     if (allocator == CopyMS.ALLOC_MS)
-      return mature.alloc(bytes, align, offset, false);
+      return mature.alloc(bytes, align, offset);
 
     return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -151,16 +150,16 @@ import org.vmmagic.unboxed.*;
    * @param primary Use this thread for single-threaded local activities.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == CopyMS.PREPARE_MUTATOR) {
+  public final void collectionPhase(short phaseId, boolean primary) {
+    if (phaseId == CopyMS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       mature.prepare();
       return;
     }
 
-    if (phaseId == CopyMS.RELEASE_MUTATOR) {
+    if (phaseId == CopyMS.RELEASE) {
       nursery.reset();
-      mature.releaseMutator();
+      mature.release();
       super.collectionPhase(phaseId, primary);
       return;
     }

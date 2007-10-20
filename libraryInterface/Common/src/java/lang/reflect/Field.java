@@ -34,6 +34,7 @@ public final class Field extends AccessibleObject implements Member {
   final VM_Field field;
 
   // Prevent this class from being instantiated.
+  @SuppressWarnings("unused")
   private Field() {
     field = null;
   }
@@ -162,9 +163,8 @@ public final class Field extends AccessibleObject implements Member {
         } catch (NoClassDefFoundError e) {
           throw new IllegalArgumentException("field type mismatch");
         }
-        if (fieldType != valueType
-            && !VM_Runtime.isAssignableWith(fieldType, valueType))
-        {
+        if (fieldType != valueType &&
+            !VM_Runtime.isAssignableWith(fieldType, valueType)) {
           throw new IllegalArgumentException("field type mismatch");
         }
       }

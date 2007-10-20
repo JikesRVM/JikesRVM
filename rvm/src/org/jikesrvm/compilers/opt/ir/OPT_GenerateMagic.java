@@ -43,6 +43,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRSigExt;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2ADDRZerExt;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_BITS_AS_FLOAT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL;
@@ -71,8 +72,10 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_LOAD;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -84,7 +87,7 @@ import org.vmmagic.unboxed.Offset;
  * It does not mean that the eventual MIR that implements the magic
  * won't differ from architecture to architecture.
  */
-public class OPT_GenerateMagic {
+public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
 
   /**
    * "Semantic inlining" of methods of the VM_Magic class.
@@ -410,6 +413,50 @@ public class OPT_GenerateMagic {
         bc2ir.push(op0.copyD2U(), returnType);
       }
       bc2ir.appendInstruction(call);
+    } else if (meth.isSpecializedInvoke()) {
+      // The callsite looks like              RETURN = INVOKE (ID, OBJECT, P0, P1 .. PN)
+      // And the actual method will look like RETURN = INVOKE     (OBJECT, P0, P1 .. PN)
+
+      // Create the call instruction
+      OPT_Instruction call = Call.create(CALL, null, null, null, null, types.length - 1);
+
+      // Plumb all of the normal parameters into the call
+      for (int i = types.length - 1; i >= 2; i--) {
+        Call.setParam(call, i - 1, bc2ir.pop(types[i]));
+      }
+      // The object being specialized
+      OPT_Operand objectOperand = bc2ir.pop(types[1]);
+      Call.setParam(call, 0, objectOperand);
+      OPT_Operand guard = OPT_BC2IR.getGuard(objectOperand);
+      if (guard == null) {
+        // it's magic, so assume that it's OK....
+        guard = new OPT_TrueGuardOperand();
+      }
+      Call.setGuard(call, guard);
+
+      // Load the tib of this object
+      OPT_RegisterOperand tibObject = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+      bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibObject, objectOperand.copy(), guard.copy()));
+
+      // The index of the specialized method
+      OPT_Operand methodId = bc2ir.popInt();
+
+      // Add the base offset for specialized methods and convert from index to address
+      OPT_RegisterOperand tibOffset = gc.temps.makeTemp(VM_TypeReference.Int);
+      bc2ir.appendInstruction(Binary.create(INT_ADD, tibOffset, methodId, new OPT_IntConstantOperand(TIB_FIRST_SPECIALIZED_METHOD_INDEX)));
+      bc2ir.appendInstruction(Binary.create(INT_SHL, tibOffset.copyRO(), tibOffset.copyD2U(), new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
+
+      // Load the code address from the TIB
+      OPT_RegisterOperand codeAddress = gc.temps.makeTemp(VM_TypeReference.Address);
+      bc2ir.appendInstruction(Load.create(REF_LOAD, codeAddress, tibObject.copyD2U(), tibOffset.copyD2U(), null));
+
+      Call.setAddress(call, codeAddress.copyD2U());
+      if (!returnType.isVoidType()) {
+        OPT_RegisterOperand op0 = gc.temps.makeTemp(returnType);
+        Call.setResult(call, op0);
+        bc2ir.push(op0.copyD2U(), returnType);
+      }
+      bc2ir.appendInstruction(call);
     } else if (methodName == VM_MagicNames.threadAsCollectorThread) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.VM_CollectorThread);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
@@ -419,7 +466,11 @@ public class OPT_GenerateMagic {
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsProcessor) {
-      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Scheduler.getProcessorType());
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.objectAsThread) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Scheduler.getThreadType());
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsAddress) {
@@ -468,30 +519,34 @@ public class OPT_GenerateMagic {
       bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == VM_MagicNames.getObjectType) {
       OPT_Operand val = bc2ir.popRef();
-      OPT_Operand guard = OPT_BC2IR.getGuard(val);
-      if (guard == null) {
-        // it's magic, so assume that it's OK....
-        guard = new OPT_TrueGuardOperand();
-      }
-      OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
-      bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibPtr, val, guard));
-      OPT_RegisterOperand op0;
-      VM_TypeReference argType = val.getType();
-      if (argType.isArrayType()) {
-        op0 = gc.temps.makeTemp(VM_TypeReference.VM_Array);
+      if(val.isObjectConstant()) {
+        bc2ir.push(new OPT_ObjectConstantOperand(val.getType().peekType(), Offset.zero()));
       } else {
-        if (argType == VM_TypeReference.JavaLangObject ||
-            argType == VM_TypeReference.JavaLangCloneable ||
-            argType == VM_TypeReference.JavaIoSerializable) {
-          // could be an array or a class, so make op0 be a VM_Type
-          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Type);
-        } else {
-          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Class);
+        OPT_Operand guard = OPT_BC2IR.getGuard(val);
+        if (guard == null) {
+          // it's magic, so assume that it's OK....
+          guard = new OPT_TrueGuardOperand();
         }
+        OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+        bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibPtr, val, guard));
+        OPT_RegisterOperand op0;
+        VM_TypeReference argType = val.getType();
+        if (argType.isArrayType()) {
+          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Array);
+        } else {
+          if (argType == VM_TypeReference.JavaLangObject ||
+              argType == VM_TypeReference.JavaLangCloneable ||
+              argType == VM_TypeReference.JavaIoSerializable) {
+            // could be an array or a class, so make op0 be a VM_Type
+            op0 = gc.temps.makeTemp(VM_TypeReference.VM_Type);
+          } else {
+            op0 = gc.temps.makeTemp(VM_TypeReference.VM_Class);
+          }
+        }
+        bc2ir.markGuardlessNonNull(op0);
+        bc2ir.appendInstruction(Unary.create(GET_TYPE_FROM_TIB, op0, tibPtr.copyD2U()));
+        bc2ir.push(op0.copyD2U());
       }
-      bc2ir.markGuardlessNonNull(op0);
-      bc2ir.appendInstruction(Unary.create(GET_TYPE_FROM_TIB, op0, tibPtr.copyD2U()));
-      bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.getArrayLength) {
       OPT_Operand val = bc2ir.popRef();
       OPT_RegisterOperand op0 = gc.temps.makeTempInt();
@@ -528,24 +583,24 @@ public class OPT_GenerateMagic {
         res = gc.temps.makeTempInt();
         bc2ir.push(res.copyD2U());
       }
-      VM_Field target = VM_Entrypoints.reflectiveMethodInvokerInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
       OPT_MethodOperand met = OPT_MethodOperand.STATIC(target);
       OPT_Instruction s =
           Call.create5(CALL, res, new OPT_AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_Entrypoints.saveThreadStateInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.saveThreadStateInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL, null, new OPT_AddressConstantOperand(target.getOffset()), mo, p1));
     } else if (methodName == VM_MagicNames.threadSwitch) {
       OPT_Operand p2 = bc2ir.popRef();
       OPT_Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_Entrypoints.threadSwitchInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.threadSwitchInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()), mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      VM_Field target = VM_Entrypoints.restoreHardwareExceptionStateInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL,
                                            null,
@@ -636,7 +691,7 @@ public class OPT_GenerateMagic {
   } // generateMagic
 
   // Generate magic where the untype operational semantics is identified by name.
-  // The operands' types are determnied from the method signature.
+  // The operands' types are determined from the method signature.
   //
   static boolean generatePolymorphicMagic(OPT_BC2IR bc2ir, OPT_GenerationContext gc, VM_MethodReference meth,
                                           VM_Atom methodName) {
@@ -689,8 +744,8 @@ public class OPT_GenerateMagic {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Extent);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.codeArrayToAddress) {
-      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Word);
+    } else if (methodName == VM_MagicNames.codeArrayAsObject) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.CodeArray)));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordPlus) {

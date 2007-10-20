@@ -154,7 +154,7 @@ public class OPT_Inliner {
       }
       // Step 3: Merge together result from children into container.
       if (Call.hasResult(callSite)) {
-        OPT_Register reg = Call.getResult(callSite).register;
+        OPT_Register reg = Call.getResult(callSite).getRegister();
         container.result = children[0].result;
         for (int i = 1; i < targets.length; i++) {
           container.result = OPT_Operand.meet(container.result, children[i].result, reg);

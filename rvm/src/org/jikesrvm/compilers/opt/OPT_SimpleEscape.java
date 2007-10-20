@@ -239,7 +239,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     // parameters may escape
     int numParam = 0;
     for (OPT_OperandEnumeration e = ir.getParameters(); e.hasMoreElements(); numParam++) {
-      OPT_Register p = ((OPT_RegisterOperand) e.next()).register;
+      OPT_Register p = ((OPT_RegisterOperand) e.next()).getRegister();
       if (result.isThreadLocal(p)) {
         summ.setParameterMayEscapeThread(numParam, false);
       } else {
@@ -256,7 +256,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         continue;
       }
       if (op.isRegister()) {
-        OPT_Register r = op.asRegister().register;
+        OPT_Register r = op.asRegister().getRegister();
         if (!result.isThreadLocal(r)) {
           foundEscapingReturn = true;
         }
@@ -294,14 +294,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     result.methodLocal = true;
     for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
 
-      if (VM.VerifyAssertions && use.type == null) {
+      if (VM.VerifyAssertions && use.getType() == null) {
         ir.printInstructions();
         VM._assert(false, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
-      if (use.type.isPrimitiveType()) {
+      if (use.getType().isPrimitiveType()) {
         result.threadLocal = false;
         result.methodLocal = false;
         break;
@@ -315,14 +315,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     }
     for (OPT_RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
 
-      if (VM.VerifyAssertions && def.type == null) {
+      if (VM.VerifyAssertions && def.getType() == null) {
         ir.printInstructions();
         VM._assert(false, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
-      if (def.type == null || def.type.isPrimitiveType()) {
+      if (def.getType() == null || def.getType().isPrimitiveType()) {
         result.threadLocal = false;
         result.methodLocal = false;
         break;

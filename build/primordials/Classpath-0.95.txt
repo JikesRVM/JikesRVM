@@ -53,6 +53,7 @@ Ljava/lang/Cloneable;
 Ljava/lang/VMObject;
 Ljava/lang/VMSystem;
 Ljava/lang/VMString;
+Ljava/lang/VMThread;
 Lgnu/classpath/Configuration;
 # Only in Classpath 0.13 and later
 Lgnu/classpath/SystemProperties;
@@ -98,6 +99,7 @@ Ljava/lang/UnsatisfiedLinkError;
 Ljava/lang/InternalError;
 Ljava/lang/IllegalMonitorStateException;
 Ljava/lang/ExceptionInInitializerError;
+Ljava/lang/InterruptedException;
 
 # primitive wrapper types
 Ljava/lang/Boolean;
@@ -245,14 +247,17 @@ Ljava/util/WeakHashMap$WeakBucket;
 Ljava/util/WeakHashMap$WeakEntrySet$1;
 Ljava/util/WeakHashMap$WeakEntrySet;
 [Ljava/util/WeakHashMap$WeakBucket;
-
+Lgnu/java/util/WeakIdentityHashMap;
+Lgnu/java/util/WeakIdentityHashMap$WeakEntrySet;
+Lgnu/java/util/WeakIdentityHashMap$WeakBucket;
+Lgnu/java/util/WeakIdentityHashMap$WeakBucket$WeakEntry;
+[Lgnu/java/util/WeakIdentityHashMap$WeakBucket;
 
 # class loaders
 Ljava/lang/ClassLoader;
 Ljava/lang/ClassLoader$1;
 Ljava/lang/ClassLoader$StaticData;
 Ljava/lang/VMClassLoader;
-Ljava/lang/VMSecurityManager;
 Lgnu/classpath/VMStackWalker;
 Lgnu/java/io/PlatformHelper;
 Ljava/security/CodeSource;
@@ -355,6 +360,9 @@ Ljava/security/AccessControlContext;
 # Used by Classpath 0.11's reference VMAccessController
 Ljava/lang/ThreadLocal;
 # Used by ThreadLocal
+Ljava/lang/ThreadLocalMap;
+Ljava/lang/ThreadLocalMap$Entry;
+[Ljava/lang/ThreadLocalMap$Entry;
 Ljava/util/LinkedList;
 Ljava/util/LinkedList$Entry;
 Ljava/util/LinkedList$LinkedListItr;

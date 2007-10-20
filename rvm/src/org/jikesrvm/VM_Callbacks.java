@@ -18,7 +18,6 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.util.VM_Synchronizer;
 
 /**
@@ -1150,7 +1149,7 @@ public final class VM_Callbacks {
   @SuppressWarnings("unused")
   private static int getThread() {
     if (VM.runningVM) {
-      return VM_Thread.getCurrentThread().getIndex();
+      return VM_Scheduler.getCurrentThread().getIndex();
     } else {
       return System.identityHashCode(Thread.currentThread());
     }

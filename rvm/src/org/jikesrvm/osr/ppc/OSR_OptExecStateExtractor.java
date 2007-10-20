@@ -27,6 +27,7 @@ import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_MapIterator;
 import org.jikesrvm.osr.OSR_VariableElement;
 import org.jikesrvm.ppc.VM_ArchConstants;
+import org.jikesrvm.ppc.VM_Registers;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
@@ -60,10 +61,10 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     * the register save area of '<tsfrom>' method.
     */
 
-    byte[] stack = thread.stack;
+    byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
-    OSR_TempRegisters registers = new OSR_TempRegisters(thread.contextRegisters);
+    OSR_TempRegisters registers = new OSR_TempRegisters((VM_Registers)thread.getContextRegisters());
 
     if (VM.VerifyAssertions) {
       int foocmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
@@ -284,10 +285,10 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       }
 
       // create a OSR_VariableElement for it.
-      int kind = iterator.getKind();
+      boolean kind = iterator.getKind();
       int num = iterator.getNumber();
-      int tcode = iterator.getTypeCode();
-      int vtype = iterator.getValueType();
+      byte tcode = iterator.getTypeCode();
+      byte vtype = iterator.getValueType();
       int value = iterator.getValue();
 
       iterator.moveToNext();
@@ -364,8 +365,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     return state;
   }
 
-  /* auxillary functions to get value from different places.
-  */
+  /** auxillary functions to get value from different places. */
   private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {

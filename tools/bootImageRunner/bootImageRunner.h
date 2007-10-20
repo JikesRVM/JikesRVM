@@ -17,6 +17,13 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#ifdef __MACH__
+#include <assert.h>
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,6 +103,11 @@ extern jint GetEnv(JavaVM *, void **, jint);
 extern void sysSyncCache(void *, size_t size);
 // Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
+
+#ifdef __MACH__
+// Defined in sys.C; intiialized in RunBootImage.C
+extern mach_timebase_info_data_t timebaseInfo;
+#endif
 
 #ifdef __cplusplus
 }

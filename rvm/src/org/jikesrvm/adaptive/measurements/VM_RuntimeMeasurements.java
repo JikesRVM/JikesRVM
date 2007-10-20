@@ -112,15 +112,10 @@ public abstract class VM_RuntimeMeasurements {
 
   /**
    * Called from VM_Thread.yieldpoint every time it is invoked due to
-   * a timer interrupt. When invoked, the callstack must be as follows:
-   *   <..stuff..>
-   *   <method that executed the taken yieldpoint>
-   *   wrapper method
-   *   VM_Thread.yieldpoint
-   *   takeAOSTimerSample
+   * a timer interrupt.
    */
   @Uninterruptible
-  public static void takeTimerSample(int whereFrom) {
+  public static void takeTimerSample(int whereFrom, Address yieldpointServiceMethodFP) {
     // We use threadswitches as a rough approximation of time.
     // Every threadswitch is a clock tick.
     // TODO: kill controller clock in favor of VM_Processor.reportedTimerTicks
@@ -129,12 +124,8 @@ public abstract class VM_RuntimeMeasurements {
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread()) {
-      // Crawl stack to get to the frame in which the yieldpoint was taken
-      // NB: depends on calling structure described in method comment!!!
-      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
-      fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
-      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint
+    if (!VM_Scheduler.getCurrentThread().isIdleThread()) {
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
 
       // Get the cmid for the method in which the yieldpoint was taken.
       int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
@@ -218,24 +209,14 @@ public abstract class VM_RuntimeMeasurements {
 
   /**
    * Called from VM_Thread.yieldpoint when it is time to take a CBS method sample.
-   * When invoked, the callstack must be as follows:
-   *   <..stuff..>
-   *   <method that executed the taken yieldpoint>
-   *   wrapper method
-   *   VM_Thread.yieldpoint
-   *   takeCBSMethodSample
    */
   @Uninterruptible
-  public static void takeCBSMethodSample(int whereFrom) {
+  public static void takeCBSMethodSample(int whereFrom, Address yieldpointServiceMethodFP) {
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread()) {
-      // Crawl stack to get to the frame in which the yieldpoint was taken
-      // NB: depends on calling structure described in method comment!!!
-      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
-      fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
-      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint
+    if (!VM_Scheduler.getCurrentThread().isIdleThread()) {
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
 
       // Get the cmid for the method in which the yieldpoint was taken.
       int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
@@ -265,24 +246,14 @@ public abstract class VM_RuntimeMeasurements {
 
   /**
    * Called from VM_Thread.yieldpoint when it is time to take a CBS call sample.
-   * When invoked, the callstack must be as follows:
-   *   <..stuff..>
-   *   <method that executed the taken yieldpoint>
-   *   wrapper method
-   *   VM_Thread.yieldpoint
-   *   takeCBSCallSample
    */
   @Uninterruptible
-  public static void takeCBSCallSample(int whereFrom) {
+  public static void takeCBSCallSample(int whereFrom, Address yieldpointServiceMethodFP) {
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread()) {
-      // Crawl stack to get to the frame in which the yieldpoint was taken
-      // NB: depends on calling structure described in method comment!!!
-      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
-      fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
-      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint
+    if (!VM_Scheduler.getCurrentThread().isIdleThread()) {
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
 
       // Get the cmid for the method in which the yieldpoint was taken.
       int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
@@ -412,7 +383,7 @@ public abstract class VM_RuntimeMeasurements {
    * Called from VM_Thread.terminate.
    */
   public static void monitorThreadExit() {
-    VM_AOSLogging.threadExiting(VM_Thread.getCurrentThread());
+    VM_AOSLogging.threadExiting(VM_Scheduler.getCurrentThread());
   }
 
   /**

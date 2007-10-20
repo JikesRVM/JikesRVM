@@ -68,7 +68,7 @@ public class SelectRegexTask
     } catch (IOException ioe) {
       throw new BuildException("Error loading file " + file, ioe, getLocation());
     } finally {
-      if( null != inputStream ) {
+      if (null != inputStream) {
         try {
           inputStream.close();
         } catch (final IOException ioe) {
@@ -84,7 +84,7 @@ public class SelectRegexTask
     if (groups != null && !groups.isEmpty()) {
       String output = select;
       final int count = groups.size();
-      for( int i = 0; i < count; i++ ) {
+      for (int i = 0; i < count; i++) {
         final String group = (String) groups.get(i);
         output = output.replace("\\" + i, group);
       }

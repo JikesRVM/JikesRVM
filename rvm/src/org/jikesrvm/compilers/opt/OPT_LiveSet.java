@@ -60,7 +60,7 @@ public class OPT_LiveSet {
     // simply linear search
     OPT_LiveSetEnumerator lsEnum = enumerator();
     while (lsEnum.hasMoreElements()) {
-      OPT_Register elem = lsEnum.nextElement().register;
+      OPT_Register elem = lsEnum.nextElement().getRegister();
       if (item == elem) {
         if (debug) {
           System.out.println("found it, returning true");
@@ -92,7 +92,7 @@ public class OPT_LiveSet {
       OPT_LiveSetElement current = first;
       OPT_LiveSetElement prev = null;
       // traverse the current list looking for the appropriate place
-      int itemNumber = item.register.number;      // cache the item's number
+      int itemNumber = item.getRegister().number;      // cache the item's number
       while (current != null && current.getRegister().number < itemNumber) {
         prev = current;
         current = current.getNext();
@@ -103,7 +103,7 @@ public class OPT_LiveSet {
           // already in there.  Check to see if we have an Address/Reference confusion.
           // If we do, then prefer to have the Reference in the LiveSet as that will
           // include item in the GC maps from this program point "up"
-          if (current.getRegisterType().isWordType() && item.type.isReferenceType()) {
+          if (current.getRegisterType().isWordType() && item.getType().isReferenceType()) {
             current.setRegisterOperand(item);
           }
         } else {
@@ -279,7 +279,7 @@ public class OPT_LiveSet {
     }
     // only something to do if the set is non-empty
     if (first != null) {
-      int itemNumber = item.register.number;    // cache the item's number
+      int itemNumber = item.getRegister().number;    // cache the item's number
       // special case the first element
       if (first.getRegister().number == itemNumber) {
         first = first.getNext();

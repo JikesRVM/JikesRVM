@@ -34,12 +34,16 @@ V IC_MASSIVE_METHOD_SIZE int 2048
 Static inlining heuristic: If root method is already this big, then only inline trivial methods
 
 
-V AI_MAX_TARGET_SIZE int (22*org.jikesrvm.classloader.VM_NormalMethod.CALL_COST+3*org.jikesrvm.classloader.VM_NormalMethod.SIMPLE_OPERATION_COST)
+V AI_MAX_TARGET_SIZE int (20*org.jikesrvm.classloader.VM_NormalMethod.CALL_COST-org.jikesrvm.classloader.VM_NormalMethod.SIMPLE_OPERATION_COST)
 Adaptive inlining heuristic: Upper bound on callee size
 
 
 V AI_MIN_CALLSITE_FRACTION double 0.4
 Adaptive inlining heuristc: Minimum fraction of callsite distribution for guarded inlining of a callee
+
+
+V EDGE_COUNT_INPUT_FILE String null
+Input file of edge counter profile data
 
 
 E INLINING_GUARD byte IG_CODE_PATCH

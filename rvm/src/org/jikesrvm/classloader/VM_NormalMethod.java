@@ -164,12 +164,6 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    * Generate the code for this method
    */
   protected VM_CompiledMethod genCode() throws VerifyError {
-    // The byte code verifier is dead; needs replacement.
-//     if (VM.VerifyBytecode) {
-//       VM_Verifier verifier = new VM_Verifier();
-//       verifier.verifyMethod(this);
-//     }
-
     if (VM.writingBootImage) {
       return VM_BootImageCompiler.compile(this);
     } else {
@@ -445,7 +439,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   /**
    * Set the value of the 'runtime service method' flag to the argument
    * value.  A method is considered to be a runtime service method if it
-   * is only/primarialy invoked "under the covers" from the generated code
+   * is only/primarily invoked "under the covers" from the generated code
    * and thus is not subject to inlining via the normal mechanisms.
    * For example, the implementations of bytecodes such as new or checkcast
    * or the implementation of yieldpoints.
@@ -476,6 +470,18 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
       }
     }
     return false;
+  }
+
+  /**
+   * For use by {@link VM_Class#allBootImageTypesResolved()} only.
+   */
+  void recomputeSummary(int[] constantPool) {
+    if (hasFieldRead()) {
+      // Now that all bootimage classes are resolved, we may be able to lower the
+      // estimated machine code size of some getstatics, so recompute summary.
+      computeSummary(constantPool);
+    }
+
   }
 
   /**
@@ -648,6 +654,22 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
           break;
 
         case JBC_getstatic:
+          summaryFlags |= HAS_FIELD_READ;
+
+          // Treat getstatic of primitive values from final static fields
+          // as "free" since we expect it be a compile time constant by the
+          // time the opt compiler compiles the method.
+          VM_FieldReference fldRef = bcodes.getFieldReference(constantPool);
+          if (fldRef.getFieldContentsType().isPrimitiveType()) {
+            VM_Field fld = fldRef.peekResolvedField();
+            if (fld == null || !fld.isFinal()){
+              calleeSize += SIMPLE_OPERATION_COST;
+            }
+          } else {
+            calleeSize += SIMPLE_OPERATION_COST;
+          }
+          continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+
         case JBC_getfield:
           summaryFlags |= HAS_FIELD_READ;
           calleeSize += SIMPLE_OPERATION_COST;

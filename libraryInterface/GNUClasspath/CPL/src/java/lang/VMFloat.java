@@ -20,14 +20,9 @@ import org.jikesrvm.runtime.VM_Magic;
 final class VMFloat {
 
   static int floatToIntBits(float value) {
-    int val = VM_Magic.floatAsIntBits(value);
-    int exponent = val & 0x7f800000;
-    int mantissa = val & 0x007fffff;
-    if (exponent == 0x7f800000 && mantissa != 0) {
-      return 0x7fc00000;
-    } else {
-      return val;
-    }
+    // Check for NaN and return canonical NaN value
+    if (value != value) return 0x7fc00000;
+    else return VM_Magic.floatAsIntBits(value);
   }
 
   static int floatToRawIntBits(float value) {

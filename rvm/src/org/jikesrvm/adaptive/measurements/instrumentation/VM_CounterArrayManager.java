@@ -13,6 +13,7 @@
 package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_Constants;
 import org.jikesrvm.compilers.opt.OPT_ConvertToLowLevelIR;
@@ -29,7 +30,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.Offset;
  * NOTE: Much of this class was stolen from VM_CounterArray.java, which
  * is now gone.
  */
-final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager implements OPT_Operators, OPT_Constants {
+public final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager implements OPT_Operators, OPT_Constants {
 
   static final boolean DEBUG = false;
 
@@ -154,7 +154,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager i
 
     // Get the base of array
     OPT_RegisterOperand counterArray = OPT_ConvertToLowLevelIR.
-        getStatic(counterInst, ir, VM_Entrypoints.counterArrayManagerCounterArraysField);
+        getStatic(counterInst, ir, VM_AosEntrypoints.counterArrayManagerCounterArraysField);
 
     // load counterArrays[handle]
     OPT_RegisterOperand array2 =

@@ -18,10 +18,12 @@
   <!-- NOTE: when incrementing classpath version, check the patches -->
   <!-- in target patch-classpath-web                                -->
   <property name="classpath.version" value="95"/>
+  <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
+  <property name="classpath.patchlevel" value="3"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
-  <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
+  <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}p${classpath.patchlevel}"/>
   <property name="classpath.dir" value="${classpath.package.dir}/classpath"/>
 
   <!-- **************************************************************************** -->
@@ -32,7 +34,6 @@
 
   <!-- init properties for downloading classpath from cvs or from web -->
   <target name="init-classpath-properties" depends="prepare-ant-tasks">
-    <check-host-and-target-match message="can not download and build Classpath."/>
     <condition property="classpath.from-web" value="true">
       <and>
         <not>
@@ -84,7 +85,8 @@
 
     <property name="classpath.web-archive" value="classpath-0.${classpath.version}${generics-extension}.tar.gz"/>
     <mkdir dir="${classpath.package.dir}"/>
-    <get src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
+    <cachedGet key="${classpath.web-archive}"
+         src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
          dest="${classpath.package.dir}/${classpath.web-archive}"/>
     <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
     <exec executable="${tar.exe}" failonerror="true" dir="${classpath.package.dir}">
@@ -107,11 +109,7 @@
 
   <!-- Patches against CVS head -->
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
-    <patch patchfile="${components.patch.dir}/classpath-cvs.classpath30275.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-77.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-26.patch"
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
@@ -127,6 +125,12 @@
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-26.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-185.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-solaris.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/> 
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-51.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>  
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
 
@@ -139,8 +143,8 @@
       <and>
         <not>
           <or>
+            <equals arg1="${target.os}" arg2="Solaris"/> 
             <equals arg1="${target.os}" arg2="AIX"/>
-            <equals arg1="${target.name}" arg2="x86_64-linux"/>
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
           </or>
         </not>
@@ -149,6 +153,10 @@
           <available file="/opt/gnome/include/gtk-2.0/gtk/gtk.h"/>
         </or>
       </and>
+    </condition>
+
+    <condition property="cp.enable.portable-native-sync" value=" --enable-portable-native-sync" else="">
+      <equals arg1="${config.portable-native-sync}" arg2="true"/>
     </condition>
 
     <condition property="cp.disable.alsa" value=" --disable-alsa" else="">
@@ -188,7 +196,7 @@
       <arg value="--with-ecj=${ecj.dir}/ecj"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
-      <arg line="${cp.enable.gtk-peer}${cp.disable.alsa}${cp.cppflags}"/>
+      <arg line="${cp.enable.gtk-peer}${cp.enable.portable-native-sync}${cp.disable.alsa}${cp.cppflags}"/>
     </exec>
     <exec executable="${make.exe}" failonerror="true" dir="${classpath.dir}">
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
@@ -210,6 +218,9 @@
     </condition>
     <condition property="library.suffix" value=".dylib">
       <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+    <condition property="library.suffix" value=".so">
+      <equals arg1="${target.os}" arg2="Solaris"/>
     </condition>
 
     <copy todir="${classpath.package.dir}/${target.name}/lib" flatten="true">

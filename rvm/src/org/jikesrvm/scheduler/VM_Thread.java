@@ -12,31 +12,31 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.adaptive.OSR_Listener;
+import org.jikesrvm.VM_Services;
+import org.jikesrvm.VM_UnimplementedError;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.jni.VM_JNIEnvironment;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.mm.mmtk.Barriers;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.runtime.VM_Process;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Time;
 import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
@@ -46,266 +46,304 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A java thread's execution context.
+ * A generic java thread's execution context.
  *
+ * @see org.jikesrvm.scheduler.greenthreads.VM_GreenThread
  * @see org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread
+ * @see VM_DebuggerThread
+ * @see VM_FinalizerThread
+ * @see org.jikesrvm.adaptive.measurements.organizers.VM_Organizer
  */
 @Uninterruptible
-public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConstants {
-
-  /**
-   * debug flag
+public abstract class VM_Thread {
+  /*
+   *  debug and statistics
    */
-  private static final boolean trace = false;
+  /** Trace execution */
+  protected static final boolean trace = false;
   /** Trace thread termination */
   private static final boolean traceTermination = false;
   /** Trace adjustments to stack size */
   private static final boolean traceAdjustments = false;
+  /** Generate statistics? */
+  private static final boolean STATS = VM_Lock.STATS;
+  /** Number of wait operations */
+  static int waitOperations;
+  /** Number of timed wait operations */
+  static int timedWaitOperations;
+  /** Number of notify operations */
+  static int notifyOperations;
+  /** Number of notifyAll operations */
+  static int notifyAllOperations;
 
   /**
-   * java.lang.Thread wrapper for this VM_Thread.  Can't be final --
-   * the primordial thread is created by the boot image writer without
-   * an associated java.lang.Thread ; we need to be booting before we
-   * can create a Jikes RVM java.lang.Thread, at which point we will
-   * perform the assignment.  I am also highly suspicous of the
-   * CollectorThread.
+   * The thread is modeled by a state machine the following constants describe
+   * the state of the state machine. Invalid transitions will generate
+   * IllegalThreadStateExceptions.
+   */
+  protected static enum State {
+    /**
+     * The thread is created but not yet scheduled to run. This state is the
+     * same as {@link Thread.State#NEW}
+     */
+    NEW,
+    /**
+     * The thread is scheduled to run on a VM_Processor. This state is the same
+     * as {@link Thread.State#RUNNABLE}
+     */
+    RUNNABLE,
+    /**
+     * The thread is blocked by waiting for a monitor lock. This state is the
+     * same as {@link Thread.State#BLOCKED}
+     */
+    BLOCKED,
+    /**
+     * The thread is waiting indefintely for a notify. This state maps to
+     * {@link Thread.State#WAITING}
+     */
+    WAITING,
+    /**
+     * The thread is waiting for a notify or a time out. This state maps to
+     * {@link Thread.State#TIMED_WAITING}
+     */
+    TIMED_WAITING,
+    /**
+     * The thread has exited. This state maps to {@link Thread.State#TERMINATED}
+     */
+    TERMINATED,
+    /**
+     * The thread is waiting for a notify or a time out. This state maps to
+     * {@link Thread.State#TIMED_WAITING}
+     */
+    SLEEPING,
+    /**
+     * The thread is suspended awaiting a resume. This state maps to
+     * {@link Thread.State#WAITING} which makes better sense than the JDK 1.5
+     * convention
+     */
+    SUSPENDED,
+    /**
+     * The thread is suspended awaiting a resume. This state maps to
+     * {@link Thread.State#WAITING}
+     */
+    OSR_SUSPENDED,
+    /**
+     * The thread is awaiting this thread to become RUNNABLE. This state maps to
+     * {@link Thread.State#WAITING} matching JDK 1.5 convention
+     */
+    JOINING,
+    /**
+     * The thread is parked awaiting a unpark. This state maps to
+     * {@link Thread.State#WAITING} matching JDK 1.5 convention
+     */
+    PARKED,
+    /**
+     * The thread is parked awaiting a unpark. This state maps to
+     * {@link Thread.State#TIMED_WAITING} matching JDK 1.5 convention
+     */
+    TIMED_PARK,
+    /**
+     * This state is valid only for green threads. The thread is awaiting IO to
+     * readable. This state maps to {@link Thread.State#WAITING}.
+     */
+    IO_WAITING,
+    /**
+     * This state is valid only for green threads. The thread is awaiting a
+     * process to finish. This state maps to {@link Thread.State#WAITING}.
+     */
+    PROCESS_WAITING
+  }
+
+  /**
+   * State of the thread. Either NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING,
+   * TERMINATED, SLEEPING, SUSPENDED or PARKED
+   */
+  protected State state;
+
+  /**
+   * java.lang.Thread wrapper for this VM_Thread. Not final so it may be
+   * assigned during booting
    */
   private Thread thread;
 
-  /** Name of thread */
-  private final String myName;
-
-  /** Lock controlling the suspending or parking of a thread */
-  final VM_ProcessorLock suspendLock;
+  /** Name of the thread (can be changed during execution) */
+  private String name;
 
   /**
-   * Should this thread be suspended the next time it is considered
-   * for scheduling?
+   * The virtual machine terminates when the last non-daemon (user)
+   * thread terminates.
    */
-  boolean suspendPending;
+  protected boolean daemon;
 
-  /** Is the thread suspended? */
-  boolean suspended;
-
-  /** A running thread */
-  private static final byte RUNNING = 0;
-  /** A parked thread */
-  private static final byte PARKED = 1;
-  /** A running thread permitted to ignore the next park request */
-  private static final byte PERMIT = 2;
-  /** Parked status of the thread */
-  private byte threadParkedState = RUNNING;
-  /** Object that will be waited upon for a park */
-  private final Object parkingObject = new Object();
+  /**
+   * Should the thread throw the external interrupt object the next time it's scheduled?
+   */
+  protected volatile boolean throwInterruptWhenScheduled;
+  /**
+   * Has the thread been interrupted? We should throw an interrupted exception
+   * when we next get to an interruptible operation
+   */
+  protected volatile boolean interrupted;
+  /**
+   * The cause of the thread interruption (stop) or interruption
+   */
+  protected volatile Throwable causeOfThreadDeath;
+  /**
+   * Scheduling priority for this thread.
+   * Note that: {@link java.lang.Thread#MIN_PRIORITY} <= priority
+   * <= {@link java.lang.Thread#MAX_PRIORITY}.
+   */
+  private int priority;
 
   /**
    * Index of this thread in {@link VM_Scheduler#threads}[].
    * This value must be non-zero because it is shifted
    * and used in {@link Object} lock ownership tests.
    */
+  @Entrypoint
   private final int threadSlot;
+  /**
+   * Is this thread's stack being "borrowed" by thread dispatcher
+   * (ie. while choosing next thread to run)?
+   */
+  @Entrypoint
+  public boolean beingDispatched;
 
   /**
-   * Proxywait/wakeup queue object.
+   * Thread is a system thread, that is one used by the system and as
+   * such doesn't have a Runnable...
    */
-  VM_Proxy proxy;
+  final boolean systemThread;
 
   /**
-   * Is an exception waiting to be delivered to this thread?
-   * A non-null value means the next {@link #yield} should deliver the
-   * specified exception to this thread.
+   * The boot thread, can't be final so as to allow initialization during boot
+   * image writing.
    */
-  Throwable externalInterrupt;
-
-  /**
-   * Should {@link #morph} throw the external
-   * interrupt object?
-   */
-  boolean throwInterruptWhenScheduled;
+  private static VM_Thread bootThread;
 
   /**
    * Assertion checking while manipulating raw addresses --
-   * see {@link VM#disableGC}/{@link VM#enableGC}.
+   * see {@link VM#disableGC()}/{@link VM#enableGC()}.
    * A value of "true" means it's an error for this thread to call "new".
    * This is only used for assertion checking; we do not bother to set it when
    * {@link VM#VerifyAssertions} is false.
    */
-  public boolean disallowAllocationsByThisThread;
+  private boolean disallowAllocationsByThisThread;
 
   /**
-   * Counts the depth of outstanding calls to {@link VM#disableGC}.  If this
+   * Counts the depth of outstanding calls to {@link VM#disableGC()}.  If this
    * is set, then we should also have {@link #disallowAllocationsByThisThread}
    * set.  The converse also holds.
    */
-  public int disableGCDepth = 0;
+  private int disableGCDepth = 0;
 
   /**
    * Execution stack for this thread.
    */
-
-  /** The machine stack on which to execute this thread. */
-  public byte[] stack;
+  @Entrypoint
+  private byte[] stack;
 
   /** The {@link Address} of the guard area for {@link #stack}. */
+  @Entrypoint
   public Address stackLimit;
 
   /**
    * Place to save register state when this thread is not actually running.
    */
+  @Entrypoint
   public final VM_Registers contextRegisters;
 
   /**
    * Place to save register state when C signal handler traps
    * an exception while this thread is running.
    */
-  public final VM_Registers hardwareExceptionRegisters;
+  @Entrypoint
+  private final VM_Registers hardwareExceptionRegisters;
+
+  /** Count of recursive uncaught exceptions, we need to bail out at some point */
+  private int uncaughtExceptionCount = 0;
+
+  /*
+   * Wait/notify fields
+   */
 
   /**
    * Place to save/restore this thread's monitor state during
    * {@link Object#wait} and {@link Object#notify}.
    */
-  Object waitObject;
+  protected Object waitObject;
 
   /** Lock recursion count for this thread's monitor. */
-  int    waitCount;
+  protected int    waitCount;
 
+  /*
+   * Sleep fields
+   */
 
   /**
    * If this thread is sleeping, when should it be awakened?
    */
-  long wakeupCycle;
+  protected long wakeupNanoTime;
+
+  /*
+   * Parking fields
+   */
+
+  /** Is a running thread permitted to ignore the next park request */
+  private boolean parkingPermit;
 
   /**
-   * Object specifying the event the thread is waiting for.
-   * E.g., set of file descriptors for an I/O wait.
+   * An interrupted parked thread never sees the stack trace so use a proxy
+   * interrupt exception in all cases. Also used to substitute for an
+   * interrupted exception when we're in uninterruptible code and unable to
+   * create one.
    */
-  VM_ThreadEventWaitData waitData;
+  protected static final InterruptedException proxyInterruptException =
+    new InterruptedException("park interrupted");
 
-  /**
-   * Scheduling priority for this thread.
-   * Note that: {@link java.lang.Thread#MIN_PRIORITY} <= priority
-   * <= {@link java.lang.Thread#MAX_PRIORITY}.
-   *
-   * Public so that {@link java.lang.Thread} can set it.
+  /*
+   * JNI fields
    */
-  public int priority;
-
-  /**
-   * Virtual processor that this thread wants to run on
-   * (null --> any processor is ok).
-   */
-  public VM_Processor processorAffinity;
-
-  /**
-   * Is this thread's stack being "borrowed" by thread dispatcher
-   * (ie. while choosing next thread to run)?
-   */
-  public boolean beingDispatched;
-
-  /**
-   * This thread's successor on a {@link VM_ThreadQueue}.
-   */
-  public VM_Thread next;
-
-    /**
-   * The virtual machine terminates when the last non-daemon (user)
-   * thread terminates.
-   */
-  protected boolean isDaemon;
-
-  /**
-   * ID of processor to run this thread (cycles for load balance)
-   */
-  public int chosenProcessorId;
 
   /**
    * Cached JNI environment for this thread
    */
+  @Entrypoint
   public VM_JNIEnvironment jniEnv;
 
+  /*
+   * Timing fields
+   */
   /**
-   * Value returned from {@link VM_Time#cycles()} when this thread
+   * Per thread timing is only active when this field has a value greater than 0.
+   */
+  private int timingDepth = 0;
+
+
+  /**
+   * Value returned from {@link VM_Time#nanoTime()} when this thread
    * started running. If not currently running, then it has the value 0.
    */
-  private long startCycle;
+  private long startNano = 0;
 
   /**
-   * Accumulated cycle count as measured by {@link VM_Time#cycles()}
+   * Accumulated nanoTime as measured by {@link VM_Time#nanoTime()}
    * used by this thread.
    */
-  private long totalCycles;
-
-  /** Set by exception handler. */
-  public int uncaughtExceptionCount = 0;
+  private long totalNanos = 0;
 
   /** Used by GC to determine collection success */
   private boolean physicalAllocationFailed;
 
+  /** Is this thread performing emergency allocation, when the normal heap limits are ignored. */
+  private boolean emergencyAllocation;
+
   /** Used by GC to determine collection success */
   private int collectionAttempt;
-
-  /** Set the initial attempt. */
-  public void reportCollectionAttempt() {
-    collectionAttempt++;
-  }
-
-  /** Set the initial attempt. */
-  public int getCollectionAttempt() {
-    return collectionAttempt;
-  }
-
-  /** Resets the attempts. */
-  public void resetCollectionAttempts() {
-    collectionAttempt = 0;
-  }
-  
-  /** Get the physical allocation failed flag. */
-  public boolean physicalAllocationFailed() {
-    return physicalAllocationFailed;
-  }
-
-  /** Get the physical allocation failed flag. */
-  public void setPhysicalAllocationFailed() {
-    physicalAllocationFailed = true;
-  }
-
-  /** Clear the physical allocation failed flag. */
-  public void clearPhysicalAllocationFailed() {
-    physicalAllocationFailed = false;
-  }
 
   /** The OOME to throw */
   private OutOfMemoryError outOfMemoryError;
 
-  /**
-   * Returns the outstanding OutOfMemoryError.
-   */
-  public OutOfMemoryError getOutOfMemoryError() {
-    return outOfMemoryError;
-  }
-  
-  /**
-   * Sets the outstanding OutOfMemoryError.
-   */
-  public void setOutOfMemoryError(OutOfMemoryError oome) {
-    outOfMemoryError = oome;
-  }
-  
-  /**
-   * Get the thread to use for building stack traces.
-   */
-  @Uninterruptible
-  public VM_Thread getThreadForStackTrace() {
-    return this;
-  }
-  
-  /**
-   * Clears the outstanding OutOfMemoryError.
-   */
-  public void clearOutOfMemoryError() {
-    outOfMemoryError = null;
-  }
-  
   /*
    * Enumerate different types of yield points for sampling
    */
@@ -316,20 +354,21 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public static final int NATIVE_EPILOGUE = 4;
   public static final int OSROPT = 5;
 
+  /*
+   * Fields used for on stack replacement
+   */
+
   /**
    * Only used by OSR when VM.BuildForAdaptiveSystem. Declared as an
    * Object to cut link to adaptive system.  Ugh.
    */
   public final Object /* OSR_OnStackReplacementEvent */ onStackReplacementEvent;
 
-  ///////////////////////////////////////////////////////////
-  // flags should be packaged or replaced by other solutions
-
   /**
    * The flag indicates whether this thread is waiting for on stack
    * replacement before being rescheduled.
-      */
-
+   */
+  //flags should be packaged or replaced by other solutions
   public boolean isWaitingForOsr = false;
 
   /**
@@ -337,7 +376,9 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * register states from the stack frame.
    */
   public VM_CodeArray bridgeInstructions = null;
+  /** Foo frame pointer offset */
   public Offset fooFPOffset = Offset.zero();
+  /** Thread switch frame pointer offset */
   public Offset tsFPOffset = Offset.zero();
 
   /**
@@ -346,140 +387,46 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    */
   public boolean requesting_osr = false;
 
-  /* These status variables are used exclusively for debugging, via the
-   * {@link VM_Thread#dump} method.
+  /**
+   * Is the system in the process of shutting down (has System.exit been called)
    */
+  private static boolean systemShuttingDown = false;
 
   /**
-   * A thread is "alive" if its start method has been called and the
-   * thread has not yet terminated execution.
-   * Set by:   {@link java.lang.Thread#start()}
-   * Unset by: {@link VM_Thread#terminate()}
-   */
-  protected boolean isAlive;
-
-  /**
-   * Thread is a system thread, that is one used by the system and as
-   * such doesn't have a Runnable...
-   */
-  private static final byte SYSTEM_THREAD = 0;
-
-  /** Thread is the boot thread */
-  private static final byte BOOT_THREAD   = 1;
-  /** Thread is the main thread */
-  private static final byte MAIN_THREAD   = 2;
-  /** Thread is a normal application thread */
-  private static final byte NORMAL_THREAD = 3;
-
-  /** Encodes whether thread is a system, boot or main thread? */
-  private byte threadType;
-
-  /**
-   * Biggest buffer you would possibly need for {@link #dump(char[], int)}
-   * Modify this if you modify that method.
-   */
-  public static final int MAX_DUMP_LEN =
-    10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
-
-  /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
-  private static final char[] dumpBuffer = new char[MAX_DUMP_LEN];
-
-  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
-  private static int dumpBufferLock = 0;
-
-  /** Reset at boot time. */
-  private static Offset dumpBufferLockOffset = Offset.max();
-
-  /**
-   * A map of hexadecimal digit values to their character representations.
-   * <P>
-   * XXX We currently only use '0' through '9'.  The rest are here pending
-   * possibly merging this code with the similar code in Log.java, or breaking
-   * this code out into a separate utility class.
-   */
-  private static final char [] hexDigitCharacter =
-  { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
-    'f' };
-
-  /**
-   * How many characters we need to have in a buffer for building string
-   * representations of <code>long</code>s, such as {@link #intBuffer}. A
-   * <code>long</code> is a signed 64-bit integer in the range -2^63 to
-   * 2^63+1. The number of digits in the decimal representation of 2^63 is
-   * ceiling(log10(2^63)) == ceiling(63 * log10(2)) == 19. An extra character
-   * may be required for a minus sign (-). So the maximum number of characters
-   * is 20.
-   */
-  private static final int INT_BUFFER_SIZE = 20;
-
-  /** A buffer for building string representations of <code>long</code>s */
-  private static final char [] intBuffer = new char[INT_BUFFER_SIZE];
-
-  /** A lock for {@link #intBuffer} */
-  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
-  private static int intBufferLock = 0;
-
-  /** The offset of {@link #intBufferLock} in this class's TIB.
-   *  This is set properly at boot time, even though it's a
-   *  <code>private</code> variable. . */
-  private static Offset intBufferLockOffset = Offset.max();
-
-  /**
-   * Create a thread with default stack.
-   */
-  public VM_Thread(Thread thread) {
-    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false), thread, null);
-  }
-
-  /**
-   * Create a thread with default stack and with the name myName.
-   */
-  public VM_Thread(Thread thread, String myName) {
-    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false), thread, myName);
-  }
-
-  /**
-   * Create a thread.
    * @param stack stack in which to execute the thread
    */
-  public VM_Thread (byte[] stack, Thread thread, String myName) {
+  protected VM_Thread(byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
     this.stack = stack;
-    this.thread = thread;
-    this.myName = myName;
-
-    chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0)
-    ; // for load balancing
-    suspendLock = new VM_ProcessorLock();
+    this.name = name;
+    this.daemon = daemon;
+    this.priority = priority;
 
     contextRegisters           = new VM_Registers();
     hardwareExceptionRegisters = new VM_Registers();
 
+    if(VM.VerifyAssertions) VM._assert(stack != null);
     // put self in list of threads known to scheduler and garbage collector
-    // !!TODO: need growable array here
-    // !!TODO: must recycle thread ids
-    //
-
-    if (!VM.runningVM) { // create primordial thread (in boot image)
-      threadSlot = VM_Scheduler.PRIMORDIAL_THREAD_INDEX;
-      VM_Scheduler.threads[threadSlot] = this;
-      // note that VM_Scheduler.threadAllocationIndex (search hint)
-      // is out of date
-      VM_Scheduler.numActiveThreads += 1;
-
+    if (!VM.runningVM) {
+      // create primordial thread (in boot image)
+      threadSlot = VM_Scheduler.assignThreadSlot(this);
+      // Remember the boot thread
+      if (VM.VerifyAssertions) VM._assert(bootThread == null);
+      bootThread = this;
+      this.systemThread = true;
+      this.state = State.RUNNABLE;
+      // assign final field
       onStackReplacementEvent = null;
-
-      /* Don't create the Thread object for the primordial thread; we'll have
-           to do that later. */
-      return;
     } else {
-      /* We're running the VM; if we weren't, we'd have to wait until boot time
-       * to do this. */
-      if ( thread == null )
-        thread = java.lang.JikesRVMSupport.createThread(this, myName);
-
       // create a normal (ie. non-primordial) thread
-      //
+      if (trace) VM_Scheduler.trace("VM_Thread create: ", name);
+      if (trace) VM_Scheduler.trace("daemon: ", daemon ? "true" : "false");
       if (trace) VM_Scheduler.trace("VM_Thread", "create");
+      // set up wrapper Thread if one exists
+      this.thread = thread;
+      // Set thread type
+      this.systemThread = system;
+
+      this.state = State.NEW;
 
       stackLimit = VM_Magic.objectAsAddress(stack).plus(STACK_SIZE_GUARD);
 
@@ -489,81 +436,57 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       VM.disableGC();
 
       // initialize thread registers
-      //
       Address ip = VM_Magic.objectAsAddress(instructions);
       Address sp = VM_Magic.objectAsAddress(stack).plus(stack.length);
 
-      /* Initialize the  a thread stack as if "startoff" method had been called by an
-       * empty baseline-compiled "sentinel" frame with one local variable. */
+      // Initialize the a thread stack as if "startoff" method had been called
+      // by an empty baseline-compiled "sentinel" frame with one local variable.
       VM_Configuration.archHelper.initializeStack(contextRegisters, ip, sp);
 
-      VM_Scheduler.threadCreationMutex.lock();
-      threadSlot = assignThreadSlot();
-
-      VM_Scheduler.threadCreationMutex.unlock();
-
+      threadSlot = VM_Scheduler.assignThreadSlot(this);
       VM.enableGC();
 
-
       // only do this at runtime because it will call VM_Magic;
-      // we set this explictly for the boot thread as part of booting.
-      if (VM.runningVM)
-        jniEnv = VM_JNIEnvironment.allocateEnvironment();
+      // we set this explicitly for the boot thread as part of booting.
+      jniEnv = VM_JNIEnvironment.allocateEnvironment();
 
       if (VM.BuildForAdaptiveSystem) {
         onStackReplacementEvent = new OSR_OnStackReplacementEvent();
       } else {
         onStackReplacementEvent = null;
       }
+
+      if (thread == null) {
+        // create wrapper Thread if doesn't exist
+        this.thread = java.lang.JikesRVMSupport.createThread(this, name);
+      }
     }
   }
 
   /**
-   * Get current VM_Thread.
+   * Called during booting to give the boot thread a java.lang.Thread
    */
-  public static VM_Thread getCurrentThread() {
-    return VM_Processor.getCurrentProcessor().activeThread;
+  @Interruptible
+  public final void setupBootThread() {
+    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RVM_Boot_Thread");
   }
 
   /**
-   * Get the current java.lang.Thread. Prints out a warning if someone asks for
-   * a thread too soon. The warning is for code that does not expect to be
-   * called early in the boot process. Use peekJavaLangThread if you expect you
-   * might get null.
+   * String representation of thread
    */
- @Interruptible
- public Thread getJavaLangThread() {
-   if (thread != null) {
-     return thread;
-   }
+  @Override
+  @Interruptible
+  public String toString() {
+    return (name == null) ? "VM_Thread-" + getIndex() : name;
+  }
 
-   if (!VM.safeToAllocateJavaThread) {
-     VM.sysWriteln(
-         "Someone asked for a Java thread before it is safe to allocate one -- dumping the stack and returning null.");
-     VM_Scheduler.dumpStack();
-     return null;
-   }
-   thread = java.lang.JikesRVMSupport.createThread(this, toString());
-   return thread;
- }
-
- /**
-  * Peek at the current java.lang.Thread. Do not print out any warnings. This
-  * is used by code that expects it might be called early in the boot process.
-  * Use getJavaLangThread if your caller is not necessarily prepared to get
-  * null.
-  */
- @Interruptible
- public Thread peekJavaLangThread() {
-   if (VM.safeToAllocateJavaThread) {
-     return getJavaLangThread();
-   } else {
-     return thread;
-   }
- }
-
-  public void setJavaLangThread(Thread t) {
-    thread = t;
+  /**
+   * Get the current java.lang.Thread.
+   */
+  @Interruptible
+  public final Thread getJavaLangThread() {
+    if (VM.VerifyAssertions) VM._assert(thread != null);
+    return thread;
   }
 
   /**
@@ -573,6 +496,34 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     return jniEnv;
   }
 
+  /** Get the disable GC depth */
+  public final int getDisableGCDepth() {
+    return disableGCDepth;
+  }
+
+  /** Modify the disable GC depth */
+  public final void setDisableGCDepth(int d) {
+    disableGCDepth = d;
+  }
+
+  /** Are allocations allowed by this thread? */
+  public final boolean getDisallowAllocationsByThisThread() {
+    return disallowAllocationsByThisThread;
+  }
+
+  /** Disallow allocations by this thread */
+  public final void setDisallowAllocationsByThisThread() {
+    disallowAllocationsByThisThread = true;
+  }
+
+  /** Allow allocations by this thread */
+  public final void clearDisallowAllocationsByThisThread() {
+    disallowAllocationsByThisThread = false;
+  }
+
+  /**
+   * Initialize JNI environment for system threads. Called by VM.finishBooting
+   */
   @Interruptible
   public final void initializeJNIEnv() {
     jniEnv = VM_JNIEnvironment.allocateEnvironment();
@@ -588,572 +539,84 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
 
-  @Interruptible
-  public String toString() {
-    return myName == null ? "VM_Thread-" + getIndex() : myName;
-  }
-
   /**
-   * Method to be executed when this thread starts running.
-   * Subclass should override with something more interesting.
-   */
-  @Interruptible
-  public void run() {
-    thread.run();
-  }
-
-  /**
-   * Method to be executed when this thread termnates.
-   * Subclass should override with something more interesting.
-   */
-  @Interruptible
-  public void exit() {
-    /* Early in the boot process, we are running the Boot Thread, which does
- * not have an associated java.lang.Thread, so "thread" will be null.  In
- * this case, if there is trouble during initialization, we still want to
- * be able to exit peacefully, without throwing a confusing additional
- * exception.  */
-    if (thread != null) {
-      thread.exit();
-    }
-  }
-
-  /**
-   * Suspend execution of current thread until it is resumed.
-   * Call only if caller has appropriate security clearance.
-   */
-  public final void suspend() {
-    suspendLock.lock();
-    suspendPending = true;
-    suspendLock.unlock();
-    if (this == getCurrentThread()) yield();
-  }
-
-  /**
-   * Resume execution of a thread that has been suspended.
-   * Call only if caller has appropriate security clearance.
-   */
-  @Interruptible
-  public void resume() {
-    suspendLock.lock();
-    suspendPending = false;
-    if (suspended) { // this thread is not on any queue
-      suspended = false;
-      suspendLock.unlock();
-      if (trace) VM_Scheduler.trace("VM_Thread", "resume() scheduleThread ", getIndex());
-      VM_Processor.getCurrentProcessor().scheduleThread(this);
-    } else {         // this thread is queued somewhere
-      suspendLock.unlock();
-    }
-  }
-
-  /**
-   * Suspends the thread waiting for OSR (rescheduled by recompilation
-   * thread when OSR is done).
-   */
-  public final void osrSuspend() {
-    suspendLock.lock();
-    suspendPending = true;
-    suspendLock.unlock();
-  }
-
-  /**
-   * Put given thread to sleep.
-   */
-  public static void sleepImpl(VM_Thread thread) {
-    VM_Scheduler.wakeupMutex.lock();
-    yield(VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex);
-  }
-
-  /**
-   * Put given thread onto the IO wait queue.
-   * @param waitData the wait data specifying the file descriptor(s)
-   * to wait for.
-   */
-  public static void ioWaitImpl(VM_ThreadIOWaitData waitData) {
-    VM_Thread myThread = getCurrentThread();
-    myThread.waitData = waitData;
-    yield(VM_Processor.getCurrentProcessor().ioQueue);
-  }
-
-  /**
-   * Put given thread onto the process wait queue.
-   * @param waitData the wait data specifying which process to wait for
-   * @param process the <code>VM_Process</code> object associated
-   *    with the process
-   */
-  public static void processWaitImpl(VM_ThreadProcessWaitData waitData, VM_Process process) {
-    VM_Thread myThread = getCurrentThread();
-    myThread.waitData = waitData;
-
-    // Note that we have to perform the wait on the pthread
-    // that created the process, which may involve switching
-    // to a different VM_Processor.
-
-    VM_Processor creatingProcessor = process.getCreatingProcessor();
-    VM_ProcessorLock queueLock = creatingProcessor.processWaitQueueLock;
-    queueLock.lock();
-
-    // This will throw InterruptedException if the thread
-    // is interrupted while on the queue.
-    yield(creatingProcessor.processWaitQueue, queueLock);
-  }
-
-  /**
-   * Deliver an exception to this thread.
-   */
-  public final void kill(Throwable externalInterrupt, boolean throwImmediately) {
-    // yield() will notice the following and take appropriate action
-    this.externalInterrupt = externalInterrupt;
-    if (throwImmediately) {
-      // FIXME - this is dangerous.  Only called from Thread.stop(),
-      // which is deprecated.
-      this.throwInterruptWhenScheduled = true;
-    }
-
-    // remove this thread from wakeup and/or waiting queue
-    VM_Proxy p = proxy;
-    if (p != null) {
-      // If the thread has a proxy, then (presumably) it is either
-      // doing a sleep() or a wait(), both of which are interruptible,
-      // so let morph() know that it should throw the
-      // external interrupt object.
-      this.throwInterruptWhenScheduled = true;
-
-      VM_Thread t = p.unproxy(); // t == this or t == null
-      if (t != null) t.schedule();
-    }
-    // TODO!! handle this thread executing native code
-  }
-
-  /**
-   * Park the current thread
-   */
-  @Interruptible
-  public final void park (boolean isAbsolute, long time) {
-    InterruptedException e = null;
-    synchronized(parkingObject) {
-      // Has the thread already been unparked? (ie the permit is available?)
-      if (threadParkedState == PERMIT) {
-        // Yes: exit early
-      } else {
-        // Put thread into parked state
-        // Do we have a timeout?
-        if (time == 0) {
-          // no timeout
-          proxy = new VM_Proxy(this);
-          // Get heavy lock on parking object which we'll wait upon
-          VM_Lock l = VM_ObjectModel.getHeavyLock(parkingObject, true);
-          // allow an entering thread a chance to get the lock
-          l.mutex.lock(); // until unlock(), thread-switching fatal
-          VM_Thread n = l.entering.dequeue();
-          if (n != null) n.schedule();
-          // squirrel away lock state in current thread
-          waitObject = parkingObject;
-          waitCount  = 1;
-          threadParkedState = PARKED;
-          // release l and simultaneously put t on l's waiting queue
-          l.ownerId = 0;
-          try {
-            yield(l.waiting, l.mutex); // thread-switching benign
-          } catch (Throwable thr) {
-            e = (InterruptedException)thr;
-          }
-        } else {
-          if (isAbsolute) {
-            wakeupCycle = time;
-          } else {
-            wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(time);
-          }
-          // cache the proxy before obtaining locks
-          proxy = new VM_Proxy(this, wakeupCycle);
-          // Get monitor lock
-          VM_Lock l = VM_ObjectModel.getHeavyLock(parkingObject, true);
-          // allow an entering thread a chance to get the lock
-          l.mutex.lock(); // until unlock(), thread-switching fatal
-          VM_Thread n = l.entering.dequeue();
-          if (n != null) n.schedule();
-          VM_Scheduler.wakeupMutex.lock();
-          // squirrel away lock state in current thread
-          waitObject = parkingObject;
-          waitCount  = 1;
-          threadParkedState = PARKED;
-          // release locks and simultaneously put t on their waiting queues
-          l.ownerId = 0;
-          try {
-            yield(l.waiting, l.mutex, VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex); // thread-switching benign
-          } catch (Throwable thr) {
-            e = (InterruptedException)thr;
-          }
-        }
-        // regain lock to be released when we leave the syncronized block
-        VM_ObjectModel.genericLock(parkingObject);
-        waitObject = null;
-        waitCount = 0;
-      }
-      threadParkedState = RUNNING;
-      if (e != null) {
-        // We were interrupted, make sure wait queues are cleaned out
-        parkingObject.notifyAll();
-      }
-    }
-  }
-
-  /**
-   * Unpark this thread, not necessarily the current thread
-   */
-  @Interruptible
-  public void unpark () {
-    synchronized(parkingObject) {
-      if (threadParkedState == PARKED) {
-        // Wake up sleeping thread
-        parkingObject.notifyAll();
-      } else if (threadParkedState == RUNNING) {
-        // Allow next call to park to just run through
-        threadParkedState = PERMIT;
-      } else {
-        if (VM.VerifyAssertions) VM._assert(threadParkedState == PERMIT);
-        // nothing to do
-      }
-    }
-  }
-
-  // NOTE: The ThreadSwitchSampling code depends on there
-  // being the same number of wrapper routines for all
-  // compilers. Please talk to me (Dave G) before changing this. Thanks.
-  // We could try a substantially more complex implementation
-  // (especially on the opt side) to avoid the wrapper routine,
-  // for the baseline compiler, but I think this is the easiest way
-  // to handle all the cases at reasonable runtime-cost.
-  /**
-   * Yieldpoint taken in prologue
-   */
-  @BaselineSaveLSRegisters
-  //Save all non-volatile registers in prologue
-  @NoOptCompile
-  //We should also have a pragma that saves all non-volatiles in opt compiler,
-  // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
-  //todo fix this -- related to SaveVolatile
-  public static void yieldpointFromPrologue() {
-    yieldpoint(PROLOGUE);
-  }
-
-  /**
-   * Yieldpoint taken on backedge
-   */
-  @BaselineSaveLSRegisters
-  //Save all non-volatile registers in prologue
-  @NoOptCompile
-  //We should also have a pragma that saves all non-volatiles in opt compiler,
-  // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
-  //todo fix this -- related to SaveVolatile
-  public static void yieldpointFromBackedge() {
-    yieldpoint(BACKEDGE);
-  }
-
-  /**
-   * Yieldpoint taken in epilogue
-   */
-  @BaselineSaveLSRegisters
-  //Save all non-volatile registers in prologue
-  @NoOptCompile
-  //We should also have a pragma that saves all non-volatiles in opt compiler,
-  // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
-  //todo fix this -- related to SaveVolatile
-  public static void yieldpointFromEpilogue() {
-    yieldpoint(EPILOGUE);
-  }
-
-  /**
-   * Process a taken yieldpoint.
-   * May result in threadswitch, depending on state of various control
-   * flags on the processor object.
-   */
-  @NoInline
-  public static void yieldpoint(int whereFrom) {
-    boolean threadSwitch = false;
-    int takeYieldpointVal = VM_Processor.getCurrentProcessor().takeYieldpoint;
-
-    VM_Processor.getCurrentProcessor().takeYieldpoint = 0;
-
-    // Process request for code-patch memory sync operation
-    if (VM.BuildForPowerPC && VM_Processor.getCurrentProcessor().codePatchSyncRequested) {
-      VM_Processor.getCurrentProcessor().codePatchSyncRequested = false;
-      // TODO: Is this sufficient? Ask Steve why we don't need to sync icache/dcache. --dave
-      // make sure not get stale data
-      VM_Magic.isync();
-      VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_Entrypoints.toSyncProcessorsField.getOffset(), 1);
-    }
-
-    // If thread is in critical section we can't switch right now, defer until later
-    if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-      if (VM_Processor.getCurrentProcessor().threadSwitchPending != 1) {
-        VM_Processor.getCurrentProcessor().threadSwitchPending = takeYieldpointVal;
-      }
-      return;
-    }
-
-    // Process timer interrupt event
-    if (VM_Processor.getCurrentProcessor().timeSliceExpired != 0) {
-      VM_Processor.getCurrentProcessor().timeSliceExpired = 0;
-
-      if (VM.CBSCallSamplesPerTick > 0) {
-        VM_Processor.getCurrentProcessor().yieldForCBSCall = true;
-        VM_Processor.getCurrentProcessor().takeYieldpoint = -1;
-        VM_Processor.getCurrentProcessor().firstCBSCallSample =
-            (++VM_Processor.getCurrentProcessor().firstCBSCallSample) % VM.CBSCallSampleStride;
-        VM_Processor.getCurrentProcessor().countdownCBSCall = VM_Processor.getCurrentProcessor().firstCBSCallSample;
-        VM_Processor.getCurrentProcessor().numCBSCallSamples = VM.CBSCallSamplesPerTick;
-      }
-
-      if (VM.CBSMethodSamplesPerTick > 0) {
-        VM_Processor.getCurrentProcessor().yieldForCBSMethod = true;
-        VM_Processor.getCurrentProcessor().takeYieldpoint = -1;
-        VM_Processor.getCurrentProcessor().firstCBSMethodSample =
-            (++VM_Processor.getCurrentProcessor().firstCBSMethodSample) % VM.CBSMethodSampleStride;
-        VM_Processor.getCurrentProcessor().countdownCBSMethod = VM_Processor.getCurrentProcessor().firstCBSMethodSample;
-        VM_Processor.getCurrentProcessor().numCBSMethodSamples = VM.CBSMethodSamplesPerTick;
-      }
-
-      if (++VM_Processor.getCurrentProcessor().interruptQuantumCounter >= VM.schedulingMultiplier) {
-        threadSwitch = true;
-        VM_Processor.getCurrentProcessor().interruptQuantumCounter = 0;
-
-        // Check various scheduling requests/queues that need to be polled periodically
-        if (VM_Scheduler.debugRequested && VM_Scheduler.allProcessorsInitialized) {
-          // service "debug request" generated by external signal
-          VM_Scheduler.debuggerMutex.lock();
-          if (VM_Scheduler.debuggerQueue.isEmpty()) {
-            // debugger already running
-            VM_Scheduler.debuggerMutex.unlock();
-          } else { // awaken debugger
-            VM_Thread t = VM_Scheduler.debuggerQueue.dequeue();
-            VM_Scheduler.debuggerMutex.unlock();
-            t.schedule();
-          }
-        }
-        if (VM_Scheduler.wakeupQueue.isReady()) {
-          VM_Scheduler.wakeupMutex.lock();
-          VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
-          VM_Scheduler.wakeupMutex.unlock();
-          if (t != null) {
-            t.schedule();
-          }
-        }
-      }
-
-      if (VM.BuildForAdaptiveSystem) {
-        VM_RuntimeMeasurements.takeTimerSample(whereFrom);
-      }
-
-      if (threadSwitch &&
-          (VM_Processor.getCurrentProcessor().yieldForCBSMethod ||
-           VM_Processor.getCurrentProcessor().yieldForCBSCall)) {
-        // want to sample the current thread, not the next one to be scheduled
-        // So, defer actual threadswitch until we take all of our samples
-        VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = true;
-        threadSwitch = false;
-      }
-
-      if (VM.BuildForAdaptiveSystem) {
-        threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom);
-      }
-      if (threadSwitch) {
-        VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
-        VM_Processor.getCurrentProcessor().yieldForCBSCall = false;
-        VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
-      }
-    }
-
-    if (VM_Processor.getCurrentProcessor().yieldForCBSCall) {
-      if (!(whereFrom == BACKEDGE || whereFrom == OSROPT)) {
-        if (--VM_Processor.getCurrentProcessor().countdownCBSCall <= 0) {
-          if (VM.BuildForAdaptiveSystem) {
-            // take CBS sample
-            VM_RuntimeMeasurements.takeCBSCallSample(whereFrom);
-          }
-          VM_Processor.getCurrentProcessor().countdownCBSCall = VM.CBSCallSampleStride;
-          VM_Processor.getCurrentProcessor().numCBSCallSamples--;
-          if (VM_Processor.getCurrentProcessor().numCBSCallSamples <= 0) {
-            VM_Processor.getCurrentProcessor().yieldForCBSCall = false;
-            if (!VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
-              VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
-              threadSwitch = true;
-            }
-
-          }
-        }
-      }
-      if (VM_Processor.getCurrentProcessor().yieldForCBSCall) {
-        VM_Processor.getCurrentProcessor().takeYieldpoint = -1;
-      }
-    }
-
-    if (VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
-      if (--VM_Processor.getCurrentProcessor().countdownCBSMethod <= 0) {
-        if (VM.BuildForAdaptiveSystem) {
-          // take CBS sample
-          VM_RuntimeMeasurements.takeCBSMethodSample(whereFrom);
-        }
-        VM_Processor.getCurrentProcessor().countdownCBSMethod = VM.CBSMethodSampleStride;
-        VM_Processor.getCurrentProcessor().numCBSMethodSamples--;
-        if (VM_Processor.getCurrentProcessor().numCBSMethodSamples <= 0) {
-          VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
-          if (!VM_Processor.getCurrentProcessor().yieldForCBSCall) {
-            VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
-            threadSwitch = true;
-          }
-        }
-      }
-      if (VM_Processor.getCurrentProcessor().yieldForCBSMethod) {
-        VM_Processor.getCurrentProcessor().takeYieldpoint = 1;
-      }
-    }
-
-    // Process request to initiate GC by forcing a thread switch.
-    if (VM_Processor.getCurrentProcessor().yieldToGCRequested) {
-      VM_Processor.getCurrentProcessor().yieldToGCRequested = false;
-      VM_Processor.getCurrentProcessor().yieldForCBSCall = false;
-      VM_Processor.getCurrentProcessor().yieldForCBSMethod = false;
-      VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = false;
-      VM_Processor.getCurrentProcessor().takeYieldpoint = 0;
-      threadSwitch = true;
-    }
-
-    if (VM.BuildForAdaptiveSystem && VM_Processor.getCurrentProcessor().yieldToOSRRequested) {
-      VM_Processor.getCurrentProcessor().yieldToOSRRequested = false;
-      OSR_Listener.handleOSRFromOpt();
-      threadSwitch = true;
-    }
-
-    if (threadSwitch) {
-      timerTickYield(whereFrom);
-    }
-
-    VM_Thread myThread = getCurrentThread();
-    if (VM.BuildForAdaptiveSystem && myThread.isWaitingForOsr) {
-      ArchitectureSpecific.OSR_PostThreadSwitch.postProcess(myThread);
-    }
-  }
-
-  /**
-   * Suspend execution of current thread, in favor of some other thread.
-   * Move this thread to a random virtual processor (for minimal load balancing)
-   * if this processor has other runnable work.
+   * Change the state of the thread and fail if we're not in the expected thread
+   * state. This method is logically uninterruptible as we should never be in
+   * the wrong state
    *
-   * @param whereFrom  backedge, prologue, epilogue?
+   * @param oldState the previous thread state
+   * @param newState the new thread state
    */
-  public static void timerTickYield(int whereFrom) {
-    VM_Thread myThread = getCurrentThread();
-    // thread switch
-    myThread.beingDispatched = true;
-    if (trace) VM_Scheduler.trace("VM_Thread", "timerTickYield() scheduleThread ", myThread.getIndex());
-    VM_Processor.getCurrentProcessor().scheduleThread(myThread);
-    morph(true);
-  }
-
-  /**
-   * Suspend execution of current thread, in favor of some other thread.
-   */
-  @NoInline
-  public static void yield() {
-    VM_Thread myThread = getCurrentThread();
-    myThread.beingDispatched = true;
-    VM_Processor.getCurrentProcessor().readyQueue.enqueue(myThread);
-    morph(false);
-  }
-
-  /**
-   * Suspend execution of current thread in favor of some other thread.
-   * @param q queue to put thread onto (must be processor-local, ie.
-   * not guarded with a lock)
-   */
-  @NoInline
-  public static void yield(VM_AbstractThreadQueue q) {
-    VM_Thread myThread = getCurrentThread();
-    myThread.beingDispatched = true;
-    q.enqueue(myThread);
-    morph(false);
-  }
-
-  /**
-   * Suspend execution of current thread in favor of some other thread.
-   * @param q queue to put thread onto
-   * @param l lock guarding that queue (currently locked)
-   */
-  @NoInline
-  public static void yield(VM_AbstractThreadQueue q, VM_ProcessorLock l) {
-    VM_Thread myThread = getCurrentThread();
-    myThread.beingDispatched = true;
-    q.enqueue(myThread);
-    l.unlock();
-    morph(false);
-  }
-
-  /**
-   * For timed wait, suspend execution of current thread in favor of some other thread.
-   * Put a proxy for the current thread
-   *   on a queue waiting a notify, and
-   *   on a wakeup queue waiting for a timeout.
-   *
-   * @param q1 the {@link VM_ProxyWaitingQueue} upon which to wait for notification
-   * @param l1 the {@link VM_ProcessorLock} guarding <code>q1</code> (currently locked)
-   * @param q2 the {@link VM_ProxyWakeupQueue} upon which to wait for timeout
-   * @param l2 the {@link VM_ProcessorLock} guarding <code>q2</code> (currently locked)
-   */
-  @NoInline
-  static void yield(VM_ProxyWaitingQueue q1, VM_ProcessorLock l1, VM_ProxyWakeupQueue q2, VM_ProcessorLock l2) {
-    VM_Thread myThread = getCurrentThread();
-    myThread.beingDispatched = true;
-    q1.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
-    q2.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
-    l1.unlock();
-    l2.unlock();
-    morph(false);
-  }
-
-  static void morph() {
-    morph(false);
-  }
-
-  /**
-   * Current thread has been placed onto some queue. Become another thread.
-   * @param timerTick   timer interrupted if true
-   */
-  static void morph(boolean timerTick) {
-    VM_Magic.sync();  // to ensure beingDispatched flag written out to memory
-    if (trace) VM_Scheduler.trace("VM_Thread", "morph ");
-    VM_Thread myThread = getCurrentThread();
-    if (VM.VerifyAssertions) {
-      if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-        VM.sysWrite("no threadswitching on proc ", VM_Processor.getCurrentProcessor().id);
-        VM.sysWriteln(" with addr ", VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
-      }
-      VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled(), "thread switching not enabled");
-      VM._assert(myThread.beingDispatched, "morph: not beingDispatched");
-    }
-    // become another thread
-    //
-    VM_Processor.getCurrentProcessor().dispatch(timerTick);
-    // respond to interrupt sent to this thread by some other thread
-    //
-    if (myThread.externalInterrupt != null && myThread.throwInterruptWhenScheduled) {
-      postExternalInterrupt(myThread);
-    }
-  }
-
   @LogicallyUninterruptible
-  private static void postExternalInterrupt(VM_Thread myThread) {
-    Throwable t = myThread.externalInterrupt;
-    myThread.externalInterrupt = null;
-    myThread.throwInterruptWhenScheduled = false;
-    t.fillInStackTrace();
-    VM_Runtime.athrow(t);
+  @Entrypoint
+  protected final void changeThreadState(State oldState, State newState) {
+    if (trace) {
+      VM.sysWrite("VM_Thread.changeThreadState: thread=", threadSlot, name);
+      VM.sysWrite(" current=", java.lang.JikesRVMSupport.getEnumName(state));
+      VM.sysWrite(" old=", java.lang.JikesRVMSupport.getEnumName(oldState));
+      VM.sysWriteln(" new=", java.lang.JikesRVMSupport.getEnumName(newState));
+    }
+    if (state == oldState) {
+      state = newState;
+    } else {
+      throw new IllegalThreadStateException("Illegal thread state change from " +
+          oldState + " to " + newState + " when in state " + state + " in thread " + name);
+    }
   }
 
-  //----------------------------------//
-  // Interface to scheduler subsystem //
-  //----------------------------------//
+  /*
+   * Starting and ending threads
+   */
+
+  /**
+   * Method to be executed when this thread starts running. Calls
+   * java.lang.Thread.run but system threads can override directly.
+   */
+  @Interruptible
+  @Entrypoint
+  public synchronized void run() {
+    try {
+      synchronized(thread) {
+        Throwable t = java.lang.JikesRVMSupport.getStillBorn(thread);
+        if(t != null) {
+          java.lang.JikesRVMSupport.setStillBorn(thread, null);
+          throw t;
+        }
+      }
+      thread.run();
+    } catch(Throwable t) {
+      try {
+        Thread.UncaughtExceptionHandler handler;
+        handler = thread.getUncaughtExceptionHandler();
+        handler.uncaughtException(thread, t);
+      } catch(Throwable ignore) {
+      }
+    }
+  }
+
+  /**
+   * Begin execution of current thread by calling its "run" method. This method
+   * is at the bottom of all created method's stacks.
+   */
+  @Interruptible
+  @SuppressWarnings({"unused", "UnusedDeclaration"})
+  // Called by back-door methods.
+  private static void startoff() {
+    VM_Thread currentThread = VM_Scheduler.getCurrentThread();
+    if (trace) {
+      VM.sysWriteln("VM_Thread.startoff(): about to call ", currentThread.toString(), ".run()");
+    }
+
+    try {
+      currentThread.run();
+    } finally {
+      if (trace) {
+        VM.sysWriteln("VM_Thread.startoff(): finished ", currentThread.toString(), ".run()");
+      }
+      currentThread.terminate();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+  }
 
   /**
    * Put this thread on ready queue for subsequent execution on a future
@@ -1161,138 +624,115 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Assumption: VM_Thread.contextRegisters are ready to pick up execution
    *             ie. return to a yield or begin thread startup code
    */
-  public final void schedule() {
-    if (trace) VM_Scheduler.trace("VM_Thread", "schedule", getIndex());
-    VM_Processor.getCurrentProcessor().scheduleThread(this);
-  }
-
+  public abstract void schedule();
   /**
-   * Begin execution of current thread by calling its "run" method.
+   * Update internal state of Thread and Scheduler to indicate that
+   * a thread is about to start
    */
-  @Interruptible
-  @SuppressWarnings({"unused", "UnusedDeclaration"})
-  // Called by back-door methods.
-  private static void startoff() {
-    VM_Thread currentThread = getCurrentThread();
-    if (trace) {
-      VM.sysWriteln("VM_Thread.startoff(): about to call ", currentThread.toString(), ".run()");
-    }
-
-    currentThread.run();
-    if (trace) {
-      VM.sysWriteln("VM_Thread.startoff(): finished ", currentThread.toString(), ".run()");
-    }
-
-    terminate();
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-  }
+  protected abstract void registerThreadInternal();
 
   /**
    * Update internal state of Thread and Scheduler to indicate that
    * a thread is about to start
    */
-  final void registerThread() {
-    isAlive = true;
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Scheduler.numActiveThreads += 1;
-    if (isDaemon) VM_Scheduler.numDaemons += 1;
-    VM_Scheduler.threadCreationMutex.unlock();
+  public final void registerThread() {
+    changeThreadState(State.NEW, State.RUNNABLE);
+    registerThreadInternal();
   }
 
   /**
    * Start execution of 'this' by putting it on the appropriate queue
-   * of an unspecified virutal processor.
+   * of an unspecified virtual processor.
    */
   @Interruptible
-  public synchronized void start() {
+  public final void start() {
     registerThread();
     schedule();
   }
 
   /**
-   * Start execution of 'this' by putting it on the given queue.
-   * Precondition: If the queue is global, caller must have the appropriate mutex.
-   * @param q the VM_ThreadQueue on which to enqueue this thread.
-   */
-  public final void start(VM_ThreadQueue q) {
-    registerThread();
-    q.enqueue(this);
-  }
-
-  /**
-   * Terminate execution of current thread by abandoning all
-   * references to it and
-   * resuming execution in some other (ready) thread.
+   * Terminate execution of current thread by abandoning all references to it
+   * and resuming execution in some other (ready) thread.
    */
   @Interruptible
-  public static void terminate() {
+  public final void terminate() {
+    if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == this);
     boolean terminateSystem = false;
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
-
     if (traceTermination) {
       VM.disableGC();
       VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of thread termination");
       VM_Scheduler.dumpStack();
       VM.sysWriteln("END Verbosely dumping stack at time of creating thread termination ]");
       VM.enableGC();
-
     }
 
     if (VM.BuildForAdaptiveSystem) {
       VM_RuntimeMeasurements.monitorThreadExit();
     }
 
-    VM_Thread myThread = getCurrentThread();
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
-    myThread.exit();
+    java.lang.JikesRVMSupport.threadDied(thread);
 
-    synchronized (myThread) { // release anybody waiting on this thread -
-
-      // begin critical section
-      //
-      VM_Scheduler.threadCreationMutex.lock();
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
-
-      // in particular, see java.lang.Thread.join()
-      myThread.isAlive = false;
-      myThread.notifyAll();
+    if (VM.VerifyAssertions) {
+      if (VM_Lock.countLocksHeldByThread(getLockingId()) > 0) {
+        VM.sysWriteln("Error, thread terminating holding a lock");
+        VM_Scheduler.dumpVirtualMachine();
+      }
     }
+    // begin critical section
+    //
+    VM_Scheduler.threadCreationMutex.lock("thread termination");
+    VM_Processor.getCurrentProcessor().disableThreadSwitching("disabled for thread termination");
 
     //
     // if the thread terminated because of an exception, remove
     // the mark from the exception register object, or else the
     // garbage collector will attempt to relocate its ip field.
-    myThread.hardwareExceptionRegisters.inuse = false;
+    hardwareExceptionRegisters.inuse = false;
 
     VM_Scheduler.numActiveThreads -= 1;
-    if (myThread.isDaemon) {
+    if (daemon) {
       VM_Scheduler.numDaemons -= 1;
     }
-    if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
-      // no non-daemon thread remains
+    if ((VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) &&
+        (VM.mainThread != null) &&
+        VM.mainThread.launched) {
+      // no non-daemon thread remains and the main thread was launched
       terminateSystem = true;
     }
+    if (terminateSystem) {
+      if (systemShuttingDown == false) {
+        systemShuttingDown = true;
+      } else {
+        terminateSystem = false;
+      }
+    }
     if (traceTermination) {
-      VM.sysWriteln("VM_Thread.terminate: myThread.isDaemon = ", myThread.isDaemon);
+      VM.sysWriteln("VM_Thread.terminate: myThread.daemon = ", daemon);
       VM.sysWriteln("  VM_Scheduler.numActiveThreads = ", VM_Scheduler.numActiveThreads);
       VM.sysWriteln("  VM_Scheduler.numDaemons = ", VM_Scheduler.numDaemons);
       VM.sysWriteln("  terminateSystem = ", terminateSystem);
     }
-
     // end critical section
     //
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     VM_Scheduler.threadCreationMutex.unlock();
-    if (VM.VerifyAssertions) {
-      VM._assert((!VM.fullyBooted && terminateSystem) || VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
-    }
 
+    if (VM.VerifyAssertions) {
+      if (VM.fullyBooted || !terminateSystem) {
+        VM_Processor.getCurrentProcessor().failIfThreadSwitchingDisabled();
+      }
+    }
     if (terminateSystem) {
-      if (myThread.uncaughtExceptionCount > 0)
+      if (uncaughtExceptionCount > 0)
         /* Use System.exit so that any shutdown hooks are run.  */ {
+        if (VM.TraceExceptionDelivery) {
+          VM.sysWriteln("Calling sysExit due to uncaught exception.");
+        }
         System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-      } else if (myThread.thread instanceof VM_MainThread) {
-        VM_MainThread mt = (VM_MainThread) myThread.thread;
+      } else if (thread instanceof VM_MainThread) {
+        VM_MainThread mt = (VM_MainThread) thread;
         if (!mt.launched) {
           /* Use System.exit so that any shutdown hooks are run.  It is
            * possible that shutdown hooks may be installed by static
@@ -1310,97 +750,396 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
-    if (myThread.jniEnv != null) {
-      VM_JNIEnvironment.deallocateEnvironment(myThread.jniEnv);
-      myThread.jniEnv = null;
+    if (jniEnv != null) {
+      VM_JNIEnvironment.deallocateEnvironment(jniEnv);
+      jniEnv = null;
     }
 
+    // release anybody waiting on this thread -
+    // in particular, see {@link #join()}
+    synchronized (this) {
+      state = State.TERMINATED;
+      notifyAll(this);
+    }
     // become another thread
-    // begin critical section
     //
-    VM_Scheduler.threadCreationMutex.lock();
+    VM_Scheduler.releaseThreadSlot(threadSlot, this);
 
-    myThread.releaseThreadSlot();
-
-    myThread.beingDispatched = true;
-    VM_Scheduler.threadCreationMutex.unlock();
-
+    beingDispatched = true;
     VM_Processor.getCurrentProcessor().dispatch(false);
 
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /**
-   * Find an empty slot in the {@link VM_Scheduler#threads}[] array and bind
-   * it to this thread.  <br>
-   * <b>Assumption:</b> call is guarded by threadCreationMutex.
-   * @return the thread slot assigned this thread
+   * Get the field that holds the cause of a thread death caused by a stop
    */
-  private int assignThreadSlot() {
-    for (int cnt = VM_Scheduler.threads.length; --cnt >= 1; ) {
-      int index = VM_Scheduler.threadAllocationIndex;
-      if (++VM_Scheduler.threadAllocationIndex == VM_Scheduler.threads.length)
-        VM_Scheduler.threadAllocationIndex = 1;
-      if (VM_Scheduler.threads[index] == null) {
-        /*
-         *  Problem:
-         *
-         *  We'd like to say "VM_Scheduler.threads[index] = this;"
-         *  but can't do "checkstore" without losing control. Since
-         *  we're using magic for the store, we need to perform an
-         *  explicit write barrier.
-         */
-        if (index > VM_Scheduler.threadHighWatermark) {
-          VM_Scheduler.threadHighWatermark = index;
-        }
-        if (MM_Constants.NEEDS_WRITE_BARRIER) {
-            MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
-                                                index, this);
-          }
-          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
-                                     Offset.fromIntZeroExtend(index << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), this);
-          return index;
-        }
-      }
-      VM.sysFail("too many threads"); // !!TODO: grow threads[] array
-      return -1;
-    }
+  public final Throwable getCauseOfThreadDeath() {
+    return causeOfThreadDeath;
+  }
 
-    /**
-     * Release this thread's threads[] slot.
-     * Assumption: call is guarded by threadCreationMutex.
-     * Note that after a thread calls this method, it can no longer
-     * make JNI calls.  This matters when exiting the VM, because it
-     * implies that this method must be called after the exit callbacks
-     * are invoked if they are to be able to do JNI.
-     */
-    private void releaseThreadSlot() {
-        /*
-         * Problem:
-         *
-         *  We'd like to say "VM_Scheduler.threads[index] = null;" but
-         *  can't do "checkstore" inside dispatcher (with thread switching
-         *  enabled) without losing control to a threadswitch, so we must
-         *  hand code the operation via magic.  Since we're using magic
-         *  for the store, we need to perform an explicit write
-         *  barrier. Generational collectors may not care about a null
-         *  store, but a reference counting collector sure does.
-         */
-        if (MM_Constants.NEEDS_WRITE_BARRIER)
-          MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
-                                              threadSlot, null);
-        VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
-                                   Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), null);
-        if (threadSlot < VM_Scheduler.threadAllocationIndex)
-          VM_Scheduler.threadAllocationIndex = threadSlot;
+  /*
+   * Support for yieldpoints
+   */
+
+  /**
+   * Yieldpoint taken in prologue.
+   */
+  @BaselineSaveLSRegisters
+  //Save all non-volatile registers in prologue
+  @NoOptCompile
+  //We should also have a pragma that saves all non-volatiles in opt compiler,
+  // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
+  //todo fix this -- related to SaveVolatile
+  @Entrypoint
+  public static void yieldpointFromPrologue() {
+    Address fp = VM_Magic.getFramePointer();
+    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(PROLOGUE, fp);
+  }
+
+  /**
+   * Yieldpoint taken on backedge.
+   */
+  @BaselineSaveLSRegisters
+  //Save all non-volatile registers in prologue
+  @NoOptCompile
+  // We should also have a pragma that saves all non-volatiles in opt compiler,
+  // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
+  // TODO fix this -- related to SaveVolatile
+  @Entrypoint
+  public static void yieldpointFromBackedge() {
+    Address fp = VM_Magic.getFramePointer();
+    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(BACKEDGE, fp);
+  }
+
+  /**
+   * Yieldpoint taken in epilogue.
+   */
+  @BaselineSaveLSRegisters
+  //Save all non-volatile registers in prologue
+  @NoOptCompile
+  //We should also have a pragma that saves all non-volatiles in opt compiler,
+  // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
+  // TODO fix this -- related to SaveVolatile
+  @Entrypoint
+  public static void yieldpointFromEpilogue() {
+    Address fp = VM_Magic.getFramePointer();
+    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(EPILOGUE, fp);
+  }
+
+  /*
+   * Support for suspend/resume
+   */
+
+  /**
+   * Thread model dependent part of thread suspension
+   */
+  protected abstract void suspendInternal();
+
+  /**
+   * Suspend execution of current thread until it is resumed.
+   * Call only if caller has appropriate security clearance.
+   */
+  @LogicallyUninterruptible
+  public final void suspend() {
+    Throwable rethrow = null;
+    changeThreadState(State.RUNNABLE, State.SUSPENDED);
+    try {
+      // let go of outer lock
+      VM_ObjectModel.genericUnlock(thread);
+      suspendInternal();
+    } catch (Throwable t) {
+      rethrow = t;
+    }
+    // regain outer lock
+    VM_ObjectModel.genericLock(thread);
+    if (rethrow != null) {
+      VM_Runtime.athrow(rethrow);
+    }
+  }
+
+  /**
+   * Thread model dependent part of thread resumption
+   */
+  protected abstract void resumeInternal();
+
+  /**
+   * Resume execution of a thread that has been suspended.
+   * Call only if caller has appropriate security clearance.
+   */
+  @Interruptible
+  public final void resume() {
+    changeThreadState(State.SUSPENDED, State.RUNNABLE);
+    if (trace) VM_Scheduler.trace("VM_Thread", "resume() scheduleThread ", getIndex());
+    resumeInternal();
+  }
+
+  /*
+   * OSR support
+   */
+
+  /**
+   * Suspends the thread waiting for OSR (rescheduled by recompilation
+   * thread when OSR is done).
+   */
+  public final void osrSuspend() {
+    changeThreadState(State.RUNNABLE, State.OSR_SUSPENDED);
+    suspendInternal();
+  }
+
+  /**
+   * Suspends the thread waiting for OSR (rescheduled by recompilation
+   * thread when OSR is done).
+   */
+  public final void osrResume() {
+    changeThreadState(State.OSR_SUSPENDED, State.RUNNABLE);
+    if (trace) VM_Scheduler.trace("VM_Thread", "osrResume() scheduleThread ", getIndex());
+    resumeInternal();
+  }
+
+  /*
+   * Sleep support
+   */
+
+  /**
+   * Thread model dependent sleep
+   * @param millis
+   * @param ns
+   */
+  @Interruptible
+  protected abstract void sleepInternal(long millis, int ns) throws InterruptedException;
+  /**
+   * Suspend execution of current thread for specified number of seconds
+   * (or fraction).
+   */
+  @Interruptible
+  public static void sleep(long millis, int ns) throws InterruptedException {
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    myThread.changeThreadState(State.RUNNABLE, State.SLEEPING);
+    myThread.sleepInternal(millis, ns);
+    myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
+  }
+
+  /*
+   * Wait and notify support
+   */
+
+  /**
+   * Support for Java {@link java.lang.Object#wait()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @param millis the number of milliseconds to wait for notification
+   */
+  @Interruptible
+  protected abstract Throwable waitInternal(Object o, long millis);
+
+  /**
+   * Support for Java {@link java.lang.Object#wait()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   */
+  @Interruptible
+  protected abstract Throwable waitInternal(Object o);
+
+  /**
+   * Support for Java {@link java.lang.Object#wait()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   */
+  @Interruptible
+  /* only loses control at expected points -- I think -dave */
+  public static void wait(Object o) {
+    if (STATS) waitOperations++;
+    VM_Thread t = VM_Scheduler.getCurrentThread();
+    Throwable rethrow = t.waitInternal(o);
+    if (rethrow != null) {
+      VM_Runtime.athrow(rethrow); // doesn't return
+    }
+  }
+
+  /**
+   * Support for Java {@link java.lang.Object#wait()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @param millis the number of milliseconds to wait for notification
+   */
+  @LogicallyUninterruptible
+  /* only loses control at expected points -- I think -dave */
+  public static void wait(Object o, long millis) {
+    if (STATS) timedWaitOperations++;
+    VM_Thread t = VM_Scheduler.getCurrentThread();
+    Throwable rethrow = t.waitInternal(o, millis);
+    if (rethrow != null) {
+      VM_Runtime.athrow(rethrow);
+    }
+  }
+
+  /**
+   * Support for Java {@link java.lang.Object#notify()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   */
+  protected abstract void notifyInternal(Object o, VM_Lock l);
+
+  /**
+   * Support for Java {@link java.lang.Object#notifyAll()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   */
+  protected abstract void notifyAllInternal(Object o, VM_Lock l);
+
+  @LogicallyUninterruptible
+  private static void raiseIllegalMonitorStateException(String msg, Object o) {
+    throw new IllegalMonitorStateException(msg + o);
+  }
+  /**
+   * Support for Java {@link java.lang.Object#notify()} synchronization primitive.
+   *
+   * @param o the object synchronized on
+   */
+  public static void notify(Object o) {
+    if (STATS) notifyOperations++;
+    VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
+    if (l == null) return;
+    VM_Processor proc = VM_Processor.getCurrentProcessor();
+    if (l.getOwnerId() != proc.threadId) {
+      raiseIllegalMonitorStateException("notifying", o);
+    }
+    VM_Scheduler.getCurrentThread().notifyInternal(o, l);
+  }
+
+  /**
+   * Support for Java synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @see java.lang.Object#notifyAll
+   */
+  public static void notifyAll(Object o) {
+    if (STATS) notifyAllOperations++;
+    VM_Scheduler.LockModel l = (VM_Scheduler.LockModel)VM_ObjectModel.getHeavyLock(o, false);
+    if (l == null) return;
+    VM_Processor proc = VM_Processor.getCurrentProcessor();
+    if (l.getOwnerId() != proc.threadId) {
+      raiseIllegalMonitorStateException("notifyAll", o);
+    }
+    VM_Scheduler.getCurrentThread().notifyAllInternal(o, l);
+  }
+
+  /*
+   * Interrupt and stop support
+   */
+
+  /**
+   * Thread model dependent part of stopping/interrupting a thread
+   */
+  protected abstract void killInternal();
+
+  /**
+   * Deliver the throwable stopping/interrupting this thread
+   */
+  @LogicallyUninterruptible
+  public void kill(Throwable cause, boolean throwImmediately) {
+    // yield() will notice the following and take appropriate action
+    this.causeOfThreadDeath = cause;
+    if (throwImmediately) {
+      // FIXME - this is dangerous.  Only called from Thread.stop(),
+      // which is deprecated.
+      this.throwInterruptWhenScheduled = true;
+    }
+    killInternal();
+  }
+
+  /*
+   * Park and unpark support
+   */
+
+  /**
+   * Park the current thread
+   * @param isAbsolute is the time value given relative or absolute
+   * @param time the timeout value in nanoseconds, 0 => no timeout
+   */
+  @Interruptible
+  public final void park(boolean isAbsolute, long time) throws Throwable {
+    if (VM.VerifyAssertions) {
+      VM_Thread curThread = VM_Scheduler.getCurrentThread();
+      VM._assert(curThread == this);
+    }
+    // Has the thread already been unparked? (ie the permit is available?)
+    if (parkingPermit) {
+      // Yes: exit early double checking illegal thread states
+      changeThreadState(State.RUNNABLE, State.RUNNABLE);
+      parkingPermit = false;
+    } else if (throwInterruptWhenScheduled) {
+      // Was this thread interrupted prior to parking?
+      changeThreadState(State.RUNNABLE, State.RUNNABLE);
+      if (causeOfThreadDeath == null) {
+        // interrupt exceptions are swallowed so ignore
+      } else {
+        // Thread was stopped so throw thread death
+        throw causeOfThreadDeath;
       }
+    } else {
+      // Put thread into parked state
+      State parkedState;
+      long millis = 0L;
+      int ns = 0;
+      // Do we have a timeout?
+      if (time != 0) {
+        parkedState = State.TIMED_PARK;
+        millis = time / 1000000;
+        if (isAbsolute) {
+          // if it's an absolute amount of time then remove the current time as
+          // we will adjust up by this much in the sleep
+          millis -= (VM_Time.nanoTime() / ((long)1e6));
+        }
+        ns = (int)time % 1000000;
+      } else {
+        parkedState = State.PARKED;
+      }
+      changeThreadState(State.RUNNABLE, parkedState);
+      // Do we hold the lock on the surrounding java.lang.Thread?
+      boolean holdsLock = holdsLock(thread);
+      if (holdsLock) {
+        // If someone locked the java.lang.Thread, release before going to sleep
+        // to allow interruption
+        VM_ObjectModel.genericUnlock(thread);
+      }
+      try {
+        sleepInternal(millis, ns);
+      } catch (InterruptedException thr) {
+        // swallow thread interruptions
+      }
+      if (holdsLock) {
+        VM_ObjectModel.genericLock(thread);
+      }
+      if (state != State.RUNNABLE) {
+        // change thread to runnable unless already performed by athrow
+        changeThreadState(parkedState, State.RUNNABLE);
+      }
+    }
+  }
+
+  /**
+   * Unpark this thread, not necessarily the current thread
+   */
+  public void unpark() {
+    if (state == State.PARKED) {
+      // Wake up sleeping thread
+      kill(proxyInterruptException , false);
+    } else if (state == State.RUNNABLE) {
+      // Allow next call to park to just run through
+      parkingPermit = true;
+    } else {
+      // nothing to do
+    }
+  }
 
   /**
    * Get this thread's index in {@link VM_Scheduler#threads}[].
    */
   @LogicallyUninterruptible
   public final int getIndex() {
-    if (VM.VerifyAssertions) VM._assert(!isAlive || VM_Scheduler.threads[threadSlot] == this);
+    if (VM.VerifyAssertions) VM._assert((state == State.TERMINATED) || VM_Scheduler.threads[threadSlot] == this);
     return threadSlot;
   }
 
@@ -1427,11 +1166,11 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       VM.sysFail("system error: resizing stack while GC is in progress");
     }
     byte[] newStack = MM_Interface.newStack(newSize, false);
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    VM_Processor.getCurrentProcessor().disableThreadSwitching("disabled for stack resizing");
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     if (traceAdjustments) {
-      VM_Thread t = getCurrentThread();
+      VM_Thread t = VM_Scheduler.getCurrentThread();
       VM.sysWrite("VM_Thread: resized stack ", t.getIndex());
       VM.sysWrite(" to ", t.stack.length / 1024);
       VM.sysWrite("k\n");
@@ -1440,12 +1179,12 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   @NoInline
   @BaselineNoRegisters
-  //this method does not a normal return and hence does not execute epilogue --> non-volatiles not restored!
+  //this method does not do a normal return and hence does not execute epilogue --> non-volatiles not restored!
   private static void transferExecutionToNewStack(byte[] newStack, VM_Registers exceptionRegisters) {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 
-    VM_Thread myThread = getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     byte[] myStack = myThread.stack;
 
     // initialize new stack with live portion of stack we're
@@ -1608,7 +1347,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    *  </pre>
    */
   private static Offset copyStack(byte[] newStack) {
-    VM_Thread myThread = getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     byte[] myStack = myThread.stack;
 
     Address myTop = VM_Magic.objectAsAddress(myStack).plus(myStack.length);
@@ -1640,25 +1379,487 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Public so that java.lang.Thread can use it.
    */
   public final void makeDaemon(boolean on) {
-    if (isDaemon == on) return;
-    isDaemon = on;
-    if (!isAlive) return;
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Scheduler.numDaemons += on ? 1 : -1;
-    VM_Scheduler.threadCreationMutex.unlock();
+    if (daemon == on) {
+      // nothing to do
+    } else {
+      daemon = on;
+      if (state == State.NEW) {
+        // thread will start as a daemon
+      } else {
+        VM_Scheduler.threadCreationMutex.lock("daemon creation mutex");
+        VM_Scheduler.numDaemons += on ? 1 : -1;
+        VM_Scheduler.threadCreationMutex.unlock();
 
-    if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
-      if (VM.TraceThreads) {
-        VM_Scheduler.trace("VM_Thread", "last non Daemon demonized");
+        if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
+          if (VM.TraceThreads) {
+            VM_Scheduler.trace("VM_Thread", "last non Daemon demonized");
+          }
+          VM.sysExit(0);
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        }
       }
-      VM.sysExit(0);
+    }
+  }
+
+  /**
+   * Dump information for all threads, via {@link VM#sysWrite(String)}.  Each
+   * thread's info is newline-terminated.
+   *
+   * @param verbosity Ignored.
+   */
+  public static void dumpAll(int verbosity) {
+    for (int i = 0; i < VM_Scheduler.threads.length; i++) {
+      VM_Thread t = VM_Scheduler.threads[i];
+      if (t == null) continue;
+      VM.sysWrite("Thread ");
+      VM.sysWriteInt(i);
+      VM.sysWrite(":  ");
+      VM.sysWriteHex(VM_Magic.objectAsAddress(t));
+      VM.sysWrite("   ");
+      t.dump(verbosity);
+      // Compensate for t.dump() not newline-terminating info.
+      VM.sysWriteln();
+    }
+  }
+
+  /**
+   * @return whether or not the thread has an active timer interval
+   */
+  public final boolean hasActiveTimedInterval() {
+    return timingDepth > 0;
+  }
+
+  /**
+   * Begin a possibly nested timing interval.
+   * @return the current value of {@link #totalNanos}.
+   */
+  public final long startTimedInterval() {
+    long now = VM_Time.nanoTime();
+    if (timingDepth == 0) {
+      timingDepth = 1;
+      startNano = now;
+      totalNanos = 0;
+    } else {
+      timingDepth++;
+      totalNanos += now - startNano;
+      startNano = now;
+    }
+    return totalNanos;
+  }
+
+  /**
+   * End a possibly nested timing interval
+   */
+  public final long endTimedInterval() {
+    long now = VM_Time.nanoTime();
+    timingDepth--;
+    totalNanos += now - startNano;
+    startNano = now;
+    return totalNanos;
+  }
+
+  /**
+   * Called from  VM_Processor.dispatch when a thread is about to
+   * start executing.
+   */
+  public final void resumeInterval(long now) {
+    if (VM.VerifyAssertions) VM._assert(startNano == 0);
+    startNano = now;
+  }
+
+  /**
+   * Called from {@link VM_Processor#dispatch} when a thread is about to stop
+   * executing.
+   */
+  public final void suspendInterval(long now) {
+    totalNanos += now - startNano;
+    startNano = 0;
+  }
+
+  /** @return The value of {@link #isBootThread} */
+  public final boolean isBootThread() {
+    return this == bootThread;
+  }
+
+  /** @return Is this the MainThread ? */
+  private boolean isMainThread() {
+    return thread instanceof VM_MainThread;
+  }
+
+  /**
+   * Is this the Idle thread?
+   * @return false
+   */
+  public boolean isIdleThread() {
+    return false;
+  }
+
+  /**
+   * Is this the GC thread?
+   * @return false
+   */
+  public boolean isGCThread() {
+    return false;
+  }
+
+  /**
+   * Is this the debugger thread?
+   * @return false
+   */
+  public boolean isDebuggerThread() {
+    return false;
+  }
+
+  /** Is this a system thread? */
+  public final boolean isSystemThread() {
+    return systemThread;
+  }
+
+
+  /** Returns the value of {@link #daemon}. */
+  public final boolean isDaemonThread() {
+    return daemon;
+  }
+
+  /** Is the thread started and not terminated */
+  public final boolean isAlive() {
+    return (state != State.NEW) && (state != State.TERMINATED);
+  }
+
+  /**
+   * Sets the name of the thread
+   * @param name the new name for the thread
+   * @see java.lang.Thread#setName(String)
+   */
+  public final void setName(String name) {
+    this.name = name;
+  }
+  /**
+   * Gets the name of the thread
+   * @see java.lang.Thread#getName()
+   */
+  public final String getName() {
+    return name;
+  }
+
+  /**
+   * Does the currently running Thread hold the lock on an obj?
+   * @param obj the object to check
+   * @return whether the thread holds the lock
+   * @see java.lang.Thread#holdsLock(Object)
+   */
+  public final boolean holdsLock(Object obj) {
+    VM_Thread mine = VM_Scheduler.getCurrentThread();
+    return VM_ObjectModel.holdsLock(obj, mine);
+  }
+
+  /**
+   * Throw the external interrupt associated with the thread now it is running
+   */
+  @LogicallyUninterruptible
+  protected final void postExternalInterrupt() {
+    throwInterruptWhenScheduled = false;
+    Throwable t = causeOfThreadDeath;
+    causeOfThreadDeath = null;
+    if (t instanceof InterruptedException  && t != proxyInterruptException) {
+      t.fillInStackTrace();
+    }
+    state = State.RUNNABLE;
+    VM_Runtime.athrow(t);
+  }
+
+  /**
+   * Was this thread interrupted?
+   * @return whether the thread has been interrupted
+   * @see java.lang.Thread#isInterrupted()
+   */
+  public final boolean isInterrupted() {
+    return interrupted;
+  }
+  /**
+   * Clear the interrupted status of this thread
+   * @see java.lang.Thread#interrupted()
+   */
+  public final void clearInterrupted() {
+    interrupted = false;
+  }
+  /**
+   * Interrupt this thread
+   * @see java.lang.Thread#interrupt()
+   */
+  @Interruptible
+  public final void interrupt() {
+    interrupted = true;
+    switch (state) {
+    case WAITING:
+    case TIMED_WAITING:
+      kill(new InterruptedException("wait interrupted"), false);
+      break;
+    case SLEEPING:
+      kill(new InterruptedException("sleep interrupted"), false);
+      break;
+    case JOINING:
+      kill(new InterruptedException("join interrupted"), false);
+      break;
+    case PARKED:
+    case TIMED_PARK:
+      kill(proxyInterruptException, false);
+      break;
+    default:
+      kill(new InterruptedException(), false);
+    }
+  }
+  /**
+   * Get the priority of the thread
+   * @return the thread's priority
+   * @see java.lang.Thread#getPriority()
+   */
+  public final int getPriority() {
+    return priority;
+  }
+  /**
+   * Set the priority of the thread
+   * @param priority
+   * @see java.lang.Thread#getPriority()
+   */
+  public final void setPriority(int priority) {
+    this.priority = priority;
+  }
+  /**
+   * Get the state of the thread in a manner compatible with the Java API
+   * @return thread state
+   * @see java.lang.Thread#getState()
+   */
+  @Interruptible
+  public final Thread.State getState() {
+    switch (state) {
+    case NEW:
+      return Thread.State.NEW;
+    case RUNNABLE:
+      return Thread.State.RUNNABLE;
+    case BLOCKED:
+      return Thread.State.BLOCKED;
+    case WAITING:
+    case SUSPENDED:
+    case OSR_SUSPENDED:
+    case JOINING:
+    case PARKED:
+    case IO_WAITING:
+    case PROCESS_WAITING:
+      return Thread.State.WAITING;
+    case TIMED_WAITING:
+    case TIMED_PARK:
+    case SLEEPING:
+      return Thread.State.TIMED_WAITING;
+    case TERMINATED:
+      return Thread.State.TERMINATED;
+    }
+    VM.sysFail("Unknown thread state " + state);
+    return null;
+  }
+  /**
+   * Wait for the thread to die or for the timeout to occur
+   * @param ms milliseconds to wait
+   * @param ns nanoseconds to wait
+   */
+  @Interruptible
+  public final void join(long ms, int ns) throws InterruptedException {
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    if (VM.VerifyAssertions) VM._assert(myThread != this);
+    synchronized(this) {
+      myThread.changeThreadState(State.RUNNABLE, State.JOINING);
+      if (ms == 0 && ns != 0) {
+        ms++;
+      }
+      if (ms == 0) {
+        while (isAlive()) {
+          wait(this);
+        }
+      } else {
+        long startNano = VM_Time.nanoTime();
+        long timeLeft;
+        if (isAlive()) {
+          do {
+            long elapsedMillis = (VM_Time.nanoTime()-startNano)/((long) 1e6);
+            timeLeft = ms - elapsedMillis;
+            wait(this, timeLeft);
+          } while (isAlive() && timeLeft > 0);
+        }
+      }
+      myThread.changeThreadState(State.JOINING, State.RUNNABLE);
+    }
+  }
+
+  /**
+   * Count the stack frames of this thread
+   */
+  @Interruptible
+  public final int countStackFrames() {
+    if (state != State.SUSPENDED) {
+      throw new IllegalThreadStateException("Thread.countStackFrames called on non-suspended thread");
+    }
+    throw new VM_UnimplementedError();
+  }
+
+  /**
+   * @return the length of the stack
+   */
+  public final int getStackLength() {
+    return stack.length;
+  }
+
+  /**
+   * @return the stack
+   */
+  public final byte[] getStack() {
+    return stack;
+  }
+
+  /**
+   * @return the hardware exception registers
+   */
+  public final VM_Registers getHardwareExceptionRegisters() {
+    return hardwareExceptionRegisters;
+  }
+
+  /**
+   * @return the hardware exception registers
+   */
+  public final VM_Registers getContextRegisters() {
+    return contextRegisters;
+  }
+
+  /**
+   * Give a string of information on how a thread is set to be scheduled
+   */
+  @Interruptible
+  public abstract String getThreadState();
+
+  /** Set the initial attempt. */
+  public final void reportCollectionAttempt() {
+    collectionAttempt++;
+  }
+
+  /** Set the initial attempt. */
+  public final int getCollectionAttempt() {
+    return collectionAttempt;
+  }
+
+  /** Resets the attempts. */
+  public final void resetCollectionAttempts() {
+    collectionAttempt = 0;
+  }
+
+  /** Get the physical allocation failed flag. */
+  public final boolean physicalAllocationFailed() {
+    return physicalAllocationFailed;
+  }
+
+  /** Set the physical allocation failed flag. */
+  public final void setPhysicalAllocationFailed() {
+    physicalAllocationFailed = true;
+  }
+
+  /** Clear the physical allocation failed flag. */
+  public final void clearPhysicalAllocationFailed() {
+    physicalAllocationFailed = false;
+  }
+
+  /** Set the emergency allocation flag. */
+  public final void setEmergencyAllocation() {
+    emergencyAllocation = true;
+  }
+
+  /** Clear the emergency allocation flag. */
+  public final void clearEmergencyAllocation() {
+    emergencyAllocation = false;
+  }
+
+  /** Read the emergency allocation flag. */
+  public final boolean emergencyAllocation() {
+    return emergencyAllocation;
+  }
+
+  /**
+   * Returns the outstanding OutOfMemoryError.
+   */
+  public final OutOfMemoryError getOutOfMemoryError() {
+    return outOfMemoryError;
+  }
+  /**
+   * Sets the outstanding OutOfMemoryError.
+   */
+  public final void setOutOfMemoryError(OutOfMemoryError oome) {
+    outOfMemoryError = oome;
+  }
+
+  /**
+   * Get the thread to use for building stack traces.
+   * NB overridden by {@link org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread}
+   */
+  @Uninterruptible
+  public VM_Thread getThreadForStackTrace() {
+    return this;
+  }
+
+  /**
+   * Clears the outstanding OutOfMemoryError.
+   */
+  public final void clearOutOfMemoryError() {
+    /*
+     * SEE RVM-141
+     * To avoid problems in GCTrace configuration, only clear the OOM if it is non-NULL.
+     */
+    if (outOfMemoryError != null) {
+      outOfMemoryError = null;
+    }
+  }
+
+  @Interruptible
+  public final void handleUncaughtException(Throwable exceptionObject) {
+    uncaughtExceptionCount++;
+
+    if (exceptionObject instanceof OutOfMemoryError) {
+      /* Say allocation from this thread is emergency allocation */
+      setEmergencyAllocation();
+    }
+    handlePossibleRecursiveException();
+    VM.enableGC();
+    if (thread == null) {
+      VM.sysWrite("Exception in the primordial thread \"", toString(), "\" while booting: ");
+    } else {
+      // This is output like that of the Sun JDK.
+      VM.sysWrite("Exception in thread \"", getName(), "\": ");
+    }
+    if (VM.fullyBooted) {
+      exceptionObject.printStackTrace();
+    }
+    VM_Scheduler.getCurrentThread().terminate();
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /** Handle the case of exception handling triggering new exceptions. */
+  private void handlePossibleRecursiveException() {
+    if (uncaughtExceptionCount > 1 &&
+        uncaughtExceptionCount <=
+        VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      VM.sysWrite("We got an uncaught exception while (recursively) handling ");
+      VM.sysWrite(uncaughtExceptionCount - 1);
+      VM.sysWrite(" uncaught exception");
+      if (uncaughtExceptionCount - 1 != 1) {
+        VM.sysWrite("s");
+      }
+      VM.sysWriteln(".");
+    }
+    if (uncaughtExceptionCount > VM.maxSystemTroubleRecursionDepth) {
+      VM.dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
   /**
    * Dump this thread's identifying information, for debugging, via
-   * {@link VM#sysWrite}.
+   * {@link VM#sysWrite(String)}.
    * We do not use any spacing or newline characters.  Callers are responsible
    * for space-separating or newline-terminating output.
    */
@@ -1668,7 +1869,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * Dump this thread's identifying information, for debugging, via
-   * {@link VM#sysWrite}.
+   * {@link VM#sysWrite(String)}.
    * We pad to a minimum of leftJustify characters. We do not use any spacing
    * characters.  Callers are responsible for space-separating or
    * newline-terminating output.
@@ -1677,18 +1878,18 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * extra characters being spaces.
    */
   public void dumpWithPadding(int leftJustify) {
-    char[] buf = grabDumpBuffer();
+    char[] buf = VM_Services.grabDumpBuffer();
     int len = dump(buf);
     VM.sysWrite(buf, len);
     for (int i = leftJustify - len; i > 0; i--) {
       VM.sysWrite(" ");
     }
-    releaseDumpBuffer();
+    VM_Services.releaseDumpBuffer();
   }
 
   /**
    * Dump this thread's identifying information, for debugging, via
-   * {@link VM#sysWrite}.
+   * {@link VM#sysWrite(String)}.
    * We do not use any spacing or newline characters.  Callers are responsible
    * for space-separating or newline-terminating output.
    *
@@ -1697,13 +1898,14 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * @param verbosity Ignored.
    */
   public void dump(int verbosity) {
-    char[] buf = grabDumpBuffer();
+    char[] buf = VM_Services.grabDumpBuffer();
     int len = dump(buf);
     VM.sysWrite(buf, len);
-    releaseDumpBuffer();
+    VM_Services.releaseDumpBuffer();
   }
 
-  /** Dump this thread's info, for debugging.
+  /**
+   *  Dump this thread's info, for debugging.
    *  Copy the info about it into a destination char
    *  array.  We do not use any spacing or newline characters.
    *
@@ -1729,33 +1931,35 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    *         -1 if <code>offset</code> is negative.
    */
   public int dump(char[] dest, int offset) {
-    offset = sprintf(dest, offset, getIndex());   // id
-    if (isDaemon) {
-      offset = sprintf(dest, offset, "-daemon");     // daemon thread?
+    offset = VM_Services.sprintf(dest, offset, getIndex());   // id
+    if (daemon) {
+      offset = VM_Services.sprintf(dest, offset, "-daemon");     // daemon thread?
     }
     if (isBootThread()) {
-      offset = sprintf(dest, offset, "-Boot");    // Boot (Primordial) thread
+      offset = VM_Services.sprintf(dest, offset, "-Boot");    // Boot (Primordial) thread
     }
     if (isMainThread()) {
-      offset = sprintf(dest, offset, "-main");    // Main Thread
+      offset = VM_Services.sprintf(dest, offset, "-main");    // Main Thread
     }
     if (isIdleThread()) {
-      offset = sprintf(dest, offset, "-idle");       // idle thread?
+      offset = VM_Services.sprintf(dest, offset, "-idle");       // idle thread?
     }
     if (isGCThread()) {
-      offset = sprintf(dest, offset, "-collector");  // gc thread?
+      offset = VM_Services.sprintf(dest, offset, "-collector");  // gc thread?
     }
     if (beingDispatched) {
-      offset = sprintf(dest, offset, "-being_dispatched");
+      offset = VM_Services.sprintf(dest, offset, "-being_dispatched");
     }
-    if (!isAlive) {
-      offset = sprintf(dest, offset, "-not_alive");
+    offset = VM_Services.sprintf(dest, offset, "-");
+    offset = VM_Services.sprintf(dest, offset, java.lang.JikesRVMSupport.getEnumName(state));
+    if (state == State.TIMED_WAITING || state == State.TIMED_PARK) {
+      offset = VM_Services.sprintf(dest, offset, "(");
+      long timeLeft = wakeupNanoTime - VM_Time.nanoTime();
+      offset = VM_Services.sprintf(dest, offset, (long)VM_Time.nanosToMillis(timeLeft));
+      offset = VM_Services.sprintf(dest, offset, "ms)");
     }
-    if (threadParkedState == PARKED) {
-      offset = sprintf(dest, offset, "-parked");
-    }
-    if (threadParkedState == PERMIT) {
-      offset = sprintf(dest, offset, "-permit");
+    if (throwInterruptWhenScheduled) {
+      offset = VM_Services.sprintf(dest, offset, "-interrupted");
     }
     return offset;
   }
@@ -1771,303 +1975,18 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public int dump(char[] dest) {
     return dump(dest, 0);
   }
-
-  public static char[] grabDumpBuffer() {
-    if (!dumpBufferLockOffset.isMax()) {
-      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), dumpBufferLockOffset, 1)) {
-        ;
-      }
-    }
-    return dumpBuffer;
-  }
-
-  public static void releaseDumpBuffer() {
-    if (!dumpBufferLockOffset.isMax()) {
-      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), dumpBufferLockOffset, 0);
-    }
-  }
-
-  /** Called during the boot sequence, any time before we go multi-threaded.
-   We do this so that we can leave the lockOffsets set to -1 until the VM
-   actually needs the locking (and is running multi-threaded).
-   */
-  public static void boot() {
-    dumpBufferLockOffset = VM_Entrypoints.dumpBufferLockField.getOffset();
-    intBufferLockOffset = VM_Entrypoints.intBufferLockField.getOffset();
-  }
-
-  /** Copy a String into a character array.
-   *
-   *  This function may be called during GC and may be used in conjunction
-   *  with the MMTk {@link org.mmtk.utility.Log} class.   It avoids write barriers and allocation.
-   *  <p>
-   *  XXX This function should probably be moved to a sensible location where
-   *   we can use it as a utility.   Suggestions welcome.
-   *  <P>
-   *
-   * @param dest char array to copy into.
-   * @param destOffset Offset into <code>dest</code> where we start copying
-   *
-   * @return 1 plus the index of the last character written.  If we were to
-   *         write zero characters (which we won't) then we would return
-   *         <code>offset</code>.  This is intended to represent the first
-   *         unused position in the array <code>dest</code>.  However, it also
-   *         serves as a pseudo-overflow check:  It may have the value
-   *         <code>dest.length</code>, if the array <code>dest</code> was
-   *         completely filled by the call, or it may have a value greater
-   *         than <code>dest.length</code>, if the info needs more than
-   *         <code>dest.length - offset</code> characters of space.
-   *
-   * @return  -1 if <code>offset</code> is negative.
-   *
-   * the MMTk {@link org.mmtk.utility.Log} class).
-   */
-  public static int sprintf(char[] dest, int destOffset, String s) {
-    final char[] sArray = java.lang.JikesRVMSupport.getBackingCharArray(s);
-    return sprintf(dest, destOffset, sArray);
-  }
-
-  public static int sprintf(char[] dest, int destOffset, char[] src) {
-    return sprintf(dest, destOffset, src, 0, src.length);
-  }
-
-  /** Copies characters from <code>src</code> into the destination character
-   * array <code>dest</code>.
-   *
-   *  The first character to be copied is at index <code>srcBegin</code>; the
-   *  last character to be copied is at index <code>srcEnd-1</code>.  (This is
-   *  the same convention as followed by java.lang.String#getChars).
-   *
-   * @param dest char array to copy into.
-   * @param destOffset Offset into <code>dest</code> where we start copying
-   * @param src Char array to copy from
-   * @param srcStart index of the first character of <code>src</code> to copy.
-   * @param srcEnd index after the last character of <code>src</code> to copy.
-   */
-  public static int sprintf(char[] dest, int destOffset, char[] src, int srcStart, int srcEnd) {
-    for (int i = srcStart; i < srcEnd; ++i) {
-      char nextChar = Barriers.getArrayNoBarrierStatic(src, i);
-      destOffset = sprintf(dest, destOffset, nextChar);
-    }
-    return destOffset;
-  }
-
-  public static int sprintf(char[] dest, int destOffset, char c) {
-    if (destOffset < 0) {
-      // bounds check
-      return -1;
-    }
-
-    if (destOffset < dest.length) {
-      Barriers.setArrayNoBarrierStatic(dest, destOffset, c);
-    }
-    return destOffset + 1;
-  }
-
-  /** Copy the printed decimal representation of a long into
-   * a character array.  The value is not padded and no
-   * thousands seperator is copied.  If the value is negative a
-   * leading minus sign (-) is copied.
-   *
-   *  This function may be called during GC and may be used in conjunction
-   *  with the Log class.   It avoids write barriers and allocation.
-   *  <p>
-   *  XXX This function should probably be moved to a sensible location where
-   *   we can use it as a utility.   Suggestions welcome.
-   * <p>
-   *  XXX This method's implementation is stolen from the {@link org.mmtk.utility.Log} class.
-   *
-   * @param dest char array to copy into.
-   * @param offset Offset into <code>dest</code> where we start copying
-   *
-   * @return 1 plus the index of the last character written.  If we were to
-   *         write zero characters (which we won't) then we would return
-   *         <code>offset</code>.  This is intended to represent the first
-   *         unused position in the array <code>dest</code>.  However, it also
-   *         serves as a pseudo-overflow check:  It may have the value
-   *         <code>dest.length</code>, if the array <code>dest</code> was
-   *         completely filled by the call, or it may have a value greater
-   *         than <code>dest.length</code>, if the info needs more than
-   *         <code>dest.length - offset</code> characters of space.
-   *
-   * @return  -1 if <code>offset</code> is negative.
-   */
-  public static int sprintf(char[] dest, int offset, long l) {
-    boolean negative = l < 0;
-    int nextDigit;
-    char nextChar;
-    int index = INT_BUFFER_SIZE - 1;
-    char[] intBuffer = grabIntBuffer();
-
-    nextDigit = (int) (l % 10);
-    nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter, negative ? -nextDigit : nextDigit);
-    Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
-    l = l / 10;
-
-    while (l != 0) {
-      nextDigit = (int) (l % 10);
-      nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter, negative ? -nextDigit : nextDigit);
-      Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
-      l = l / 10;
-    }
-
-    if (negative) {
-      Barriers.setArrayNoBarrierStatic(intBuffer, index--, '-');
-    }
-
-    int newOffset = sprintf(dest, offset, intBuffer, index + 1, INT_BUFFER_SIZE);
-    releaseIntBuffer();
-    return newOffset;
-  }
-
-  /**
-   * Get exclusive access to {@link #intBuffer}, the buffer for building
-   * string representations of integers.
-   */
-  private static char[] grabIntBuffer() {
-    if (!intBufferLockOffset.isMax()) {
-      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), intBufferLockOffset, 1)) {
-        ;
-      }
-    }
-    return intBuffer;
-  }
-
-  /**
-   * Release {@link #intBuffer}, the buffer for building string
-   * representations of integers.
-   */
-  private static void releaseIntBuffer() {
-    if (!intBufferLockOffset.isMax()) {
-      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), intBufferLockOffset, 0);
-    }
-  }
-
-  /** Dump information for all threads, via {@link VM#sysWrite}.  Each
-   * thread's info is newline-terminated.
-   *
-   * @param verbosity Ignored.
-   */
-  public static void dumpAll(int verbosity) {
-    for (int i = 0; i < VM_Scheduler.threads.length; i++) {
-      VM_Thread t = VM_Scheduler.threads[i];
-      if (t == null) continue;
-      VM.sysWrite("Thread ");
-      VM.sysWriteInt(i);
-      VM.sysWrite(":  ");
-      VM.sysWriteHex(VM_Magic.objectAsAddress(t));
-      VM.sysWrite("   ");
-      t.dump(verbosity);
-      // Compensate for t.dump() not newline-terminating info.
-      VM.sysWriteln();
-    }
-  }
-
-  /**
-   * Accumulate the interval from {@link #startCycle} to the result
-   * of calling {@link org.jikesrvm.runtime.VM_Time#cycles()} into {@link #totalCycles}
-   * returning the new value of totalCycles.
-   * @return totalCycles
-   */
-  public long accumulateCycles() {
-    long now = VM_Time.cycles();
-    totalCycles += now - startCycle;
-    startCycle = now;
-    return totalCycles;
-  }
-
-  /**
-   * Called from  VM_Processor.dispatch when a thread is about to
-   * start executing.
-   */
-  public void startQuantum(long now) {
-    startCycle = now;
-  }
-
-  /**
-   * Called from {@link VM_Processor#dispatch} when a thread is about to stop
-   * executing.
-   */
-  void endQuantum(long now) {
-    totalCycles += now - startCycle;
-    startCycle = 0;
-  }
-
-  /** @return The value of {@link #totalCycles}, converted to milliseconds */
-  public final double getCPUTimeMillis() {
-    return VM_Time.cyclesToMillis(totalCycles);
-  }
-
-  /** @return The value of {@link #totalCycles} */
-  public final long getTotalCycles() {
-    return totalCycles;
-  }
-
-  /** @return The value of {@link #isBootThread} */
-  public boolean isBootThread() {
-    return threadType == BOOT_THREAD;
-  }
-
-  /** Set to be the boot thread */
-  public final void setBootThread() {
-    threadType = BOOT_THREAD;
-  }
-
-  /** @return Is this the MainThread ? */
-  public final boolean isMainThread() {
-    return threadType == MAIN_THREAD;
-  }
-
-  /** Set this to be the main thread */
-  public final void setMainThread() {
-    threadType = MAIN_THREAD;
-  }
-
-  /**
-   * Is this the Idle thread?
-   * @return false
-   */
-  public boolean isIdleThread() {
-    return false;
-  }
-
-  /**
-   * Is this the GC thread?
-   * @return false
-   */
-  public boolean isGCThread() {
-    return false;
-  }
-
-
-  /**
-   * Is this the debugger thread?
-   * @return false
-   */
-  public boolean isDebuggerThread() {
-    return false;
-  }
-
-  /** Set this to be the main thread */
-  public final void setNormalThread() {
-    threadType = NORMAL_THREAD;
-  }
-
-  /** Is this a system thread? */
-  public final boolean isSystemThread() {
-    return !isIdleThread() && !isGCThread() && !isDebuggerThread() && (threadType == SYSTEM_THREAD);
-  }
-
-
-  /** Returns the value of {@link #isDaemon}. */
-  @Interruptible
-  public boolean isDaemonThread() {
-    return isDaemon;
-  }
-
-  /** Returns the value of {@link #isAlive}. */
-  @Interruptible
-  public boolean isAlive() {
-    return isAlive;
+  /** Dump statistics gather on operations */
+  static void dumpStats() {
+    VM.sysWrite("FatLocks: ");
+    VM.sysWrite(waitOperations);
+    VM.sysWrite(" wait operations\n");
+    VM.sysWrite("FatLocks: ");
+    VM.sysWrite(timedWaitOperations);
+    VM.sysWrite(" timed wait operations\n");
+    VM.sysWrite("FatLocks: ");
+    VM.sysWrite(notifyOperations);
+    VM.sysWrite(" notify operations\n");
+    VM.sysWrite("FatLocks: ");
+    VM.sysWrite(notifyAllOperations);
   }
 }

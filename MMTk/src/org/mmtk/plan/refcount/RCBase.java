@@ -12,15 +12,16 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.plan.*;
+import org.mmtk.plan.StopTheWorld;
+import org.mmtk.plan.Trace;
 import org.mmtk.plan.refcount.cd.CD;
 import org.mmtk.plan.refcount.cd.NullCD;
 import org.mmtk.plan.refcount.cd.TrialDeletion;
-import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SharedDeque;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 
@@ -67,9 +68,10 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Class variables
    */
-  public static final ExplicitFreeListSpace rcSpace
-    = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
+  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.5f));
   public static final int REF_COUNT = rcSpace.getDescriptor();
+  public static final ExplicitFreeListSpace smallCodeSpace = new ExplicitFreeListSpace("rc-sm-code", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final int RC_SMALL_CODE = smallCodeSpace.getDescriptor();
 
   // Counters
   public static EventCounter wbFast;
@@ -107,10 +109,10 @@ import org.vmmagic.unboxed.*;
     }
     previousMetaDataPages = 0;
     rcTrace = new Trace(metaDataSpace);
-    decPool = new SharedDeque(metaDataSpace, 1);
-    modPool = new SharedDeque(metaDataSpace, 1);
-    newRootPool = new SharedDeque(metaDataSpace, 1);
-    oldRootPool = new SharedDeque(metaDataSpace, 1);
+    decPool = new SharedDeque("decPool",metaDataSpace, 1);
+    modPool = new SharedDeque("modPool",metaDataSpace, 1);
+    newRootPool = new SharedDeque("newRootPool",metaDataSpace, 1);
+    oldRootPool = new SharedDeque("oldRootPool",metaDataSpace, 1);
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       nullCD = new NullCD();
@@ -152,13 +154,32 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public void collectionPhase(int phaseId) {
-
+  public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
+      rcTrace.prepare();
+      modPool.prepareNonBlocking();
+      decPool.prepare();
+      oldRootPool.prepare();
+      newRootPool.prepare();
+      return;
+    }
+
+    if (phaseId == CLOSURE) {
       rcTrace.prepare();
       return;
     }
+
+    if (phaseId == ROOTS) {
+      oldRootPool.reset();
+      super.collectionPhase(phaseId);
+      return;
+    }
+
     if (phaseId == RELEASE) {
+      newRootPool.reset();
+      decPool.reset();
+      modPool.reset();
+
       rcTrace.release();
       previousMetaDataPages = metaDataSpace.reservedPages();
       return;
@@ -172,16 +193,16 @@ import org.vmmagic.unboxed.*;
   /**
    * This method controls the triggering of a GC. It is called periodically
    * during allocation. Returns true to trigger a collection.
-   * 
+   *
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
   public boolean collectionRequired(boolean spaceFull) {
     int newMetaDataPages = metaDataSpace.committedPages() - previousMetaDataPages;
-    
-    return super.collectionRequired(spaceFull) || (newMetaDataPages > Options.metaDataLimit.getPages()); 
+
+    return super.collectionRequired(spaceFull) || (newMetaDataPages > Options.metaDataLimit.getPages());
   }
-  
+
   /*****************************************************************************
    *
    * Accounting
@@ -202,7 +223,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
@@ -232,13 +253,17 @@ import org.vmmagic.unboxed.*;
    */
   public static void free(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) {
-    	VM.assertions._assert(isRCObject(object));
+      VM.assertions._assert(isRCObject(object));
     }
 
     if (Space.isInSpace(REF_COUNT, object)) {
-      ExplicitFreeListLocal.free(object);
+      ExplicitFreeListSpace.free(object);
     } else if (Space.isInSpace(LOS, object)){
       ExplicitLargeObjectLocal.free(loSpace, object);
+    } else if (Space.isInSpace(RC_SMALL_CODE, object)) {
+      ExplicitFreeListSpace.free(object);
+    } else if (Space.isInSpace(LARGE_CODE, object)) {
+      ExplicitLargeObjectLocal.free(largeCodeSpace, object);
     }
   }
 
@@ -257,15 +282,17 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
-   * @return False if the object will never move
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(REF_COUNT, object))
-      return false;
-    return super.objectCanMove(object);
+      return true;
+    else if (Space.isInSpace(RC_SMALL_CODE, object))
+      return true;
+    return super.willNeverMove(object);
   }
 }

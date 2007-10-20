@@ -151,18 +151,14 @@ import org.vmmagic.pragma.*;
 
     nextDigit = (int) (l % 10);
     nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
-                                              negative
-                                              ? - nextDigit
-                                              : nextDigit);
+                                              negative ? - nextDigit : nextDigit);
     VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
       nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
-                                                negative
-                                                ? - nextDigit
-                                                : nextDigit);
+                                                negative ? - nextDigit : nextDigit);
       VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
@@ -697,8 +693,7 @@ import org.vmmagic.pragma.*;
   /**
    * Log a thread identifier at the start of the next message flushed.
    */
-  public static void prependThreadId()
-  {
+  public static void prependThreadId() {
     getLog().setThreadIdFlag();
   }
 
@@ -810,9 +805,7 @@ import org.vmmagic.pragma.*;
    */
   private void flushBuffer() {
     int newlineAdjust = overflowLastChar == NEW_LINE_CHAR ? 0 : -1;
-    int totalMessageSize =
-      overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust
-      : bufferIndex;
+    int totalMessageSize = overflow ? (MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust) : bufferIndex;
     if (threadIdFlag)
       VM.strings.writeThreadId(buffer, totalMessageSize);
     else

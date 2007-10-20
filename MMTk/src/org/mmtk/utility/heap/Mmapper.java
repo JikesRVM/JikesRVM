@@ -123,42 +123,32 @@ import org.vmmagic.pragma.*;
       lock.acquire();
 //      Log.writeln(mmapStart);
       // might have become MAPPED here
-      lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
-        lock.check(101);
         int errno = VM.memory.dzmmap(mmapStart, MMAP_CHUNK_BYTES);
-        lock.check(102);
         if (errno != 0) {
           lock.release();
           Log.write("ensureMapped failed with errno "); Log.write(errno);
           Log.write(" on address "); Log.writeln(mmapStart);
           if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
-        }
-        else {
+        } else {
           if (verbose) {
             Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
           }
         }
-        lock.check(103);
       }
       if (mapped[chunk] == PROTECTED) {
-        lock.check(201);
         if (!VM.memory.munprotect(mmapStart, MMAP_CHUNK_BYTES)) {
-          lock.check(202);
           lock.release();
           VM.assertions.fail("Mmapper.ensureMapped (unprotect) failed");
-        }
-        else {
+        } else {
           if (verbose) {
             Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
           }
         }
       }
-      lock.check(301);
       mapped[chunk] = MAPPED;
-      lock.check(302);
       lock.release();
     }
 
@@ -182,16 +172,14 @@ import org.vmmagic.pragma.*;
         if (!VM.memory.mprotect(mmapStart, MMAP_CHUNK_BYTES)) {
           lock.release();
           VM.assertions.fail("Mmapper.mprotect failed");
-        }
-        else {
+        } else {
           if (verbose) {
             Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
           }
         }
         mapped[chunk] = PROTECTED;
-      }
-      else {
+      } else {
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(mapped[chunk] == PROTECTED);
       }
     }

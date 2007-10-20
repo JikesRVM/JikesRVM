@@ -84,6 +84,7 @@ import org.vmmagic.unboxed.*;
    *
    * Protected instance methods and fields
    */
+  @Entrypoint
   protected Address tail; // the location in the buffer
   protected Address tailBufferEnd; // the end of the buffer
   protected SharedDeque queue; // the shared queue

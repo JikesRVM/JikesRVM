@@ -12,9 +12,9 @@
  */
 class testpm {
 
-   static int array[] = new int[10000];
+   static int[] array = new int[10000];
 
-   public static void main(String args[]) {
+   public static void main(String[] args) {
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Magic.sysCall0(bootRecord.sysPMstartIP,bootRecord.sysPMstartTOC);
       int s = 0;

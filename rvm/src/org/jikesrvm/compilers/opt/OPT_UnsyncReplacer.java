@@ -45,7 +45,7 @@ public final class OPT_UnsyncReplacer {
    * @return the object, or null if illegal
    */
   public static OPT_UnsyncReplacer getReplacer(OPT_Instruction inst, OPT_IR ir) {
-    OPT_Register r = New.getResult(inst).register;
+    OPT_Register r = New.getResult(inst).getRegister();
     return new OPT_UnsyncReplacer(r, ir.options);
   }
 

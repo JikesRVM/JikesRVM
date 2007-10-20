@@ -20,6 +20,7 @@ import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.OPT_BitVector;
@@ -119,6 +120,12 @@ public final class OPT_IR {
    * primary or outermost method being compiled.
    */
   public final VM_NormalMethod method;
+
+  /**
+   * The specialized parameters to be used in place of those defined
+   * in the VM_NormalMethod.
+   */
+  public final VM_TypeReference[] params;
 
   /**
    * @return The {@link VM_NormalMethod} object corresponding to the
@@ -261,6 +268,7 @@ public final class OPT_IR {
    */
   public OPT_IR(VM_NormalMethod m, OPT_InlineOracle ip, OPT_Options opts) {
     method = m;
+    params = null;
     options = opts;
     inlinePlan = ip;
     instrumentationPlan = null;
@@ -273,6 +281,7 @@ public final class OPT_IR {
    */
   public OPT_IR(VM_NormalMethod m, OPT_CompilationPlan cp) {
     method = m;
+    params = cp.params;
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     instrumentationPlan = cp.instrumentationPlan;
@@ -925,7 +934,7 @@ public final class OPT_IR {
                    use
                        .instruction);
           }
-          if ((IRStage >= MIR) && (use.isRegister()) && (use.asRegister().register.isValidation())) {
+          if ((IRStage >= MIR) && (use.isRegister()) && (use.asRegister().getRegister().isValidation())) {
             verror(where,
                    "In block " +
                    block +
@@ -951,7 +960,7 @@ public final class OPT_IR {
                    def
                        .instruction);
           }
-          if ((IRStage >= MIR) && (def.isRegister()) && (def.asRegister().register.isValidation())) {
+          if ((IRStage >= MIR) && (def.isRegister()) && (def.asRegister().getRegister().isValidation())) {
             verror(where,
                    "In block " +
                    block +
@@ -1321,7 +1330,7 @@ public final class OPT_IR {
         (VM.BuildForPowerPC && OPT_Operators.helper.isPowerPCTrapOperand(operand))) {
       return null;
     } else if (operand.isRegister()) {
-      OPT_Register register = operand.asRegister().register;
+      OPT_Register register = operand.asRegister().getRegister();
       // ignore physical registers
       return (register.isPhysical()) ? null : register;
     } else if (operand.isBlock()) {
@@ -1359,7 +1368,7 @@ public final class OPT_IR {
    */
   private Object getVariableDef(String where, OPT_Operand operand) {
     if (operand.isRegister()) {
-      OPT_Register register = operand.asRegister().register;
+      OPT_Register register = operand.asRegister().getRegister();
       // ignore physical registers
       return (register.isPhysical()) ? null : register;
     } else if (operand instanceof OPT_HeapOperand) {

@@ -118,7 +118,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
         identStart = false;     // on to the next one.
         continue;
       }
-      if (c == '.') {
+      if (c == '.' || c == '/') {
         identStart = true;
         continue;
       }

@@ -16,10 +16,10 @@ import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
 
 /**
- * The offset type is used by the runtime system and collector to denote 
- * the directed distance between two machine addresses. 
+ * The offset type is used by the runtime system and collector to denote
+ * the directed distance between two machine addresses.
  * We use a separate type instead of the Java int type for coding clarity.
- * machine-portability (it can map to 32 bit and 64 bit integral types), 
+ * machine-portability (it can map to 32 bit and 64 bit integral types),
  * and access to unsigned operations (Java does not have unsigned int types).
  * <p>
  * For efficiency and to avoid meta-circularity, the Offset class is intercepted like
@@ -39,36 +39,36 @@ import org.jikesrvm.VM;
     super(value);
   }
   public boolean equals(Object o) {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (o instanceof Offset) && ((Offset) o).value == value;
   }
 
   @UninterruptibleNoWarn
-  public static Offset fromIntSignExtend(int address) { 
+  public static Offset fromIntSignExtend(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(address);
   }
 
   @UninterruptibleNoWarn
-  public static Offset fromIntZeroExtend(int address) { 
+  public static Offset fromIntZeroExtend(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(address, true);
   }
 
   @UninterruptibleNoWarn
-  public static Offset fromLong(long offset) { 
+  public static Offset fromLong(long offset) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(offset);
   }
 
   @UninterruptibleNoWarn
-  public static Offset zero() { 
+  public static Offset zero() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(0);
   }
 
   @UninterruptibleNoWarn
-  public static Offset max() { 
+  public static Offset max() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return fromIntSignExtend(-1);
   }
@@ -88,31 +88,31 @@ import org.jikesrvm.VM;
   }
 
   @UninterruptibleNoWarn
-  public Word toWord() { 
+  public Word toWord() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value);
   }
 
   @UninterruptibleNoWarn
-  public Offset plus(int byteSize) { 
+  public Offset plus(int byteSize) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value + byteSize);
   }
 
   @UninterruptibleNoWarn
-  public Offset plus(Offset off2) { 
+  public Offset plus(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value + off2.value);
   }
 
   @UninterruptibleNoWarn
-  public Offset minus(int byteSize) { 
+  public Offset minus(int byteSize) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - byteSize);
   }
 
   @UninterruptibleNoWarn
-  public Offset minus(Offset off2) { 
+  public Offset minus(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - off2.value);
   }

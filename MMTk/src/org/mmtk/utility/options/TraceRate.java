@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
 /**
  * The granularity of the trace being produced.
  */
-public class TraceRate extends IntOption
+public final class TraceRate extends IntOption
   implements org.mmtk.utility.Constants {
   /**
    * Create the option.
@@ -35,9 +35,7 @@ public class TraceRate extends IntOption
    */
   @Uninterruptible
   public int getValue() {
-    return (this.value < BYTES_IN_ADDRESS)
-      ? 1
-        : (this.value >> LOG_BYTES_IN_ADDRESS);
+    return (this.value < BYTES_IN_ADDRESS) ? 1 : (this.value >> LOG_BYTES_IN_ADDRESS);
   }
 
   /**

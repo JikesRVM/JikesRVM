@@ -10,11 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestInstanceOf
-{
-  public static void main(String args[])
-  {
-    // VM.boot();
+class TestInstanceOf {
+  public static void main(String[] args) {
     run();
   }
 
@@ -22,16 +19,15 @@ class TestInstanceOf
 
   static boolean[] boolTest = new boolean[4];
 
-  public static boolean run()
-  {
+  public static boolean run() {
     System.out.print("TestInstanceOf");
 
     Object o1     = new TestInstanceOf();   // source: a reference
-    Object o2[]   = new TestInstanceOf[2];  // source: an array of references
-    Object o3[][] = new Object[2][];        // source: an array of arrays
+    Object[] o2   = new TestInstanceOf[2];  // source: an array of references
+    Object[][] o3 = new Object[2][];        // source: an array of arrays
     o3[0]  = new TestInstanceOf[4];
     o3[1]  = new TestInstanceOf[4];
-    int    o4[]   = new int [2];            // source: an array of primitives
+    int[]    o4   = new int [2];            // source: an array of primitives
 
     test(o1);
     if (!((boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) {
@@ -81,24 +77,19 @@ class TestInstanceOf
        Object o = null;
        try {
         o = (String)o1;
-       }
-       catch (ClassCastException e)
-       {
-       System.out.println(" got: class cast exception");
+       } catch (ClassCastException e) {
+        System.out.println(" got: class cast exception");
        }
        try {
         o = (StringBuffer)o1;
-       }
-       catch (ClassCastException e)
-       {
-       System.out.println(" got: class cast exception");
+       } catch (ClassCastException e) {
+        System.out.println(" got: class cast exception");
        }
      return o;
   }
 
 
-  static void test(Object o)
-  {
+  static void test(Object o) {
     boolTest[0] = o instanceof TestInstanceOf    ;  // target: a reference
     boolTest[1] = o instanceof TestInstanceOf[]  ;  // target: an array of references
     boolTest[2] = o instanceof TestInstanceOf[][];  // target: an array of arrays

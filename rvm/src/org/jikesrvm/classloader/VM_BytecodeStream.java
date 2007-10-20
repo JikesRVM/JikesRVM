@@ -15,8 +15,8 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.runtime.VM_Statics;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
@@ -465,6 +465,20 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     return getDeclaringClass().getFieldRef(readUnsignedShort());
   }
 
+  /**
+   * Returns a reference to a field, for use prior to the class being loaded.
+   * Used for getstatic, putstatic, getfield, putfield
+   * @return field reference
+   */
+  public final VM_FieldReference getFieldReference(int[] constantPool) {
+    if (VM.VerifyAssertions) {
+      VM._assert(opcode == JBC_getstatic ||
+                 opcode == JBC_putstatic ||
+                 opcode == JBC_getfield ||
+                 opcode == JBC_putfield);
+    }
+    return VM_Class.getFieldRef(constantPool, readUnsignedShort());
+  }
   /**
    * Returns a reference to a field
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface

@@ -15,6 +15,7 @@ package org.mmtk.plan.copyms;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 
 import org.vmmagic.pragma.*;
@@ -40,7 +41,8 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class CopyMS extends StopTheWorld {
+@Uninterruptible
+public class CopyMS extends StopTheWorld {
 
   /****************************************************************************
    * Constants
@@ -49,8 +51,8 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Class variables
    */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.5);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   public static final int MARK_SWEEP = msSpace.getDescriptor();
@@ -58,6 +60,7 @@ import org.vmmagic.pragma.*;
   public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
   public static final int ALLOC_MS = StopTheWorld.ALLOCATORS + 1;
 
+  public static final int SCAN_COPYMS = 0;
 
   /****************************************************************************
    * Instance variables
@@ -72,14 +75,6 @@ import org.vmmagic.pragma.*;
     trace = new Trace(metaDataSpace);
   }
 
-  /**
-   * Boot-time initialization
-   */
-  @Interruptible
-  public void boot() {
-    super.boot();
-  }
-
   /*****************************************************************************
    *
    * Collection
@@ -92,12 +87,16 @@ import org.vmmagic.pragma.*;
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       trace.prepare();
       msSpace.prepare();
       nurserySpace.prepare(true);
+      return;
+    }
+    if (phaseId == CLOSURE) {
+      trace.prepare();
       return;
     }
     if (phaseId == RELEASE) {
@@ -110,7 +109,7 @@ import org.vmmagic.pragma.*;
 
     super.collectionPhase(phaseId);
   }
-  
+
   /**
    * This method controls the triggering of a GC. It is called periodically
    * during allocation. Returns true to trigger a collection.
@@ -120,8 +119,8 @@ import org.vmmagic.pragma.*;
    */
   public final boolean collectionRequired(boolean spaceFull) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
-    
-    return super.collectionRequired(spaceFull) || nurseryFull; 
+
+    return super.collectionRequired(spaceFull) || nurseryFull;
   }
 
   /*****************************************************************************
@@ -164,12 +163,12 @@ import org.vmmagic.pragma.*;
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
   public int getPagesRequired() {
-    return super.getPagesRequired() + msSpace.requiredPages() + 
+    return super.getPagesRequired() + msSpace.requiredPages() +
       (nurserySpace.requiredPages() << 1);
   }
 }

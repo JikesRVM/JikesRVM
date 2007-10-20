@@ -43,8 +43,15 @@
 
 #ifdef __APPLE__
 #include "osx_ucontext.h"
-#else
+#endif
+
+#ifdef __linux__
 #include "linux_ucontext.h"
+#endif
+
+#if defined (__SVR4) && defined (__sun)
+typedef unsigned int u_int32_t;
+#include "solaris_ucontext.h"
 #endif
 
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
@@ -165,6 +172,30 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
     }
 }
 
+// alignment checking: helps with making decision when an alignment trap occurs
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+void
+getInstOpcode(unsigned int faultingInstructionAddress, char MnemonicBuffer[256])
+{
+    int Illegal = 0;
+    char HexBuffer[256], OperandBuffer[256];
+    PARLIST p_st;
+    PARLIST *p;
+
+    p = Disassemble(HexBuffer,
+                    sizeof HexBuffer,
+                    MnemonicBuffer,
+                    sizeof MnemonicBuffer,
+                    OperandBuffer,
+                    sizeof OperandBuffer,
+                    (char *) faultingInstructionAddress,
+                    &Illegal, &p_st);
+    if (Illegal) {
+      strcpy(MnemonicBuffer, "illegal");
+    }
+}
+#endif // RVM_WITH_ALIGNMENT_CHECKING
+
 static int
 inRVMAddressSpace(VM_Address addr)
 {
@@ -261,9 +292,136 @@ vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
     }
 }
 
+// variables and helper methods for alignment checking
+
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+
+// these vars help implement the two-phase trap handler approach for alignment checking
+static unsigned int alignCheckHandlerJumpLocation = 0; // 
+static unsigned char alignCheckHandlerInstBuf[100]; // ought to be enough to hold two instructions :P
+
+// if enabled, print a character for each alignment trap (whether or not we ignore it)
+static int alignCheckVerbose = 0;
+
+// statistics defined in sys.C
+extern volatile int numNativeAlignTraps;
+extern volatile int numEightByteAlignTraps;
+extern volatile int numBadAlignTraps;
+
+// called by the hardware trap handler if we're dealing with an alignment error;
+// returns true iff the trap handler should return immediately
+int handleAlignmentTrap(int signo, void* context) {
+    if (signo == SIGBUS) {
+      // first turn off alignment checks for the handler so we can don't cause another one here
+      __asm__ __volatile__("pushf\n\t"
+                           "andl $0xfffbffff,(%esp)\n\t"
+                           "popf");
+
+      // get the structures we need
+      ucontext_t *uc = (ucontext_t *) context;  // user context
+      mcontext_t *mc = &(uc->uc_mcontext);      // machine context
+      greg_t  *gregs = mc->gregs;               // general purpose registers
+      // get the faulting IP
+      unsigned int localInstructionAddress     = gregs[REG_EIP];
+      
+      // decide what kind of alignment error this is and whether to ignore it;
+      // if we ignore it, then the normal handler will take care of it
+      int ignore = 0;
+      if (!inRVMAddressSpace(localInstructionAddress)) {
+        // the IP is outside the VM, so ignore it
+        if (alignCheckVerbose) {
+          fprintf(SysTraceFile, "N"); // native code, apparently
+        }
+        ignore = 1;
+        numNativeAlignTraps++;
+      } else {
+        char buffer[256];
+        getInstOpcode(localInstructionAddress, buffer);
+        if (strncmp(buffer, "fld",  3) == 0 ||
+            strncmp(buffer, "fst",  3) == 0 ||
+            strncmp(buffer, "fild", 4) == 0 ||
+            strncmp(buffer, "fist", 4) == 0 ||
+            strncmp(buffer, "fstp", 4) == 0 ||
+            strncmp(buffer, "fmul", 4) == 0 ||
+            strncmp(buffer, "fdiv", 4) == 0 ||
+            strncmp(buffer, "fadd", 4) == 0 ||
+            strncmp(buffer, "fsub", 4) == 0) {
+          // an 8-byte access -- ignore it
+          if (alignCheckVerbose) {
+            fprintf(SysTraceFile, "8"); // definitely an 8-byte acccess
+          }
+          ignore = 1;
+          numEightByteAlignTraps++;
+        } else {
+          // any other unaligned access -- these are probably bad
+          if (alignCheckVerbose) {
+            fprintf(SysTraceFile, "*"); // other
+          }
+          fprintf(SysTraceFile, "\nFaulting opcode: %s\n", buffer);
+          fflush(SysTraceFile);
+          ignore = 0;
+          numBadAlignTraps++;
+        }
+      }
+      
+      if (ignore) {
+        // we can ignore the exception by returning to a code block
+        // that we create that consists of
+        // (1) a copy of the faulting instruction
+        // (2) a trap
+        // we turn off alignment exceptions so we execute the faulting instruction and then trap;
+        // the trap will end up in the "if alignCheckHandlerJumpLocation)" section below
+        alignCheckHandlerJumpLocation = getInstructionFollowing(localInstructionAddress);
+        int length = alignCheckHandlerJumpLocation - localInstructionAddress;
+        if (!length) {
+          fprintf(SysTraceFile, "\nUnexpected zero length\n");
+          exit(1);
+        }
+        for (int i = 0; i < length; i++) {
+          alignCheckHandlerInstBuf[i] = ((unsigned char*)localInstructionAddress)[i];
+        }
+        alignCheckHandlerInstBuf[length] = 0xCD; // INT opcode
+        alignCheckHandlerInstBuf[length + 1] = 0x43; // not sure which interrupt this is, but it works
+        // save the next instruction
+        gregs[REG_EFL] &= 0xfffbffff;
+        gregs[REG_EIP] = (unsigned int)(void*)alignCheckHandlerInstBuf;
+        return 1;
+      }
+    }
+    
+    // alignment checking: handle the second phase of align traps that the code above decided to ignore
+    if (alignCheckHandlerJumpLocation) {
+      // get needed structures
+      ucontext_t *uc = (ucontext_t *) context;  // user context
+      mcontext_t *mc = &(uc->uc_mcontext);      // machine context
+      greg_t  *gregs = mc->gregs;               // general purpose registers
+      // turn alignment exceptions back on
+      gregs[REG_EFL] |= 0x00040000;
+      // jump to the instruction following the original faulting instruction
+      gregs[REG_EIP] = alignCheckHandlerJumpLocation;
+      // clear the location so we don't end up here on the next trap
+      alignCheckHandlerJumpLocation = 0;
+      return 1;
+    }
+    
+    return 0;
+}
+
+#endif // RVM_WITH_ALIGNMENT_CHECKING
+
 void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
+    // alignment checking: handle hardware alignment exceptions
+    #ifdef RVM_WITH_ALIGNMENT_CHECKING
+    if (signo == SIGBUS || alignCheckHandlerJumpLocation) {
+      int returnNow = handleAlignmentTrap(signo, context);
+      if (returnNow) {
+        return;
+      }
+    }
+    #endif // RVM_WITH_ALIGNMENT_CHECKING
+	
     unsigned int localInstructionAddress;
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -321,6 +479,13 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
         else if (signo == SIGTRAP)
             isRecoverable = 0;
+            
+        // alignment checking: hardware alignment exceptions are recoverable (i.e., we want to jump to the Java handler)
+        #ifdef RVM_WITH_ALIGNMENT_CHECKING
+        else if (signo == SIGBUS)
+            isRecoverable = 1;
+        #endif // RVM_WITH_ALIGNMENT_CHECKING
+            
         else
             writeErr("%s: WHOOPS.  Got a signal (%s; #%d) that the hardware signal handler wasn't prepared for.\n", Me,  strsignal(signo), signo);
     } else {
@@ -374,7 +539,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
          * There are 8 floating point registers, each 10 bytes wide.
          * See /usr/include/asm/sigcontext.h
          */
-        if (IA32_FPREGS(context)) {
+
+//Solaris doesn't seem to support these
+#if !(defined (__SVR4) && defined (__sun)) 
+	if (IA32_FPREGS(context)) {
                 writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
                                 0,
                                 IA32_STMM(context, 0, 0) & 0xffff,
@@ -432,7 +600,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                                 IA32_STMM(context, 7, 3) & 0xffff,
                                 IA32_STMMEXP(context, 7) & 0xffff);
         }
-
+#endif
         if (isRecoverable) {
             fprintf(SysTraceFile, "%s: normal trap\n", Me);
         } else {
@@ -805,11 +973,6 @@ createVM(int UNUSED vmInSeparateThread)
     setbuf (SysErrorFile, 0);
     setbuf (SysTraceFile, 0);
 
-    if (lib_verbose)
-    {
-        fprintf(SysTraceFile, "IA32 linux build\n");
-    }
-
     unsigned roundedDataRegionSize;
     void *bootDataRegion = mapImageFile(bootDataFilename,
                                         bootImageDataAddress,
@@ -879,7 +1042,7 @@ createVM(int UNUSED vmInSeparateThread)
     VmToc = bootRecord->tocRegister;
 
     /* get and remember JTOC offset of VM_Scheduler.processors[] */
-    ProcessorsOffset = bootRecord->processorsOffset;
+    ProcessorsOffset = bootRecord->greenProcessorsOffset;
 
     // remember JTOC offset of VM_Scheduler.DebugRequested
     //
@@ -978,6 +1141,12 @@ createVM(int UNUSED vmInSeparateThread)
         return 1;
     }
 
+    // alignment checking: we want the handler to handle alignment exceptions
+    if (sigaction (SIGBUS, &action, 0)) {
+        fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+        return 1;
+    }
+
     /* install software signal handler */
     action.sa_sigaction = &softwareSignalHandler;
     if (sigaction (SIGALRM, &action, 0)) {      /* catch timer ticks (so we can timeslice user level threads) */
@@ -1012,8 +1181,8 @@ createVM(int UNUSED vmInSeparateThread)
     {
         unsigned *processors
             = *(unsigned **) (bootRecord->tocRegister
-                              + bootRecord->processorsOffset);
-        pr      = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
+                              + bootRecord->greenProcessorsOffset);
+        pr      = processors[VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
 
         /* initialize the thread id jtoc, and framepointer fields in the primordial
          * processor object.

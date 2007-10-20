@@ -43,8 +43,7 @@ class TestBackEdgeGC {
 
     // start Thread2 after thread 1 is in loop
     while (!looper.running) {
-      try { Thread.sleep(20); }
-      catch (InterruptedException e) {}
+      try { Thread.sleep(20); } catch (InterruptedException e) {}
     }
     XThread.say("Looper running -starting CallGC");
     callGC.start();
@@ -96,6 +95,7 @@ class TestBackEdgeGC {
       // start a second gc- using previously created object and test if gc field is valid
       XThread.say("Starting 2nd CallGC");
       gc.start();
+      try { gc.join(); } catch (InterruptedException e) {}
       XThread.say("2nd CallGC started - exiting Looper");
     }
   }

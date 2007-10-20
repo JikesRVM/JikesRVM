@@ -66,14 +66,14 @@ class OPT_Coalesce {
     for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2); e.hasMoreElements();) {
       OPT_RegisterOperand def = e.nextElement();
       OPT_DefUse.removeDef(def);
-      def.register = r1;
+      def.setRegister(r1);
       OPT_DefUse.recordDef(def);
     }
     // Merge the uses.
     for (OPT_RegisterOperandEnumeration e = OPT_DefUse.uses(r2); e.hasMoreElements();) {
       OPT_RegisterOperand use = e.nextElement();
       OPT_DefUse.removeUse(use);
-      use.register = r1;
+      use.setRegister(r1);
       OPT_DefUse.recordUse(use);
     }
     return true;

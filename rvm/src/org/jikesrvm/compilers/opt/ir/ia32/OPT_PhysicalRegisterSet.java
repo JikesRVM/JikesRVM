@@ -161,7 +161,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
 
     // For SSE2
-    reg[ST0].isDouble();
+    reg[ST0].setDouble();
+    reg[ST1].setDouble();
 
     // 7. set up the volatile FPRs
     for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements();) {
@@ -381,6 +382,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     return reg[ST0];
   }
   /**
+   * @return the special ST1 x87 register
+   */
+  public OPT_Register getST1() {
+    if (VM.VerifyAssertions) VM._assert(VM_ArchConstants.SSE2_FULL);
+    return reg[ST1];
+  }
+
+  /**
    * @return the FPR register used to hold a return value
    */
   public OPT_Register getReturnFPR() {
@@ -447,6 +456,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     regName[PF] = "PF";
     regName[SF] = "SF";
     regName[ZF] = "ZF";
+    regName[ST0] = "ST0";
+    regName[ST1] = "ST1";
   }
 
   /**

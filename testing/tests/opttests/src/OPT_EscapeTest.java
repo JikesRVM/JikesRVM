@@ -14,14 +14,12 @@ public class OPT_EscapeTest {
 
     public OPT_EscapeTest(int i) { val = i; }
 
-    public static void main(String argv[])
-    {
+    public static void main(String[] argv) {
         OPT_EscapeTest et1 = new OPT_EscapeTest(10);
         OPT_EscapeTest list = et1.run(new OPT_EscapeTest(20), new OPT_EscapeTest(30));
     }
 
-    OPT_EscapeTest  run(OPT_EscapeTest p1, OPT_EscapeTest p2)
-    {
+    OPT_EscapeTest  run(OPT_EscapeTest p1, OPT_EscapeTest p2) {
         OPT_EscapeTest head = null, tail = null;
 
         head = tail = new OPT_EscapeTest(100);

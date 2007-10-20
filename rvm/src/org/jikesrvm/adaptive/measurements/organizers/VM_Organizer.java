@@ -14,8 +14,8 @@ package org.jikesrvm.adaptive.measurements.organizers;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.listeners.VM_Listener;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_ThreadQueue;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThreadQueue;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -24,11 +24,11 @@ import org.vmmagic.pragma.Uninterruptible;
  * simple or complex tasks, but it is always simply following the
  * instructions given by the controller.
  */
-public abstract class VM_Organizer extends VM_Thread {
+public abstract class VM_Organizer extends VM_GreenThread {
 
   /** Constructor */
   public VM_Organizer() {
-    super(null, "VM_Organizer");
+    super("VM_Organizer");
   }
 
   /**
@@ -40,11 +40,12 @@ public abstract class VM_Organizer extends VM_Thread {
   /**
    * A queue to hold the organizer thread when it isn't executing
    */
-  private final VM_ThreadQueue tq = new VM_ThreadQueue();
+  private final VM_GreenThreadQueue tq = new VM_GreenThreadQueue();
 
   /**
    * Called when thread is scheduled.
    */
+  @Override
   public void run() {
     initialize();
     while (true) {
@@ -87,7 +88,7 @@ public abstract class VM_Organizer extends VM_Thread {
       if (VM.VerifyAssertions) VM._assert(!listener.isActive());
       listener.activate();
     }
-    VM_Thread.yield(tq);
+    VM_GreenThread.yield(tq);
   }
 
   /**
@@ -99,7 +100,7 @@ public abstract class VM_Organizer extends VM_Thread {
       if (VM.VerifyAssertions) VM._assert(listener.isActive());
       listener.passivate();
     }
-    VM_Thread org = tq.dequeue();
+    VM_GreenThread org = tq.dequeue();
     if (VM.VerifyAssertions) VM._assert(org != null);
     org.schedule();
   }

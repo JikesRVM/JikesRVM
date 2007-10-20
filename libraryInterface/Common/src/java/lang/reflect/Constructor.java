@@ -23,11 +23,11 @@ import org.jikesrvm.runtime.VM_Runtime;
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Constructor<T> extends AccessibleObject
-  implements GenericDeclaration, Member
-{
+  implements GenericDeclaration, Member {
   final VM_Method constructor;
 
   // Prevent this class from being instantiated.
+  @SuppressWarnings("unused")
   private Constructor() {
     constructor = null;
   }
@@ -76,7 +76,7 @@ public final class Constructor<T> extends AccessibleObject
   }
 
   public boolean isSynthetic() {
-	 return constructor.isSynthetic();
+    return constructor.isSynthetic();
   }
 
   public Object newInstance(Object[] args) throws InstantiationException,
@@ -137,19 +137,19 @@ public final class Constructor<T> extends AccessibleObject
     Modifier.toString(getModifiers(), sb).append(' ');
     sb.append(getDeclaringClass().getName()).append('(');
     Class<?>[] c = getParameterTypes();
-    if (c.length > 0)
-      {
+    if (c.length > 0) {
         sb.append(JikesRVMHelpers.getUserName(c[0]));
-        for (int i = 1; i < c.length; i++)
+        for (int i = 1; i < c.length; i++) {
           sb.append(',').append(JikesRVMHelpers.getUserName(c[i]));
+        }
       }
     sb.append(')');
     c = getExceptionTypes();
-    if (c.length > 0)
-      {
+    if (c.length > 0) {
         sb.append(" throws ").append(c[0].getName());
-        for (int i = 1; i < c.length; i++)
+        for (int i = 1; i < c.length; i++) {
           sb.append(',').append(c[i].getName());
+        }
       }
     return sb.toString();
   }
@@ -189,19 +189,19 @@ public final class Constructor<T> extends AccessibleObject
     addTypeParameters(sb, getTypeParameters());
     sb.append(getDeclaringClass().getName()).append('(');
     Type[] types = getGenericParameterTypes();
-    if (types.length > 0)
-      {
+    if (types.length > 0) {
         sb.append(types[0]);
-        for (int i = 1; i < types.length; ++i)
+        for (int i = 1; i < types.length; ++i) {
           sb.append(',').append(types[i]);
+        }
       }
     sb.append(')');
     types = getGenericExceptionTypes();
-    if (types.length > 0)
-      {
+    if (types.length > 0) {
         sb.append(" throws ").append(types[0]);
-        for (int i = 1; i < types.length; i++)
+        for (int i = 1; i < types.length; i++) {
           sb.append(',').append(types[i]);
+        }
       }
     return sb.toString();
   }
@@ -210,10 +210,10 @@ public final class Constructor<T> extends AccessibleObject
     if (typeArgs.length == 0)
       return;
     sb.append('<');
-    for (int i = 0; i < typeArgs.length; ++i)
-      {
-        if (i > 0)
+    for (int i = 0; i < typeArgs.length; ++i) {
+        if (i > 0) {
           sb.append(',');
+        }
         sb.append(typeArgs[i]);
       }
     sb.append("> ");

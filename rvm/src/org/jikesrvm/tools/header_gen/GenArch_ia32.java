@@ -17,7 +17,7 @@ import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.ia32.VM_TrapConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -29,7 +29,7 @@ final class GenArch_ia32 extends GenArch {
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;
 
-    offset = VM_Entrypoints.registersFPField.getOffset();
+    offset = VM_ArchEntrypoints.registersFPField.getOffset();
     pln("VM_Registers_fp_offset = ", offset);
 
     p("static const int VM_Constants_EAX                    = " + VM_RegisterConstants.EAX + ";\n");
@@ -50,11 +50,11 @@ final class GenArch_ia32 extends GenArch {
                                             ";\n");
     p("static const int VM_Constants_RVM_TRAP_BASE  = " + VM_TrapConstants.RVM_TRAP_BASE + ";\n");
 
-    offset = VM_Entrypoints.framePointerField.getOffset();
+    offset = VM_ArchEntrypoints.framePointerField.getOffset();
     pln("VM_Processor_framePointer_offset = ", offset);
-    offset = VM_Entrypoints.jtocField.getOffset();
+    offset = VM_ArchEntrypoints.jtocField.getOffset();
     pln("VM_Processor_jtoc_offset = ", offset);
-    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
+    offset = VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset();
     pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
 
     p("static const int VM_ArchConstants_SSE2 = " + (VM_ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));

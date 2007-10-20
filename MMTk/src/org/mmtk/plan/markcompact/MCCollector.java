@@ -39,7 +39,6 @@ import org.vmmagic.unboxed.*;
  * @see MCMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public class MCCollector extends StopTheWorldCollector {
 
@@ -93,7 +92,7 @@ import org.vmmagic.unboxed.*;
       int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
-    return immortal.alloc(bytes, align, offset, true);
+    return immortal.alloc(bytes, align, offset);
   }
 
   /**
@@ -121,7 +120,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MC.PREPARE) {
       currentTrace = TRACE_MARK;
       super.collectionPhase(phaseId, primary);
@@ -129,12 +128,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == MC.START_CLOSURE) {
-      markTrace.startTrace();
-      return;
-    }
-
-    if (phaseId == MC.COMPLETE_CLOSURE) {
+    if (phaseId == MC.CLOSURE) {
       markTrace.completeTrace();
       return;
     }
@@ -153,7 +147,6 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == MC.FORWARD_CLOSURE) {
-      forwardTrace.startTrace();
       forwardTrace.completeTrace();
       return;
     }

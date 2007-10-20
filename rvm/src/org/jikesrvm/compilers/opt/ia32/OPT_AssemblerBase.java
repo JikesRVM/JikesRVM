@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
+import java.util.ArrayList;
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.VM;
@@ -35,6 +36,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
@@ -69,6 +71,44 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * Hold EBP register object for use in estimating size of memory operands.
    */
   private final OPT_Register ESP;
+
+  /**
+   * Operators with byte arguments
+   */
+  private static final OPT_Operator[] byteSizeOperators;
+
+  /**
+   * Operators with word arguments
+   */
+  private static final OPT_Operator[] wordSizeOperators;
+
+  /**
+   * Operators with quad arguments
+   */
+  private static final OPT_Operator[] quadSizeOperators;
+
+  static {
+    ArrayList<OPT_Operator> temp = new ArrayList<OPT_Operator>();
+    for (OPT_Operator opr : OPT_Operator.OperatorArray) {
+      if (opr != null && opr.toString().indexOf("__b") != -1) {
+        temp.add(opr);
+      }
+    }
+    byteSizeOperators = temp.toArray(new OPT_Operator[temp.size()]);
+    temp.clear();
+    for (OPT_Operator opr : OPT_Operator.OperatorArray) {
+      if (opr != null && opr.toString().indexOf("__w") != -1) {
+        temp.add(opr);
+      }
+    }
+    wordSizeOperators = temp.toArray(new OPT_Operator[temp.size()]);
+    for (OPT_Operator opr : OPT_Operator.OperatorArray) {
+      if (opr != null && opr.toString().indexOf("__q") != -1) {
+        temp.add(opr);
+      }
+    }
+    quadSizeOperators = temp.toArray(new OPT_Operator[temp.size()]);
+  }
 
   /**
    * Construct Assembler object
@@ -121,13 +161,13 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the immediate value represented by the operand
    */
   int getImm(OPT_Operand op) {
-    if (op instanceof OPT_BranchOperand) {
+    if (op.isIntConstant()) {
+      return op.asIntConstant().value;
+    } else if (op.isBranch()) {
       // used by ImmOrLabel stuff
       return op.asBranch().target.getmcOffset();
-    } else if (op instanceof OPT_TrapCodeOperand) {
-      return ((OPT_TrapCodeOperand) op).getTrapCode() + VM_TrapConstants.RVM_TRAP_BASE;
     } else {
-      return op.asIntConstant().value;
+      return ((OPT_TrapCodeOperand) op).getTrapCode() + VM_TrapConstants.RVM_TRAP_BASE;
     }
   }
 
@@ -140,11 +180,32 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if op is an OPT_RegisterOperand
    */
   boolean isReg(OPT_Operand op) {
-    return (op instanceof OPT_RegisterOperand);
+    return op.isRegister();
   }
 
   /**
-   *  Return the machine-level register number corresponding to a
+   * Return the machine-level register number corresponding to a given integer
+   * OPT_Register. The optimizing compiler has its own notion of register
+   * numbers, which is not the same as the numbers used by the IA32 ISA. This
+   * method takes an optimizing compiler register and translates it into the
+   * appropriate machine-level encoding. This method is not applied directly to
+   * operands, but rather to register objects.
+   *
+   * @see #getBase
+   * @see #getIndex
+   *
+   * @param reg the register being queried
+   * @return the 3 bit machine-level encoding of reg
+   */
+  private byte getGPMachineRegister(OPT_Register reg) {
+    if (VM.VerifyAssertions) {
+      VM._assert(OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg) == INT_REG);
+    }
+    return (byte) (reg.number - FIRST_INT);
+  }
+
+  /**
+   * Return the machine-level register number corresponding to a
    * given OPT_Register.  The optimizing compiler has its own notion
    * of register numbers, which is not the same as the numbers used
    * by the IA32 ISA.  This method takes an optimizing compiler
@@ -160,21 +221,27 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit machine-level encoding of reg
    */
   private byte getMachineRegister(OPT_Register reg) {
-    if (reg.number == ST0) {
-      return (byte)0;
-    }
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
+    byte result;
     if (type == INT_REG) {
-      return (byte) (reg.number - FIRST_INT);
-    } else if (type == DOUBLE_REG) {
-      return (byte) (reg.number - FIRST_DOUBLE);
+      result = (byte) (reg.number - FIRST_INT);
     } else {
-      throw new OPT_OptimizingCompilerException("unexpected register type " + type);
+      if (VM.VerifyAssertions) VM._assert(type == DOUBLE_REG);
+      if (reg.number < FIRST_SPECIAL) {
+        result = (byte) (reg.number - FIRST_DOUBLE);
+      } else if (reg.number == ST0) {
+        result = 0;
+      } else {
+        if (VM.VerifyAssertions) VM._assert(reg.number == ST1);
+        result = 1;
+      }
     }
+    if (OPT_IR.PARANOID) VM._assert((result & 0x7) == result);
+    return result;
   }
 
   /**
-   *  Given a register operand, return the 3 bit IA32 ISA encoding
+   * Given a register operand, return the 3 bit IA32 ISA encoding
    * of that register.  This function translates an optimizing
    * compiler register operand into the 3 bit IA32 ISA encoding that
    * can be passed to the VM_Assembler.  This function assumes its
@@ -187,11 +254,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of op
    */
   byte getReg(OPT_Operand op) {
-    return getMachineRegister(op.asRegister().register);
+    return getMachineRegister(op.asRegister().getRegister());
   }
 
   /**
-   *  Given a memory operand, return the 3 bit IA32 ISA encoding
+   * Given a memory operand, return the 3 bit IA32 ISA encoding
    * of its base regsiter.  This function translates the optimizing
    * compiler register operand representing the base of the given
    * memory operand into the 3 bit IA32 ISA encoding that
@@ -208,11 +275,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of the base register of op
    */
   byte getBase(OPT_Operand op) {
-    return getMachineRegister(((OPT_MemoryOperand) op).base.register);
+    return getGPMachineRegister(((OPT_MemoryOperand) op).base.getRegister());
   }
 
   /**
-   *  Given a memory operand, return the 3 bit IA32 ISA encoding
+   * Given a memory operand, return the 3 bit IA32 ISA encoding
    * of its index regsiter.  This function translates the optimizing
    * compiler register operand representing the index of the given
    * memory operand into the 3 bit IA32 ISA encoding that
@@ -228,7 +295,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of the index register of op
    */
   byte getIndex(OPT_Operand op) {
-    return getMachineRegister(((OPT_MemoryOperand) op).index.register);
+    return getGPMachineRegister(((OPT_MemoryOperand) op).index.getRegister());
   }
 
   /**
@@ -287,7 +354,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
-   *  Determine if a given operand is a memory operand representing
+   * Determine if a given operand is a memory operand representing
    * absolute mode addressing.  This method takes an
    * arbitrary operand, checks whether it is a memory operand, and,
    * if it is, checks whether it should be assembled as IA32
@@ -452,7 +519,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
-   *  Does the given instruction operate upon byte-sized data?  The
+   * Does the given instruction operate upon byte-sized data?  The
    * opt compiler does not represent the size of register data, so
    * this method typically looks at the memory operand, if any, and
    * checks whether that is a byte.  This does not work for the
@@ -464,8 +531,10 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon byte data
    */
   boolean isByte(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("__b") != -1) {
-      return true;
+    for(OPT_Operator opr : byteSizeOperators){
+      if (opr == inst.operator) {
+        return true;
+      }
     }
 
     for (int i = 0; i < inst.getNumberOfOperands(); i++) {
@@ -479,7 +548,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
-   *  Does the given instruction operate upon word-sized data?  The
+   * Does the given instruction operate upon word-sized data?  The
    * opt compiler does not represent the size of register data, so
    * this method typically looks at the memory operand, if any, and
    * checks whether that is a word.  This does not work for the
@@ -491,8 +560,10 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon word data
    */
   boolean isWord(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("__w") != -1) {
-      return true;
+    for(OPT_Operator opr : wordSizeOperators){
+      if (opr == inst.operator) {
+        return true;
+      }
     }
 
     for (int i = 0; i < inst.getNumberOfOperands(); i++) {
@@ -518,8 +589,10 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon quad data
    */
   boolean isQuad(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("__q") != -1) {
-      return true;
+    for(OPT_Operator opr : quadSizeOperators){
+      if (opr == inst.operator) {
+        return true;
+      }
     }
 
     for (int i = 0; i < inst.getNumberOfOperands(); i++) {
@@ -728,7 +801,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       int prefix = mop.size == 2 ? 1 : 0;
 
       // Deal with EBP wierdness
-      if (mop.base != null && mop.base.register == EBP) {
+      if (mop.base != null && mop.base.getRegister() == EBP) {
         if (mop.index != null) {
           // forced into SIB + 32 bit displacement no matter what disp is
           return prefix + 5;
@@ -739,13 +812,13 @@ abstract class OPT_AssemblerBase extends VM_Assembler
           return prefix + 4;
         }
       }
-      if (mop.index != null && mop.index.register == EBP) {
+      if (mop.index != null && mop.index.getRegister() == EBP) {
         // forced into SIB + 32 bit displacement no matter what disp is
         return prefix + 5;
       }
 
       // Deal with ESP wierdness -- requires SIB byte even when index is null
-      if (mop.base != null && mop.base.register == ESP) {
+      if (mop.base != null && mop.base.getRegister() == ESP) {
         if (fits(mop.disp, 8)) {
           return prefix + 2;
         } else {

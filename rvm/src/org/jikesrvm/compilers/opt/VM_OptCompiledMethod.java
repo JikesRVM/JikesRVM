@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_PrintLN;
@@ -26,7 +28,6 @@ import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
@@ -34,7 +35,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
@@ -104,6 +105,18 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
     }
     realMethod.getDynamicLink(dynamicLink, bci);
+  }
+
+  /**
+   * Return whether or not the instruction offset corresponds to an uninterruptible context.
+   *
+   * @param offset of addr from start of instructions in bytes
+   * @return true if the IP is within an Uninterruptible method, false otherwise.
+   */
+  @Interruptible
+  public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
+    VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+    return realMethod.isUninterruptible();
   }
 
   /**
@@ -528,11 +541,11 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
         // how may processors to be synchronized
         // no current process, no the first dummy processor
-        VM_Scheduler.toSyncProcessors = VM_Scheduler.numProcessors - 1;
+        VM_Scheduler.toSyncProcessors = VM_GreenScheduler.numProcessors - 1;
 
         synchronized (VM_Scheduler.syncObj) {
-          for (int i = 0; i < VM_Scheduler.numProcessors; i++) {
-            VM_Processor proc = VM_Scheduler.processors[i + 1];
+          for (int i = 0; i < VM_GreenScheduler.numProcessors; i++) {
+            VM_Processor proc = VM_GreenScheduler.processors[i + 1];
             // do not sync the current processor
             if (proc != VM_Processor.getCurrentProcessor()) {
               proc.requestPostCodePatchSync();
@@ -546,7 +559,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
         // do sync only when necessary
         while (VM_Scheduler.toSyncProcessors > 0) {
-          VM_Thread.yield();
+          VM_Scheduler.yield();
         }
 
         if (DEBUG_CODE_PATCH) {

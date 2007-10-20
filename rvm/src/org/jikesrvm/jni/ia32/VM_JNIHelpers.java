@@ -22,7 +22,7 @@ import org.jikesrvm.jni.VM_JNIFunctions;
 import org.jikesrvm.jni.VM_JNIGenericHelpers;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.unboxed.Address;
@@ -343,7 +343,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
         argObjectArray[i] = VM_Reflection.wrapShort((short) loword);
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
-        VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+        VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
         argObjectArray[i] = env.getJNIRef(loword);
       } else if (argTypes[i].isIntType()) {
         argObjectArray[i] = VM_Reflection.wrapInt(loword);
@@ -369,7 +369,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     Object[] argObjectArray = new Object[argCount];
 
     // get the VM_JNIEnvironment for this thread in case we need to dereference any object arg
-    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+    VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
 
     Address addr = argAddress;
     for (int i = 0; i < argCount; i++, addr = addr.plus(8)) {

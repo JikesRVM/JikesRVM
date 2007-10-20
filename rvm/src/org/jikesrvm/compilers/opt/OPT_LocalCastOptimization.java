@@ -105,16 +105,16 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
    */
   private boolean invertNullAndTypeChecks(OPT_Instruction s) {
     if (s.operator() == CHECKCAST) {
-      OPT_Register r = TypeCheck.getRef(s).asRegister().register;
+      OPT_Register r = TypeCheck.getRef(s).asRegister().getRegister();
       OPT_Instruction n = s.nextInstructionInCodeOrder();
       while (n.operator() == REF_MOVE &&
              Move.getVal(n) instanceof OPT_RegisterOperand &&
-             Move.getVal(n).asRegister().register == r) {
-        r = Move.getResult(n).asRegister().register;
+             Move.getVal(n).asRegister().getRegister() == r) {
+        r = Move.getResult(n).asRegister().getRegister();
         n = n.nextInstructionInCodeOrder();
       }
       if (n.operator() == NULL_CHECK &&
-          TypeCheck.getRef(s).asRegister().register == NullCheck.getRef(n).asRegister().register) {
+          TypeCheck.getRef(s).asRegister().getRegister() == NullCheck.getRef(n).asRegister().getRegister()) {
         s.remove();
         TypeCheck.mutate(s,
                          CHECKCAST_NOTNULL,
@@ -135,7 +135,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
    */
   private boolean pushTypeCheckBelowIf(OPT_Instruction s, OPT_IR ir) {
     if (s.operator() == CHECKCAST) {
-      OPT_Register r = TypeCheck.getRef(s).asRegister().register;
+      OPT_Register r = TypeCheck.getRef(s).asRegister().getRegister();
       OPT_Instruction n = s.nextInstructionInCodeOrder();
       /* find moves of the checked value, so that we can also
          optimize cases where the checked value is moved before
@@ -143,14 +143,14 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
       */
       while (n.operator() == REF_MOVE &&
              Move.getVal(n) instanceof OPT_RegisterOperand &&
-             Move.getVal(n).asRegister().register == r) {
-        r = Move.getResult(n).asRegister().register;
+             Move.getVal(n).asRegister().getRegister() == r) {
+        r = Move.getResult(n).asRegister().getRegister();
         n = n.nextInstructionInCodeOrder();
       }
       if (n.operator() == REF_IFCMP &&
           IfCmp.getVal2(n) instanceof OPT_NullConstantOperand &&
           IfCmp.getVal1(n) instanceof OPT_RegisterOperand &&
-          r == IfCmp.getVal1(n).asRegister().register) {
+          r == IfCmp.getVal1(n).asRegister().getRegister()) {
         OPT_BasicBlock newBlock, patchBlock;
         OPT_BasicBlock myBlock = n.getBasicBlock();
         OPT_Instruction after = n.nextInstructionInCodeOrder();

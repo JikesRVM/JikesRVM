@@ -22,7 +22,7 @@ import org.jikesrvm.classloader.VM_Type;
  */
 final class VMObjectStreamClass {
 
-  static boolean hasClassInitializer (Class<?> cls) {
+  static boolean hasClassInitializer(Class<?> cls) {
     VM_Type t = java.lang.JikesRVMSupport.getTypeForClass(cls);
     if (t.isClassType()) {
       return t.asClass().getClassInitializerMethod() != null;

@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 /**
  * Command line option processing.
@@ -32,7 +33,7 @@ public class VM_CommandLineArgs {
   private static final boolean DEBUG = false;
 
   /** Represent a single command line prefix */
-  private static final class Prefix implements Comparable {
+  private static final class Prefix implements Comparable<Prefix> {
     /** The command line string e.g. "-X:irc:" */
     public final String value;
     /** A number that describes the type of the argument */
@@ -47,8 +48,8 @@ public class VM_CommandLineArgs {
     }
 
     /** Sorting method for Comparable. Sort by string value */
-    public int compareTo(Object o) {
-      return -value.compareTo(((Prefix) o).value);
+    public int compareTo(Prefix o) {
+      return -value.compareTo(o.value);
     }
   }
 
@@ -455,12 +456,12 @@ public class VM_CommandLineArgs {
           } else {
             nProcs = primitiveParseInt(arg);
           }
-          if (nProcs < 1 || nProcs > (VM_Scheduler.MAX_PROCESSORS - 1)) {
+          if (nProcs < 1 || nProcs > (VM_GreenScheduler.MAX_PROCESSORS - 1)) {
             VM.sysWrite("vm: ", p.value, " needs an argument between 1 and ");
-            VM.sysWriteln(VM_Scheduler.MAX_PROCESSORS - 1, " (inclusive), but found ", arg);
+            VM.sysWriteln(VM_GreenScheduler.MAX_PROCESSORS - 1, " (inclusive), but found ", arg);
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
-          VM_Scheduler.numProcessors = nProcs;
+          VM_GreenScheduler.numProcessors = nProcs;
           break;
 
           // -------------------------------------------------------------------

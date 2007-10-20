@@ -29,13 +29,13 @@ import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import static org.jikesrvm.compilers.opt.ir.OPT_IRTools.CPOS;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
-import static org.jikesrvm.compilers.opt.ir.OPT_IRTools.CPOS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
@@ -75,7 +75,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.ia32.VM_ArchConstants;
 
 /**
  * Perform simple peephole optimizations for branches.
@@ -309,10 +308,21 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       }
       OPT_Instruction nextI = firstRealInstructionFollowing(nextLabel);
       if (nextI != null && Goto.conforms(nextI)) {
-        // replicate Goto
-        cb.insertAfter(nextI.copyWithoutLinks());
-        bb.recomputeNormalOut(ir); // fix the CFG
-        return true;
+        // Check that the target is not the fall through (the goto itself).
+        // If we add a goto to the next block, it will be removed by
+        // processGoto and we will loop indefinitely.
+        // This can be tripped by (strange) code such as:
+        // if (condition) while (true);
+        OPT_BasicBlock gotoTarget = nextI.getBranchTarget();
+        OPT_Instruction gotoLabel = gotoTarget.firstInstruction();
+        OPT_Instruction gotoInst = firstRealInstructionFollowing(gotoLabel);
+
+        if (gotoInst != nextI) {
+          // replicate Goto
+          cb.insertAfter(nextI.copyWithoutLinks());
+          bb.recomputeNormalOut(ir); // fix the CFG
+          return true;
+        }
       }
     }
     // attempt to generate boolean compare.
@@ -583,7 +593,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   private void booleanCompareHelper(OPT_Instruction cb, OPT_RegisterOperand res, OPT_Operand val1, OPT_Operand val2,
                                     OPT_ConditionOperand cond) {
     if ((val1 instanceof OPT_RegisterOperand) &&
-        ((OPT_RegisterOperand) val1).type.isBooleanType() &&
+        ((OPT_RegisterOperand) val1).getType().isBooleanType() &&
         (val2 instanceof OPT_IntConstantOperand)) {
       int value = ((OPT_IntConstantOperand) val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1)) {
@@ -796,7 +806,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
         OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
-          if (def.asRegister().register.isFloatingPoint()) return true;
+          if (def.asRegister().getRegister().isFloatingPoint()) return true;
         }
       }
     }
@@ -814,7 +824,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
         OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
-          if (def.asRegister().register.isLong()) return true;
+          if (def.asRegister().getRegister().isLong()) return true;
         }
       }
     }
@@ -873,7 +883,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       for (OPT_OperandEnumeration defs = s.getDefs(); defs.hasMoreElements();) {
         OPT_Operand def = defs.nextElement();
         if (VM.VerifyAssertions) VM._assert(def.isRegister());
-        OPT_Register r = def.asRegister().register;
+        OPT_Register r = def.asRegister().getRegister();
         if (defined.contains(r)) return true;
         defined.add(r);
       }
@@ -938,10 +948,10 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
         OPT_Operand use = e.nextElement();
         if (use != null && use.isRegister()) {
-          OPT_Register r = use.asRegister().register;
+          OPT_Register r = use.asRegister().getRegister();
           OPT_Register temp = map.get(r);
           if (temp != null) {
-            use.asRegister().register = temp;
+            use.asRegister().setRegister(temp);
           }
         }
       }
@@ -951,7 +961,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       OPT_Operand def = s.getDefs().nextElement();
       OPT_RegisterOperand rDef = def.asRegister();
       OPT_RegisterOperand temp = ir.regpool.makeTemp(rDef);
-      map.put(rDef.register, temp.register);
+      map.put(rDef.getRegister(), temp.getRegister());
       s.replaceOperand(def, temp);
     }
   }
@@ -995,10 +1005,10 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // the diamond.  If they're not defined in the diamond, copy prop
     // should clean these moves up.
     OPT_RegisterOperand tempVal1 = ir.regpool.makeTemp(val1);
-    OPT_Operator op = OPT_IRTools.getMoveOp(tempVal1.type);
+    OPT_Operator op = OPT_IRTools.getMoveOp(tempVal1.getType());
     cb.insertBefore(Move.create(op, tempVal1.copyRO(), val1.copy()));
     OPT_RegisterOperand tempVal2 = ir.regpool.makeTemp(val2);
-    op = OPT_IRTools.getMoveOp(tempVal2.type);
+    op = OPT_IRTools.getMoveOp(tempVal2.getType());
     cb.insertBefore(Move.create(op, tempVal2.copyRO(), val2.copy()));
 
     // For each instruction in each temporary set, rewrite it to def a new
@@ -1021,10 +1031,10 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         OPT_Operand def = s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
         // that will now be dead
-        if (def.asRegister().register.spansBasicBlock()) {
+        if (def.asRegister().getRegister().spansBasicBlock()) {
           OPT_Instruction tempS = takenInstructions.get(s);
           OPT_RegisterOperand temp = (OPT_RegisterOperand) tempS.getDefs().nextElement();
-          op = OPT_IRTools.getCondMoveOp(def.asRegister().type);
+          op = OPT_IRTools.getCondMoveOp(def.asRegister().getType());
           OPT_Instruction cmov =
               CondMove.create(op,
                               def.asRegister(),
@@ -1033,7 +1043,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
                               cond.copy().asCondition(),
                               temp.copy(),
                               def.copy());
-          takenMap.put(def.asRegister().register, cmov);
+          takenMap.put(def.asRegister().getRegister(), cmov);
           cb.insertBefore(cmov);
         }
         s.remove();
@@ -1050,19 +1060,19 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         OPT_Operand def = s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
         // that will now be dead
-        if (def.asRegister().register.spansBasicBlock()) {
+        if (def.asRegister().getRegister().spansBasicBlock()) {
           OPT_Instruction tempS = notTakenInstructions.get(s);
           OPT_RegisterOperand temp = (OPT_RegisterOperand) tempS.getDefs().nextElement();
 
-          OPT_Instruction prevCmov = takenMap.get(def.asRegister().register);
+          OPT_Instruction prevCmov = takenMap.get(def.asRegister().getRegister());
           if (prevCmov != null) {
             // if this register was also defined in the taken branch, change
             // the previous cmov with a different 'False' Value
             CondMove.setFalseValue(prevCmov, temp.copy());
-            notTakenMap.put(def.asRegister().register, prevCmov);
+            notTakenMap.put(def.asRegister().getRegister(), prevCmov);
           } else {
             // create a new cmov instruction
-            op = OPT_IRTools.getCondMoveOp(def.asRegister().type);
+            op = OPT_IRTools.getCondMoveOp(def.asRegister().getType());
             OPT_Instruction cmov =
                 CondMove.create(op,
                                 def.asRegister(),
@@ -1072,7 +1082,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
                                 def.copy(),
                                 temp.copy());
             cb.insertBefore(cmov);
-            notTakenMap.put(def.asRegister().register, cmov);
+            notTakenMap.put(def.asRegister().getRegister(), cmov);
           }
         }
         s.remove();
@@ -1190,7 +1200,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       }
       OPT_RegisterOperand t = Move.getResult(ti);
       // make sure both moves are to the same register
-      if (t.register != Move.getResult(fi).register) {
+      if (t.getRegister() != Move.getResult(fi).getRegister()) {
         return false;
       }
       OPT_Operand tr = Move.getVal(ti);

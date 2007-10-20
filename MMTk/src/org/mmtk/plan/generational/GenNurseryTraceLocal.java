@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    */
   public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
-    super(trace);
+    super(Gen.SCAN_NURSERY, trace);
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }
@@ -81,9 +81,9 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
-    if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
+    if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
-        return Gen.nurserySpace.traceObject(this, object);
+        return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MINORGC);
       else
         return Gen.ploSpace.traceObject(this, object);
     }
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
-      traceObjectLocation(loc, false);
+      processRootEdge(loc);
     }
     logMessage(5, "processing array remset");
     arrayRemset.flushLocal();
@@ -106,18 +106,10 @@ import org.vmmagic.unboxed.*;
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
-        traceObjectLocation(start, false);
+        processRootEdge(start);
         start = start.plus(BYTES_IN_ADDRESS);
       }
     }
-  }
-
-  /**
-   * @return The allocator to use when copying objects during this trace.
-   */
-  @Inline
-  public int getAllocator() {
-    return Gen.ALLOC_MATURE_MINORGC;
   }
 
   /**
@@ -126,10 +118,9 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object is guaranteed not to move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.isNull()) return false;
-    return object.toAddress().LT(Gen.NURSERY_START) ||
-    	Space.isInSpace(Plan.PLOS, object);
+    return object.toAddress().LT(Gen.NURSERY_START) || Space.isInSpace(Plan.PLOS, object);
   }
 
 }

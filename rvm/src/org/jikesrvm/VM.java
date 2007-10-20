@@ -34,19 +34,21 @@ import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_ExitStatus;
-import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_SysCall;
+
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_DebuggerThread;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_MainThread;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_Wait;
+import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
+import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
@@ -61,12 +63,15 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * A virtual machine.
- *
- *
- *                          such as when out of memory)
  */
 @Uninterruptible
 public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
+
+  /**
+   * Reference to the main thread that is the first none VM thread run
+   */
+  public static VM_MainThread mainThread;
+
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -138,12 +143,10 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
-    currentThread.stackLimit =
-        VM_Magic.objectAsAddress(currentThread.stack).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
-    currentThread.setBootThread();
+    currentThread.stackLimit = VM_Magic.objectAsAddress(
+        currentThread.getStack()).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
 
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
-    currentThread.startQuantum(VM_Time.cycles());
 
     finishBooting();
   }
@@ -165,7 +168,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // Set up buffer locks used by VM_Thread for logging and status dumping.
     //    This can happen at any point before we start running
     //    multi-threaded.
-    VM_Thread.boot();
+    VM_Services.boot();
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
@@ -175,10 +178,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
                     VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
     }
     MM_Interface.boot(VM_BootRecord.the_boot_record);
-
-    // Start calculation of cycles to millsecond conversion factor
-    if (verboseBoot >= 1) VM.sysWriteln("Stage one of booting VM_Time");
-    VM_Time.bootStageOne();
 
     // Reset the options for the baseline compiler to avoid carrying
     // them over from bootimage writing time.
@@ -208,11 +207,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_ClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
 
-    // Complete calculation of cycles to millsecond conversion factor
-    // Must be done before any dynamic compilation occurs.
-    if (verboseBoot >= 1) VM.sysWriteln("Stage two of booting VM_Time");
-    VM_Time.bootStageTwo();
-
     // Initialize statics that couldn't be placed in bootimage, either
     // because they refer to external state (open files), or because they
     // appear in fields that are unique to Jikes RVM implementation of
@@ -234,8 +228,8 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // Commented out because we haven't incorporated this into the CVS head
     // yet.
     // java.security.JikesRVMSupport.turnOffChecks();
-    runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
+    runClassInitializer("java.lang.Thread");
 
     /* We can safely allocate a java.lang.Thread now.  The boot
        thread (running right now, as a VM_Thread) has to become a full-fledged
@@ -250,9 +244,9 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
         So the boot VM_Thread needs to be associated with a real Thread for
         Thread.getCurrentThread() to return. */
     VM.safeToAllocateJavaThread = true;
-    VM_Scheduler.giveBootVM_ThreadAJavaLangThread();
 
     runClassInitializer("java.lang.ThreadLocal");
+    runClassInitializer("java.lang.ThreadLocalMap");
     // Possibly fix VMAccessController's contexts and inGetContext fields
     runClassInitializer("java.security.VMAccessController");
 
@@ -306,11 +300,14 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_Scheduler.boot();
     VM_DynamicLibrary.boot();
 
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
+    VM_Scheduler.getCurrentThread().setupBootThread();
+
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
     org.jikesrvm.jni.VM_JNIEnvironment.boot();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
-    VM_Thread.getCurrentThread().initializeJNIEnv();
+    VM_Scheduler.getCurrentThread().initializeJNIEnv();
 
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
@@ -324,7 +321,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
-    runClassInitializer("org.jikesrvm.runtime.VM_Process");
+    runClassInitializer("org.jikesrvm.scheduler.greenthreads.VM_Process");
     runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
     runClassInitializer("java.lang.VMClassLoader");
 
@@ -390,35 +387,38 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     // Allow profile information to be read in from a file
     //
-    VM_EdgeCounts.boot();
+    VM_EdgeCounts.boot(EdgeCounterFile);
 
     if (VM.BuildForAdaptiveSystem) {
       VM_CompilerAdvice.postBoot();
+    }
+
+    // enable alignment checking
+    if (VM.AlignmentChecking) {
+      VM_SysCall.sysCall.sysEnableAlignmentChecking();
     }
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    Thread mainThread = new VM_MainThread(applicationArguments);
+    mainThread = new VM_MainThread(applicationArguments);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
     if (verboseBoot >= 1) VM.sysWriteln("Starting debugger thread");
-    // Create one debugger thread.
-    VM_Thread t = new VM_DebuggerThread();
-    t.start(VM_Scheduler.debuggerQueue);
+    VM_Scheduler.startDebuggerThread();
 
     // End of boot thread.
     //
-    if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
+    if (VM.TraceThreads) VM_GreenScheduler.trace("VM.boot", "completed - terminating");
     if (verboseBoot >= 2) {
       VM.sysWriteln("Boot sequence completed; finishing boot thread");
     }
 
-    VM_Thread.terminate();
+    VM_Scheduler.getCurrentThread().terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -491,7 +491,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * "if (VM.VerifyAssertions) VM._assert(xxx);"
    * @param b the assertion to verify
    */
-  @NoInline
+  @Inline
   public static void _assert(boolean b) {
     _assert(b, null, null);
   }
@@ -503,12 +503,12 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  @NoInline
+  @Inline
   public static void _assert(boolean b, String message) {
     _assert(b, message, null);
   }
 
-  @NoInline
+  @Inline
   public static void _assert(boolean b, String msg1, String msg2) {
     if (!VM.VerifyAssertions) {
       sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
@@ -605,6 +605,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
   // accessed via VM_EntryPoints
+  @Entrypoint
   private static int sysWriteLock = 0;
   private static Offset sysWriteLockOffset = Offset.max();
 
@@ -658,7 +659,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print to console.
    * @param value   what is printed
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(String value) {
@@ -673,9 +673,14 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
           write(chars[offset + i]);
         }
       } else {
-        System.err.print(value);
+        writeNotRunningVM(value);
       }
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(String value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
@@ -703,15 +708,19 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print of a <code>char</code>to console.
    * @param value       The character to print
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(char value) {
     if (runningVM) {
       sysCall.sysConsoleWriteChar(value);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(char value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
@@ -720,22 +729,25 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * @param value               <code>double</code> to be printed
    * @param postDecimalDigits   Number of decimal places
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(double value, int postDecimalDigits) {
     if (runningVM) {
       sysCall.sysConsoleWriteDouble(value, postDecimalDigits);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(double value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
    * Low level print of an <code>int</code> to console.
    * @param value       what is printed
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(int value) {
@@ -743,38 +755,51 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
       int mode = (value < -(1 << 20) || value > (1 << 20)) ? 2 : 0; // hex only or decimal only
       sysCall.sysConsoleWriteInteger(value, mode);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(int value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
    * Low level print to console.
    * @param value       What is printed, as hex only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeHex(int value) {
     if (runningVM) {
       sysCall.sysConsoleWriteInteger(value, 2 /*just hex*/);
     } else {
-      System.err.print(Integer.toHexString(value));
+      writeHexNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeHexNotRunningVM(int value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(Integer.toHexString(value));
   }
 
   /**
    * Low level print to console.
    * @param value       what is printed, as hex only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeHex(long value) {
     if (runningVM) {
       sysCall.sysConsoleWriteLong(value, 2);
     } else {
-      System.err.print(Long.toHexString(value));
+      writeHexNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeHexNotRunningVM(long value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(Long.toHexString(value));
   }
 
   @NoInline
@@ -825,15 +850,19 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print to console.
    * @param value       what is printed, as int only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeInt(int value) {
     if (runningVM) {
       sysCall.sysConsoleWriteInteger(value, 0 /*just decimal*/);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(long value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
@@ -852,14 +881,13 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(long value, boolean hexToo) {
     if (runningVM) {
       sysCall.sysConsoleWriteLong(value, hexToo ? 1 : 0);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
   }
 
@@ -876,7 +904,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print to console.
    * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeField(int fieldWidth, int value) {
@@ -893,7 +920,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (runningVM) {
       sysCall.sysConsoleWriteInteger(value, 0);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
   }
 
@@ -1800,7 +1827,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
   private static void showThread() {
     write("Thread ");
-    write(VM_Thread.getCurrentThread().getIndex());
+    write(VM_Scheduler.getCurrentThread().getIndex());
     write(": ");
   }
 
@@ -1993,7 +2020,14 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    VM_Scheduler.traceback(message);
+    if(!VM_Scheduler.getCurrentThread().isGCThread()) {
+      VM_GreenScheduler.traceback(message);
+    } else {
+      VM.sysWriteln("Died in GC:");
+      VM_GreenScheduler.traceback(message);
+      VM.sysWriteln("Virtual machine state:");
+      VM_Scheduler.dumpVirtualMachine();
+    }
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2015,7 +2049,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     handlePossibleRecursiveCallToSysFail(message, number);
 
     // print a traceback and die
-    VM_Scheduler.traceback(message, number);
+    VM_GreenScheduler.traceback(message, number);
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2029,31 +2063,24 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 //     return (inSysExit != 0) || (inShutdown != 0);
 //   }
 
-  public static boolean debugOOM = false; // debug out-of-memory exception. DEBUG
-  public static boolean doEmergencyGrowHeap = !debugOOM; // DEBUG
-
   /**
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  @LogicallyUninterruptible
+  @LogicallyUninterruptible /* TODO: This is completely wrong.  This method is very much Interruptible */
   @NoInline
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
-    if (debugOOM) {
-      sysWriteln("entered VM.sysExit(", value, ")");
-    }
     if (VM_Options.stackTraceAtExit) {
       VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value, ")...:");
       VM.disableGC();
-      VM_Scheduler.dumpStack();
+      VM_GreenScheduler.dumpStack();
       VM.enableGC();
       VM.sysWriteln("... END context of the call to VM.sysExit]");
-
     }
 
     if (runningVM) {
-      VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
+      VM_Scheduler.sysExit();
       VM_Callbacks.notifyExit(value);
       VM.shutdown(value);
     } else {
@@ -2073,7 +2100,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
-      VM_Scheduler.processorExit(value);
+      VM_GreenScheduler.processorExit(value);
     } else {
       sysCall.sysExit(value);
     }
@@ -2081,6 +2108,10 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
   }
 
   private static int inSysFail = 0;
+
+  public static boolean sysFailInProgress() {
+    return inSysFail > 0;
+  }
 
   private static void handlePossibleRecursiveCallToSysFail(String message) {
     handlePossibleRecursiveExit("sysFail", ++inSysFail, message);
@@ -2131,7 +2162,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
        Possible change: Instead of adjusting by the # of processors, make the
        "depth" variable a per-processor variable. */
-    int nProcessors = VM_Scheduler.numProcessors;
+    int nProcessors = VM_GreenScheduler.numProcessors;
     int nProcessorAdjust = nProcessors - 1;
     if (depth > 1 &&
         (depth <=
@@ -2289,11 +2320,14 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     //    would invalidate the addresses we're holding)
     //
 
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
 
     // 0. Sanity Check; recursion
-    if (VM.VerifyAssertions) VM._assert(myThread.disableGCDepth >= 0);
-    if (myThread.disableGCDepth++ > 0) {
+    int gcDepth = myThread.getDisableGCDepth();
+    if (VM.VerifyAssertions) VM._assert(gcDepth >= 0);
+    gcDepth++;
+    myThread.setDisableGCDepth(gcDepth);
+    if (gcDepth > 1) {
       return;                   // We've already disabled it.
     }
 
@@ -2301,22 +2335,21 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     //
     if (VM_Magic.getFramePointer().minus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
-      VM_Thread.resizeCurrentStack(myThread.stack
-          .length + ArchitectureSpecific.VM_StackframeLayoutConstants
-          .STACK_SIZE_GCDISABLED, null);
+      VM_Thread.resizeCurrentStack(myThread.getStackLength()+
+          ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
     }
 
     // 2.
     //
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    VM_Processor.getCurrentProcessor().disableThreadSwitching("disabling GC");
 
     // 3.
     //
     if (VM.VerifyAssertions) {
       if (!recursiveOK) {
-        VM._assert(!myThread.disallowAllocationsByThisThread); // recursion not allowed
+        VM._assert(!myThread.getDisallowAllocationsByThisThread()); // recursion not allowed
       }
-      myThread.disallowAllocationsByThisThread = true;
+      myThread.setDisallowAllocationsByThisThread();
     }
   }
 
@@ -2336,18 +2369,20 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    int gcDepth = myThread.getDisableGCDepth();
     if (VM.VerifyAssertions) {
-      VM._assert(myThread.disableGCDepth >= 1);
-      VM._assert(myThread.disallowAllocationsByThisThread);
+      VM._assert(gcDepth >= 1);
+      VM._assert(myThread.getDisallowAllocationsByThisThread());
     }
-    --myThread.disableGCDepth;
-    if (myThread.disableGCDepth > 0) {
+    gcDepth--;
+    myThread.setDisableGCDepth(gcDepth);
+    if (gcDepth > 0) {
       return;
     }
 
     // Now the actual work of re-enabling GC.
-    myThread.disallowAllocationsByThisThread = false;
+    myThread.clearDisallowAllocationsByThisThread();
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 

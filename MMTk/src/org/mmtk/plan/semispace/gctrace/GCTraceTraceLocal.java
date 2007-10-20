@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
    * @param trace The global trace to use.
    */
   public GCTraceTraceLocal(Trace trace) {
-    super(trace);
+    super(trace, false);
   }
 
   /****************************************************************************
@@ -150,9 +150,9 @@ import org.vmmagic.pragma.*;
   public ObjectReference getForwardedReference(ObjectReference object) {
     if (object.isNull()) return object;
     if (SS.hi && Space.isInSpace(SS.SS0, object)) {
-      return SS.copySpace0.traceObject(this, object);
+      return SS.copySpace0.traceObject(this, object, GCTrace.ALLOC_SS);
     } else if (!SS.hi && Space.isInSpace(SS.SS1, object)) {
-      return SS.copySpace1.traceObject(this, object);
+      return SS.copySpace1.traceObject(this, object, GCTrace.ALLOC_SS);
     }
     return object;
   }
@@ -191,8 +191,8 @@ import org.vmmagic.pragma.*;
    * @param object The object to check.
    * @return True if the object is guaranteed not to move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (GCTrace.traceInducedGC) return true;
-    else return super.willNotMove(object);
+    else return super.willNotMoveInCurrentCollection(object);
   }
 }

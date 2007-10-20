@@ -61,6 +61,7 @@ public class VM_MagicNames {
   public static final VM_Atom loadDouble = VM_Atom.findOrCreateAsciiAtom("loadDouble");
   public static final VM_Atom loadObjectReference = VM_Atom.findOrCreateAsciiAtom("loadObjectReference");
   public static final VM_Atom store = VM_Atom.findOrCreateAsciiAtom("store");
+  public static final VM_Atom pause = VM_Atom.findOrCreateAsciiAtom("pause");
 
   public static final VM_Atom getUnsignedByteAtOffset = VM_Atom.findOrCreateAsciiAtom("getUnsignedByteAtOffset");
   public static final VM_Atom getByteAtOffset = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
@@ -115,8 +116,10 @@ public class VM_MagicNames {
   public static final VM_Atom addressAsByteArray = VM_Atom.findOrCreateAsciiAtom("addressAsByteArray");
   public static final VM_Atom objectAsShortArray = VM_Atom.findOrCreateAsciiAtom("objectAsShortArray");
   public static final VM_Atom objectAsIntArray = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
+  public static final VM_Atom codeArrayAsObject = VM_Atom.findOrCreateAsciiAtom("codeArrayAsObject");
 
   public static final VM_Atom objectAsProcessor = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
+  public static final VM_Atom objectAsThread = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
   public static final VM_Atom threadAsCollectorThread = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final VM_Atom floatAsIntBits = VM_Atom.findOrCreateAsciiAtom("floatAsIntBits");
   public static final VM_Atom intBitsAsFloat = VM_Atom.findOrCreateAsciiAtom("intBitsAsFloat");
@@ -131,7 +134,6 @@ public class VM_MagicNames {
   public static final VM_Atom prefetch = VM_Atom.findOrCreateAsciiAtom("prefetch");
   /* IA-specific */
   public static final VM_Atom prefetchNTA = VM_Atom.findOrCreateAsciiAtom("prefetchNTA");
-  public static final VM_Atom clearFloatingPointState = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   /* PowerPC-specific */
   public static final VM_Atom dcbst = VM_Atom.findOrCreateAsciiAtom("dcbst");
   public static final VM_Atom dcbt = VM_Atom.findOrCreateAsciiAtom("dcbt");
@@ -187,5 +189,4 @@ public class VM_MagicNames {
   public static final VM_Atom addressArrayLength = VM_Atom.findOrCreateAsciiAtom("length");
   public static final VM_Atom addressArrayGet = VM_Atom.findOrCreateAsciiAtom("get");
   public static final VM_Atom addressArraySet = VM_Atom.findOrCreateAsciiAtom("set");
-  public static final VM_Atom codeArrayToAddress = VM_Atom.findOrCreateAsciiAtom("codeArrayToAddress");
 }

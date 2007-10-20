@@ -17,18 +17,19 @@ import java.io.File;
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Process;
+import org.jikesrvm.scheduler.greenthreads.VM_Process;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
 
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
  * See reference implementation for javadoc.
  */
-final class VMRuntime {
+public final class VMRuntime {
 
   private static boolean runFinalizersOnExit = false;
 
@@ -38,13 +39,14 @@ final class VMRuntime {
   }
   private static final VMRuntime instance;
   @SuppressWarnings("unused") // Accessed from VM_EntryPoints
+  @Entrypoint
   private int gcLock;
   private static final Offset gcLockOffset;
 
   private VMRuntime() { }
 
   static int availableProcessors() {
-    return VM_Scheduler.numProcessors;
+    return VM_Scheduler.availableProcessors();
   }
 
   static long freeMemory() {
@@ -109,7 +111,7 @@ final class VMRuntime {
    */
   static String mapLibraryName(String libname) {
     String libSuffix;
-    if (VM.BuildForLinux) {
+    if (VM.BuildForLinux || VM.BuildForSolaris) {
       libSuffix = ".so";
     } else if (VM.BuildForOsx) {
       libSuffix = ".jnilib";

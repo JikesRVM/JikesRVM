@@ -15,7 +15,11 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.util.VM_HashSet;
+
+// TODO: The following is due to a bug in checkstyle 4.3
+// CHECKSTYLE:OFF
 import org.vmmagic.pragma.Uninterruptible;
+// CHECKSTYLE:ON
 
 /**
  * A class to represent the reference in a class file to some
@@ -28,10 +32,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Resolving a VM_TypeReference to a VM_Type can
  * be an expensive operation.  Therefore we canonicalize
  * VM_TypeReference instances and cache the result of resolution.
- * <p>
- * It is officially illegal (as of July 31, 2003)
- * to create a VM_TypeReference for a string that would not be syntactically
- * valid in a class file.   --Steven Augart
  */
 public final class VM_TypeReference {
   /**
@@ -155,6 +155,9 @@ public final class VM_TypeReference {
       VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
   public static final VM_TypeReference Pure = findOrCreate(org.vmmagic.pragma.Pure.class);
   public static final VM_TypeReference RuntimeFinal = findOrCreate(org.vmmagic.pragma.RuntimeFinal.class);
+  public static final VM_TypeReference NoNullCheck = findOrCreate(org.vmmagic.pragma.NoNullCheck.class);
+  public static final VM_TypeReference NoBoundsCheck = findOrCreate(org.vmmagic.pragma.NoBoundsCheck.class);
+  public static final VM_TypeReference SpecializedMethodInvoke = findOrCreate(org.vmmagic.pragma.SpecializedMethodInvoke.class);
 
   public static final VM_TypeReference VM_BaseAnnotation =
       findOrCreate(org.jikesrvm.classloader.VM_Annotation.BaseAnnotation.class);
@@ -250,7 +253,7 @@ public final class VM_TypeReference {
   /**
    * Convert a java.lang.Class into a type reference the slow way. For
    * use in boot image writing
-   * @param klass java.lang.Class to convert to typereference
+   * @param klass java.lang.Class to convert to type reference
    */
   public static VM_TypeReference findOrCreate(Class<?> klass) {
     if (VM.runningVM) {
@@ -461,7 +464,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isReferenceType() {
-    return !isPrimitiveType() || this == ObjectReference;
+    return !isPrimitiveType();
   }
 
   /**
@@ -469,7 +472,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isWordType() {
-    return this == Word || this == Offset || this == Address || this == Extent || this == ObjectReference;
+    return this == Word || this == Offset || this == Address || this == Extent;
   }
 
   /**
@@ -496,7 +499,6 @@ public final class VM_TypeReference {
     return this == WordArray ||
            this == OffsetArray ||
            this == AddressArray ||
-           this == ObjectReferenceArray ||
            this == ExtentArray;
   }
 
@@ -505,7 +507,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isUnboxedArrayType() {
-    return isWordArrayType() || isCodeArrayType();
+    return isWordArrayType() || isCodeArrayType() || this == ObjectReferenceArray;
   }
 
   /**
@@ -521,7 +523,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isMagicType() {
-    return this == Magic || isUnboxedType() || isUnboxedArrayType();
+    return this == Magic || isUnboxedType() || isUnboxedArrayType() || this == ObjectReference;
   }
 
   /**

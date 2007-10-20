@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.adaptive;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
 import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
 import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
@@ -41,9 +41,9 @@ import org.vmmagic.unboxed.Offset;
  * code, and reschedule the thread.
  */
 public class OSR_OnStackReplacementPlan implements VM_Constants {
-  private int CMID;
-  private Offset tsFromFPoff;
-  private Offset ypTakenFPoff;
+  private final int CMID;
+  private final Offset tsFromFPoff;
+  private final Offset ypTakenFPoff;
 
   /* Status is write-only at the moment, but I suspect it comes in
    * handy for debugging -- RJG
@@ -51,11 +51,11 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   @SuppressWarnings("unused")
   private byte status;
 
-  private VM_Thread suspendedThread;
-  private OPT_CompilationPlan compPlan;
+  private final VM_Thread suspendedThread;
+  private final OPT_CompilationPlan compPlan;
 
-  private int timeInitiated = -1;
-  private int timeCompleted = -1;
+  private int timeInitiated = 0;
+  private int timeCompleted = 0;
 
   public OSR_OnStackReplacementPlan(VM_Thread thread, OPT_CompilationPlan cp, int cmid, int source, Offset tsoff,
                                     Offset ypoff, double priority) {
@@ -79,7 +79,6 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     status = newStatus;
   }
 
-  /* override the normal method. */
   public void execute() {
     // 1. extract stack state
     // 2. recompile the specialized method
@@ -88,14 +87,9 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
     VM_AOSLogging.logOsrEvent("OSR compiling " + compPlan.method);
 
-    VM_Thread cpThread = VM_Thread.getCurrentThread();
-
     setTimeInitiated(VM_Controller.controllerClock);
 
     {
-      // we will reuse the compilation plan before
-      cpThread.accumulateCycles();
-
       OSR_ExecStateExtractor extractor = null;
 
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.CMID);
@@ -124,8 +118,6 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       // compile from callee to caller
       VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state, invalidate);
 
-      cpThread.accumulateCycles();
-
       setTimeCompleted(VM_Controller.controllerClock);
 
       if (newCM == null) {
@@ -136,13 +128,10 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
         // now let OSR_CodeInstaller generate a code stub,
         // and OSR_PostThreadSwitch will install the stub to run.
         OSR_CodeInstaller.install(state, newCM);
-        VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
+        VM_AOSLogging.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
       }
     }
 
-    suspendedThread.resume();
-    suspendedThread = null;
-    compPlan = null;
-    CMID = 0;
+    suspendedThread.osrResume();
   }
 }

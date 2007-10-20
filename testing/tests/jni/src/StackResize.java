@@ -10,7 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 
 /**
@@ -20,8 +21,7 @@ import org.jikesrvm.runtime.VM_Magic;
  *  -fill up stack and make another entry to native code:  second resize
  */
 
-class StackResize
-{
+class StackResize {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
 
@@ -60,10 +60,7 @@ class StackResize
       VM.sysWrite(currentStackSize); VM.sysWrite("\n");
     }
 
-    if (currentStackSize==previousStackSize)
-      return false;
-    else
-      return true;
+    return !currentStackSize==previousStackSize;
   }
 
 
@@ -101,8 +98,7 @@ class StackResize
 
   }
 
-  public static void main(String args[])
-  {
+  public static void main(String[] args) {
     boolean returnValue;
     FieldAccess tempObject;
 
@@ -159,7 +155,7 @@ class StackResize
     }
   }
 
-  static void printVerbose (String str) {
+  static void printVerbose(String str) {
     if (verbose)
       System.out.println(str);
   }

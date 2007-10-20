@@ -110,7 +110,7 @@ final class OPT_NormalBURS extends OPT_BURS {
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
           // ignore validation registers
-          if (regOp.register.isValidation()) continue;
+          if (regOp.getRegister().isValidation()) continue;
           OPT_DepGraphEdge e = OPT_DepGraphEdge.findInputEdge(n, op);
           if (e == null) {        // operand is leaf
             child = Register;
@@ -460,7 +460,7 @@ final class OPT_NormalBURS extends OPT_BURS {
       OPT_Instruction instr = n.instruction();
       if (instr.operator() == IR_PROLOGUE) return true;
       OPT_RegisterOperand rop = ResultCarrier.getResult(instr);
-      if (rop.register.spansBasicBlock()) return true;
+      if (rop.getRegister().spansBasicBlock()) return true;
       OPT_SpaceEffGraphNode parent = trueDepEdge.toNode();
       // If our parent has a superset of our
       // other out edges (ignoring trueDepEdge)

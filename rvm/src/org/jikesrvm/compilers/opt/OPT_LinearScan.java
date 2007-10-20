@@ -26,7 +26,6 @@ import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
-import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
@@ -1120,7 +1119,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           // Attempt to find a free physical register for this interval.
           OPT_Register phys = findAvailableRegister(r);
           if (phys != null) {
-            // Found a free register.  Perfom the register assignment.
+            // Found a free register.  Perform the register assignment.
             container.assign(phys);
             if (debug) {
               System.out.println("First allocation " + phys + " " + container);
@@ -2467,11 +2466,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           OPT_Operand op = ops.next();
           if (op.isRegister()) {
             OPT_RegisterOperand rop = op.asRegister();
-            OPT_Register r = rop.register;
+            OPT_Register r = rop.getRegister();
             if (r.isSymbolic() && !r.isSpilled()) {
               OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
               if (VM.VerifyAssertions) VM._assert(p != null);
-              rop.register = p;
+              rop.setRegister(p);
             }
           }
         }
@@ -2491,16 +2490,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * Constructor for this compiler phase
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
      */
-    private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(UpdateOSRMaps.class);
-
-    /**
-     * Get a constructor object for this compiler phase
-     * @return compiler phase constructor
-     */
-    public Constructor<OPT_CompilerPhase> getClassConstructor() {
-      return constructor;
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
     }
 
     public String getName() {
@@ -2511,24 +2507,20 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return false;
     }
 
-    private OPT_IR ir;
-
-    /*
-    * Iterate over the IR-based OSR map, and update symbolic registers
-    * with real reg number or spill locations.
-    * Verify there are only two types of operands:
-    *    OPT_ConstantOperand
-    *    OPT_RegisterOperand
-    *        for integer constant, we save the value of the integer
-    *
-    * The LONG register has another half part.
-    *
-    * CodeSpill replaces any allocated symbolic register by
-    * physical registers.
-    */
+    /**
+     * Iterate over the IR-based OSR map, and update symbolic registers
+     * with real reg number or spill locations.
+     * Verify there are only two types of operands:
+     *    OPT_ConstantOperand
+     *    OPT_RegisterOperand
+     *        for integer constant, we save the value of the integer
+     *
+     * The LONG register has another half part.
+     *
+     * CodeSpill replaces any allocated symbolic register by
+     * physical registers.
+     */
     public void perform(OPT_IR ir) throws OPT_OptimizingCompilerException {
-      this.ir = ir;
-
       // list of OsrVariableMapElement
       //LinkedList<OSR_VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;
       //for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
@@ -2550,9 +2542,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
             OPT_Operand op = tuple.operand;
             if (op.isRegister()) {
-              OPT_Register sym_reg = ((OPT_RegisterOperand) op).register;
+              OPT_Register sym_reg = ((OPT_RegisterOperand) op).getRegister();
 
-              setRealPosition(tuple, sym_reg);
+              setRealPosition(ir, tuple, sym_reg);
 
               // get another half part of long register
               if (VM.BuildFor32Addr && (tuple.typeCode == OSR_Constants.LongTypeCode)) {
@@ -2562,12 +2554,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
                 if (VM.VerifyAssertions) VM._assert(other_op.isRegister());
 
-                OPT_Register other_reg = ((OPT_RegisterOperand) other_op).register;
-                setRealPosition(other, other_reg);
+                OPT_Register other_reg = ((OPT_RegisterOperand) other_op).getRegister();
+                setRealPosition(ir, other, other_reg);
               }
               /* According to OPT_ConvertToLowLevelIR, StringConstant, LongConstant,
               * NullConstant, FloatConstant, and DoubleConstant are all materialized
-              * The only thing left is the integer constant.
+              * The only thing left is the integer constants which could encode
+              * non-moveable objects.
               * POTENTIAL DRAWBACKS: since any long, float, and double are moved
               * to register and treated as use, it may consume more registers and
               * add unnecessary MOVEs.
@@ -2593,11 +2586,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           } // for each tuple
         } // for each inlined method
       } // for each osr instruction
-
-      this.ir = null;
     } // end of method
 
-    void setRealPosition(OSR_LocalRegPair tuple, OPT_Register sym_reg) {
+    void setRealPosition(OPT_IR ir, OSR_LocalRegPair tuple, OPT_Register sym_reg) {
       if (VM.VerifyAssertions) VM._assert(sym_reg != null);
 
       int REG_MASK = 0x01F;
@@ -2617,12 +2608,12 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       }
     } // end of setRealPosition
 
-    static void setTupleValue(OSR_LocalRegPair tuple, int type, int value) {
+    static void setTupleValue(OSR_LocalRegPair tuple, byte type, int value) {
       tuple.valueType = type;
       tuple.value = Word.fromIntSignExtend(value);
     } // end of setTupleValue
 
-    static void setTupleValue(OSR_LocalRegPair tuple, int type, Word value) {
+    static void setTupleValue(OSR_LocalRegPair tuple, byte type, Word value) {
       tuple.valueType = type;
       tuple.value = value;
     } // end of setTupleValue

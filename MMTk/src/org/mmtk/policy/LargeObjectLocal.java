@@ -75,7 +75,7 @@ import org.vmmagic.unboxed.*;
    * @param cell The newly allocated cell
    */
   @Inline
-  protected void postAlloc (Address cell) {
+  protected void postAlloc(Address cell) {
     space.getTreadmill().addToTreadmill(Treadmill.payloadToNode(cell));
   }
 

@@ -29,24 +29,19 @@ import org.jikesrvm.runtime.VM_Reflection;
  *
  * This thread comes out of wait state via notify from the garbage collector
  */
-public class VM_FinalizerThread extends VM_Thread {
+public class VM_FinalizerThread extends VM_Scheduler.ThreadModel {
 
   private static final int verbose = 0; // currently goes up to 2
 
   private final Object[] none = new Object[0];
 
   public VM_FinalizerThread() {
-    super(null);
+    super("FinalizerThread");
   }
 
-  public String toString() {
-    return "FinalizerThread";
-  }
-
-  // Run the finalizer thread (one per RVM)
-  //
+  /** Run the finalizer thread (one per RVM) */
+  @Override
   public void run() {
-
     if (verbose >= 1) {
       VM_Scheduler.trace("VM_FinalizerThread ", "run routine entered");
     }
@@ -56,9 +51,7 @@ public class VM_FinalizerThread extends VM_Thread {
 
         // suspend this thread: it will resume when the garbage collector
         // places objects on the finalizer queue and notifies.
-
-        VM_Scheduler.finalizerMutex.lock();
-        VM_Thread.yield(VM_Scheduler.finalizerQueue, VM_Scheduler.finalizerMutex);
+        VM_Scheduler.suspendFinalizerThread();
 
         if (verbose >= 1) {
           VM.sysWriteln("VM_FinalizerThread starting finalization");
@@ -69,7 +62,7 @@ public class VM_FinalizerThread extends VM_Thread {
           if (o == null) break;
           if (verbose >= 2) {
             VM.sysWrite("VM_FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
-            VM.sysWrite("of type ");
+            VM.sysWrite(" of type ");
             VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
             VM.sysWriteln();
           }

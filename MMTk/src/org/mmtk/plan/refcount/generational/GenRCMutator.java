@@ -46,7 +46,6 @@ import org.vmmagic.unboxed.*;
  * @see GenRCCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenRCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
@@ -73,7 +72,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenRC.ALLOC_NURSERY) {
-      return nursery.alloc(bytes, align, offset, false);
+      return nursery.alloc(bytes, align, offset);
     }
     return super.alloc(bytes,align,offset,allocator, site);
   }
@@ -141,9 +140,9 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == GenRC.PREPARE_MUTATOR) {
+    if (phaseId == GenRC.PREPARE) {
       nursery.rebind(GenRC.nurserySpace);
     }
 

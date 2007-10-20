@@ -61,9 +61,9 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object will not move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(SSGCspy.GCSPY, object))
       return true;
-    return super.willNotMove(object);
+    return super.willNotMoveInCurrentCollection(object);
   }
 }

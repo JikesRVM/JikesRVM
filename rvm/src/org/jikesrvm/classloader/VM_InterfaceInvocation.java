@@ -20,6 +20,7 @@ import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Runtime system mechanisms and data structures to implement interface invocation.
@@ -53,6 +54,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param mid id of the VM_MemberReference for the target interface method.
    * @return machine code corresponding to desired interface method
    */
+  @Entrypoint
   public static VM_CodeArray invokeInterface(Object target, int mid) throws IncompatibleClassChangeError {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
@@ -80,6 +82,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param id interface id of the interface sought (NOT dictionary id!!)
    * @return iTable for desired interface
    */
+  @Entrypoint
   public static Object[] findITable(Object[] tib, int id) throws IncompatibleClassChangeError {
     Object[] iTables = (Object[]) tib[TIB_ITABLES_TIB_INDEX];
     if (VM.DirectlyIndexedITables) {
@@ -130,6 +133,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param LHSclass an class (should be an interface)
    * @param RHStib the TIB of an object that must implement LHSclass
    */
+  @Entrypoint
   public static void invokeinterfaceImplementsTest(VM_Class LHSclass, Object[] RHStib)
       throws IncompatibleClassChangeError {
     if (!LHSclass.isResolved()) {
@@ -154,6 +158,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param RHStib  The TIB of the object on which we are attempting to
    *            invoke the interface method
    */
+  @Entrypoint
   public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib)
       throws IncompatibleClassChangeError {
     VM_Method sought = VM_MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod();

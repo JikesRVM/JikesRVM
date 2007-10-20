@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  * abstractly, in "units", which the user may associate with some
  * other allocatable resource (e.g. heap blocks).  The user issues
  * requests for N units and the allocator returns the index of the
- * first of a contigious set of N units or fails, returning -1.  The
+ * first of a contiguous set of N units or fails, returning -1.  The
  * user frees the block of N units by calling <code>free()</code> with
  * the index of the first unit as the argument.<p>
  *
@@ -44,11 +44,11 @@ import org.vmmagic.pragma.*;
  *
  *   - single free unit: "free", "single", "prev", "next"
  *   - single used unit: "used", "single"
- *    - contigious free units
+ *    - contiguous free units
  *     . first unit: "free", "multi", "prev", "next"
  *     . second unit: "free", "multi", "size"
  *     . last unit: "free", "multi", "size"
- *    - contigious used units
+ *    - contiguous used units
  *     . first unit: "used", "multi", "prev", "next"
  *     . second unit: "used", "multi", "size"
  *     . last unit: "used", "multi", "size"
@@ -101,29 +101,29 @@ import org.vmmagic.pragma.*;
    *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * contiguous units, or -1 if the request can't be satisfied
    */
   public final int alloc(int size) {
     // Note: -1 is both the default return value *and* the start sentinel index
-    int rtn = HEAD; // HEAD = -1
+    int unit = head; // HEAD = -1
     int s = 0;
-    while (((rtn = getNext(rtn)) != HEAD) && ((s = getSize(rtn)) < size));
+    while (((unit = getNext(unit)) != head) && ((s = getSize(unit)) < size));
 
-    return alloc(size, rtn, s);
+    return (unit == head) ? FAILURE : alloc(size, unit, s);
   }
 
   /**
    * Would an allocation of <code>size</code> units succeed?
-   * 
+   *
    * @param size The number of units to test for
    * @return True if such a request could be satisfied.
    */
   public final boolean couldAlloc(int size) {
     // Note: -1 is both the default return value *and* the start sentinel index
-    int rtn = HEAD; // HEAD = -1
-    while (((rtn = getNext(rtn)) != HEAD) && (getSize(rtn) < size));
+    int unit = head; // HEAD = -1
+    while (((unit = getNext(unit)) != head) && (getSize(unit) < size));
 
-    return (rtn != -1);
+    return (unit != head);
   }
 
   /**
@@ -131,7 +131,7 @@ import org.vmmagic.pragma.*;
    *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * contiguous units, or -1 if the request can't be satisfied
    */
   public final int alloc(int size, int unit) {
     int s = 0;
@@ -139,7 +139,7 @@ import org.vmmagic.pragma.*;
     if (getFree(unit) && (s = getSize(unit)) >= size)
       return alloc(size, unit, s);
     else
-      return HEAD;
+      return FAILURE;
   }
 
   /**
@@ -147,7 +147,7 @@ import org.vmmagic.pragma.*;
    *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * contiguous units, or -1 if the request can't be satisfied
    */
   private int alloc(int size, int unit, int unitSize) {
     if (unitSize >= size) {
@@ -158,24 +158,43 @@ import org.vmmagic.pragma.*;
     }
 
     if (DEBUG) dbgPrintFree();
+
     return unit;
   }
 
   /**
-   * Free a previously allocated contigious lump of units.
+   * Free a previously allocated contiguous lump of units.
    *
    * @param unit The index of the first unit.
-   * @return The number of units freed.
+   * @return return the size of the unit which was freed.
    */
   public final int free(int unit) {
+    return free(unit, false);
+  }
+
+  /**
+   * Free a previously allocated contiguous lump of units.
+   *
+   * @param unit The index of the first unit.
+   * @param returnCoalescedSize if true, return the coalesced size
+   * @return The number of units freed. if returnCoalescedSize is
+   *  false, return the size of the unit which was freed.  Otherwise
+   *   return the size of the unit now available (the coalesced size)
+   */
+  public final int free(int unit, boolean returnCoalescedSize) {
     int freed = getSize(unit);
-    int start = getFree(getLeft(unit)) ? getLeft(unit) : unit;
-    int end = getFree(getRight(unit)) ? getRight(unit) : unit;
+    int left = getLeft(unit);
+    int start = isCoalescable(unit) && getFree(left) ? left : unit;
+    int right = getRight(unit);
+    int end = isCoalescable(right) && getFree(right) ? right : unit;
     if (start != end)
       coalesce(start, end);
-    addToFree(start);
-    if (DEBUG) dbgPrintFree();
 
+    if (returnCoalescedSize)
+      freed = getSize(start);
+    addToFree(start);
+
+    if (DEBUG) dbgPrintFree();
     return freed;
   }
 
@@ -211,8 +230,9 @@ import org.vmmagic.pragma.*;
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units, int grain) {
-    // Initialize the sentiels
-    setSentinel(-1);
+    // Initialize the sentinels
+    for (int i = 1; i <= heads; i++)
+      setSentinel(-i);
     setSentinel(units);
 
     // create the free list item
@@ -243,10 +263,11 @@ import org.vmmagic.pragma.*;
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);
+    if (DEBUG) dbgPrintFree();
   }
 
   /**
-   * Coalesce two or three contigious lumps of units, removing start
+   * Coalesce two or three contiguous lumps of units, removing start
    * and end lumps from the free list as necessary.
    * @param start The index of the start of the first lump
    * @param end The index of the start of the last lump
@@ -267,10 +288,10 @@ import org.vmmagic.pragma.*;
    */
   private void addToFree(int unit) {
     setFree(unit, true);
-    int next = getNext(HEAD);
+    int next = getNext(head);
     setNext(unit, next);
-    setNext(HEAD, unit);
-    setPrev(unit, HEAD);
+    setNext(head, unit);
+    setPrev(unit, head);
     setPrev(next, unit);
   }
 
@@ -284,6 +305,7 @@ import org.vmmagic.pragma.*;
     int prev = getPrev(unit);
     setNext(prev, next);
     setPrev(next, prev);
+    if (DEBUG) dbgPrintFree();
   }
 
   /**
@@ -304,8 +326,8 @@ import org.vmmagic.pragma.*;
   void dbgPrintFree() {
     if (DEBUG) {
       Log.write("FL[");
-      int i = HEAD;
-      while ((i = getNext(i)) != HEAD) {
+      int i = head;
+      while ((i = getNext(i)) != head) {
         boolean f = getFree(i);
         int s = getSize(i);
         if (!f)
@@ -313,9 +335,9 @@ import org.vmmagic.pragma.*;
         Log.write(i);
         if (!f)
           Log.write("<-");
-        Log.write("[");
+        Log.write("(");
         Log.write(s);
-        Log.write("]");
+        Log.write(")");
         Log.write(" ");
         Log.flush();
       }
@@ -333,7 +355,12 @@ import org.vmmagic.pragma.*;
   abstract int getPrev(int unit);
   abstract void setPrev(int unit, int prev);
   abstract int getLeft(int unit);
+  abstract boolean isCoalescable(int unit);
 
   protected static final boolean DEBUG = false;
-  protected static final int HEAD = -1;
+  public static final int FAILURE = -1;
+  protected static final int MAX_HEADS = 128; // somewhat arbitrary
+
+  protected int heads = 1;
+  protected int head = -heads;
 }

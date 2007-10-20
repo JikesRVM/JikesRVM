@@ -12,14 +12,7 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Finalizer;
-import org.mmtk.utility.Log;
-import org.mmtk.utility.ReferenceProcessor;
-import org.mmtk.utility.options.Options;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
 
 /**
@@ -32,127 +25,32 @@ import org.vmmagic.pragma.*;
  * low-cost during mutator time.<p>
  *
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
-@Uninterruptible public abstract class StopTheWorldCollector extends CollectorContext {
-
-  /****************************************************************************
-   * Instance fields
-   */
-
-  /** Basic sanity checker */
-  private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
+@Uninterruptible
+public abstract class StopTheWorldCollector extends SimpleCollector {
 
   /****************************************************************************
    *
-   * Collection
+   * Collection.
    */
+
+  /** Perform garbage collection */
   public void collect() {
-    Phase.delegatePhase(global().collection);
+    Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection));
+  }
+
+  /** Perform some concurrent garbage collection */
+  public final void concurrentCollect() {
+    VM.assertions.fail("concurrentCollect called on StopTheWorld collector");
   }
 
   /**
-   * Perform a per-collector collection phase.
+   * Perform some concurrent collection work.
    *
    * @param phaseId The unique phase identifier
-   * @param primary Should this thread be used to execute any single-threaded
-   * local operations?
    */
-  @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == StopTheWorld.INITIATE) {
-      VM.collection.prepareCollector(this);
-      return;
-    }
-
-    if (phaseId == StopTheWorld.PREPARE) {
-      // Nothing to do
-      return;
-    }
-
-    if (phaseId == StopTheWorld.PRECOPY) {
-      if (VM.activePlan.constraints().movesObjects()) {
-        VM.scanning.preCopyGCInstances(getCurrentTrace());
-      }
-      return;
-    }
-
-    if (phaseId == StopTheWorld.ROOTS) {
-      VM.scanning.computeAllRoots(getCurrentTrace());
-      return;
-    }
-
-    if (phaseId == StopTheWorld.BOOTIMAGE_ROOTS) {
-      if (Plan.SCAN_BOOT_IMAGE)
-        VM.scanning.computeBootImageRoots(getCurrentTrace());
-      return;
-    }
-
-    if (phaseId == StopTheWorld.SOFT_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processSoftReferences(
-            global().isCurrentGCNursery());
-      return;
-    }
-
-    if (phaseId == StopTheWorld.WEAK_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processWeakReferences(
-            global().isCurrentGCNursery());
-      return;
-    }
-
-    if (phaseId == StopTheWorld.FINALIZABLE) {
-      if (primary) {
-        if (Options.noFinalizer.getValue())
-          Finalizer.kill();
-        else
-          Finalizer.moveToFinalizable(getCurrentTrace());
-      }
-      return;
-    }
-
-    if (phaseId == StopTheWorld.PHANTOM_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processPhantomReferences(
-            global().isCurrentGCNursery());
-      return;
-    }
-
-    if (phaseId == StopTheWorld.FORWARD_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue() &&
-          VM.activePlan.constraints().needsForwardAfterLiveness()) {
-        ReferenceProcessor.forwardReferences();
-      }
-      return;
-    }
-
-    if (phaseId == StopTheWorld.FORWARD_FINALIZABLE) {
-      if (primary && !Options.noFinalizer.getValue() &&
-          VM.activePlan.constraints().needsForwardAfterLiveness()) {
-        Finalizer.forward(getCurrentTrace());
-      }
-      return;
-    }
-
-    if (phaseId == StopTheWorld.COMPLETE) {
-      // Nothing to do
-      return;
-    }
-
-    if (phaseId == StopTheWorld.RELEASE) {
-      // Nothing to do
-      return;
-    }
-
-    if (Options.sanityCheck.getValue() &&
-        getSanityChecker().collectionPhase(phaseId, primary)) {
-      return;
-    }
-
-    Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId));
-    Log.writeln(" not handled.");
-    VM.assertions.fail("Per-collector phase not handled!");
+  public void concurrentCollectionPhase(short phaseId) {
+    VM.assertions.fail("concurrentCollectionPhase triggered on StopTheWorld collector");
   }
 
   /****************************************************************************
@@ -164,10 +62,5 @@ import org.vmmagic.pragma.*;
   @Inline
   private static StopTheWorld global() {
     return (StopTheWorld) VM.activePlan.global();
-  }
-
-  /** @return The current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 }

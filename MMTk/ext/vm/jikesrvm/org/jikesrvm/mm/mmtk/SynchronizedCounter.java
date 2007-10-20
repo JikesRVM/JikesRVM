@@ -22,7 +22,8 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A counter that supports atomic increment and reset.
  */
-@Uninterruptible public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
+@Uninterruptible
+public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 
   private static Offset offset = Offset.max();
 
@@ -30,6 +31,7 @@ import org.vmmagic.unboxed.Offset;
     offset = VM_Entrypoints.synchronizedCounterField.getOffset();
   }
 
+  @Entrypoint
   private int count = 0;
 
   public int reset() {
@@ -51,7 +53,7 @@ import org.vmmagic.unboxed.Offset;
     return VM_Synchronization.fetchAndAdd(this, offset, 1);
   }
 
-  public int peek () {
+  public int peek() {
     return count;
   }
 

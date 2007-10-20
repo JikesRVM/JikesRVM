@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+
 import java.io.PrintStream;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.NoInline;
 
 class Exhaust {
 
@@ -32,7 +33,7 @@ class Exhaust {
 
     o.println("Max heap size: " + mhs + " bytes");
     if (mhs > 1024 * 1024)
-      o.println("  that's " + mhs / ( 1024.0 * 1024.0 ) + " megabytes");
+      o.println("  that's " + mhs / (1024.0 * 1024.0) + " megabytes");
     if (mhs > 1024 * 1024 * 1024)
       o.println("  that's " + mhs / (1024.0 * 1024 * 1024) + " gigabytes");
     runTest();
@@ -41,7 +42,7 @@ class Exhaust {
   }
 
   @NoInline
-  public static int doInner (int size) {
+  public static int doInner(int size) {
     while (true) {
       wasAllocating = size;
       Object [] next = new Object[size / 4];
@@ -65,8 +66,7 @@ class Exhaust {
       o.println("  Allocating until exception thrown");
       try {
         doInner(size);
-      }
-      catch (OutOfMemoryError e) {
+      } catch (OutOfMemoryError e) {
         first = last = null;  // kills everything
         o.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
 

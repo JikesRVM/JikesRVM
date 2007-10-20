@@ -36,7 +36,6 @@ import org.vmmagic.pragma.*;
  * @see SSMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class SSCollector extends StopTheWorldCollector {
 
@@ -66,7 +65,6 @@ import org.vmmagic.pragma.*;
   protected SSCollector(SSTraceLocal tr) {
     ss = new CopyLocal(SS.copySpace0);
     trace = tr;
-
   }
 
   /****************************************************************************
@@ -92,7 +90,7 @@ import org.vmmagic.pragma.*;
       VM.assertions._assert(allocator == SS.ALLOC_SS);
     }
 
-    return ss.alloc(bytes, align, offset, true);
+    return ss.alloc(bytes, align, offset);
   }
 
   /**
@@ -120,7 +118,7 @@ import org.vmmagic.pragma.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == SS.PREPARE) {
       // rebind the copy bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());
@@ -128,12 +126,7 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    if (phaseId == SS.START_CLOSURE) {
-      trace.startTrace();
-      return;
-    }
-
-    if (phaseId == SS.COMPLETE_CLOSURE) {
+    if (phaseId == SS.CLOSURE) {
       trace.completeTrace();
       return;
     }

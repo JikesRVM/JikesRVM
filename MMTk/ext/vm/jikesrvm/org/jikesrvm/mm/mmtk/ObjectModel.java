@@ -12,11 +12,9 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.alloc.Allocator;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
@@ -26,6 +24,7 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 
@@ -71,8 +70,6 @@ import org.vmmagic.pragma.*;
     Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
-    MMType mmType = (MMType) type.getMMType();
-    mmType.profileCopy(bytes);
     return to;
   }
 
@@ -96,8 +93,6 @@ import org.vmmagic.pragma.*;
       int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
       VM_Memory.sync(to.toAddress(), dataSize);
     }
-    MMType mmType = (MMType) type.getMMType();
-    mmType.profileCopy(bytes);
     return to;
   }
 
@@ -261,6 +256,16 @@ import org.vmmagic.pragma.*;
   public int getArrayLength(ObjectReference object) {
     return VM_Magic.getArrayLength(object.toObject());
   }
+
+  /**
+   * Is the passed object an array?
+   *
+   * @param object address of the object
+   */
+  public boolean isArray(ObjectReference object) {
+    return VM_ObjectModel.getObjectType(object.toObject()).isArrayType();
+  }
+
   /**
    * Tests a bit available for memory manager use in an object.
    *
@@ -312,6 +317,26 @@ import org.vmmagic.pragma.*;
    */
   public Word prepareAvailableBits(ObjectReference object) {
     return VM_ObjectModel.prepareAvailableBits(object.toObject());
+  }
+
+  /**
+   * Sets the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @param val the new value of the byte
+   */
+  public void writeAvailableByte(ObjectReference object, byte val) {
+    VM_ObjectModel.writeAvailableByte(object.toObject(), val);
+  }
+
+  /**
+   * Read the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @return the value of the byte
+   */
+  public byte readAvailableByte(ObjectReference object) {
+    return VM_ObjectModel.readAvailableByte(object.toObject());
   }
 
   /**
@@ -389,31 +414,12 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Return the type object for a give object
+   * Dump debugging information for an object.
    *
-   * @param object The object whose type is required
-   * @return The type object for <code>object</code>
+   * @param object The object whose information is to be dumped
    */
-  @Inline
-  public MMType getObjectType(ObjectReference object) {
-    Object obj = object.toObject();
-    Object[] tib = VM_ObjectModel.getTIB(obj);
-    if (VM.VerifyAssertions) {
-      if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
-        VM.sysWriteln("getObjectType: objRef = ", object.toAddress(), "   tib = ", VM_Magic.objectAsAddress(tib));
-        VM.sysWriteln("               tib's type is not Object[]");
-        VM._assert(false);
-      }
-    }
-    VM_Type vmType = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
-    if (VM.VerifyAssertions) {
-      if (vmType == null) {
-        VM.sysWriteln("getObjectType: null type for object = ", object);
-        VM._assert(false);
-      }
-    }
-    if (VM.VerifyAssertions) VM._assert(vmType.getMMType() != null);
-    return (MMType) vmType.getMMType();
+  public void dumpObject(ObjectReference object) {
+    DebugUtil.dumpRef(object);
   }
 }
 

@@ -259,17 +259,17 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
                 s = null;
               } else {
                 OPT_RegisterOperand rop2 = e2.next();
-                t2 = rop2.type;
+                t2 = rop2.getType();
                 while (e2.hasMoreElements()) {
                   OPT_RegisterOperand nextOp2 = e2.next();
-                  if (nextOp2.type != t2) {
+                  if (nextOp2.getType() != t2) {
                     s = null;
                   }
                 }
               }
               if (s != null) {
-                lhs2.type = t2;
-                rhs2.type = t2;
+                lhs2.setType(t2);
+                rhs2.setType(t2);
               }
               break;
             case OPT_Register.INTEGER_TYPE:
@@ -284,17 +284,17 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
                 s = null;
               } else {
                 OPT_RegisterOperand rop = e.next();
-                t = rop.type;
+                t = rop.getType();
                 while (e.hasMoreElements()) {
                   OPT_RegisterOperand nextOp = e.next();
-                  if (nextOp.type != t) {
+                  if (nextOp.getType() != t) {
                     s = null;
                   }
                 }
               }
               if (s != null) {
-                lhs.type = t;
-                rhs.type = t;
+                lhs.setType(t);
+                rhs.setType(t);
               }
               break;
             case OPT_Register.FLOAT_TYPE:

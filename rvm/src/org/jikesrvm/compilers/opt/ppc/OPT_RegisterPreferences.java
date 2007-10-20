@@ -54,8 +54,8 @@ public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPrefere
           OPT_Operand result = MIR_Move.getResult(s);
           OPT_Operand value = MIR_Move.getValue(s);
           if (result.isRegister() && value.isRegister()) {
-            OPT_Register r1 = result.asRegister().register;
-            OPT_Register r2 = value.asRegister().register;
+            OPT_Register r1 = result.asRegister().getRegister();
+            OPT_Register r2 = value.asRegister().getRegister();
             addAffinity(1, r2, r1);
 
             // double the affinities if using the heuristic described

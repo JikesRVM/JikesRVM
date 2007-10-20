@@ -40,7 +40,6 @@ import org.vmmagic.unboxed.*;
  * @see GenMutator
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenMSMutator extends GenMutator {
   /******************************************************************
@@ -85,7 +84,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenMS.ALLOC_MATURE) {
-      return mature.alloc(bytes, align, offset, false);
+      return mature.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -153,16 +152,16 @@ import org.vmmagic.unboxed.*;
    * @param primary Is this thread to do the one-off thread-local tasks
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
-      if (phaseId == GenMS.PREPARE_MUTATOR) {
+      if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.prepare();
         return;
       }
 
-      if (phaseId == GenMS.RELEASE_MUTATOR) {
-        if (global().gcFullHeap) mature.releaseMutator();
+      if (phaseId == GenMS.RELEASE) {
+        if (global().gcFullHeap) mature.release();
         super.collectionPhase(phaseId, primary);
         return;
       }

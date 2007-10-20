@@ -56,6 +56,7 @@ import org.vmmagic.unboxed.*;
    *
    * Protected instance methods and fields
    */
+  @Entrypoint
   protected Address head; // the start of the buffer
 
   /**

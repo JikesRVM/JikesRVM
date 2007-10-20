@@ -29,7 +29,8 @@ import org.vmmagic.unboxed.*;
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
  */
-@Uninterruptible public final class MonotonePageResource extends PageResource
+@Uninterruptible
+public final class MonotonePageResource extends PageResource
   implements Constants {
 
   /****************************************************************************
@@ -38,13 +39,13 @@ import org.vmmagic.unboxed.*;
    */
   private Address cursor;
   private Address sentinel;
-  private int metaDataPagesPerRegion;
+  private final int metaDataPagesPerRegion;
 
   /**
    * Constructor
    *
    * Contiguous monotone resource. The address range is pre-defined at
-   * initializtion time and is immutable.
+   * initialization time and is immutable.
    *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
@@ -66,7 +67,7 @@ import org.vmmagic.unboxed.*;
    * Constructor
    *
    * Discontiguous monotone resource. The address range is <i>not</i>
-   * pre-defined at initializtion time and is dynamically defined to
+   * pre-defined at initialization time and is dynamically defined to
    * be some set of pages, according to demand and availability.
    *
    * CURRENTLY UNIMPLEMENTED
@@ -80,12 +81,37 @@ import org.vmmagic.unboxed.*;
   public MonotonePageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
     super(pageBudget, space);
     /* unimplemented */
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
-    this.contiguous = false;
     this.start = Address.zero();
     this.cursor = Address.zero();
     this.sentinel = Address.zero();
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
+  }
+
+  /**
+   * Return the number of available physical pages for this resource.
+   * This includes all pages currently unused by this resource's page
+   * cursor. If the resource is using discontiguous space it also includes
+   * currently unassigned discontiguous space.<p>
+   *
+   * Note: This just considers physical pages (ie virtual memory pages
+   * allocated for use by this resource). This calculation is orthogonal
+   * to and does not consider any restrictions on the number of pages
+   * this resource may actually use at any time (ie the number of
+   * committed and reserved pages).<p>
+   *
+   * Note: The calculation is made on the assumption that all space that
+   * could be assigned to this resource would be assigned to this resource
+   * (ie the unused discontiguous space could just as likely be assigned
+   * to another competing resource).
+   *
+   * @return The number of available physical pages for this resource.
+   */
+  @Override
+  public int getAvailablePhysicalPages() {
+    int rtn = Conversions.bytesToPages(sentinel.diff(cursor));
+    if (!contiguous)
+      rtn += Map.getAvailableDiscontiguousChunks()*Space.PAGES_IN_CHUNK;
+    return rtn;
   }
 
   /**
@@ -94,7 +120,7 @@ import org.vmmagic.unboxed.*;
    *
    * If the request can be satisfied, then ensure the pages are
    * mmpapped and zeroed before returning the address of the start of
-   * the region.  If the request cannot be satisified, return zero.
+   * the region.  If the request cannot be satisfied, return zero.
    *
    * @param requestPages The number of pages to be allocated.
    * @return The start of the first page if successful, zero on
@@ -102,8 +128,6 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   protected Address allocPages(int requestPages) {
-    if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(contiguous);
     int pages = requestPages;
     lock();
     Address rtn = cursor;
@@ -119,6 +143,16 @@ import org.vmmagic.unboxed.*;
     }
     Extent bytes = Conversions.pagesToBytes(pages);
     Address tmp = cursor.plus(bytes);
+
+    if (!contiguous && tmp.GT(sentinel)) {
+      /* we're out of virtual memory within our discontiguous region, so ask for more */
+      int requiredChunks = Space.requiredChunks(pages);
+      start = space.growDiscontiguousSpace(requiredChunks);
+      cursor = start;
+      sentinel = cursor.plus(start.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
+      rtn = cursor;
+      tmp = cursor.plus(bytes);
+    }
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(rtn.GE(cursor) && rtn.LT(cursor.plus(bytes)));
     if (tmp.GT(sentinel)) {
@@ -210,17 +244,39 @@ import org.vmmagic.unboxed.*;
     unlock();
   }
 
-
   /**
    * Release all pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
    */
   @Inline
   private void releasePages() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
-    Extent bytes = cursor.diff(start).toWord().toExtent();
-    releasePages(start, bytes);
-    cursor = start;
+    Address first = start;
+    do {
+      Extent bytes = cursor.diff(start).toWord().toExtent();
+      releasePages(start, bytes);
+      cursor = start;
+    } while (!contiguous && moveToNextChunk());
+    if (!contiguous) {
+      sentinel = Address.zero();
+      Map.freeAllChunks(first);
+    }
+  }
+
+  /**
+   * Adjust the start and cursor fields to point to the next chunk
+   * in the linked list of chunks tied down by this page resource.
+   *
+   * @return True if we moved to the next chunk; false if we hit the
+   * end of the linked list.
+   */
+  private boolean moveToNextChunk() {
+    start = Map.getNextContiguousRegion(start);
+    if (start.isZero())
+      return false;
+    else {
+      cursor = start.plus(Map.getContiguousRegionSize(start));
+      return true;
+    }
   }
 
   /**

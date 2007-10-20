@@ -13,6 +13,7 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
 
@@ -74,116 +75,19 @@ import org.vmmagic.pragma.*;
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
    * @param fromSpace The does this instance start life as from-space
    * (or to-space)?
+   * @param vmRequest An object describing the virtual memory requested.
    */
-  public CopySpace(String name, int pageBudget, Address start, Extent bytes,
-      boolean fromSpace) {
-    super(name, true, false, start, bytes);
+  public CopySpace(String name, int pageBudget, boolean fromSpace, VMRequest vmRequest) {
+    super(name, true, false, vmRequest);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
+    if (vmRequest.isDiscontiguous()) {
+      pr = new MonotonePageResource(pageBudget, this, META_DATA_PAGES_PER_REGION);
+    } else {
+      pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
+    }
   }
-
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param fromSpace The does this instance start life as from-space
-   * (or to-space)?
-   */
-  public CopySpace(String name, int pageBudget, int mb, boolean fromSpace) {
-    super(name, true, false, mb);
-    this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param fromSpace The does this instance start life as from-space
-   * (or to-space)?
-   */
-  public CopySpace(String name, int pageBudget, float frac,
-                   boolean fromSpace) {
-    super(name, true, false, frac);
-    this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   * @param fromSpace The does this instance start life as from-space
-   * (or to-space)?
-   */
-  public CopySpace(String name, int pageBudget, int mb, boolean top,
-      boolean fromSpace) {
-    super(name, true, false, mb, top);
-    this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   * @param fromSpace The does this instance start life as from-space
-   * (or to-space)?
-   */
-  public CopySpace(String name, int pageBudget, float frac, boolean top,
-      boolean fromSpace) {
-    super(name, true, false, frac, top);
-    this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
-  }
-
 
   /****************************************************************************
    *
@@ -203,7 +107,10 @@ import org.vmmagic.pragma.*;
    * Release this copy space after a collection.  This means releasing
    * all pages associated with this (now empty) space.
    */
-  public void release() { ((MonotonePageResource) pr).reset(); }
+  public void release() {
+    ((MonotonePageResource) pr).reset();
+    lastDiscontiguousRegion = Address.zero();
+  }
 
   /**
    * Release an allocated page or pages.  In this case we do nothing
@@ -237,7 +144,28 @@ import org.vmmagic.pragma.*;
    * @return The forwarded object.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
+    VM.assertions.fail("CopySpace.traceLocal called without allocator");
+    return ObjectReference.nullReference();
+  }
+
+  /**
+   * Trace an object under a copying collection policy.
+   *
+   * We use a tri-state algorithm to deal with races to forward
+   * the object.  The tracer must wait if the object is concurrently
+   * being forwarded by another thread.
+   *
+   * If the object is already forwarded, the copy is returned.
+   * Otherwise, the object is forwarded and the copy is returned.
+   *
+   * @param trace The trace being conducted.
+   * @param object The object to be forwarded.
+   * @param allocator The allocator to use when copying.
+   * @return The forwarded object.
+   */
+  @Inline
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object, int allocator) {
     /* If the object in question is already in to-space, then do nothing */
     if (!fromSpace) return object;
 
@@ -256,9 +184,9 @@ import org.vmmagic.pragma.*;
     } else {
       /* We are the designated copier, so forward it and enqueue it */
 
-      ObjectReference newObject = VM.objectModel.copy(object, trace.getAllocator());
+      ObjectReference newObject = VM.objectModel.copy(object, allocator);
       setForwardingPointer(object, newObject);
-      trace.enqueue(newObject); // Scan it later
+      trace.processNode(newObject); // Scan it later
 
       return newObject;
     }
@@ -301,7 +229,7 @@ import org.vmmagic.pragma.*;
   public static void markObject(TraceLocal trace, ObjectReference object,
       Word markState) {
     if (testAndMark(object, markState))
-      trace.enqueue(object);
+      trace.processNode(object);
   }
 
   /****************************************************************************

@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
@@ -45,19 +46,14 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
+  protected VM_CompiledMethod compileMethod(VM_NormalMethod method, VM_TypeReference[] params) {
     VM_CompiledMethod cm;
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     cm = VM_BaselineCompiler.compile(method);
 
     if (VM.BuildForAdaptiveSystem) {
-      // Must estimate compilation time by using offline ratios.
-      // It is tempting to time via System.currentTimeMillis()
-      // but 1 millisecond granularity isn't good enough because the
-      // the baseline compiler is just too fast.
-      // TODO: Try Using System.nanoTime() instead
-      double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();
-      cm.setCompilationTime(compileTime);
+      /* We can't accurately measure compilation time on Host JVM, so just approximate with DNA */
+      cm.setCompilationTime((float)VM_CompilerDNA.estimateCompileTime(VM_CompilerDNA.BASELINE, method));
     }
     return cm;
   }

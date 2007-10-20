@@ -17,6 +17,7 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.pragma.*;
 
 public class Selected {
+  public static final String name = "@_PLAN_@";
   @Uninterruptible
   public static final class Plan extends @_PLAN_@
   {

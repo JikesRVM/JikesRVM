@@ -10,7 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import java.nio.*;
+
+import java.nio.ByteBuffer;
 
 public class TestJNIDirectBuffers {
 
@@ -85,12 +86,12 @@ public class TestJNIDirectBuffers {
   }
 
 
-  private final static native byte getByte(ByteBuffer buffer, int index);
-  private final static native void putByte(ByteBuffer buffer, int index, byte b);
-  private final static native long getAddress(ByteBuffer buffer);
-  private final static native long getStaticNativeAddress();
-  private final static native long getStaticNativeCapacity();
-  private final static native ByteBuffer newByteBuffer(long address, long capacity);
+  private static native byte getByte(ByteBuffer buffer, int index);
+  private static native void putByte(ByteBuffer buffer, int index, byte b);
+  private static native long getAddress(ByteBuffer buffer);
+  private static native long getStaticNativeAddress();
+  private static native long getStaticNativeCapacity();
+  private static native ByteBuffer newByteBuffer(long address, long capacity);
 
   public static native void setVerboseOff();
 
@@ -107,7 +108,4 @@ public class TestJNIDirectBuffers {
       printVerbose("FAIL: " + testName);
     }
   }
-
-
-
 }

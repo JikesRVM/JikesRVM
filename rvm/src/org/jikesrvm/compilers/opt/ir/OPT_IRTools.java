@@ -612,7 +612,7 @@ public abstract class OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        if (op.asRegister().register.number == r.number) {
+        if (op.asRegister().getRegister().number == r.number) {
           return true;
         }
       }
@@ -627,7 +627,7 @@ public abstract class OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        if (op.asRegister().register.number == r.number) {
+        if (op.asRegister().getRegister().number == r.number) {
           return true;
         }
       }

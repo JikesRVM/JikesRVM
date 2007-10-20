@@ -18,7 +18,7 @@ import org.mmtk.plan.Plan;
  * Provide an upper bound on nursery size. This option is not intended to
  * be created directly, but via NurserySize.
  */
-public class BoundedNursery extends PagesOption {
+public final class BoundedNursery extends PagesOption {
   /**
    * Create the option.
    */

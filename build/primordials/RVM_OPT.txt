@@ -16,3 +16,4 @@ Ljava/io/LineNumberReader;
 Ljava/io/FileReader;
 Ljava/io/PushbackReader;
 [Lorg/jikesrvm/compilers/opt/OPT_Simplifier$DefUseEffect;
+[Lorg/jikesrvm/compilers/opt/ir/OPT_Operator;

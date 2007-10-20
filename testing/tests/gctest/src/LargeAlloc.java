@@ -21,10 +21,10 @@ class LargeAlloc {
 
   public static void main(String[] args)  throws Throwable {
     boolean base = true;
-    if (args.length == 0)
+    if (args.length == 0) {
       System.out.println("No argument.  Assuming base");
-    if (args[0].compareTo("opt") == 0 ||
-        args[0].compareTo("perf") == 0) {
+    }
+    if (args[0].compareTo("opt") == 0 || args[0].compareTo("perf") == 0) {
       base = false;
       timeLimit = 600;
     }
@@ -66,7 +66,8 @@ class LargeAlloc {
     }
     System.gc();
     long endUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.print("\nOverall: after allocation, usedMemory has increased by ");
+    System.out.print("\nAfter allocation, usedMemory has increased by ");
     System.out.println(((endUsed - startUsed) / (1024.0 * 1024.0)) + " Mb");
+    System.out.println("Overall: SUCCESS");
   }
 }

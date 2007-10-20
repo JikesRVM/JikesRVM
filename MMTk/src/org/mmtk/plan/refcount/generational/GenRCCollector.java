@@ -13,11 +13,12 @@
 package org.mmtk.plan.refcount.generational;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
@@ -45,7 +46,6 @@ import org.vmmagic.unboxed.*;
  * @see GenRCMutator
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenRCCollector extends RCBaseCollector
 implements Constants {
@@ -82,7 +82,7 @@ implements Constants {
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == GenRC.PREPARE) {
       super.collectionPhase(phaseId, primary);
       rc.prepare();
@@ -91,8 +91,7 @@ implements Constants {
 
     if (phaseId == GenRC.RELEASE) {
       super.collectionPhase(phaseId, primary);
-      rc.releaseCollector();
-      rc.releaseMutator();
+      rc.release();
       return;
     }
 
@@ -120,7 +119,7 @@ implements Constants {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     }
-    return rc.alloc(bytes, align, offset, true);
+    return rc.alloc(bytes, align, offset);
   }
 
   /**
@@ -136,7 +135,7 @@ implements Constants {
     CopySpace.clearGCBits(object);
     RCHeader.initializeHeader(object, typeRef, false);
     RCHeader.makeUnlogged(object);
-    ExplicitFreeListLocal.unsyncLiveObject(object);
+    ExplicitFreeListSpace.unsyncSetLiveBit(object);
   }
 
   /****************************************************************************
@@ -156,7 +155,7 @@ implements Constants {
   }
 
   /** @return The current modified object processor. */
-  public final TraceStep getModifiedProcessor() {
+  public final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
 }

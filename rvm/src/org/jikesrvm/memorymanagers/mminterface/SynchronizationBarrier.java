@@ -17,8 +17,9 @@ import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.mmtk.utility.Barrier;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -58,7 +59,7 @@ public final class SynchronizationBarrier {
     VM_Magic.isync(); // so subsequent instructions won't see stale values
 
     // XXX This should be changed to return ordinal of current rendezvous rather than the one at the beginning
-    return VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getGCOrdinal();
+    return VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getGCOrdinal();
   }
 
   /**
@@ -73,7 +74,7 @@ public final class SynchronizationBarrier {
   public void startupRendezvous() {
 
     int myProcessorId = VM_Processor.getCurrentProcessorId();
-    VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
     int myNumber = th.getGCOrdinal();
 
     if (verbose > 0) {
@@ -95,8 +96,8 @@ public final class SynchronizationBarrier {
     //
     waitABit(5);          // give missing threads a chance to show up
     int numParticipating = 0;
-    for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-      if (VM_Scheduler.processors[i].lockInCIfInC()) { // can't be true for self
+    for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
+      if (VM_GreenScheduler.processors[i].lockInCIfInC()) { // can't be true for self
         if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
         removeProcessor(i);
       } else {
@@ -140,7 +141,7 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   private int waitABit(int x) {
     int sum = 0;
-    if (VM_Scheduler.numProcessors < numRealProcessors) {
+    if (VM_GreenScheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
       for (int i = 0; i < (x * 100); i++) {
         sum = sum + i;
@@ -161,19 +162,20 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   private void removeProcessor(int id) {
 
-    VM_Processor vp = VM_Scheduler.processors[id];
+    VM_GreenProcessor vp = VM_GreenScheduler.processors[id];
 
     // get processors collector thread off its transfer queue
-    vp.transferMutex.lock();
-    VM_Thread ct = vp.transferQueue.dequeueGCThread(null);
-    vp.transferMutex.unlock();
+    vp.collectorThreadMutex.lock("removing a processor from gc");
+    VM_GreenThread ct = vp.collectorThread;
+    vp.collectorThread = null;
+    vp.collectorThreadMutex.unlock();
     if (VM.VerifyAssertions) {
       VM._assert(ct != null && ct.isGCThread());
     }
     // put it back on the global collector thread queue
-    VM_Scheduler.collectorMutex.lock();
-    VM_Scheduler.collectorQueue.enqueue(ct);
-    VM_Scheduler.collectorMutex.unlock();
+    VM_GreenScheduler.collectorMutex.lock("collector mutex for processor removal");
+    VM_GreenScheduler.collectorQueue.enqueue(ct);
+    VM_GreenScheduler.collectorMutex.unlock();
 
     // set VPs CollectorThread ordinal number negative to indicate not participating
     VM_CollectorThread.collectorThreads[id].setGCOrdinal(-1);

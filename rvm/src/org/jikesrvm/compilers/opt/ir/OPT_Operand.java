@@ -188,6 +188,15 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Is the operand a moveable {@link OPT_ObjectConstantOperand}?
+   *
+   * @return false
+   */
+  public boolean isMoveableObjectConstant() {
+    return false;
+  }
+
+  /**
    * Is the operand an {@link OPT_TIBConstantOperand}?
    *
    * @return <code>true</code> if <code>this</code> is an
@@ -668,10 +677,10 @@ public abstract class OPT_Operand {
     // various Flag bits are considered as well....
     if (op1.isRegister()) {
       OPT_RegisterOperand rop1 = op1.asRegister();
-      VM_TypeReference type1 = rop1.type;
+      VM_TypeReference type1 = rop1.getType();
       if (op2.isRegister()) {
         OPT_RegisterOperand rop2 = op2.asRegister();
-        VM_TypeReference type2 = rop2.type;
+        VM_TypeReference type2 = rop2.getType();
         if (type1 == type2) {
           if (rop1.hasLessConservativeFlags(rop2)) {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -890,10 +899,10 @@ public abstract class OPT_Operand {
     // the various Flag bits are considered as well....
     if (op1.isRegister()) {
       OPT_RegisterOperand rop1 = op1.asRegister();
-      VM_TypeReference type1 = rop1.type;
+      VM_TypeReference type1 = rop1.getType();
       if (op2.isRegister()) {
         OPT_RegisterOperand rop2 = op2.asRegister();
-        VM_TypeReference type2 = rop2.type;
+        VM_TypeReference type2 = rop2.getType();
         if (type1 == type2) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Identically typed register operands, checking flags...");
@@ -902,7 +911,7 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("mismatch\n");
             }
-            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
             if (rop1.scratchObject instanceof OPT_Operand &&
                 rop2.scratchObject instanceof OPT_Operand &&
                 (((OPT_Operand) rop1.scratchObject).similar(((OPT_Operand) rop2.scratchObject)))) {
@@ -916,7 +925,7 @@ public abstract class OPT_Operand {
                   "Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
             }
             // by not setting scratchObject we mark as possible null
-            return new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            return new OPT_RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
           } else {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("match\n");
@@ -932,7 +941,7 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("mismatch\n");
             }
-            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
             res.meetInheritableFlags(rop2);
             // even if both op1 & op2 are precise,
             // op1.type != op2.type, so clear it on res
@@ -948,7 +957,7 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("Operands are registers of compatible type and flags but with incompatible non-null guards\n");
             }
-            return new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            return new OPT_RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
           } else {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("match\n");
@@ -969,7 +978,7 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("found common supertype\n");
             }
-            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, resType, rop1.getFlags());
+            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, resType, rop1.getFlags(), false, false);
             res.meetInheritableFlags(rop2);
             res.clearPreciseType();     // invalid on res
             res.clearDeclaredType();    // invalid on res

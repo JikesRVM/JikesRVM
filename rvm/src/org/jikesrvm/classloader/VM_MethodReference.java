@@ -235,7 +235,14 @@ public final class VM_MethodReference extends VM_MemberReference {
    * SysCall annotated methods we don't know until they are resolved.
    */
   public boolean isMagic() {
-    return getType().isMagicType() || ((resolvedMember != null) && (resolvedMember.isSysCall()));
+    return getType().isMagicType() || ((resolvedMember != null) && (resolvedMember.isSysCall() || resolvedMember.isSpecializedInvoke()));
+  }
+
+  /**
+   * Is the method reference to a specialized invoke? NB. we don't know until they are resolved.
+   */
+  public boolean isSpecializedInvoke() {
+    return (resolvedMember != null) && (resolvedMember.isSpecializedInvoke());
   }
 
   /**

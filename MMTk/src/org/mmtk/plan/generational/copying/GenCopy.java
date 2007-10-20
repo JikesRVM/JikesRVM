@@ -16,6 +16,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -64,14 +65,14 @@ import org.vmmagic.pragma.*;
    * The low half of the copying mature space.  We allocate into this space
    * when <code>hi</code> is <code>false</code>.
    */
-  static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.25, false);
+  static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create());
   static final int MS0 = matureSpace0.getDescriptor();
 
   /**
    * The high half of the copying mature space. We allocate into this space
    * when <code>hi</code> is <code>true</code>.
    */
-  static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.25, true);
+  static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create());
   static final int MS1 = matureSpace1.getDescriptor();
 
 
@@ -133,13 +134,17 @@ import org.vmmagic.pragma.*;
    * @param phaseId Collection phase to process
    */
   @Inline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
         hi = !hi; // flip the semi-spaces
         matureSpace0.prepare(hi);
         matureSpace1.prepare(!hi);
+        matureTrace.prepare();
+        return;
+      }
+      if (phaseId == CLOSURE) {
         matureTrace.prepare();
         return;
       }
@@ -184,12 +189,23 @@ import org.vmmagic.pragma.*;
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
   public int getPagesRequired() {
     return super.getPagesRequired() + (toSpace().requiredPages() << 1);
+  }
+
+  /**
+   * Return the number of pages available for allocation into the mature
+   * space.
+   *
+   * @return The number of pages available for allocation into the mature
+   * space.
+   */
+  public int getMaturePhysicalPagesAvail() {
+    return toSpace().availablePhysicalPages() >> 1;
   }
 
   /**************************************************************************

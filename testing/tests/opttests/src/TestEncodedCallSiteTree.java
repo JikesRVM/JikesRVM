@@ -43,7 +43,7 @@ class TestEncodedCallSiteTree {
     test(9535, 32, 9514, data2);
   }
 
-  static void test(int callerMID, int bcIndex, int calleeMID, int[] data ) {
+  static void test(int callerMID, int bcIndex, int calleeMID, int[] data) {
     System.out.println("Result is "+VM_OptEncodedCallSiteTree.callEdgeMissing(callerMID, bcIndex, calleeMID, data)+"\n");
   }
 

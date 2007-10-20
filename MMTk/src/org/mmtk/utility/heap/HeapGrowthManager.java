@@ -80,8 +80,7 @@ import org.vmmagic.unboxed.*;
    * </ul>
    */
   private static final double[][] function =
-    VM.activePlan.constraints().generational()
-    ? generationalFunction : nongenerationalFunction;
+    VM.activePlan.constraints().generational() ? generationalFunction : nongenerationalFunction;
 
   private static long endLastMajorGC;
   private static double accumulatedGCTime;
@@ -97,7 +96,7 @@ import org.vmmagic.unboxed.*;
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
     if (VM.VERIFY_ASSERTIONS) sanityCheck();
-    endLastMajorGC = VM.statistics.cycles();
+    endLastMajorGC = VM.statistics.nanoTime();
   }
 
   /**
@@ -148,7 +147,7 @@ import org.vmmagic.unboxed.*;
    * Reset timers used to compute gc load
    */
   public static void reset() {
-    endLastMajorGC = VM.statistics.cycles();
+    endLastMajorGC = VM.statistics.nanoTime();
     accumulatedGCTime = 0;
   }
 
@@ -182,8 +181,8 @@ import org.vmmagic.unboxed.*;
 
   private static double computeHeapChangeRatio(double liveRatio) {
     // (1) compute GC load.
-    long totalCycles = VM.statistics.cycles() - endLastMajorGC;
-    double totalTime = VM.statistics.cyclesToMillis(totalCycles);
+    long totalNanos = VM.statistics.nanoTime() - endLastMajorGC;
+    double totalTime = VM.statistics.nanosToMillis(totalNanos);
     double gcLoad = accumulatedGCTime / totalTime;
 
     if (liveRatio > 1) {
@@ -202,7 +201,7 @@ import org.vmmagic.unboxed.*;
       gcLoad = 1;
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio >= 0);
-    if (VM.VERIFY_ASSERTIONS && gcLoad < 0) {
+    if (VM.VERIFY_ASSERTIONS && gcLoad < -0.0) {
       Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
       Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
       Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);

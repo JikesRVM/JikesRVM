@@ -53,7 +53,7 @@ class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
         for (OPT_OperandEnumeration e2 = s.getRootOperands(); e2.hasMoreElements();) {
           OPT_Operand op = e2.nextElement();
           if (op.isRegister()) {
-            OPT_Register r = op.asRegister().register;
+            OPT_Register r = op.asRegister().getRegister();
             if (r.isSymbolic()) {
               update(r, baseFactor);
             }
@@ -64,13 +64,13 @@ class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
         for (OPT_OperandEnumeration e2 = s.getMemoryOperands(); e2.hasMoreElements();) {
           OPT_MemoryOperand M = (OPT_MemoryOperand) e2.nextElement();
           if (M.base != null) {
-            OPT_Register r = M.base.register;
+            OPT_Register r = M.base.getRegister();
             if (r.isSymbolic()) {
               update(r, factor);
             }
           }
           if (M.index != null) {
-            OPT_Register r = M.index.register;
+            OPT_Register r = M.index.getRegister();
             if (r.isSymbolic()) {
               update(r, factor);
             }

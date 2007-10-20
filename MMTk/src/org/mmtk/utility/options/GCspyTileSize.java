@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * GCspy Tile Size.
  */
-public class GCspyTileSize extends IntOption {
+public final class GCspyTileSize extends IntOption {
   /**
    * Create the option.
    */

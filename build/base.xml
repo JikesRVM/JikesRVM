@@ -38,8 +38,8 @@
   <!-- base location for all test results -->
   <property name="results.dir" location="${jikesrvm.dir}/results"/>
 
-  <!-- by default not working on patch -->
-  <property name="patch.name" value=""/>
+  <!-- by default not working on config variant-->
+  <property name="config.variant" value=""/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -52,10 +52,13 @@
     <attribute name="property"/>
     <attribute name="config"/>
     <sequential>
+      <condition property="config.full-variant" value="${config.variant}profile" else="${config.variant}">
+        <isset property="config.with-profile"/>
+      </condition>
       <condition property="@{property}"
                  value="@{config}_${target.name}"
-                 else="@{config}_${target.name}_${patch.name}">
-        <equals arg1="${patch.name}" arg2=""/>
+                 else="@{config}_${config.full-variant}_${target.name}">
+        <equals arg1="${config.full-variant}" arg2=""/>
       </condition>
     </sequential>
   </macrodef>

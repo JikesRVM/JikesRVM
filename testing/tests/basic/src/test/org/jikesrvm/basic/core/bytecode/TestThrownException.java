@@ -38,8 +38,7 @@ class TestThrownException {
     System.out.println("testRethrownException");
     try {
       throw new Exception();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       throw e;
     }
   }
@@ -57,8 +56,7 @@ class TestThrownException {
     synchronized (lock) {
       try {
         throw new RuntimeException("MyException");
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         throw e;
       }
     }
@@ -78,8 +76,7 @@ class TestThrownException {
       try {
         trouble(i);
         System.out.println("Error: no exception thrown!");
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         System.out.println("caught " + e.getClass());
         //printTrace(e, 4);
       }

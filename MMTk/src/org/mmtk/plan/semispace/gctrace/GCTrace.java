@@ -15,6 +15,7 @@ package org.mmtk.plan.semispace.gctrace;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.utility.deque.SortTODSharedDeque;
+import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.utility.options.Options;
 
@@ -83,7 +84,7 @@ import org.vmmagic.pragma.*;
    */
 
   /* Spaces */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB<<2);
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, VMRequest.create());
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */
@@ -101,8 +102,10 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public GCTrace() {
-    SortTODSharedDeque workList = new SortTODSharedDeque(traceSpace, 1);
-    SortTODSharedDeque traceBuf = new SortTODSharedDeque(traceSpace, 1);
+    SortTODSharedDeque workList = new SortTODSharedDeque("workList",traceSpace, 1);
+    SortTODSharedDeque traceBuf = new SortTODSharedDeque("traceBuf",traceSpace, 1);
+    workList.prepareNonBlocking();
+    traceBuf.prepareNonBlocking();
     TraceGenerator.init(workList, traceBuf);
   }
 
@@ -119,6 +122,7 @@ import org.vmmagic.pragma.*;
    * The planExit method is called at RVM termination to allow the
    * trace process to finish.
    */
+  @Interruptible
   public final void notifyExit(int value) {
     super.notifyExit(value);
     finalDead = true;
@@ -147,7 +151,7 @@ import org.vmmagic.pragma.*;
    * Collection
    */
 
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       lastGCWasTracing = traceInducedGC;
     }
@@ -165,7 +169,9 @@ import org.vmmagic.pragma.*;
       }
     } else if (!traceInducedGC ||
                (phaseId == INITIATE) ||
+               (phaseId == PREPARE_STACKS) ||
                (phaseId == ROOTS) ||
+               (phaseId == STACK_ROOTS) ||
                (phaseId == COMPLETE)) {
       /* Performing normal GC; sponge off of parent's work. */
       super.collectionPhase(phaseId);

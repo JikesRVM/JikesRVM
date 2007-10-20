@@ -196,7 +196,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
           if (VM.VerifyAssertions) {
             OPT_Operand value = MIR_Move.getValue(end);
             VM._assert(value.isRegister());
-            VM._assert(MIR_Move.getValue(end).asRegister().register == register);
+            VM._assert(MIR_Move.getValue(end).asRegister().getRegister() == register);
           }
           end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
         }
@@ -226,14 +226,14 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
           OPT_Operand op = ops.next();
           if (op.isRegister()) {
             OPT_RegisterOperand rop = op.asRegister();
-            OPT_Register r = rop.register;
+            OPT_Register r = rop.getRegister();
 
             // Update MIR state for every phyiscal FPR we see
             if (r.isPhysical() && r.isFloatingPoint() && s.operator() != DUMMY_DEF && s.operator() != DUMMY_USE) {
               int n = OPT_PhysicalRegisterSet.getFPRIndex(r);
               if (fpStackOffset != 0) {
                 n += fpStackOffset;
-                rop.register = phys.getFPR(n);
+                rop.setRegister(phys.getFPR(n));
               }
               ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight, n + 1);
             }

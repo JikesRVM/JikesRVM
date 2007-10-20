@@ -19,7 +19,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;
-import org.mmtk.utility.scan.*;
 
 import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
@@ -86,13 +85,11 @@ import org.vmmagic.unboxed.*;
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
       worklist = new SortTODObjectReferenceStack(workListPool);
-      workListPool.newConsumer();
     }
 
     /* Trace objects */
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
-    tracePool.newConsumer();
     objectLinks = ObjectReferenceArray.create(Space.MAX_SPACES);
   }
 
@@ -191,7 +188,7 @@ import org.vmmagic.unboxed.*;
       if (MERLIN_ANALYSIS) {
         ObjectReference oldTgt = slot.loadObjectReference();
         if (!oldTgt.isNull())
-          VM.traceInterface.updateDeathTime(oldTgt);
+          VM.traceInterface.updateDeathTime(oldTgt.toObject());
       }
 
       traceBusy = true;
@@ -224,13 +221,11 @@ import org.vmmagic.unboxed.*;
   @NoInline
   public static void traceAlloc(boolean isImmortal, ObjectReference ref,
       ObjectReference typeRef, int bytes) {
-    boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized()
-        && !Plan.gcInProgress();
+    boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized() && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */
     Word oid = VM.traceInterface.getOID(ref);
     Word allocType;
-    if (gcAllowed
-        && (oid.GE(lastGC.plus(Word.fromIntZeroExtend(Options.traceRate.getValue())))))
+    if (gcAllowed && (oid.GE(lastGC.plus(Word.fromIntZeroExtend(Options.traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else {
       allocType = TRACE_ALLOC;
@@ -359,7 +354,7 @@ import org.vmmagic.unboxed.*;
    * @param obj The root-referenced object
    */
   public static void rootEnumerate(ObjectReference obj) {
-    VM.traceInterface.updateDeathTime(obj);
+    VM.traceInterface.updateDeathTime(obj.toObject());
   }
 
   /**
@@ -400,7 +395,7 @@ import org.vmmagic.unboxed.*;
            /* Set the "new" dead age. */
            agePropagate = currentAge;
            /* Scan the object, pushing the survivors */
-           Scan.scanObject(getTraceLocal(), ref);
+           VM.scanning.scanObject(getTraceLocal(), ref);
          }
          /* Get the next object to process */
          ref = worklist.pop();

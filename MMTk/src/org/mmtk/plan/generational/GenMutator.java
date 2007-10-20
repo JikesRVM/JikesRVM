@@ -36,7 +36,6 @@ import org.vmmagic.unboxed.*;
  * @see GenCollector
  * @see StopTheWorldMutator
  * @see MutatorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public class GenMutator extends StopTheWorldMutator {
 
@@ -86,7 +85,7 @@ import org.vmmagic.unboxed.*;
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == Gen.ALLOC_NURSERY) {
       if (Stats.GATHER_MARK_CONS_STATS) Gen.nurseryCons.inc(bytes);
-      return nursery.alloc(bytes, align, offset, false);
+      return nursery.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -245,7 +244,7 @@ import org.vmmagic.unboxed.*;
   public final void flushRememberedSets() {
     remset.flushLocal();
     arrayRemset.flushLocal();
-    assertRemsetFlushed();
+    assertRemsetsFlushed();
   }
 
   /**
@@ -255,7 +254,7 @@ import org.vmmagic.unboxed.*;
    * it is its own responsibility to ensure that they are flushed before
    * returning to MMTk.
    */
-  public final void assertRemsetFlushed() {
+  public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(remset.isFlushed());
       VM.assertions._assert(arrayRemset.isFlushed());
@@ -271,9 +270,9 @@ import org.vmmagic.unboxed.*;
    * Perform a per-mutator collection phase.
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == Gen.PREPARE_MUTATOR) {
+    if (phaseId == Gen.PREPARE) {
       nursery.rebind(Gen.nurserySpace);
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
@@ -286,13 +285,13 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == Gen.RELEASE_MUTATOR) {
+    if (phaseId == Gen.RELEASE) {
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
       } else {
         plos.release(false);
       }
-      assertRemsetFlushed();
+      assertRemsetsFlushed();
       return;
     }
 

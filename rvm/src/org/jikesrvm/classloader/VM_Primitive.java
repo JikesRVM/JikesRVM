@@ -151,7 +151,6 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
       default:
         if (tr == VM_TypeReference.Address ||
             tr == VM_TypeReference.Word ||
-            tr == VM_TypeReference.ObjectReference ||
             tr == VM_TypeReference.Offset ||
             tr == VM_TypeReference.Extent) {
           stackWords = 1;
@@ -307,6 +306,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    */
   public void resolve() {}
 
+  public void allBootImageTypesResolved() { }
+
   /**
    * Cause instantiation to take place.
    */
@@ -390,25 +391,4 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return false;
   }
-
-  /**
-   * Record the type information the memory manager holds about this
-   * type. This method should never be called for a primitive type.
-   * @param mmt the type to record
-   */
-  public void setMMType(Object mmt) {
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-  }
-
-  /**
-   * Return the type information the memory manager previously
-   * recorded about this type. This method should never be called for
-   * a primitive type.
-   */
-  @Uninterruptible
-  public Object getMMType() {
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-    return null;
-  }
-
 }

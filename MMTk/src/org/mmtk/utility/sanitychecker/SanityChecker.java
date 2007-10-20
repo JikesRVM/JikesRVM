@@ -12,9 +12,9 @@
  */
 package org.mmtk.utility.sanitychecker;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
-import org.mmtk.plan.StopTheWorld;
-import org.mmtk.policy.RawPageSpace;
+import org.mmtk.plan.Simple;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class performs sanity checks for StopTheWorld collectors.
+ * This class performs sanity checks for Simple collectors.
  */
 @Uninterruptible public final class SanityChecker implements Constants {
 
@@ -40,23 +40,18 @@ import org.vmmagic.unboxed.*;
   public static final int ALIVE = -1;
   public static final int UNSURE = 0;
 
-  public static final int SANITY_DATA_MB = 32;
   public static final int LOG_SANITY_DATA_SIZE = 21;
-  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, SANITY_DATA_MB);
-  public static final int SANITY = sanitySpace.getDescriptor();
-
   /* Trace */
   public Trace trace;
-  private SanityDataTable sanityTable;
+  private final SanityDataTable sanityTable;
   private boolean preGCSanity;
 
   /****************************************************************************
    * Constants
    */
   public SanityChecker() {
-    sanityTable = new SanityDataTable(sanitySpace, LOG_SANITY_DATA_SIZE);
-    trace = new Trace(sanitySpace);
-    preGCSanity = true;
+    sanityTable = new SanityDataTable(Plan.sanitySpace, LOG_SANITY_DATA_SIZE);
+    trace = new Trace(Plan.sanitySpace);
   }
 
   /**
@@ -81,7 +76,17 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public boolean collectionPhase(int phaseId) {
-    if (phaseId == StopTheWorld.SANITY_PREPARE) {
+    if (phaseId == Simple.SANITY_SET_PREGC) {
+      preGCSanity = true;
+      return true;
+    }
+
+    if (phaseId == Simple.SANITY_SET_POSTGC) {
+      preGCSanity = false;
+      return true;
+    }
+
+    if (phaseId == Simple.SANITY_PREPARE) {
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");
       Log.writeln("==============================");
@@ -97,16 +102,16 @@ import org.vmmagic.unboxed.*;
       // Clear data space
       sanityTable.acquireTable();
 
-      trace.prepare();
+      trace.prepareNonBlocking();
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_ROOTS) {
+    if (phaseId == Simple.SANITY_ROOTS) {
       VM.scanning.resetThreadCounter();
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_RELEASE) {
+    if (phaseId == Simple.SANITY_RELEASE) {
       trace.release();
       sanityTable.releaseTable();
 
@@ -119,7 +124,6 @@ import org.vmmagic.unboxed.*;
       Log.write("========================================");
       Log.writeln("========================================");
 
-      preGCSanity = !preGCSanity;
       return true;
     }
 

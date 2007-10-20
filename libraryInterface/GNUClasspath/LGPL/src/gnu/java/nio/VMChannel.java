@@ -50,7 +50,7 @@ import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
 
 /**
  * Native interface to support configuring of channel to run in a non-blocking
@@ -167,7 +167,7 @@ public final class VMChannel
   /**
    * A thread-local store of non-moving buffers.  Used to perform IO to
    * in cases where the actual user buffer is in a moving space.
- */
+   */
   private static class LocalByteArray extends ThreadLocal<byte[]> {
     private static final int INITIAL_BUFFER_SIZE = 8192; // force into LOS
     protected byte[] initialValue() {
@@ -254,7 +254,9 @@ public final class VMChannel
    * @throws IOException If an error occurs or dst is not a direct buffers.
    */
   private int read(byte[] dst, int pos, int len) throws IOException {
-    if (MM_Interface.objectCanMove(dst)) {
+    if (MM_Interface.willNeverMove(dst)) {
+      return read(nfd.getNativeFD(),dst,pos,len);
+    } else {
       byte[] buffer;
       // Rebuffer the IO in a thread-local byte array
       buffer = localByteArray.get(len);
@@ -264,8 +266,6 @@ public final class VMChannel
       if (bytes > 0)
         System.arraycopy(buffer,0,dst,pos,bytes);
       return bytes;
-    } else {
-      return read(nfd.getNativeFD(),dst,pos,len);
     }
   }
 
@@ -280,8 +280,7 @@ public final class VMChannel
    * @throws IOException
    */
   private static int read(int fd, byte[] dst, int position, int len) throws IOException {
-    if (VM.VerifyAssertions)
-      VM._assert(!MM_Interface.objectCanMove(dst));
+    if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(dst));
     int bytes = VM_FileSystem.readBytes(fd,dst,position,len);
     if (bytes < 0) {
       throw new IOException("Error code "+Integer.toString(bytes));
@@ -383,35 +382,22 @@ public final class VMChannel
   throws IOException;
 
   /**
-   * For IO operations smaller than this, always copy them to
-   * the thread-local buffer rather than allocating a fresh
-   * ByteBuffer to wrap them.
-   */
-  private static final int COPY_THRESHOLD = 20;
-
-  /**
-   * Writes from a direct byte bufer using the supplied file descriptor.
-   * Assumes the buffer is a DirectBuffer.
+   * Writes from a byte array using the supplied file descriptor.
    *
    * @param src The source buffer.
    * @return Number of bytes written.
    * @throws IOException
    */
   public int write(byte[] src, int pos, int len) throws IOException {
-    if (MM_Interface.objectCanMove(src) || len < COPY_THRESHOLD) {
+    if (MM_Interface.willNeverMove(src)) {
+      return write(nfd.getNativeFD(), src, pos, len);
+    } else {
       byte[] buffer;
       // Rebuffer the IO in a thread-local DirectBuffer
       buffer = localByteArray.get(len);
-      if (VM.VerifyAssertions)
-        VM._assert(!MM_Interface.objectCanMove(buffer));
+      if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(buffer));
       System.arraycopy(src, pos, buffer,0,len);
       return write(nfd.getNativeFD(),buffer,0,len);
-    } else {
-      //ByteBuffer buffer;
-      // Optimized buffer
-      //buffer = java.nio.JikesRVMSupport.newDirectByteBuffer(src);
-      //return write(buffer,pos,len);
-      return write(nfd.getNativeFD(), src, pos, len);
     }
   }
 

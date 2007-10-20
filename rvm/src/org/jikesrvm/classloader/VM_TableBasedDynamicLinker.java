@@ -17,6 +17,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Dynamic linking via indirection tables. <p>
@@ -38,6 +39,7 @@ import org.jikesrvm.runtime.VM_Runtime;
  */
 public class VM_TableBasedDynamicLinker implements VM_Constants {
 
+  @Entrypoint
   private static int[] memberOffsets;
 
   static {
@@ -53,6 +55,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * @param memberId the dynamicLinkingId of the method to link.
    * @return returns the offset of the member.
    */
+  @Entrypoint
   public static int resolveMember(int memberId) throws NoClassDefFoundError {
     VM_MemberReference ref = VM_MemberReference.getMemberRef(memberId);
     return resolveMember(ref);
