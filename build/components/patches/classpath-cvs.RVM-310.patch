@@ -1,0 +1,126 @@
+Index: java/io/FileOutputStream.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/io/FileOutputStream.java,v
+retrieving revision 1.38
+diff -u -r1.38 FileOutputStream.java
+--- java/io/FileOutputStream.java	17 Sep 2006 07:31:42 -0000	1.38
++++ java/io/FileOutputStream.java	20 Oct 2007 11:21:59 -0000
+@@ -59,7 +59,7 @@
+ {
+   private FileDescriptor fd;
+ 
+-  private FileChannelImpl ch;
++  private final FileChannelImpl ch;
+ 
+   /**
+    * This method initializes a <code>FileOutputStream</code> object to write
+Index: java/io/PrintStream.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/io/PrintStream.java,v
+retrieving revision 1.29
+diff -u -r1.29 PrintStream.java
+--- java/io/PrintStream.java	10 Dec 2006 20:25:44 -0000	1.29
++++ java/io/PrintStream.java	20 Oct 2007 11:21:59 -0000
+@@ -76,7 +76,7 @@
+   /**
+    *  Encoding name
+    */
+-  private String encoding;
++  private final String encoding;
+ 
+   /**
+    * This boolean indicates whether or not an error has ever occurred
+@@ -88,7 +88,7 @@
+    * This is <code>true</code> if auto-flush is enabled, 
+    * <code>false</code> otherwise
+    */
+-  private boolean auto_flush;
++  private final boolean auto_flush;
+ 
+   /**
+    * This method initializes a new <code>PrintStream</code> object to write
+@@ -185,16 +185,17 @@
+   public PrintStream (OutputStream out, boolean auto_flush)
+   {
+     super (out);
+-
++    String encoding;
+     try {
+-	this.encoding = SystemProperties.getProperty("file.encoding");
++	encoding = SystemProperties.getProperty("file.encoding");
+     } catch (SecurityException e){
+-	this.encoding = "ISO8859_1";
++	encoding = "ISO8859_1";
+     } catch (IllegalArgumentException e){
+-	this.encoding = "ISO8859_1";
++	encoding = "ISO8859_1";
+     } catch (NullPointerException e){
+-	this.encoding = "ISO8859_1";
++	encoding = "ISO8859_1";
+     }
++    this.encoding = encoding;
+     this.auto_flush = auto_flush;
+   }
+ 
+Index: java/util/Locale.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Locale.java,v
+retrieving revision 1.38
+diff -u -r1.38 Locale.java
+--- java/util/Locale.java	2 Jan 2007 21:40:20 -0000	1.38
++++ java/util/Locale.java	20 Oct 2007 11:21:59 -0000
+@@ -178,21 +178,21 @@
+    *
+    * @serial the languange, possibly ""
+    */
+-  private String language;
++  private final String language;
+ 
+   /**
+    * The country code, as returned by getCountry().
+    *
+    * @serial the country, possibly ""
+    */
+-  private String country;
++  private final String country;
+ 
+   /**
+    * The variant code, as returned by getVariant().
+    *
+    * @serial the variant, possibly ""
+    */
+-  private String variant;
++  private final String variant;
+ 
+   /**
+    * This is the cached hashcode. When writing to stream, we write -1.
+@@ -324,13 +324,12 @@
+     // default locale.
+     if (defaultLocale != null)
+       {
+-        language = convertLanguage(language).intern();
+-        country = country.toUpperCase().intern();
+-        variant = variant.intern();
+-      }
+-    this.language = language;
+-    this.country = country;
+-    this.variant = variant;
++        language = convertLanguage(language);
++        country = country.toUpperCase();
++      }
++    this.language = language.intern();
++    this.country = country.intern();
++    this.variant = variant.intern();
+     hashcode = language.hashCode() ^ country.hashCode() ^ variant.hashCode();
+   }
+ 
+@@ -1022,9 +1021,6 @@
+     throws IOException, ClassNotFoundException
+   {
+     s.defaultReadObject();
+-    language = language.intern();
+-    country = country.intern();
+-    variant = variant.intern();
+     hashcode = language.hashCode() ^ country.hashCode() ^ variant.hashCode();
+   }
+ } // class Locale

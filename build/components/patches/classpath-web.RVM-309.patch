@@ -1,0 +1,363 @@
+Index: java/beans/PropertyChangeSupport.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/beans/PropertyChangeSupport.java,v
+retrieving revision 1.15
+diff -u -r1.15 PropertyChangeSupport.java
+--- java/beans/PropertyChangeSupport.java	12 Feb 2006 13:53:54 -0000	1.15
++++ java/beans/PropertyChangeSupport.java	20 Oct 2007 11:16:49 -0000
+@@ -346,8 +346,8 @@
+   {
+     if (oldVal != newVal)
+       firePropertyChange(new PropertyChangeEvent(source, propertyName,
+-                                                 new Integer(oldVal),
+-                                                 new Integer(newVal)));
++                                                 Integer.valueOf(oldVal),
++                                                 Integer.valueOf(newVal)));
+   }
+ 
+   /**
+Index: java/beans/VetoableChangeSupport.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/beans/VetoableChangeSupport.java,v
+retrieving revision 1.13
+diff -u -r1.13 VetoableChangeSupport.java
+--- java/beans/VetoableChangeSupport.java	28 Jun 2006 14:13:40 -0000	1.13
++++ java/beans/VetoableChangeSupport.java	20 Oct 2007 11:16:49 -0000
+@@ -349,8 +349,8 @@
+   {
+     if (oldVal != newVal)
+       fireVetoableChange(new PropertyChangeEvent(source, propertyName,
+-                                                 new Integer(oldVal),
+-                                                 new Integer(newVal)));
++                                                 Integer.valueOf(oldVal),
++                                                 Integer.valueOf(newVal)));
+   }
+ 
+   /**
+Index: java/io/ObjectStreamClass.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/io/ObjectStreamClass.java,v
+retrieving revision 1.49
+diff -u -r1.49 ObjectStreamClass.java
+--- java/io/ObjectStreamClass.java	21 Jun 2007 06:19:27 -0000	1.49
++++ java/io/ObjectStreamClass.java	20 Oct 2007 11:16:49 -0000
+@@ -812,7 +812,7 @@
+           }
+ 
+         if (loadedByBootOrApplicationClassLoader(cl))
+-          uidCache.put(cl,new Long(result));
++          uidCache.put(cl,Long.valueOf(result));
+       }
+     return result;
+   }
+Index: java/lang/reflect/Array.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/reflect/Array.java,v
+retrieving revision 1.17
+diff -u -r1.17 Array.java
+--- java/lang/reflect/Array.java	21 Jun 2007 05:39:50 -0000	1.17
++++ java/lang/reflect/Array.java	20 Oct 2007 11:16:49 -0000
+@@ -209,19 +209,19 @@
+     if (array instanceof boolean[])
+       return ((boolean[]) array)[index] ? Boolean.TRUE : Boolean.FALSE;
+     if (array instanceof byte[])
+-      return new Byte(((byte[]) array)[index]);
++      return Byte.valueOf(((byte[]) array)[index]);
+     if (array instanceof char[])
+-      return new Character(((char[]) array)[index]);
++      return Character.valueOf(((char[]) array)[index]);
+     if (array instanceof short[])
+-      return new Short(((short[]) array)[index]);
++      return Short.valueOf(((short[]) array)[index]);
+     if (array instanceof int[])
+-      return new Integer(((int[]) array)[index]);
++      return Integer.valueOf(((int[]) array)[index]);
+     if (array instanceof long[])
+-      return new Long(((long[]) array)[index]);
++      return Long.valueOf(((long[]) array)[index]);
+     if (array instanceof float[])
+-      return new Float(((float[]) array)[index]);
++      return Float.valueOf(((float[]) array)[index]);
+     if (array instanceof double[])
+-      return new Double(((double[]) array)[index]);
++      return Double.valueOf(((double[]) array)[index]);
+     if (array == null)
+       throw new NullPointerException();
+     throw new IllegalArgumentException();
+Index: java/net/DatagramSocket.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/net/DatagramSocket.java,v
+retrieving revision 1.50
+diff -u -r1.50 DatagramSocket.java
+--- java/net/DatagramSocket.java	17 Nov 2006 15:09:05 -0000	1.50
++++ java/net/DatagramSocket.java	20 Oct 2007 11:16:49 -0000
+@@ -403,7 +403,7 @@
+     if (timeout < 0)
+       throw new IllegalArgumentException("Invalid timeout: " + timeout);
+ 
+-    getImpl().setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
++    getImpl().setOption(SocketOptions.SO_TIMEOUT, Integer.valueOf(timeout));
+   }
+ 
+   /**
+@@ -450,7 +450,7 @@
+     if (size < 0)
+       throw new IllegalArgumentException("Buffer size is less than 0");
+ 
+-    getImpl().setOption(SocketOptions.SO_SNDBUF, new Integer(size));
++    getImpl().setOption(SocketOptions.SO_SNDBUF, Integer.valueOf(size));
+   }
+ 
+   /**
+@@ -497,7 +497,7 @@
+     if (size < 0)
+       throw new IllegalArgumentException("Buffer size is less than 0");
+ 
+-    getImpl().setOption(SocketOptions.SO_RCVBUF, new Integer(size));
++    getImpl().setOption(SocketOptions.SO_RCVBUF, Integer.valueOf(size));
+   }
+ 
+   /**
+@@ -916,7 +916,7 @@
+     if (tc < 0 || tc > 255)
+       throw new IllegalArgumentException();
+ 
+-    getImpl().setOption(SocketOptions.IP_TOS, new Integer(tc));
++    getImpl().setOption(SocketOptions.IP_TOS, Integer.valueOf(tc));
+   }
+ 
+   /**
+Index: java/net/ServerSocket.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/net/ServerSocket.java,v
+retrieving revision 1.51
+diff -u -r1.51 ServerSocket.java
+--- java/net/ServerSocket.java	23 Mar 2007 13:19:46 -0000	1.51
++++ java/net/ServerSocket.java	20 Oct 2007 11:16:50 -0000
+@@ -469,7 +469,7 @@
+     if (timeout < 0)
+       throw new IllegalArgumentException("SO_TIMEOUT value must be >= 0");
+ 
+-    impl.setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
++    impl.setOption(SocketOptions.SO_TIMEOUT, Integer.valueOf(timeout));
+   }
+ 
+   /**
+@@ -556,7 +556,7 @@
+     if (size <= 0)
+       throw new IllegalArgumentException("SO_RCVBUF value must be > 0");
+ 
+-    impl.setOption(SocketOptions.SO_RCVBUF, new Integer(size));
++    impl.setOption(SocketOptions.SO_RCVBUF, Integer.valueOf(size));
+   }
+ 
+   /**
+Index: java/net/Socket.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/net/Socket.java,v
+retrieving revision 1.63
+diff -u -r1.63 Socket.java
+--- java/net/Socket.java	23 Mar 2007 13:19:46 -0000	1.63
++++ java/net/Socket.java	20 Oct 2007 11:16:50 -0000
+@@ -844,7 +844,7 @@
+     if (timeout < 0)
+       throw new IllegalArgumentException("SO_TIMEOUT value must be >= 0");
+ 
+-    getImpl().setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
++    getImpl().setOption(SocketOptions.SO_TIMEOUT, Integer.valueOf(timeout));
+   }
+ 
+   /**
+@@ -896,7 +896,7 @@
+     if (size <= 0)
+       throw new IllegalArgumentException("SO_SNDBUF value must be > 0");
+ 
+-    getImpl().setOption(SocketOptions.SO_SNDBUF, new Integer(size));
++    getImpl().setOption(SocketOptions.SO_SNDBUF, Integer.valueOf(size));
+   }
+ 
+   /**
+@@ -943,7 +943,7 @@
+     if (size <= 0)
+       throw new IllegalArgumentException("SO_RCVBUF value must be > 0");
+ 
+-    getImpl().setOption(SocketOptions.SO_RCVBUF, new Integer(size));
++    getImpl().setOption(SocketOptions.SO_RCVBUF, Integer.valueOf(size));
+   }
+ 
+   /**
+@@ -1211,7 +1211,7 @@
+     if (tc < 0 || tc > 255)
+       throw new IllegalArgumentException();
+ 
+-    getImpl().setOption(SocketOptions.IP_TOS, new Integer(tc));
++    getImpl().setOption(SocketOptions.IP_TOS, Integer.valueOf(tc));
+   }
+ 
+   /**
+Index: java/nio/charset/CoderResult.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/nio/charset/CoderResult.java,v
+retrieving revision 1.7
+diff -u -r1.7 CoderResult.java
+--- java/nio/charset/CoderResult.java	2 Jul 2005 20:32:40 -0000	1.7
++++ java/nio/charset/CoderResult.java	20 Oct 2007 11:16:50 -0000
+@@ -170,7 +170,7 @@
+       if (length <= 0)
+         throw new IllegalArgumentException ("Non-positive length");
+ 
+-      Integer len = new Integer (length);
++      Integer len = Integer.valueOf (length);
+       CoderResult cr = null;
+       Object o;
+       if ((o = cache.get (len)) != null)
+Index: java/security/Security.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/Security.java,v
+retrieving revision 1.45
+diff -u -r1.45 Security.java
+--- java/security/Security.java	10 Dec 2006 20:25:45 -0000	1.45
++++ java/security/Security.java	20 Oct 2007 11:16:50 -0000
+@@ -702,7 +702,7 @@
+               return true;
+ 
+             // assume value is a number. cehck for greater-than-or-equal
+-            return (new Integer(val).intValue() >= new Integer(realVal).intValue());
++            return (Integer.parseInt(val) >= Integer.parseInt(realVal));
+           }
+       }
+ 
+Index: java/security/spec/RSAKeyGenParameterSpec.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/spec/RSAKeyGenParameterSpec.java,v
+retrieving revision 1.4
+diff -u -r1.4 RSAKeyGenParameterSpec.java
+--- java/security/spec/RSAKeyGenParameterSpec.java	2 Jul 2005 20:32:41 -0000	1.4
++++ java/security/spec/RSAKeyGenParameterSpec.java	20 Oct 2007 11:16:50 -0000
+@@ -55,12 +55,12 @@
+   /**
+      Public Exponent F0 = 3
+   */
+-  public static final BigInteger F0 = new BigInteger("3");
++  public static final BigInteger F0 = BigInteger.valueOf(3);
+ 
+   /**
+      Public Exponent F4 = 3
+   */
+-  public static final BigInteger F4 = new BigInteger("65537");
++  public static final BigInteger F4 = BigInteger.valueOf(65537L);
+ 
+   /**
+      Create a new RSAKeyGenParameterSpec to store the RSA key's keysize 
+Index: java/text/ChoiceFormat.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/text/ChoiceFormat.java,v
+retrieving revision 1.13
+diff -u -r1.13 ChoiceFormat.java
+--- java/text/ChoiceFormat.java	23 Jul 2005 20:25:15 -0000	1.13
++++ java/text/ChoiceFormat.java	20 Oct 2007 11:16:50 -0000
+@@ -114,10 +114,10 @@
+ 	
+ 	if (index == max)
+ 	  throw new IllegalArgumentException ("unexpected end of text");
+-	Double d = new Double (newPattern.substring(dstart, index));
++	Double d = Double.valueOf (newPattern.substring(dstart, index));
+ 
+ 	if (newPattern.charAt(index) == '<')
+-	  d = new Double (nextDouble (d.doubleValue()));
++	  d = Double.valueOf (nextDouble (d.doubleValue()));
+ 
+ 	limitVec.addElement(d);
+ 
+@@ -404,11 +404,11 @@
+ 	if (sourceStr.startsWith(choiceFormats[i], index))
+ 	  {
+ 	    pos.setIndex(index + choiceFormats[i].length());
+-	    return new Double (choiceLimits[i]);
++	    return Double.valueOf (choiceLimits[i]);
+ 	  }
+       }
+     pos.setErrorIndex(index);
+-    return new Double (Double.NaN);
++    return Double.valueOf (Double.NaN);
+   }
+ 
+   /**
+Index: java/text/DecimalFormat.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/text/DecimalFormat.java,v
+retrieving revision 1.33
+diff -u -r1.33 DecimalFormat.java
+--- java/text/DecimalFormat.java	20 Jan 2007 03:34:27 -0000	1.33
++++ java/text/DecimalFormat.java	20 Oct 2007 11:16:50 -0000
+@@ -716,15 +716,15 @@
+         if (this.parseBigDecimal)
+           {
+             if (isNegative)
+-              return new BigDecimal(Double.NEGATIVE_INFINITY);
++              return BigDecimal.valueOf(Double.NEGATIVE_INFINITY);
+             
+-            return new BigDecimal(Double.POSITIVE_INFINITY);
++            return BigDecimal.valueOf(Double.POSITIVE_INFINITY);
+           }
+         
+         if (isNegative)
+-          return new Double(Double.NEGATIVE_INFINITY);
++          return Double.valueOf(Double.NEGATIVE_INFINITY);
+ 
+-        return new Double(Double.POSITIVE_INFINITY);
++        return Double.valueOf(Double.POSITIVE_INFINITY);
+       }
+     
+     // no number...
+@@ -771,21 +771,21 @@
+     
+     // want integer?
+     if (this.parseIntegerOnly)
+-      return new Long(bigDecimal.longValue());
++      return Long.valueOf(bigDecimal.longValue());
+ 
+     // 3th special case -0.0
+     if (isNegative && (bigDecimal.compareTo(BigDecimal.ZERO) == 0))
+-      return new Double(-0.0);
++      return Double.valueOf(-0.0);
+     
+     try
+       {
+         BigDecimal integer
+           = bigDecimal.setScale(0, BigDecimal.ROUND_UNNECESSARY);
+-        return new Long(integer.longValue());
++        return Long.valueOf(integer.longValue());
+       }
+     catch (ArithmeticException e)
+       {
+-        return new Double(bigDecimal.doubleValue());
++        return Double.valueOf(bigDecimal.doubleValue());
+       }
+   }
+ 
+@@ -1787,7 +1787,7 @@
+     int endIndexFract = 0;
+     
+     // compute the multiplier to use with percent and similar
+-    number = number.multiply(new BigDecimal(_multiplier));
++    number = number.multiply(BigDecimal.valueOf(_multiplier));
+     
+     // XXX: special case, not sure if it belongs here or if it is
+     // correct at all. There may be other special cases as well
+Index: java/text/MessageFormat.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/text/MessageFormat.java,v
+retrieving revision 1.24
+diff -u -r1.24 MessageFormat.java
+--- java/text/MessageFormat.java	19 Dec 2006 01:14:23 -0000	1.24
++++ java/text/MessageFormat.java	20 Oct 2007 11:16:50 -0000
+@@ -498,7 +498,7 @@
+ 	    int position = output_iterator.getEndIndex();
+ 	    
+ 	    hash_argument.put (MessageFormat.Field.ARGUMENT,
+-			       new Integer(elements[i].argNumber));
++			       Integer.valueOf(elements[i].argNumber));
+ 
+ 	    
+ 	    if (iterator != null)
