@@ -5,7 +5,15 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.9.2 Release Notes (Future)
+* Jikes RVM 2.9.3  (or 3.0...TBD) (Future)
+
+NOTE:  All future release notes will be generated directly from JIRA.
+If you want something mentioned in the release notes, make sure there is
+a JIRA item for it that has been marked as fixed for 2.9.3.
+
+
+*Jikes RVM 2.9.2 Release Notes (October 20, 2007)
+
 ** Highlights
 
 *** r13697: Switch from hijacking pthread system calls to using Classpath's
@@ -34,6 +42,91 @@ on October 14, 2001,
     the majority of the JSR-166 TCK (some issues are class library related)
     so java.util.concurrent can be used with the RVM. A stub is provided so
     that native thread support can be added at a later date.
+
+** From JIRA:
+
+** Sub-task
+    * [RVM-217] - Recode spin loop in org.mmtk.utility.deque.Deque spinWait to reduce frequency of nanoTime calls
+    * [RVM-230] - Determine whether patching Classpath sources is preferable to bytecode engineering adding annotations
+
+** Bug
+    * [RVM-55] - A thread that is interrupted prior to being scheduled won't interrupt
+    * [RVM-62] - Interrupted exceptions are generated in the caller of Thread.interrupt instead of by the 
+                 thread throwing the interrupted exception
+    * [RVM-63] - Unsafe.park time values are incorrectly scaled
+    * [RVM-87] - NPE in ScanThread.setUpFrame:360
+    * [RVM-99] - MeasureCompilation reporting broken in production/development builds on ia32-linux
+    * [RVM-104] - eclipse occasionally fails with segmentation fault
+    * [RVM-105] - sysNetSelect doesnt seem to be avoiding the syswrap select
+    * [RVM-109] - Restore documentation to org.vmmagic.pragma.*
+    * [RVM-112] - Verification error when building Jikes RVM 2.9.1 using HotSpot as host JVM. 
+    * [RVM-113] - MarkCompactLocal.compact():80 assertion failure
+    * [RVM-114] - Ensure time is positive in test results
+    * [RVM-124] - NullPointerExceptions in stress tests
+    * [RVM-125] - Waiting on a lock that should raise illegal monitor state exception will actual fail on an assert
+    * [RVM-129] - GCTrace fails with "Cannot understand directive!"
+    * [RVM-131] - Collection.joinCollection() called when thread switching disabled
+    * [RVM-133] - Increase the amount of memory used during nightly tests
+    * [RVM-140] - Conflicting virtual address request for space "trace" on ppc32-linux
+    * [RVM-141] - SharedDeque assertion failure during exit for GCTrace
+    * [RVM-143] - VM_BuildBB.determineTheBasicBlock may not be correct for goto_w operation
+    * [RVM-144] - JikesRVM can't load certain classes e.g. GNU Classpath examples or its own Ant tasks
+    * [RVM-150] - Unexpectedly large processor lock contention
+    * [RVM-154] - A shutdown hook can hang RVM
+    * [RVM-155] - SynchronizationBarrier.removeProcessor assertion failure
+    * [RVM-159] - OSR-guarded inlining should not be allowed in uninterruptible code
+    * [RVM-181] - ClassCastException in OPT_Simplifier when running antlr DaCapo
+    * [RVM-182] - invalid frame address
+    * [RVM-183] - Thread sitting on >1 queue
+    * [RVM-187] - VM_OptGenericMapIterator: findGCMapIndex failed
+    * [RVM-194] - Assertion failure in OSR State Extractor running chart
+    * [RVM-196] - VM_Processor not assignable with VM_GreenScheduler
+    * [RVM-198] - NPE when unlocking lock
+    * [RVM-201] - Classpath AWT is broken
+    * [RVM-203] - terminal not in grammar: new
+    * [RVM-204] - Reduce wasted code space on inline allocation path
+    * [RVM-206] - Stack walking in MMTk not correctly identifying not yet obsolete methods?
+    * [RVM-209] - Bootimage bloat broke ppc64-aix images
+    * [RVM-213] - jbb2005 performance regression
+    * [RVM-216] - MMTk assertion failure during jbb large heap performance runs
+    * [RVM-219] - Address.attempt*() compiles incorrectly on IA32 with Jikes 2.9.1
+    * [RVM-220] - jbb2005 GC performance mode: Warning: number of GC phases exceeds MAX_PHASES
+    * [RVM-242] - Build break:  BaseBaseGCTrace 
+    * [RVM-245] - Change to deques appears to have significantly reduced hsqldb performance
+    * [RVM-270] - NPEs from barrier code not working
+    * [RVM-277] - lusearch fails on PPC32 due to validation error
+    * [RVM-279] - Performance regression
+    * [RVM-293] - Class loaders do not isolate packages with the same name
+    * [RVM-297] - Classpath 0.96 configure problems with JDK 1.6
+    * [RVM-298] - DaCapo chart broken on classpath 0.96
+    * [RVM-299] - possible performance regression on xalan on classpath 0.96
+    * [RVM-301] - JSR 166 failures
+
+** Improvement
+    * [RVM-16] - Constant folding values from TIBs produces failures
+    * [RVM-27] - float/double to int/long conversions are overly expensive
+    * [RVM-51] - Switch from pthread hijacking back to portable native sync for gtk AWT threading
+    * [RVM-54] - Switch to Claspath's java.lang.Thread
+    * [RVM-64] - Flexible thread model
+    * [RVM-82] - Exceptions in Uninterruptible code should result in immediate fatal errors
+    * [RVM-94] - Enable SSE C/C++ compiler flags
+    * [RVM-164] - Use clock_gettime to implement sysNanoTime
+    * [RVM-179] - Move java/lang/String out of libraryInterface and into a patch against Classpath
+    * [RVM-185] - Reduce cost of ThreadLocal(s) to improve Jython performance
+    * [RVM-189] - Use will never move information from MM_Interface when generating constant operands
+    * [RVM-191] - Improve inline size estimator in VM_NormalMethod to account for getstatic of final primitive 
+                  fields being folded by opt compiler
+    * [RVM-218] - Use VM_Magic.pause in spinwait loops
+    * [RVM-282] - Make dumpVirtualMachine more defensive
+    * [RVM-285] - Switch AOS call graph profiling to use CBS framework from Arnold & Grove 2005
+
+** New Feature
+    * [RVM-121] - Separate code space for dynamically generated code
+    * [RVM-231] - Alignment checking (for IA32 and debugging purposes only)
+
+** Task
+    * [RVM-38] - VM_BaselineBootImageCompiler should use System.nanoTime rather than DNA for compilation time
+    * [RVM-286] - _201_compress took a 10% hit when we switched to Arnold/Grove call graph profiling; investigate
 
 ** Bug Fixes
 
