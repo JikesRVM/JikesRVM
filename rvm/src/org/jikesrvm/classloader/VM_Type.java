@@ -277,6 +277,14 @@ public abstract class VM_Type extends VM_AnnotatedElement
   }
 
   /**
+   * Should assertions be enabled on this type?
+   * @return false
+   */
+  public boolean getDesiredAssertionStatus() {
+    return false;
+  }
+
+  /**
    * Descriptor for this type.
    * For a class, something like "Ljava/lang/String;".
    * For an array, something like "[I" or "[Ljava/lang/String;".

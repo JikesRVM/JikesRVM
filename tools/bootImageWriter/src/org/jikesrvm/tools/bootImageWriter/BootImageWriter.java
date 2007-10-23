@@ -18,6 +18,7 @@ import java.util.Stack;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.concurrent.*;
 
 import java.io.*;
@@ -2228,6 +2229,37 @@ public class BootImageWriter extends BootImageWriterMessages
         return true;
       } else {
         // Unknown Constructor field
+        return false;
+      }
+    } else if (jdkObject instanceof java.util.BitSet) {
+      BitSet bs = (BitSet)jdkObject;
+      if(rvmFieldName.equals("bits")) {
+        int max = 0; // highest bit set in set
+        for(int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1)) {
+          max = i;
+        }
+        long[] bits = new long[(max+63)/64];
+        for(int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1)) {
+          bits[i/64] |= 1L << (i & 63);
+        }
+        if (verbose >= 2) traceContext.push("[J", "java.util.BitSet", "bits");
+        Address imageAddress = BootImageMap.findOrCreateEntry(bits).imageAddress;
+        if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
+          // object not part of bootimage: install null reference
+          if (verbose >= 2) traceContext.traceObjectNotInBootImage();
+          bootImage.setNullAddressWord(rvmFieldAddress, true, false);
+        } else if (imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
+          imageAddress = copyToBootImage(bits, false, Address.max(), jdkObject);
+          if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+          bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), false);
+        } else {
+          if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+          bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), false);
+        }
+        if (verbose >= 2) traceContext.pop();
+        return true;
+      } else {
+        // Unknown BitSet field
         return false;
       }
     } else {

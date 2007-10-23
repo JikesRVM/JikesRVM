@@ -491,3 +491,15 @@ Ljava/security/ProtectionDomain;
 [Ljava/security/ProtectionDomain;
 [Ljava/lang/Package;
 
+Ljava/util/regex/Pattern;
+Lgnu/java/util/regex/RESyntax;
+Lgnu/java/util/regex/RE;
+Lgnu/java/util/regex/RE$CharUnit;
+Lgnu/java/util/regex/RE$IntPair;
+Ljava/util/BitSet;
+Lgnu/java/util/regex/RETokenChar;
+Lgnu/java/util/regex/RETokenEndSub;
+Ljava/util/regex/Matcher;
+Lgnu/java/util/regex/CharIndexed;
+Lgnu/java/util/regex/CharIndexedCharSequence;
+Lgnu/java/util/regex/REMatch;

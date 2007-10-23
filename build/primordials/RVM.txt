@@ -22,6 +22,7 @@
 [Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
 
 [Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
+[Lorg/jikesrvm/VM_CommandLineArgs$PrefixType;
 
 [Lorg/jikesrvm/classloader/VM_Class;
 [Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;

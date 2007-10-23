@@ -87,7 +87,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   Object[] signers;
 
   public boolean desiredAssertionStatus() {
-    return true; // TODO: assertion status support isn't yet present
+    return type.getDesiredAssertionStatus();
   }
 
   public static Class<?> forName(String typeName) throws ClassNotFoundException {
