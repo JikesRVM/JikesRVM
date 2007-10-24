@@ -1146,23 +1146,32 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   @Override
   protected final void emit_lshl() {
-    if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
-    if (VM.VerifyAssertions) VM._assert(ECX != T1);
-    asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
-    asm.emitPOP_Reg(T0);                   // pop low half
-    asm.emitPOP_Reg(T1);                   // pop high half
-    asm.emitTEST_Reg_Imm(ECX, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
-    asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);  // shift high half
-    asm.emitSHL_Reg_Reg(T0, ECX);           // shift low half
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitMOV_Reg_Reg(T1, T0);  // shift high half
-    asm.emitSHL_Reg_Reg(T1, ECX);
-    asm.emitXOR_Reg_Reg(T0, T0);  // low half == 0
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half
-    asm.emitPUSH_Reg(T0);                   // push low half
+    if (SSE2_BASE) {
+      asm.emitPOP_Reg(T0);                  // shift amount (6 bits)
+      asm.emitMOVQ_Reg_RegInd(XMM1, SP);    // XMM1 <- [SP]
+      asm.emitAND_Reg_Imm(T0, 0x3F);        // mask to 6bits
+      asm.emitMOVDr_Reg_Reg(XMM0, T0);      // XMM0 <- T0
+      asm.emitPSLLQ_Reg_Reg(XMM1, XMM0);    // XMM1 <<= XMM0
+      asm.emitMOVQ_RegInd_Reg(SP, XMM1);    // [SP] <- XMM1
+    } else {
+      if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
+      if (VM.VerifyAssertions) VM._assert(ECX != T1);
+      asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
+      asm.emitPOP_Reg(T0);                   // pop low half
+      asm.emitPOP_Reg(T1);                   // pop high half
+      asm.emitTEST_Reg_Imm(ECX, 32);
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
+      asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);  // shift high half
+      asm.emitSHL_Reg_Reg(T0, ECX);           // shift low half
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      asm.emitMOV_Reg_Reg(T1, T0);  // shift high half
+      asm.emitSHL_Reg_Reg(T1, ECX);
+      asm.emitXOR_Reg_Reg(T0, T0);  // low half == 0
+      fr2.resolve(asm);
+      asm.emitPUSH_Reg(T1);                   // push high half
+      asm.emitPUSH_Reg(T0);                   // push low half
+    }
   }
 
   /**
@@ -1194,23 +1203,32 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   @Override
   protected final void emit_lushr() {
-    if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
-    if (VM.VerifyAssertions) VM._assert(ECX != T1);
-    asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
-    asm.emitPOP_Reg(T0);                   // pop low half
-    asm.emitPOP_Reg(T1);                   // pop high half
-    asm.emitTEST_Reg_Imm(ECX, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
-    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
-    asm.emitSHR_Reg_Reg(T1, ECX);           // shift low half
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitMOV_Reg_Reg(T0, T1);  // low half = high half
-    asm.emitXOR_Reg_Reg(T1, T1);  // high half = 0
-    asm.emitSHR_Reg_Reg(T0, ECX); // low half = high half >>> ecx
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half
-    asm.emitPUSH_Reg(T0);                   // push low half
+    if (SSE2_BASE) {
+      asm.emitPOP_Reg(T0);                  // shift amount (6 bits)
+      asm.emitMOVQ_Reg_RegInd(XMM1, SP);    // XMM1 <- [SP]
+      asm.emitAND_Reg_Imm(T0, 0x3F);        // mask to 6bits
+      asm.emitMOVDr_Reg_Reg(XMM0, T0);      // XMM0 <- T0
+      asm.emitPSRLQ_Reg_Reg(XMM1, XMM0);    // XMM1 >>>= XMM0
+      asm.emitMOVQ_RegInd_Reg(SP, XMM1);    // [SP] <- XMM1
+    } else {
+      if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
+      if (VM.VerifyAssertions) VM._assert(ECX != T1);
+      asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
+      asm.emitPOP_Reg(T0);                   // pop low half
+      asm.emitPOP_Reg(T1);                   // pop high half
+      asm.emitTEST_Reg_Imm(ECX, 32);
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
+      asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
+      asm.emitSHR_Reg_Reg(T1, ECX);           // shift low half
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      asm.emitMOV_Reg_Reg(T0, T1);  // low half = high half
+      asm.emitXOR_Reg_Reg(T1, T1);  // high half = 0
+      asm.emitSHR_Reg_Reg(T0, ECX); // low half = high half >>> ecx
+      fr2.resolve(asm);
+      asm.emitPUSH_Reg(T1);                   // push high half
+      asm.emitPUSH_Reg(T0);                   // push low half
+    }
   }
 
   /**

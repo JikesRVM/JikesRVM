@@ -1307,9 +1307,30 @@ move
 
 
 ####################
+IA32_MOVDr
+MIR_Move
+move
+
+
+
+####################
 IA32_MOVQ
 MIR_Move
 move
+
+
+
+####################
+IA32_PSLLQ
+MIR_BinaryAcc
+none
+
+
+
+####################
+IA32_PSRLQ
+MIR_BinaryAcc
+none
 
 
 

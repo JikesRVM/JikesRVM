@@ -1656,6 +1656,7 @@ emitSSE2Op 0xF3 none CMPORDSS 0xC2 none 7
 
 # Generic data move ops.
 emitSSE2Op none 0x66 MOVD none 0x7E
+emitSSE2Op none 0x66 MOVDr none 0x6E
 emitSSE2Op 0xF3 0x66 MOVQ 0x7E 0xD6
 
 # Double precision FP ops.
@@ -1679,6 +1680,10 @@ emitSSE2Op 0xF2 none CMPNESD 0xC2 none 4
 emitSSE2Op 0xF2 none CMPNLTSD 0xC2 none 5
 emitSSE2Op 0xF2 none CMPNLESD 0xC2 none 6
 emitSSE2Op 0xF2 none CMPORDSD 0xC2 none 7
+
+# Long ops.
+emitSSE2Op 0x66 0x0F PSLLQ 0xF3 none
+emitSSE2Op 0x66 0x0F PSRLQ 0xD3 none
 
 emitFloatMemAcc() {
     local acronym=$1
