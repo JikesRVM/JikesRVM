@@ -1,0 +1,83 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="x10" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="x10.version" value="1"/>
+  <property name="x10.description" value="X10"/>
+
+  <property name="x10.component.dir" location="${components.dir}/x10"/>
+  <property name="x10.package.dir" value="${x10.component.dir}/${x10.version}"/>
+  <property name="x10.dir" value="${x10.package.dir}/x10"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing X10 component                   * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- init properties for downloading x10 from cvs or from web -->
+  <target name="init-x10-properties" depends="prepare-ant-tasks">
+    <!-- TODO: set this dependent on whether we want a cvs or web build-->
+    <property name="x10.from-cvs" value="true" />
+  </target>
+
+  <!-- download x10 from cvs -->
+  <target name="get-x10-from-cvs" depends="init-x10-properties" if="x10.from-cvs">
+   <property name="x10.tag" value="0_${x10.version}-release"/>
+    <mkdir dir="${x10.package.dir}"/>
+    <delete dir="${x10.dir}"/>
+    <cvspass cvsroot=":pserver:anonymous@x10.cvs.sourceforge.net:/cvsroot/x10"
+       password=""/>
+    <cvs command="checkout"
+       cvsroot=":pserver:anonymous@x10.cvs.sourceforge.net:/cvsroot/x10"
+       package="x10.common"
+       dest="${x10.dir}"
+       compression="true"
+       quiet="true"/>       
+    <cvs command="checkout"
+       cvsroot=":pserver:anonymous@x10.cvs.sourceforge.net:/cvsroot/x10"
+       package="x10.compiler"
+       dest="${x10.dir}"
+       compression="true"
+       quiet="true"/>       
+    <cvs command="checkout"
+       cvsroot=":pserver:anonymous@x10.cvs.sourceforge.net:/cvsroot/x10"
+       package="x10.runtime"
+       dest="${x10.dir}"
+       compression="true"
+       quiet="true"/>       
+  </target>
+
+  <!-- download x10 from web -->
+  <target name="get-x10-from-web" depends="init-x10-properties" if="x10.from-web">
+    <fail message="downloading X10 from web not currently supported"/>
+  </target>
+
+  <target name="fetch" depends="get-x10-from-web,get-x10-from-cvs">
+    <setComponentsConfig key="x10.dir" value="${x10.dir}"/>
+  </target>
+
+  <!-- build x10 in x10.dir -->
+  <target name="build" depends="fetch" description="Download X10 and build.">
+    <subant target="" buildpath="${x10.dir}/x10.compiler" />
+    <writeComponentConstants dir="${x10.dir}" name="x10" />
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="x10" dir="${x10.dir}"/>
+  </target>
+
+</project>
