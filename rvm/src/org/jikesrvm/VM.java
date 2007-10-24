@@ -318,6 +318,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
+    runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
 
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
