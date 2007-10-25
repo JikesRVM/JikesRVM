@@ -45,6 +45,7 @@ Ljava/lang/System$EnvironmentSet;
 Ljava/lang/Thread;
 Ljava/lang/Thread$State;
 Ljava/lang/Thread$UncaughtExceptionHandler;
+[Ljava/lang/Thread$State;
 
 Ljava/lang/ThreadGroup;
 
@@ -67,6 +68,10 @@ Ljava/lang/reflect/AccessibleObject;
 # annotation support
 Ljava/lang/reflect/AnnotatedElement;
 Ljava/lang/annotation/Annotation;
+Ljava/lang/annotation/RetentionPolicy;
+Ljava/lang/annotation/ElementType;
+[Ljava/lang/annotation/RetentionPolicy;
+[Ljava/lang/annotation/ElementType;
 
 # hardware runtime errors
 Ljava/lang/ArithmeticException;
@@ -481,6 +486,7 @@ Ljava/lang/Class$StaticData;
 
 [Ljava/lang/Byte;
 [Ljava/lang/Character;
+[Ljava/lang/Character$UnicodeBlock$NameType;
 [Ljava/lang/Integer;
 [Ljava/lang/Short;
 [Ljava/lang/reflect/Field;

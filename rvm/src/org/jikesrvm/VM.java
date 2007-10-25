@@ -324,6 +324,9 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("org.jikesrvm.scheduler.greenthreads.VM_Process");
     runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
+    runClassInitializer("java.lang.annotation.RetentionPolicy");
+    runClassInitializer("java.lang.annotation.ElementType");
+    runClassInitializer("java.lang.Thread$State");
     runClassInitializer("java.lang.VMClassLoader");
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in

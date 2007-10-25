@@ -69,5 +69,8 @@
 [Lorg/mmtk/utility/statistics/Counter;
 [Lorg/mmtk/utility/statistics/Timer;
 [Lorg/mmtk/utility/options/Option;
+[Lorg/mmtk/vm/ReferenceProcessor$Semantics;
+
+[Lorg/jikesrvm/scheduler/VM_Thread$State;
 
 Lsun/misc/Unsafe;
