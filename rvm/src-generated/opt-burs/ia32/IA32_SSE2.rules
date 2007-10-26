@@ -278,23 +278,27 @@ SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal1(P(p)), IfCmp.getClearVal2(P(p)
 stm:	LONG_ASTORE(LONG_ALOAD(riv, riv), OTHER_OPERAND(riv, riv))
 40
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, ALoad.getResult(PL(p)), MO_AL(PL(p), QW_S, QW))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
+OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, MO_AL(PL(p), QW_S, QW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_AS(P(p), QW_S, QW), temp.copyRO()));
 
 stm:	LONG_ASTORE(LONG_LOAD(riv, riv), OTHER_OPERAND(riv, riv))
 40
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, Load.getResult(PL(p)), MO_L(PL(p), QW))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
+OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, MO_L(PL(p), QW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_AS(P(p), QW_S, QW),temp.copyRO()));
 
 stm:	LONG_STORE(LONG_ALOAD(riv, riv), OTHER_OPERAND(riv, riv))
 40
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, ALoad.getResult(PL(p)), MO_AL(PL(p), QW_S, QW))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_S(P(p), QW), AStore.getValue(P(p))));
+OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, MO_AL(PL(p), QW_S, QW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_S(P(p), QW), temp.copyRO()));
 
 stm:	LONG_STORE(LONG_LOAD(riv, riv), OTHER_OPERAND(riv, riv))
 40
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, Load.getResult(PL(p)), MO_L(PL(p), QW))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_S(P(p), QW), AStore.getValue(P(p))));
+OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, MO_L(PL(p), QW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_S(P(p), QW), temp.copyRO()));
