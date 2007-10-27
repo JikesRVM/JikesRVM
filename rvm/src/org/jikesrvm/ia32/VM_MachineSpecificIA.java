@@ -64,7 +64,7 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
    */
   @Interruptible
   public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) {
-    asm.emitMOV_Reg_RegDisp((byte) dest, (byte) object, tibOffset);
+    asm.emitMOV_Reg_RegDisp(GPR.lookup(dest), GPR.lookup(object), tibOffset);
   }
 
   /**
@@ -85,8 +85,8 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
     sp = sp.minus(VM_SizeConstants.BYTES_IN_ADDRESS);                                 // allow for one local
-    contextRegisters.gprs.set(ESP, sp.toWord());
-    contextRegisters.gprs.set(VM_BaselineConstants.JTOC, VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());
+    contextRegisters.gprs.set(ESP.value(), sp.toWord());
+    contextRegisters.gprs.set(VM_BaselineConstants.JTOC.value(), VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());
     contextRegisters.fp = fp;
     contextRegisters.ip = ip;
   }
@@ -104,11 +104,11 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
   @Uninterruptible
   @Override
   public final void adjustESP(ArchitectureSpecific.VM_Registers registers, Offset delta, boolean traceAdjustments) {
-    Word old = registers.gprs.get(ESP);
-    registers.gprs.set(ESP, old.plus(delta));
+    Word old = registers.gprs.get(ESP.value());
+    registers.gprs.set(ESP.value(), old.plus(delta));
     if (traceAdjustments) {
       VM.sysWrite(" esp =");
-      VM.sysWrite(registers.gprs.get(ESP));
+      VM.sysWrite(registers.gprs.get(ESP.value()));
     }
   }
 }

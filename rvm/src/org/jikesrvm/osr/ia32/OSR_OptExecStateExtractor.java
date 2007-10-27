@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ia32.VM_ArchConstants;
+import org.jikesrvm.ia32.VM_RegisterConstants.GPR;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
@@ -185,14 +186,14 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     // recover nonvolatile GPRs
     for (int i = firstNonVolatile + nonVolatiles - 1; i >= firstNonVolatile; i--) {
-      gprs.set(NONVOLATILE_GPRS[i], VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
+      gprs.set(NONVOLATILE_GPRS[i].value(), VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
       nonVolatileOffset -= BYTES_IN_STACKSLOT;
     }
 
     // restore with VOLATILES yet
     int volatileOffset = nonVolatileOffset;
     for (int i = NUM_VOLATILE_GPRS - 1; i >= 0; i--) {
-      gprs.set(VOLATILE_GPRS[i], VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
+      gprs.set(VOLATILE_GPRS[i].value(), VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
       volatileOffset -= BYTES_IN_STACKSLOT;
     }
 
@@ -210,11 +211,11 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     VM.enableGC();
 
     if (VM.TraceOnStackReplacement) {
-      for (int i = 0; i < NUM_GPRS; i++) {
-        VM.sysWrite(GPR_NAMES[i]);
-        VM.sysWrite(" : ");
-        VM.sysWriteHex(registers.gprs.get(i).toAddress());
-        VM.sysWriteln();
+      for (GPR reg : GPR.values()) {
+        VM.sysWrite(reg.toString());
+        VM.sysWrite(" = ");
+        VM.sysWrite(registers.gprs.get(reg.value()).toAddress());
+        VM.sysWrite("\n");
       }
     }
   }
@@ -299,7 +300,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
           VM.sysWrite(value);
         } else if (vtype == PHYREG) {
           VM.sysWrite("PHYREG ");
-          VM.sysWrite(GPR_NAMES[value]);
+          VM.sysWrite(GPR.lookup(value).toString());
         } else if (vtype == SPILL) {
           VM.sysWrite("SPILL  ");
           VM.sysWrite(value);
@@ -502,8 +503,10 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
   @SuppressWarnings("unused")
   private static void dumpRegisterContent(WordArray gprs) {
-    for (int i = 0, n = gprs.length(); i < n; i++) {
-      VM.sysWriteln(GPR_NAMES[i] + " = ", gprs.get(i));
+    for (GPR reg : GPR.values()) {
+      VM.sysWrite(reg.toString());
+      VM.sysWrite(" = ");
+      VM.sysWriteln(gprs.get(reg.value()));
     }
   }
 

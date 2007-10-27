@@ -696,6 +696,7 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${ia32-assembler-opt.dir}">
         <include name="**/VM*.fake"/>
         <include name="ArchitectureSpecific.fake"/>
+        <include name="JikesRVMSupport.fake"/>
       </fileset>
     </copy>
     <copy file="${main.java}/org/jikesrvm/compilers/common/assembler/VM_ForwardReference.java"

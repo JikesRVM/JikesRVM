@@ -158,7 +158,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[C1].setSpansBasicBlock();
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
-    reg[PROCESSOR_REGISTER].setSpansBasicBlock();
+    reg[PROCESSOR_REGISTER.value()].setSpansBasicBlock();
 
     // For SSE2
     reg[ST0].setDouble();
@@ -344,6 +344,13 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * @return the nth physical GPR
    */
+  public OPT_Register getGPR(GPR n) {
+    return reg[FIRST_INT + n.value()];
+  }
+
+  /**
+   * @return the nth physical GPR
+   */
   public OPT_Register getGPR(int n) {
     return reg[FIRST_INT + n];
   }
@@ -400,6 +407,13 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   /**
    * @return the nth physical FPR
    */
+  public OPT_Register getFPR(FPR n) {
+    return reg[FIRST_DOUBLE + n.value()];
+  }
+
+  /**
+   * @return the nth physical FPR
+   */
   public OPT_Register getFPR(int n) {
     return reg[FIRST_DOUBLE + n];
   }
@@ -443,13 +457,19 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
 
   static {
     String[] regName = registerName;
-    for (int i = 0; i < NUM_GPRS; i++) {
-      regName[i + FIRST_INT] = GPR_NAMES[i];
+    for (GPR r : GPR.values()) {
+      regName[r.ordinal() + FIRST_INT] = r.toString();
     }
-    for (int i = 0; i < NUM_FPRS; i++) {
-      regName[i + FIRST_DOUBLE] = FPR_NAMES[i];
+    if (VM_ArchConstants.SSE2_FULL) {
+      for (XMM r : XMM.values()) {
+        regName[r.ordinal() + FIRST_DOUBLE] = r.toString();
+      }
+    } else {
+      for (FPR r : FPR.values()) {
+        regName[r.ordinal() + FIRST_DOUBLE] = r.toString();
+      }
     }
-    regName[PROCESSOR_REGISTER] = "PR";
+    regName[PROCESSOR_REGISTER.value()] = "PR";
     regName[AF] = "AF";
     regName[CF] = "CF";
     regName[OF] = "OF";

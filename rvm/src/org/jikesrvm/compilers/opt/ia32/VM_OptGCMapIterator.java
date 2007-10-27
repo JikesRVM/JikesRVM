@@ -83,7 +83,7 @@ public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator imp
 
         for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
-          int registerIndex = NONVOLATILE_GPRS[i];
+          int registerIndex = NONVOLATILE_GPRS[i].value();
           registerLocations.set(registerIndex, location.toWord());
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
@@ -103,7 +103,7 @@ public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator imp
 
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
-          int registerIndex = VOLATILE_GPRS[i];
+          int registerIndex = VOLATILE_GPRS[i].value();
           registerLocations.set(registerIndex, location.toWord());
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");

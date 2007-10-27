@@ -32,14 +32,14 @@ final class GenArch_ia32 extends GenArch {
     offset = VM_ArchEntrypoints.registersFPField.getOffset();
     pln("VM_Registers_fp_offset = ", offset);
 
-    p("static const int VM_Constants_EAX                    = " + VM_RegisterConstants.EAX + ";\n");
-    p("static const int VM_Constants_ECX                    = " + VM_RegisterConstants.ECX + ";\n");
-    p("static const int VM_Constants_EDX                    = " + VM_RegisterConstants.EDX + ";\n");
-    p("static const int VM_Constants_EBX                    = " + VM_RegisterConstants.EBX + ";\n");
-    p("static const int VM_Constants_ESP                    = " + VM_RegisterConstants.ESP + ";\n");
-    p("static const int VM_Constants_EBP                    = " + VM_RegisterConstants.EBP + ";\n");
-    p("static const int VM_Constants_ESI                    = " + VM_RegisterConstants.ESI + ";\n");
-    p("static const int VM_Constants_EDI                    = " + VM_RegisterConstants.EDI + ";\n");
+    p("static const int VM_Constants_EAX                    = " + VM_RegisterConstants.EAX.value() + ";\n");
+    p("static const int VM_Constants_ECX                    = " + VM_RegisterConstants.ECX.value() + ";\n");
+    p("static const int VM_Constants_EDX                    = " + VM_RegisterConstants.EDX.value() + ";\n");
+    p("static const int VM_Constants_EBX                    = " + VM_RegisterConstants.EBX.value() + ";\n");
+    p("static const int VM_Constants_ESP                    = " + VM_RegisterConstants.ESP.value() + ";\n");
+    p("static const int VM_Constants_EBP                    = " + VM_RegisterConstants.EBP.value() + ";\n");
+    p("static const int VM_Constants_ESI                    = " + VM_RegisterConstants.ESI.value() + ";\n");
+    p("static const int VM_Constants_EDI                    = " + VM_RegisterConstants.EDI.value() + ";\n");
     p("static const int VM_Constants_STACKFRAME_BODY_OFFSET             = " +
       VM_StackframeLayoutConstants
           .STACKFRAME_BODY_OFFSET +
@@ -61,7 +61,7 @@ final class GenArch_ia32 extends GenArch {
   }
 
   public void emitArchAssemblerDeclarations() {
-    p("#define JTOC %" + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC] + ";\n");
-    p("#define PR %" + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.ESI] + ";\n");
+    p("#define JTOC %" + VM_BaselineConstants.JTOC + ";\n");
+    p("#define PR %" + VM_BaselineConstants.ESI + ";\n");
   }
 }

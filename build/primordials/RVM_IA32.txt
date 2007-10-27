@@ -12,3 +12,6 @@
 #
 [Lorg/jikesrvm/ia32/VM_Code;
 [Lorg/jikesrvm/ia32/VM_CodeArray;
+[Lorg/jikesrvm/ia32/VM_RegisterConstants$GPR;
+[Lorg/jikesrvm/ia32/VM_RegisterConstants$FPR;
+[Lorg/jikesrvm/ia32/VM_RegisterConstants$XMM;

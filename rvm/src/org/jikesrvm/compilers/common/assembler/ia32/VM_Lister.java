@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.common.assembler.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.Pure;
 
 /**
  */
@@ -50,110 +51,118 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void R(int i, String op, byte R0) {
+  public final void R(int i, String op, Register R0) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RD(int i, String op, byte R0, Offset d) {
+  public final void RD(int i, String op, Register R0, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RI(int i, String op, byte R0, int n) {
+  public final void RI(int i, String op, Register R0, int n) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RDI(int i, String op, byte R0, Offset d, int n) {
+  public final void RDI(int i, String op, Register R0, Offset d, int n) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RNI(int i, String op, byte R0, int n) {
+  public final void RNI(int i, String op, Register R0, int n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RR(int i, String op, byte R0, byte R1) {
+  public final void RR(int i, String op, Register R0, Register R1) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RDR(int i, String op, byte R0, Offset d, byte R1) {
+  public final void RDR(int i, String op, Register R0, Offset d, Register R1) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RDRI(int i, String op, byte R0, Offset d, byte R1, int imm) {
+  public final void RDRI(int i, String op, Register R0, Offset d, Register R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRD(int i, String op, byte R0, byte R1, Offset d) {
+  public final void RDRR(int i, String op, Register R0, Offset d, Register R1, Register R2) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R1] + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RNR(int i, String op, byte R0, byte R1) {
+  public final void RRD(int i, String op, Register R0, Register R1, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(decimal(d) + "[" + R1 + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RN(int i, String op, byte R0) {
+  public final void RNR(int i, String op, Register R0, Register R1) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    end(i);
+  }
+
+  public final void RN(int i, String op, Register R0) {
+    i = begin(i, op);
+    VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(" ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRN(int i, String op, byte R0, byte R1) {
+  public final void RRN(int i, String op, Register R0, Register R1) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + GPR_NAMES[R1] + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + R1 + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RXD(int i, String op, byte R0, byte X, short s, Offset d) {
+  public final void RXD(int i, String op, Register R0, Register X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[R0] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]",
+    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RXDI(int i, String op, byte R0, byte X, short s, Offset d, int n) {
+  public final void RXDI(int i, String op, Register R0, Register X, short s, Offset d, int n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[R0] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]",
+    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RFD(int i, String op, byte X, short s, Offset d) {
+  public final void RFD(int i, String op, Register X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
     end(i);
   }
@@ -165,9 +174,9 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RFDI(int i, String op, byte X, short s, Offset d, int n) {
+  public final void RFDI(int i, String op, Register X, short s, Offset d, int n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
     end(i);
   }
@@ -179,121 +188,129 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRR(int i, String op, byte R0, byte R1, byte R2) {
+  public final void RRR(int i, String op, Register R0, Register R1, Register R2) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R2] : GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RNRI(int i, String op, byte R0, byte R1, int imm) {
+  public final void RNRI(int i, String op, Register R0, Register R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + GPR_NAMES[R0] + "] ", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right("[" + R0 + "] ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRI(int i, String op, byte R0, byte R1, int imm) {
+  public final void RNRR(int i, String op, Register R0, Register R1, Register R2) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right("[" + R0 + "] ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    end(i);
+  }
+
+  public final void RRI(int i, String op, Register R0, Register R1, int imm) {
+    i = begin(i, op);
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRXD(int i, String op, byte R0, byte R1, byte X, short s, Offset d) {
+  public final void RRXD(int i, String op, Register R0, Register R1, Register X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0], DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[R1] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]",
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + R1 + "+" + X + "<<" + decimal(s) + "]",
                       SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RXDR(int i, String op, byte R0, byte X, short s, Offset d, byte R1) {
+  public final void RXDR(int i, String op, Register R0, Register X, short s, Offset d, Register R1) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[R0] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]",
+    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RXDRI(int i, String op, byte R0, byte X, short s, Offset d, byte R1, int imm) {
+  public final void RXDRI(int i, String op, Register R0, Register X, short s, Offset d, Register R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[R0] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]",
+    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RXDRR(int i, String op, byte R0, byte X, short s, Offset d, byte R1, byte R2) {
+  public final void RXDRR(int i, String op, Register R0, Register X, short s, Offset d, Register R1, Register R2) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[R0] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]",
+    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       SOURCE_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R1] : GPR_NAMES[R1] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R2] : GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R1 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRFD(int i, String op, byte R0, byte X, short s, Offset d) {
+  public final void RRFD(int i, String op, Register R0, Register X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0], DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RFDR(int i, String op, byte X, short s, Offset d, byte R0) {
+  public final void RFDR(int i, String op, Register X, short s, Offset d, Register R0) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RFDRI(int i, String op, byte X, short s, Offset d, byte R0, int imm) {
+  public final void RFDRI(int i, String op, Register X, short s, Offset d, Register R0, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RFDRR(int i, String op, byte X, short s, Offset d, byte R0, byte R2) {
+  public final void RFDRR(int i, String op, Register X, short s, Offset d, Register R0, Register R2) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R2] : GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRA(int i, String op, byte R0, Offset d) {
+  public final void RRA(int i, String op, Register R0, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0], DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 +" ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RAR(int i, String op, Offset d, byte R0) {
+  public final void RAR(int i, String op, Offset d, Register R0) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RARI(int i, String op, Offset d, byte R0, int imm) {
+  public final void RARI(int i, String op, Offset d, Register R0, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RARR(int i, String op, Offset d, byte R0, byte R2) {
+  public final void RARR(int i, String op, Offset d, Register R0, Register R2) {
     i = begin(i, op);
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R0] : GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(isFP(op) ? FPR_NAMES[R2] : GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
@@ -316,10 +333,7 @@ public class VM_Lister implements VM_RegisterConstants {
     lockPrefix = false;
   }
 
-  private static boolean isFP(String op) {
-    return op.startsWith("F");
-  }
-
+  @Pure
   private static String left(String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(0, w);
@@ -329,6 +343,7 @@ public class VM_Lister implements VM_RegisterConstants {
     return s;
   }
 
+  @Pure
   private static String right(String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(n - w);
@@ -342,6 +357,7 @@ public class VM_Lister implements VM_RegisterConstants {
     return decimal(o.toInt());
   }
 
+  @Pure
   static String decimal(int n) {
     if (n == 0) return "0";
     String sign = "";
@@ -380,18 +396,22 @@ public class VM_Lister implements VM_RegisterConstants {
     return decimal((int) s);
   }
 
+  @Pure
   static String hex(Offset i) {
     return (hex((short) (i.toInt() >> 16)) + hex((short) i.toInt()));
   }
 
+  @Pure
   public static String hex(int i) {
     return (hex((short) (i >> 16)) + hex((short) i));
   }
 
+  @Pure
   static String hex(short i) {
     return (hex((byte) (i >> 8)) + hex((byte) i));
   }
 
+  @Pure
   static String hex(byte b) {
     int i = b & 0xFF;
     byte j = (byte) (i / 0x10);

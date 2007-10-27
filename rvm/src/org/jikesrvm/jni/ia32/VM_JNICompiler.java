@@ -469,7 +469,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 2-word arg from the FPU stack
           if (SSE2_FULL) {
-            asm.emitMOVSD_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i - 1)), (byte)fpr);
+            asm.emitMOVSD_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i - 1)), XMM.lookup(fpr));
           } else {
             asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i - 1)), FP0);
           }
@@ -486,7 +486,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 1-word arg from the FPU stack
           if (SSE2_FULL) {
-            asm.emitMOVSS_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i)), (byte)fpr);
+            asm.emitMOVSS_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i)), XMM.lookup(fpr));
           } else {
             asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i)), FP0);
           }

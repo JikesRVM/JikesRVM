@@ -483,6 +483,7 @@ Ljava/lang/Class$1;
 Ljava/lang/Class$Collector;
 Ljava/lang/Class$MethodKey;
 Ljava/lang/Class$StaticData;
+Ljava/lang/Enum;
 
 [Ljava/lang/Byte;
 [Ljava/lang/Character;

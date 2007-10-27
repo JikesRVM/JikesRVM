@@ -54,7 +54,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // reset sp to "empty params" state (ie same as it was after prologue)
     Address sp = fp.minus(optMethod.getFrameFixedSize());
-    registers.gprs.set(STACK_POINTER, sp.toWord());
+    registers.gprs.set(STACK_POINTER.value(), sp.toWord());
 
     // store exception object for later retrieval by catch block
     int offset = optMethod.getUnsignedExceptionOffset();
@@ -78,10 +78,10 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       VM.sysWrite("Registers before delivering exception in ");
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
-      for (int i = 0; i < NUM_GPRS; i++) {
-        VM.sysWrite(GPR_NAMES[i]);
+      for (GPR reg : GPR.values()) {
+        VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
-        VM.sysWrite(registers.gprs.get(i));
+        VM.sysWrite(registers.gprs.get(reg.value()));
         VM.sysWrite("\n");
       }
     }
@@ -126,10 +126,10 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       VM.sysWrite("Registers before unwinding frame for ");
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
-      for (int i = 0; i < NUM_GPRS; i++) {
-        VM.sysWrite(GPR_NAMES[i]);
+      for (GPR reg : GPR.values()) {
+        VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
-        VM.sysWrite(registers.gprs.get(i));
+        VM.sysWrite(registers.gprs.get(reg.value()));
         VM.sysWrite("\n");
       }
     }
@@ -137,7 +137,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     // restore non-volatile registers
     int frameOffset = optMethod.getUnsignedNonVolatileOffset();
     for (int i = optMethod.getFirstNonVolatileGPR(); i < NUM_NONVOLATILE_GPRS; i++, frameOffset += 4) {
-      registers.gprs.set(NONVOLATILE_GPRS[i], fp.minus(frameOffset).loadWord());
+      registers.gprs.set(NONVOLATILE_GPRS[i].value(), fp.minus(frameOffset).loadWord());
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
 
@@ -147,10 +147,10 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       VM.sysWrite("Registers after unwinding frame for ");
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
-      for (int i = 0; i < NUM_GPRS; i++) {
-        VM.sysWrite(GPR_NAMES[i]);
+      for (GPR reg : GPR.values()) {
+        VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
-        VM.sysWrite(registers.gprs.get(i));
+        VM.sysWrite(registers.gprs.get(reg.value()));
         VM.sysWrite("\n");
       }
     }

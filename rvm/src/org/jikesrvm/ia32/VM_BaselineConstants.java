@@ -25,17 +25,17 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
 
   // Dedicated registers.
   //
-  byte JTOC = EDI;
-  byte SP = ESP;
-  byte PR = PROCESSOR_REGISTER;
+  VM_RegisterConstants.GPR JTOC = EDI;
+  VM_RegisterConstants.GPR SP = ESP;
+  VM_RegisterConstants.GPR PR = PROCESSOR_REGISTER;
 
   // Volatile (parameter) registers.
   //
-  byte T0 = EAX;  // DO NOT CHANGE THIS ASSIGNMENT
-  byte T1 = EDX;
+  VM_RegisterConstants.GPR T0 = EAX;  // DO NOT CHANGE THIS ASSIGNMENT
+  VM_RegisterConstants.GPR T1 = EDX;
 
   // scratch register
-  byte S0 = ECX;
+  VM_RegisterConstants.GPR S0 = ECX;
 
   // Mnemonics corresponding to the above constants.
   // These are some alternate names that can be used in the debugger

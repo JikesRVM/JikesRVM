@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.ia32;
 
+import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+
 public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//
   //               RVM register usage conventions - Intel version.                         //
@@ -20,45 +23,148 @@ public interface VM_RegisterConstants {
   byte LG_INSTRUCTION_WIDTH = 0;             // log2 of instruction width in bytes
   int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
+  /**
+   * Common interface implemented by all registers constants
+   */
+  public interface Register {
+    /** @return encoded value of this register */
+    byte value();
+  }
+
+  /**
+   * Representation of general purpose registers
+   */
+  public enum GPR implements Register {
+    EAX(0), ECX(1), EDX(2), EBX(3), ESP(4), EBP(5), ESI(6), EDI(7);
+
+    /** Local copy of the backing array. Copied here to avoid calls to clone */
+    private static final GPR[] vals = values();
+
+    /** Constructor a register with the given encoding value */
+    private GPR(int v) {
+      if (v != ordinal()) {
+        throw new Error("Invalid register ordinal");
+      }
+    }
+    /** @return encoded value of this register */
+    @UninterruptibleNoWarn
+    @Pure
+    public byte value() {
+      if (!org.jikesrvm.VM.runningVM) {
+        return (byte)ordinal();
+      } else {
+        return (byte)java.lang.JikesRVMSupport.getEnumOrdinal(this);
+      }
+    }
+    /**
+     * Convert encoded value into the GPR it represents
+     * @param num encoded value
+     * @return represented GPR
+     */
+    @Pure
+    public static GPR lookup(int num) {
+      return vals[num];
+    }
+    /**
+     * Convert encoded value representing an opcode into the GPR to represent it
+     * @param num encoded value
+     * @return represented GPR
+     */
+    public static GPR getForOpcode(int opcode) {
+      return lookup(opcode);
+    }
+  }
+
+  /**
+   * Representation of x87 floating point registers
+   */
+  public enum FPR implements Register {
+    FP0(0), FP1(1), FP2(2), FP3(3), FP4(4), FP5(5), FP6(6), FP7(7);
+    /** Local copy of the backing array. Copied here to avoid calls to clone */
+    private static final FPR[] vals = values();
+    /** Constructor a register with the given encoding value */
+    FPR(int v) {
+      if (v != ordinal()) {
+        throw new Error("Invalid register ordinal");
+      }
+    }
+    /** @return encoded value of this register */
+    @Pure
+    public byte value() {
+      return (byte)ordinal();
+    }
+    /**
+     * Convert encoded value into the FPR it represents
+     * @param num encoded value
+     * @return represented FPR
+     */
+    @Pure
+    public static FPR lookup(int num) {
+      return vals[num];
+    }
+  }
+
+  /**
+   * Representation of SSE XMM registers
+   */
+  public enum XMM implements Register {
+    XMM0(0), XMM1(1), XMM2(2), XMM3(3), XMM4(4), XMM5(5), XMM6(6), XMM7(7);
+    /** Local copy of the backing array. Copied here to avoid calls to clone */
+    private static final XMM[] vals = values();
+    /** Constructor a register with the given encoding value */
+    XMM(int v) {
+      if (v != ordinal()) {
+        throw new Error("Invalid register ordinal");
+      }
+    }
+    /** @return encoded value of this register */
+    @Pure
+    public byte value() {
+      return (byte)ordinal();
+    }
+    /**
+     * Convert encoded value into the XMM it represents
+     * @param num encoded value
+     * @return represented XMM
+     */
+    @Pure
+    public static XMM lookup(int num) {
+      return vals[num];
+    }
+  }
+
   // Symbolic values for fixed-point registers.
   // These values are used to assemble instructions and as indices into:
-  //    VM_Registers.gprs[]
-  //    VM_Registers.fprs[]
-  //    VM_GCMapIterator.registerLocations[]
-  //    VM_RegisterConstants.GPR_NAMES[]
-  //
-  byte EAX = 0x0;
-  byte ECX = 0x1;
-  byte EDX = 0x2;
-  byte EBX = 0x3;
-  byte ESP = 0x4;
-  byte EBP = 0x5;
-  byte ESI = 0x6;
-  byte EDI = 0x7;
+  //   VM_Registers.gprs[]
+  //   VM_Registers.fprs[]
+  //   VM_GCMapIterator.registerLocations[]
+  //   VM_RegisterConstants.GPR_NAMES[]
+  GPR EAX = GPR.EAX;
+  GPR ECX = GPR.ECX;
+  GPR EDX = GPR.EDX;
+  GPR EBX = GPR.EBX;
+  GPR ESP = GPR.ESP;
+  GPR EBP = GPR.EBP;
+  GPR ESI = GPR.ESI;
+  GPR EDI = GPR.EDI;
 
-  // Mnemonics corresponding to the above constants.
-  String[] GPR_NAMES = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
+  FPR FP0 = FPR.FP0;
+  FPR FP1 = FPR.FP1;
+  FPR FP2 = FPR.FP2;
+  FPR FP3 = FPR.FP3;
+  FPR FP4 = FPR.FP4;
+  FPR FP5 = FPR.FP5;
+  FPR FP6 = FPR.FP6;
+  FPR FP7 = FPR.FP7;
 
-  byte FP0 = 0x0;
-  byte FP1 = 0x1;
-  byte FP2 = 0x2;
-  byte FP3 = 0x3;
-  byte FP4 = 0x4;
-  byte FP5 = 0x5;
-  byte FP6 = 0x6;
-  byte FP7 = 0x7;
-
-  String[] FPR_NAMES = {"FP0", "FP1", "FP2", "FP3", "FP4", "FP5", "FP6", "FP7"};
-
-  // Currently aliased with FPs.
-  byte XMM0 = 0x0;
-  byte XMM1 = 0x1;
-  byte XMM2 = 0x2;
-  byte XMM3 = 0x3;
-  byte XMM4 = 0x4;
-  byte XMM5 = 0x5;
-  byte XMM6 = 0x6;
-  byte XMM7 = 0x7;
+  XMM XMM0 = XMM.XMM0;
+  XMM XMM1 = XMM.XMM1;
+  XMM XMM2 = XMM.XMM2;
+  XMM XMM3 = XMM.XMM3;
+  XMM XMM4 = XMM.XMM4;
+  XMM XMM5 = XMM.XMM5;
+  XMM XMM6 = XMM.XMM6;
+  XMM XMM7 = XMM.XMM7;
 
   // Register sets (``range'' is a misnomer for the alphabet soup of
   // of intel registers)
@@ -66,7 +172,7 @@ public interface VM_RegisterConstants {
 
   // Note: the order here is important.  The opt-compiler allocates
   // the volatile registers in the order they appear here.
-  byte[] VOLATILE_GPRS = {EAX, EDX, ECX};
+  GPR[] VOLATILE_GPRS = {EAX, EDX, ECX};
   int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
 
   // Note: the order here is very important.  The opt-compiler allocates
@@ -74,13 +180,13 @@ public interface VM_RegisterConstants {
   // EBX must be last, because it is the only non-volatile that can
   // be used in instructions that are using r8 and we must ensure that
   // opt doesn't skip over another nonvol while looking for an r8 nonvol.
-  byte[] NONVOLATILE_GPRS = {EBP, EDI, EBX};
+  GPR[] NONVOLATILE_GPRS = {EBP, EDI, EBX};
   int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
 
-  byte[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
+  FPR[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
   int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
 
-  byte[] NONVOLATILE_FPRS = {};
+  FPR[] NONVOLATILE_FPRS = {};
   int NUM_NONVOLATILE_FPRS = NONVOLATILE_FPRS.length;
 
   /*
@@ -96,8 +202,8 @@ public interface VM_RegisterConstants {
 
   // Dedicated registers.
   //
-  byte STACK_POINTER = ESP;
-  byte PROCESSOR_REGISTER = ESI;
+  GPR STACK_POINTER = ESP;
+  GPR PROCESSOR_REGISTER = ESI;
 
   byte NUM_GPRS = 8;
   byte NUM_FPRS = 8;

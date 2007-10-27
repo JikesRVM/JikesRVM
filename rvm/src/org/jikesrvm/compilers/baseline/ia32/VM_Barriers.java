@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.baseline.ia32;
 import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -37,7 +36,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
   }
 
-  static void compilePutfieldBarrier(VM_Assembler asm, byte reg, int locationMetadata) {
+  static void compilePutfieldBarrier(VM_Assembler asm, GPR reg, int locationMetadata) {
     //  on entry java stack contains ...|target_ref|ref_to_store|
     //  SP -> ref_to_store, SP+4 -> target_ref
     Offset of4 = Offset.fromIntSignExtend(4);
@@ -65,7 +64,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
   }
 
-  static void compilePutstaticBarrier(VM_Assembler asm, byte reg, int locationMetadata) {
+  static void compilePutstaticBarrier(VM_Assembler asm, GPR reg, int locationMetadata) {
     //  on entry java stack contains ...|ref_to_store|
     //  SP -> ref_to_store
     Offset of4 = Offset.fromIntSignExtend(4);
@@ -93,7 +92,7 @@ class VM_Barriers implements VM_BaselineConstants {
    */
   private static void genNullCheck(VM_Assembler asm, int offset) {
     asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend(offset));
-    VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T1);
+    VM_Compiler.baselineEmitLoadTIB(asm, T1, T1);
   }
 
   static void compileModifyCheck(VM_Assembler asm, int offset) {

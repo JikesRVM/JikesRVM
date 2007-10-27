@@ -122,9 +122,9 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM
     // the JNI transition frame at a fixed negative offset from the callers FP.
     // the save non-volatiles are EBX EBP and EDI.
     //
-    registerLocations.set(JTOC, framePtr.plus(VM_JNICompiler.EDI_SAVE_OFFSET).toWord());
-    registerLocations.set(EBX, framePtr.plus(VM_JNICompiler.EBX_SAVE_OFFSET).toWord());
-    registerLocations.set(EBP, framePtr.plus(VM_JNICompiler.EBP_SAVE_OFFSET).toWord());
+    registerLocations.set(JTOC.value(), framePtr.plus(VM_JNICompiler.EDI_SAVE_OFFSET).toWord());
+    registerLocations.set(EBX.value(), framePtr.plus(VM_JNICompiler.EBX_SAVE_OFFSET).toWord());
+    registerLocations.set(EBP.value(), framePtr.plus(VM_JNICompiler.EBP_SAVE_OFFSET).toWord());
 
     return Address.zero();  // no more refs to report
   }

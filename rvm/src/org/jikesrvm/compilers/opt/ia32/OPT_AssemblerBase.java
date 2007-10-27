@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ia32;
 
 import java.util.ArrayList;
+import static org.jikesrvm.ia32.VM_ArchConstants.SSE2_FULL;
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.VM;
@@ -183,6 +184,18 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     return op.isRegister();
   }
 
+  boolean isGPR_Reg(OPT_Operand op) {
+    return isReg(op);
+  }
+
+  boolean isFPR_Reg(OPT_Operand op) {
+    return isReg(op);
+  }
+
+  boolean isXMM_Reg(OPT_Operand op) {
+    return isReg(op);
+  }
+
   /**
    * Return the machine-level register number corresponding to a given integer
    * OPT_Register. The optimizing compiler has its own notion of register
@@ -197,11 +210,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param reg the register being queried
    * @return the 3 bit machine-level encoding of reg
    */
-  private byte getGPMachineRegister(OPT_Register reg) {
+  private GPR getGPMachineRegister(OPT_Register reg) {
     if (VM.VerifyAssertions) {
       VM._assert(OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg) == INT_REG);
     }
-    return (byte) (reg.number - FIRST_INT);
+    return GPR.lookup(reg.number - FIRST_INT);
   }
 
   /**
@@ -220,23 +233,26 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param reg the register being queried
    * @return the 3 bit machine-level encoding of reg
    */
-  private byte getMachineRegister(OPT_Register reg) {
+  private Register getMachineRegister(OPT_Register reg) {
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
-    byte result;
+    Register result;
     if (type == INT_REG) {
-      result = (byte) (reg.number - FIRST_INT);
+      result = GPR.lookup(reg.number - FIRST_INT);
     } else {
       if (VM.VerifyAssertions) VM._assert(type == DOUBLE_REG);
-      if (reg.number < FIRST_SPECIAL) {
-        result = (byte) (reg.number - FIRST_DOUBLE);
-      } else if (reg.number == ST0) {
-        result = 0;
+      if (SSE2_FULL) {
+        if (reg.number < FIRST_SPECIAL) {
+          result = XMM.lookup(reg.number - FIRST_DOUBLE);
+        } else if (reg.number == ST0) {
+          result = FP0;
+        } else {
+          if (VM.VerifyAssertions) VM._assert(reg.number == ST1);
+          result = FP1;
+        }
       } else {
-        if (VM.VerifyAssertions) VM._assert(reg.number == ST1);
-        result = 1;
+        result = FPR.lookup(reg.number - FIRST_DOUBLE);
       }
     }
-    if (OPT_IR.PARANOID) VM._assert((result & 0x7) == result);
     return result;
   }
 
@@ -253,8 +269,20 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of op
    */
-  byte getReg(OPT_Operand op) {
+  Register getReg(OPT_Operand op) {
     return getMachineRegister(op.asRegister().getRegister());
+  }
+
+  GPR getGPR_Reg(OPT_Operand op) {
+    return getGPMachineRegister(op.asRegister().getRegister());
+  }
+
+  FPR getFPR_Reg(OPT_Operand op) {
+    return (FPR)getMachineRegister(op.asRegister().getRegister());
+  }
+
+  XMM getXMM_Reg(OPT_Operand op) {
+    return (XMM)getMachineRegister(op.asRegister().getRegister());
   }
 
   /**
@@ -274,7 +302,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of the base register of op
    */
-  byte getBase(OPT_Operand op) {
+  GPR getBase(OPT_Operand op) {
     return getGPMachineRegister(((OPT_MemoryOperand) op).base.getRegister());
   }
 
@@ -294,7 +322,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of the index register of op
    */
-  byte getIndex(OPT_Operand op) {
+  GPR getIndex(OPT_Operand op) {
     return getGPMachineRegister(((OPT_MemoryOperand) op).index.getRegister());
   }
 
@@ -395,7 +423,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
-   *  Determine if a given operand is a memory operand representing
+   * Determine if a given operand is a memory operand representing
    * register-offset mode addressing.  This method takes an
    * arbitrary operand, checks whether it is a memory operand, and,
    * if it is, checks whether it should be assembled as IA32
@@ -917,7 +945,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         emitJMP_Label(getLabel(MIR_Branch.getTarget(inst)));
       }
     } else if (isReg(MIR_Branch.getTarget(inst))) {
-      emitJMP_Reg(getReg(MIR_Branch.getTarget(inst)));
+      emitJMP_Reg(getGPR_Reg(MIR_Branch.getTarget(inst)));
     } else if (isAbs(MIR_Branch.getTarget(inst))) {
       emitJMP_Abs(getDisp(MIR_Branch.getTarget(inst)));
     } else if (isRegDisp(MIR_Branch.getTarget(inst))) {
