@@ -103,6 +103,35 @@ public interface VM_RegisterConstants {
       return vals[num];
     }
   }
+  /**
+   * Representation of MMX MM registers
+   * N.B. MM and x87 FPR registers alias
+   */
+  public enum MM implements Register {
+    MM0(0), MM1(1), MM2(2), MM3(3), MM4(4), MM5(5), MM6(6), MM7(7);
+    /** Local copy of the backing array. Copied here to avoid calls to clone */
+    private static final MM[] vals = values();
+    /** Constructor a register with the given encoding value */
+    MM(int v) {
+      if (v != ordinal()) {
+        throw new Error("Invalid register ordinal");
+      }
+    }
+    /** @return encoded value of this register */
+    @Pure
+    public byte value() {
+      return (byte)ordinal();
+    }
+    /**
+     * Convert encoded value into the MM it represents
+     * @param num encoded value
+     * @return represented MM
+     */
+    @Pure
+    public static MM lookup(int num) {
+      return vals[num];
+    }
+  }
 
   /**
    * Representation of SSE XMM registers
@@ -156,6 +185,15 @@ public interface VM_RegisterConstants {
   FPR FP5 = FPR.FP5;
   FPR FP6 = FPR.FP6;
   FPR FP7 = FPR.FP7;
+
+  MM MM0 = MM.MM0;
+  MM MM1 = MM.MM1;
+  MM MM2 = MM.MM2;
+  MM MM3 = MM.MM3;
+  MM MM4 = MM.MM4;
+  MM MM5 = MM.MM5;
+  MM MM6 = MM.MM6;
+  MM MM7 = MM.MM7;
 
   XMM XMM0 = XMM.XMM0;
   XMM XMM1 = XMM.XMM1;

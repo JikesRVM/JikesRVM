@@ -192,6 +192,10 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     return isReg(op);
   }
 
+  boolean isMM_Reg(OPT_Operand op) {
+    return false; // MM registers not currently supported in the OPT compiler
+  }
+
   boolean isXMM_Reg(OPT_Operand op) {
     return isReg(op);
   }
@@ -279,6 +283,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
 
   FPR getFPR_Reg(OPT_Operand op) {
     return (FPR)getMachineRegister(op.asRegister().getRegister());
+  }
+
+  MM getMM_Reg(OPT_Operand op) {
+    VM._assert(false, "MM registers not currently supported in the opt compiler");
+    return null;
   }
 
   XMM getXMM_Reg(OPT_Operand op) {

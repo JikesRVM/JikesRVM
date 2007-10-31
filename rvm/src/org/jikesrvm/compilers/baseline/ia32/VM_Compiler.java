@@ -1156,7 +1156,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitPOP_Reg(T0);                  // shift amount (6 bits)
       asm.emitMOVQ_Reg_RegInd(XMM1, SP);    // XMM1 <- [SP]
       asm.emitAND_Reg_Imm(T0, 0x3F);        // mask to 6bits
-      asm.emitMOVDr_Reg_Reg(XMM0, T0);      // XMM0 <- T0
+      asm.emitMOVD_Reg_Reg(XMM0, T0);      // XMM0 <- T0
       asm.emitPSLLQ_Reg_Reg(XMM1, XMM0);    // XMM1 <<= XMM0
       asm.emitMOVQ_RegInd_Reg(SP, XMM1);    // [SP] <- XMM1
     } else {
@@ -1213,7 +1213,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitPOP_Reg(T0);                  // shift amount (6 bits)
       asm.emitMOVQ_Reg_RegInd(XMM1, SP);    // XMM1 <- [SP]
       asm.emitAND_Reg_Imm(T0, 0x3F);        // mask to 6bits
-      asm.emitMOVDr_Reg_Reg(XMM0, T0);      // XMM0 <- T0
+      asm.emitMOVD_Reg_Reg(XMM0, T0);      // XMM0 <- T0
       asm.emitPSRLQ_Reg_Reg(XMM1, XMM0);    // XMM1 >>>= XMM0
       asm.emitMOVQ_RegInd_Reg(SP, XMM1);    // [SP] <- XMM1
     } else {

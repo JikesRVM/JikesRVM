@@ -1072,6 +1072,7 @@ public class GenerateAssembler {
     excludedOpcodes.add("ENTER");
     excludedOpcodes.add("JMP");
     excludedOpcodes.add("JCC");
+    excludedOpcodes.add("EMMS");
   }
 
   /**

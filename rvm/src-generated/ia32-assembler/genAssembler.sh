@@ -1538,36 +1538,26 @@ emitSSE2Op() {
     condLine="
     setMachineCodes(mi++, (byte) ${condByte});"
   fi
-  
-  if [ x$opCode == xnone ]; then 
-    cat >> $FILENAME <<EOF
-  
-  // dstReg ${opStr}= $code srcReg
-  @Inline
-  public final void emit${acronym}_Reg_Reg($toRegType dstReg, $fromRegType srcReg) {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) ${prefix2});
-    setMachineCodes(mi++, (byte) 0x0F);
-    setMachineCodes(mi++, (byte) ${opCode2});
-    emitRegRegOperands(srcReg, dstReg);$condLine
-    if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
-  }
-EOF
 
-  else
-  cat >> $FILENAME <<EOF
+  prefix1Line=
+  if [[ x$prefix != xnone ]]; then
+    prefix1Line="
+    setMachineCodes(mi++, (byte) ${prefix});"
+  fi
+
+  prefix2Line=
+  if [[ x$prefix2 != xnone ]]; then
+    prefix2Line="
+    setMachineCodes(mi++, (byte) ${prefix2});"
+  fi
+  
+  if [ x$opCode != xnone ]; then 
+    cat >> $FILENAME <<EOF
   
   // dstReg ${opStr}= $code srcReg
   @Inline
   public final void emit${acronym}_Reg_Reg($toRegType dstReg, $fromRegType srcReg) {
-    int miStart = mi;
-EOF
-    if [ x$prefix != xnone ]; then 
-    cat >> $FILENAME <<EOF
-    setMachineCodes(mi++, (byte) ${prefix});
-EOF
-    fi
-    cat >> $FILENAME <<EOF
+    int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegRegOperands(srcReg, dstReg);$condLine
@@ -1577,14 +1567,7 @@ EOF
   // dstReg ${opStr}= $code [srcReg + srcDisp]
   @Inline
   public final void emit${acronym}_Reg_RegDisp($toRegType dstReg, GPR srcReg, Offset disp) {
-    int miStart = mi;
-EOF
-    if [ x$prefix != xnone ]; then 
-    cat >> $FILENAME <<EOF
-    setMachineCodes(mi++, (byte) ${prefix});
-EOF
-    fi
-    cat >> $FILENAME <<EOF
+    int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegDispRegOperands(srcReg, disp, dstReg);$condLine
@@ -1594,14 +1577,7 @@ EOF
   // dstReg ${opStr}= $code [srcIndex<<scale + srcDisp]
   @Inline
   public final void emit${acronym}_Reg_RegOff($toRegType dstReg, GPR srcIndex, short scale, Offset srcDisp) {
-    int miStart = mi;
-EOF
-    if [ x$prefix != xnone ]; then 
-    cat >> $FILENAME <<EOF
-    setMachineCodes(mi++, (byte) ${prefix});
-EOF
-    fi
-    cat >> $FILENAME <<EOF
+    int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegOffRegOperands(srcIndex, scale, srcDisp, dstReg);$condLine
@@ -1611,14 +1587,7 @@ EOF
   // dstReg ${opStr}= $code [srcDisp]
   @Inline
   public final void emit${acronym}_Reg_Abs($toRegType dstReg, Offset srcDisp) {
-    int miStart = mi;
-EOF
-    if [ x$prefix != xnone ]; then 
-    cat >> $FILENAME <<EOF
-    setMachineCodes(mi++, (byte) ${prefix});
-EOF
-    fi
-    cat >> $FILENAME <<EOF
+    int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitAbsRegOperands(srcDisp, dstReg);$condLine
@@ -1628,14 +1597,7 @@ EOF
   // dstReg ${opStr}= $code [srcBase + srcIndex<<scale + srcDisp]
   @Inline
   public final void emit${acronym}_Reg_RegIdx($toRegType dstReg, GPR srcBase, GPR srcIndex, short scale, Offset srcDisp) {
-    int miStart = mi;
-EOF
-    if [ x$prefix != xnone ]; then 
-    cat >> $FILENAME <<EOF
-    setMachineCodes(mi++, (byte) ${prefix});
-EOF
-    fi
-    cat >> $FILENAME <<EOF
+    int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitSIBRegOperands(srcBase, srcIndex, scale, srcDisp, dstReg);$condLine
@@ -1645,14 +1607,7 @@ EOF
   // dstReg ${opStr}= $code [srcReg]
   @Inline
   public final void emit${acronym}_Reg_RegInd($toRegType dstReg, GPR srcReg) {
-    int miStart = mi;
-EOF
-    if [ x$prefix != xnone ]; then 
-    cat >> $FILENAME <<EOF
-    setMachineCodes(mi++, (byte) ${prefix});
-EOF
-    fi
-    cat >> $FILENAME <<EOF
+    int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegIndirectRegOperands(srcReg, dstReg);$condLine
@@ -1661,10 +1616,25 @@ EOF
   
 EOF
   fi
+
+  if [[ x$opCode2 != xnone ]] && [[ x$opCode == xnone ]]; then
+    cat >> $FILENAME <<EOF
+  
+  // dstReg ${opStr}= $code srcReg
+  @Inline
+  public final void emit${acronym}_Reg_Reg($toRegType dstReg, $fromRegType srcReg) {
+    int miStart = mi;$prefix2Line
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitRegRegOperands(srcReg, dstReg);$condLine
+    if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
+  }
+EOF
+  fi
   
   if [ x$opCode2 != xnone ]; then
     cat >> $FILENAME <<EOF
-
+  
   /**
    * Generate a register--register ${acronym}. That is,
    * <PRE>
@@ -1676,8 +1646,7 @@ EOF
    */
   @Inline
   public final void emit${acronym}_RegInd_Reg(GPR dstReg, $fromRegType srcReg) {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) ${prefix2});
+    int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegIndirectRegOperands(dstReg, srcReg);
@@ -1697,8 +1666,7 @@ EOF
    */
   @Inline
   public final void emit${acronym}_RegOff_Reg${ext}(GPR dstIndex, short dstScale, Offset dstDisp, $fromRegType srcReg) {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) ${prefix2});
+    int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegOffRegOperands(dstIndex, dstScale, dstDisp, srcReg);
@@ -1708,8 +1676,7 @@ EOF
   // [dstDisp] ${opStr}= $code srcReg
   @Inline
   public final void emit${acronym}_Abs_Reg${ext}(Offset dstDisp, $fromRegType srcReg) {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) ${prefix2});
+    int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitAbsRegOperands(dstDisp, srcReg);
@@ -1719,8 +1686,7 @@ EOF
   // [dstBase + dstIndex<<scale + dstDisp] ${opStr}= $code srcReg
   @Inline
   public final void emit${acronym}_RegIdx_Reg${ext}(GPR dstBase, GPR dstIndex, short scale, Offset dstDisp, $fromRegType srcReg) {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) ${prefix2});
+    int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitSIBRegOperands(dstBase, dstIndex, scale, dstDisp, srcReg);
@@ -1730,8 +1696,7 @@ EOF
   // [dstReg + dstDisp] ${opStr}= $code srcReg
   @Inline
   public final void emit${acronym}_RegDisp_Reg${ext}(GPR dstReg, Offset disp, $fromRegType srcReg) {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) ${prefix2});
+    int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegDispRegOperands(dstReg, disp, srcReg);
@@ -1748,8 +1713,8 @@ emitSSE2Op 0xF3 none SUBSS 0x5C none
 emitSSE2Op 0xF3 none MULSS 0x59 none
 emitSSE2Op 0xF3 none DIVSS 0x5E none
 emitSSE2Op 0xF3 0xF3 MOVSS 0x10 0x11
-emitSSE2Op 0xF3 none CVTSI2SS 0x2A none none GPR XMM
 emitSSE2Op 0xF3 none CVTSS2SD 0x5A none
+emitSSE2Op 0xF3 none CVTSI2SS 0x2A none none GPR XMM
 emitSSE2Op 0xF3 none CVTSS2SI 0x2D none none XMM GPR
 emitSSE2Op 0xF3 none CVTTSS2SI 0x2C none none XMM GPR
 
@@ -1765,9 +1730,13 @@ emitSSE2Op 0xF3 none CMPNLESS 0xC2 none 6
 emitSSE2Op 0xF3 none CMPORDSS 0xC2 none 7
 
 # Generic data move ops.
+emitSSE2Op none none MOVD none 0x7E none MM GPR
+emitSSE2Op none none MOVD 0x6E none none GPR MM
 emitSSE2Op none 0x66 MOVD none 0x7E none XMM GPR
-emitSSE2Op none 0x66 MOVDr none 0x6E none GPR XMM
-emitSSE2Op 0xF3 0x66 MOVQ 0x7E 0xD6
+emitSSE2Op 0x66 none MOVD 0x6E none none GPR XMM
+# NB there is a related MOVQ for x86 64 that handles 64bit GPRs to/from MM/XMM registers
+emitSSE2Op none none MOVQ 0x6F 0x7F none MM MM
+emitSSE2Op 0xF3 0x66 MOVQ 0x7E 0xD6 none XMM XMM
 
 # Double precision FP ops.
 emitSSE2Op 0xF2 none ADDSD 0x58 none
@@ -1792,8 +1761,10 @@ emitSSE2Op 0xF2 none CMPNLESD 0xC2 none 6
 emitSSE2Op 0xF2 none CMPORDSD 0xC2 none 7
 
 # Long ops.
-emitSSE2Op 0x66 0x0F PSLLQ 0xF3 none
-emitSSE2Op 0x66 0x0F PSRLQ 0xD3 none
+emitSSE2Op none none PSLLQ 0xF3 none none MM MM
+emitSSE2Op none none PSRLQ 0xD3 none none MM MM
+emitSSE2Op 0x66 none PSLLQ 0xF3 none
+emitSSE2Op 0x66 none PSRLQ 0xD3 none
 
 emitFloatMemAcc() {
     local acronym=$1

@@ -1884,6 +1884,20 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
       if (lister != null) lister.RXD(miStart, "CMPXCHG8B", base2, index2, scale2, disp2);
   }
 
+  /**
+   * Empty MMX technology state
+   * <PRE>
+   * emms
+   * </PRE>
+   */
+  @Inline
+  public final void emitEMMS() {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x77);
+      if (lister != null) lister.OP(miStart, "EMMS");
+  }
+
   /*
    * BELOW HERE ARE AUTOMATICALLY-GENERATED INSTRUCTIONS.  DO NOT EDIT.
    *
