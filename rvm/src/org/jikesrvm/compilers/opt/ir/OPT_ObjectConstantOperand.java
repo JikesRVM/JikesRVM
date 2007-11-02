@@ -40,7 +40,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
   /**
    * Can this object be moved in memory?
    */
-  public final boolean moveable;
+  private final boolean movable;
 
   /**
    * Construct a new object constant operand
@@ -53,8 +53,8 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
     value = v;
     offset = i;
     // prior to writing the boot image we don't know where objects will reside,
-    // so we must treat them as moveable when writing the boot image
-    moveable = !VM.runningVM || !MM_Interface.willNeverMove(v);
+    // so we must treat them as movable when writing the boot image
+    movable = !VM.runningVM || !MM_Interface.willNeverMove(v);
   }
 
   /**
@@ -99,12 +99,12 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
   }
 
   /**
-   * Is the operand a moveable {@link OPT_ObjectConstantOperand}?
+   * Is the operand a movable {@link OPT_ObjectConstantOperand}?
    *
-   * @return moveable
+   * @return movable
    */
-  public boolean isMoveableObjectConstant() {
-    return moveable;
+  public boolean isMovableObjectConstant() {
+    return movable;
   }
 
 

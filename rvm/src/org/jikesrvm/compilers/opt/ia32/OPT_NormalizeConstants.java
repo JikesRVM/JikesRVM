@@ -64,7 +64,7 @@ public abstract class OPT_NormalizeConstants implements OPT_Operators {
           if (use != null) {
             if (use instanceof OPT_ObjectConstantOperand) {
               OPT_ObjectConstantOperand oc = (OPT_ObjectConstantOperand) use;
-              if(oc.moveable) {
+              if(oc.isMovableObjectConstant()) {
                 OPT_RegisterOperand rop = ir.regpool.makeTemp(use.getType());
                 OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
                 Offset offset = oc.offset;

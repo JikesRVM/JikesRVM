@@ -1636,10 +1636,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (CF_ADDR) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
-      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+      if (op2.isConstant() && !op2.isMovableObjectConstant()) {
         Address val2 = getAddressValue(op2);
         OPT_Operand op1 = Binary.getVal1(s);
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Address val1 = getAddressValue(op1);
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.plus(val2.toWord().toOffset())));
@@ -1679,9 +1679,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
-      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+      if (op2.isConstant() && !op2.isMovableObjectConstant()) {
         Word val2 = getAddressValue(op2).toWord();
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.and(val2).toAddress()));
@@ -1708,7 +1708,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.lsh(val2).toAddress()));
@@ -1724,7 +1724,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
         }
-      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+      } else if (op1.isConstant() && !op1.isMovableObjectConstant()) {
         Word val1 = getAddressValue(op1).toWord();
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
         if (val1.isZero()) {                  // 0 << x == 0
@@ -1742,7 +1742,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.rsha(val2).toAddress()));
@@ -1758,7 +1758,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.UNCHANGED;
           }
         }
-      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+      } else if (op1.isConstant() && !op1.isMovableObjectConstant()) {
         Word val1 = getAddressValue(op1).toWord();
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
         // -1 >> x == -1, 0 >> x == 0
@@ -1774,7 +1774,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect refNot(OPT_Instruction s) {
     if (CF_ADDR) {
       OPT_Operand op = Unary.getVal(s);
-      if (op.isConstant() && !op.isMoveableObjectConstant()) {
+      if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
         Word val = getAddressValue(op).toWord();
         Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(val.not().toAddress()));
@@ -1794,7 +1794,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
-      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+      if (op2.isConstant() && !op2.isMovableObjectConstant()) {
         Word val2 = getAddressValue(op2).toWord();
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
@@ -1826,9 +1826,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
-      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+      if (op2.isConstant() && !op2.isMovableObjectConstant()) {
         Address val2 = getAddressValue(op2);
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Address val1 = getAddressValue(op1);
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.minus(val2.toWord().toOffset())));
@@ -1853,7 +1853,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                         AC(Address.zero().minus(val2.toWord().toOffset())));
           return DefUseEffect.REDUCED;
         }
-      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+      } else if (op1.isConstant() && !op1.isMovableObjectConstant()) {
         Address val1 = getAddressValue(op1);
         if (val1.EQ(Address.zero())) {
           Unary.mutate(s, REF_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
@@ -1870,7 +1870,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.rshl(val2).toAddress()));
@@ -1886,7 +1886,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
         }
-      } else if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+      } else if (op1.isConstant() && !op1.isMovableObjectConstant()) {
         Word val1 = getAddressValue(op1).toWord();
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
         if (val1.EQ(Word.zero())) {                  // 0 >>> x == 0
@@ -1908,9 +1908,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
-      if (op2.isConstant() && !op2.isMoveableObjectConstant()) {
+      if (op2.isConstant() && !op2.isMovableObjectConstant()) {
         Word val2 = getAddressValue(op2).toWord();
-        if (op1.isConstant() && !op1.isMoveableObjectConstant()) {
+        if (op1.isConstant() && !op1.isMovableObjectConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = getAddressValue(op1).toWord();
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.xor(val2).toAddress()));
@@ -2895,7 +2895,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect addr2Int(OPT_Instruction s) {
     if (CF_INT) {
       OPT_Operand op = Unary.getVal(s);
-      if (op.isConstant() && !op.isMoveableObjectConstant()) {
+      if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
         Address val = getAddressValue(op);
         Move.mutate(s, INT_MOVE, Unary.getClearResult(s), IC(val.toInt()));
@@ -2908,7 +2908,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect addr2Long(OPT_Instruction s) {
     if (CF_LONG) {
       OPT_Operand op = Unary.getVal(s);
-      if (op.isConstant() && !op.isMoveableObjectConstant()) {
+      if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
         Address val = getAddressValue(op);
         Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC(val.toLong()));
@@ -3445,7 +3445,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       return Address.fromLong(op.asLongConstant().value);
     }
     if (op instanceof OPT_ObjectConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(!op.isMoveableObjectConstant());
+      if (VM.VerifyAssertions) VM._assert(!op.isMovableObjectConstant());
       return VM_Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OPT_OptimizingCompilerException("Cannot getAddressValue from this operand " + op);

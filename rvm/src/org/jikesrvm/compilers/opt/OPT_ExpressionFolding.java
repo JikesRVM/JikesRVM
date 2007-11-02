@@ -2522,7 +2522,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             }
 
             OPT_Operand val1 = Binary.getVal1(s);
-            if (s.operator.isCommutative() && val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
+            if (s.operator.isCommutative() && val1.isConstant() && !val1.isMovableObjectConstant() && !val1.isTIBConstant()) {
               Binary.setVal1(s, Binary.getClearVal2(s));
               Binary.setVal2(s, val1);
               OPT_Register result = Binary.getResult(s).asRegister().getRegister();
@@ -2582,7 +2582,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = BooleanCmp.getVal1(s);
-            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
+            if (val1.isConstant() && !val1.isMovableObjectConstant() && !val1.isTIBConstant()) {
               BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
               BooleanCmp.setVal2(s, val1);
               BooleanCmp.getCond(s).flipOperands();
@@ -2623,7 +2623,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = IfCmp.getVal1(s);
-            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
+            if (val1.isConstant() && !val1.isMovableObjectConstant() && !val1.isTIBConstant()) {
               IfCmp.setVal1(s, IfCmp.getClearVal2(s));
               IfCmp.setVal2(s, val1);
               IfCmp.getCond(s).flipOperands();
@@ -2660,7 +2660,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = IfCmp2.getVal1(s);
-            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
+            if (val1.isConstant() && !val1.isMovableObjectConstant() && !val1.isTIBConstant()) {
               IfCmp2.setVal1(s, IfCmp2.getClearVal2(s));
               IfCmp2.setVal2(s, val1);
               IfCmp2.getCond1(s).flipOperands();
@@ -2702,7 +2702,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = CondMove.getVal1(s);
-            if (val1.isConstant() && !val1.isMoveableObjectConstant()) {
+            if (val1.isConstant() && !val1.isMovableObjectConstant()) {
               CondMove.setVal1(s, CondMove.getClearVal2(s));
               CondMove.setVal2(s, val1);
               CondMove.getCond(s).flipOperands();
@@ -2786,7 +2786,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       return Address.fromLong(op.asLongConstant().value);
     }
     if (op instanceof OPT_ObjectConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(!op.isMoveableObjectConstant());
+      if (VM.VerifyAssertions) VM._assert(!op.isMovableObjectConstant());
       return VM_Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OPT_OptimizingCompilerException(

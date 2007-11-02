@@ -188,11 +188,11 @@ public abstract class OPT_Operand {
   }
 
   /**
-   * Is the operand a moveable {@link OPT_ObjectConstantOperand}?
+   * Is the operand a movable {@link OPT_ObjectConstantOperand}?
    *
    * @return false
    */
-  public boolean isMoveableObjectConstant() {
+  public boolean isMovableObjectConstant() {
     return false;
   }
 
