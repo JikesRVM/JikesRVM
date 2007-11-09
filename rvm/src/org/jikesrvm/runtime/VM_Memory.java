@@ -13,13 +13,17 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
+import static org.jikesrvm.VM_SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_DOUBLE;
 
 /**
  * Low level memory management functions.
@@ -29,7 +33,7 @@ import org.vmmagic.unboxed.Word;
  * might cause a gc, for example).
  */
 @Uninterruptible
-public class VM_Memory implements VM_SizeConstants {
+public class VM_Memory {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
@@ -41,8 +45,42 @@ public class VM_Memory implements VM_SizeConstants {
    */
   private static final int NATIVE_THRESHOLD = 512;
 
+  /**
+   * Allow the use of C based memcpy
+   */
   private static final boolean USE_NATIVE = true;
 
+  /**
+   * Number of bytes used when copying larger chunks of memory. Normally 8 bytes
+   * except on x87 Intel
+   */
+  private static final int BYTES_IN_COPY = VM.BuildForIA32 && !VM.BuildForSSE2 ? 4 : 8;
+
+  @Inline
+  private static void copy8Bytes(Address dstPtr, Address srcPtr) {
+    if (BYTES_IN_COPY == 8) {
+      if (VM.BuildForIA32) {
+        dstPtr.store(srcPtr.loadLong());
+      } else {
+        dstPtr.store(srcPtr.loadDouble());
+      }
+    } else {
+      copy4Bytes(dstPtr, srcPtr);
+      copy4Bytes(dstPtr.plus(4), srcPtr.plus(4));
+    }
+  }
+  @Inline
+  private static void copy4Bytes(Address dstPtr, Address srcPtr) {
+    dstPtr.store(srcPtr.loadInt());
+  }
+  @Inline
+  private static void copy2Bytes(Address dstPtr, Address srcPtr) {
+    dstPtr.store(srcPtr.loadChar());
+  }
+  @Inline
+  private static void copy1Bytes(Address dstPtr, Address srcPtr) {
+    dstPtr.store(srcPtr.loadByte());
+  }
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
    *
@@ -59,61 +97,75 @@ public class VM_Memory implements VM_SizeConstants {
     if (USE_NATIVE && len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos), VM_Magic.objectAsAddress(src).plus(srcPos), len);
     } else {
-      if (len >= BYTES_IN_ADDRESS && (srcPos & (BYTES_IN_ADDRESS - 1)) == (dstPos & (BYTES_IN_ADDRESS - 1))) {
+      if (len >= BYTES_IN_COPY && (srcPos & (BYTES_IN_COPY - 1)) == (dstPos & (BYTES_IN_COPY - 1))) {
         // relative alignment is the same
-        int byteStart = srcPos;
-        int wordStart = alignUp(srcPos, BYTES_IN_ADDRESS);
-        int wordEnd = alignDown(srcPos + len, BYTES_IN_ADDRESS);
-        int byteEnd = srcPos + len;
-        int startDiff = wordStart - byteStart;
-        int endDiff = byteEnd - wordEnd;
-        int wordLen = wordEnd - wordStart;
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos + startDiff);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos + startDiff);
+        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos);
+        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos);
+        Address endPtr = srcPtr.plus(len);
+        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
 
-        if (VM.BuildFor64Addr) {
-          switch (startDiff) {
-            case 7: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-7)), Offset.fromIntSignExtend(-7));
-            case 6: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-6)), Offset.fromIntSignExtend(-6));
-            case 5: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-5)), Offset.fromIntSignExtend(-5));
-            case 4: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-4)), Offset.fromIntSignExtend(-4));
-            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-3)), Offset.fromIntSignExtend(-3));
-            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
-            case 1: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-1)), Offset.fromIntSignExtend(-1));
+        if (BYTES_IN_COPY == 8) {
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(1)).NE(Word.zero())) {
+            copy1Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(1);
+            dstPtr = dstPtr.plus(1);
+          }
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(2);
+            dstPtr = dstPtr.plus(2);
+          }
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(4)).NE(Word.zero())) {
+            copy4Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(4);
+            dstPtr = dstPtr.plus(4);
           }
         } else {
-          switch (startDiff) {
-            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-3)), Offset.fromIntSignExtend(-3));
-            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
-            case 1: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-1)), Offset.fromIntSignExtend(-1));
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(1)).NE(Word.zero())) {
+            copy1Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(1);
+            dstPtr = dstPtr.plus(1);
+          }
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(2);
+            dstPtr = dstPtr.plus(2);
           }
         }
-
-        Address endPtr = srcPtr.plus(wordLen);
-        while (srcPtr.LT(endPtr)) {
-          dstPtr.store(srcPtr.loadWord());
-          srcPtr = srcPtr.plus(BYTES_IN_ADDRESS);
-          dstPtr = dstPtr.plus(BYTES_IN_ADDRESS);
+        while (srcPtr.LT(wordEndPtr)) {
+          if (BYTES_IN_COPY == 8) {
+            copy8Bytes(dstPtr, srcPtr);
+          } else {
+            copy4Bytes(dstPtr, srcPtr);
+          }
+          srcPtr = srcPtr.plus(BYTES_IN_COPY);
+          dstPtr = dstPtr.plus(BYTES_IN_COPY);
         }
-
-        if (VM.BuildFor64Addr) {
-          switch (endDiff) {
-            case 7: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(6)), Offset.fromIntSignExtend(6));
-            case 6: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(5)), Offset.fromIntSignExtend(5));
-            case 5: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
-            case 4: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(3)), Offset.fromIntSignExtend(3));
-            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
-            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(1)), Offset.fromIntSignExtend(1));
-            case 1: dstPtr.store(srcPtr.loadByte());
+        if(VM.VerifyAssertions) VM._assert(wordEndPtr.EQ(srcPtr));
+        if (BYTES_IN_COPY == 8) {
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(4)).NE(Word.zero())) {
+            copy4Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(4);
+            dstPtr = dstPtr.plus(4);
+          }
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(2);
+            dstPtr = dstPtr.plus(2);
+          }
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(1)).NE(Word.zero())) {
+            copy1Bytes(dstPtr, srcPtr);
           }
         } else {
-          switch (endDiff) {
-            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
-            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(1)), Offset.fromIntSignExtend(1));
-            case 1: dstPtr.store(srcPtr.loadByte());
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(2);
+            dstPtr = dstPtr.plus(2);
+          }
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(1)).NE(Word.zero())) {
+            copy1Bytes(dstPtr, srcPtr);
           }
         }
-
       } else {
         Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos);
         Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos);
@@ -145,57 +197,63 @@ public class VM_Memory implements VM_SizeConstants {
               VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT),
               len << LOG_BYTES_IN_SHORT);
     } else {
-      if (len >= (BYTES_IN_ADDRESS >>> LOG_BYTES_IN_SHORT) &&
-          (srcPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_SHORT)) ==
-          (dstPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_SHORT))) {
+      if (len >= (BYTES_IN_COPY >>> LOG_BYTES_IN_SHORT) &&
+          (srcPos & ((BYTES_IN_COPY - 1) >>> LOG_BYTES_IN_SHORT)) ==
+          (dstPos & ((BYTES_IN_COPY - 1) >>> LOG_BYTES_IN_SHORT))) {
         // relative alignment is the same
-        int byteStart = srcPos << LOG_BYTES_IN_SHORT;
-        int wordStart = alignUp(byteStart, BYTES_IN_ADDRESS);
-        int wordEnd = alignDown(byteStart + (len << LOG_BYTES_IN_SHORT), BYTES_IN_ADDRESS);
-        int byteEnd = byteStart + (len << LOG_BYTES_IN_SHORT);
-        int startDiff = wordStart - byteStart;
-        int endDiff = byteEnd - wordEnd;
-        int wordLen = wordEnd - wordStart;
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus((srcPos << LOG_BYTES_IN_SHORT) + startDiff);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus((dstPos << LOG_BYTES_IN_SHORT) + startDiff);
+        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
+        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
+        Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_SHORT);
+        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
 
-        if (VM.BuildFor64Addr) {
-          switch (startDiff) {
-            case 6: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-6)), Offset.fromIntSignExtend(-6));
-            case 4: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-4)), Offset.fromIntSignExtend(-4));
-            case 2: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
+        if (BYTES_IN_COPY == 8) {
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(2);
+            dstPtr = dstPtr.plus(2);
+          }
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(4)).NE(Word.zero())) {
+            copy4Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(4);
+            dstPtr = dstPtr.plus(4);
           }
         } else {
-          if (startDiff == 2) {
-            dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
+          if (srcPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(2);
+            dstPtr = dstPtr.plus(2);
           }
         }
-
-        Address endPtr = srcPtr.plus(wordLen);
-        while (srcPtr.LT(endPtr)) {
-          dstPtr.store(srcPtr.loadWord());
-          srcPtr = srcPtr.plus(BYTES_IN_ADDRESS);
-          dstPtr = dstPtr.plus(BYTES_IN_ADDRESS);
+        while (srcPtr.LT(wordEndPtr)) {
+          if (BYTES_IN_COPY == 8) {
+            copy8Bytes(dstPtr, srcPtr);
+          } else {
+            copy4Bytes(dstPtr, srcPtr);
+          }
+          srcPtr = srcPtr.plus(BYTES_IN_COPY);
+          dstPtr = dstPtr.plus(BYTES_IN_COPY);
         }
-
-        if (VM.BuildFor64Addr) {
-          switch (endDiff) {
-            case 6: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
-            case 4: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
-            case 2: dstPtr.store(srcPtr.loadChar());
+        if(VM.VerifyAssertions) VM._assert(wordEndPtr.EQ(srcPtr));
+        if (BYTES_IN_COPY == 8) {
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(4)).NE(Word.zero())) {
+            copy4Bytes(dstPtr, srcPtr);
+            srcPtr = srcPtr.plus(4);
+            dstPtr = dstPtr.plus(4);
+          }
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
           }
         } else {
-          if (endDiff == 2) {
-            dstPtr.store(srcPtr.loadChar());
+          if (endPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
+            copy2Bytes(dstPtr, srcPtr);
           }
         }
-
       } else {
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_CHAR);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_CHAR);
-        Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_CHAR);
+        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
+        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
+        Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_SHORT);
         while (srcPtr.LT(endPtr)) {
-          dstPtr.store(srcPtr.loadChar());
+          copy2Bytes(dstPtr, srcPtr);
           srcPtr = srcPtr.plus(2);
           dstPtr = dstPtr.plus(2);
         }
@@ -224,16 +282,7 @@ public class VM_Memory implements VM_SizeConstants {
     } else {
       // The elements of int[] and float[] are always 32 bit aligned
       // therefore we can do 32 bit load/stores without worrying about alignment.
-      // TODO: do measurements to determine if on PPC it is a good idea to check
-      //       for compatible doubleword alignment and handle that case via the FPRs in 64 bit chunks.
-      //       Unclear if this will be a big enough win to justify checking because for big copies
-      //       we are going into memcopy anyways and that will be faster than anything we do here.
-      Address endPtr = srcPtr.plus(copyBytes);
-      while (srcPtr.LT(endPtr)) {
-        dstPtr.store(srcPtr.loadInt());
-        srcPtr = srcPtr.plus(4);
-        dstPtr = dstPtr.plus(4);
-      }
+      aligned32Copy(dstPtr, srcPtr, Offset.fromIntSignExtend(len << LOG_BYTES_IN_INT));
     }
   }
 
@@ -260,14 +309,7 @@ public class VM_Memory implements VM_SizeConstants {
       // therefore we can do 64 bit load/stores without worrying about alignment.
       Address endPtr = srcPtr.plus(copyBytes);
       while (srcPtr.LT(endPtr)) {
-        // We generate abysmal code on IA32 if we try to use the FP registers,
-        // so use the gprs instead even though it results in more instructions.
-        if (VM.BuildForIA32) {
-          dstPtr.store(srcPtr.loadInt());
-          dstPtr.store(srcPtr.loadInt(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
-        } else {
-          dstPtr.store(srcPtr.loadDouble());
-        }
+        copy8Bytes(dstPtr, srcPtr);
         srcPtr = srcPtr.plus(8);
         dstPtr = dstPtr.plus(8);
       }
@@ -287,29 +329,29 @@ public class VM_Memory implements VM_SizeConstants {
     if (USE_NATIVE && numBytes.sGT(Offset.fromIntSignExtend(NATIVE_THRESHOLD))) {
       memcopy(dst, src, numBytes.toWord().toExtent());
     } else {
-      if (VM.BuildFor64Addr) {
-        Word wordMask = Word.one().lsh(LOG_BYTES_IN_ADDRESS).minus(Word.one());
+      if (BYTES_IN_COPY == 8) {
+        Word wordMask = Word.fromIntZeroExtend(BYTES_IN_COPY-1);
         Word srcAlignment = src.toWord().and(wordMask);
         if (srcAlignment.EQ(dst.toWord().and(wordMask))) {
           Offset i = Offset.zero();
           if (srcAlignment.EQ(Word.fromIntZeroExtend(BYTES_IN_INT))) {
-            dst.store(src.loadInt(i), i);
+            copy4Bytes(dst.plus(i), src.plus(i));
             i = i.plus(BYTES_IN_INT);
           }
-          Word endAlignment = srcAlignment.plus(numBytes).and(Word.fromIntSignExtend(BYTES_IN_ADDRESS - 1));
+          Word endAlignment = srcAlignment.plus(numBytes).and(wordMask);
           numBytes = numBytes.minus(endAlignment.toOffset());
-          for (; i.sLT(numBytes); i = i.plus(BYTES_IN_ADDRESS)) {
-            dst.store(src.loadWord(i), i);
+          for (; i.sLT(numBytes); i = i.plus(BYTES_IN_COPY)) {
+            copy8Bytes(dst.plus(i), src.plus(i));
           }
           if (!endAlignment.isZero()) {
-            dst.store(src.loadInt(i), i);
+            copy4Bytes(dst.plus(i), src.plus(i));
           }
           return;
         }
       }
       //normal case: 32 bit or (64 bit not aligned)
       for (Offset i = Offset.zero(); i.sLT(numBytes); i = i.plus(BYTES_IN_INT)) {
-        dst.store(src.loadInt(i), i);
+        copy4Bytes(dst.plus(i), src.plus(i));
       }
     }
   }
