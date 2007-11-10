@@ -141,7 +141,7 @@ public class VM_Memory {
           srcPtr = srcPtr.plus(BYTES_IN_COPY);
           dstPtr = dstPtr.plus(BYTES_IN_COPY);
         }
-        if(VM.VerifyAssertions) VM._assert(wordEndPtr.EQ(srcPtr));
+        // if(VM.VerifyAssertions) VM._assert(wordEndPtr.EQ(srcPtr));
         if (BYTES_IN_COPY == 8) {
           if (endPtr.toWord().and(Word.fromIntZeroExtend(4)).NE(Word.zero())) {
             copy4Bytes(dstPtr, srcPtr);
@@ -233,7 +233,7 @@ public class VM_Memory {
           srcPtr = srcPtr.plus(BYTES_IN_COPY);
           dstPtr = dstPtr.plus(BYTES_IN_COPY);
         }
-        if(VM.VerifyAssertions) VM._assert(wordEndPtr.EQ(srcPtr));
+        // if(VM.VerifyAssertions) VM._assert(wordEndPtr.EQ(srcPtr));
         if (BYTES_IN_COPY == 8) {
           if (endPtr.toWord().and(Word.fromIntZeroExtend(4)).NE(Word.zero())) {
             copy4Bytes(dstPtr, srcPtr);
