@@ -135,159 +135,166 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
     for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder(); s != null; s = next) {
       next = s.prevInstructionInCodeOrder();
 
-      switch(s.getOpcode()) {
-      case BOOLEAN_NOT_opcode: break;
-      case REF_NOT_opcode: s.operator = INT_NOT; break;
-      case INT_NOT_opcode: break;
-      case LONG_NOT_opcode: break;
+      switch (s.getOpcode()) {
+      case REF_ADD_opcode:
+        s.operator = INT_ADD;
+        break;
+      case REF_SUB_opcode:
+        s.operator = INT_SUB;
+        break;
+      case REF_NEG_opcode:
+        s.operator = INT_NEG;
+        break;
+      case REF_NOT_opcode:
+        s.operator = INT_NOT;
+        break;
+      case REF_AND_opcode:
+        s.operator = INT_AND;
+        break;
+      case REF_OR_opcode:
+        s.operator = INT_OR;
+        break;
+      case REF_XOR_opcode:
+        s.operator = INT_XOR;
+        break;
+      case REF_SHL_opcode:
+        s.operator = INT_SHL;
+        break;
+      case REF_SHR_opcode:
+        s.operator = INT_SHR;
+        break;
+      case REF_USHR_opcode:
+        s.operator = INT_USHR;
+        break;
 
-      case REF_ADD_opcode: s.operator = INT_ADD; break;
-      case INT_ADD_opcode: break;
-      case REF_SUB_opcode: s.operator = INT_SUB; break;
-      case INT_SUB_opcode: break;
-      case REF_NEG_opcode: s.operator = INT_NEG; break;
-      case INT_NEG_opcode: break;
-      case LONG_NEG_opcode: break;
-      case REF_AND_opcode: s.operator = INT_AND; break;
-      case INT_AND_opcode: break;
-      case REF_OR_opcode: s.operator = INT_OR; break;
-      case INT_OR_opcode: break;
-      case REF_XOR_opcode: s.operator = INT_XOR; break;
-      case INT_XOR_opcode: break;
-      case LONG_AND_opcode: break;
-      case LONG_OR_opcode: break;
-      case LONG_XOR_opcode: break;
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case BOOLEAN_CMP_ADDR_opcode:
+        s.operator = BOOLEAN_CMP_INT;
+        break;
 
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case FLOAT_ADD_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_ADD;
+        break;
+      case DOUBLE_ADD_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_ADD;
+        break;
+      case FLOAT_SUB_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_SUB;
+        break;
+      case DOUBLE_SUB_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_SUB;
+        break;
+      case FLOAT_MUL_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_MUL;
+        break;
+      case DOUBLE_MUL_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_MUL;
+        break;
+      case FLOAT_DIV_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_DIV;
+        break;
+      case DOUBLE_DIV_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_DIV;
+        break;
+      case FLOAT_REM_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_REM;
+        break;
+      case DOUBLE_REM_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_REM;
+        break;
+      case FLOAT_NEG_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_NEG;
+        break;
+      case DOUBLE_NEG_opcode:
+        if (!SSE2_FULL)
+          s.operator = FP_NEG;
+        break;
 
-      case REF_SHL_opcode: s.operator = INT_SHL; break;
-      case INT_SHL_opcode: break;
-      case REF_SHR_opcode: s.operator = INT_SHR; break;
-      case INT_SHR_opcode: break;
-      case REF_USHR_opcode: s.operator = INT_USHR; break;
-      case INT_USHR_opcode: break;
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case INT_COND_MOVE_opcode:
+      case REF_COND_MOVE_opcode:
+        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV
+            : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV);
+        break;
+      case FLOAT_COND_MOVE_opcode:
+      case DOUBLE_COND_MOVE_opcode:
+        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV
+            : CMP_FCMOV;
+        break;
+      case LONG_COND_MOVE_opcode:
+        OPT_OptimizingCompilerException.TODO();
+        break;
+      case GUARD_COND_MOVE_opcode:
+        OPT_OptimizingCompilerException.TODO();
+        break;
 
-      case LONG_SHL_opcode: break;
-      case LONG_SHR_opcode: break;
-      case LONG_USHR_opcode: break;
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case INT_2FLOAT_opcode:
+        if (!SSE2_FULL)
+          s.operator = INT_2FP;
+        break;
+      case INT_2DOUBLE_opcode:
+        if (!SSE2_FULL)
+          s.operator = INT_2FP;
+        break;
+      case LONG_2FLOAT_opcode:
+        if (!SSE2_FULL)
+          s.operator = LONG_2FP;
+        break;
+      case LONG_2DOUBLE_opcode:
+        if (!SSE2_FULL)
+          s.operator = LONG_2FP;
+        break;
 
-        case LONG_ADD_opcode:
-          break;
-        case LONG_SUB_opcode:
-          break;
-        case LONG_MUL_opcode:
-          break;
-
-          // BURS doesn't really care, so consolidate to reduce rule space
-        case BOOLEAN_CMP_ADDR_opcode:
-          s.operator = BOOLEAN_CMP_INT;
-          break;
-
-          // BURS doesn't really care, so consolidate to reduce rule space
-        case FLOAT_ADD_opcode:
-          if (!SSE2_FULL) s.operator = FP_ADD;
-          break;
-        case DOUBLE_ADD_opcode:
-          if (!SSE2_FULL) s.operator = FP_ADD;
-          break;
-        case FLOAT_SUB_opcode:
-          if (!SSE2_FULL) s.operator = FP_SUB;
-          break;
-        case DOUBLE_SUB_opcode:
-          if (!SSE2_FULL) s.operator = FP_SUB;
-          break;
-        case FLOAT_MUL_opcode:
-          if (!SSE2_FULL) s.operator = FP_MUL;
-          break;
-        case DOUBLE_MUL_opcode:
-          if (!SSE2_FULL) s.operator = FP_MUL;
-          break;
-        case FLOAT_DIV_opcode:
-          if (!SSE2_FULL) s.operator = FP_DIV;
-          break;
-        case DOUBLE_DIV_opcode:
-          if (!SSE2_FULL) s.operator = FP_DIV;
-          break;
-        case FLOAT_REM_opcode:
-          if (!SSE2_FULL) s.operator = FP_REM;
-          break;
-        case DOUBLE_REM_opcode:
-          if (!SSE2_FULL) s.operator = FP_REM;
-          break;
-        case FLOAT_NEG_opcode:
-          if (!SSE2_FULL) s.operator = FP_NEG;
-          break;
-        case DOUBLE_NEG_opcode:
-          if (!SSE2_FULL) s.operator = FP_NEG;
-          break;
-
-          // BURS doesn't really care, so consolidate to reduce rule space
-        case INT_COND_MOVE_opcode:
-        case REF_COND_MOVE_opcode:
-          s.operator =
-              CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV);
-          break;
-        case FLOAT_COND_MOVE_opcode:
-        case DOUBLE_COND_MOVE_opcode:
-          s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV : CMP_FCMOV;
-          break;
-        case LONG_COND_MOVE_opcode:
-          OPT_OptimizingCompilerException.TODO();
-          break;
-        case GUARD_COND_MOVE_opcode:
-          OPT_OptimizingCompilerException.TODO();
-          break;
-
-          // BURS doesn't really care, so consolidate to reduce rule space
-        case INT_2FLOAT_opcode:
-          if (!SSE2_FULL) s.operator = INT_2FP;
-          break;
-        case INT_2DOUBLE_opcode:
-          if (!SSE2_FULL) s.operator = INT_2FP;
-          break;
-        case LONG_2FLOAT_opcode:
-          if (!SSE2_FULL) s.operator = LONG_2FP;
-          break;
-        case LONG_2DOUBLE_opcode:
-          if (!SSE2_FULL) s.operator = LONG_2FP;
-          break;
-
-          // BURS doesn't really care, so consolidate to reduce rule space
-        case REF_LOAD_opcode:
-          s.operator = INT_LOAD;
-          break;
-        case REF_STORE_opcode:
-          s.operator = INT_STORE;
-          break;
-        case REF_ALOAD_opcode:
-          s.operator = INT_ALOAD;
-          break;
-        case REF_ASTORE_opcode:
-          s.operator = INT_ASTORE;
-          break;
-        case REF_MOVE_opcode:
-          s.operator = INT_MOVE;
-          break;
-        case REF_IFCMP_opcode:
-          s.operator = INT_IFCMP;
-          break;
-        case ATTEMPT_ADDR_opcode:
-          s.operator = ATTEMPT_INT;
-          break;
-        case PREPARE_ADDR_opcode:
-          s.operator = PREPARE_INT;
-          break;
-        case INT_2ADDRSigExt_opcode:
-          s.operator = INT_MOVE;
-          break;
-        case INT_2ADDRZerExt_opcode:
-          s.operator = INT_MOVE;
-          break;
-        case ADDR_2INT_opcode:
-          s.operator = INT_MOVE;
-          break;
-        case ADDR_2LONG_opcode:
-          s.operator = INT_2LONG;
-          break;
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case REF_LOAD_opcode:
+        s.operator = INT_LOAD;
+        break;
+      case REF_STORE_opcode:
+        s.operator = INT_STORE;
+        break;
+      case REF_ALOAD_opcode:
+        s.operator = INT_ALOAD;
+        break;
+      case REF_ASTORE_opcode:
+        s.operator = INT_ASTORE;
+        break;
+      case REF_MOVE_opcode:
+        s.operator = INT_MOVE;
+        break;
+      case REF_IFCMP_opcode:
+        s.operator = INT_IFCMP;
+        break;
+      case ATTEMPT_ADDR_opcode:
+        s.operator = ATTEMPT_INT;
+        break;
+      case PREPARE_ADDR_opcode:
+        s.operator = PREPARE_INT;
+        break;
+      case INT_2ADDRSigExt_opcode:
+        s.operator = INT_MOVE;
+        break;
+      case INT_2ADDRZerExt_opcode:
+        s.operator = INT_MOVE;
+        break;
+      case ADDR_2INT_opcode:
+        s.operator = INT_MOVE;
+        break;
+      case ADDR_2LONG_opcode:
+        s.operator = INT_2LONG;
+        break;
       }
 
       if (OPTIMIZE) {
