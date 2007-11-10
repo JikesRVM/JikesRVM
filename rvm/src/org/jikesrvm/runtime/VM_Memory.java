@@ -282,7 +282,14 @@ public class VM_Memory {
     } else {
       // The elements of int[] and float[] are always 32 bit aligned
       // therefore we can do 32 bit load/stores without worrying about alignment.
-      aligned32Copy(dstPtr, srcPtr, Offset.fromIntSignExtend(len << LOG_BYTES_IN_INT));
+      // TODO: optimize to use 64bit copies. Suspected problem in _202_jess with overlapping arrays
+      //aligned32Copy(dstPtr, srcPtr, Offset.fromIntSignExtend(len << LOG_BYTES_IN_INT));
+      Address endPtr = srcPtr.plus(copyBytes);
+      while (srcPtr.LT(endPtr)) {
+        dstPtr.store(srcPtr.loadInt());
+        srcPtr = srcPtr.plus(4);
+        dstPtr = dstPtr.plus(4);
+      }
     }
   }
 
