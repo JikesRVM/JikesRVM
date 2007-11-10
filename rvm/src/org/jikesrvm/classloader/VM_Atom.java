@@ -459,7 +459,6 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     }
   }
 
-  
   /**
    * Parse "this" method descriptor to obtain descriptions of method's
    * parameters as classes.
