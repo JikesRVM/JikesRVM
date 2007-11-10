@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Pure;
 
 /**
  * An  utf8-encoded byte string.
@@ -73,6 +74,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @param str atom value, as string literal whose characters are unicode
    * @return atom
    */
+  @Pure
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
     byte[] utf8 = VM_UTF8Convert.toUTF8(str);
     return findOrCreate(utf8, true);
@@ -94,6 +96,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *            ascii subset of unicode (not including null)
    * @return atom
    */
+  @Pure
   public static VM_Atom findOrCreateAsciiAtom(String str) {
     return findOrCreate(VM_StringUtilities.stringToBytes(str), true);
   }
@@ -113,6 +116,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @param utf8 atom value, as utf8 encoded bytes
    * @return atom
    */
+  @Pure
   public static VM_Atom findOrCreateUtf8Atom(byte[] utf8) {
     return findOrCreate(utf8, true);
   }
@@ -130,6 +134,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @param id the id of an Atom
    * @return the VM_Atom whose id was given
    */
+  @Pure
   @Uninterruptible
   public static VM_Atom getAtom(int id) {
     return atoms[id];
@@ -170,6 +175,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Return printable representation of "this" atom.
    * Does not correctly handle UTF8 translation.
    */
+  @Pure
   public String toString() {
     return VM_StringUtilities.asciiBytesToString(val);
   }
@@ -184,6 +190,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Return printable representation of "this" atom.
    */
+  @Pure
   public String toUnicodeString() throws java.io.UTFDataFormatException {
     return VM_UTF8Convert.fromUTF8(val);
   }
@@ -193,6 +200,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: array-element descriptor - something like "I" or "Ljava/lang/Object;"
    * @return array descriptor - something like "[I" or "[Ljava/lang/Object;"
    */
+  @Pure
   VM_Atom arrayDescriptorFromElementDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -210,6 +218,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: class name       - something like "java/lang/Object"
    * @return class descriptor - something like "Ljava/lang/Object;"
    */
+  @Pure
   public VM_Atom descriptorFromClassName() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -227,8 +236,9 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Return class name corresponding to "this" class descriptor.
    * this: class descriptor - something like "Ljava/lang/String;"
-   * @return class name       - something like "java.lang.String"
+   * @return class name - something like "java.lang.String"
    */
+  @Pure
   public String classNameFromDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -242,6 +252,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class file name  - something like "java/lang/String.class"
    */
+  @Pure
   public String classFileNameFromDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -260,6 +271,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *       At present, only <init> and <clinit> are used.
    */
   @Uninterruptible
+  @Pure
   public boolean isReservedMemberName() {
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '<';
@@ -269,6 +281,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a class descriptor?
    */
   @Uninterruptible
+  @Pure
   public boolean isClassDescriptor() {
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == 'L';
@@ -278,6 +291,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom an array descriptor?
    */
   @Uninterruptible
+  @Pure
   public boolean isArrayDescriptor() {
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '[';
@@ -287,6 +301,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a method descriptor?
    */
   @Uninterruptible
+  @Pure
   public boolean isMethodDescriptor() {
     if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '(';
@@ -302,6 +317,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
+  @Pure
   public VM_TypeReference parseForReturnType(ClassLoader cl) {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -351,6 +367,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     }
   }
 
+  @Pure
   private String byteToString(byte b) {
     return Character.toString((char) b);
   }
@@ -361,6 +378,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */
+  @Pure
   public VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -441,6 +459,24 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     }
   }
 
+  
+  /**
+   * Parse "this" method descriptor to obtain descriptions of method's
+   * parameters as classes.
+   * this: method descriptor     - something like "(III)V"
+   * @return parameter classes
+   */
+  @Pure
+  public Class<?>[] parseForParameterClasses(ClassLoader cl) {
+    VM_TypeReference[] typeRefs = this.parseForParameterTypes(cl);
+    Class<?>[] classes = new Class<?>[typeRefs.length];
+    for (int i=0; i < typeRefs.length; i++) {
+      VM_TypeReference t = typeRefs[i];
+      classes[i] = t.resolve().getClassForType();
+    }
+    return classes;
+  }
+
   /**
    * Return the underlying set of bytes for the VM_Atom.  This can be used
    * to perform comparisons without requiring the allocation of a string.
@@ -475,6 +511,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *            CharTypeCode         'C'
    * </pre>
    */
+  @Pure
   public byte parseForTypeCode() throws IllegalArgumentException {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -488,6 +525,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: descriptor     - something like "[Ljava/lang/String;" or "[[I"
    * @return dimensionality - something like "1" or "2"
    */
+  @Pure
   public int parseForArrayDimensionality() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
@@ -513,6 +551,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * allegedly uninterruptible method (VM_Array.getLogElementSize()) calls it.
    */
   @Uninterruptible
+  @Pure
   public byte parseForArrayElementTypeCode() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
@@ -524,6 +563,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Return the innermost element type reference for an array
    */
+  @Pure
   public VM_Atom parseForInnermostArrayElementDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
@@ -545,6 +585,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: array descriptor         - something like "[I"
    * @return array element descriptor - something like "I"
    */
+  @Pure
   public VM_Atom parseForArrayElementDescriptor() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
@@ -594,6 +635,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return true if this is a class descriptor of a bootstrap class
    * (ie a class that must be loaded by the bootstrap class loader)
    */
+  @Pure
   public boolean isBootstrapClassDescriptor() {
     non_bootstrap_outer:
     for (final byte[] test : NON_BOOTSTRAP_CLASS_PREFIX_SET) {
@@ -623,6 +665,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * defined as one that it would be unwise to invalidate, since invalidating
    * it might make it impossible to recompile.
    */
+  @Pure
   public boolean isRVMDescriptor() {
     outer:
     for (final byte[] test : RVM_CLASS_PREFIXES) {
@@ -647,6 +690,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * of the first annotation is $Proxy1. Classpath may later rely on
    * this to implement serialization correctly.
    */
+  @Pure
   public VM_Atom annotationInterfaceToAnnotationClass() {
     byte[] annotationClassName_tmp = new byte[val.length + 2];
     System.arraycopy(val, 0, annotationClassName_tmp, 0, val.length - 1);
@@ -660,6 +704,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Create a class name from a type name. For example Lfoo.bar$$;
    * becomes the string foo.bar
    */
+  @Pure
   public String annotationClassToAnnotationInterface() {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
@@ -671,6 +716,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Is this an annotation class name of the form Lfoo.bar$$;
    */
+  @Pure
   public boolean isAnnotationClass() {
     return (val.length > 4) && (val[val.length - 3] == '$') && (val[val.length - 2] == '$');
   }
@@ -707,6 +753,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /*
    * We canonicalize VM_Atoms, therefore we can use == for equals
    */
+  @Pure
   @Uninterruptible
   public boolean equals(Object other) {
     return this == other;
