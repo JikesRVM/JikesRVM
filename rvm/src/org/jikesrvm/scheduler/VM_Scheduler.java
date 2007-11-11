@@ -755,8 +755,11 @@ public abstract class VM_Scheduler {
    * @return true if the address could be a frame pointer, false otherwise.
    */
   private static boolean isAddressValidFramePointer(final Address address) {
-    return address.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
-           MM_Interface.mightBeFP(address);
+    if (address.EQ(Address.zero()))
+      return false; // Avoid hitting assertion failure in MMTk
+    else
+      return address.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
+             MM_Interface.mightBeFP(address);
   }
 
   private static void showPrologue(Address fp) {
