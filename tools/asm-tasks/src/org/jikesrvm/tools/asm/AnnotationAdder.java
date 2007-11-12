@@ -404,14 +404,11 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, String.class.getMethod("matches", new Class[]{String.class}));
       addToAdapt(Pure.class, String.class.getMethod("replaceFirst", new Class[]{String.class, String.class}));
       addToAdapt(Pure.class, String.class.getMethod("replaceAll", new Class[]{String.class, String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("split", new Class[]{String.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("split", new Class[]{String.class}));
       addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[]{Locale.class}));
       addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[0]));
       addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[]{Locale.class}));
       addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[0]));
       addToAdapt(Pure.class, String.class.getMethod("trim", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("toCharArray", new Class[0]));
       addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{boolean.class}));
       addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{char.class}));
       addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{int.class}));
