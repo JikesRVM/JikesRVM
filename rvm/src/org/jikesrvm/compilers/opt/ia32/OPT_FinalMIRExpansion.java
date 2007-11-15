@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.BBend;
+import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
@@ -29,9 +30,11 @@ import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
 import org.jikesrvm.compilers.opt.ir.MIR_Return;
+import org.jikesrvm.compilers.opt.ir.MIR_Set;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_Trap;
 import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
+import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.MIR_XChng;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
@@ -45,6 +48,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
+
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADVISE_ESP_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL_SAVE_VOLATILE_opcode;
@@ -73,8 +78,10 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG8B_op
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVZX__B;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_OFFSET;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_RET;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SET__B_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TEST_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TRAPIF;
@@ -309,6 +316,46 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
                 (futureDefs & OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) == OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) {
               OPT_Operand result = MIR_Move.getClearResult(p);
               MIR_BinaryAcc.mutate(p, IA32_XOR, result, result.copy());
+            }
+          }
+          break;
+
+        case IA32_SET__B_opcode:
+          // Replace <cmp>, set__b, movzx__b with xor, <cmp>, set__b
+          if (MIR_Set.getResult(p).isRegister() &&
+              MIR_Unary.conforms(next) &&
+              (next.operator() == IA32_MOVZX__B) &&
+              MIR_Unary.getResult(next).isRegister() &&
+              MIR_Unary.getVal(next).similar(MIR_Unary.getResult(next)) &&
+              MIR_Unary.getVal(next).similar(MIR_Set.getResult(p))) {
+            // Find instruction in this basic block that defines flags
+            OPT_Instruction x = p.getPrev();
+            OPT_Operand result = MIR_Unary.getResult(next);
+            boolean foundCmp = false;
+            outer:
+            while(!Label.conforms(x)) {
+              OPT_OperandEnumeration e = x.getUses();
+              while(e.hasMoreElements()) {
+                // We can't use an xor to clear the register if that register is
+                // used by the <cmp> or intervening instruction
+                if (e.next().similar(result)) {
+                  break outer;
+                }
+              }
+              if (OPT_PhysicalDefUse.definesEFLAGS(x.operator)) {
+                // we found a <cmp> that doesn't use the result
+                foundCmp = true;
+                break outer;
+              }
+              x = x.getPrev();
+            }
+            if (foundCmp) {
+              // We found the <cmp>, mutate the movzx__b into an xor and insert it before the <cmp>
+              next.remove();
+              MIR_BinaryAcc.mutate(next, IA32_XOR, result, MIR_Unary.getVal(next));
+              x.insertBefore(next);
+              // get ready for the next instruction
+              next = p.nextInstructionInCodeOrder();
             }
           }
           break;
