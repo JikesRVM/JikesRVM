@@ -966,6 +966,8 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
 
         case PPC_FABS_opcode:
         case PPC_FNEG_opcode:
+        case PPC_FSQRT_opcode:
+        case PPC_FSQRTS_opcode:
         case PPC_FRSP_opcode:
         case PPC_FCTIW_opcode:
         case PPC_FCTIWZ_opcode: {

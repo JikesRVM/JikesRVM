@@ -849,6 +849,22 @@ none
 
 
 
+# Unary negation for floats. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+FLOAT_SQRT
+Unary
+none
+
+
+
+# Unary negation for doubles. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+DOUBLE_SQRT
+Unary
+none
+
+
+
 # shifting its first (register/constant) word
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.

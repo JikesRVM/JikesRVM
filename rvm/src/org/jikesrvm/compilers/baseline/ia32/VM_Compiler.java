@@ -4412,6 +4412,25 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
 
+    if (methodName == VM_MagicNames.sqrt) {
+      if (SSE2_BASE) {
+        VM_TypeReference argType = method.getParameterTypes()[0];
+        if (argType == VM_TypeReference.Float) {
+          asm.emitSQRTSS_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
+          asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
+        } else {
+          if (VM.VerifyAssertions)
+            VM._assert(argType == VM_TypeReference.Double);
+          asm.emitSQRTSD_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
+          asm.emitMOVSD_RegInd_Reg(SP, XMM0);            // set result on stack
+        }
+      } else {
+        if (VM.VerifyAssertions)
+          VM._assert(false,"Hardware SQRT is only supported in SSE");
+      }
+      return true;
+    }
+
     if (methodName == VM_MagicNames.wordFromInt ||
         methodName == VM_MagicNames.wordFromObject ||
         methodName == VM_MagicNames.wordFromIntZeroExtend ||

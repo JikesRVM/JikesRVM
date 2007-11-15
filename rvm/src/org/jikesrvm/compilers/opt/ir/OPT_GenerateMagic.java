@@ -34,9 +34,11 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BYTE_STORE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_AS_LONG_BITS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_SQRT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_STORE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_AS_INT_BITS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SQRT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_STORE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
@@ -517,6 +519,22 @@ public class OPT_GenerateMagic implements VM_TIBLayoutConstants  {
       OPT_RegisterOperand op0 = gc.temps.makeTempDouble();
       bc2ir.appendInstruction(Unary.create(LONG_BITS_AS_DOUBLE, op0, val));
       bc2ir.pushDual(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.sqrt) {
+      VM_TypeReference[] args = meth.getParameterTypes();
+      if (args[0] == VM_TypeReference.Float) {
+        OPT_Operand val = bc2ir.popFloat();
+        OPT_RegisterOperand op0 = gc.temps.makeTempFloat();
+        bc2ir.appendInstruction(Unary.create(FLOAT_SQRT, op0, val));
+        bc2ir.push(op0.copyD2U());
+      } else if (args[0] == VM_TypeReference.Double) {
+        OPT_Operand val = bc2ir.popDouble();
+        OPT_RegisterOperand op0 = gc.temps.makeTempDouble();
+        bc2ir.appendInstruction(Unary.create(DOUBLE_SQRT, op0, val));
+        bc2ir.pushDual(op0.copyD2U());
+      } else {
+        if (VM.VerifyAssertions)
+          VM._assert(false,"SQRT only handles Double or Float operands");
+      }
     } else if (methodName == VM_MagicNames.getObjectType) {
       OPT_Operand val = bc2ir.popRef();
       if(val.isObjectConstant()) {

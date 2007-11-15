@@ -796,6 +796,22 @@ EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
+# FLOAT_SQRT
+#####
+r:	FLOAT_SQRT(r)
+10
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), PPC_FSQRTS, Unary.getResult(P(p)), Unary.getVal(P(p))));
+
+#####
+# DOUBLE_SQRT
+#####
+r:	DOUBLE_SQRT(r)
+10
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), PPC_FSQRT, Unary.getResult(P(p)), Unary.getVal(P(p))));
+
+#####
 # FMA and friends
 #####
 r: 	FLOAT_ADD(FLOAT_MUL(r, r), r)

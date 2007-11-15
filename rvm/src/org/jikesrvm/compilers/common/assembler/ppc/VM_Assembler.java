@@ -718,6 +718,22 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     mc.addInstruction(mi);
   }
 
+  static final int FSQRTtemplate = 63 << 26 | 22 << 1;
+
+  public final void emitFSQRT(int FRT, int FRB) {
+    int mi = FSQRTtemplate | FRT << 21 | FRB << 11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int FSQRTStemplate = 59 << 26 | 22 << 1;
+
+  public final void emitFSQRTS(int FRT, int FRB) {
+    int mi = FSQRTStemplate | FRT << 21 | FRB << 11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int FSUBtemplate = 63 << 26 | 20 << 1;
 
   public final void emitFSUB(int FRT, int FRA, int FRB) {

@@ -11,7 +11,9 @@
  *  regarding copyright ownership.
  */
 package java.lang;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.SysCall;
 import org.vmmagic.unboxed.Address;
@@ -74,7 +76,11 @@ class VMMath {
   }
   @Pure
   public static double sqrt(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathSqrtIP, a);
+    if (VM.BuildForPowerPC || (VM.BuildForIA32 && VM.BuildForSSE2)) {
+      return VM_Magic.sqrt(a);
+    } else {
+      return mathMagic(VM_BootRecord.the_boot_record.sysVMMathSqrtIP, a);
+    }
   }
   @Pure
   public static double pow(double a, double b) {

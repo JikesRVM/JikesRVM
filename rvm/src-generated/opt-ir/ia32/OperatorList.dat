@@ -1335,6 +1335,20 @@ none
 
 
 ####################
+IA32_SQRTSS
+MIR_Unary
+none
+C0_C1_C2_C3
+
+
+####################
+IA32_SQRTSD
+MIR_Unary
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_CVTSI2SS
 MIR_Unary
 move

@@ -1641,7 +1641,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     pushFloat(F0);
   }
 
-  /*
+ /*
   * double ALU
   */
 
@@ -1710,7 +1710,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     pushDouble(F0);
   }
 
-  /*
+ /*
   * conversion ops
   */
 
@@ -4607,6 +4607,19 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.icbi) {
       popAddr(T0);    // address
       asm.emitICBI(0, T0);
+    } else if (methodName == VM_MagicNames.sqrt) {
+      VM_TypeReference argType = method.getParameterTypes()[0];
+      if (argType == VM_TypeReference.Float) {
+        popFloat(F0);
+        asm.emitFSQRTS(F0, F0);
+        pushFloat(F0);
+      } else {
+        if (VM.VerifyAssertions)
+          VM._assert(argType == VM_TypeReference.Double);
+        popDouble(F0);
+        asm.emitFSQRT(F0, F0);
+        pushDouble(F0);
+      }
     } else if (methodName == VM_MagicNames.wordToInt ||
                methodName == VM_MagicNames.wordToAddress ||
                methodName == VM_MagicNames.wordToOffset ||

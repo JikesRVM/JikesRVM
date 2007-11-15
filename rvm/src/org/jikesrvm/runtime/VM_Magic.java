@@ -812,5 +812,25 @@ public final class VM_Magic {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
+
+  /**
+   * A hardware SQRT instruction
+   */
+  public static float sqrt(float value) {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return -1.0f; // which should upset them even if assertions aren't enabled ...
+  }
+
+  /**
+   * A hardware SQRT instruction
+   */
+  public static double sqrt(double value) {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return -1.0d; // which should upset them even if assertions aren't enabled ...
+  }
 }
 

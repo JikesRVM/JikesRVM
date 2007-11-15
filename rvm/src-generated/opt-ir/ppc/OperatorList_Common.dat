@@ -970,6 +970,22 @@ none
 (59<<26 | 21<<1)
 
 ####################
+PPC_FSQRT
+MIR_Unary
+none
+
+
+(63<<26 | 22<<1)
+
+####################
+PPC_FSQRTS
+MIR_Unary
+none
+
+
+(59<<26 | 22<<1)
+
+####################
 PPC_FABS
 MIR_Unary
 none
