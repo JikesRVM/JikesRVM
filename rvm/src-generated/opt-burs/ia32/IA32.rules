@@ -640,11 +640,11 @@ BOOLEAN_CMP_INT(PR(p), BooleanCmp.getResult(P(p)), \\
             BooleanCmp.getVal1(P(p)), consumeMO(), \\
 	    BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP_INT(r,load32)
+boolcmp: BOOLEAN_CMP_INT(riv,load32)
 15
 EMIT_INSTRUCTION
-pushCOND(BooleanCmp.getCond(P(p))); \\
-EMIT(MIR_Compare.mutate(PR(p), IA32_CMP, BooleanCmp.getVal1(P(p)), consumeMO()));
+pushCOND(BooleanCmp.getCond(P(p)).flipOperands()); \\
+EMIT(MIR_Compare.mutate(PR(p), IA32_CMP, consumeMO(), BooleanCmp.getVal1(P(p))));
 
 stm:	BYTE_STORE(boolcmp, OTHER_OPERAND(riv,riv))
 15
@@ -728,7 +728,7 @@ CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
 
 # We only use uload8 for boolean values, so if the IR is well-typed,
 # then r must contain either 0 or 1 and we can do this.
-r: CMP_CMOV(uload8, OTHER_OPERAND(r, any))
+r: CMP_CMOV(uload8, OTHER_OPERAND(riv, any))
 (15 + 30)
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
@@ -737,7 +737,7 @@ CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
 
 # We only use uload8 for boolean values, so if the IR is well-typed,
 # then r must contain either 0 or 1 and we can do this.
-r: CMP_CMOV(r, OTHER_OPERAND(uload8, any))
+r: CMP_CMOV(riv, OTHER_OPERAND(uload8, any))
 (15 + 30)
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
@@ -758,11 +758,11 @@ EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))
 CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r: CMP_CMOV(r, OTHER_OPERAND(load32, any))
+r: CMP_CMOV(riv, OTHER_OPERAND(load32, any))
 (15 + 30)
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, CondMove.getVal1(P(p)), consumeMO()))); \\
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal1(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).flipOperands(), \\
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 # CMP_CMOV((boolcmp, 0/1), tv, fv)
@@ -1196,6 +1196,16 @@ szp:	INT_AND(r, riv)
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, Binary.getVal1(P(p)), Binary.getVal2(P(p))));
+
+szp:	INT_AND(load8_16_32, riv)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal2(P(p))));
+
+szp:	INT_AND(riv, load8_16_32)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal1(P(p))));
 
 ### Memory operands ###
 szpr:	INT_AND(riv, load32)
@@ -2471,14 +2481,14 @@ EMIT(MIR_CondBranch2.mutate(P(p), IA32_JCC2,                                  \\
 	                    COND(IfCmp2.getCond1(P(p))), IfCmp2.getTarget1(P(p)),IfCmp2.getBranchProfile1(P(p)), \\
 	                    COND(IfCmp2.getCond2(P(p))), IfCmp2.getTarget2(P(p)), IfCmp2.getBranchProfile2(P(p))));
 
-stm:	INT_IFCMP2(r,load32)
+stm:	INT_IFCMP2(riv,load32)
 28
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp2.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \\
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, IfCmp2.getVal1(P(p)), consumeMO()))); \\
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), IfCmp2.getVal1(P(p))))); \\
 EMIT(MIR_CondBranch2.mutate(P(p), IA32_JCC2,                                  \\
-	                    COND(IfCmp2.getCond1(P(p))), IfCmp2.getTarget1(P(p)),IfCmp2.getBranchProfile1(P(p)), \\
-	                    COND(IfCmp2.getCond2(P(p))), IfCmp2.getTarget2(P(p)), IfCmp2.getBranchProfile2(P(p))));
+	                    COND(IfCmp2.getCond1(P(p)).flipOperands()), IfCmp2.getTarget1(P(p)),IfCmp2.getBranchProfile1(P(p)), \\
+	                    COND(IfCmp2.getCond2(P(p)).flipOperands()), IfCmp2.getTarget2(P(p)), IfCmp2.getBranchProfile2(P(p))));
 
 #####
 # LONG_IFCMP
@@ -2572,6 +2582,13 @@ r:	CALL(INT_LOAD(riv, riv), any)
 EMIT_INSTRUCTION
 CALL(P(p), MO_L(PL(p), DW));
 
+r:	CALL(INT_CONSTANT, any)
+23
+EMIT_INSTRUCTION
+OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Int); \\
+EMIT(MIR_Move.create(IA32_MOV, temp, Call.getAddress(P(p)))); \\
+CALL(P(p), temp.copyRO());
+
 r:	SYSCALL(r, any)
 13
 EMIT_INSTRUCTION
@@ -2581,6 +2598,13 @@ r:	SYSCALL(INT_LOAD(riv, riv), any)
 11
 EMIT_INSTRUCTION
 SYSCALL(P(p), MO_L(PL(p), DW));
+
+r:	SYSCALL(INT_CONSTANT, any)
+23
+EMIT_INSTRUCTION
+OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Int); \\
+EMIT(MIR_Move.create(IA32_MOV, temp, Call.getAddress(P(p)))); \\
+SYSCALL(P(p), temp.copyRO());
 
 ###########
 # Rules for exceptions
