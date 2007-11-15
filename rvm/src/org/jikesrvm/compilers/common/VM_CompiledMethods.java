@@ -25,6 +25,9 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.Comparator;
 
 /**
  * Manage pool of compiled methods. <p>
@@ -214,22 +217,61 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     VM.sysWriteln("Compiled code space report\n");
 
     VM.sysWriteln("  Baseline Compiler");
-    VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.BASELINE]);
-    VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.BASELINE]);
-    VM.sysWriteln("\tTotal size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.BASELINE]);
+    VM.sysWriteln("    Number of compiled methods =         " + codeCount[VM_CompiledMethod.BASELINE]);
+    VM.sysWriteln("    Total size of code (bytes) =         " + codeBytes[VM_CompiledMethod.BASELINE]);
+    VM.sysWriteln("    Total size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.BASELINE]);
 
     if (codeCount[VM_CompiledMethod.OPT] > 0) {
       VM.sysWriteln("  Optimizing Compiler");
-      VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.OPT]);
-      VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.OPT]);
-      VM.sysWriteln("\tTotal size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.OPT]);
+      VM.sysWriteln("    Number of compiled methods =         " + codeCount[VM_CompiledMethod.OPT]);
+      VM.sysWriteln("    Total size of code (bytes) =         " + codeBytes[VM_CompiledMethod.OPT]);
+      VM.sysWriteln("    Total size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.OPT]);
     }
 
     if (codeCount[VM_CompiledMethod.JNI] > 0) {
       VM.sysWriteln("  JNI Stub Compiler (Java->C stubs for native methods)");
-      VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.JNI]);
-      VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.JNI]);
-      VM.sysWriteln("\tTotal size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.JNI]);
+      VM.sysWriteln("    Number of compiled methods =         " + codeCount[VM_CompiledMethod.JNI]);
+      VM.sysWriteln("    Total size of code (bytes) =         " + codeBytes[VM_CompiledMethod.JNI]);
+      VM.sysWriteln("    Total size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.JNI]);
+    }
+    if (!VM.runningVM) {
+      TreeMap<String, Integer> packageData = new TreeMap<String, Integer>(
+          new Comparator<String>() {
+            public int compare(String a, String b) {
+              return a.compareTo(b);
+            }
+          });
+      for (int i = 0; i < numCompiledMethods(); ++i) {
+        VM_CompiledMethod compiledMethod = compiledMethods[i];
+        if (compiledMethod != null) {
+          VM_Method m = compiledMethod.getMethod();
+          if (m != null && compiledMethod.isCompiled()) {
+            String packageName = m.getDeclaringClass().getPackageName();
+            int numInstructions = compiledMethod.numberOfInstructions();
+            Integer val = packageData.get(packageName);
+            if (val == null) {
+              val = numInstructions;
+            } else {
+              val = val + numInstructions;
+            }
+            packageData.put(packageName, val);
+          }
+        }
+      }
+      VM.sysWriteln("------------------------------------------------------------------------------------------");
+      VM.sysWriteln("  Break down of code space usage by package (bytes):");
+      VM.sysWriteln("------------------------------------------------------------------------------------------");
+      Set<String> keys = packageData.descendingKeySet();
+      int maxPackageNameSize = 0;
+      for (String packageName : keys) {
+        maxPackageNameSize = Math.max(maxPackageNameSize, packageName.length());
+      }
+      maxPackageNameSize++;
+      for (String packageName : keys) {
+        VM.sysWriteField(maxPackageNameSize, packageName);
+        VM.sysWriteField(10, packageData.get(packageName));
+        VM.sysWriteln();
+      }
     }
   }
 
