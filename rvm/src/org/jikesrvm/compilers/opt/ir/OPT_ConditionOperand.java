@@ -755,7 +755,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * </code>
    * into:
    * <code>
-   * if (!condtion) goto B
+   * if (!condition) goto B
    * A:
    * </code>
    * Note that this is not the same as calling {@link #flipOperands}.
