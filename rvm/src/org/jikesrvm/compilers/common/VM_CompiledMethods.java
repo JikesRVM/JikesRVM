@@ -261,7 +261,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("------------------------------------------------------------------------------------------");
       VM.sysWriteln("  Break down of code space usage by package (bytes):");
       VM.sysWriteln("------------------------------------------------------------------------------------------");
-      Set<String> keys = packageData.descendingKeySet();
+      Set<String> keys = packageData.keySet();
       int maxPackageNameSize = 0;
       for (String packageName : keys) {
         maxPackageNameSize = Math.max(maxPackageNameSize, packageName.length());
