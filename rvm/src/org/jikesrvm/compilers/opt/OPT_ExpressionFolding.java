@@ -2728,12 +2728,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     if (op instanceof OPT_IntConstantOperand) {
       return op.asIntConstant().value;
     }
-    return getAddressValue(op).toInt();
+    if (VM.BuildFor32Addr) {
+      return getAddressValue(op).toInt();
+    }
+    throw new OPT_OptimizingCompilerException(
+        "Cannot getIntValue from this operand " + op +
+        " of instruction " + op.instruction);
   }
 
   private static long getLongValue(OPT_Operand op) {
     if (op instanceof OPT_LongConstantOperand)
       return op.asLongConstant().value;
+    if (VM.BuildFor64Addr) {
+      return getAddressValue(op).toLong();
+    }
     throw new OPT_OptimizingCompilerException(
         "Cannot getLongValue from this operand " + op +
         " of instruction " + op.instruction);
