@@ -65,7 +65,7 @@ SSE2_NEG(IA32_XORPS, IA32_SUBSS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p))
 r: FLOAT_SQRT(r)
 20
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_SQRTSS, Unary.getResult(P(p)), Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSS, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 r: DOUBLE_ADD(r, r)
 p.child1.isREGISTERNode() ? 20 : 30
@@ -100,7 +100,7 @@ SSE2_NEG(IA32_XORPD, IA32_SUBSD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p))
 r: DOUBLE_SQRT(r)
 20
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_SQRTSD, Unary.getResult(P(p)), Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSD, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # OPERATIONS USING X87
