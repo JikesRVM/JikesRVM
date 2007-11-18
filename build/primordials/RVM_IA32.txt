@@ -15,3 +15,4 @@
 [Lorg/jikesrvm/ia32/VM_RegisterConstants$GPR;
 [Lorg/jikesrvm/ia32/VM_RegisterConstants$FPR;
 [Lorg/jikesrvm/ia32/VM_RegisterConstants$XMM;
+[Lorg/jikesrvm/ia32/VM_RegisterConstants$MM;

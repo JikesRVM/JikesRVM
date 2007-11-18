@@ -17,3 +17,4 @@ Ljava/io/FileReader;
 Ljava/io/PushbackReader;
 [Lorg/jikesrvm/compilers/opt/OPT_Simplifier$DefUseEffect;
 [Lorg/jikesrvm/compilers/opt/ir/OPT_Operator;
+[Lorg/jikesrvm/compilers/opt/OPT_OptimizationPlanElement;

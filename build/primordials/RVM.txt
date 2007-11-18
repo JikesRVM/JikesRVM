@@ -61,6 +61,7 @@
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
 
 [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
+[Lorg/mmtk/utility/heap/FreeListPageResource;
 
 [Lorg/mmtk/plan/Phase;
 [Lorg/mmtk/policy/Space;

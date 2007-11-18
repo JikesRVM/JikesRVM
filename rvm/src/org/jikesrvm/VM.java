@@ -343,6 +343,11 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     MM_Interface.fullyBootedVM();
     VM_BaselineCompiler.fullyBootedVM();
 
+    runClassInitializer("java.util.logging.Level");
+    runClassInitializer("java.io.FilePermission");
+    runClassInitializer("gnu.java.nio.charset.EncodingHelper");
+    runClassInitializer("java.util.logging.Logger");
+
     // Initialize compiler that compiles dynamically loaded classes.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing runtime compiler");

@@ -68,6 +68,7 @@ Ljava/lang/reflect/AccessibleObject;
 # annotation support
 Ljava/lang/reflect/AnnotatedElement;
 Ljava/lang/annotation/Annotation;
+[Ljava/lang/annotation/Annotation;
 Ljava/lang/annotation/RetentionPolicy;
 Ljava/lang/annotation/ElementType;
 [Ljava/lang/annotation/RetentionPolicy;
@@ -510,3 +511,14 @@ Ljava/util/regex/Matcher;
 Lgnu/java/util/regex/CharIndexed;
 Lgnu/java/util/regex/CharIndexedCharSequence;
 Lgnu/java/util/regex/REMatch;
+
+Ljava/util/logging/Logger;
+Ljava/util/logging/Logger$1;
+Ljava/util/logging/Handler;
+Ljava/util/logging/LogManager;
+Ljava/util/logging/Level;
+Ljava/beans/PropertyChangeSupport;
+Lgnu/java/net/protocol/file/Connection;
+Lgnu/java/net/protocol/file/Connection$StaticData;
+Ljava/io/FilePermission;
+Lgnu/java/nio/charset/EncodingHelper;
