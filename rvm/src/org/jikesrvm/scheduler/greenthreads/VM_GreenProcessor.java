@@ -63,19 +63,19 @@ public final class VM_GreenProcessor extends VM_Processor {
   /**
    * threads to be added to ready queue
    */
-  public VM_GlobalGreenThreadQueue transferQueue;
+  public final VM_GlobalGreenThreadQueue transferQueue;
   /** guard for transferQueue */
   public final VM_ProcessorLock transferMutex;
 
   /**
    * threads waiting for a timeslice in which to run
    */
-  VM_GreenThreadQueue readyQueue;
+  final VM_GreenThreadQueue readyQueue;
 
   /**
    * Threads waiting for a subprocess to exit.
    */
-  VM_ThreadProcessWaitQueue processWaitQueue;
+  final VM_ThreadProcessWaitQueue processWaitQueue;
 
   /** guard for collectorThread */
   public final VM_ProcessorLock collectorThreadMutex;
@@ -90,17 +90,17 @@ public final class VM_GreenProcessor extends VM_Processor {
    * a waitpid.  (This is because of Linux's weird pthread model,
    * in which pthreads are essentially processes.)
    */
-  VM_ProcessorLock processWaitQueueLock;
+  final VM_ProcessorLock processWaitQueueLock;
 
   /**
    * threads waiting for i/o
    */
-  VM_ThreadIOQueue ioQueue;
+  final VM_ThreadIOQueue ioQueue;
 
   /**
    * thread to run when nothing else to do
    */
-  VM_GreenThreadQueue idleQueue;
+  final VM_GreenThreadQueue idleQueue;
 
   /**
    * Is the processor doing a select with a wait option
