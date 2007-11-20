@@ -1931,7 +1931,7 @@ public final class OPT_BC2IR
               // Sigh.  Can't even resolve the reference to figure out what interface
               // method we are trying to call. Therefore we must make generate a call
               // to an out-of-line typechecking routine to handle it at runtime.
-              OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+              OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.TIB);
               OPT_Instruction getTib = GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copy(), getCurrentGuard());
               appendInstruction(getTib);
               getTib.bcIndex = RUNTIME_SERVICES_BCI;

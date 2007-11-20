@@ -53,7 +53,7 @@ public class ArchitectureSpecific {
     }}
   public static final class VM_DynamicLinkerHelper extends org.jikesrvm.@_ARCH_@.VM_DynamicLinkerHelper {}
   public static final class VM_InterfaceMethodConflictResolver extends org.jikesrvm.@_ARCH_@.VM_InterfaceMethodConflictResolver {}
-  public static final class VM_LazyCompilationTrampolineGenerator extends org.jikesrvm.@_ARCH_@.VM_LazyCompilationTrampolineGenerator {}
+  public static final class VM_LazyCompilationTrampoline extends org.jikesrvm.@_ARCH_@.VM_LazyCompilationTrampoline {}
   public static final class VM_MachineCode extends org.jikesrvm.@_ARCH_@.VM_MachineCode {
   @_PPC_QUOTE_@
     public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {

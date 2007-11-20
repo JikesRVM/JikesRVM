@@ -16,7 +16,9 @@ import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STA
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.NonMoving;
 
+@NonMoving
 public class VM_NativeThread extends VM_Thread {
 
   /**

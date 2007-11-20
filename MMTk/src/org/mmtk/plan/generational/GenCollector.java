@@ -91,6 +91,7 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == StopTheWorld.ROOTS) {
+      VM.scanning.computeGlobalRoots(getCurrentTrace());
       if (!Gen.USE_STATIC_WRITE_BARRIER || global().traceFullHeap()) {
         VM.scanning.computeStaticRoots(getCurrentTrace());
       }

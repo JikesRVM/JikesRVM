@@ -13,6 +13,8 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Uninterruptible;
@@ -109,10 +111,10 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     short[] tsi;
     if (t.isJavaLangObjectType()) {
       if (VM.VerifyAssertions) VM._assert(depth == 0);
-      tsi = new short[1];
+      tsi = MM_Interface.newNonMovingShortArray(1);
     } else {
       int size = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth + 1 : MIN_SUPERCLASS_IDS_SIZE;
-      tsi = new short[size];
+      tsi = MM_Interface.newNonMovingShortArray(size);
       VM_Type p;
       if (t.isArrayType() || t.asClass().isInterface()) {
         p = VM_Type.JavaLangObjectType;
@@ -145,7 +147,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       int serialIdx = VM_Type.JavaIoSerializableType.getDoesImplementIndex();
       int size = Math.max(cloneIdx, serialIdx);
       size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size + 1);
-      int[] tmp = new int[size];
+      int[] tmp = MM_Interface.newNonMovingIntArray(size);
       tmp[cloneIdx] = VM_Type.JavaLangCloneableType.getDoesImplementBitMask();
       tmp[serialIdx] |= VM_Type.JavaIoSerializableType.getDoesImplementBitMask();
       arrayDoesImplement = tmp;
@@ -162,7 +164,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   static int[] buildDoesImplement(VM_Class t) {
     if (t.isJavaLangObjectType()) {
       // object implements no interfaces.
-      return new int[MIN_DOES_IMPLEMENT_SIZE];
+      return MM_Interface.newNonMovingIntArray(MIN_DOES_IMPLEMENT_SIZE);
     }
 
     VM_Class[] superInterfaces = t.getDeclaredInterfaces();
@@ -184,7 +186,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     }
 
     // then create and populate it
-    int[] mine = new int[size];
+    int[] mine = MM_Interface.newNonMovingIntArray(size);
     if (t.isInterface()) {
       mine[t.getDoesImplementIndex()] = t.getDoesImplementBitMask();
     } else {
@@ -212,7 +214,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfNonArray(VM_Class LHSclass, Object[] rhsTIB) {
+  public static boolean instanceOfNonArray(VM_Class LHSclass, VM_TIB rhsTIB) {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
     } else {
@@ -230,12 +232,12 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         or <code>false</code> if it is not
    */
   @Uninterruptible
-  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
+  public static boolean instanceOfClass(VM_Class LHSclass, VM_TIB rhsTIB) {
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
-      VM._assert(rhsTIB[TIB_SUPERCLASS_IDS_INDEX] != null);
+      VM._assert(rhsTIB.getSuperclassIds() != null);
     }
-    short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
+    short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB.getSuperclassIds());
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
     int LHSId = LHSclass.getId();
@@ -251,8 +253,8 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) {
-    int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[TIB_DOES_IMPLEMENT_INDEX]);
+  public static boolean instanceOfInterface(VM_Class LHSclass, VM_TIB rhsTIB) {
+    int[] doesImplement = rhsTIB.getDoesImplement();
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
     return idx < doesImplement.length && ((doesImplement[idx] & mask) != 0);

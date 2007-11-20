@@ -29,6 +29,7 @@ import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.jni.VM_JNIGlobalRefTable;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -427,11 +428,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     if (method.isStatic()) {
       // For static method, push on arg stack the VM_Class object
       //    jtoc[tibOffset] -> class TIB ptr -> first TIB entry -> class object -> classForType
-      klass.getClassForType();     // ensure the Java class object is created
-      Offset tibOffset = klass.getTibOffset();
-      asm.emitMOV_Reg_RegDisp(EBX, JTOC, tibOffset);
-      asm.emitMOV_Reg_RegInd(EBX, EBX);
-      asm.emitMOV_Reg_RegDisp(EBX, EBX, VM_Entrypoints.classForTypeField.getOffset());
+      Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
+      // push java.lang.Class object for klass
+      asm.emitMOV_Reg_RegDisp(EBX, JTOC, klassOffset);
     } else {
       // For nonstatic method, "this" pointer should be the first arg in the caller frame,
       // make it the 2nd arg in the glue frame

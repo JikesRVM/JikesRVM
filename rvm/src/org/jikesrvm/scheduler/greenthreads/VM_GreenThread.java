@@ -32,6 +32,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -40,6 +41,7 @@ import org.vmmagic.unboxed.Offset;
  * A green thread's Java execution context
  */
 @Uninterruptible
+@NonMoving
 public class VM_GreenThread extends VM_Thread {
   /** Lock controlling the suspending of a thread */
   private static final Offset suspendPendingOffset = VM_Entrypoints.suspendPendingField.getOffset();

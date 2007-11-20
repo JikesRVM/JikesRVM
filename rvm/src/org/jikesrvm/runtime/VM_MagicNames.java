@@ -71,7 +71,7 @@ public class VM_MagicNames {
   public static final VM_Atom getIntAtOffset = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
   public static final VM_Atom getWordAtOffset = VM_Atom.findOrCreateAsciiAtom("getWordAtOffset");
   public static final VM_Atom getObjectAtOffset = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
-  public static final VM_Atom getObjectArrayAtOffset = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
+  public static final VM_Atom getTIBAtOffset = VM_Atom.findOrCreateAsciiAtom("getTIBAtOffset");
   public static final VM_Atom getLongAtOffset = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
   public static final VM_Atom getDoubleAtOffset = VM_Atom.findOrCreateAsciiAtom("getDoubleAtOffset");
   public static final VM_Atom setByteAtOffset = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
@@ -112,12 +112,13 @@ public class VM_MagicNames {
 
   public static final VM_Atom objectAsAddress = VM_Atom.findOrCreateAsciiAtom("objectAsAddress");
   public static final VM_Atom addressAsObject = VM_Atom.findOrCreateAsciiAtom("addressAsObject");
-  public static final VM_Atom addressAsObjectArray = VM_Atom.findOrCreateAsciiAtom("addressAsObjectArray");
+  public static final VM_Atom addressAsTIB = VM_Atom.findOrCreateAsciiAtom("addressAsTIB");
   public static final VM_Atom objectAsType = VM_Atom.findOrCreateAsciiAtom("objectAsType");
   public static final VM_Atom addressAsByteArray = VM_Atom.findOrCreateAsciiAtom("addressAsByteArray");
   public static final VM_Atom objectAsShortArray = VM_Atom.findOrCreateAsciiAtom("objectAsShortArray");
   public static final VM_Atom objectAsIntArray = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
   public static final VM_Atom codeArrayAsObject = VM_Atom.findOrCreateAsciiAtom("codeArrayAsObject");
+  public static final VM_Atom tibAsObject = VM_Atom.findOrCreateAsciiAtom("tibAsObject");
 
   public static final VM_Atom objectAsProcessor = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
   public static final VM_Atom objectAsThread = VM_Atom.findOrCreateAsciiAtom("objectAsThread");

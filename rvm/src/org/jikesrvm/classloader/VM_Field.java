@@ -47,6 +47,10 @@ public final class VM_Field extends VM_Member {
                    int constantValueIndex, VM_Annotation[] annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
+
+    if (isUntraced() && VM.runningVM) {
+      VM.sysFail("Untraced field " + toString() + " created at runtime!");
+    }
   }
 
   /**
@@ -175,6 +179,13 @@ public final class VM_Field extends VM_Member {
   }
 
   /**
+   * Is this field invisible to the memory management system.
+   */
+  public boolean isUntraced() {
+    return hasUntracedAnnotation();
+  }
+
+  /**
    * Get the value from the runtime final field
    * @return whether the method has a pure annotation
    */
@@ -240,9 +251,17 @@ public final class VM_Field extends VM_Member {
    */
   public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsObject(getOffset());
+      if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !isUntraced()) {
+        return MM_Interface.getstaticReadBarrier(getOffset(), getId());
+      } else {
+        return VM_Statics.getSlotContentsAsObject(getOffset());
+      }
     } else {
-      return VM_Magic.getObjectAtOffset(obj, getOffset());
+      if (MM_Constants.NEEDS_READ_BARRIER && !isUntraced()) {
+        return MM_Interface.getfieldReadBarrier(obj, getOffset(), getId());
+      } else {
+        return VM_Magic.getObjectAtOffset(obj, getOffset());
+      }
     }
   }
 
@@ -327,13 +346,13 @@ public final class VM_Field extends VM_Member {
    */
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
         MM_Interface.putstaticWriteBarrier(getOffset(), ref, getId());
       } else {
         VM_Statics.setSlotContents(getOffset(), ref);
       }
     } else {
-      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      if (MM_Constants.NEEDS_WRITE_BARRIER && !isUntraced()) {
         MM_Interface.putfieldWriteBarrier(obj, getOffset(), ref, getId());
       } else {
         VM_Magic.setObjectAtOffset(obj, getOffset(), ref);

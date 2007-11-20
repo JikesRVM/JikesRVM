@@ -82,17 +82,18 @@ public abstract class Plan implements Constants {
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
   public static final int ALLOC_NON_REFERENCE = 1;
-  public static final int ALLOC_IMMORTAL = 2;
-  public static final int ALLOC_LOS = 3;
-  public static final int ALLOC_PRIMITIVE_LOS = 4;
-  public static final int ALLOC_GCSPY = 5;
-  public static final int ALLOC_CODE = 6;
-  public static final int ALLOC_LARGE_CODE = 7;
+  public static final int ALLOC_NON_MOVING = 2;
+  public static final int ALLOC_IMMORTAL = 3;
+  public static final int ALLOC_LOS = 4;
+  public static final int ALLOC_PRIMITIVE_LOS = 5;
+  public static final int ALLOC_GCSPY = 6;
+  public static final int ALLOC_CODE = 7;
+  public static final int ALLOC_LARGE_CODE = 8;
   public static final int ALLOC_HOT_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_STACK = ALLOC_LOS;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
-  public static final int ALLOCATORS = 8;
+  public static final int ALLOCATORS = 9;
   public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
@@ -128,6 +129,9 @@ public abstract class Plan implements Constants {
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
   public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create());
 
+  /** Space used to allocate objects that cannot be moved. we do not need a large space as the LOS is non-moving. */
+  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+
   public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
   public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
 
@@ -138,6 +142,7 @@ public abstract class Plan implements Constants {
   public static final int LOS = loSpace.getDescriptor();
   public static final int PLOS = ploSpace.getDescriptor();
   public static final int SANITY = sanitySpace.getDescriptor();
+  public static final int NON_MOVING = nonMovingSpace.getDescriptor();
   public static final int SMALL_CODE = USE_CODE_SPACE ? smallCodeSpace.getDescriptor() : 0;
   public static final int LARGE_CODE = USE_CODE_SPACE ? largeCodeSpace.getDescriptor() : 0;
 
@@ -259,6 +264,17 @@ public abstract class Plan implements Constants {
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
                                 int size, Word status) {
     return status; // nothing to do (no bytes of GC header)
+  }
+
+  /**
+   * Perform any required write barrier action when installing an object reference
+   * a boot time.
+   *
+   * @param reference the reference value that is to be stored
+   * @return The raw value to be
+   */
+  public Word bootTimeWriteBarrier(Word reference) {
+    return reference;
   }
 
   /****************************************************************************
@@ -752,7 +768,8 @@ public abstract class Plan implements Constants {
    */
   public int getPagesUsed() {
     return loSpace.reservedPages() + ploSpace.reservedPages() +
-           immortalSpace.reservedPages() + metaDataSpace.reservedPages();
+           immortalSpace.reservedPages() + metaDataSpace.reservedPages() +
+           nonMovingSpace.reservedPages();
   }
 
   /**
@@ -764,7 +781,8 @@ public abstract class Plan implements Constants {
    */
   public int getPagesRequired() {
     return loSpace.requiredPages() + ploSpace.requiredPages() +
-      metaDataSpace.requiredPages() + immortalSpace.requiredPages();
+      metaDataSpace.requiredPages() + immortalSpace.requiredPages() +
+      nonMovingSpace.requiredPages();
   }
 
   /**
@@ -940,11 +958,12 @@ public abstract class Plan implements Constants {
       return true;
     if (Space.isInSpace(VM_SPACE, object))
       return true;
+    if (Space.isInSpace(NON_MOVING, object))
+      return true;
     if (USE_CODE_SPACE && Space.isInSpace(SMALL_CODE, object))
       return true;
     if (USE_CODE_SPACE && Space.isInSpace(LARGE_CODE, object))
       return true;
-
     /*
      * Default to false- this preserves correctness over efficiency.
      * Individual plans should override for non-moving spaces they define.

@@ -14,6 +14,7 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.util.VM_HashSet;
 
 // TODO: The following is due to a bug in checkstyle 4.3
@@ -107,6 +108,12 @@ public final class VM_TypeReference {
   public static final VM_TypeReference CodeArray = findOrCreate(org.jikesrvm.ArchitectureSpecific.VM_CodeArray.class);
   public static final VM_TypeReference Magic = findOrCreate(org.jikesrvm.runtime.VM_Magic.class);
   public static final VM_TypeReference SysCall = findOrCreate(org.vmmagic.pragma.SysCall.class);
+  public static final VM_TypeReference TIB = findOrCreate(org.jikesrvm.objectmodel.VM_TIB.class);
+  public static final VM_TypeReference ITableArray = findOrCreate(org.jikesrvm.objectmodel.VM_ITableArray.class);
+  public static final VM_TypeReference ITable = findOrCreate(org.jikesrvm.objectmodel.VM_ITable.class);
+  public static final VM_TypeReference IMT = findOrCreate(org.jikesrvm.objectmodel.VM_IMT.class);
+  public static final VM_TypeReference ProcessorTable = findOrCreate(org.jikesrvm.scheduler.VM_ProcessorTable.class);
+  public static final VM_TypeReference FunctionTable = findOrCreate(org.jikesrvm.jni.VM_FunctionTable.class);
 
   public static final VM_TypeReference JavaLangObject = findOrCreate(java.lang.Object.class);
   public static final VM_TypeReference JavaLangClass = findOrCreate(java.lang.Class.class);
@@ -158,6 +165,8 @@ public final class VM_TypeReference {
   public static final VM_TypeReference NoNullCheck = findOrCreate(org.vmmagic.pragma.NoNullCheck.class);
   public static final VM_TypeReference NoBoundsCheck = findOrCreate(org.vmmagic.pragma.NoBoundsCheck.class);
   public static final VM_TypeReference SpecializedMethodInvoke = findOrCreate(org.vmmagic.pragma.SpecializedMethodInvoke.class);
+  public static final VM_TypeReference Untraced = findOrCreate(org.vmmagic.pragma.Untraced.class);
+  public static final VM_TypeReference NonMoving = findOrCreate(org.vmmagic.pragma.NonMoving.class);
 
   public static final VM_TypeReference VM_BaseAnnotation =
       findOrCreate(org.jikesrvm.classloader.VM_Annotation.BaseAnnotation.class);
@@ -511,6 +520,14 @@ public final class VM_TypeReference {
   }
 
   /**
+   * Does 'this' refer to a runtime table type?
+   */
+  @Uninterruptible
+  public boolean isRuntimeTable() {
+    return this == IMT || this == TIB || this == ITable || this == ITableArray || this == ProcessorTable || this == FunctionTable;
+  }
+
+  /**
    * Does 'this' refer to VM_CodeArray
    */
   @Uninterruptible
@@ -523,7 +540,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isMagicType() {
-    return this == Magic || isUnboxedType() || isUnboxedArrayType() || this == ObjectReference;
+    return this == Magic || isUnboxedType() || isUnboxedArrayType() || this == ObjectReference || isRuntimeTable();
   }
 
   /**

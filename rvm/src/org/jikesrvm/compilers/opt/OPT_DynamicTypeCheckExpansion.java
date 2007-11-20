@@ -489,7 +489,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           InsertUnary(curBlock.lastInstruction(),
                       ir,
                       GET_ARRAY_ELEMENT_TIB_FROM_TIB,
-                      VM_TypeReference.JavaLangObjectArray,
+                      VM_TypeReference.TIB,
                       lhsTIB.copy());
       curBlock.appendInstruction(IfCmp.create(REF_IFCMP,
                                               guardResult.copyRO(),
@@ -1028,10 +1028,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           mainBlock.splitNodeWithLinksAt(dimTest, ir);
           mainBlock.insertOut(trueBlock);
           mainBlock.insertOut(falseBlock);
-          OPT_RegisterOperand rhsInnermostElementType =
-              getField(continueAt, ir, rhsType.copyU2U(), VM_Entrypoints.innermostElementTypeField);
           OPT_RegisterOperand rhsInnermostElementTypeDimension =
-              getField(continueAt, ir, rhsInnermostElementType, VM_Entrypoints.dimensionField);
+              getField(continueAt, ir, rhsType.copyU2U(), VM_Entrypoints.innermostElementTypeDimensionField);
           continueAt.insertBefore(IfCmp.create(INT_IFCMP,
                                                oldGuard,
                                                rhsInnermostElementTypeDimension,

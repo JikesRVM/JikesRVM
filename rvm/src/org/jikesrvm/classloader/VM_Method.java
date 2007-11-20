@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
+import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -585,9 +585,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
           // The root method of a virtual method family can use the lazy method invoker directly.
           return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentEntryCodeArray();
         } else {
-          // All other virtual methods in the family must generate unique stubs to
+          // All other virtual methods in the family must use unique stubs to
           // ensure correct operation of the method test (guarded inlining of virtual calls).
-          return VM_LazyCompilationTrampolineGenerator.getTrampoline();
+          // It is VM_TIBs job to marshall between the actual trampoline and this marker.
+          return VM_LazyCompilationTrampoline.instructions;
         }
       } else {
         // We'll never do a method test against this method.

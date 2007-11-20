@@ -30,6 +30,7 @@ import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -506,10 +507,8 @@ public abstract class VM_JNICompiler
       // ASSMPTION: JTOC saved above in JNIEnv is still valid,
       // used by following emitLAddrToc
       asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klass.getTibOffset());  // r4 <= TIB
-      asm.emitLAddr(SECOND_OS_PARAMETER_GPR, TIB_TYPE_INDEX, SECOND_OS_PARAMETER_GPR); // r4 <= VM_Type
-      asm.emitLAddrOffset(SECOND_OS_PARAMETER_GPR,
-                          SECOND_OS_PARAMETER_GPR,
-                          VM_Entrypoints.classForTypeField.getOffset()); // r4 <- java.lang.Class
+      Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
+      asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klassOffset);
       asm.emitSTAddrU(SECOND_OS_PARAMETER_GPR,
                       BYTES_IN_ADDRESS,
                       KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array

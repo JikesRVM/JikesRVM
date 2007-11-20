@@ -59,7 +59,7 @@ public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
    * @return VM_TypeReference.JavaLangObjectArray
    */
   public VM_TypeReference getType() {
-    return VM_TypeReference.JavaLangObjectArray;
+    return VM_TypeReference.TIB;
   }
 
   /**

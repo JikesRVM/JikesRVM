@@ -30,8 +30,6 @@ import org.vmmagic.pragma.*;
 
   public boolean needsForwardAfterLiveness() { return true; }
 
-  public boolean needsImmortalTypeInfo() { return true; }
-
   public boolean needsLinearScan() { return true; }
 
   public int gcHeaderBits() { return MarkCompactSpace.LOCAL_GC_BITS_REQUIRED; }

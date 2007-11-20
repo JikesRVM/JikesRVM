@@ -13,7 +13,9 @@
 package org.jikesrvm.scheduler.nativethreads;
 
 import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.NonMoving;
 
+@NonMoving
 public class VM_NativeProcessor extends VM_Processor {
 
   public VM_NativeProcessor(int id) {

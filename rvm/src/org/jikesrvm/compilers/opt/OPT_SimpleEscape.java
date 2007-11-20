@@ -54,7 +54,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CAUGHT_EXCEPTION_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_OBJECT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TYPE_FROM_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_CLASS_TEST_opcode;
@@ -492,7 +491,6 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case REF_SHL_opcode:
       case REF_SHR_opcode:
       case REF_USHR_opcode:
-      case GET_CLASS_OBJECT_opcode:
       case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode:
       case INT_2LONG_opcode:
@@ -648,7 +646,6 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case REF_SHL_opcode:
       case REF_SHR_opcode:
       case REF_USHR_opcode:
-      case GET_CLASS_OBJECT_opcode:
       case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode:
       case INT_2LONG_opcode:

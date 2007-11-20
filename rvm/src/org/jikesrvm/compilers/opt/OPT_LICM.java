@@ -82,7 +82,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GETSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_OBJECT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_DOES_IMPLEMENT_FROM_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
@@ -317,7 +316,6 @@ public class OPT_LICM extends OPT_CompilerPhase {
       case REF_ASTORE_opcode:
       case BYTE_ASTORE_opcode:
       case SHORT_ASTORE_opcode:
-      case GET_CLASS_OBJECT_opcode:
       case CHECKCAST_opcode:
       case CHECKCAST_NOTNULL_opcode:
       case CHECKCAST_UNRESOLVED_opcode:

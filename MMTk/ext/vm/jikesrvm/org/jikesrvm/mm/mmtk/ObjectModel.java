@@ -20,6 +20,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_JavaHeaderConstants;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
@@ -48,8 +49,8 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public ObjectReference copy(ObjectReference from, int allocator) {
-    Object[] tib = VM_ObjectModel.getTIB(from);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    VM_TIB tib = VM_ObjectModel.getTIB(from);
+    VM_Type type = VM_Magic.objectAsType(tib.getType());
 
     if (type.isClassType())
       return copyScalar(from, tib, type.asClass(), allocator);
@@ -58,8 +59,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  private ObjectReference copyScalar(ObjectReference from, Object[] tib,
-                                       VM_Class type, int allocator) {
+  private ObjectReference copyScalar(ObjectReference from, VM_TIB tib, VM_Class type, int allocator) {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type);
     int align = VM_ObjectModel.getAlignment(type, from.toObject());
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
@@ -74,8 +74,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  private ObjectReference copyArray(ObjectReference from, Object[] tib,
-                                      VM_Array type, int allocator) {
+  private ObjectReference copyArray(ObjectReference from, VM_TIB tib, VM_Array type, int allocator) {
     int elements = VM_Magic.getArrayLength(from.toObject());
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type, elements);
     int align = VM_ObjectModel.getAlignment(type, from.toObject());
@@ -103,8 +102,8 @@ import org.vmmagic.pragma.*;
    * @return The size (in bytes) of the given object.
    */
   static int getObjectSize(ObjectReference object) {
-    Object[] tib = VM_ObjectModel.getTIB(object);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    VM_TIB tib = VM_ObjectModel.getTIB(object);
+    VM_Type type = VM_Magic.objectAsType(tib.getType());
 
     if (type.isClassType())
       return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asClass());
@@ -126,8 +125,8 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public Address copyTo(ObjectReference from, ObjectReference to, Address region) {
-    Object[] tib = VM_ObjectModel.getTIB(from);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    VM_TIB tib = VM_ObjectModel.getTIB(from);
+    VM_Type type = tib.getType();
     int bytes;
 
     boolean copy = (from != to);
@@ -192,8 +191,8 @@ import org.vmmagic.pragma.*;
    * @return The alignment required for a copy of <code>obj</code>
    */
   public int getAlignWhenCopied(ObjectReference object) {
-    Object[] tib = VM_ObjectModel.getTIB(object);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    VM_TIB tib = VM_ObjectModel.getTIB(object);
+    VM_Type type = tib.getType();
     if (type.isArrayType()) {
       return VM_ObjectModel.getAlignment(type.asArray(), object.toObject());
     } else {
@@ -208,8 +207,8 @@ import org.vmmagic.pragma.*;
    * @return The alignment offset required for a copy of <code>obj</code>
    */
   public int getAlignOffsetWhenCopied(ObjectReference object) {
-    Object[] tib = VM_ObjectModel.getTIB(object);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    VM_TIB tib = VM_ObjectModel.getTIB(object);
+    VM_Type type = tib.getType();
     if (type.isArrayType()) {
       return VM_ObjectModel.getOffsetForAlignment(type.asArray(), object);
     } else {
@@ -403,14 +402,9 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public boolean isAcyclic(ObjectReference typeRef) {
-    Object type;
-    Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
-    if (true) {  // necessary to avoid an odd compiler bug
-      type = VM_Magic.getObjectAtOffset(tib, Offset.fromIntZeroExtend(TIB_TYPE_INDEX));
-    } else {
-      type = tib[TIB_TYPE_INDEX];
-    }
-    return VM_Magic.objectAsType(type).isAcyclicReference();
+    VM_TIB tib = VM_Magic.addressAsTIB(typeRef.toAddress());
+    VM_Type type = tib.getType();
+    return type.isAcyclicReference();
   }
 
   /**

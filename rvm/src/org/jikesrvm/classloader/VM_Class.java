@@ -24,12 +24,16 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.OPT_ClassLoadingDependencyManager;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_FieldLayoutContext;
+import org.jikesrvm.objectmodel.VM_IMT;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.util.VM_LinkedList;
 import org.jikesrvm.util.VM_Synchronizer;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -43,6 +47,7 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Array
  * @see VM_Primitive
  */
+@NonMoving
 public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
 
   /** Flag for for closed world testing */
@@ -178,7 +183,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   private VM_Method finalizeMethod;
 
   /** type and virtual method dispatch table for class */
-  private Object[] typeInformationBlock;
+  private VM_TIB typeInformationBlock;
 
   // --- Annotation support --- //
 
@@ -210,6 +215,12 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
   /** Cached set of inherited and declared annotations. */
   private Annotation[] annotations;
+
+  /** Set of objects that are cached here to ensure they are not collected by GC **/
+  private final VM_LinkedList<Object> objectCache;
+
+  /** The imt for this class **/
+  private VM_IMT imt;
 
   // --- Assertion support --- //
   /**
@@ -558,6 +569,20 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       return null;
     }
     return mainMethod;
+  }
+
+  /**
+   * Add the given cached object.
+   */
+  public synchronized void addCachedObject(Object o) {
+    objectCache.add(o);
+  }
+
+  /**
+   * Set the imt object.
+   */
+  public void setIMT(VM_IMT imt) {
+    this.imt = imt;
   }
 
   //
@@ -1013,31 +1038,9 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Override
   @Uninterruptible
-  public Object[] getTypeInformationBlock() {
+  public VM_TIB getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
-  }
-
-  /**
-   * Does this slot in the TIB hold a TIB entry?
-   * @param slot the TIB slot
-   * @return false
-   */
-  @Override
-  public boolean isTIBSlotTIB(int slot) {
-    if (VM.VerifyAssertions) checkTIBSlotIsAccessible(slot);
-    return false;
-  }
-
-  /**
-   * Does this slot in the TIB hold code?
-   * @param slot the TIB slot
-   * @return true if slot is one that holds a code array reference
-   */
-  @Override
-  public boolean isTIBSlotCode(int slot) {
-    if (VM.VerifyAssertions) checkTIBSlotIsAccessible(slot);
-    return slot >= TIB_FIRST_VIRTUAL_METHOD_INDEX;
   }
 
   //--------------------------------------------------------------------//
@@ -1134,6 +1137,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     this.sourceName = sourceName;
     this.classInitializerMethod = classInitializerMethod;
     this.signature = signature;
+    this.objectCache = new VM_LinkedList<Object>();
 
     // non-final fields
     this.subClasses = emptyVMClass;
@@ -1703,18 +1707,22 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     int referenceFieldCount = 0;
     for (int i = 0, n = instanceFields.length; i < n; ++i) {
       VM_Field field = instanceFields[i];
-      if (field.getType().isReferenceType()) {
+      if (field.getType().isReferenceType() && !field.isUntraced()) {
         referenceFieldCount += 1;
       }
     }
 
     // record offsets of those instance fields that contain references
     //
-    referenceOffsets = MM_Interface.newReferenceOffsetArray(referenceFieldCount);
-    for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
-      VM_Field field = instanceFields[i];
-      if (field.getType().isReferenceType()) {
-        referenceOffsets[j++] = field.getOffset().toInt();
+    if (typeRef.isRuntimeTable()) {
+      referenceOffsets = MM_Interface.newNonMovingIntArray(0);
+    } else {
+      referenceOffsets = MM_Interface.newNonMovingIntArray(referenceFieldCount);
+      for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
+        VM_Field field = instanceFields[i];
+        if (field.getType().isReferenceType() && !field.isUntraced()) {
+          referenceOffsets[j++] = field.getOffset().toInt();
+        }
       }
     }
 
@@ -1736,28 +1744,12 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       }
     }
 
-    // create "type information block" and initialize its first four words
-    //
-    if (isInterface()) {
-      // the TIB for an Interface doesn't need space for IMT and VTable; will never be used.
-      typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_INTERFACE_METHOD_INDEX);
-    } else {
-      typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
-    }
-
-    VM_Statics.setSlotContents(getTibOffset(), typeInformationBlock);
-    // Initialize dynamic type checking data structures
-    typeInformationBlock[TIB_TYPE_INDEX] = this;
-    typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
-    typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
-    // (element type for arrays not used classes)
-
     if (!isInterface()) {
       // lay out virtual method section of type information block
       // (to be filled in by instantiate)
       for (int i = 0, n = virtualMethods.length; i < n; ++i) {
         VM_Method method = virtualMethods[i];
-        method.setOffset(Offset.fromIntZeroExtend((TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_ADDRESS));
+        method.setOffset(VM_TIB.getVirtualMethodOffset(i));
       }
     }
 
@@ -1775,7 +1767,20 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       acyclic = true;
     }
 
-    state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
+    // allocate "type information block"
+    VM_TIB allocatedTib;
+    if (isInterface()) {
+      allocatedTib = MM_Interface.newTIB(0);
+    } else {
+      allocatedTib = MM_Interface.newTIB(virtualMethods.length);
+    }
+
+    superclassIds = VM_DynamicTypeCheck.buildSuperclassIds(this);
+    doesImplement = VM_DynamicTypeCheck.buildDoesImplement(this);
+
+    // can't move this beyond "finalize" code block
+    publishResolved(allocatedTib, superclassIds, doesImplement);
+
     // TODO: Make this into a more general listener interface
     if (VM.BuildForOptCompiler && VM.writingBootImage) {
       classLoadListener.classInitialized(this, true);
@@ -1804,6 +1809,24 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   resolve " + this);
+  }
+
+  /**
+   * Atomically initialize the important parts of the TIB and let the world know this type is
+   * resolved.
+   *
+   * @param allocatedTib The TIB that has been allocated for this type
+   * @param superclassIds The calculated superclass ids array
+   * @param doesImplement The calculated does implement array
+   */
+  @Uninterruptible
+  private void publishResolved(VM_TIB allocatedTib, short[] superclassIds, int[] doesImplement) {
+    VM_Statics.setSlotContents(getTibOffset(), allocatedTib);
+    allocatedTib.setType(this);
+    allocatedTib.setSuperclassIds(superclassIds);
+    allocatedTib.setDoesImplement(doesImplement);
+    typeInformationBlock = allocatedTib;
+    state = CLASS_RESOLVED;
   }
 
   @Override
@@ -1890,14 +1913,16 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     }
 
     if (!isInterface()) {
+      // Create the internal lazy method invoker trampoline
+      typeInformationBlock.initializeInternalLazyCompilationTrampoline();
+
       // Initialize slots in the TIB for virtual methods
-      for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length - 1,
-          i = virtualMethods.length - 1; i >= 0; i--, slot--) {
+      for(int i=0; i < virtualMethods.length; i++) {
         VM_Method method = virtualMethods[i];
         if (method.isPrivate() && method.getDeclaringClass() != this) {
-          typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB
+          typeInformationBlock.setVirtualMethod(i, null); // an inherited private method....will never be invoked via this TIB
         } else {
-          typeInformationBlock[slot] = method.getCurrentEntryCodeArray();
+          typeInformationBlock.setVirtualMethod(i, method.getCurrentEntryCodeArray());
         }
       }
 
@@ -2114,8 +2139,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
       VM._assert(vm == m);
     }
-    int index = m.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
-    typeInformationBlock[index] = m.getCurrentEntryCodeArray();
+    typeInformationBlock.setVirtualMethod(m.getOffset(), m.getCurrentEntryCodeArray());
     VM_InterfaceInvocation.updateTIBEntry(this, m);
   }
 

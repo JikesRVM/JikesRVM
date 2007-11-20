@@ -18,6 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -27,6 +28,7 @@ import org.vmmagic.unboxed.Address;
  * by VM_Thread.threadSwitch() following receipt of a debug request
  * signal (SIGQUIT).
  */
+@NonMoving
 public class VM_DebuggerThread extends VM_Scheduler.ThreadModel {
   public VM_DebuggerThread() {
     super("Debugger");

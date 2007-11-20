@@ -59,7 +59,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_OBJECT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CLASS_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_DOES_IMPLEMENT_FROM_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
@@ -367,7 +366,6 @@ public final class OPT_GlobalCSE extends OPT_CompilerPhase {
     switch (inst.operator.opcode) {
       case INT_MOVE_opcode:
       case LONG_MOVE_opcode:
-      case GET_CLASS_OBJECT_opcode:
       case CHECKCAST_opcode:
       case CHECKCAST_NOTNULL_opcode:
       case CHECKCAST_UNRESOLVED_opcode:

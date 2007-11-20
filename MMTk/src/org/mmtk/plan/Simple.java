@@ -228,6 +228,7 @@ public abstract class Simple extends Plan implements Constants {
     if (phaseId == PREPARE) {
       loSpace.prepare(true);
       ploSpace.prepare(true);
+      nonMovingSpace.prepare();
       if (USE_CODE_SPACE) {
         smallCodeSpace.prepare();
         largeCodeSpace.prepare(true);
@@ -246,6 +247,7 @@ public abstract class Simple extends Plan implements Constants {
     if (phaseId == RELEASE) {
       loSpace.release(true);
       ploSpace.release(true);
+      nonMovingSpace.release();
       if (USE_CODE_SPACE) {
         smallCodeSpace.release();
         largeCodeSpace.release(true);

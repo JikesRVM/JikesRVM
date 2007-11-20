@@ -34,6 +34,7 @@ import org.vmmagic.pragma.BaselineSaveLSRegisters;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -67,6 +68,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see VM_Handshake
  */
+@NonMoving
 public final class VM_CollectorThread extends VM_GreenThread {
 
   /***********************************************************************
@@ -474,7 +476,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
          * collection, and now need to be unblocked. */
         if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run unblocking procs blocked in native during GC");
         for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
-          VM_GreenProcessor vp = VM_GreenScheduler.processors[i];
+          VM_GreenProcessor vp = VM_GreenScheduler.getProcessor(i);
           if (VM.VerifyAssertions) VM._assert(vp != null);
           if (vp.vpStatus == VM_GreenProcessor.BLOCKED_IN_NATIVE) {
             vp.vpStatus = VM_GreenProcessor.IN_NATIVE;

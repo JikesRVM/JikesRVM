@@ -25,6 +25,7 @@ import org.jikesrvm.scheduler.VM_ProcessorLock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -33,6 +34,7 @@ import org.vmmagic.unboxed.Offset;
  * number of o/s kernel threads.
  */
 @Uninterruptible
+@NonMoving
 public final class VM_GreenProcessor extends VM_Processor {
   /**
    * thread previously running on this processor
@@ -304,19 +306,19 @@ public final class VM_GreenProcessor extends VM_Processor {
 
     // If one of the threads has an active timerInteval, then we need to
     // update the timing information.
-    if (previousThread.hasActiveTimedInterval() || newThread.hasActiveTimedInterval()) {
+    if (previousThread.hasActiveTimedInterval() || activeThread.hasActiveTimedInterval()) {
       long now = VM_Time.nanoTime();
       if (previousThread.hasActiveTimedInterval()) {
         previousThread.suspendInterval(now);
       }
-      if (newThread.hasActiveTimedInterval()) {
-        newThread.resumeInterval(now);
+      if (activeThread.hasActiveTimedInterval()) {
+        activeThread.resumeInterval(now);
       }
     }
 
-    threadId = newThread.getLockingId();
-    activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
-    VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
+    threadId = activeThread.getLockingId();
+    activeThreadStackLimit = activeThread.stackLimit; // Delay this to last possible moment so we can sysWrite
+    VM_Magic.threadSwitch(previousThread, activeThread.contextRegisters);
   }
 
   /**
@@ -527,7 +529,7 @@ public final class VM_GreenProcessor extends VM_Processor {
    */
   private VM_GreenProcessor chooseNextProcessor(VM_GreenThread t) {
     t.chosenProcessorId = (t.chosenProcessorId % VM_GreenScheduler.numProcessors) + 1;
-    return VM_GreenScheduler.processors[t.chosenProcessorId];
+    return VM_GreenScheduler.getProcessor(t.chosenProcessorId);
   }
 
   //---------------------//

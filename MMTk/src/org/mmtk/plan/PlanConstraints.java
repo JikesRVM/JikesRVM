@@ -64,9 +64,6 @@ import org.vmmagic.pragma.*;
   /** @return True if this plan contains GCTrace. */
   public boolean generateGCTrace() { return false; }
 
-  /** @return True if type information must be immortal */
-  public boolean needsImmortalTypeInfo() { return false; }
-
   /** @return The specialized scan methods required */
   public int numSpecializedScans() { return 0; }
 
