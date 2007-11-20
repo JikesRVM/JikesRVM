@@ -63,7 +63,7 @@
     <tr>
       <xsl:call-template name="alternated-row"/>
       <td><xsl:value-of select="."/></td>
-      <td><xsl:value-of select="../../../../name"/></td>
+      <td><xsl:value-of select="../../../../../name"/>.<xsl:value-of select="../../../../name"/></td>
       <td><xsl:value-of select="../../../name"/></td>
       <td><xsl:value-of select="../../name"/></td>
       <td><xsl:value-of select="../@name"/></td>
