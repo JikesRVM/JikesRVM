@@ -91,7 +91,7 @@
       </exec>
       <condition property="test.@{tag}.@{execution}.result" value="FAILURE">
         <not>
-          <equals arg1="${test.@{tag}.@{execution}.mmtkstats.exit.code}" arg2="0"/>
+          <equals arg1="${test.@{tag}.@{execution}.finalspec.exit.code}" arg2="0"/>
         </not>
       </condition>
       <explainResult tag="@{tag}" execution="@{execution}" message="Could not extract SPECjvm98 time."/>
