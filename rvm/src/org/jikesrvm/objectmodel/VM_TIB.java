@@ -43,7 +43,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    * @return
    */
   public static int lazyMethodInvokerTrampolineWords() {
-    int codeWords = 3;
+    int codeWords = VM.BuildFor32Addr ? 3 : 2;
     if (VM.runningVM && VM.VerifyAssertions) {
       int codeBytes = VM_LazyCompilationTrampoline.instructions.length() << VM_ArchConstants.LG_INSTRUCTION_WIDTH;
       VM._assert(codeWords == ((codeBytes + BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_ADDRESS));
