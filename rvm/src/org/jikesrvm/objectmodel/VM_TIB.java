@@ -320,8 +320,9 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
     VM_CodeArray source = VM_LazyCompilationTrampoline.instructions;
     int targetSlot = lazyMethodInvokerTrampolineIndex();
     int logIPW = LOG_BYTES_IN_ADDRESS - VM_ArchConstants.LG_INSTRUCTION_WIDTH;
+    int logIPI = LOG_BYTES_IN_INT - VM_ArchConstants.LG_INSTRUCTION_WIDTH;
     if (VM.VerifyAssertions) VM._assert(VM_ArchConstants.LG_INSTRUCTION_WIDTH <= LOG_BYTES_IN_INT);
-    int mask = 0xFFFFFFFF >>> (((1 << logIPW) - 1) << LOG_BITS_IN_BYTE);
+    int mask = 0xFFFFFFFF >>> (((1 << logIPI) - 1) << LOG_BITS_IN_BYTE);
     for(int i = 0; i < lazyMethodInvokerTrampolineWords(); i++) {
       Word currentWord = Word.zero();
       int base = i << logIPW;
