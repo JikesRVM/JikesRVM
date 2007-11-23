@@ -15,6 +15,7 @@ package java.lang;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.vmmagic.pragma.Pure;
 
 /**
  * Jikes RVM implementation of {@link java.lang.Object}
@@ -37,10 +38,12 @@ public class Object {
   protected void finalize() throws Throwable {
   }
 
+  @Pure
   public final Class<?> getClass() {
     return VM_ObjectModel.getObjectType(this).getClassForType();
   }
 
+  @Pure
   public int hashCode() {
     return VM_ObjectModel.getObjectHashCode(this);
   }
@@ -53,6 +56,7 @@ public class Object {
     VM_Thread.notifyAll(this);
   }
 
+  @Pure
   public String toString() {
     return getClass().getName() + "@" + Integer.toHexString(hashCode());
   }
