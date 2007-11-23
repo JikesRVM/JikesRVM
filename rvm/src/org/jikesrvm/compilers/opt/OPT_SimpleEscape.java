@@ -13,12 +13,15 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OPT_ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
@@ -287,10 +290,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape this thread, false otherwise
    */
-  private AnalysisResult checkAllAppearances(OPT_Register reg, OPT_IR ir) {
-    AnalysisResult result = new AnalysisResult();
-    result.threadLocal = true;
-    result.methodLocal = true;
+  private static AnalysisResult checkAllAppearances(OPT_Register reg, OPT_IR ir) {
+    return new AnalysisResult(!checkIfUseEscapesThread(reg, ir, null),
+        !checkIfUseEscapesMethod(reg, ir, null));
+  }
+  private static boolean checkIfUseEscapesThread(OPT_Register reg, OPT_IR ir, Set<OPT_Register> visited) {
     for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
 
       if (VM.VerifyAssertions && use.getType() == null) {
@@ -301,15 +305,10 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
       if (use.getType().isPrimitiveType()) {
-        result.threadLocal = false;
-        result.methodLocal = false;
-        break;
+        return true;
       }
-      if (checkEscapesThread(use, ir)) {
-        result.threadLocal = false;
-      }
-      if (checkEscapesMethod(use, ir)) {
-        result.methodLocal = false;
+      if (checkEscapesThread(use, ir, visited)) {
+        return true;
       }
     }
     for (OPT_RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
@@ -322,18 +321,46 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
       if (def.getType() == null || def.getType().isPrimitiveType()) {
-        result.threadLocal = false;
-        result.methodLocal = false;
-        break;
+        return true;
       }
-      if (checkEscapesThread(def, ir)) {
-        result.threadLocal = false;
-      }
-      if (checkEscapesMethod(def, ir)) {
-        result.methodLocal = false;
+      if (checkEscapesThread(def, ir, visited)) {
+        return true;
       }
     }
-    return result;
+    return false;
+  }
+  private static boolean checkIfUseEscapesMethod(OPT_Register reg, OPT_IR ir, Set<OPT_Register> visited) {
+    for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
+      if (VM.VerifyAssertions && use.getType() == null) {
+        ir.printInstructions();
+        VM._assert(false, "type of " + use + " is null");
+      }
+
+      // if the type is primitive, just say it escapes
+      // TODO: handle this more cleanly
+      if (use.getType().isPrimitiveType()) {
+        return false;
+      }
+      if (checkEscapesMethod(use, ir, visited)) {
+        return true;
+      }
+    }
+    for (OPT_RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
+      if (VM.VerifyAssertions && def.getType() == null) {
+        ir.printInstructions();
+        VM._assert(false, "type of " + def + " is null");
+      }
+
+      // if the type is primitive, just say it escapes
+      // TODO: handle this more cleanly
+      if (def.getType() == null || def.getType().isPrimitiveType()) {
+        return true;
+      }
+      if (checkEscapesMethod(def, ir, visited)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -344,7 +371,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape, false otherwise
    */
-  private static boolean checkEscapesThread(OPT_RegisterOperand use, OPT_IR ir) {
+  private static boolean checkEscapesThread(OPT_RegisterOperand use, OPT_IR ir, Set<OPT_Register> visited) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case INT_ASTORE_opcode:
@@ -460,7 +487,22 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // use is a parameter to the call.  Find out which one.
         int p = getParameterIndex(use, inst);
         return summ.parameterMayEscapeThread(p);
-      case REF_MOVE_opcode:
+      case REF_MOVE_opcode: {
+        OPT_Register copy = Move.getResult(inst).getRegister();
+        if (!copy.isSSA()) {
+          return true;
+        } else {
+          if (visited == null) {
+            visited = new HashSet<OPT_Register>();
+          }
+          visited.add(use.getRegister());
+          if (visited.contains(copy)) {
+            return false;
+          } else {
+            return checkIfUseEscapesThread(copy, ir, visited);
+          }
+        }
+      }
       case ATHROW_opcode:
       case PREPARE_INT_opcode:
       case PREPARE_ADDR_opcode:
@@ -520,9 +562,10 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape, false otherwise
    */
-  private static boolean checkEscapesMethod(OPT_RegisterOperand use, OPT_IR ir) {
+  private static boolean checkEscapesMethod(OPT_RegisterOperand use, OPT_IR ir, Set<OPT_Register> visited) {
     OPT_Instruction inst = use.instruction;
-    switch (inst.getOpcode()) {
+    try {
+      switch (inst.getOpcode()) {
       case INT_ASTORE_opcode:
       case LONG_ASTORE_opcode:
       case FLOAT_ASTORE_opcode:
@@ -615,7 +658,23 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case CALL_opcode:
         // a call instruction causes an object to escape this method.
         return true;
-      case REF_MOVE_opcode:
+      case REF_MOVE_opcode: {
+        if (visited == null) {
+          visited = new HashSet<OPT_Register>();
+        }
+        OPT_Register copy = Move.getResult(inst).getRegister();
+        if(!copy.isSSA()) {
+          return true;
+        } else {
+          visited.add(use.getRegister());
+          if (visited.contains(copy)) {
+            return false;
+          } else {
+            boolean result2 = checkIfUseEscapesMethod(copy, ir, visited);
+            return result2;
+          }
+        }
+      }
       case ATHROW_opcode:
       case PREPARE_INT_opcode:
       case PREPARE_ADDR_opcode:
@@ -662,6 +721,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         return true;
       default:
         return OPT_Operators.helper.mayEscapeMethod(inst);
+      }
+    } catch (Exception e) {
+      OPT_OptimizingCompilerException oe = new OPT_OptimizingCompilerException("Error handling use ("+ use +") of: "+ inst);
+      oe.initCause(e);
+      throw oe;
     }
   }
 
@@ -753,14 +817,21 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
   /**
    * Utility class used to hold the result of the escape analysis.
    */
-  private class AnalysisResult {
+  private static final class AnalysisResult {
     /**
      * Was the result "the register must point to thread-local objects"?
      */
-    boolean threadLocal;
+    final boolean threadLocal;
     /**
      * Was the result "the register must point to method-local objects"?
      */
-    boolean methodLocal;
+    final boolean methodLocal;
+    /**
+     * Constructor
+     */
+    AnalysisResult(boolean tl, boolean ml) {
+      threadLocal = tl;
+      methodLocal = ml;
+    }
   }
 }

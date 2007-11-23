@@ -13,6 +13,9 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
@@ -45,6 +48,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.WRITE_FLOOR;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
@@ -92,6 +96,10 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
       scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
       scalars[i].setType(f.getType());
     }
+    transform2(this.reg, defI, scalars, fields, null);
+  }
+
+  private void transform2(OPT_Register reg, OPT_Instruction defI, OPT_RegisterOperand[] scalars, ArrayList<VM_Field> fields, Set<OPT_Register> visited) {
     // now remove the def
     if (DEBUG) {
       System.out.println("Removing " + defI);
@@ -99,7 +107,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
-      scalarReplace(use, scalars, fields);
+      scalarReplace(use, scalars, fields, visited);
     }
   }
 
@@ -146,9 +154,10 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    * @param scalars an array of scalar register operands to replace
    *                  the object's fields with
    */
-  private void scalarReplace(OPT_RegisterOperand use, OPT_RegisterOperand[] scalars, ArrayList<VM_Field> fields) {
+  private void scalarReplace(OPT_RegisterOperand use, OPT_RegisterOperand[] scalars, ArrayList<VM_Field> fields, Set<OPT_Register> visited) {
     OPT_Instruction inst = use.instruction;
-    switch (inst.getOpcode()) {
+    try{
+      switch (inst.getOpcode()) {
       case PUTFIELD_opcode: {
         VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
@@ -196,8 +205,23 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         //      java.lang.Double.<init> (Ljava/lang/String;)V ?
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
+      case REF_MOVE_opcode:
+        if (visited == null) {
+          visited = new HashSet<OPT_Register>();
+        }
+        OPT_Register copy = Move.getResult(use.instruction).getRegister();
+        if(!visited.contains(copy)) {
+          visited.add(copy);
+          transform2(copy, inst, scalars, fields, visited);
+        }
+        break;
       default:
         throw new OPT_OptimizingCompilerException("OPT_ObjectReplacer: unexpected use " + inst);
+      }
+    } catch (Exception e) {
+      OPT_OptimizingCompilerException oe = new OPT_OptimizingCompilerException("Error handling use ("+ use +") of: "+ inst);
+      oe.initCause(e);
+      throw oe;
     }
   }
 

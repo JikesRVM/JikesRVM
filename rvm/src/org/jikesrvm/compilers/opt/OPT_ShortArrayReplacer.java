@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.opt.ir.ALoad;
@@ -45,6 +47,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OBJARRAY_STORE_CHECK_N
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OBJARRAY_STORE_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UBYTE_ALOAD_opcode;
@@ -90,7 +93,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
     OPT_Register r = NewArray.getResult(inst).getRegister();
     VM_Array a = NewArray.getType(inst).getVMType().asArray();
     // TODO :handle these cases
-    if (containsUnsupportedUse(ir, r, s)) {
+    if (containsUnsupportedUse(ir, r, s, null)) {
       return null;
     }
     return new OPT_ShortArrayReplacer(r, a, s, ir);
@@ -110,6 +113,9 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
     for (int i = 0; i < size; i++) {
       scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue.copy());
     }
+    transform2(this.reg, defI, scalars);
+  }
+  private void transform2(OPT_Register reg, OPT_Instruction defI, OPT_RegisterOperand[] scalars) {
     // now remove the def
     if (DEBUG) {
       System.out.println("Removing " + defI);
@@ -117,7 +123,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
-      scalarReplace(use, scalars);
+      scalarReplace(use, scalars, null);
     }
   }
 
@@ -158,7 +164,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
    * @param scalars an array of scalar register operands to replace
    *                  the array with
    */
-  private void scalarReplace(OPT_RegisterOperand use, OPT_RegisterOperand[] scalars) {
+  private void scalarReplace(OPT_RegisterOperand use, OPT_RegisterOperand[] scalars, Set<OPT_Register> visited) {
     OPT_Instruction inst = use.instruction;
     VM_Type type = vmArray.getElementType();
     OPT_Operator moveOp = OPT_IRTools.getMoveOp(type.getTypeRef());
@@ -196,6 +202,16 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
       case BOUNDS_CHECK_opcode:
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
+      case REF_MOVE_opcode:
+        if (visited == null) {
+          visited = new HashSet<OPT_Register>();
+        }
+        OPT_Register copy = Move.getResult(use.instruction).getRegister();
+        if(!visited.contains(copy)) {
+          visited.add(copy);
+          transform2(copy, inst, scalars);
+        }
+        break;
       default:
         throw new OPT_OptimizingCompilerException("Unexpected instruction: " + inst);
     }
@@ -208,7 +224,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
    * @param reg the register in question
    * @param size the size of the array to scalar replace.
    */
-  private static boolean containsUnsupportedUse(OPT_IR ir, OPT_Register reg, int size) {
+  private static boolean containsUnsupportedUse(OPT_IR ir, OPT_Register reg, int size, Set<OPT_Register> visited) {
     for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case NEWOBJMULTIARRAY_opcode:
@@ -256,6 +272,18 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
           if (index < 0) return true;
           break;
         }
+        case REF_MOVE_opcode:
+          if (visited == null) {
+            visited = new HashSet<OPT_Register>();
+          }
+          OPT_Register copy = Move.getResult(use.instruction).getRegister();
+          if(!visited.contains(copy)) {
+            visited.add(copy);
+            if(containsUnsupportedUse(ir, copy, size, visited)) {
+              return true;
+            }
+          }
+          break;
       }
     }
     return false;
