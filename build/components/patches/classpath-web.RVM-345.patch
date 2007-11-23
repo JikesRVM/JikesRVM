@@ -1,0 +1,16 @@
+Index: java/lang/Long.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Long.java,v
+retrieving revision 1.24
+diff -u -r1.24 Long.java
+--- java/lang/Long.java	10 Dec 2006 20:25:44 -0000	1.24
++++ java/lang/Long.java	19 Nov 2007 19:37:47 -0000
+@@ -296,7 +296,7 @@
+    * @return the <code>Long</code>
+    * @since 1.5
+    */
+-  public static synchronized Long valueOf(long val)
++  public static Long valueOf(long val)
+   {
+     // We aren't required to cache here.  We could, though perhaps we
+     // ought to consider that as an empirical question.
