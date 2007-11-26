@@ -19,13 +19,20 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp2;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
 import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
@@ -43,9 +50,11 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 
@@ -59,12 +68,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
    * after folding
    * TODO: doesn't apply to local folding
    */
-  private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
+  private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = false;
 
   /**
    * Fold across uninterruptible regions
    */
-  private static final boolean FOLD_OVER_UNINTERRUPTIBLE = false;
+  private static final boolean FOLD_OVER_UNINTERRUPTIBLE = true;
   /**
    * Fold operations on ints
    */
@@ -175,15 +184,26 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   private static final boolean FOLD_CHECKS = true;
 
   /**
+   * Print out debug information
+   */
+  private static final boolean VERBOSE = false;
+
+  /**
    * Perform expression folding on individual basic blocks
    */
   public static boolean performLocal(OPT_IR ir) {
     OPT_Instruction outer = ir.cfg.entry().firstRealInstruction();
+    if (VERBOSE) {
+      System.out.println("Start of expression folding for: " + ir.method.toString());
+    }
     boolean didSomething = false;
     // Outer loop: walk over every instruction of basic block looking for candidates
     while (outer != null) {
       OPT_Register outerDef = isCandidateExpression(outer, false);
       if (outerDef != null) {
+        if (VERBOSE) {
+          System.out.println("Found outer candidate of: " + outer.toString());
+        }
         OPT_Instruction inner = outer.nextInstructionInCodeOrder();
         // Inner loop: walk over instructions in block, after outer instruction,
         // checking whether inner and outer could be folded together.
@@ -192,43 +212,46 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         loop_over_inner_instructions:
         while ((inner != null) && (inner.operator() != BBEND) && !inner.isGCPoint()) {
           if (!FOLD_OVER_UNINTERRUPTIBLE &&
-              ((inner.operator() != UNINT_BEGIN) || (inner.operator() != UNINT_END))) {
+              ((inner.operator() == UNINT_BEGIN) || (inner.operator() == UNINT_END))) {
             break loop_over_inner_instructions;
           }
           OPT_Register innerDef = isCandidateExpression(inner, false);
           // 1. check for true dependence (does inner use outer's def?)
           if (innerDef != null) {
-            OPT_OperandEnumeration uses = inner.getUses();
-            loop_over_inner_uses:
-            while(uses.hasMoreElements()) {
-              OPT_Operand use = uses.nextElement();
-              if (use.isRegister() && (use.asRegister().getRegister() == outerDef)) {
-                if (CondMove.conforms(inner)) {
-                  // ensure use isn't parameter of condmove
-                  if(CondMove.getVal1(inner) != use) {
-                    continue loop_over_inner_uses;
-                  }
+            if (VERBOSE) {
+              System.out.println("Found inner candidate of: " + inner.toString());
+            }
+            OPT_RegisterOperand use = getUseFromCandidate(inner);
+            if ((use != null) && (use.getRegister() == outerDef)) {
+              // Optimization case
+              OPT_Instruction newInner;
+              try {
+                if (VERBOSE) {
+                  System.out.println("Trying to fold:" + outer.toString());
+                  System.out.println("          with:" + inner.toString());
                 }
-                // Optimization case
-                OPT_Instruction newInner;
-                try {
-                  newInner = transform(inner, outer);
-                } catch (OPT_OptimizingCompilerException e) {
-                  OPT_OptimizingCompilerException newE = new OPT_OptimizingCompilerException("Error transforming " + outer + " ; " + inner);
-                  newE.initCause(e);
-                  throw newE;
+                newInner = transform(inner, outer);
+              } catch (OPT_OptimizingCompilerException e) {
+                OPT_OptimizingCompilerException newE = new OPT_OptimizingCompilerException("Error transforming " + outer + " ; " + inner);
+                newE.initCause(e);
+                throw newE;
+              }
+              if (newInner != null) {
+                if (VERBOSE) {
+                  System.out.println("Replacing:" + inner.toString());
+                  System.out.println("     with:" + newInner.toString());
                 }
-                if (newInner != null) {
-                  OPT_DefUse.replaceInstructionAndUpdateDU(inner, CPOS(inner,newInner));
-                  inner = newInner;
-                  didSomething = true;
-                }
-                break loop_over_inner_uses;
+                OPT_DefUse.replaceInstructionAndUpdateDU(inner, CPOS(inner,newInner));
+                inner = newInner;
+                didSomething = true;
               }
             }
           }
           // 2. check for output dependence (does inner kill outer's def?)
           if (innerDef == outerDef) {
+            if (VERBOSE) {
+              System.out.println("Stopping search as innerDef == outerDef " + innerDef.toString());
+            }
             break loop_over_inner_instructions;
           }
           if (innerDef == null) {
@@ -238,6 +261,9 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               if (def.isRegister()) {
                 OPT_Register defReg = def.asRegister().getRegister();
                 if (defReg == outerDef) {
+                  if (VERBOSE) {
+                    System.out.println("Stopping search as innerDef == outerDef " + defReg.toString());
+                  }
                   break loop_over_inner_instructions;
                 }
               }
@@ -249,6 +275,9 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             while(uses.hasMoreElements()) {
               OPT_Operand use = uses.nextElement();
               if (use.isRegister() && (use.asRegister().getRegister() == innerDef)) {
+                if (VERBOSE) {
+                  System.out.println("Stopping search as anti-dependence " + use.toString());
+                }
                 break loop_over_inner_instructions;
               }
             }
@@ -261,6 +290,9 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                 while(uses.hasMoreElements()) {
                   OPT_Operand use = uses.nextElement();
                   if (use.similar(def)) {
+                    if (VERBOSE) {
+                      System.out.println("Stopping search as anti-dependence " + use.toString());
+                    }
                     break loop_over_inner_instructions;
                   }
                 }
@@ -273,6 +305,105 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       outer = outer.nextInstructionInCodeOrder();
     } // loop over outer instructions
     return didSomething;
+  }
+
+  /**
+   * Get the register that's used by the candidate instruction
+   * @param s the instruction
+   * @return register used by candidate or null if this isn't a candidate
+   */
+  private static OPT_RegisterOperand getUseFromCandidate(OPT_Instruction s) {
+    if (Binary.conforms(s)) {
+      return Binary.getVal1(s).asRegister();
+    } else if (GuardedBinary.conforms(s)) {
+      return GuardedBinary.getVal1(s).asRegister();
+    } else if (Unary.conforms(s)) {
+      return Unary.getVal(s).asRegister();
+    } else if (GuardedUnary.conforms(s)) {
+      return GuardedUnary.getVal(s).asRegister();
+    } else if (BooleanCmp.conforms(s)) {
+      return BooleanCmp.getVal1(s).asRegister();
+    } else if (IfCmp.conforms(s)) {
+      return IfCmp.getVal1(s).asRegister();
+    } else if (IfCmp2.conforms(s)) {
+      return IfCmp2.getVal1(s).asRegister();
+    } else if (CondMove.conforms(s)) {
+      return CondMove.getVal1(s).asRegister();
+    } else if (ZeroCheck.conforms(s)) {
+      return ZeroCheck.getValue(s).asRegister();
+    } else if (BoundsCheck.conforms(s)) {
+      return BoundsCheck.getRef(s).asRegister();
+    } else if (NullCheck.conforms(s)) {
+      return NullCheck.getRef(s).asRegister();
+    } else if (InstanceOf.conforms(s)) {
+      return InstanceOf.getRef(s).asRegister();
+    } else if (NewArray.conforms(s) || New.conforms(s)) {
+      return null;
+    } else {
+      OPT_OptimizingCompilerException.UNREACHABLE();
+      return null;
+    }
+  }
+
+  /**
+   * Get the register that's defined by the candidate instruction
+   * @param first is this the first instruction?
+   * @param s the instruction
+   * @return register used by candidate or null if this isn't a candidate
+   */
+  private static OPT_RegisterOperand getDefFromCandidate(OPT_Instruction s, boolean first) {
+    if (Binary.conforms(s)) {
+      return Binary.getResult(s);
+    } else if (GuardedBinary.conforms(s)) {
+      return GuardedBinary.getResult(s);
+    } else if (Unary.conforms(s)) {
+      return Unary.getResult(s);
+    } else if (GuardedUnary.conforms(s)) {
+      return GuardedUnary.getResult(s);
+    } else if (BooleanCmp.conforms(s)) {
+      return BooleanCmp.getResult(s);
+    } else if (IfCmp.conforms(s)) {
+      if (first) {
+        return null;
+      } else {
+        return IfCmp.getGuardResult(s);
+      }
+    } else if (IfCmp2.conforms(s)) {
+      if (first) {
+        return null;
+      } else {
+        return IfCmp2.getGuardResult(s);
+      }
+    } else if (CondMove.conforms(s)) {
+      if (first) {
+        return null;
+      } else {
+        return CondMove.getResult(s);
+      }
+    } else if (ZeroCheck.conforms(s)) {
+      return ZeroCheck.getGuardResult(s);
+    } else if (BoundsCheck.conforms(s)) {
+      return BoundsCheck.getGuardResult(s);
+    } else if (NullCheck.conforms(s)) {
+      return NullCheck.getGuardResult(s);
+    } else if (InstanceOf.conforms(s)) {
+      return InstanceOf.getResult(s);
+    } else if (NewArray.conforms(s)) {
+      if (first) {
+        return NewArray.getResult(s).asRegister();
+      } else {
+        return null;
+      }
+    } else if (New.conforms(s)) {
+      if (first) {
+        return New.getResult(s).asRegister();
+      } else {
+        return null;
+      }
+    } else {
+      OPT_OptimizingCompilerException.UNREACHABLE();
+      return null;
+    }
   }
   /**
    * Perform the transformation.
@@ -324,51 +455,42 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       for (Iterator<OPT_Register> it = candidates.iterator(); it.hasNext();) {
         OPT_Register r = it.next();
         OPT_Instruction s = r.getFirstDef();
-        OPT_Operand val1;
-
-        if (Binary.conforms(s)) {
-          val1 = Binary.getVal1(s);
-        } else if (Unary.conforms(s)) {
-          val1 = Unary.getVal(s);
-        } else if (BooleanCmp.conforms(s)) {
-          val1 = BooleanCmp.getVal1(s);
-        } else if (IfCmp.conforms(s)) {
-          val1 = IfCmp.getVal1(s);
-        } else if (IfCmp2.conforms(s)) {
-          val1 = IfCmp2.getVal1(s);
-        } else if (CondMove.conforms(s)) {
-          val1 = CondMove.getVal1(s);
-        } else if (ZeroCheck.conforms(s)) {
-          val1 = ZeroCheck.getValue(s);
-        } else {
-          // we're not optimising any other instruction types
-          continue;
+        OPT_Operand val1 = getUseFromCandidate(s);
+        if (val1 == null) continue; // operator that's not being optimized
+        if (VERBOSE) {
+          System.out.println("Found candidate instruction: " + s.toString());
         }
-
-        if (candidates.contains(val1.asRegister().getRegister())) {
-          OPT_Instruction def = val1.asRegister().getRegister().getFirstDef();
-
-          // filter out moves to get the real defining instruction
-          while (Move.conforms(def)) {
-            OPT_Operand op = Move.getVal(def);
-            if (op.isRegister()) {
-              def = op.asRegister().getRegister().getFirstDef();
-            } else {
-              // The non-constant operand of the candidate expression is the
-              // result of moving a constant. Remove as a candidate and leave
-              // for constant propagation and simplification.
-              it.remove();
-              continue iterate_over_candidates;
-            }
+        OPT_Instruction def = val1.asRegister().getRegister().getFirstDef();
+        // filter out moves to get the real defining instruction
+        while (Move.conforms(def)) {
+          OPT_Operand op = Move.getVal(def);
+          if (op.isRegister()) {
+            def = op.asRegister().getRegister().getFirstDef();
+          } else {
+            // The non-constant operand of the candidate expression is the
+            // result of moving a constant. Remove as a candidate and leave
+            // for constant propagation and simplification.
+            it.remove();
+            continue iterate_over_candidates;
           }
-
+        }
+        if (candidates.contains(val1.asRegister().getRegister())) {
+          if (VERBOSE) {
+            System.out.println(" Found candidate definition: " + def.toString());
+          }
           // check if the defining instruction has not mutated yet
           if (isCandidateExpression(def, true) == null) {
+            if (VERBOSE) {
+              System.out.println(" Ignoring definition that is no longer a candidate");
+            }
             continue;
           }
 
           OPT_Instruction newS = transform(s, def);
           if (newS != null) {
+            if (VERBOSE) {
+              System.out.println(" Replacing: " + s.toString() + "\n with:" + newS.toString());
+            }
             // check if this expression is still an optimisation candidate
             if (isCandidateExpression(newS, true) == null) {
               it.remove();
@@ -389,27 +511,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     for (Iterator<OPT_Register> i = candidates.iterator(); i.hasNext();) {
       OPT_Register r = i.next();
       OPT_Instruction s = r.getFirstDef();
-      OPT_Operand val1;
-      if (Binary.conforms(s)) {
-        val1 = Binary.getVal1(s);
-      } else if (GuardedBinary.conforms(s)) {
-        val1 = GuardedBinary.getVal1(s);
-      } else if (Unary.conforms(s)) {
-        val1 = Unary.getVal(s);
-      } else if (BooleanCmp.conforms(s)) {
-        val1 = BooleanCmp.getVal1(s);
-      } else if (IfCmp.conforms(s)) {
-        val1 = IfCmp.getVal1(s);
-      } else if (IfCmp2.conforms(s)) {
-        val1 = IfCmp2.getVal1(s);
-      } else if (CondMove.conforms(s)) {
-        val1 = CondMove.getVal1(s);
-      } else if (ZeroCheck.conforms(s)) {
-        val1 = ZeroCheck.getValue(s);
-      } else {
-        OPT_OptimizingCompilerException.UNREACHABLE();
-        return;
-      }
+      OPT_Operand val1 = getUseFromCandidate(s);
+      if (val1 == null) continue; // operator that's not being optimized
 
       if (VM.VerifyAssertions) {
         VM._assert(val1.isRegister(), "Error with val1 of " + s);
@@ -417,8 +520,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
 
       OPT_Register v1 = val1.asRegister().getRegister();
       if (candidates.contains(v1)) {
-        for (Enumeration<OPT_RegisterOperand> uses = OPT_DefUse.uses(v1); uses
-            .hasMoreElements();) {
+        Enumeration<OPT_RegisterOperand> uses = OPT_DefUse.uses(v1);
+        while (uses.hasMoreElements()) {
           OPT_RegisterOperand op = uses.nextElement();
           OPT_Instruction u = op.instruction;
           if ((isCandidateExpression(u, true) == null) && !Move.conforms(u)) {
@@ -443,94 +546,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   private static OPT_Instruction transform(OPT_Instruction s, OPT_Instruction def) {
     // x = a op1 c1  <-- def
     // y = x op2 c2  <-- s
-    OPT_RegisterOperand a;
-    OPT_RegisterOperand y;
-    if (Binary.conforms(def)) {
-      a = Binary.getVal1(def).asRegister();
-    } else if (GuardedBinary.conforms(def)) {
-      a = GuardedBinary.getVal1(def).asRegister();
-    } else if (Unary.conforms(def)) {
-      a = Unary.getVal(def).asRegister();
-    } else if (BooleanCmp.conforms(def)) {
-      a = BooleanCmp.getVal1(def).asRegister();
-    } else if (IfCmp.conforms(def) || IfCmp2.conforms(def) || CondMove.conforms(def)) {
-      // we don't fold in case of a IfCmp/CondMove coming before
-      // the instruction to be folded
-      return null;
-    } else {
-      OPT_OptimizingCompilerException.UNREACHABLE();
+    final OPT_RegisterOperand a = getUseFromCandidate(def);
+    final OPT_RegisterOperand x = getDefFromCandidate(def, true);
+    if (x == null) {
       return null;
     }
-
-    if (Binary.conforms(s)) {
-      y = Binary.getResult(s);
-    } else if (GuardedBinary.conforms(s)) {
-      y = GuardedBinary.getResult(s);
-    } else if (Unary.conforms(s)) {
-      y = Unary.getResult(s);
-    } else if (BooleanCmp.conforms(s)) {
-      y = BooleanCmp.getResult(s);
-    } else if (IfCmp.conforms(s)) {
-      y = IfCmp.getGuardResult(s);
-    } else if (IfCmp2.conforms(s)) {
-      y = IfCmp2.getGuardResult(s);
-    } else if (CondMove.conforms(s)) {
-      y = CondMove.getResult(s);
-    } else if (ZeroCheck.conforms(s)) {
-      y = ZeroCheck.getGuardResult(s);
-    } else {
-      OPT_OptimizingCompilerException.UNREACHABLE();
+    final OPT_RegisterOperand y = getDefFromCandidate(s, false);
+    if (y == null) {
       return null;
     }
 
     if (VM.VerifyAssertions) {
-      VM._assert(a.isRegister(), "Expected register not " + a);
-      VM._assert(y.isRegister(), "Expected register not " + y);
-      if (OPT_IR.PARANOID) {
-        OPT_RegisterOperand x1, x2;
-        if (Binary.conforms(s)) {
-          x1 = Binary.getVal1(s).asRegister();
-        } else if (GuardedBinary.conforms(s)) {
-          x1 = GuardedBinary.getVal1(s).asRegister();
-        } else if (Unary.conforms(s)) {
-          x1 = Unary.getVal(s).asRegister();
-        } else if (BooleanCmp.conforms(s)) {
-          x1 = BooleanCmp.getVal1(s).asRegister();
-        } else if (IfCmp.conforms(s)) {
-          x1 = IfCmp.getVal1(s).asRegister();
-        } else if (IfCmp2.conforms(s)) {
-          x1 = IfCmp2.getVal1(s).asRegister();
-        } else if (CondMove.conforms(s)) {
-          x1 = CondMove.getVal1(s).asRegister();
-        } else if (ZeroCheck.conforms(s)) {
-          x1 = ZeroCheck.getValue(s).asRegister();
-        } else {
-          OPT_OptimizingCompilerException.UNREACHABLE();
-          return null;
-        }
-
-        if (Binary.conforms(def)) {
-          x2 = Binary.getResult(def);
-        } else if (GuardedBinary.conforms(def)) {
-          x2 = GuardedBinary.getResult(def);
-        } else if (Unary.conforms(def)) {
-          x2 = Unary.getResult(def);
-        } else if (BooleanCmp.conforms(def)) {
-          x2 = BooleanCmp.getResult(def);
-        } else if (IfCmp.conforms(def)) {
-          x2 = IfCmp.getGuardResult(def);
-        } else if (IfCmp2.conforms(def)) {
-          x2 = IfCmp2.getGuardResult(def);
-        } else if (CondMove.conforms(def)) {
-          x2 = CondMove.getResult(def);
-        } else if (ZeroCheck.conforms(def)) {
-          x2 = ZeroCheck.getValue(def).asRegister();
-        } else {
-          OPT_OptimizingCompilerException.UNREACHABLE();
-          return null;
-        }
-        VM._assert(x1.similar(x2));
-      }
+      OPT_RegisterOperand x2;
+      x2 = getUseFromCandidate(s);
+      VM._assert(x.similar(x2), "x not similar to x2 " + x + " : " + x2);
     }
 
     switch (s.operator.opcode) {
@@ -1758,7 +1787,16 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           OPT_BranchOperand target = (OPT_BranchOperand) IfCmp.getTarget(s).copy();
           OPT_BranchProfileOperand prof = (OPT_BranchProfileOperand) IfCmp.getBranchProfile(s).copy();
           if (cond.isEQUAL() || cond.isNOT_EQUAL()) {
-            if (def.operator == REF_ADD) {
+            if ((def.operator == NEW || def.operator == NEWARRAY) && c2.EQ(Address.zero())) {
+              // x = new ... ; y = x cmp null
+              return IfCmp.create(REF_IFCMP,
+                  y.copyRO(),
+                  AC(Address.zero()),
+                  AC(Address.zero()),
+                  cond.flipCode(),
+                  target,
+                  prof);
+            } else if (def.operator == REF_ADD) {
               Address c1 = getAddressValue(Binary.getVal2(def));
               // x = a + c1; y = x cmp c2
               return IfCmp.create(REF_IFCMP,
@@ -2010,7 +2048,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
               if ((cond.isEQUAL() && c2 == 1)||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
-                return CondMove.create(INT_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     IC(c1),
@@ -2019,7 +2057,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == 0)||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
-                return CondMove.create(INT_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     IC(c1),
@@ -2035,7 +2073,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
               if ((cond.isEQUAL() && c2 == 1)||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
-                return CondMove.create(REF_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     AC(c1),
@@ -2044,7 +2082,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == 0)||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
-                return CondMove.create(REF_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     AC(c1),
@@ -2060,7 +2098,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
               if ((cond.isEQUAL() && c2 == 1)||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2069,7 +2107,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == 0)||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2086,7 +2124,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
               if ((cond.isEQUAL() && c2 == 1)||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
-                return CondMove.create(DOUBLE_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     DC(c1),
@@ -2095,7 +2133,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == 0)||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
-                return CondMove.create(DOUBLE_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     DC(c1),
@@ -2111,7 +2149,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
               if ((cond.isEQUAL() && c2 == 1)||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
-                return CondMove.create(FLOAT_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     FC(c1),
@@ -2120,7 +2158,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == 0)||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
-                return CondMove.create(FLOAT_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     FC(c1),
@@ -2135,7 +2173,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a lcmp c1; y = y = x cmp c2 ? trueValue : falseValue
               if (cond.isEQUAL() && c2 == 0) {
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2143,7 +2181,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     trueValue,
                     falseValue);
               } else if (cond.isNOT_EQUAL() && c2 == 0) {
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2151,7 +2189,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     trueValue,
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2159,7 +2197,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     trueValue,
                     falseValue);
               } else if (cond.isGREATER_EQUAL() && c2 == 0){
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2167,7 +2205,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     trueValue,
                     falseValue);
               } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2175,7 +2213,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     trueValue,
                     falseValue);
               } else if (cond.isLESS_EQUAL() && c2 == 0) {
-                return CondMove.create(LONG_COND_MOVE,
+                return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
                     LC(c1),
@@ -2318,7 +2356,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case BOOLEAN_NOT_opcode: {
         if (FOLD_INTS && FOLD_NOTS) {
           if (def.operator == BOOLEAN_NOT) {
-            // x = 1 ^ z; y = 1 ^ x;
+            // x = 1 ^ a; y = 1 ^ x;
             return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
           } else if (BooleanCmp.conforms(def)) {
             // x = a cmp b; y = !x
@@ -2336,8 +2374,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case INT_NOT_opcode: {
         if (FOLD_INTS && FOLD_NOTS) {
           if (def.operator == INT_NOT) {
-            // x = -1 ^ z; y = -1 ^ x;
-            return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
+            // x = -1 ^ a; y = -1 ^ x;
+            return Move.create(INT_MOVE, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2346,8 +2384,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case REF_NOT_opcode: {
         if (FOLD_REFS && FOLD_NOTS) {
           if (def.operator == REF_NOT) {
-            // x = -1 ^ z; y = -1 ^ x;
-            return Move.create(REF_MOVE, y.copyRO(), Unary.getVal(def).copy());
+            // x = -1 ^ a; y = -1 ^ x;
+            return Move.create(REF_MOVE, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2356,8 +2394,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case LONG_NOT_opcode: {
         if (FOLD_LONGS && FOLD_NOTS) {
           if (def.operator == LONG_NOT) {
-            // x = -1 ^ z; y = -1 ^ x;
-            return Move.create(LONG_MOVE, y.copyRO(), Unary.getVal(def).copy());
+            // x = -1 ^ a; y = -1 ^ x;
+            return Move.create(LONG_MOVE, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2366,11 +2404,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case INT_2BYTE_opcode: {
         if (FOLD_INTS && FOLD_2CONVERSION) {
           if ((def.operator == INT_2BYTE) || (def.operator == INT_2SHORT)) {
-            // x = (short)z; y = (byte)x;
-            return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def).copy());
+            // x = (short)a; y = (byte)x;
+            return Unary.create(INT_2BYTE, y.copyRO(), a.copy());
           } else if (def.operator == INT_2USHORT) {
-            // x = (char)z; y = (byte)x;
-            return Binary.create(INT_AND, y.copyRO(), Unary.getVal(def).copy(), IC(0xFF));
+            // x = (char)a; y = (byte)x;
+            return Binary.create(INT_AND, y.copyRO(), a.copy(), IC(0xFF));
           }
         }
         return null;
@@ -2378,14 +2416,14 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case INT_2SHORT_opcode: {
         if (FOLD_INTS && FOLD_2CONVERSION) {
           if (def.operator == INT_2BYTE) {
-            // x = (byte)z; y = (short)x;
-            return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def).copy());
+            // x = (byte)a; y = (short)x;
+            return Unary.create(INT_2BYTE, y.copyRO(), a.copy());
           } else if (def.operator == INT_2SHORT) {
-            // x = (short)z; y = (short)x;
-            return Unary.create(INT_2SHORT, y.copyRO(), Unary.getVal(def).copy());
+            // x = (short)a; y = (short)x;
+            return Unary.create(INT_2SHORT, y.copyRO(), a.copy());
           } else if (def.operator == INT_2USHORT) {
-            // x = (char)z; y = (short)x;
-            return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def).copy());
+            // x = (char)a; y = (short)x;
+            return Unary.create(INT_2USHORT, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2393,8 +2431,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case INT_2USHORT_opcode: {
         if (FOLD_INTS && FOLD_2CONVERSION) {
           if ((def.operator == INT_2SHORT) || (def.operator == INT_2USHORT)) {
-            // x = (short)z; y = (char)x;
-            return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def).copy());
+            // x = (short)a; y = (char)x;
+            return Unary.create(INT_2USHORT, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2403,8 +2441,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case LONG_2INT_opcode: {
         if (FOLD_LONGS && FOLD_2CONVERSION) {
           if (def.operator == INT_2LONG) {
-            // x = (long)z; y = (int)x;
-            return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
+            // x = (long)a; y = (int)x;
+            return Move.create(INT_MOVE, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2416,8 +2454,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case DOUBLE_2FLOAT_opcode: {
         if (FOLD_DOUBLES && FOLD_2CONVERSION) {
           if (def.operator == FLOAT_2DOUBLE) {
-            // x = (double)z; y = (float)x;
-            return Move.create(FLOAT_MOVE, y.copyRO(), Unary.getVal(def).copy());
+            // x = (double)a; y = (float)x;
+            return Move.create(FLOAT_MOVE, y.copyRO(), a.copy());
           }
         }
         return null;
@@ -2440,6 +2478,61 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           if (def.operator == INT_NEG) {
             // x = -z; y = zerocheck x;
             return ZeroCheck.create(INT_ZERO_CHECK, y.copyRO(), Unary.getVal(def).copy());
+          }
+        }
+        return null;
+      }
+      case NEWARRAY_opcode:
+        // unused
+        return null;
+      case BOUNDS_CHECK_opcode: {
+        if (FOLD_CHECKS) {
+          if (def.operator == NEWARRAY) {
+            // x = newarray xxx[c1]; y = boundscheck x, c2;
+            int c1 = getIntValue(NewArray.getSize(def));
+            int c2 = getIntValue(BoundsCheck.getIndex(s));
+            if (c2 >= 0 && c2 < c1) {
+              return Move.create(GUARD_MOVE, y.copyRO(), BoundsCheck.getGuard(def).copy());
+            }
+          }
+        }
+        return null;
+      }
+      case NULL_CHECK_opcode: {
+        if (FOLD_CHECKS) {
+          if (def.operator == NEWARRAY || def.operator == NEW) {
+            // x = new xxx; y = nullcheck x;
+            return Move.create(GUARD_MOVE, y.copyRO(), new OPT_TrueGuardOperand());
+          }
+        }
+        return null;
+      }
+      case INSTANCEOF_opcode: {
+        if (FOLD_CHECKS) {
+          VM_TypeReference newType;
+          if (def.operator == NEW) {
+            // x = new xxx; y = instanceof x, zzz;
+            newType = New.getType(def).getTypeRef();
+          } else if (def.operator == NEWARRAY) {
+            // x = newarray xxx; y = instanceof x, zzz;
+            newType = NewArray.getType(def).getTypeRef();
+          } else {
+            return null;
+          }
+          VM_TypeReference instanceofType = InstanceOf.getType(s).getTypeRef();
+          if (newType == instanceofType) {
+            return Move.create(INT_MOVE, y.copyRO(), IC(1));
+          } else {
+            return Move.create(INT_MOVE, y.copyRO(), IC(VM_Runtime.isAssignableWith(instanceofType.resolve(), newType.resolve()) ? 1 : 0));
+          }
+        }
+        return null;
+      }
+      case ARRAYLENGTH_opcode: {
+        if (FOLD_CHECKS) {
+          if (def.operator() == NEWARRAY) {
+            // x = newarray xxx[c1]; y = arraylength x;
+            return Move.create(INT_MOVE, y.copyRO(), NewArray.getSize(def).copy());
           }
         }
         return null;
@@ -2493,6 +2586,18 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         } else {
           return null;
         }
+      }
+
+      case ARRAYLENGTH_opcode: {
+        OPT_Operand val1 = GuardedUnary.getVal(s);
+        // if val1 is constant too, this should've been constant folded
+        // beforehand. Give up.
+        if (val1.isConstant()) {
+          return null;
+        }
+        OPT_Register result = GuardedUnary.getResult(s).asRegister().getRegister();
+        // don't worry about the input and output bring the same as their types differ
+        return result;
       }
 
       case INT_ADD_opcode:
@@ -2759,22 +2864,58 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         }
         return null;
       }
+      case BOUNDS_CHECK_opcode: {
+        OPT_Operand ref = BoundsCheck.getRef(s);
+        OPT_Operand index = BoundsCheck.getIndex(s);
+        if (index.isConstant()) {
+          if (ref.isConstant()) {
+            // this should have been constant folded. Give up.
+            return null;
+          }
+          // don't worry about the input and output bring the same as their types differ
+          return BoundsCheck.getGuardResult(s).asRegister().getRegister();
+        }
+        return null;
+      }
+      case NULL_CHECK_opcode: {
+        OPT_Operand ref = NullCheck.getRef(s);
+        if (ref.isConstant()) {
+          // this should have been constant folded. Give up.
+          return null;
+        }
+        // don't worry about the input and output bring the same as their types differ
+        return NullCheck.getGuardResult(s).asRegister().getRegister();
+      }
+      case INSTANCEOF_opcode: {
+        OPT_Operand ref = InstanceOf.getRef(s);
+        if (ref.isConstant()) {
+          // this should have been constant folded. Give up.
+          return null;
+        }
+        // don't worry about the input and output bring the same as their types differ
+        return InstanceOf.getResult(s).getRegister();
+      }
+      case NEWARRAY_opcode: {
+        OPT_Operand size = NewArray.getSize(s);
+        if (size.isConstant()) {
+          // don't worry about the input and output bring the same as their types differ
+          return NewArray.getResult(s).getRegister();
+        }
+        return null;
+      }
+      case NEW_opcode: {
+        return New.getResult(s).getRegister();
+      }
       case INT_ZERO_CHECK_opcode:
       case LONG_ZERO_CHECK_opcode:  {
         OPT_Operand val1 = ZeroCheck.getValue(s);
-        // if val1 is constant too, this should've been constant folded
+        // if val1 is constant, this should've been constant folded
         // beforehand. Give up.
         if (val1.isConstant()) {
           return null;
         }
-        OPT_Register result = ZeroCheck.getGuardResult(s).asRegister().getRegister();
-        if (ssa) {
-          return result;
-        } else if (val1.asRegister().getRegister() != result) {
-          return result;
-        } else {
-          return null;
-        }
+        // don't worry about the input and output bring the same as their types differ
+        return ZeroCheck.getGuardResult(s).asRegister().getRegister();
       }
       default:
         // Operator can't be folded
