@@ -30,6 +30,9 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * Capture illegal upcasts from magic types to java.lang.Object
    */
   public static class IllegalUpcast extends RuntimeException {
+    /** Support for exception serialization */
+    static final long serialVersionUID = -847866659938089530L;
+    /** Unboxed type that was attempted to convert to an Object */
     final VM_TypeReference magicType;
 
     public IllegalUpcast(VM_TypeReference type) {
