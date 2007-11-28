@@ -1832,7 +1832,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       }
       case INT_IFCMP2_opcode: {
         if (FOLD_INTS && FOLD_IFCMPS) {
-          int c2 = getIntValue(IfCmp.getVal2(s));
+          int c2 = getIntValue(IfCmp2.getVal2(s));
           OPT_ConditionOperand cond1 = (OPT_ConditionOperand) IfCmp2.getCond1(s).copy();
           OPT_ConditionOperand cond2 = (OPT_ConditionOperand) IfCmp2.getCond2(s).copy();
           OPT_BranchOperand target1 = (OPT_BranchOperand) IfCmp2.getTarget1(s).copy();
