@@ -342,8 +342,10 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
                   break outer;
                 }
               }
-              if (OPT_PhysicalDefUse.definesEFLAGS(x.operator)) {
-                // we found a <cmp> that doesn't use the result
+              if (OPT_PhysicalDefUse.definesEFLAGS(x.operator) &&
+                  !OPT_PhysicalDefUse.usesEFLAGS(x.operator)) {
+                // we found a <cmp> that doesn't use the result or the flags
+                // that would be clobbered by the xor
                 foundCmp = true;
                 break outer;
               }
