@@ -417,13 +417,13 @@ public class OPT_OptimizationPlanner {
     // Perform basic block reordering
     addComponent(p, new OPT_ReorderingPhase());
     // Perform peephole branch optimizations
-    addComponent(p, new OPT_BranchOptimizations(1, false, true));
+    addComponent(p, new OPT_BranchOptimizations(0, false, true));
 
     if (VM.BuildForAdaptiveSystem) {
       // Arnold & Ryder instrumentation sampling framework
       addComponent(p, new OPT_InstrumentationSamplingFramework());
 
-      // Convert high level place holder instructions into actual instrumenation
+      // Convert high level place holder instructions into actual instrumentation
       addComponent(p, new OPT_LowerInstrumentation());
     }
   }
