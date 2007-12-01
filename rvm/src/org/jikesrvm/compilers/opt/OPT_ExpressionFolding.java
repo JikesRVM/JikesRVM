@@ -73,7 +73,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   /**
    * Fold across uninterruptible regions
    */
-  private static final boolean FOLD_OVER_UNINTERRUPTIBLE = true;
+  private static final boolean FOLD_OVER_UNINTERRUPTIBLE = false;
   /**
    * Fold operations on ints
    */
