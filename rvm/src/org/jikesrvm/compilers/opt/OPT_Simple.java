@@ -198,7 +198,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     // if it does it will recompute it.
     foldConstants(ir);
     // Simple local expression folding respecting DU
-    if (OPT_ExpressionFolding.performLocal(ir)) {
+    if (false && OPT_ExpressionFolding.performLocal(ir)) {
       // constant folding again
       foldConstants(ir);
     }
