@@ -30,6 +30,7 @@
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
   <property name="timedrun.exe" location="${jikesrvm.dir}/bin/timedrun"/>
   <property name="extractmmtkstats.exe" location="${jikesrvm.dir}/bin/extractmmtkstats"/>
+  <property name="extractcompilerstats.exe" location="${jikesrvm.dir}/bin/extractcompilerstats"/>
 
   <!-- Default values -->
   <property name="test.mode" value=""/>
@@ -194,6 +195,28 @@
         </not>
       </condition>
       <explainResult tag="@{tag}" execution="@{execution}" message="Could not extract MMTk statistics."/>
+    </sequential>
+  </macrodef>
+
+  <!--
+      Macro to extract compiler statistics from a log file. The statistics to extract is a space delimited string.
+  -->
+  <macrodef name="extractCompilerStatistics">
+    <attribute name="tag"/>
+    <attribute name="execution" default="default"/>
+    <attribute name="statistics"/>
+    <sequential>
+      <exec executable="${extractcompilerstats.exe}" failonerror="false" resultproperty="test.@{tag}.@{execution}.compilerstats.exit.code">
+        <arg value="${test.@{tag}.@{execution}.sanitized.output.file}"/>
+        <arg value="${results.file}"/>
+        <arg line="@{statistics}"/>
+      </exec>
+      <condition property="test.@{tag}.@{execution}.result" value="FAILURE">
+        <not>
+          <equals arg1="${test.@{tag}.@{execution}.compilerstats.exit.code}" arg2="0"/>
+        </not>
+      </condition>
+      <explainResult tag="@{tag}" execution="@{execution}" message="Could not extract compiler statistics."/>
     </sequential>
   </macrodef>
 
