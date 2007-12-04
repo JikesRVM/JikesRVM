@@ -24,6 +24,8 @@ $outpattern = "<statistic key=\"\@STATISTIC\@\" value=\"\@VALUE\@\"/>";
 # The keys to extract
 @queryKeys = @ARGV;
 
+exit 0 if !@queryKeys || $#queryKeys == -1;
+
 open ($LOG, "$infile") or die "error opening $infile for input";
 open ($OUT, ">>$outfile") or die "error opening $outfile for output";
 
