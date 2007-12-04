@@ -200,6 +200,8 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       }
       break;
 
+      case IA32_SQRTSS_opcode:
+      case IA32_SQRTSD_opcode:
       case IA32_CVTSD2SI_opcode:
       case IA32_CVTSD2SS_opcode:
       case IA32_CVTSI2SD_opcode:
