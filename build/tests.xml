@@ -118,6 +118,7 @@
 <parameter key='max.heapsize' value='${test.@{tag}.max.heapsize}'/>
 <parameter key='time.limit' value='${test.@{tag}.time.limit}'/>
 <parameter key='extra.args' value='${test.@{tag}.extra.args}'/>
+<parameter key='extra.rvm.args' value='${test.@{tag}.extra.rvm.args}'/>
 <parameter key='processors' value='${test.@{tag}.processors}'/>
 <parameter key='max.opt.level' value='${test.@{tag}.max.opt.level}'/>
 </parameters>
@@ -471,6 +472,7 @@
       </condition>
 
       <setTestProperty tag="@{tag}" key="extra.args" default="@{rvmArgs}"/>
+      <setTestProperty tag="@{tag}" key="extra.rvm.args" default=""/>
       <setTestProperty tag="@{tag}" key="class.path" default="${default.test.@{tag}.classpath}"/>
       <setTestProperty tag="@{tag}" key="time.limit" default="${default.test.@{tag}.timeLimit}"/>
       <setTestProperty tag="@{tag}" key="initial.heapsize" default="${default.test.@{tag}.initialHeapSize}"/>
@@ -485,7 +487,7 @@
       </condition>
 
       <property name="test.@{tag}.rvm.args"
-                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.maxOptLevel-arg}"/>
+                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.extra.rvm.args} ${test.@{tag}.maxOptLevel-arg}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>

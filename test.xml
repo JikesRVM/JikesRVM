@@ -223,7 +223,7 @@
                   <property name="test.rvm.dir" location="${test.config.@{tag}.rvm.dir}"/>
                   <property name="test.mode" value="${test.config.@{tag}.mode}"/>
                   <property name="test.group.name" value="@{test}"/>
-                  <property name="test.config.${test.config.@{tag}.configuration}.extra.args" value="${test.config.@{tag}.extra.rvm.args}"/>
+                  <property name="test.config.${test.config.@{tag}.configuration}.extra.rvm.args" value="${test.config.@{tag}.extra.rvm.args}"/>
                   <propertyset>
                     <propertyref prefix="exclude."/>
                   </propertyset>
