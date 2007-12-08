@@ -162,7 +162,7 @@ public class Map {
    * @return The size of the region in question
    */
   public static Extent getContiguousRegionSize(Address start) {
-    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).rshl(Space.LOG_BYTES_IN_CHUNK).toExtent();
+    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).lsh(Space.LOG_BYTES_IN_CHUNK).toExtent();
   }
 
   /**
