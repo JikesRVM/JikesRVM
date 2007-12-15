@@ -28,11 +28,11 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
-import org.jikesrvm.compilers.opt.OPT_Compiler;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
-import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.Compiler;
+import org.jikesrvm.compilers.opt.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.Options;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Time;
 
@@ -80,7 +80,7 @@ class OptTestHarness {
   // Keep baseline and opt methods separate in list of methods
   // to be compiled
   static Vector<VM_Method> optMethodVector = null;
-  static Vector<OPT_Options> optOptionsVector = null;
+  static Vector<Options> optOptionsVector = null;
   static Vector<VM_Method> baselineMethodVector = null;
 
   static java.lang.reflect.Method reflectoid;
@@ -172,7 +172,7 @@ class OptTestHarness {
     System.err.println("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
   }
 
-  private static void processClass(VM_Class klass, OPT_Options opts) {
+  private static void processClass(VM_Class klass, Options opts) {
     VM_Method[] methods = klass.getDeclaredMethods();
     for (VM_Method method : methods) {
       if (!method.isAbstract() && !method.isNative()) {
@@ -182,11 +182,11 @@ class OptTestHarness {
   }
 
   // Wrapper applying default decision regarding opt/baseline
-  private static void processMethod(VM_Method method, OPT_Options opts) {
+  private static void processMethod(VM_Method method, Options opts) {
     processMethod(method, opts, BASELINE);
   }
 
-  private static void processMethod(VM_Method method, OPT_Options opts, boolean isBaseline) {
+  private static void processMethod(VM_Method method, Options opts, boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
@@ -200,7 +200,7 @@ class OptTestHarness {
   }
 
   // process the command line option
-  static OPT_Options options = new OPT_Options();
+  static Options options = new Options();
 
   private static void processOptionString(String[] args) {
     for (int i = 0, n = args.length; i < n; i++) {
@@ -209,7 +209,7 @@ class OptTestHarness {
         if (arg.startsWith("-oc:") && options.processAsOption("-X:irc:", arg.substring(4))) {
           // handled in processAsOption
         } else if (arg.equals("-useBootOptions")) {
-          OPT_Compiler.setBootOptions(options);
+          Compiler.setBootOptions(options);
         } else if (arg.equals("-longcommandline")) {
           // the -longcommandline option reads options from a file.
           // use for cases when the command line is too long for AIX
@@ -281,10 +281,10 @@ class OptTestHarness {
           if (BASELINE) {
             cm = VM_BaselineCompiler.compile(method);
           } else {
-            OPT_CompilationPlan cp =
-                new OPT_CompilationPlan(method, OPT_OptimizationPlanner.createOptimizationPlan(options), null, options);
+            CompilationPlan cp =
+                new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(options), null, options);
             try {
-              cm = OPT_Compiler.compile(cp);
+              cm = Compiler.compile(cp);
             } catch (Throwable e) {
               System.err.println("SKIPPING method:" + method + "Due to exception: " + e);
             }
@@ -342,14 +342,14 @@ class OptTestHarness {
     VM.sysWrite("Compiling " + size + " methods opt\n");
     for (int i = 0; i < size; i++) {
       VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i);
-      OPT_Options opts = optOptionsVector.elementAt(i);
+      Options opts = optOptionsVector.elementAt(i);
       try {
         VM_CompiledMethod cm = null;
-        OPT_CompilationPlan cp =
-            new OPT_CompilationPlan(method, OPT_OptimizationPlanner.createOptimizationPlan(opts), null, opts);
-        cm = OPT_Compiler.compile(cp);
+        CompilationPlan cp =
+            new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
+        cm = Compiler.compile(cp);
         method.replaceCompiledMethod(cm);
-      } catch (OPT_OptimizingCompilerException e) {
+      } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
           VM.sysFail("Internal vm error: " + e.toString());
@@ -404,13 +404,13 @@ class OptTestHarness {
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector<VM_Method>(50);
-    optOptionsVector = new Vector<OPT_Options>(50);
+    optOptionsVector = new Vector<Options>(50);
     baselineMethodVector = new Vector<VM_Method>(50);
     reflectoidVector = new Vector<Method>(10);
     reflectMethodVector = new Vector<VM_Method>(10);
     reflectMethodArgsVector = new Vector<Object[]>(10);
-    if (!OPT_Compiler.isInitialized()) {
-      OPT_Compiler.init(options);
+    if (!Compiler.isInitialized()) {
+      Compiler.init(options);
     }
     processOptionString(args);
     if (perf != null) {

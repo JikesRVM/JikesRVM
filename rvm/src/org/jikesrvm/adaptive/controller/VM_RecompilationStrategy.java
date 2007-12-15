@@ -18,11 +18,11 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
-import org.jikesrvm.compilers.opt.OPT_InstrumentationPlan;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
-import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.InstrumentationPlan;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.Options;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
@@ -76,11 +76,11 @@ public abstract class VM_RecompilationStrategy {
    *                 by executing this plan.
    * @return the compilation plan to be used
    */
-  VM_ControllerPlan createControllerPlan(VM_Method method, int optLevel, OPT_InstrumentationPlan instPlan, int prevCMID,
+  VM_ControllerPlan createControllerPlan(VM_Method method, int optLevel, InstrumentationPlan instPlan, int prevCMID,
                                          double expectedSpeedup, double expectedCompilationTime, double priority) {
 
     // Construct the compilation plan (varies depending on strategy)
-    OPT_CompilationPlan compPlan = createCompilationPlan((VM_NormalMethod) method, optLevel, instPlan);
+    CompilationPlan compPlan = createCompilationPlan((VM_NormalMethod) method, optLevel, instPlan);
 
     // Create the controller plan
     return new VM_ControllerPlan(compPlan,
@@ -99,11 +99,11 @@ public abstract class VM_RecompilationStrategy {
    * @param optLevel The opt-level to recompile at
    * @param instPlan The instrumentation plan
    */
-  public OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, int optLevel,
-                                                   OPT_InstrumentationPlan instPlan) {
+  public CompilationPlan createCompilationPlan(VM_NormalMethod method, int optLevel,
+                                                   InstrumentationPlan instPlan) {
 
     // Construct a plan from the basic pre-computed opt-levels
-    return new OPT_CompilationPlan(method, _optPlans[optLevel], null, _options[optLevel]);
+    return new CompilationPlan(method, _optPlans[optLevel], null, _options[optLevel]);
   }
 
   /**
@@ -230,25 +230,25 @@ public abstract class VM_RecompilationStrategy {
     return VM_Controller.options.DERIVED_MAX_OPT_LEVEL;
   }
 
-  private OPT_OptimizationPlanElement[][] _optPlans;
-  private OPT_Options[] _options;
+  private OptimizationPlanElement[][] _optPlans;
+  private Options[] _options;
 
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
   void createOptimizationPlans() {
-    OPT_Options options = new OPT_Options();
+    Options options = new Options();
 
     int maxOptLevel = getMaxOptLevel();
-    _options = new OPT_Options[maxOptLevel + 1];
-    _optPlans = new OPT_OptimizationPlanElement[maxOptLevel + 1][];
+    _options = new Options[maxOptLevel + 1];
+    _optPlans = new OptimizationPlanElement[maxOptLevel + 1][];
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
     for (int i = 0; i <= maxOptLevel; i++) {
       _options[i] = options.dup();
       _options[i].setOptLevel(i);               // set optimization level specific optimiations
       processCommandLineOptions(_options[i], i, maxOptLevel, optCompilerOptions);
-      _optPlans[i] = OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);
+      _optPlans[i] = OptimizationPlanner.createOptimizationPlan(_options[i]);
       if (_options[i].PRELOAD_CLASS != null) {
         VM.sysWrite("PRELOAD_CLASS should be specified with -X:irc not -X:recomp\n");
         VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -258,7 +258,7 @@ public abstract class VM_RecompilationStrategy {
 
   /**
    * Process the command line arguments and pass the appropriate ones to the
-   * OPT_Options
+   * Options
    * Called by sampling and counters recompilation strategy.
    *
    * @param options The options being constructed
@@ -266,7 +266,7 @@ public abstract class VM_RecompilationStrategy {
    * @param maxOptLevel The maximum valid opt level
    * @param optCompilerOptions The list of command line options
    */
-  public static void processCommandLineOptions(OPT_Options options, int optLevel, int maxOptLevel,
+  public static void processCommandLineOptions(Options options, int optLevel, int maxOptLevel,
                                                String[] optCompilerOptions) {
 
     String prefix = "opt" + optLevel + ":";

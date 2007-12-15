@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.ia32;
 /**
  * This interface holds constants for the Opt GC map code specific to IA32
  */
-public interface VM_OptGCMapIteratorConstants extends OPT_PhysicalRegisterConstants {
+public interface VM_OptGCMapIteratorConstants extends PhysicalRegisterConstants {
 
   // NOTE: The following two constants seem to imply that registers
   //       that can hold references are contiguous.  This is not true,

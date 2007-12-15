@@ -15,14 +15,14 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 import java.util.Hashtable;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.VM_Reportable;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
  * VM_StringEventCounterData.java
  *
  * A generic data object that maps strings to counters.  The key
- * method is "OPT_Instruction getCounterInstructionForEvent(String)"
+ * method is "Instruction getCounterInstructionForEvent(String)"
  * which, given a string, returns a counter instruction that
  * increments the corresponding counter for that string.
  */
@@ -35,7 +35,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData implements 
    *
    * @param manager The manager that will provide the counter space
    **/
-  VM_StringEventCounterData(OPT_InstrumentedEventCounterManager manager, String name) {
+  VM_StringEventCounterData(InstrumentedEventCounterManager manager, String name) {
     // Call superclass constructor
     super(manager);
 
@@ -49,7 +49,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData implements 
    * @param event The name of the event
    * @return An instruction to increment the count associated with the event.
    */
-  public OPT_Instruction getCounterInstructionForEvent(String event) {
+  public Instruction getCounterInstructionForEvent(String event) {
     return getCounterInstructionForEvent(event, 1.0);
   }
 
@@ -61,7 +61,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData implements 
    * @param incrementValue The value to add to counter
    * @return An instruction that will update the count associated with the event.
    */
-  public OPT_Instruction getCounterInstructionForEvent(String event, double incrementValue) {
+  public Instruction getCounterInstructionForEvent(String event, double incrementValue) {
 
     // Get (or create) the counter for this string and return it.
     int counterIdx = getOrCreateCounterIndexForString(event);

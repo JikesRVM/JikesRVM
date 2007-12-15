@@ -76,7 +76,7 @@ LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.ge
 r:	LONG_SHR(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 
 r:	LONG_SHR(r,INT_CONSTANT)
 20
@@ -179,7 +179,7 @@ LONG_MOVE(P(p), Move.getResult(P(p)), R(Move.getVal(P(p))));
 stm:	LONG_CMP(r,r)
 40
 EMIT_INSTRUCTION
-EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 
 #####
 # LONG_IFCMP
@@ -187,7 +187,7 @@ EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 stm:	LONG_IFCMP(r,r)
 30
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p)); //  Leave for ComplexLIR2MIRExpansion
 
 #####
 # INT_IFCMP
@@ -196,13 +196,13 @@ stm:    INT_IFCMP(ATTEMPT_INT(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
+   ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
    EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
                                   R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
                                   Attempt.getLocation(PL(p)),                \
                                   Attempt.getGuard(PL(p))));                \
    EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
-                              new OPT_PowerPCConditionOperand(c),             \
+                              new PowerPCConditionOperand(c),             \
                               IfCmp.getTarget(P(p)),                         \
                               IfCmp.getBranchProfile(P(p))));                 \
 }
@@ -211,13 +211,13 @@ stm:    INT_IFCMP(ATTEMPT_ADDR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
+   ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
    EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
                                   R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
                                   Attempt.getLocation(PL(p)),                \
                                   Attempt.getGuard(PL(p))));                \
    EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
-                              new OPT_PowerPCConditionOperand(c),             \
+                              new PowerPCConditionOperand(c),             \
                               IfCmp.getTarget(P(p)),                         \
                               IfCmp.getBranchProfile(P(p))));                 \
 }
@@ -299,7 +299,7 @@ czr:	REF_AND(r,REF_MOVE(INT_CONSTANT))
 U16(IV(Move.getVal(PR(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ANDISr, Binary.getResult(P(p)),              \
-                       R(Binary.getVal1(P(p))), IC(OPT_Bits.PPCMaskUpper16(VRL(p)))));
+                       R(Binary.getVal1(P(p))), IC(Bits.PPCMaskUpper16(VRL(p)))));
 
 r:	REF_AND(r,REF_MOVE(INT_CONSTANT))
 MASK(IV(Move.getVal(PR(p))))?10:INFINITE

@@ -562,7 +562,7 @@ AND_USHR(P(p), Binary.getResult(P(p)),                      \
 #####
 # INT_USHR
 #####
-#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
+#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by Simplifier
 rp:	INT_USHR(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
@@ -575,21 +575,21 @@ EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_SRW, Binary.getResult(P(p)), \
                        R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
-#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
+#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by Simplifier
 rp:	INT_USHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
 POSITIVE_MASK(IV(Binary.getVal2(PL(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
 	       IC(Binary.getVal2(PL(p))), IC(Binary.getVal2(P(p))));
 
-#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
+#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by Simplifier
 rp:	INT_USHR(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
 POSITIVE_MASK(IV(Move.getVal(PLR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
                IC(Move.getVal(PLR(p))), IC(Binary.getVal2(P(p))));
 
-#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
+#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by Simplifier
 rp:	INT_USHR(INT_SHL(r,INT_CONSTANT),INT_CONSTANT)
 10
 EMIT_INSTRUCTION
@@ -609,7 +609,7 @@ czr:	REF_AND(r,INT_CONSTANT)
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ANDIr, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p)))));
 
-#assumption for rp : INT_CONSTANT is always a positive immediate, should be taken care of by OPT_NormalizeConstants
+#assumption for rp : INT_CONSTANT is always a positive immediate, should be taken care of by NormalizeConstants
 rp:	REF_AND(r,INT_CONSTANT)
 MASK(IV(Binary.getVal2(P(p))))?10:INFINITE
 EMIT_INSTRUCTION
@@ -638,7 +638,7 @@ EMIT_INSTRUCTION
 USHR_AND(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
                IC(Binary.getVal2(P(p))), IC(Binary.getVal2(PL(p))));
 
-#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
+#assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by Simplifier
 rp:	REF_AND(INT_USHR(r,INT_CONSTANT),REF_MOVE(INT_CONSTANT))
 POSITIVE_MASK(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
@@ -948,7 +948,7 @@ INT_2DOUBLE(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 r:	FLOAT_2INT(r)
 10
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 
 #####
 # FLOAT_2DOUBLE
@@ -964,7 +964,7 @@ EMIT(MIR_Move.mutate(P(p), PPC_FMR, Unary.getResult(P(p)), R(Unary.getVal(P(p)))
 r:	DOUBLE_2INT(r)
 10
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansionLeave
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansionLeave
 
 #####
 # DOUBLE_2FLOAT
@@ -1442,75 +1442,75 @@ EMIT(MIR_Store.mutate(P(p), PPC_STFDX, R(Store.getValue(P(p))),      \
 stm:	INT_IFCMP(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), false);
 
 stm:	INT_IFCMP(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), true);
 
 stm:	INT_IFCMP(INT_2BYTE(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_EXTSBr, Unary.getResult(PL(p)),         \
                      Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_2SHORT(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_EXTSHr, Unary.getResult(PL(p)),         \
                      Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_USHR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_SRWr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_SHL(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_SLWr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_SHR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_SRAWr, Binary.getResult(PL(p)),         \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_SRWIr, Binary.getResult(PL(p)),         \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_SHL(r,INT_CONSTANT),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_SLWIr, Binary.getResult(PL(p)),         \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_SHR(r,INT_CONSTANT),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_SRAWIr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP_ZERO(P(p), PPC_ANDIr, Binary.getResult(PL(p)),         \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
@@ -1518,25 +1518,25 @@ CMP_ZERO(P(p), PPC_ANDIr, Binary.getResult(PL(p)),         \
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
 VR(p) == 0 && IfCmp.getCond(P(p)).isNOT_EQUAL()?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
 VR(p) == 0 && IfCmp.getCond(P(p)).isEQUAL()?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 FLIP_BOOLCMP(); EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
 VR(p) == 1 && IfCmp.getCond(P(p)).isEQUAL()?20:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
 VR(p) == 1 && (IfCmp.getCond(P(p)).isNOT_EQUAL())?26:INFINITE
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 FLIP_BOOLCMP(); EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
 #####
@@ -1545,13 +1545,13 @@ FLIP_BOOLCMP(); EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfil
 stm:	INT_IFCMP2(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp2.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp2.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP2(P(p), R(IfCmp2.getVal1(P(p))), IfCmp2.getVal2(P(p)), IfCmp2.getCond1(P(p)), IfCmp2.getCond2(P(p)), false);
 
 stm:	INT_IFCMP2(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp2.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp2.getGuardResult(P(p)), new TrueGuardOperand()))); \
 CMP2(P(p), R(IfCmp2.getVal1(P(p))), IfCmp2.getVal2(P(p)), IfCmp2.getCond1(P(p)), IfCmp2.getCond2(P(p)), true);
 
 #####
@@ -1560,7 +1560,7 @@ CMP2(P(p), R(IfCmp2.getVal1(P(p))), IfCmp2.getVal2(P(p)), IfCmp2.getCond1(P(p)),
 stm:   FLOAT_IFCMP(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 DOUBLE_IFCMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
 
 #####
@@ -1569,7 +1569,7 @@ DOUBLE_IFCMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
 stm:   DOUBLE_IFCMP(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \
 DOUBLE_IFCMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
 
 #####
@@ -1578,7 +1578,7 @@ DOUBLE_IFCMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
 stm:	FLOAT_CMPL(r,r)
 40
 EMIT_INSTRUCTION
-EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 
 #####
 # FLOAT_CMPG
@@ -1586,7 +1586,7 @@ EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 stm:	FLOAT_CMPG(r,r)
 40
 EMIT_INSTRUCTION
-EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 
 #####
 # DOUBLE_CMPL
@@ -1594,7 +1594,7 @@ EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 stm:	DOUBLE_CMPL(r,r)
 40
 EMIT_INSTRUCTION
-EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 
 #####
 # DOUBLE_CMPG
@@ -1602,7 +1602,7 @@ EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 stm:	DOUBLE_CMPG(r,r)
 40
 EMIT_INSTRUCTION
-EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 
 #####
 # GOTO
@@ -1653,7 +1653,7 @@ SYSCALL(P(p));
 r:	GET_TIME_BASE
 11
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 
 ##########
 # DUMMY RULES WHILE SWITCHING OVER TO NEW STYLE
@@ -1697,10 +1697,10 @@ EMIT(MIR_Load.mutate(P(p), PPC_LAddrARX, Prepare.getResult(P(p)),   \
 r:      ATTEMPT_INT(r, r)
 11
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 
 r:      ATTEMPT_LONG(r, r)
 11
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 

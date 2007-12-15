@@ -150,7 +150,7 @@ FP_MOV_OP_MOV(P(p), IA32_FDIVR, Binary.getResult(P(p)), Binary.getVal2(P(p)), co
 r:	FP_REM(r, r)
 52
 EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
+RegisterOperand res = Binary.getResult(P(p)); \
 FP_REM(P(p), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \
 EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
 
@@ -262,7 +262,7 @@ p.child1.isREGISTERNode()?60:43
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getClearVal1(P(p)))); \
 EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getClearVal2(P(p)))); \
-EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+EMIT(P(p)); // ComplexLIR2MIRExpansion will handle rest of the work.
 
 stm:   FLOAT_IFCMP(r,r)
 p.child2.isREGISTERNode()?60:43
@@ -270,7 +270,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getClearVal2(P(p)))); \
 EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getClearVal1(P(p)))); \
 IfCmp.getCond(P(p)).flipOperands(); \
-EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+EMIT(P(p)); // ComplexLIR2MIRExpansion will handle rest of the work.
 
 #####
 # DOUBLE_IFCMP
@@ -280,7 +280,7 @@ p.child1.isREGISTERNode()?60:43
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getClearVal1(P(p)))); \
 EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getClearVal2(P(p)))); \
-EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+EMIT(P(p)); // ComplexLIR2MIRExpansion will handle rest of the work.
 
 stm:   DOUBLE_IFCMP(r,r)
 p.child2.isREGISTERNode()?60:43
@@ -288,7 +288,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_FMOV, F(getFPR(0)), IfCmp.getClearVal2(P(p)))); \
 EMIT(MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), IfCmp.getClearVal1(P(p)))); \
 IfCmp.getCond(P(p)).flipOperands(); \
-EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+EMIT(P(p)); // ComplexLIR2MIRExpansion will handle rest of the work.
 
 #####
 # FLOAT_CMPL

@@ -188,8 +188,8 @@ public final class VM_TypeReference {
   public static final VM_TypeReference VM_ExceptionTable =
       (VM.BuildForOptCompiler) ? findOrCreate(org.jikesrvm.compilers.common.VM_ExceptionTable.class) : null;
 
-  public static final VM_TypeReference OPT_OptimizationPlanner =
-      (VM.BuildForAdaptiveSystem) ? findOrCreate(org.jikesrvm.compilers.opt.OPT_OptimizationPlanner.class) : null;
+  public static final VM_TypeReference OptimizationPlanner =
+      (VM.BuildForAdaptiveSystem) ? findOrCreate(org.jikesrvm.compilers.opt.OptimizationPlanner.class) : null;
 
   /**
    * Hash value based on name, used for canonical type dictionary

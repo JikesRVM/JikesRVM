@@ -79,7 +79,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * (6) Otherwise.  If the LHS depth component of the RHS's superclassIds
  *    array is the LHS class ID, the test succeeds.  Else, it fails.
  *
- * @see org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion
+ * @see org.jikesrvm.compilers.opt.DynamicTypeCheckExpansion
  * @see VM_Type
  * @see VM_Class
  * @see VM_Array

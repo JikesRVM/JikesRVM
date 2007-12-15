@@ -13,7 +13,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.Operand;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -36,9 +36,9 @@ public class OSR_LocalRegPair implements OSR_Constants {
    * The operand could be symbolic register, or constants, we need to take
    * it out later.
    */
-  public final OPT_Operand operand;
+  public final Operand operand;
 
-  /* rest part only available after updated by OPT_LinearScan.updateOSRMaps. */
+  /* rest part only available after updated by LinearScan.updateOSRMaps. */
 
   /* A reg value could be an integer constant (ICONST),
   *                      a physical register (PHYREG), or
@@ -67,7 +67,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
    * anymore. The physical register number, spilled location, or
    * constant value is represented by (valueType, value)
    */
-  public OSR_LocalRegPair(boolean kind, int num, byte type, OPT_Operand op) {
+  public OSR_LocalRegPair(boolean kind, int num, byte type, Operand op) {
     this.kind = kind;
     this.num = num;
     this.typeCode = type;

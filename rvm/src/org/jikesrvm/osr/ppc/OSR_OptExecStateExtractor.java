@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
@@ -40,13 +40,13 @@ import org.vmmagic.unboxed.WordArray;
  * It extracts the execution state of a optimized activation.
  */
 public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
-    implements VM_ArchConstants, OSR_Constants, OPT_PhysicalRegisterConstants {
+    implements VM_ArchConstants, OSR_Constants, PhysicalRegisterConstants {
 
   public OSR_ExecutionState extractState(VM_Thread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* perform machine and compiler dependent operations here
     * osrFPoff is the fp offset of
-    * VM_OptSaveVolatile.OPT_threadSwithFrom<...>
+    * VM_OptSaveVolatile.threadSwithFrom<...>
     *
     *  (stack grows downward)
     *          foo
@@ -112,7 +112,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       int bufCMID = VM_Magic.getIntAtOffset(stack, osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       VM_CompiledMethod bufCM = VM_CompiledMethods.getCompiledMethod(bufCMID);
 
-      // OPT_SaveVolatile can only be compiled by OPT compiler
+      // SaveVolatile can only be compiled by OPT compiler
       if (VM.VerifyAssertions) {
         VM._assert(bufCM instanceof VM_OptCompiledMethod);
       }

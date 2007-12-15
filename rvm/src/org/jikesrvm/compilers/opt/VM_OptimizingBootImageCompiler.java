@@ -31,10 +31,10 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
 
   // Cache objects needed to cons up compilation plans
-  private final Vector<OPT_OptimizationPlanElement[]> optimizationPlans = new Vector<OPT_OptimizationPlanElement[]>();
+  private final Vector<OptimizationPlanElement[]> optimizationPlans = new Vector<OptimizationPlanElement[]>();
   private final Vector<Boolean> optimizationPlanLocks = new Vector<Boolean>();
-  private final Vector<OPT_Options> options = new Vector<OPT_Options>();
-  private final OPT_Options masterOptions = new OPT_Options();
+  private final Vector<Options> options = new Vector<Options>();
+  private final Options masterOptions = new Options();
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
   // Otherwise, methods that match the pattern are not opt-compiled.
@@ -64,7 +64,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       // Writing a boot image is a little bit special.  We're not really
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
-      OPT_Compiler.setBootOptions(masterOptions);
+      Compiler.setBootOptions(masterOptions);
 
       // Allow further customization by the user.
       for (int i = 0, n = args.length; i < n; i++) {
@@ -78,9 +78,9 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         }
       }
       VM_EdgeCounts.boot(masterOptions.EDGE_COUNT_INPUT_FILE);
-      OPT_Compiler.init(masterOptions);
-    } catch (OPT_OptimizingCompilerException e) {
-      String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: " + e + "\n";
+      Compiler.init(masterOptions);
+    } catch (OptimizingCompilerException e) {
+      String msg = "VM_BootImageCompiler: Compiler failed during initialization: " + e + "\n";
       if (e.isFatal) {
         // An unexpected error when building the opt boot image should be fatal
         e.printStackTrace();
@@ -101,7 +101,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       return baselineCompile(method);
     } else {
       VM_CompiledMethod cm = null;
-      OPT_OptimizingCompilerException escape = new OPT_OptimizingCompilerException(false);
+      OptimizingCompilerException escape = new OptimizingCompilerException(false);
       try {
         VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
         boolean include = match(method);
@@ -109,10 +109,10 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
           throw escape;
         }
         int freeOptimizationPlan = getFreeOptimizationPlan();
-        OPT_OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
-        OPT_CompilationPlan cp =
-          new OPT_CompilationPlan(method, params, optimizationPlan, null, options.get(freeOptimizationPlan));
-        cm = OPT_Compiler.compile(cp);
+        OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
+        CompilationPlan cp =
+          new CompilationPlan(method, params, optimizationPlan, null, options.get(freeOptimizationPlan));
+        cm = Compiler.compile(cp);
         if (VM.BuildForAdaptiveSystem) {
           /* We can't accurately measure compilation time on Host JVM, so just approximate with DNA */
           int compilerId = VM_CompilerDNA.getCompilerConstant(cp.options.getOptLevel());
@@ -120,7 +120,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         }
         releaseOptimizationPlan(freeOptimizationPlan);
         return cm;
-      } catch (OPT_OptimizingCompilerException e) {
+      } catch (OptimizingCompilerException e) {
         if (e.isFatal) {
           // An unexpected error when building the opt boot image should be fatal
           VM.sysWriteln("Error compiling method: "+method);
@@ -128,8 +128,8 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
           System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
         } else {
           boolean printMsg = true;
-          if (e instanceof OPT_MagicNotImplementedException) {
-            printMsg = !((OPT_MagicNotImplementedException) e).isExpected;
+          if (e instanceof MagicNotImplementedException) {
+            printMsg = !((MagicNotImplementedException) e).isExpected;
           }
           if (e == escape) {
             printMsg = false;
@@ -171,9 +171,9 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         }
       }
       // Find failed, so create new plan
-      OPT_OptimizationPlanElement[] optimizationPlan;
-      OPT_Options cloneOptions = masterOptions.dup();
-      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(cloneOptions);
+      OptimizationPlanElement[] optimizationPlan;
+      Options cloneOptions = masterOptions.dup();
+      optimizationPlan = OptimizationPlanner.createOptimizationPlan(cloneOptions);
       optimizationPlans.addElement(optimizationPlan);
       optimizationPlanLocks.addElement(Boolean.TRUE);
       options.addElement(cloneOptions);

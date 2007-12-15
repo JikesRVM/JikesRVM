@@ -504,7 +504,7 @@ none
 
 
 
-# a NOP (used by OPT_Simplifier)
+# a NOP (used by Simplifier)
 NOP
 Empty
 none

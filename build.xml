@@ -396,9 +396,9 @@ Check to make sure all required properties are specified. This includes properti
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir"/>
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/OPT_Operator.template"/>
+          <arg value="${build.ir.dir}/Operator.template"/>
           <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_Operator.java"/>
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/Operator.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -411,9 +411,9 @@ Check to make sure all required properties are specified. This includes properti
 
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/OPT_Operators.template"/>
+          <arg value="${build.ir.dir}/Operators.template"/>
           <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_Operators.java"/>
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/Operators.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -426,9 +426,9 @@ Check to make sure all required properties are specified. This includes properti
 
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/OPT_OperatorNames.template"/>
+          <arg value="${build.ir.dir}/OperatorNames.template"/>
           <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_OperatorNames.java"/>
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OperatorNames.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -489,7 +489,7 @@ Check to make sure all required properties are specified. This includes properti
           <filter token="_ARCH_" value="@{arch}"/>
         </filterset>
       </copy>
-      <copy file="${build.burs.dir}/OPT_BURS_TreeNode.template"
+      <copy file="${build.burs.dir}/BURS_TreeNode.template"
             todir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}">
         <filterset>
           <filter token="_ARCH_" value="@{arch}"/>
@@ -497,15 +497,15 @@ Check to make sure all required properties are specified. This includes properti
       </copy>
 
       <concat
-          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/OPT_BURS_TreeNode.java">
+          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/BURS_TreeNode.java">
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
-                  files="OPT_BURS_TreeNode.template"/>
+                  files="BURS_TreeNode.template"/>
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
                   files="BURS_State.template"/>
       </concat>
 
       <concat
-          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/OPT_BURS_STATE.java">
+          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/BURS_STATE.java">
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
                   files="burg.template"/>
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
@@ -514,9 +514,9 @@ Check to make sure all required properties are specified. This includes properti
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"/>
       <GenerateFromTemplate>
         <args>
-          <arg value="${basedir}/rvm/src-generated/opt-scheduler/OPT_OperatorClass.template"/>
+          <arg value="${basedir}/rvm/src-generated/opt-scheduler/OperatorClass.template"/>
           <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/OPT_OperatorClass.java"/>
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/OperatorClass.java"/>
           <arg value="ARCHITECTURE_IR_DIR=@{arch}"/>
           <arg value="ADDRESS_MODE=@{addressSize}"/>
         </args>
@@ -639,11 +639,11 @@ Check to make sure all required properties are specified. This includes properti
     </GenerateFromTemplate>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/OPT_Options.template"/>
-        <arg value="${generated.java}/org/jikesrvm/compilers/opt/OPT_Options.java"/>
+        <arg value="${options.dir}/Options.template"/>
+        <arg value="${generated.java}/org/jikesrvm/compilers/opt/Options.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.opt.dat ${options.dir}/SharedBooleanOptions.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.opt.dat ${options.dir}/SharedValueOptions.dat"/>
-        <arg value="MYTYPE=OPT_Options"/>
+        <arg value="MYTYPE=Options"/>
       </args>
     </GenerateFromTemplate>
     <GenerateFromTemplate>
@@ -673,15 +673,15 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.ia32-assembler-opt.dir}"/>
     <GenerateFromTemplate>
       <args>
-        <arg value="${ia32-assembler-opt.dir}/OPT_InstructionFormatTables.template"/>
-        <arg value="${build.ia32-assembler-opt.dir}/OPT_InstructionFormatTables.java"/>
+        <arg value="${ia32-assembler-opt.dir}/InstructionFormatTables.template"/>
+        <arg value="${build.ia32-assembler-opt.dir}/InstructionFormatTables.java"/>
         <arg value="FORMAT_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/InstructionFormatList.dat"/>
       </args>
     </GenerateFromTemplate>
     <GenerateFromTemplate>
       <args>
-        <arg value="${ia32-assembler-opt.dir}/OPT_OperatorFormatTables.template"/>
-        <arg value="${build.ia32-assembler-opt.dir}/OPT_OperatorFormatTables.java"/>
+        <arg value="${ia32-assembler-opt.dir}/OperatorFormatTables.template"/>
+        <arg value="${build.ia32-assembler-opt.dir}/OperatorFormatTables.java"/>
         <arg value="OPERATOR_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/OperatorList.dat"/>
       </args>
     </GenerateFromTemplate>

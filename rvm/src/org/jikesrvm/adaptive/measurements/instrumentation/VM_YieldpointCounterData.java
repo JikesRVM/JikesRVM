@@ -14,7 +14,7 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.VM_Reportable;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 
 /**
  * VM_YieldpointCounterData.java
@@ -36,7 +36,7 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData im
    *
    * @param manager the manager that will provide the counter space
    **/
-  VM_YieldpointCounterData(OPT_InstrumentedEventCounterManager manager) {
+  VM_YieldpointCounterData(InstrumentedEventCounterManager manager) {
     // Call superclass constructor
     super(manager, "Yieldpoint Counter");
 

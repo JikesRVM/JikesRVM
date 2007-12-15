@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.ia32.VM_RegisterConstants.Register;
+import org.jikesrvm.ia32.VM_RegisterConstants.MachineRegister;
 
 
 class VM_Lister {
@@ -34,55 +34,55 @@ class VM_Lister {
 
   }
 
-  final void R (int i, String op, Register R0) {
+  final void R (int i, String op, MachineRegister R0) {
 
   }
 
-  final void RD (int i, String op, Register R0, Offset d) {
+  final void RD (int i, String op, MachineRegister R0, Offset d) {
 
   }
 
-  final void RI (int i, String op, Register R0, int n) {
+  final void RI (int i, String op, MachineRegister R0, int n) {
 
   }
 
-  final void RDI (int i, String op, Register R0, Offset d, int n) {
+  final void RDI (int i, String op, MachineRegister R0, Offset d, int n) {
 
   }
 
-  final void RNI (int i, String op, Register R0, int n) {
+  final void RNI (int i, String op, MachineRegister R0, int n) {
 
   }
 
-  final void RR (int i, String op, Register R0, Register R1) {
+  final void RR (int i, String op, MachineRegister R0, MachineRegister R1) {
 
   }
 
-  final void RDR (int i, String op, Register R0, Offset d, Register R1) {
+  final void RDR (int i, String op, MachineRegister R0, Offset d, MachineRegister R1) {
 
   }
 
-  final void RDRI (int i, String op, Register R0, Offset d, Register R1, int imm) {
+  final void RDRI (int i, String op, MachineRegister R0, Offset d, MachineRegister R1, int imm) {
 
   }
 
-  public final void RDRR(int i, String op, Register R0, Offset d, Register R1, Register R2) {
+  public final void RDRR(int i, String op, MachineRegister R0, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RRD (int i, String op, Register R0, Register R1, Offset d) {
+  final void RRD (int i, String op, MachineRegister R0, MachineRegister R1, Offset d) {
 
   }
 
-  final void RNR (int i, String op, Register R0, Register R1) {
+  final void RNR (int i, String op, MachineRegister R0, MachineRegister R1) {
 
   }
 
-  final void RN (int i, String op, Register R0) {
+  final void RN (int i, String op, MachineRegister R0) {
 
   }
 
-  final void RRN (int i, String op, Register R0, Register R1) {
+  final void RRN (int i, String op, MachineRegister R0, MachineRegister R1) {
 
   }
 
@@ -90,19 +90,19 @@ class VM_Lister {
 
   }
 
-  final void RFD (int i, String op, Register X, short s, Offset d) {
+  final void RFD (int i, String op, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RXD (int i, String op, Register R0, Register X, short s, Offset d) {
+  final void RXD (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RXDI (int i, String op, Register R0, Register X, short s, Offset d, int n) {
+  final void RXDI (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, int n) {
 
   }
 
-  final void RFDI (int i, String op, Register X, short s, Offset d, int n) {
+  final void RFDI (int i, String op, MachineRegister X, short s, Offset d, int n) {
 
   }
 
@@ -110,67 +110,67 @@ class VM_Lister {
 
   }
 
-  final void RRR (int i, String op, Register R0, Register R1, Register R2) {
+  final void RRR (int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RNRI (int i, String op, Register R0, Register R1, int imm) {
+  final void RNRI (int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
 
   }
 
-  public final void RNRR(int i, String op, Register R0, Register R1, Register R2) {
+  public final void RNRR(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RRI (int i, String op, Register R0, Register R1, int imm) {
+  final void RRI (int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
 
   }
 
-  final void RRXD (int i, String op, Register R0, Register R1, Register X, short s, Offset d) {
+  final void RRXD (int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RRFD (int i, String op, Register R0, Register X, short s, Offset d) {
+  final void RRFD (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RRA (int i, String op, Register R0, Offset d) {
+  final void RRA (int i, String op, MachineRegister R0, Offset d) {
 
   }
 
-  final void RXDR (int i, String op, Register R0, Register X, short s, Offset d, Register R1) {
+  final void RXDR (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1) {
 
   }
 
-  final void RXDRI (int i, String op, Register R0, Register X, short s, Offset d, Register R1, int imm) {
+  final void RXDRI (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, int imm) {
 
   }
 
-  final void RXDRR (int i, String op, Register R0, Register X, short s, Offset d, Register R1, Register R2) {
+  final void RXDRR (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RFDR (int i, String op, Register X, short s, Offset d, Register R0) {
+  final void RFDR (int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0) {
 
   }
 
-  final void RFDRI (int i, String op, Register X, short s, Offset d, Register R0, int imm) {
+  final void RFDRI (int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0, int imm) {
 
   }
 
-  final void RFDRR (int i, String op, Register X, short s, Offset d, Register R1, Register R2) {
+  final void RFDRR (int i, String op, MachineRegister X, short s, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RAR (int i, String op, Offset d, Register R0) {
+  final void RAR (int i, String op, Offset d, MachineRegister R0) {
 
   }
 
-  final void RARI (int i, String op, Offset d, Register R0, int imm) {
+  final void RARI (int i, String op, Offset d, MachineRegister R0, int imm) {
 
   }
 
-  final void RARR (int i, String op, Offset d, Register R1, Register R2) {
+  final void RARR (int i, String op, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 

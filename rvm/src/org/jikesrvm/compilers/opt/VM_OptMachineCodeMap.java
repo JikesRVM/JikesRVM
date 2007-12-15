@@ -23,12 +23,12 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
-import org.jikesrvm.compilers.opt.ir.OPT_GCIRMap;
-import org.jikesrvm.compilers.opt.ir.OPT_GCIRMapElement;
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
+import org.jikesrvm.compilers.opt.ir.CallSiteTree;
+import org.jikesrvm.compilers.opt.ir.GCIRMap;
+import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.MethodOperand;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.Offset;
  *         2) methods called at GC time (no allocation allowed!)
  */
 @Uninterruptible
-public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
+public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
 
   /**
    * Private constructor, object should be created via create
@@ -90,7 +90,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
    * @param machineCodeSize the number of machine code instructions generated.
    */
   @Interruptible
-  static VM_OptMachineCodeMap create(OPT_IR ir, int machineCodeSize) {
+  static VM_OptMachineCodeMap create(IR ir, int machineCodeSize) {
     if (DUMP_MAPS) {
       VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
     }
@@ -107,7 +107,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
     if (DUMP_MAPS) {
       VM.sysWrite("Final Machine code information:\n");
       map.dumpMCInformation();
-      for (OPT_Instruction i = ir.firstInstructionInCodeOrder(); i != null; i = i.nextInstructionInCodeOrder()) {
+      for (Instruction i = ir.firstInstructionInCodeOrder(); i != null; i = i.nextInstructionInCodeOrder()) {
         VM.sysWriteln(i.getmcOffset() + "\t" + i);
       }
     }
@@ -312,18 +312,18 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
    *  @param irMap  the irmap to translate from
    */
   @Interruptible
-  private static VM_OptMachineCodeMap generateMCInformation(OPT_GCIRMap irMap) {
-    OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
+  private static VM_OptMachineCodeMap generateMCInformation(GCIRMap irMap) {
+    CallSiteTree inliningMap = new CallSiteTree();
     int numEntries = 0;
 
     // (1) Count how many entries we are going to have and
     //     construct and encode the inlining information for those entries.
-    for (OPT_GCIRMapElement irMapElem : irMap) {
+    for (GCIRMapElement irMapElem : irMap) {
       numEntries++;
-      OPT_Instruction instr = irMapElem.getInstruction();
+      Instruction instr = irMapElem.getInstruction();
       if (instr.position == null && instr.bcIndex != INSTRUMENTATION_BCI) {
         if (MIR_Call.conforms(instr) && MIR_Call.hasMethod(instr)) {
-          throw new OPT_OptimizingCompilerException("position required for all call instructions " + instr);
+          throw new OptimizingCompilerException("position required for all call instructions " + instr);
         }
       } else {
         inliningMap.addLocation(instr.position);
@@ -338,17 +338,17 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
     VM_OptGCMap gcMapBuilder = new VM_OptGCMap();
     int[] tmpMC = new int[numEntries * SIZEOF_HUGE_ENTRY];
     int lastMCInfoEntry = 0;
-    for (OPT_GCIRMapElement irMapElem : irMap) {
-      OPT_Instruction instr = irMapElem.getInstruction();
+    for (GCIRMapElement irMapElem : irMap) {
+      Instruction instr = irMapElem.getInstruction();
       if (DUMP_MAPS) VM.sysWrite("IR Map for " + instr + "\n\t" + irMapElem);
 
       // retrieve the machine code offset (in bytes) from the instruction,
       int mco = instr.getmcOffset();
       if (mco < 0) {
         VM.sysWrite("Negative machine code MCOffset found:" + mco);
-        OPT_Instruction i = irMapElem.getInstruction();
+        Instruction i = irMapElem.getInstruction();
         VM.sysWrite(i.bcIndex + ", " + i + ", " + i.getmcOffset() + "\n");
-        throw new OPT_OptimizingCompilerException("Negative machine code MCOffset found");
+        throw new OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI
       int gci = gcMapBuilder.generateGCMapEntry(irMapElem);
@@ -356,7 +356,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
       int bci = instr.getBytecodeIndex();
       if (bci < 0) {
         if (bci == UNKNOWN_BCI && MIR_Call.conforms(instr) && MIR_Call.hasMethod(instr)) {
-          throw new OPT_OptimizingCompilerException("valid bytecode index required for all calls " + instr);
+          throw new OptimizingCompilerException("valid bytecode index required for all calls " + instr);
         }
         bci = -1;
       }
@@ -368,7 +368,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
       // set the call info
       int cm = 0;
       if (MIR_Call.conforms(instr)) {
-        OPT_MethodOperand mo = MIR_Call.getMethod(instr);
+        MethodOperand mo = MIR_Call.getMethod(instr);
         if (mo != null && mo.isGuardedInlineOffBranch()) {
           cm = IS_GUARDED_CALL;
         } else {

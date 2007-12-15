@@ -14,8 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
-import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTreeNode;
+import org.jikesrvm.compilers.opt.ir.CallSiteTree;
+import org.jikesrvm.compilers.opt.ir.CallSiteTreeNode;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -50,14 +50,14 @@ public abstract class VM_OptEncodedCallSiteTree {
   }
 
   @Interruptible
-  public static int[] getEncoding(OPT_CallSiteTree tree) {
+  public static int[] getEncoding(CallSiteTree tree) {
     int size = 0;
     if (tree.isEmpty()) {
       return null;
     } else {
-      Enumeration<OPT_TreeNode> e = tree.elements();
+      Enumeration<TreeNode> e = tree.elements();
       while (e.hasMoreElements()) {
-        OPT_TreeNode x = e.nextElement();
+        TreeNode x = e.nextElement();
         if (x.getLeftChild() == null) {
           size += 2;
         } else {
@@ -65,34 +65,34 @@ public abstract class VM_OptEncodedCallSiteTree {
         }
       }
       int[] encoding = new int[size];
-      getEncoding((OPT_CallSiteTreeNode) tree.getRoot(), 0, -1, encoding);
+      getEncoding((CallSiteTreeNode) tree.getRoot(), 0, -1, encoding);
       return encoding;
     }
   }
 
   @Interruptible
-  static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, int[] encoding) {
+  static int getEncoding(CallSiteTreeNode current, int offset, int parent, int[] encoding) {
     int i = offset;
     if (parent != -1) {
       encoding[i++] = parent - offset;
     }
-    OPT_CallSiteTreeNode x = current;
+    CallSiteTreeNode x = current;
     int j = i;
     while (x != null) {
       x.encodedOffset = j;
       int byteCodeIndex = x.callSite.bcIndex;
       encoding[j++] = (byteCodeIndex >= 0) ? byteCodeIndex : -1;
       encoding[j++] = x.callSite.getMethod().getId();
-      x = (OPT_CallSiteTreeNode) x.getRightSibling();
+      x = (CallSiteTreeNode) x.getRightSibling();
     }
     x = current;
     int thisParent = i;
     while (x != null) {
       if (x.getLeftChild() != null) {
-        j = getEncoding((OPT_CallSiteTreeNode) x.getLeftChild(), j, thisParent, encoding);
+        j = getEncoding((CallSiteTreeNode) x.getLeftChild(), j, thisParent, encoding);
       }
       thisParent += 2;
-      x = (OPT_CallSiteTreeNode) x.getRightSibling();
+      x = (CallSiteTreeNode) x.getRightSibling();
     }
     return j;
   }

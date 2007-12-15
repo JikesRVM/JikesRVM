@@ -19,7 +19,7 @@ number of def/uses or uses are not supported (and will generate java code
 for the instruction format that doesn't compile).  Fully general support would
 be a pain in the butt and since it currently isn't required, we don't do it.
 
-##NEW_FILE_STARTS_HERE OPT_InstructionFormat.java##
+##NEW_FILE_STARTS_HERE InstructionFormat.java##
 
 /*
  * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
@@ -29,17 +29,17 @@ be a pain in the butt and since it currently isn't required, we don't do it.
 
 package INSTRFMTPKG;
 
-import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.VM;
 
 /**
  * Abstract parent class of all InstructionFormat classes.
  *
- * The header comment for {@link OPT_Instruction} contains
+ * The header comment for {@link Instruction} contains
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  */
-public abstract class OPT_InstructionFormat {
+public abstract class InstructionFormat {
 
   /**
    * Make all operand arrays created via the InstructionFormat constructors
@@ -70,13 +70,13 @@ $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
 $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
   /** Shared traits for operators of the OPTYPE.NAME InstructionFormat */
     $$$$ IF "VARDORU" == "D"
-  public static final int OPTYPE.NAME_traits = OPT_Operator.varDefs;
+  public static final int OPTYPE.NAME_traits = Operator.varDefs;
     $$$$ ELSE
       $$$$ IF "VARDORU" == "U"
-  public static final int OPTYPE.NAME_traits = OPT_Operator.varUses;
+  public static final int OPTYPE.NAME_traits = Operator.varUses;
       $$$$ ELSE
         $$$$ IF "VARDORU" == ""
-  public static final int OPTYPE.NAME_traits = OPT_Operator.none;
+  public static final int OPTYPE.NAME_traits = Operator.none;
         $$$$ ELSE
   Improperly defined instruction format OPTYPE.NAME. Has bad "vardoru" field
         $$$$ END IF
@@ -97,9 +97,9 @@ $$$$ END LOOP
    * @param name the name of the instruction format that the
    *             instruction was expected to conform to.
    */
-  protected static void fail(OPT_Instruction i, String name) {
+  protected static void fail(Instruction i, String name) {
       VM.sysWrite("Instruction "+i+" improperly accessed as "+name+"\n");
-      throw new OPT_OptimizingCompilerException();
+      throw new OptimizingCompilerException();
     }
 
   /**
@@ -112,9 +112,9 @@ $$$$ END LOOP
    * @param name the name of the instruction format that the
    *             operator was expected to conform to.
    */
-  protected static void fail(OPT_Operator op, String name) {
+  protected static void fail(Operator op, String name) {
       VM.sysWrite("Improper attempt to create/mutate as "+name+"\n");
-      throw new OPT_OptimizingCompilerException();
+      throw new OptimizingCompilerException();
     }
 }
 
@@ -135,22 +135,22 @@ package INSTRFMTPKG;
 
 import org.jikesrvm.VM_Configuration;
 $$$$ IF ARCHITECTURE == "ia32"
-import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_IA32ConditionOperand; //NOPMD
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.IA32ConditionOperand; //NOPMD
 $$$$ ELSE
-import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_PowerPCConditionOperand;
-import org.jikesrvm.compilers.opt.ir.ARCHPKG.OPT_PowerPCTrapOperand;
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ARCHPKG.PowerPCTrapOperand;
 $$$$ END IF
 
 
 /**
  * The OPTYPE.NAME InstructionFormat class.
  *
- * The header comment for {@link OPT_Instruction} contains
+ * The header comment for {@link Instruction} contains
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  */
 @SuppressWarnings("unused")  // Machine generated code is never 100% clean
-public final class OPTYPE.NAME extends OPT_InstructionFormat {
+public final class OPTYPE.NAME extends InstructionFormat {
   /**
    * InstructionFormat identification method for OPTYPE.NAME.
    * @param i an instruction
@@ -158,7 +158,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    *         instruction is OPTYPE.NAME or <code>false</code>
    *         if it is not.
    */
-  public static boolean conforms(OPT_Instruction i) {
+  public static boolean conforms(Instruction i) {
     return conforms(i.operator);
   }
   /**
@@ -168,7 +168,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    *         operator is OPTYPE.NAME or <code>false</code>
    *         if it is not.
    */
-  public static boolean conforms(OPT_Operator o) {
+  public static boolean conforms(Operator o) {
     return o.format == OPTYPE.NAME_format;
   }
 
@@ -181,7 +181,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param i the instruction to fetch the operand from
    * @return the operand called NAME
    */
-  public static TYPE getNAME(OPT_Instruction i) {
+  public static TYPE getNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "VARDORU" IN "" "U"
     return (TYPE) i.getOperand(PARAM.INDEX);
@@ -198,7 +198,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param i the instruction to fetch the operand from
    * @return the operand called NAME
    */
-  public static TYPE getClearNAME(OPT_Instruction i) {
+  public static TYPE getClearNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "VARDORU" IN "" "U"
     return (TYPE) i.getClearOperand(PARAM.INDEX);
@@ -216,7 +216,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param i the instruction in which to store the operand
    * @param NAME the operand to store
    */
-  public static void setNAME(OPT_Instruction i, TYPE NAME) {
+  public static void setNAME(Instruction i, TYPE NAME) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "VARDORU" IN "" "U"
     i.putOperand(PARAM.INDEX, NAME);
@@ -233,7 +233,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @return the index of the operand called NAME
    *         in the argument instruction
    */
-  public static int indexOfNAME(OPT_Instruction i) {
+  public static int indexOfNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "VARDORU" IN "" "U"
     return PARAM.INDEX;
@@ -251,7 +251,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    *         operand named NAME or <code>false</code>
    *         if it does not.
    */
-  public static boolean hasNAME(OPT_Instruction i) {
+  public static boolean hasNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "VARDORU" IN "" "U"
     return i.getOperand(PARAM.INDEX) != null;
@@ -275,7 +275,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param k the index of the operand
    * @return the k'th operand called NAME
    */
-  public static TYPE getNAME(OPT_Instruction i, int k) {
+  public static TYPE getNAME(Instruction i, int k) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "NUMVAR" eq 1
     return (TYPE) i.getOperand(NUMFIXEDOPS+k);
@@ -291,7 +291,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param k the index of the operand
    * @return the k'th operand called NAME
    */
-  public static TYPE getClearNAME(OPT_Instruction i, int k) {
+  public static TYPE getClearNAME(Instruction i, int k) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "NUMVAR" eq 1
     return (TYPE) i.getClearOperand(NUMFIXEDOPS+k);
@@ -308,7 +308,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param k the index of the operand
    * @param o the operand to store
    */
-  public static void setNAME(OPT_Instruction i, int k, TYPE o) {
+  public static void setNAME(Instruction i, int k, TYPE o) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "NUMVAR" eq 1
     i.putOperand(NUMFIXEDOPS+k, o);
@@ -324,7 +324,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @return the index of the k'th operand called NAME
    *         in the argument instruction
    */
-  public static int indexOfNAME(OPT_Instruction i, int k) {
+  public static int indexOfNAME(Instruction i, int k) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "NUMVAR" eq 1
     return NUMFIXEDOPS+k;
@@ -341,7 +341,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    *         k'th operand named NAME or <code>false</code>
    *         if it does not.
    */
-  public static boolean hasNAME(OPT_Instruction i, int k) {
+  public static boolean hasNAME(Instruction i, int k) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "NUMVAR" eq 1
     return i.getOperand(NUMFIXEDOPS+k) != null;
@@ -359,7 +359,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @return the index of the first operand called PLURAL
    *         in the argument instruction
    */
-  public static int indexOfPLURAL(OPT_Instruction i)
+  public static int indexOfPLURAL(Instruction i)
     $$$$ ELSE
   /**
    * Return the index of the first operand called NAME
@@ -368,7 +368,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @return the index of the first operand called NAME
    *         in the argument instruction
    */
-  public static int indexOfNAMEs(OPT_Instruction i)
+  public static int indexOfNAMEs(Instruction i)
     $$$$ END IF
   {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
@@ -383,7 +383,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    *         PLURAL operands or <code>false</code>
    *         if it does not.
    */
-  public static boolean hasPLURAL(OPT_Instruction i)
+  public static boolean hasPLURAL(Instruction i)
     $$$$ ELSE
   /**
    * Does the argument instruction have any operands
@@ -392,7 +392,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @return <code>true</code> if the instruction has operands
    *         named NAME or <code>false</code> if it does not.
    */
-  public static boolean hasNAMEs(OPT_Instruction i)
+  public static boolean hasNAMEs(Instruction i)
     $$$$ END IF
   {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
@@ -407,7 +407,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param i the instruction to access
    * @return the number of PLURAL operands the instruction has
    */
-  public static int getNumberOfPLURAL(OPT_Instruction i)
+  public static int getNumberOfPLURAL(Instruction i)
     $$$$ ELSE
   /**
    * How many variable-length operands called NAMEs
@@ -415,7 +415,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param i the instruction to access
    * @return the number of operands called NAMEs the instruction has
    */
-  public static int getNumberOfNAMEs(OPT_Instruction i)
+  public static int getNumberOfNAMEs(Instruction i)
     $$$$ END IF
   {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
@@ -434,7 +434,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param numVarOps the new number of variable operands called PLURAL
    *        that may be stored in the instruction
    */
-  public static void resizeNumberOfPLURAL(OPT_Instruction i, int numVarOps)
+  public static void resizeNumberOfPLURAL(Instruction i, int numVarOps)
     $$$$ ELSE
   /**
    * Change the number of NAMEs that may be stored in
@@ -443,7 +443,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * @param numVarOps the new number of variable operands called NAMEs
    *        that may be stored in the instruction
    */
-  public static void resizeNumberOfNAMEs(OPT_Instruction i, int numVarOps)
+  public static void resizeNumberOfNAMEs(Instruction i, int numVarOps)
     $$$$ END IF
   {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
@@ -492,7 +492,7 @@ $$$$ LET DOLLARS "$$$$"
   $$$$ END IF
    * @return the newly created OPTYPE.NAME instruction
    */
-  public static OPT_Instruction create(OPT_Operator o
+  public static Instruction create(Operator o
   $$$$ LOOP PARAM OPTYPE.SIG
   $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
@@ -508,13 +508,13 @@ $$$$ LET DOLLARS "$$$$"
     if (VM_Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
   $$$$ IF "VARDORU" != ""
     $$$$ IF "NUMVAR" eq 1
-    OPT_Instruction i = new OPT_Instruction(o, Math.max(NUMFIXEDOPS+numVarOps, MIN_OPERAND_ARRAY_LENGTH));
+    Instruction i = new Instruction(o, Math.max(NUMFIXEDOPS+numVarOps, MIN_OPERAND_ARRAY_LENGTH));
     $$$$ ELSE
-    OPT_Instruction i = new OPT_Instruction(o, Math.max(NUMFIXEDOPS+numVarOps*NUMVAR, MIN_OPERAND_ARRAY_LENGTH));
+    Instruction i = new Instruction(o, Math.max(NUMFIXEDOPS+numVarOps*NUMVAR, MIN_OPERAND_ARRAY_LENGTH));
     $$$$ END IF
   $$$$ ELSE
     $$$$ LET NUMOPERANDS @IF(NUMFIXEDOPS > MINOPERANDS, NUMFIXEDOPS, MINOPERANDS)
-    OPT_Instruction i = new OPT_Instruction(o, NUMOPERANDS);
+    Instruction i = new Instruction(o, NUMOPERANDS);
     $$$$ END LET
   $$$$ END IF
   $$$$ LOOP PARAM OPTYPE.SIG
@@ -548,7 +548,7 @@ $$$$ LET DOLLARS "$$$$"
   $$$$ END LOOP
    * @return the newly created OPTYPE.NAME instruction
    */
-  public static OPT_Instruction createNVARARGS(OPT_Operator o
+  public static Instruction createNVARARGS(Operator o
     $$$$ LOOP PARAM OPTYPE.SIG
     $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
@@ -568,7 +568,7 @@ $$$$ LET DOLLARS "$$$$"
     if (VM_Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
     $$$$ LET NUMOPRNDS_SPEC NUMFIXEDOPS+NVARARGS
     $$$$ LET NUMOPERANDS @IF(NUMOPRNDS_SPEC > MINOPERANDS, NUMOPRNDS_SPEC, MINOPERANDS)
-    OPT_Instruction i = new OPT_Instruction(o, NUMOPERANDS);
+    Instruction i = new Instruction(o, NUMOPERANDS);
     $$$$ END LET
     $$$$ END LET
     $$$$ LOOP PARAM OPTYPE.SIG
@@ -611,7 +611,7 @@ $$$$ LET DOLLARS "$$$$"
   $$$$ END IF
    * @return the mutated instruction
    */
-  public static OPT_Instruction mutate(OPT_Instruction i, OPT_Operator o
+  public static Instruction mutate(Instruction i, Operator o
   $$$$ LOOP PARAM OPTYPE.SIG
   $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
@@ -674,7 +674,7 @@ $$$$ LET DOLLARS "$$$$"
   $$$$ END LOOP
    * @return the mutated instruction
    */
-  public static OPT_Instruction mutateNVARARGS(OPT_Instruction i, OPT_Operator o
+  public static Instruction mutateNVARARGS(Instruction i, Operator o
     $$$$ LOOP PARAM OPTYPE.SIG
     $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
@@ -752,7 +752,7 @@ import org.jikesrvm.VM_Configuration;
 /**
  * InstructionFormats that have a CNAME (which is CTYPE)
  */
-public final class CNAMECarrier extends OPT_InstructionFormat {
+public final class CNAMECarrier extends InstructionFormat {
   private static final int[] _index = {
            -1    // Unassigned
   $$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat ARCH_IF_LIST
@@ -782,7 +782,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    *         format has an operand called CNAME and
    *         <code>false</code> if it does not.
    */
-  public static boolean conforms(OPT_Instruction i) {
+  public static boolean conforms(Instruction i) {
     return conforms(i.operator);
   }
   /**
@@ -793,7 +793,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    *         format has an operand called CNAME and
    *         <code>false</code> if it does not.
    */
-  public static boolean conforms(OPT_Operator o) {
+  public static boolean conforms(Operator o) {
     return _index[o.format] != -1;
   }
 
@@ -804,7 +804,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * @param i the instruction to fetch the operand from
    * @return the operand called CNAME
    */
-  public static CTYPE getCNAME(OPT_Instruction i) {
+  public static CTYPE getCNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
     int index = _index[i.operator.format];
     return (CTYPE) i.getOperand(index);
@@ -816,7 +816,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * @param i the instruction to fetch the operand from
    * @return the operand called CNAME
    */
-  public static CTYPE getClearCNAME(OPT_Instruction i) {
+  public static CTYPE getClearCNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
     int index = _index[i.operator.format];
     return (CTYPE) i.getClearOperand(index);
@@ -829,7 +829,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * @param i the instruction in which to store the operand
    * @param op the operand to store
    */
-  public static void setCNAME(OPT_Instruction i, CTYPE op) {
+  public static void setCNAME(Instruction i, CTYPE op) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
     int index = _index[i.operator.format];
     i.putOperand(index, op);
@@ -841,7 +841,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * @return the index of the operand called CNAME
    *         in the argument instruction
    */
-  public static int indexOfCNAME(OPT_Instruction i) {
+  public static int indexOfCNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
     return _index[i.operator.format];
   }
@@ -853,7 +853,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    *         operand named CNAME or <code>false</code>
    *         if it does not.
    */
-  public static boolean hasCNAME(OPT_Instruction i) {
+  public static boolean hasCNAME(Instruction i) {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
     int index = _index[i.operator.format];
     return i.getOperand(index) != null;

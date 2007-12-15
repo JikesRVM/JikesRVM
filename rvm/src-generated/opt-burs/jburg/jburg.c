@@ -136,7 +136,7 @@ main(int argc, char *argv[])
         oneterminal = 1;
     {
         FILE *saveoutfp = outfp;
-        const char *outfn = "OPT_BURS_Definitions.java";
+        const char *outfn = "BURS_Definitions.java";
         outfp = fopen(outfn,"w");
         if (outfp == NULL) {
             yyerror("%s: can't write `%s/%s'\n", argv[0], cwd(), outfn);
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
     emitterms(terms);
     {
         FILE *saveoutfp = outfp;
-        outfp = fopen("OPT_BURS_Debug.java","w");
+        outfp = fopen("BURS_Debug.java","w");
         emitstring(rules);
         fclose(outfp);
         outfp = saveoutfp;
@@ -464,7 +464,7 @@ emitcase(Term p)
     Rule r;
 
     if (p->arity == -1) return;
-    print("private void label_%S(OPT_BURS_TreeNode p) {\n", p);
+    print("private void label_%S(BURS_TreeNode p) {\n", p);
     print("%1p.word0 = 0;\n");
     print("%1p.initCost();\n");
 
@@ -472,13 +472,13 @@ emitcase(Term p)
     case 0:
         break;
     case 1:
-        print("%1OPT_BURS_TreeNode lchild;\n");
+        print("%1BURS_TreeNode lchild;\n");
         print("%1lchild = p.child1;\n");
         print("%1label(lchild);\n");
         print("%1int c;\n");
         break;
     case 2:
-        print("%1OPT_BURS_TreeNode lchild, rchild;\n");
+        print("%1BURS_TreeNode lchild, rchild;\n");
         print("%1lchild = p.child1;\n");
         print("%1rchild = p.child2;\n");
         print("%1label(lchild);\n");
@@ -555,13 +555,13 @@ emitclosure(Nonterm nts_)
     /*
       for (p = nts_; p; p = p->link)
       if (p->chain)
-      print("static void closure_%S (OPT_BURS_TreeNode, int);\n", p);
+      print("static void closure_%S (BURS_TreeNode, int);\n", p);
       print("\n");
     */
     for (p = nts_; p; p = p->link)
         if (p->chain) {
             Rule r;
-            print("static void closure_%S(OPT_BURS_TreeNode p, int c) {\n",p);
+            print("static void closure_%S(BURS_TreeNode p, int c) {\n",p);
             /*print("%1%PTreeNode p = STATE(a);\n"); */
             for (r = p->chain; r; r = r->chain)
                 emitrecord("\t", r, "c", r->cost);
@@ -591,7 +591,7 @@ emitdefs(Nonterm nts_)
     Nonterm p;
 
     print("package org.jikesrvm.compilers.opt.%s; \n", arch);
-    print("interface OPT_BURS_Definitions  {\n");
+    print("interface BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
         print("%1byte %S_NT  \t= %d;\n", p, p->number);
     print("\n");
@@ -612,12 +612,12 @@ emitheader(void)
     /* obsolete, now part of burg.template
        print("// program generated file, do not edit\n\n");
        print("import java.io.*;\n");
-       print("\npublic class OPT_BURS_STATE implements OPT_Operators, OPT_BURS_Definitions, VM_BaselineConstants {\n\n");
+       print("\npublic class BURS_STATE implements Operators, BURS_Definitions, VM_BaselineConstants {\n\n");
        print("#include \"burg.template\"\n");
     */
     /*
       print("static void fatal(String a, String b, int c) {\n");
-      print("%1throw new OPT_OptimizingCompilerException(\"BURS ERROR in '\"+a+\"':\"+b+\" \"+c);\n");
+      print("%1throw new OptimizingCompilerException(\"BURS ERROR in '\"+a+\"':\"+b+\" \"+c);\n");
       print("}\n\n");
     */
 }
@@ -691,8 +691,8 @@ emitkids(Rule rules_, int nrules_)
         r->kids = rc[j];
         rc[j] = r;
     }
-    print("static OPT_BURS_TreeNode kids(OPT_BURS_TreeNode p, int eruleno, int kidnumber)  { \n");
-    print("%1if (OPT_BURS.DEBUG) {\n");
+    print("static BURS_TreeNode kids(BURS_TreeNode p, int eruleno, int kidnumber)  { \n");
+    print("%1if (BURS.DEBUG) {\n");
     /* not needed as JAVA has null exception
        print("%1if (p==null)\n%2fatal(\"kids\",\"Null tree\", 0);\n");
        print("%1if (kids==null)\n%2fatal(\"kids\", \"Null kids\", 0);\n");
@@ -706,7 +706,7 @@ emitkids(Rule rules_, int nrules_)
         print("%s%2break;\n", str[i]);
     }
     print("%1}\n");
-    print("%1throw new OPT_OptimizingCompilerException(\"BURS\",\"Bad rule number \",Integer.toString(eruleno));\n");
+    print("%1throw new OptimizingCompilerException(\"BURS\",\"Bad rule number \",Integer.toString(eruleno));\n");
     print("%} else return null;\n");
     print("%}\n\n");
 
@@ -728,7 +728,7 @@ emitkids(Rule rules_, int nrules_)
         r->kids = rc[j];
         rc[j] = r;
     }
-    print("static void mark_kids(OPT_BURS_TreeNode p, int eruleno)\n");
+    print("static void mark_kids(BURS_TreeNode p, int eruleno)\n");
     print("%1 {\n");
     if (!oneterminal)
         print("%1byte[] ntsrule = nts[eruleno];\n");
@@ -763,7 +763,7 @@ emitlabel(Term terms_)
     }
 
     /* Emit master case statement */
-    print("public void label(OPT_BURS_TreeNode p) {\n");
+    print("public void label(BURS_TreeNode p) {\n");
     print("%1p.initCost();\n");
     print("%1switch (p.getOpcode()) {\n");
     for (p = terms_; p; p = p->link) {
@@ -772,7 +772,7 @@ emitlabel(Term terms_)
         }
     }
     print("%1default:\n");
-                 print("%2throw new OPT_OptimizingCompilerException(\"BURS\",\"terminal not in grammar:\",OPT_OperatorNames.operatorName[p.getOpcode()]);");
+                 print("%2throw new OptimizingCompilerException(\"BURS\",\"terminal not in grammar:\",OperatorNames.operatorName[p.getOpcode()]);");
                  print("%1}\n}\n\n");
 }
 
@@ -838,7 +838,7 @@ emitrecalc(const char *pre, Term root, Term kid)
         &&   kid->kind == TERMINAL &&  strcmp(kid->name,  "VREGP"   ) == 0) {
         Nonterm p;
         print("%sif (mayrecalc(a)) {\n", pre);
-        print("%s%1OPT_BURS_State q = a->syms[RX]->u.t.cse->x.state;\n", pre);
+        print("%s%1BURS_State q = a->syms[RX]->u.t.cse->x.state;\n", pre);
         for (p = nts; p; p = p->link) {
             print("%s%1if (q->cost_%S == 0) {\n", pre, p);
             print("%s%2p.cost_%S = 0;\n", pre, p);
@@ -905,7 +905,7 @@ emitrule(Nonterm nts_)
 
 
 #if 0
-    print("static short rule(OPT_BURS_TreeNode state, byte goalnt) {\n");
+    print("static short rule(BURS_TreeNode state, byte goalnt) {\n");
 /* no need: Java has null pointer and array bounds exception
    print("%1if (goalnt < 1 || goalnt > %d)\n",ntnumber);
    print("%2fatal(\"rule\", \"Bad goal nonterminal \", goalnt);\n");
@@ -918,7 +918,7 @@ emitrule(Nonterm nts_)
       print("%1case %S_NT: \tstatent = state.%S; \tbreak;\n",p,p);
       }
       print("%1default:\n");
-      print("%2throw new OPT_OptimizingCompilerException(\"Bad nonterminal \"+goalnt);\n");
+      print("%2throw new OptimizingCompilerException(\"Bad nonterminal \"+goalnt);\n");
     */
     /*
       print("%2fatal(\"rule\", \"Bad goal nonterminal \", goalnt);\n");
@@ -941,7 +941,7 @@ emitstring(Rule rules_)
 //    Term p;
 
     print("package org.jikesrvm.compilers.opt.%s; \n", arch);
-    print("public class OPT_BURS_Debug {\n");
+    print("public class BURS_Debug {\n");
 
 #if 0
     print("static final String opname[] = {\n");
@@ -1077,7 +1077,7 @@ emitstruct(Nonterm nts_)
             print("; break;// %S\n",ntsc);
         }
         print("%2}\n");
-        print("%2return OPT_BURS_STATE.decode[goalNT][statement];\n");
+        print("%2return BURS_STATE.decode[goalNT][statement];\n");
     } else {
         print("\n%2return  word0;\n",nts_);
     }

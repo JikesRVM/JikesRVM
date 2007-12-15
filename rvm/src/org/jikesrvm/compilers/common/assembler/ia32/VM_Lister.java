@@ -51,56 +51,56 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void R(int i, String op, Register R0) {
+  public final void R(int i, String op, MachineRegister R0) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RD(int i, String op, Register R0, Offset d) {
+  public final void RD(int i, String op, MachineRegister R0, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RI(int i, String op, Register R0, int n) {
+  public final void RI(int i, String op, MachineRegister R0, int n) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RDI(int i, String op, Register R0, Offset d, int n) {
+  public final void RDI(int i, String op, MachineRegister R0, Offset d, int n) {
     i = begin(i, op);
     VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RNI(int i, String op, Register R0, int n) {
+  public final void RNI(int i, String op, MachineRegister R0, int n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RR(int i, String op, Register R0, Register R1) {
+  public final void RR(int i, String op, MachineRegister R0, MachineRegister R1) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RDR(int i, String op, Register R0, Offset d, Register R1) {
+  public final void RDR(int i, String op, MachineRegister R0, Offset d, MachineRegister R1) {
     i = begin(i, op);
     VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RDRI(int i, String op, Register R0, Offset d, Register R1, int imm) {
+  public final void RDRI(int i, String op, MachineRegister R0, Offset d, MachineRegister R1, int imm) {
     i = begin(i, op);
     VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
@@ -108,7 +108,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RDRR(int i, String op, Register R0, Offset d, Register R1, Register R2) {
+  public final void RDRR(int i, String op, MachineRegister R0, Offset d, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
@@ -116,35 +116,35 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRD(int i, String op, Register R0, Register R1, Offset d) {
+  public final void RRD(int i, String op, MachineRegister R0, MachineRegister R1, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + R1 + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RNR(int i, String op, Register R0, Register R1) {
+  public final void RNR(int i, String op, MachineRegister R0, MachineRegister R1) {
     i = begin(i, op);
     VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RN(int i, String op, Register R0) {
+  public final void RN(int i, String op, MachineRegister R0) {
     i = begin(i, op);
     VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(" ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RRN(int i, String op, Register R0, Register R1) {
+  public final void RRN(int i, String op, MachineRegister R0, MachineRegister R1) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + R1 + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RXD(int i, String op, Register R0, Register X, short s, Offset d) {
+  public final void RXD(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
@@ -152,7 +152,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RXDI(int i, String op, Register R0, Register X, short s, Offset d, int n) {
+  public final void RXDI(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, int n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
@@ -160,7 +160,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RFD(int i, String op, Register X, short s, Offset d) {
+  public final void RFD(int i, String op, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
@@ -174,7 +174,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RFDI(int i, String op, Register X, short s, Offset d, int n) {
+  public final void RFDI(int i, String op, MachineRegister X, short s, Offset d, int n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
@@ -188,7 +188,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRR(int i, String op, Register R0, Register R1, Register R2) {
+  public final void RRR(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
@@ -196,7 +196,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RNRI(int i, String op, Register R0, Register R1, int imm) {
+  public final void RNRI(int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
     i = begin(i, op);
     VM.sysWrite(right("[" + R0 + "] ", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
@@ -204,7 +204,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RNRR(int i, String op, Register R0, Register R1, Register R2) {
+  public final void RNRR(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right("[" + R0 + "] ", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
@@ -212,7 +212,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRI(int i, String op, Register R0, Register R1, int imm) {
+  public final void RRI(int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
@@ -220,7 +220,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRXD(int i, String op, Register R0, Register R1, Register X, short s, Offset d) {
+  public final void RRXD(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + R1 + "+" + X + "<<" + decimal(s) + "]",
@@ -228,7 +228,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RXDR(int i, String op, Register R0, Register X, short s, Offset d, Register R1) {
+  public final void RXDR(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
@@ -236,7 +236,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RXDRI(int i, String op, Register R0, Register X, short s, Offset d, Register R1, int imm) {
+  public final void RXDRI(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, int imm) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
@@ -245,7 +245,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RXDRR(int i, String op, Register R0, Register X, short s, Offset d, Register R1, Register R2) {
+  public final void RXDRR(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       SOURCE_AREA_SIZE));
@@ -254,21 +254,21 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRFD(int i, String op, Register R0, Register X, short s, Offset d) {
+  public final void RRFD(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RFDR(int i, String op, Register X, short s, Offset d, Register R0) {
+  public final void RFDR(int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RFDRI(int i, String op, Register X, short s, Offset d, Register R0, int imm) {
+  public final void RFDRI(int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0, int imm) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
@@ -276,7 +276,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RFDRR(int i, String op, Register X, short s, Offset d, Register R0, Register R2) {
+  public final void RFDRR(int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
@@ -284,21 +284,21 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RRA(int i, String op, Register R0, Offset d) {
+  public final void RRA(int i, String op, MachineRegister R0, Offset d) {
     i = begin(i, op);
     VM.sysWrite(right(R0 +" ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RAR(int i, String op, Offset d, Register R0) {
+  public final void RAR(int i, String op, Offset d, MachineRegister R0) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public final void RARI(int i, String op, Offset d, Register R0, int imm) {
+  public final void RARI(int i, String op, Offset d, MachineRegister R0, int imm) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
@@ -306,7 +306,7 @@ public class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public final void RARR(int i, String op, Offset d, Register R0, Register R2) {
+  public final void RARR(int i, String op, Offset d, MachineRegister R0, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));

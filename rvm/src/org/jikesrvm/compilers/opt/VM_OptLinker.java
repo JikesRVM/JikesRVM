@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
  * runtime services.
  *
- * @see org.jikesrvm.ArchitectureSpecific.OPT_FinalMIRExpansion
+ * @see org.jikesrvm.ArchitectureSpecific.FinalMIRExpansion
  * @see VM_OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see VM_TableBasedDynamicLinker
  */

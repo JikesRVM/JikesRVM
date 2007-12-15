@@ -15,15 +15,15 @@ package org.jikesrvm.compilers.opt;
 import java.util.List;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.OPT_GCIRMapElement;
-import org.jikesrvm.compilers.opt.ir.OPT_RegSpillListElement;
+import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
+import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class that encapsulates the GCMap portion of the machine code maps.
  * An instance of this class is created to encode and instance of a
- * OPT_GCIRMap into an int[].  The int[] is stored persistently,
+ * GCIRMap into an int[].  The int[] is stored persistently,
  * but the instance of the VM_OptGCMap is NOT.
  *
  * <ul>
@@ -97,14 +97,14 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
    * @return the GCMap index.
    */
   @Interruptible
-  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) {
+  public int generateGCMapEntry(GCIRMapElement irMapElem) {
     // the index into the GC maps we will use for this instruction.
     int mapIndex = NO_MAP_ENTRY;
 
     // Before requesting the (first) map entry, lets make sure we
     // will need it.  If the reg/spill list is empty, we don't
     // need a map slot, i.e., no references are live at this instruction
-    List<OPT_RegSpillListElement> regSpillList = irMapElem.regSpillList();
+    List<RegSpillListElement> regSpillList = irMapElem.regSpillList();
     if (!regSpillList.isEmpty()) {
 
       // For efficiency we create our own bit map and then set the
@@ -119,7 +119,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
       // the first time we get the register mask, the 2nd time we get
       // the spills
       // process the register
-      for (OPT_RegSpillListElement elem : regSpillList) {
+      for (RegSpillListElement elem : regSpillList) {
         if (elem.isSpill()) {
           numSpills++;
         } else {
@@ -147,7 +147,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
       int spillIndex = 0;
       // Now we need to walk the list again to process the spills.
       // first, get a fresh enumerator
-      for (OPT_RegSpillListElement elem : regSpillList) {
+      for (RegSpillListElement elem : regSpillList) {
         if (elem.isSpill()) {
           spillArray[spillIndex++] = elem.getSpill();
         }

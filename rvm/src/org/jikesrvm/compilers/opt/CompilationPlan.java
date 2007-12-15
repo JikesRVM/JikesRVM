@@ -1,0 +1,140 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package org.jikesrvm.compilers.opt;
+
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.IR;
+
+/*
+ * CompilationPlan.java
+ *
+ *
+ * An instance of this class acts instructs the optimizing
+ * compiler how to compile the specified method.
+ */
+public final class CompilationPlan {
+  /**
+   * The method to be compiled.
+   */
+  public VM_NormalMethod method;
+
+  public VM_NormalMethod getMethod() {
+    return method;
+  }
+
+  /**
+   * The specialized parameters to use in place of those defined in method.
+   */
+  public VM_TypeReference[] params;
+
+  /**
+   * The OptimizationPlanElements to be invoked during compilation.
+   */
+  public OptimizationPlanElement[] optimizationPlan;
+  /**
+   * The instrumentation plan for the method.
+   */
+  public InstrumentationPlan instrumentationPlan;
+  /**
+   * The oracle to be consulted for all inlining decisions.
+   */
+  public InlineOracle inlinePlan;
+  /**
+   * The Options object that contains misc compilation control data
+   */
+  public Options options;
+
+  /**
+   * Whether this compilation is for analysis only?
+   */
+  public boolean analyzeOnly;
+
+  public boolean irGeneration;
+
+  /**
+   * Construct a compilation plan
+   *
+   * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param pms  The specialized parameters to use in place of those defined in method
+   * @param op   The optimization plan to be executed on m
+   * @param mp   The instrumentation plan to be executed on m
+   * @param opts The Options to be used for compiling m
+   */
+  public CompilationPlan(VM_NormalMethod m, VM_TypeReference[] pms, OptimizationPlanElement[] op, InstrumentationPlan mp,
+                             Options opts) {
+    method = m;
+    params = pms;
+    inlinePlan = new DefaultInlineOracle();
+    optimizationPlan = op;
+    instrumentationPlan = mp;
+    options = opts;
+  }
+
+  /**
+   * Construct a compilation plan
+   *
+   * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param op   The optimization plan to be executed on m
+   * @param mp   The instrumentation plan to be executed on m
+   * @param opts The Options to be used for compiling m
+   */
+  public CompilationPlan(VM_NormalMethod m, OptimizationPlanElement[] op, InstrumentationPlan mp,
+                             Options opts) {
+    this(m, null, op, mp, opts);
+  }
+
+  /**
+   * Construct a compilation plan
+   * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param op   A single optimization pass to execute on m
+   * @param mp   The instrumentation plan to be executed on m
+   * @param opts The Options to be used for compiling m
+   */
+  public CompilationPlan(VM_NormalMethod m, OptimizationPlanElement op, InstrumentationPlan mp,
+                             Options opts) {
+    this(m, new OptimizationPlanElement[]{op}, mp, opts);
+  }
+
+  /**
+   * Set the inline oracle
+   */
+  public void setInlineOracle(InlineOracle o) {
+    inlinePlan = o;
+  }
+
+  /**
+   * Execute a compilation plan by executing each element
+   * in the optimization plan.
+   */
+  public IR execute() {
+    IR ir = new IR(method, this);
+
+    // If there is instrumentation to perform, do some initialization
+    if (instrumentationPlan != null) {
+      instrumentationPlan.initInstrumentation(method);
+    }
+    for (OptimizationPlanElement element : optimizationPlan) {
+      element.perform(ir);
+    }
+    // If instrumentation has occured, perform some
+    // cleanup/finalization.  NOTE: This code won't execute when
+    // compilation fails with an exception.  TODO: Figure out
+    // whether this matters.
+    if (instrumentationPlan != null) {
+      instrumentationPlan.finalizeInstrumentation(method);
+    }
+
+    return ir;
+  }
+}

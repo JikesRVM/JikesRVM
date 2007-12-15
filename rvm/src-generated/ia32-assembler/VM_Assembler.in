@@ -87,11 +87,11 @@ import org.vmmagic.unboxed.*;
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an {@link org.jikesrvm.compilers.opt.OPT_Assembler}
+ * optimizing compiler has an {@link org.jikesrvm.compilers.opt.Assembler}
  * that is built on top of this one to match
- * {@link org.jikesrvm.compilers.opt.ir.OPT_Instruction}s and
- * {@link org.jikesrvm.compilers.opt.ir.OPT_Operator}s to the emit methods
- * this assembler provides.  The {@link org.jikesrvm.compilers.opt.OPT_Assembler}
+ * {@link org.jikesrvm.compilers.opt.ir.Instruction}s and
+ * {@link org.jikesrvm.compilers.opt.ir.Operator}s to the emit methods
+ * this assembler provides.  The {@link org.jikesrvm.compilers.opt.Assembler}
  * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
  * naming and signiture convention that is designed to make the method
@@ -174,7 +174,7 @@ import org.vmmagic.unboxed.*;
  *  </DL>
  * </DL>
  *
- * @see org.jikesrvm.compilers.opt.OPT_Assembler
+ * @see org.jikesrvm.compilers.opt.Assembler
  * @see VM_Lister
  * @see VM_ForwardReference
  *
@@ -443,7 +443,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @return the encoded ModRM byte.
    */
   @Inline
-  private byte regRegModRM(Register reg1, Register reg2) {
+  private byte regRegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((3 << 6) | (reg2.value() << 3) | reg1.value());
   }
 
@@ -457,7 +457,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @return the encoded ModRM byte.
    */
   @Inline
-  private byte regDisp32RegModRM(Register reg1, Register reg2) {
+  private byte regDisp32RegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((2 << 6) | (reg2.value() << 3) | reg1.value());
   }
 
@@ -471,7 +471,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @return the encoded ModRM byte.
    */
   @Inline
-  private byte regDisp8RegModRM(Register reg1, Register reg2) {
+  private byte regDisp8RegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((1 << 6) | (reg2.value() << 3) | reg1.value());
   }
 
@@ -484,7 +484,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @return the encoded ModRM byte.
    */
   @Inline
-  private byte regIndirectRegModRM(Register reg1, Register reg2) {
+  private byte regIndirectRegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((reg2.value() << 3) | reg1.value());
   }
 
@@ -500,7 +500,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @return the encoded SIB byte.
    */
   @Inline
-  private byte sib(short scale, Register baseReg, Register indexReg) {
+  private byte sib(short scale, MachineRegister baseReg, MachineRegister indexReg) {
     return (byte) ((scale << 6) | (indexReg.value() << 3) | baseReg.value());
   }
 
@@ -512,7 +512,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    */
   @Inline
-  private void emitRegRegOperands(Register reg1, Register reg2) {
+  private void emitRegRegOperands(MachineRegister reg1, MachineRegister reg2) {
     setMachineCodes(mi++, regRegModRM(reg1, reg2));
   }
 
@@ -530,7 +530,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    */
   @Inline
-  private void emitRegDisp32RegOperands(Register reg1, int disp, Register reg2) {
+  private void emitRegDisp32RegOperands(MachineRegister reg1, int disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
     emitImm32(disp);
@@ -550,7 +550,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    */
   @Inline
-  private void emitRegDisp8RegOperands(Register reg1, byte disp, Register reg2) {
+  private void emitRegDisp8RegOperands(MachineRegister reg1, byte disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
     emitImm8(disp);
@@ -570,7 +570,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    */
   @Inline
-  private void emitRegDispRegOperands(Register reg1, Offset disp, Register reg2) {
+  private void emitRegDispRegOperands(MachineRegister reg1, Offset disp, MachineRegister reg2) {
     if (fits(disp,8))
       emitRegDisp8RegOperands(reg1, (byte)disp.toInt(), reg2);
     else {
@@ -595,7 +595,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode
    */
   @Inline
-  private void emitRegIndirectRegOperands(Register reg1, Register reg2) {
+  private void emitRegIndirectRegOperands(MachineRegister reg1, MachineRegister reg2) {
     if (reg1 == EBP) {
       emitRegDispRegOperands(reg1, Offset.zero(), reg2);
     } else {
@@ -618,7 +618,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other operand or the extended opcode
    */
   @Inline
-  private void emitRegOffRegOperands(Register index, short scale, Offset disp, Register reg2) {
+  private void emitRegOffRegOperands(MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));
     setMachineCodes(mi++, sib(scale, EBP, index));
     emitImm32(disp);
@@ -632,7 +632,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other operand or the extended opcode
    */
   @Inline
-  private void emitAbsRegOperands(Offset disp, Register reg2) {
+  private void emitAbsRegOperands(Offset disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2));
     emitImm32(disp);
   }
@@ -650,7 +650,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other operand or the extended opcode
    */
   @Inline
-  private void emitSIBRegOperands(Register base, Register index, short scale, Offset disp, Register reg2) {
+  private void emitSIBRegOperands(MachineRegister base, MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     if (VM.VerifyAssertions) VM._assert(index != ESP);
     if (disp.EQ(Offset.zero()) && base != EBP) {
       setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));

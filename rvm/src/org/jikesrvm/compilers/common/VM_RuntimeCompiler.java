@@ -31,13 +31,13 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
-import org.jikesrvm.compilers.opt.OPT_Compiler;
-import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
-import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.Compiler;
+import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.Options;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
@@ -75,7 +75,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER = 0;
   public static final byte BASELINE_COMPILER = 1;
-  public static final byte OPT_COMPILER = 2;
+  public static final byte COMPILER = 2;
 
   // Data accumulators
   private static final String[] name = {"JNI\t", "Base\t", "Opt\t"};   // Output names
@@ -115,8 +115,8 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
 
   // Cache objects needed to cons up compilation plans
   // TODO: cutting link to opt compiler by declaring type as object.
-  public static final Object /* OPT_Options */ options = VM.BuildForAdaptiveSystem ? new OPT_Options() : null;
-  public static Object /* OPT_OptimizationPlanElement[] */ optimizationPlan;
+  public static final Object /* Options */ options = VM.BuildForAdaptiveSystem ? new Options() : null;
+  public static Object /* OptimizationPlanElement[] */ optimizationPlan;
 
   /**
    * To be called when the VM is about to exit.
@@ -260,9 +260,9 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
 
     if (VM.BuildForAdaptiveSystem) {
       // Get the opt's report
-      VM_Type theType = VM_TypeReference.OPT_OptimizationPlanner.peekType();
+      VM_Type theType = VM_TypeReference.OptimizationPlanner.peekType();
       if (theType != null && theType.asClass().isInitialized()) {
-        OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
+        OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
       } else {
         VM.sysWrite("\n\tNot generating Optimizing Compiler SubSystem Report because \n");
         VM.sysWrite("\tthe opt compiler was never invoked.\n\n");
@@ -312,9 +312,9 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   public static void processOptCommandLineArg(String prefix, String arg) {
     if (VM.BuildForAdaptiveSystem) {
       if (compilerEnabled) {
-        if (((OPT_Options) options).processAsOption(prefix, arg)) {
+        if (((Options) options).processAsOption(prefix, arg)) {
           // update the optimization plan to reflect the new command line argument
-          optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options) options);
+          optimizationPlan = OptimizationPlanner.createOptimizationPlan((Options) options);
         } else {
           VM.sysWrite("Unrecognized opt compiler argument \"" + arg + "\"");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -334,15 +334,15 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   }
 
   /**
-   * attempt to compile the passed method with the OPT_Compiler.
-   * Don't handle OPT_OptimizingCompilerExceptions
+   * attempt to compile the passed method with the Compiler.
+   * Don't handle OptimizingCompilerExceptions
    *   (leave it up to caller to decide what to do)
    * Precondition: compilationInProgress "lock" has been acquired
    * @param method the method to compile
    * @param plan the plan to use for compiling the method
    */
-  private static VM_CompiledMethod optCompile(VM_NormalMethod method, OPT_CompilationPlan plan)
-      throws OPT_OptimizingCompilerException {
+  private static VM_CompiledMethod optCompile(VM_NormalMethod method, CompilationPlan plan)
+      throws OptimizingCompilerException {
     if (VM.BuildForOptCompiler) {
       if (VM.VerifyAssertions) {
         VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
@@ -355,14 +355,14 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
           start = VM_Scheduler.getCurrentThread().startTimedInterval();
         }
-        cm = OPT_Compiler.compile(plan);
+        cm = Compiler.compile(plan);
       } finally {
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
           long end = VM_Scheduler.getCurrentThread().endTimedInterval();
           if (cm != null) {
             double compileTime = VM_Time.nanosToMillis(end - start);
             cm.setCompilationTime(compileTime);
-            record(OPT_COMPILER, method, cm);
+            record(COMPILER, method, cm);
           }
         }
       }
@@ -377,7 +377,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   // These methods are safe to invoke from VM_RuntimeCompiler.compile
 
   /**
-   * This method tries to compile the passed method with the OPT_Compiler,
+   * This method tries to compile the passed method with the Compiler,
    * using the default compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinte) recursive opt
@@ -392,11 +392,11 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
       } else {
         try {
           compilationInProgress = true;
-          OPT_CompilationPlan plan =
-              new OPT_CompilationPlan(method,
-                                      (OPT_OptimizationPlanElement[]) optimizationPlan,
+          CompilationPlan plan =
+              new CompilationPlan(method,
+                                      (OptimizationPlanElement[]) optimizationPlan,
                                       null,
-                                      (OPT_Options) options);
+                                      (Options) options);
           return optCompileWithFallBackInternal(method, plan);
         } finally {
           compilationInProgress = false;
@@ -409,7 +409,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   }
 
   /**
-   * This method tries to compile the passed method with the OPT_Compiler
+   * This method tries to compile the passed method with the Compiler
    * with the passed compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinte) recursive opt
@@ -419,7 +419,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
    * @param plan the compilation plan to use for the compile
    */
   public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method,
-                                                                      OPT_CompilationPlan plan) {
+                                                                      CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (compilationInProgress) {
         return fallback(method);
@@ -442,12 +442,12 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
    * @param method the method to compile
    * @param plan the compilation plan to use
    */
-  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, OPT_CompilationPlan plan) {
+  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (method.hasNoOptCompileAnnotation()) return fallback(method);
       try {
         return optCompile(method, plan);
-      } catch (OPT_OptimizingCompilerException e) {
+      } catch (OptimizingCompilerException e) {
         String msg =
             "VM_RuntimeCompiler: can't optimize \"" +
             method +
@@ -459,8 +459,8 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
           VM.sysFail(msg);
         } else {
           boolean printMsg = true;
-          if (e instanceof OPT_MagicNotImplementedException) {
-            printMsg = !((OPT_MagicNotImplementedException) e).isExpected;
+          if (e instanceof MagicNotImplementedException) {
+            printMsg = !((MagicNotImplementedException) e).isExpected;
           }
           if (printMsg) VM.sysWrite(msg);
         }
@@ -472,8 +472,8 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
     }
   }
 
-  /* recompile the specialized method with OPT_Compiler. */
-  public static VM_CompiledMethod recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
+  /* recompile the specialized method with Compiler. */
+  public static VM_CompiledMethod recompileWithOptOnStackSpecialization(CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
       if (compilationInProgress) {
@@ -489,7 +489,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
         // we donot replace the compiledMethod of original method,
         // because it is temporary method
         return cm;
-      } catch (OPT_OptimizingCompilerException e) {
+      } catch (OptimizingCompilerException e) {
         e.printStackTrace();
         String msg =
             "Optimizing compiler " +
@@ -517,7 +517,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   }
 
   /**
-   * This method tries to compile the passed method with the OPT_Compiler.
+   * This method tries to compile the passed method with the Compiler.
    * It will install the new compiled method in the VM, if sucessful.
    * NOTE: the recompile method should never be invoked via
    *      VM_RuntimeCompiler.compile;
@@ -527,7 +527,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
    *    recompilation failed.
    *
    **/
-  public static synchronized int recompileWithOpt(OPT_CompilationPlan plan) {
+  public static synchronized int recompileWithOpt(CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (compilationInProgress) {
         return -1;
@@ -549,7 +549,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
             return -1;
           }
           return cm.getId();
-        } catch (OPT_OptimizingCompilerException e) {
+        } catch (OptimizingCompilerException e) {
           String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan
               .method + "\" (error was: " + e + ")\n";
           if (e.isFatal && VM.ErrorsFatal) {
@@ -576,11 +576,11 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
    */
   public static int recompileWithOpt(VM_NormalMethod method) {
     if (VM.BuildForOptCompiler) {
-      OPT_CompilationPlan plan =
-          new OPT_CompilationPlan(method,
-                                  (OPT_OptimizationPlanElement[]) optimizationPlan,
+      CompilationPlan plan =
+          new CompilationPlan(method,
+                                  (OptimizationPlanElement[]) optimizationPlan,
                                   null,
-                                  (OPT_Options) options);
+                                  (Options) options);
       return recompileWithOpt(plan);
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
@@ -603,12 +603,12 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
       VM_Callbacks.addExitMonitor(new VM_RuntimeCompiler());
     }
     if (VM.BuildForAdaptiveSystem) {
-      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options) options);
+      optimizationPlan = OptimizationPlanner.createOptimizationPlan((Options) options);
       if (VM.MeasureCompilationPhases) {
-        OPT_OptimizationPlanner.initializeMeasureCompilation();
+        OptimizationPlanner.initializeMeasureCompilation();
       }
 
-      OPT_Compiler.init((OPT_Options) options);
+      Compiler.init((Options) options);
 
       VM_PreCompile.init();
       // when we reach here the OPT compiler is enabled.
@@ -653,15 +653,15 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
             // Other than when boot options are requested (processed during preloadSpecialClass
             // It is hard to communicate options for these special compilations. Use the
             // default options and at least pick up the verbose if requested for base/irc
-            OPT_Options tmpoptions = ((OPT_Options) options).dup();
+            Options tmpoptions = ((Options) options).dup();
             tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
             tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
             if (VM_BaselineCompiler.options.PRINT_METHOD) {
               tmpoptions.PRINT_METHOD = true;
             } else {
-              tmpoptions = (OPT_Options) options;
+              tmpoptions = (Options) options;
             }
-            OPT_Compiler.preloadSpecialClass(tmpoptions);
+            Compiler.preloadSpecialClass(tmpoptions);
             compilationInProgress = false;
           }
         }
@@ -678,11 +678,11 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
           } else { // compile with opt compiler
             VM_AOSInstrumentationPlan instrumentationPlan =
                 new VM_AOSInstrumentationPlan(VM_Controller.options, method);
-            OPT_CompilationPlan compPlan =
-                new OPT_CompilationPlan(method,
-                                        (OPT_OptimizationPlanElement[]) optimizationPlan,
+            CompilationPlan compPlan =
+                new CompilationPlan(method,
+                                        (OptimizationPlanElement[]) optimizationPlan,
                                         instrumentationPlan,
-                                        (OPT_Options) options);
+                                        (Options) options);
             cm = optCompileWithFallBack(method, compPlan);
           }
         } else {
@@ -703,7 +703,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
                 return cm;
               }
               int newCMID = -2;
-              OPT_CompilationPlan compPlan;
+              CompilationPlan compPlan;
               if (VM_Controller.options.counters()) {
                 // for invocation counter, we only use one optimization level
                 compPlan = VM_InvocationCounts.createCompilationPlan(method);

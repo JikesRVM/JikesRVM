@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  *        lazy method compilation.  Need to generalize to support
  *        opt's use for other purposes.
  *
- * @see OPT_Compiler (hooks to recognize & specially compile this class)
+ * @see Compiler (hooks to recognize & specially compile this class)
  */
 @SaveVolatile
 @Uninterruptible
@@ -47,7 +47,7 @@ public class VM_OptSaveVolatile {
    * we also save the volatile registers.
    */
   @Entrypoint
-  public static void OPT_yieldpointFromPrologue() {
+  public static void yieldpointFromPrologue() {
     Address fp = VM_Magic.getFramePointer();
     VM_GreenThread.yieldpoint(VM_Thread.PROLOGUE, fp);
   }
@@ -59,7 +59,7 @@ public class VM_OptSaveVolatile {
    * we also save the volatile registers.
    */
   @Entrypoint
-  public static void OPT_yieldpointFromEpilogue() {
+  public static void yieldpointFromEpilogue() {
     Address fp = VM_Magic.getFramePointer();
     VM_GreenThread.yieldpoint(VM_Thread.EPILOGUE, fp);
   }
@@ -71,7 +71,7 @@ public class VM_OptSaveVolatile {
    * we also save the volatile registers.
    */
   @Entrypoint
-  public static void OPT_yieldpointFromBackedge() {
+  public static void yieldpointFromBackedge() {
     Address fp = VM_Magic.getFramePointer();
     VM_GreenThread.yieldpoint(VM_Thread.BACKEDGE, fp);
   }
@@ -80,7 +80,7 @@ public class VM_OptSaveVolatile {
    * Handle timer interrupt taken in the prologue of a native method.
    */
   @Entrypoint
-  public static void OPT_yieldpointFromNativePrologue() {
+  public static void yieldpointFromNativePrologue() {
     // VM.sysWriteln(123);
     // VM.sysWriteln(VM_Magic.getFramePointer());
     // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
@@ -94,7 +94,7 @@ public class VM_OptSaveVolatile {
    * Handle timer interrupt taken in the epilogue of a native method.
    */
   @Entrypoint
-  public static void OPT_yieldpointFromNativeEpilogue() {
+  public static void yieldpointFromNativeEpilogue() {
     // VM.sysWriteln(321);
     // VM.sysWriteln(VM_Magic.getFramePointer());
     // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
@@ -108,7 +108,7 @@ public class VM_OptSaveVolatile {
    * OSR invalidation being initiated.
    */
   @Entrypoint
-  public static void OPT_yieldpointFromOsrOpt() {
+  public static void yieldpointFromOsrOpt() {
     Address fp = VM_Magic.getFramePointer();
     VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
     VM_GreenThread.yieldpoint(VM_Thread.OSROPT, fp);
@@ -119,10 +119,10 @@ public class VM_OptSaveVolatile {
    * dynamically loaded/resolved/etc.
    */
   @Interruptible
-  public static void OPT_resolve() throws NoClassDefFoundError {
+  public static void resolve() throws NoClassDefFoundError {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt)
-    // compiled method that called OPT_resolve
+    // compiled method that called resolve
     Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
     VM_OptCompiledMethod cm = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);

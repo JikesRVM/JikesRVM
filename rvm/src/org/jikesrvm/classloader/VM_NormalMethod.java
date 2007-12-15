@@ -249,7 +249,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   }
 
   // Extra methods for on-stack replacement
-  // VM_BaselineCompiler and OPT_BC2IR should check if a method is
+  // VM_BaselineCompiler and BC2IR should check if a method is
   // for specialization by calling isForOsrSpecialization, the compiler
   // uses synthesized bytecodes (prologue + original bytecodes) for
   // OSRing method. Other interfaces of method are not changed, therefore,

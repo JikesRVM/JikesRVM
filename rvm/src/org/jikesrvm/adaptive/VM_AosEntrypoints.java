@@ -44,7 +44,7 @@ public interface VM_AosEntrypoints {
   VM_Field cbsResetValueField =
       getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;", "resetValue", "I");
   VM_Field specializedMethodsField =
-      getField("Lorg/jikesrvm/compilers/opt/OPT_SpecializedMethodPool;",
+      getField("Lorg/jikesrvm/compilers/opt/SpecializedMethodPool;",
                "specializedMethods",
                "[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
 }

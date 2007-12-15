@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.ppc.OPT_PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.WordArray;
  */
 
 public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtractor
-    implements VM_Constants, OSR_Constants, VM_BaselineConstants, OPT_PhysicalRegisterConstants {
+    implements VM_Constants, OSR_Constants, VM_BaselineConstants, PhysicalRegisterConstants {
 
   /**
    * Implements OSR_ExecStateExtractor.extractState.

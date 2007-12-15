@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
@@ -26,8 +26,8 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.Offset;
  * <p> NOTE: VM_OptCompilerMethod live as long as their corresponding
  * compiled machine code.  Therefore, they should only contain
  * state that is really required to be persistent.  Anything
- * transitory should be stored on the OPT_IR object.
+ * transitory should be stored on the IR object.
  */
 @SynchronizedObject
 @Uninterruptible
@@ -252,7 +252,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   private OSR_EncodedOSRMap _osrMap;
 
   @Interruptible
-  public void createFinalOSRMap(OPT_IR ir) {
+  public void createFinalOSRMap(IR ir) {
     this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
   }
 
@@ -447,7 +447,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param machineCodeLength the number of machine code instructions.
    */
   @Interruptible
-  public void createFinalMCMap(OPT_IR ir, int machineCodeLength) {
+  public void createFinalMCMap(IR ir, int machineCodeLength) {
     _mcMap = VM_OptMachineCodeMap.create(ir, machineCodeLength);
   }
 
@@ -456,7 +456,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param ir the ir
    */
   @Interruptible
-  public void createFinalExceptionTable(OPT_IR ir) {
+  public void createFinalExceptionTable(IR ir) {
     if (ir.hasReachableExceptionHandlers()) {
       eTable = VM_OptExceptionTable.encode(ir);
     }
@@ -467,10 +467,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * @param ir the ir
    */
   @Interruptible
-  public void createCodePatchMaps(OPT_IR ir) {
+  public void createCodePatchMaps(IR ir) {
     // (1) count the patch points
     int patchPoints = 0;
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
+    for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == IG_PATCH_POINT) {
         patchPoints++;
       }
@@ -479,7 +479,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     if (patchPoints != 0) {
       patchMap = new int[patchPoints * 2];
       int idx = 0;
-      for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
+      for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.operator() == IG_PATCH_POINT) {
           int patchPoint = s.getmcOffset();
           int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
@@ -516,7 +516,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
         if (VM.BuildForIA32) {
           ArchitectureSpecific.VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
-          ArchitectureSpecific.OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          ArchitectureSpecific.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.VerifyAssertions) {
           VM._assert(VM.NOT_REACHED);
         }

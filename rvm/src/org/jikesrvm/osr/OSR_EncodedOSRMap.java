@@ -15,8 +15,8 @@ package org.jikesrvm.osr;
 import java.util.LinkedList;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.CallSiteTree;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
@@ -115,9 +115,9 @@ if (VM.TraceOnStackReplacement) {
     quickSort(osrarray, 0, n - 1);
 
     // make inline encoding, OSR maps,
-    OPT_CallSiteTree inliningTree = new OPT_CallSiteTree();
+    CallSiteTree inliningTree = new CallSiteTree();
     for (int i = 0; i < n; i++) {
-      OPT_Instruction instr = osrarray[i].osr;
+      Instruction instr = osrarray[i].osr;
       // add lining element, move sanity later
       if (instr.position != null) {
         inliningTree.addLocation(instr.position);
@@ -127,7 +127,7 @@ if (VM.TraceOnStackReplacement) {
     for (int i = 0; i < n; i++) {
 
       OSR_VariableMapElement elm = osrarray[i];
-      OPT_Instruction instr = elm.osr;
+      Instruction instr = elm.osr;
 
       int iei = inliningTree.find(instr.position).encodedOffset;
       setIEIndex(i, iei);

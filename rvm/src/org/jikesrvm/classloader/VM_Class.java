@@ -21,7 +21,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.OPT_ClassLoadingDependencyManager;
+import org.jikesrvm.compilers.opt.ClassLoadingDependencyManager;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_FieldLayoutContext;
 import org.jikesrvm.objectmodel.VM_IMT;
@@ -2094,7 +2094,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   // TODO: Make this into a more general listener API
   //------------------------------------------------------------//
   public static final VM_ClassLoadingListener classLoadListener =
-      VM.BuildForOptCompiler ? new OPT_ClassLoadingDependencyManager() : null;
+      VM.BuildForOptCompiler ? new ClassLoadingDependencyManager() : null;
 
   /**
    * Given a method declared by this class, update all

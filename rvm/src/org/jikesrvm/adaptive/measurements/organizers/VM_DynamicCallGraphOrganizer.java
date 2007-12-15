@@ -21,7 +21,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
@@ -173,7 +173,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             caller = stackFrameCaller;
             continue;  // skip sample
-          } catch (OPT_OptimizingCompilerException e) {
+          } catch (OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled " +
                         stackFrameCaller +
                         "@" +
@@ -193,7 +193,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             caller = stackFrameCaller;
             continue;
-          } catch (OPT_OptimizingCompilerException e) {
+          } catch (OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled " +
                         stackFrameCaller +
                         "@" +

@@ -14,11 +14,11 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_ExceptionTable;
-import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
-import org.jikesrvm.compilers.opt.ir.OPT_BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.OPT_ExceptionHandlerBasicBlock;
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_TypeOperand;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.TypeOperand;
 
 /**
  * Encoding of try ranges in the final machinecode and the
@@ -28,10 +28,10 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
 
   /**
    * Encode an exception table
-   * @param ir the OPT_IR to encode the exception table for
+   * @param ir the IR to encode the exception table for
    * @return the encoded exception table
    */
-  static int[] encode(OPT_IR ir) {
+  static int[] encode(IR ir) {
     int index = 0;
     int currStartOff, currEndOff;
     int tableSize = countExceptionTableSize(ir);
@@ -52,7 +52,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
     //   entries to the eTable it is important to not restrict the
     //   entries to reachable handlers; as the first block may only
     //   throw a subset of the exception types represented by the Bag
-    for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null;) {
+    for (BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null;) {
       // Iteration is explicit in loop
 
       int startOff = bblock.firstInstruction().getmcOffset();
@@ -63,8 +63,8 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
           continue;
         }
 
-        OPT_BasicBlock followonBB;
-        OPT_BasicBlockEnumeration reachBBe, e;
+        BasicBlock followonBB;
+        BasicBlockEnumeration reachBBe, e;
         boolean joinedBlocks;
 
         // First make sure at least one of the exception handlers
@@ -104,9 +104,9 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
         }
 
         while (e.hasMoreElements()) {
-          OPT_ExceptionHandlerBasicBlock eBlock = (OPT_ExceptionHandlerBasicBlock) e.nextElement();
-          for (java.util.Enumeration<OPT_TypeOperand> ets = eBlock.getExceptionTypes(); ets.hasMoreElements();) {
-            OPT_TypeOperand type = ets.nextElement();
+          ExceptionHandlerBasicBlock eBlock = (ExceptionHandlerBasicBlock) e.nextElement();
+          for (java.util.Enumeration<TypeOperand> ets = eBlock.getExceptionTypes(); ets.hasMoreElements();) {
+            TypeOperand type = ets.nextElement();
             int catchOffset = eBlock.firstInstruction().getmcOffset();
             eTable[index + TRY_START] = currStartOff;
             eTable[index + TRY_END] = currEndOff;
@@ -150,13 +150,13 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
   /**
    * Return an upper bounds on the size of the exception table for an IR.
    */
-  private static int countExceptionTableSize(OPT_IR ir) {
+  private static int countExceptionTableSize(IR ir) {
     int tSize = 0;
-    for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null; bblock =
+    for (BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null; bblock =
         bblock.nextBasicBlockInCodeOrder()) {
       if (bblock.hasExceptionHandlers()) {
-        for (OPT_BasicBlockEnumeration e = bblock.getExceptionHandlers(); e.hasMoreElements();) {
-          OPT_ExceptionHandlerBasicBlock ebb = (OPT_ExceptionHandlerBasicBlock) e.next();
+        for (BasicBlockEnumeration e = bblock.getExceptionHandlers(); e.hasMoreElements();) {
+          ExceptionHandlerBasicBlock ebb = (ExceptionHandlerBasicBlock) e.next();
           tSize += ebb.getNumberOfExceptionTableEntries();
         }
       }

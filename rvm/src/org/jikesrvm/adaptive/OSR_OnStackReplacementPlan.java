@@ -22,7 +22,7 @@ import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_Profiler;
@@ -52,12 +52,12 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   private byte status;
 
   private final VM_Thread suspendedThread;
-  private final OPT_CompilationPlan compPlan;
+  private final CompilationPlan compPlan;
 
   private int timeInitiated = 0;
   private int timeCompleted = 0;
 
-  public OSR_OnStackReplacementPlan(VM_Thread thread, OPT_CompilationPlan cp, int cmid, int source, Offset tsoff,
+  public OSR_OnStackReplacementPlan(VM_Thread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
                                     Offset ypoff, double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;

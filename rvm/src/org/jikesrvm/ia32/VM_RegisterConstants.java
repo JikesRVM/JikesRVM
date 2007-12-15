@@ -26,7 +26,7 @@ public interface VM_RegisterConstants {
   /**
    * Common interface implemented by all registers constants
    */
-  public interface Register {
+  public interface MachineRegister {
     /** @return encoded value of this register */
     byte value();
   }
@@ -34,7 +34,7 @@ public interface VM_RegisterConstants {
   /**
    * Representation of general purpose registers
    */
-  public enum GPR implements Register {
+  public enum GPR implements MachineRegister {
     EAX(0), ECX(1), EDX(2), EBX(3), ESP(4), EBP(5), ESI(6), EDI(7);
 
     /** Local copy of the backing array. Copied here to avoid calls to clone */
@@ -78,7 +78,7 @@ public interface VM_RegisterConstants {
   /**
    * Representation of x87 floating point registers
    */
-  public enum FPR implements Register {
+  public enum FPR implements MachineRegister {
     FP0(0), FP1(1), FP2(2), FP3(3), FP4(4), FP5(5), FP6(6), FP7(7);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final FPR[] vals = values();
@@ -107,7 +107,7 @@ public interface VM_RegisterConstants {
    * Representation of MMX MM registers
    * N.B. MM and x87 FPR registers alias
    */
-  public enum MM implements Register {
+  public enum MM implements MachineRegister {
     MM0(0), MM1(1), MM2(2), MM3(3), MM4(4), MM5(5), MM6(6), MM7(7);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final MM[] vals = values();
@@ -136,7 +136,7 @@ public interface VM_RegisterConstants {
   /**
    * Representation of SSE XMM registers
    */
-  public enum XMM implements Register {
+  public enum XMM implements MachineRegister {
     XMM0(0), XMM1(1), XMM2(2), XMM3(3), XMM4(4), XMM5(5), XMM6(6), XMM7(7);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final XMM[] vals = values();
