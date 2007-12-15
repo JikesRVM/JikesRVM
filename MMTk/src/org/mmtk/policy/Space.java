@@ -86,8 +86,10 @@ public abstract class Space implements Constants {
    * Instance variables
    */
   private final String name;
+  private final int nameLength;
   private final int descriptor;
   private final int index;
+  private final VMRequest vmRequest;
 
   protected final boolean immortal;
   protected final boolean movable;
@@ -116,8 +118,10 @@ public abstract class Space implements Constants {
    */
   protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
     this.name = name;
+    this.nameLength = name.length();  // necessary to avoid calling length() in uninterruptible code
     this.movable = movable;
     this.immortal = immortal;
+    this.vmRequest = vmRequest;
     this.index = spaceCount++;
     spaces[index] = this;
 
@@ -503,16 +507,42 @@ public abstract class Space implements Constants {
    * Print out a map of virtual memory useage by all spaces
    */
   public static void printVMMap() {
-    Log.write("HEAP_START: "); Log.writeln(HEAP_START);
-    Log.write("AVAILABLE_START: "); Log.writeln(AVAILABLE_START);
+    Log.writeln("Key: (I)mmortal (N)onmoving (D)iscontiguous (E)xtent (F)raction");
+    Log.write("     HEAP_START "); Log.writeln(HEAP_START);
+    Log.write("AVAILABLE_START "); Log.writeln(AVAILABLE_START);
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
+
+      for (int s = 0; s < 11 - space.nameLength; s++)
+        Log.write(" ");
       Log.write(space.name); Log.write(" ");
-      Log.write(space.start); Log.write("->");
-      Log.writeln(space.start.plus(space.extent.minus(1)));
+      Log.write(space.immortal ? "I" : " ");
+      Log.write(space.movable ? " " : "N");
+
+      if (space.contiguous) {
+        Log.write("  ");
+        Log.write(space.start); Log.write("->");
+        Log.write(space.start.plus(space.extent.minus(1)));
+        if (space.vmRequest.type == VMRequest.REQUEST_EXTENT) {
+          Log.write(" E "); Log.write(space.vmRequest.extent);
+        } else if (space.vmRequest.type == VMRequest.REQUEST_FRACTION) {
+          Log.write(" F "); Log.write(space.vmRequest.frac);
+        }
+        Log.writeln();
+      } else {
+        Log.write("D [");
+        for(Address a = space.lastDiscontiguousRegion; a != Address.zero();
+            a = Map.getNextContiguousRegion(a)) {
+          Log.write(a); Log.write("->");
+          Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
+          if (Map.getNextContiguousRegion(a) != Address.zero())
+            Log.write(", ");
+        }
+        Log.writeln("]");
+      }
     }
-    Log.write("HEAP_END: "); Log.writeln(HEAP_END);
-    Log.write("AVAILABLE_END: "); Log.writeln(AVAILABLE_END);
+    Log.write("  AVAILABLE_END "); Log.writeln(AVAILABLE_END);
+    Log.write("       HEAP_END "); Log.writeln(HEAP_END);
   }
 
   /**

@@ -502,6 +502,9 @@ public abstract class Plan implements Constants {
         Log.write("                     ");
         Space.printUsagePages();
       }
+      if (Options.verbose.getValue() >= 5) {
+        Space.printVMMap();
+      }
     }
   }
 
@@ -529,6 +532,9 @@ public abstract class Plan implements Constants {
       if (Options.verbose.getValue() >= 4) {
         Log.write("                     ");
         Space.printUsagePages();
+      }
+      if (Options.verbose.getValue() >= 5) {
+        Space.printVMMap();
       }
       Log.write("                     ");
       printUsedPages();
