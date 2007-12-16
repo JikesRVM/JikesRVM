@@ -31,7 +31,7 @@ public class LoopAnalysis extends CompilerPhase {
   /**
    * Should the optimisation be performed
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= 3;
   }
 

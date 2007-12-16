@@ -43,7 +43,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    * @return an InlineDecision with the result
    */
   public InlineDecision shouldInline(final CompilationState state) {
-    final Options opts = state.getOptions();
+    final OptOptions opts = state.getOptions();
     final boolean verbose = opts.PRINT_DETAILED_INLINE_REPORT;
     if (!opts.INLINE) {
       return InlineDecision.NO("inlining not enabled");
@@ -410,7 +410,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
   /**
    * Logic to select the appropriate guarding mechanism for the edge
-   * from caller to callee according to the controlling {@link Options}.
+   * from caller to callee according to the controlling {@link OptOptions}.
    * If we are using IG_CODE_PATCH, then this method also records
    * the required dependency.
    * Precondition: lock on {@link VM_Class#classLoadListener} is held.
@@ -426,20 +426,20 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       if (VM.VerifyAssertions && VM.runningVM) {
         VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener, VM_Scheduler.getCurrentThread()));
       }
-      if (guard == Options.IG_CODE_PATCH) {
+      if (guard == OptOptions.IG_CODE_PATCH) {
         ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) VM_Class.classLoadListener;
         if (ClassLoadingDependencyManager.TRACE || ClassLoadingDependencyManager.DEBUG) {
           cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
         }
         cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
       }
-    } else if (guard == Options.IG_CODE_PATCH) {
-      guard = Options.IG_METHOD_TEST;
+    } else if (guard == OptOptions.IG_CODE_PATCH) {
+      guard = OptOptions.IG_METHOD_TEST;
     }
 
-    if (guard == Options.IG_METHOD_TEST && singleImpl.getDeclaringClass().isFinal()) {
+    if (guard == OptOptions.IG_METHOD_TEST && singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
-      guard = Options.IG_CLASS_TEST;
+      guard = OptOptions.IG_CLASS_TEST;
     }
     return guard;
   }
@@ -454,7 +454,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    * @param opts       controlling options object
    * @return the estimated cost of the inlining action
    */
-  private int inliningActionCost(int inlinedBodyEstimate, boolean needsGuard, boolean preEx, Options opts) {
+  private int inliningActionCost(int inlinedBodyEstimate, boolean needsGuard, boolean preEx, OptOptions opts) {
     int guardCost = 0;
     if (needsGuard & !preEx) {
       guardCost += VM_NormalMethod.CALL_COST;

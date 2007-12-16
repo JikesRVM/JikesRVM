@@ -33,8 +33,8 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
   // Cache objects needed to cons up compilation plans
   private final Vector<OptimizationPlanElement[]> optimizationPlans = new Vector<OptimizationPlanElement[]>();
   private final Vector<Boolean> optimizationPlanLocks = new Vector<Boolean>();
-  private final Vector<Options> options = new Vector<Options>();
-  private final Options masterOptions = new Options();
+  private final Vector<OptOptions> options = new Vector<OptOptions>();
+  private final OptOptions masterOptions = new OptOptions();
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
   // Otherwise, methods that match the pattern are not opt-compiled.
@@ -172,7 +172,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       }
       // Find failed, so create new plan
       OptimizationPlanElement[] optimizationPlan;
-      Options cloneOptions = masterOptions.dup();
+      OptOptions cloneOptions = masterOptions.dup();
       optimizationPlan = OptimizationPlanner.createOptimizationPlan(cloneOptions);
       optimizationPlans.addElement(optimizationPlan);
       optimizationPlanLocks.addElement(Boolean.TRUE);

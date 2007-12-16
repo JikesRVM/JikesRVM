@@ -72,7 +72,7 @@ final class Scheduler {
    * @param options the options object
    * @return true if we should print depgraph, false otherwise
    */
-  private boolean printDepgraph(Options options) {
+  private boolean printDepgraph(OptOptions options) {
     return (phase == PREPASS && options.PRINT_DG_SCHED_PRE) || (phase == POSTPASS && options.PRINT_DG_SCHED_POST);
   }
 
@@ -81,7 +81,7 @@ final class Scheduler {
    * @param options the options object
    * @return true if we should visualize depgraph, false otherwise
    */
-  private boolean vcgDepgraph(Options options) {
+  private boolean vcgDepgraph(OptOptions options) {
     return (phase == PREPASS && options.VCG_DG_SCHED_PRE) || (phase == POSTPASS && options.VCG_DG_SCHED_POST);
   }
 

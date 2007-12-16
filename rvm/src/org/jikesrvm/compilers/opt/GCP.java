@@ -57,7 +57,7 @@ final class GCP extends OptimizationPlanCompositeElement {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     if (options.getOptLevel() < 2) {
       return false;
     }
@@ -91,7 +91,7 @@ final class GCP extends OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
@@ -158,7 +158,7 @@ final class GCP extends OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 

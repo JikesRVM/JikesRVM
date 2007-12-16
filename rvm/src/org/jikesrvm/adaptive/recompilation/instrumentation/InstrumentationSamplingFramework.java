@@ -21,7 +21,7 @@ import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.compilers.opt.BranchOptimizations;
 import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.GetStatic;
@@ -109,7 +109,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     return constructor;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.INSTRUMENTATION_SAMPLING;
   }
 

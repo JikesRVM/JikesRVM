@@ -164,7 +164,7 @@ class SimpleEscape extends CompilerPhase {
     return this;
   }
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.SIMPLE_ESCAPE_IPA;
   }
 
@@ -172,7 +172,7 @@ class SimpleEscape extends CompilerPhase {
     return "Simple Escape Analysis";
   }
 
-  public final boolean printingEnabled(Options options, boolean before) {
+  public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
@@ -749,7 +749,7 @@ class SimpleEscape extends CompilerPhase {
    *   perform escape analysis, which will create the method
    *    summary as a side effect, and return the summary
    */
-  private static MethodSummary findOrCreateMethodSummary(VM_Method m, Options options) {
+  private static MethodSummary findOrCreateMethodSummary(VM_Method m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
       if (options.SIMPLE_ESCAPE_IPA) {
@@ -765,7 +765,7 @@ class SimpleEscape extends CompilerPhase {
   /**
    * Perform the simple escape analysis for a method.
    */
-  private static void performSimpleEscapeAnalysis(VM_Method m, Options options) {
+  private static void performSimpleEscapeAnalysis(VM_Method m, OptOptions options) {
     if (!options.SIMPLE_ESCAPE_IPA) {
       return;
     }

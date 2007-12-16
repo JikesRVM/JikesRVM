@@ -50,7 +50,7 @@ public final class FieldAnalysis extends CompilerPhase {
     return this;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.FIELD_ANALYSIS;
   }
 

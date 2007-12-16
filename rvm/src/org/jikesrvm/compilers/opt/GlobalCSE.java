@@ -174,7 +174,7 @@ public final class GlobalCSE extends CompilerPhase {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.GCSE;
   }
 

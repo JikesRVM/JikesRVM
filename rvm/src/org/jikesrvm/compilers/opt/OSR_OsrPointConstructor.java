@@ -32,7 +32,7 @@ import org.jikesrvm.compilers.opt.ir.OsrPoint;
  */
 public class OSR_OsrPointConstructor extends CompilerPhase {
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
   }
 

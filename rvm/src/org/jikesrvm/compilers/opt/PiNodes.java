@@ -64,7 +64,7 @@ public final class PiNodes extends CompilerPhase {
    * that can benefit from PI nodes.
    * @param options controlling compiler options
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.GLOBAL_BOUNDS_CHECK || typeChecks;
   }
 
@@ -95,7 +95,7 @@ public final class PiNodes extends CompilerPhase {
    * @param options controlling compiler options
    * @param before control for the query
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

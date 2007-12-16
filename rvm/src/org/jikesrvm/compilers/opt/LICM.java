@@ -266,7 +266,7 @@ public class LICM extends CompilerPhase {
    * Should this phase be executed?
    * @param options
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.GCP || options.VERBOSE_GCP;
   }
 

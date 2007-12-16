@@ -55,7 +55,7 @@ final class DominatorsPhase extends CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return true;
   }
 
@@ -73,7 +73,7 @@ final class DominatorsPhase extends CompilerPhase {
    * @param before query control
    * @return true or false
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

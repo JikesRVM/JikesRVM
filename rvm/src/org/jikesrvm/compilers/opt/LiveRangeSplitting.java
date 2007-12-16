@@ -42,7 +42,7 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  */
 class LiveRangeSplitting extends OptimizationPlanCompositeElement {
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.LIVE_RANGE_SPLITTING;
   }
 
@@ -77,7 +77,7 @@ class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
@@ -371,7 +371,7 @@ class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 

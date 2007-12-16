@@ -370,7 +370,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
     public void verify(IR ir) { }
 
     public void perform(IR ir) {
-      Options options = ir.options;
+      OptOptions options = ir.options;
       DefUse.recomputeSpansBasicBlock(ir);
       MinimalBURS mburs = new MinimalBURS(ir);
       NormalBURS burs = new NormalBURS(ir);

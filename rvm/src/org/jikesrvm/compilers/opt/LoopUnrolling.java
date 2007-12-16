@@ -76,7 +76,7 @@ public class LoopUnrolling extends CompilerPhase {
     return constructor;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return ((options.getOptLevel() >= 3) && (options.UNROLL_LOG >= 1) && (!options.LOOP_VERSIONING));
   }
 

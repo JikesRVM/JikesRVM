@@ -53,7 +53,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
  */
 final class RedundantBranchElimination extends OptimizationPlanCompositeElement {
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.REDUNDANT_BRANCH_ELIMINATION;
   }
 
@@ -97,7 +97,7 @@ final class RedundantBranchElimination extends OptimizationPlanCompositeElement 
 
     public String getName() { return "RBE Transform"; }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false && DEBUG;
     }
 

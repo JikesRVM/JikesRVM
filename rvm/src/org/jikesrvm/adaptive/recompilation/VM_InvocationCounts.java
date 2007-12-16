@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.runtime.VM_Magic;
 
 /**
@@ -101,14 +101,14 @@ public final class VM_InvocationCounts {
   }
 
   private static OptimizationPlanElement[] _optPlan;
-  private static Options _options;
+  private static OptOptions _options;
 
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
   static void createOptimizationPlan() {
-    _options = new Options();
+    _options = new OptOptions();
 
     int optLevel = VM_Controller.options.INVOCATION_COUNT_OPT_LEVEL;
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();

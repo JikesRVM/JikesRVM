@@ -69,7 +69,7 @@ public final class UnsyncReplacer {
    * @param r the register operand target of the allocation
    * @param options controlling compiler options
    */
-  private UnsyncReplacer(Register r, Options options) {
+  private UnsyncReplacer(Register r, OptOptions options) {
     reg = r;
     this.options = options;
   }
@@ -128,7 +128,7 @@ public final class UnsyncReplacer {
   /**
    * Controlling compiler options
    */
-  private Options options;
+  private OptOptions options;
   /**
    * Singleton: a single context representing "specialize this method when
    * the invokee of this method is thread-local"

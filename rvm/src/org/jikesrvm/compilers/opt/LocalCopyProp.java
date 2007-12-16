@@ -35,7 +35,7 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperand;
  */
 public class LocalCopyProp extends CompilerPhase {
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_COPY_PROP;
   }
 

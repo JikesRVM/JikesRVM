@@ -55,7 +55,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
    * Prepare compiler for use.
    * @param options options to use for compilations during initialization
    */
-  public static void init(Options options) {
+  public static void init(OptOptions options) {
     try {
       if (!(VM.writingBootImage || VM.runningTool || VM.runningVM)) {
         // Caller failed to ensure that the VM was initialized.
@@ -113,7 +113,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
    * Set up option used while compiling the boot image
    * @param options the options to set
    */
-  public static void setBootOptions(Options options) {
+  public static void setBootOptions(OptOptions options) {
     // Only do guarded inlining if we can use code patches.
     // Early speculation with method test/class test can result in
     // bad code that we can't recover from later.
@@ -131,7 +131,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
    * @param klassName the class to load
    * @param options compiler options for compiling the class
    */
-  private static void loadSpecialClass(String klassName, Options options) {
+  private static void loadSpecialClass(String klassName, OptOptions options) {
     VM_TypeReference tRef =
         VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                       VM_Atom.findOrCreateAsciiAtom(klassName));
@@ -151,7 +151,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
     }
   }
 
-  public static void preloadSpecialClass(Options options) {
+  public static void preloadSpecialClass(OptOptions options) {
     String klassName = "L" + options.PRELOAD_CLASS + ";";
 
     if (options.PRELOAD_AS_BOOT) {
@@ -212,7 +212,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
    */
   public static VM_CompiledMethod compile(CompilationPlan cp) {
     VM_NormalMethod method = cp.method;
-    Options options = cp.options;
+    OptOptions options = cp.options;
     checkSupported(method, options);
     try {
       printMethodMessage(method, options);
@@ -293,7 +293,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
    * @param method
    * @param options
    */
-  private static void printMethodMessage(VM_NormalMethod method, Options options) {
+  private static void printMethodMessage(VM_NormalMethod method, OptOptions options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT) {
       VM.sysWrite("-methodOpt " +
                   method.getDeclaringClass() +
@@ -327,7 +327,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
    * Check whether opt compilation of a particular method is supported.
    * If not, throw a non-fatal run-time exception.
    */
-  private static void checkSupported(VM_NormalMethod method, Options options) {
+  private static void checkSupported(VM_NormalMethod method, OptOptions options) {
     if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       String msg = "Dynamic Bridge register save protocol not implemented";
       throw MagicNotImplementedException.EXPECTED(msg);

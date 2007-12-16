@@ -67,7 +67,7 @@ public final class TailRecursionElimination extends CompilerPhase {
     return constructor;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= 1;
   }
 

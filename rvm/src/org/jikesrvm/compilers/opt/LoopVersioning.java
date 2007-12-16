@@ -330,7 +330,7 @@ public final class LoopVersioning extends CompilerPhase {
    * Should the optimisation be performed
    */
   @Override
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.LOOP_VERSIONING;
   }
 

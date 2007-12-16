@@ -36,7 +36,7 @@ public abstract class OptimizationPlanElement {
    * @param options The Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  public abstract boolean shouldPerform(Options options);
+  public abstract boolean shouldPerform(OptOptions options);
 
   /**
    * Do the work represented by this element in the optimization plan.

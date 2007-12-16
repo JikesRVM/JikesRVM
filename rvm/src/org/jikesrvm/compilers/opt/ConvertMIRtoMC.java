@@ -45,7 +45,7 @@ public final class ConvertMIRtoMC extends OptimizationPlanCompositeElement {
       return "Final MIR Expansion";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return !before && options.PRINT_FINAL_MIR;
     }
 
@@ -72,7 +72,7 @@ public final class ConvertMIRtoMC extends OptimizationPlanCompositeElement {
       return "Assembler Driver";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       //don't bother printing afterwards, PRINT_MACHINECODE handles that
       return before && options.DEBUG_CODEGEN;
     }
@@ -83,7 +83,7 @@ public final class ConvertMIRtoMC extends OptimizationPlanCompositeElement {
     }
 
     public void perform(IR ir) {
-      Options options = ir.options;
+      OptOptions options = ir.options;
       boolean shouldPrint =
           (options.PRINT_MACHINECODE) &&
           (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()));

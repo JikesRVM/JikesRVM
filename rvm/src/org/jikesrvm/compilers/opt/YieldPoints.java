@@ -39,7 +39,7 @@ class YieldPoints extends CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return !options.NO_THREADS;
   }
 

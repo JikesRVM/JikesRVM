@@ -18,7 +18,7 @@ import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -45,7 +45,7 @@ public class LowerInstrumentation extends CompilerPhase {
     return this;
   }
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     VM_AOSOptions opts = VM_Controller.options;
     return opts
         .INSERT_INSTRUCTION_COUNTERS ||

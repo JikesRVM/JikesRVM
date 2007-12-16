@@ -38,7 +38,7 @@ public final class MutateSplits extends CompilerPhase {
     return this;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.LIVE_RANGE_SPLITTING;
   }
 

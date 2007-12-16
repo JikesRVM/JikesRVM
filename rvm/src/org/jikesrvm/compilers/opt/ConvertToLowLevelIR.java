@@ -169,7 +169,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    *
    * @param ir IR to convert
    */
-  static void convert(IR ir, Options options) {
+  static void convert(IR ir, OptOptions options) {
     boolean didArrayStoreCheck = false;
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
 

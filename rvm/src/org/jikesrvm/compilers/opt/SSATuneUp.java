@@ -36,7 +36,7 @@ final class SSATuneUp extends OptimizationPlanCompositeElement {
         new OptimizationPlanAtomicElement(new FoldingDriver())});
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
 
@@ -55,7 +55,7 @@ final class SSATuneUp extends OptimizationPlanCompositeElement {
       return this;
     }
 
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.SSA && options.EXPRESSION_FOLDING;
     }
 
@@ -102,7 +102,7 @@ final class SSATuneUp extends OptimizationPlanCompositeElement {
       return constructor;
     }
 
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.SSA;
     }
 

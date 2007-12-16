@@ -39,7 +39,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return true;
   }
 
@@ -57,7 +57,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
    * @param before query control
    * @return true or false
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
@@ -82,7 +82,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
       ir.HIRInfo.postDominatorsAreComputed = true;
 
     } catch (OperationNotImplementedException e) {
-      Options options = ir.options;
+      OptOptions options = ir.options;
       if (options.PRINT_POST_DOMINATORS) {
         Compiler.report(e.getMessage());
       }

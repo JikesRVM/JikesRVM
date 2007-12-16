@@ -30,7 +30,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.InlineOracle;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
@@ -69,7 +69,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
   /**
    * The options to control the generation
    */
-  public Options options;
+  public OptOptions options;
 
   /**
    * The CFG object into which instructions should be generated.
@@ -188,7 +188,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * @param opts The Options to be used for the generation
    * @param ip   The InlineOracle to be used for the generation
    */
-  GenerationContext(VM_NormalMethod meth, VM_TypeReference[] params, VM_CompiledMethod cm, Options opts, InlineOracle ip) {
+  GenerationContext(VM_NormalMethod meth, VM_TypeReference[] params, VM_CompiledMethod cm, OptOptions opts, InlineOracle ip) {
     original_method = meth;
     original_cm = cm;
     method = meth;

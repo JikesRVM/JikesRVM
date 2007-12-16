@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ia32;
 
 import java.util.ArrayList;
+
 import org.jikesrvm.compilers.opt.ConvertLIRtoMIR;
 import org.jikesrvm.compilers.opt.ConvertMIRtoMC;
 import org.jikesrvm.compilers.opt.ExpandCallingConvention;
@@ -20,9 +21,9 @@ import org.jikesrvm.compilers.opt.IRPrinter;
 import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.MIRBranchOptimizations;
 import org.jikesrvm.compilers.opt.MutateSplits;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.Options;
 import org.jikesrvm.compilers.opt.PrologueEpilogueCreator;
 import org.jikesrvm.compilers.opt.RegisterAllocator;
 import org.jikesrvm.compilers.opt.SplitBasicBlock;
@@ -56,7 +57,7 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
         new SplitBasicBlock(),
         // Optional printing of final LIR
         new IRPrinter("Final LIR") {
-          public boolean shouldPerform(Options options) {
+          public boolean shouldPerform(OptOptions options) {
             return options.PRINT_FINAL_LIR;
           }
         },
@@ -67,7 +68,7 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
 
         // Optional printing of initial MIR
         new IRPrinter("Initial MIR") {
-          public boolean shouldPerform(Options options) {
+          public boolean shouldPerform(OptOptions options) {
             return options.PRINT_MIR;
           }
         }});

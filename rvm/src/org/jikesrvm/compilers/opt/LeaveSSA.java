@@ -76,7 +76,7 @@ public class LeaveSSA extends CompilerPhase {
    * Should we perform this phase?
    * @param options controlling compiler options
    */
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
 

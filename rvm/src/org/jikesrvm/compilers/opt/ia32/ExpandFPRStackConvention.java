@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.CompilerPhase;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -81,7 +81,7 @@ final class ExpandFPRStackConvention extends CompilerPhase implements Operators 
     return this;
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return options.PRINT_CALLING_CONVENTIONS && !before;
   }
 

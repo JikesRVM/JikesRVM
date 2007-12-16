@@ -93,7 +93,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    * Register allocation is required
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return true;
   }
 
@@ -101,7 +101,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     return "Linear Scan Composite Phase";
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
@@ -219,7 +219,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return this;
     }
 
-    public boolean shouldPerform(Options options) {
+    public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
@@ -227,7 +227,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return "Register Restrictions";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 
@@ -274,7 +274,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Register allocation is required
      */
-    public boolean shouldPerform(Options options) {
+    public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
@@ -282,7 +282,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return "Linear Scan";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 
@@ -932,13 +932,13 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       this.spillManager = sm;
 
       switch (ir.options.SPILL_COST_ESTIMATE) {
-        case Options.SIMPLE_SPILL_COST:
+        case OptOptions.SIMPLE_SPILL_COST:
           spillCost = new SimpleSpillCost(ir);
           break;
-        case Options.BRAINDEAD_SPILL_COST:
+        case OptOptions.BRAINDEAD_SPILL_COST:
           spillCost = new BrainDeadSpillCost(ir);
           break;
-        case Options.BLOCK_COUNT_SPILL_COST:
+        case OptOptions.BLOCK_COUNT_SPILL_COST:
           spillCost = new BlockCountSpillCost(ir);
           break;
         default:
@@ -1717,7 +1717,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * should we perform this phase? yes.
      */
-    public boolean shouldPerform(Options options) { return true; }
+    public boolean shouldPerform(OptOptions options) { return true; }
 
     /**
      * a name for this phase.
@@ -1727,7 +1727,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * should we print the ir?
      */
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 
@@ -2243,7 +2243,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    */
   static final class UpdateGCMaps1 extends CompilerPhase {
 
-    public boolean shouldPerform(Options options) {
+    public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
@@ -2261,7 +2261,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return "Update GCMaps 1";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 
@@ -2315,7 +2315,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return this;
     }
 
-    public boolean shouldPerform(Options options) {
+    public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
@@ -2323,7 +2323,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return "Update GCMaps 2";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 
@@ -2424,7 +2424,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return this;
     }
 
-    public boolean shouldPerform(Options options) {
+    public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
@@ -2432,7 +2432,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return "Spill Code";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 
@@ -2485,7 +2485,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    */
   public static final class UpdateOSRMaps extends CompilerPhase {
 
-    public boolean shouldPerform(Options options) {
+    public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
@@ -2503,7 +2503,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return "Update OSRMaps";
     }
 
-    public boolean printingEnabled(Options options, boolean before) {
+    public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
 

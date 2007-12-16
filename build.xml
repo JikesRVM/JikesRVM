@@ -639,11 +639,11 @@ Check to make sure all required properties are specified. This includes properti
     </GenerateFromTemplate>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/Options.template"/>
-        <arg value="${generated.java}/org/jikesrvm/compilers/opt/Options.java"/>
+        <arg value="${options.dir}/OptOptions.template"/>
+        <arg value="${generated.java}/org/jikesrvm/compilers/opt/OptOptions.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.opt.dat ${options.dir}/SharedBooleanOptions.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.opt.dat ${options.dir}/SharedValueOptions.dat"/>
-        <arg value="MYTYPE=Options"/>
+        <arg value="MYTYPE=OptOptions"/>
       </args>
     </GenerateFromTemplate>
     <GenerateFromTemplate>

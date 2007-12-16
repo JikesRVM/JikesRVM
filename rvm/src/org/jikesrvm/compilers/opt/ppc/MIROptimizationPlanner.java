@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.MIRBranchOptimizations;
 import org.jikesrvm.compilers.opt.MutateSplits;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.PrePassScheduler;
 import org.jikesrvm.compilers.opt.PrologueEpilogueCreator;
 import org.jikesrvm.compilers.opt.RegisterAllocator;
@@ -55,7 +55,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
     composeComponents(p, "Convert LIR to MIR", new Object[]{
         // Optional printing of final LIR
         new IRPrinter("Final LIR") {
-          public boolean shouldPerform(Options options) {
+          public boolean shouldPerform(OptOptions options) {
             return options.PRINT_FINAL_LIR;
           }
         },
@@ -67,7 +67,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
         new ConvertLIRtoMIR(),
         // Optional printing of initial MIR
         new IRPrinter("Initial MIR") {
-          public boolean shouldPerform(Options options) {
+          public boolean shouldPerform(OptOptions options) {
             return options.PRINT_MIR;
           }
         }});
@@ -122,7 +122,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
   private static void MIR2MC(ArrayList<OptimizationPlanElement> p) {
     // MANDATORY: Final assembly
     addComponent(p, new IRPrinter("Final MIR") {
-      public boolean shouldPerform(Options options) {
+      public boolean shouldPerform(OptOptions options) {
         return options.PRINT_FINAL_MIR;
       }
     });

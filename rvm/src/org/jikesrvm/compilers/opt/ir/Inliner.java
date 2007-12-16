@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.InlineDecision;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
@@ -135,7 +135,7 @@ public class Inliner {
         VM_NormalMethod callee = (VM_NormalMethod) targets[i];
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
-          String guard = guards[i] == Options.IG_CLASS_TEST ? " (class test) " : " (method test) ";
+          String guard = guards[i] == OptOptions.IG_CLASS_TEST ? " (class test) " : " (method test) ";
           VM.sysWrite("\tGuarded inline" +
                       guard +
                       " " +
@@ -330,7 +330,7 @@ public class Inliner {
           }
         }
 
-        if (guards[i] == Options.IG_CLASS_TEST) {
+        if (guards[i] == OptOptions.IG_CLASS_TEST) {
           tmp =
               InlineGuard.create(IG_CLASS_TEST,
                                  receiver.copy(),
@@ -338,7 +338,7 @@ public class Inliner {
                                  new TypeOperand(target.getDeclaringClass()),
                                  testFailed.makeJumpTarget(),
                                  BranchProfileOperand.unlikely());
-        } else if (guards[i] == Options.IG_METHOD_TEST) {
+        } else if (guards[i] == OptOptions.IG_METHOD_TEST) {
           // method test for interface requires additional check if
           // the reciever's class is a subclass of inlined method's
           // declaring class.

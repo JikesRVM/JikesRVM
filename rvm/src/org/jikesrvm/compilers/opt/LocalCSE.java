@@ -101,7 +101,7 @@ public class LocalCSE extends CompilerPhase {
     VM.sysWrite("% Infrequent BBs");
   }
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_CSE;
   }
 
@@ -445,10 +445,10 @@ public class LocalCSE extends CompilerPhase {
     /** Implementation of the cache */
     private final ArrayList<AvailableExpression> cache = new ArrayList<AvailableExpression>(3);
 
-    private final Options options;
+    private final OptOptions options;
     private final boolean doMemory;
 
-    AvExCache(Options opts, boolean doMem) {
+    AvExCache(OptOptions opts, boolean doMem) {
       options = opts;
       doMemory = doMem;
     }

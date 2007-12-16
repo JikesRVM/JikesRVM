@@ -32,7 +32,7 @@ import org.jikesrvm.compilers.opt.HeapVariable;
 import org.jikesrvm.compilers.opt.InlineOracle;
 import org.jikesrvm.compilers.opt.InstrumentationPlan;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.SSAOptions;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
@@ -143,10 +143,10 @@ public final class IR {
   public final VM_OptCompiledMethod compiledMethod;
 
   /**
-   * The compiler {@link Options options} that apply
+   * The compiler {@link OptOptions options} that apply
    * to the current compilation.
    */
-  public final Options options;
+  public final OptOptions options;
 
   /**
    * {@link SSAOptions Options} that define the SSA properties
@@ -266,7 +266,7 @@ public final class IR {
    * @param ip   The inlining oracle to use for the compilation
    * @param opts The options to use for the compilation
    */
-  public IR(VM_NormalMethod m, InlineOracle ip, Options opts) {
+  public IR(VM_NormalMethod m, InlineOracle ip, OptOptions opts) {
     method = m;
     params = null;
     options = opts;

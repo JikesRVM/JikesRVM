@@ -72,7 +72,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
    * The default optimization options, with the INVOKEE_THREAD_LOCAL flag
    * set true.
    */
-  private static Options options;
+  private static OptOptions options;
   /**
    * The default optimization plan.
    */
@@ -82,7 +82,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
    * Initialize static members.
    */
   static void init() {
-    options = new Options();
+    options = new OptOptions();
     optimizationPlan = OptimizationPlanner.createOptimizationPlan(options);
     options.INVOKEE_THREAD_LOCAL = true;
   }

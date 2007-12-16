@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.IR;
 
@@ -94,7 +95,7 @@ public abstract class CompilerPhase {
    * @param options the compiler options for the compilation
    * @return true if the phase should be performed
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return true;
   }
 
@@ -107,7 +108,7 @@ public abstract class CompilerPhase {
    * @param before true when invoked before perform, false otherwise.
    * @return true if the IR should be printed, false otherwise.
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

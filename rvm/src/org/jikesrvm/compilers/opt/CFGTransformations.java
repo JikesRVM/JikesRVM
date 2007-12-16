@@ -75,7 +75,7 @@ class CFGTransformations extends CompilerPhase {
    * This method determines if the phase should be run, based on the
    * Options object it is passed
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     if (options.getOptLevel() < 2) {
       return false;
     }
@@ -92,7 +92,7 @@ class CFGTransformations extends CompilerPhase {
   /**
    * Returns true if the phase wants the IR dumped before and/or after it runs.
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

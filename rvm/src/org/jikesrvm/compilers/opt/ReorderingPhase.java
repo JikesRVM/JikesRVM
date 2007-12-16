@@ -48,11 +48,11 @@ final class ReorderingPhase extends CompilerPhase {
     return this;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.REORDER_CODE;
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return DEBUG;
   }
 

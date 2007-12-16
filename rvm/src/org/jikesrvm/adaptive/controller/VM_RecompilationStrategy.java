@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.compilers.opt.InstrumentationPlan;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
@@ -231,17 +231,17 @@ public abstract class VM_RecompilationStrategy {
   }
 
   private OptimizationPlanElement[][] _optPlans;
-  private Options[] _options;
+  private OptOptions[] _options;
 
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
   void createOptimizationPlans() {
-    Options options = new Options();
+    OptOptions options = new OptOptions();
 
     int maxOptLevel = getMaxOptLevel();
-    _options = new Options[maxOptLevel + 1];
+    _options = new OptOptions[maxOptLevel + 1];
     _optPlans = new OptimizationPlanElement[maxOptLevel + 1][];
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
     for (int i = 0; i <= maxOptLevel; i++) {
@@ -266,7 +266,7 @@ public abstract class VM_RecompilationStrategy {
    * @param maxOptLevel The maximum valid opt level
    * @param optCompilerOptions The list of command line options
    */
-  public static void processCommandLineOptions(Options options, int optLevel, int maxOptLevel,
+  public static void processCommandLineOptions(OptOptions options, int optLevel, int maxOptLevel,
                                                String[] optCompilerOptions) {
 
     String prefix = "opt" + optLevel + ":";

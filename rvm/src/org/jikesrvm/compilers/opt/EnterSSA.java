@@ -110,7 +110,7 @@ public class EnterSSA extends CompilerPhase {
    * @param options the controlling compiler options
    * @return true iff SSA is enabled under the options
    */
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
 
@@ -142,7 +142,7 @@ public class EnterSSA extends CompilerPhase {
    * @param before true iff querying before the phase
    * @return true or false
    */
-  public final boolean printingEnabled(Options options, boolean before) {
+  public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

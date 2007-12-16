@@ -30,7 +30,7 @@ public final class ExpandCallingConvention extends CompilerPhase {
     return this;
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return options.PRINT_CALLING_CONVENTIONS && !before;
   }
 

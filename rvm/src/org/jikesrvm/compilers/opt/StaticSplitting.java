@@ -64,11 +64,11 @@ class StaticSplitting extends CompilerPhase {
 
   public String getName() { return "Static Splitting"; }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.STATIC_SPLITTING;
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return DEBUG;
   }
 

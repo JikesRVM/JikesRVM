@@ -32,7 +32,7 @@ import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.compilers.opt.Compiler;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Time;
 
@@ -80,7 +80,7 @@ class OptTestHarness {
   // Keep baseline and opt methods separate in list of methods
   // to be compiled
   static Vector<VM_Method> optMethodVector = null;
-  static Vector<Options> optOptionsVector = null;
+  static Vector<OptOptions> optOptionsVector = null;
   static Vector<VM_Method> baselineMethodVector = null;
 
   static java.lang.reflect.Method reflectoid;
@@ -172,7 +172,7 @@ class OptTestHarness {
     System.err.println("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
   }
 
-  private static void processClass(VM_Class klass, Options opts) {
+  private static void processClass(VM_Class klass, OptOptions opts) {
     VM_Method[] methods = klass.getDeclaredMethods();
     for (VM_Method method : methods) {
       if (!method.isAbstract() && !method.isNative()) {
@@ -182,11 +182,11 @@ class OptTestHarness {
   }
 
   // Wrapper applying default decision regarding opt/baseline
-  private static void processMethod(VM_Method method, Options opts) {
+  private static void processMethod(VM_Method method, OptOptions opts) {
     processMethod(method, opts, BASELINE);
   }
 
-  private static void processMethod(VM_Method method, Options opts, boolean isBaseline) {
+  private static void processMethod(VM_Method method, OptOptions opts, boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
@@ -200,7 +200,7 @@ class OptTestHarness {
   }
 
   // process the command line option
-  static Options options = new Options();
+  static OptOptions options = new OptOptions();
 
   private static void processOptionString(String[] args) {
     for (int i = 0, n = args.length; i < n; i++) {
@@ -342,7 +342,7 @@ class OptTestHarness {
     VM.sysWrite("Compiling " + size + " methods opt\n");
     for (int i = 0; i < size; i++) {
       VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i);
-      Options opts = optOptionsVector.elementAt(i);
+      OptOptions opts = optOptionsVector.elementAt(i);
       try {
         VM_CompiledMethod cm = null;
         CompilationPlan cp =
@@ -404,7 +404,7 @@ class OptTestHarness {
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector<VM_Method>(50);
-    optOptionsVector = new Vector<Options>(50);
+    optOptionsVector = new Vector<OptOptions>(50);
     baselineMethodVector = new Vector<VM_Method>(50);
     reflectoidVector = new Vector<Method>(10);
     reflectMethodVector = new Vector<VM_Method>(10);

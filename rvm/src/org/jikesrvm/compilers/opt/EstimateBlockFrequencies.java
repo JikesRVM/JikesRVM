@@ -93,7 +93,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     // Prepare
     ir = _ir;
 
-    if (ir.options.FREQUENCY_STRATEGY == Options.DUMB_FREQ) {
+    if (ir.options.FREQUENCY_STRATEGY == OptOptions.DUMB_FREQ) {
       setDumbFrequencies(ir);
       return;
     }

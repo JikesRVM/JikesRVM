@@ -37,7 +37,7 @@ import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
@@ -115,7 +115,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
 
   // Cache objects needed to cons up compilation plans
   // TODO: cutting link to opt compiler by declaring type as object.
-  public static final Object /* Options */ options = VM.BuildForAdaptiveSystem ? new Options() : null;
+  public static final Object /* Options */ options = VM.BuildForAdaptiveSystem ? new OptOptions() : null;
   public static Object /* OptimizationPlanElement[] */ optimizationPlan;
 
   /**
@@ -312,9 +312,9 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   public static void processOptCommandLineArg(String prefix, String arg) {
     if (VM.BuildForAdaptiveSystem) {
       if (compilerEnabled) {
-        if (((Options) options).processAsOption(prefix, arg)) {
+        if (((OptOptions) options).processAsOption(prefix, arg)) {
           // update the optimization plan to reflect the new command line argument
-          optimizationPlan = OptimizationPlanner.createOptimizationPlan((Options) options);
+          optimizationPlan = OptimizationPlanner.createOptimizationPlan((OptOptions) options);
         } else {
           VM.sysWrite("Unrecognized opt compiler argument \"" + arg + "\"");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -396,7 +396,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
               new CompilationPlan(method,
                                       (OptimizationPlanElement[]) optimizationPlan,
                                       null,
-                                      (Options) options);
+                                      (OptOptions) options);
           return optCompileWithFallBackInternal(method, plan);
         } finally {
           compilationInProgress = false;
@@ -580,7 +580,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
           new CompilationPlan(method,
                                   (OptimizationPlanElement[]) optimizationPlan,
                                   null,
-                                  (Options) options);
+                                  (OptOptions) options);
       return recompileWithOpt(plan);
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
@@ -603,12 +603,12 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
       VM_Callbacks.addExitMonitor(new VM_RuntimeCompiler());
     }
     if (VM.BuildForAdaptiveSystem) {
-      optimizationPlan = OptimizationPlanner.createOptimizationPlan((Options) options);
+      optimizationPlan = OptimizationPlanner.createOptimizationPlan((OptOptions) options);
       if (VM.MeasureCompilationPhases) {
         OptimizationPlanner.initializeMeasureCompilation();
       }
 
-      Compiler.init((Options) options);
+      Compiler.init((OptOptions) options);
 
       VM_PreCompile.init();
       // when we reach here the OPT compiler is enabled.
@@ -653,13 +653,13 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
             // Other than when boot options are requested (processed during preloadSpecialClass
             // It is hard to communicate options for these special compilations. Use the
             // default options and at least pick up the verbose if requested for base/irc
-            Options tmpoptions = ((Options) options).dup();
+            OptOptions tmpoptions = ((OptOptions) options).dup();
             tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
             tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
             if (VM_BaselineCompiler.options.PRINT_METHOD) {
               tmpoptions.PRINT_METHOD = true;
             } else {
-              tmpoptions = (Options) options;
+              tmpoptions = (OptOptions) options;
             }
             Compiler.preloadSpecialClass(tmpoptions);
             compilationInProgress = false;
@@ -682,7 +682,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
                 new CompilationPlan(method,
                                         (OptimizationPlanElement[]) optimizationPlan,
                                         instrumentationPlan,
-                                        (Options) options);
+                                        (OptOptions) options);
             cm = optCompileWithFallBack(method, compPlan);
           }
         } else {

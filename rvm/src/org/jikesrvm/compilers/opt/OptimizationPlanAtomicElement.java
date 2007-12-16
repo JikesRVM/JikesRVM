@@ -67,7 +67,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    * @param options The Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return myPhase.shouldPerform(options);
   }
 

@@ -18,7 +18,7 @@ import org.jikesrvm.*;
  * Class to handle command-line arguments and options for the
  * optimizng compiler.
  * <p>
- * Note: This file is mechanically generated from Options.template
+ * Note: This file is mechanically generated from OptOptions.template
  *       and MasterOptions.template
  * <p>
  * Note: Boolean options are defined in BOOLEAN_DAT_FILES
@@ -26,7 +26,7 @@ import org.jikesrvm.*;
  *       (value, enumeration, bitmask)
  *
  **/
-public class Options implements Cloneable {
+public class OptOptions implements Cloneable {
 
   // Non-template instance fields that we don't want
   //  available on the command-line)

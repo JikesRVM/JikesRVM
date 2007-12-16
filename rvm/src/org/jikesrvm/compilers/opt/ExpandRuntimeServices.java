@@ -94,7 +94,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     return constructor;
   }
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return true;
   }
 

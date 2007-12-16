@@ -31,7 +31,7 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperand;
  */
 public class LocalConstantProp extends CompilerPhase {
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_CONSTANT_PROP;
   }
 

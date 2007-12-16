@@ -46,7 +46,7 @@ class EscapeTransformations extends CompilerPhase {
     return this;
   }
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
   }
 
@@ -54,7 +54,7 @@ class EscapeTransformations extends CompilerPhase {
     return "Escape Transformations";
   }
 
-  public final boolean printingEnabled(Options options, boolean before) {
+  public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
@@ -181,7 +181,7 @@ class EscapeTransformations extends CompilerPhase {
    *            null if no legal transformation found
    */
   private AggregateReplacer getAggregateReplacer(Instruction inst, IR ir) {
-    Options options = ir.options;
+    OptOptions options = ir.options;
     VM_Type t = null;
     if (inst.getOpcode() == NEW_opcode) {
       t = New.getType(inst).getVMType();

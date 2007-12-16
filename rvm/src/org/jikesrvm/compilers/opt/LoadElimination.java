@@ -84,7 +84,7 @@ final class LoadElimination extends OptimizationPlanCompositeElement {
 
   static final boolean DEBUG = false;
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.LOAD_ELIMINATION;
   }
 
@@ -667,7 +667,7 @@ final class LoadElimination extends OptimizationPlanCompositeElement {
       return constructor;
     }
 
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.LOAD_ELIMINATION;
     }
 
@@ -695,7 +695,7 @@ final class LoadElimination extends OptimizationPlanCompositeElement {
    */
   private static class GVNPreparation extends CompilerPhase {
 
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return options.LOAD_ELIMINATION;
     }
 

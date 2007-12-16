@@ -47,7 +47,7 @@ class DominanceFrontier extends CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return true;
   }
 
@@ -76,7 +76,7 @@ class DominanceFrontier extends CompilerPhase {
    * @param before true iff querying before the phase
    * @return true or false
    */
-  public final boolean printingEnabled(Options options, boolean before) {
+  public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

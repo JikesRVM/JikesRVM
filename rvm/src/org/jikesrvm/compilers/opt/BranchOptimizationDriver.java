@@ -58,7 +58,7 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
   }
 
   /** Interface */
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
   }
 
@@ -66,7 +66,7 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
     return "Branch Optimizations";
   }
 
-  public final boolean printingEnabled(Options options, boolean before) {
+  public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

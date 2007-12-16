@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 
 /**
  * This class holds miscellaneous information regarding the state of
@@ -28,7 +28,7 @@ public final class CompilationState {
    */
   private final Instruction call;
   private final boolean isExtant;
-  private final Options options;
+  private final OptOptions options;
   private final VM_CompiledMethod cm;
 
   /*
@@ -41,7 +41,7 @@ public final class CompilationState {
    * @param options controlling compiler options
    * @param cm compiled method of the IR object being compiled
    */
-  public CompilationState(Instruction call, boolean isExtant, Options options, VM_CompiledMethod cm) {
+  public CompilationState(Instruction call, boolean isExtant, OptOptions options, VM_CompiledMethod cm) {
     this.call = call;
     this.isExtant = isExtant;
     this.options = options;
@@ -83,7 +83,7 @@ public final class CompilationState {
   /**
    * Return the controlling compiler options
    */
-  public Options getOptions() {
+  public OptOptions getOptions() {
     return options;
   }
 

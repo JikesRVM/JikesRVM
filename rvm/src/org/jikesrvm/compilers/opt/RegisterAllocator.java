@@ -27,16 +27,16 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
         new LinearScan()});
   }
 
-  public boolean shouldPerform(Options options) { return true; }
+  public boolean shouldPerform(OptOptions options) { return true; }
 
   public String getName() { return "RegAlloc"; }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return options.PRINT_REGALLOC;
   }
 
   private static class RegisterAllocPreparation extends CompilerPhase {
-    public final boolean shouldPerform(Options options) {
+    public final boolean shouldPerform(OptOptions options) {
       return true;
     }
 

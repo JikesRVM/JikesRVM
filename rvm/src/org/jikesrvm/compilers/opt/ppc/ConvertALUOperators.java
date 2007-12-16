@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ppc;
 
 import org.jikesrvm.compilers.opt.CompilerPhase;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Operators;
 
@@ -34,7 +34,7 @@ public abstract class ConvertALUOperators extends CompilerPhase implements Opera
 
   public final String getName() { return "ConvertALUOps"; }
 
-  public final boolean printingEnabled(Options options, boolean before) {
+  public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

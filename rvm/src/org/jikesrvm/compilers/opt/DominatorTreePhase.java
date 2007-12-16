@@ -24,7 +24,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     // only perform if the dominators were successfully computed and
     // one of the following options are set.
     return options.SSA || options.PRINT_DOMINATORS;
@@ -44,7 +44,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    * @param before query control
    * @return true or false.
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

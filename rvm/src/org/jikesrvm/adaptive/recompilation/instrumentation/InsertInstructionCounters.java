@@ -18,7 +18,7 @@ import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.measurements.instrumentation.VM_StringEventCounterData;
 import org.jikesrvm.compilers.opt.CompilerPhase;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -48,7 +48,7 @@ public class InsertInstructionCounters extends CompilerPhase {
     return this;
   }
 
-  public final boolean shouldPerform(Options options) {
+  public final boolean shouldPerform(OptOptions options) {
     return VM_Controller.options.INSERT_INSTRUCTION_COUNTERS;
   }
 

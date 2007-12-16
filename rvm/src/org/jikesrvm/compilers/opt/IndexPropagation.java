@@ -53,7 +53,7 @@ public final class IndexPropagation extends CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
 

@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.Options;
+import org.jikesrvm.compilers.opt.OptOptions;
 
 /**
  * OSR_SpecialCompiler is a wrapper for compiling specialized byte code.
@@ -132,13 +132,13 @@ public class OSR_SpecialCompiler {
 
     VM_ControllerPlan latestPlan = VM_ControllerMemory.findLatestPlan(method);
 
-    Options _options = null;
+    OptOptions _options = null;
     if (latestPlan != null) {
       _options = latestPlan.getCompPlan().options.dup();
     } else {
       // no previous compilation plan, a long run loop promoted from baseline.
       // this only happens when testing, not in real code
-      _options = new Options();
+      _options = new OptOptions();
       _options.setOptLevel(0);
     }
     // disable OSR points in specialized method

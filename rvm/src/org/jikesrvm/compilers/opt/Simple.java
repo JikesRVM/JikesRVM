@@ -69,7 +69,7 @@ public final class Simple extends CompilerPhase {
    */
   private final boolean foldBranches;
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
   }
 
@@ -77,7 +77,7 @@ public final class Simple extends CompilerPhase {
     return "Simple Opts";
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 

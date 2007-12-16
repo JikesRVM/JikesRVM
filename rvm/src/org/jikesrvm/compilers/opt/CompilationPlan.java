@@ -53,7 +53,7 @@ public final class CompilationPlan {
   /**
    * The Options object that contains misc compilation control data
    */
-  public Options options;
+  public OptOptions options;
 
   /**
    * Whether this compilation is for analysis only?
@@ -72,7 +72,7 @@ public final class CompilationPlan {
    * @param opts The Options to be used for compiling m
    */
   public CompilationPlan(VM_NormalMethod m, VM_TypeReference[] pms, OptimizationPlanElement[] op, InstrumentationPlan mp,
-                             Options opts) {
+                             OptOptions opts) {
     method = m;
     params = pms;
     inlinePlan = new DefaultInlineOracle();
@@ -90,7 +90,7 @@ public final class CompilationPlan {
    * @param opts The Options to be used for compiling m
    */
   public CompilationPlan(VM_NormalMethod m, OptimizationPlanElement[] op, InstrumentationPlan mp,
-                             Options opts) {
+                             OptOptions opts) {
     this(m, null, op, mp, opts);
   }
 
@@ -102,7 +102,7 @@ public final class CompilationPlan {
    * @param opts The Options to be used for compiling m
    */
   public CompilationPlan(VM_NormalMethod m, OptimizationPlanElement op, InstrumentationPlan mp,
-                             Options opts) {
+                             OptOptions opts) {
     this(m, new OptimizationPlanElement[]{op}, mp, opts);
   }
 

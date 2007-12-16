@@ -20,7 +20,7 @@ package org.jikesrvm.compilers.opt;
  */
 public final class PrePassScheduler extends CompilerPhase {
 
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     return options.SCHEDULE_PREPASS;
   }
 
@@ -28,7 +28,7 @@ public final class PrePassScheduler extends CompilerPhase {
     return "InstrSched (pre-pass)";
   }
 
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return !before &&          // old interface only printed afterwards
            options.PRINT_SCHEDULE_PRE;
   }

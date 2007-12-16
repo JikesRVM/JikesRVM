@@ -101,7 +101,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    * @param options The Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  public boolean shouldPerform(Options options) {
+  public boolean shouldPerform(OptOptions options) {
     for (OptimizationPlanElement myElement : myElements) {
       if (myElement.shouldPerform(options)) {
         return true;
@@ -119,7 +119,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    * @param before true when invoked before perform, false otherwise.
    * @return true if the IR should be printed, false otherwise.
    */
-  public boolean printingEnabled(Options options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
