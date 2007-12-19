@@ -1594,6 +1594,7 @@ target.jni-suffix=${target.jni-suffix}
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
+      <fileset dir="rvm/src-generated" includes="**/*.java"/>
       <fileset dir="MMTk" includes="**/*.java"/>
       <fileset dir="vmmagic" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
