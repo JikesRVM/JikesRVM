@@ -3150,6 +3150,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_monitorenter() {
     peekAddr(T0, 0);
+    asm.emitNullCheck(T0);
     asm.emitLAddrOffset(S0, JTOC, VM_Entrypoints.lockMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitBCCTRL();

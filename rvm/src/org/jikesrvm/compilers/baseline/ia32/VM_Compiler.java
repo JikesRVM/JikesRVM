@@ -3117,6 +3117,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   @Override
   protected final void emit_monitorenter() {
+    asm.emitMOV_Reg_RegInd(T0, SP);       // T0 is object reference
+    genExplicitNullCheck(asm, T0);
     genParameterRegisterLoad(1);          // pass 1 parameter word
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());
   }
@@ -3326,6 +3328,27 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     genParameterRegisterLoad(1); // pass 1 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());
   }
+
+  /**
+   * Generate an explicit null check, trapping if the register is null
+   * otherwise falling through.
+   * @param asm the assembler to generate into
+   * @param objRefReg the register containing the array reference
+   */
+  @Inline
+  private void genExplicitNullCheck(VM_Assembler asm, GPR objRefReg) {
+    if (generateBoundsChecks) {
+      // compare to zero
+      asm.emitCMP_Reg_Imm(objRefReg, 0);
+       // Jmp around trap if index is OK
+      asm.emitBranchLikelyNextInstruction();
+      VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.NE);
+      // trap
+      asm.emitINT_Imm(VM_Runtime.TRAP_NULL_POINTER + RVM_TRAP_BASE);
+      fr.resolve(asm);
+    }
+  }
+
 
   /**
    * Generate an array bounds check trapping if the array bound check fails,
