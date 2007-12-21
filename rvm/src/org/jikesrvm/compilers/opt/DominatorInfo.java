@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.util.BitVector;
 
 /**
  * DominatorInfo.java

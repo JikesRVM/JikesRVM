@@ -57,6 +57,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**
  * This optimisation works from the outer most loop inward, optimising

@@ -36,6 +36,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**
  * This class contains methods for invoking BURS tree-pattern matching

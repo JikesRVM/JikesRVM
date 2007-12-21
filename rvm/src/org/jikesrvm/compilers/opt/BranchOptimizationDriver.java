@@ -21,6 +21,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
 import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**
  * IR level independent driver for

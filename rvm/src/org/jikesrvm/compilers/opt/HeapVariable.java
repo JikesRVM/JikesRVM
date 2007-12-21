@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.util.BitVector;
 
 /**
  * An HeapVariable represents a heap variable for heap array SSA form

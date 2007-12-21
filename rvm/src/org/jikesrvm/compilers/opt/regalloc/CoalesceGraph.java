@@ -14,12 +14,12 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.HashMap;
 
-import org.jikesrvm.compilers.opt.GraphEdge;
-import org.jikesrvm.compilers.opt.SpaceEffGraph;
-import org.jikesrvm.compilers.opt.SpaceEffGraphEdge;
-import org.jikesrvm.compilers.opt.SpaceEffGraphNode;
-import org.jikesrvm.compilers.opt.SpaceEffGraphNode.GraphEdgeEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.util.GraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode.GraphEdgeEnumeration;
 
 /**
  * This class represents a graph, where

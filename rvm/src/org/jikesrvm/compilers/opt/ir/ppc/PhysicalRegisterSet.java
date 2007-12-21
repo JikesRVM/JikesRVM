@@ -14,14 +14,14 @@ package org.jikesrvm.compilers.opt.ir.ppc;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.BitSet;
-import org.jikesrvm.compilers.opt.CompoundEnumerator;
-import org.jikesrvm.compilers.opt.EmptyEnumerator;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ReverseEnumerator;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.util.BitSet;
+import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
+import org.jikesrvm.compilers.opt.util.EmptyEnumerator;
+import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 
 /**

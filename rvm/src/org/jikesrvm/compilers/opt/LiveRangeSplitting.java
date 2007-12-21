@@ -26,6 +26,8 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**
  * Perform live-range splitting.

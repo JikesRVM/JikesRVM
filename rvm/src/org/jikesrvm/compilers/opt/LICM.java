@@ -175,6 +175,7 @@ import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.util.Queue;
 
 /**
  * This class does the job. It is a subphase of GCP.

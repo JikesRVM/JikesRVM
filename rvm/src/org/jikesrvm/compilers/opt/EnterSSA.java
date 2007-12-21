@@ -50,6 +50,9 @@ import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Prepare;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.Pair;
+import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**
  * This compiler phase constructs SSA form.

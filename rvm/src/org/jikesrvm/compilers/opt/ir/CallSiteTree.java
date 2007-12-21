@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.Tree;
+import org.jikesrvm.compilers.opt.util.Tree;
 
 /**
  *  This class represents the set of inlined method calls that are

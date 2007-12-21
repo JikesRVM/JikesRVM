@@ -23,6 +23,7 @@ import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.util.Bits;
 import org.vmmagic.unboxed.Address;
 
 /**

@@ -12,17 +12,19 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
 
 /**
@@ -261,7 +263,7 @@ final class ReorderingPhase extends CompilerPhase {
     BasicBlock lastNode = null;
     ChainInfo nextChoice = chainInfo.get(entry);
     int numPlaced = 0;
-    ir.cfg._firstNode = entry;
+    ir.cfg.setFirstNode(entry);
     while (true) {
       if (DEBUG) VM.sysWriteln("Placing chain " + nextChoice);
       // Append nextChoice to the previous chain
@@ -313,7 +315,7 @@ final class ReorderingPhase extends CompilerPhase {
     }
 
     if (VM.VerifyAssertions) VM._assert(numPlaced == numBlocks); // Don't lose blocks!!
-    ir.cfg._lastNode = lastNode;
+    ir.cfg.setLastNode(lastNode);
   }
 
   private void dumpChain(BasicBlock head) {

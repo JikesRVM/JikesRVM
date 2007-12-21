@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 
 /**
  * Dependence graph edges: connect operands of different instructions
@@ -123,7 +124,7 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @return true if yes, false otherwise
    */
   static boolean isRegTrue(SpaceEffGraphEdge edge) {
-    return (edge.scratch & REG_TRUE) != 0;
+    return (edge.getInfo() & REG_TRUE) != 0;
   }
 
   /**
@@ -133,7 +134,7 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @return true if yes, false otherwise
    */
   static boolean isRegAnti(SpaceEffGraphEdge edge) {
-    return (edge.scratch & REG_ANTI) != 0;
+    return (edge.getInfo() & REG_ANTI) != 0;
   }
 
   /**
@@ -143,7 +144,7 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @return true if yes, false otherwise
    */
   static boolean isRegOutput(SpaceEffGraphEdge edge) {
-    return (edge.scratch & REG_OUTPUT) != 0;
+    return (edge.getInfo() & REG_OUTPUT) != 0;
   }
 
   /**
@@ -175,9 +176,8 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @param depKind the type of the dependence edge
    */
   DepGraphEdge(RegisterOperand destOp, DepGraphNode sourceNode, DepGraphNode destNode, int depKind) {
+    super(sourceNode, destNode);
     _destOperand = destOp;
-    _fromNode = sourceNode;
-    _toNode = destNode;
     setInfo(depKind);
   }
 

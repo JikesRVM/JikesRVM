@@ -18,6 +18,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import org.jikesrvm.compilers.opt.util.FilterEnumerator;
+import org.jikesrvm.compilers.opt.util.Graph;
+import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+import org.jikesrvm.compilers.opt.util.GraphUtilities;
+import org.jikesrvm.compilers.opt.util.ReverseDFSenumerateByFinish;
+
 /**
  * Represents a system of Data Flow equations
  *

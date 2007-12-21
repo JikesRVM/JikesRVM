@@ -26,6 +26,7 @@ import org.jikesrvm.compilers.opt.ir.IRGenOptions;
 import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.StringConstantOperand;
+import org.jikesrvm.compilers.opt.util.Stack;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;

@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.Bits;
+import org.jikesrvm.compilers.opt.util.Bits;
 
 /**
  * Represents a constant int operand.

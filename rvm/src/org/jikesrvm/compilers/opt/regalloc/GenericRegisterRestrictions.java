@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.BitSet;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -26,6 +25,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.util.BitSet;
 
 /**
  * An instance of this class provides a mapping from symbolic register to

@@ -39,6 +39,7 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.UnreachableOperand;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**
  * This compiler phase translates out of SSA form.

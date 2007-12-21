@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+
 /**
  * DF_Equation.java
  *

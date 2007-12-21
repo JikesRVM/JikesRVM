@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.compilers.opt.TreeNode;
+import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**
  * The nodes of an CallSiteTree.  They represent inlined call

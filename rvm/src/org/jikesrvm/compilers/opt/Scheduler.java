@@ -17,6 +17,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
  * Instruction Scheduler

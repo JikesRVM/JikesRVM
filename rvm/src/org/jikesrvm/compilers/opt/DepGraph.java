@@ -47,6 +47,7 @@ import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 
 /**
  * Dependence Graph for a single basic block in the program.

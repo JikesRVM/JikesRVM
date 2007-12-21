@@ -14,9 +14,9 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.TreeNode;
 import org.jikesrvm.compilers.opt.ir.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.CallSiteTreeNode;
+import org.jikesrvm.compilers.opt.util.TreeNode;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 

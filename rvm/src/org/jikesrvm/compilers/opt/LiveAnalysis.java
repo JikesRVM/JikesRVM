@@ -43,6 +43,8 @@ import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
+import org.jikesrvm.compilers.opt.util.EmptyIterator;
+import org.jikesrvm.compilers.opt.util.SortedGraphIterator;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_LocalRegPair;
 import org.jikesrvm.osr.OSR_MethodVariables;

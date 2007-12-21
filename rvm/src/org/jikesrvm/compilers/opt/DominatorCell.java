@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.util.BitVector;
 
 /**
  * DominatorCell represents a set of basic blocks, used in

@@ -15,6 +15,9 @@ package org.jikesrvm.compilers.opt;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+
 /**
  * DF_LatticeCell.java
  *

@@ -15,6 +15,9 @@ package org.jikesrvm.compilers.opt;
 import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.Tree;
+import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**
  * This class provides the abstraction of a dominator tree

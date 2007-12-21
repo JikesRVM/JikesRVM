@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**
  * Dependence graph node: there is one for each instruction in a basic block.

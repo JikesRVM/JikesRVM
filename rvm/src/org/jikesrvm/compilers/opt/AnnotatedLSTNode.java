@@ -46,6 +46,8 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**
  * <p>A node in the LST (Loop Structure Tree) with added information

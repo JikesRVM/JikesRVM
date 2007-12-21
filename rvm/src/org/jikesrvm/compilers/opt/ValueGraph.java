@@ -58,6 +58,8 @@ import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
+import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 
 /**
  * This class implements the value graph used in global value numbering

@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
-import org.jikesrvm.compilers.opt.BitSetMapping;
-import org.jikesrvm.compilers.opt.ReverseEnumerator;
+import org.jikesrvm.compilers.opt.util.BitSetMapping;
+import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
 
 /**
  * This class represents a set of Registers corresponding to the

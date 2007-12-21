@@ -20,6 +20,8 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
  *  This Phase supports

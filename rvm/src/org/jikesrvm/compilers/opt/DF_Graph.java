@@ -14,6 +14,10 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.ArrayList;
 
+import org.jikesrvm.compilers.opt.util.Graph;
+import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+
 /**
  * Implementation of a graph used in the guts of the dataflow equation
  * solver.

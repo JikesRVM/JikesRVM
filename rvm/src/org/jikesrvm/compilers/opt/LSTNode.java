@@ -14,7 +14,11 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**
  * A node in the LST (Loop Structure Tree)
@@ -90,7 +94,7 @@ class LSTNode extends SpaceEffGraphNode {
 
       public LSTNode nextElement() {
         SpaceEffGraphEdge e = _edge;
-        _edge = e.nextOut;
+        _edge = e.getNextOut();
         return (LSTNode) e.toNode();
       }
     };

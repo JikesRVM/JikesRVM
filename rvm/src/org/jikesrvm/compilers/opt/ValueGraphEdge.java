@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+
 /**
  * This class implements an edge in the value graph used in global value
  * numbering

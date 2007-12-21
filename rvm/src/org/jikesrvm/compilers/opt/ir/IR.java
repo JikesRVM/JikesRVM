@@ -42,7 +42,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.BitVector;
 import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -54,6 +53,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.SSAOptions;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.util.BitVector;
 import org.vmmagic.pragma.NoInline;
 
 /**

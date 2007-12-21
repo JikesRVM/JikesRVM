@@ -17,10 +17,10 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.Constants;
 import static org.jikesrvm.compilers.opt.Constants.NO;
 import org.jikesrvm.compilers.opt.LiveIntervalEnumeration;
-import org.jikesrvm.compilers.opt.SortedGraphNode;
-import org.jikesrvm.compilers.opt.SpaceEffGraphEdge;
-import org.jikesrvm.compilers.opt.SpaceEffGraphNode;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
+import org.jikesrvm.compilers.opt.util.SortedGraphNode;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;

@@ -19,6 +19,11 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
+import org.jikesrvm.compilers.opt.util.Stack;
 
 /**
  * Identify natural loops and builds the LST (Loop Structure Tree)

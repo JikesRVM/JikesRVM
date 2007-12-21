@@ -21,6 +21,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**
  * This class holds the results of global value numbering.

@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**
  * This class implements a vertex in the value graph used in global

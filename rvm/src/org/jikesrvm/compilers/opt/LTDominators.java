@@ -18,6 +18,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.util.Stack;
 
 /**
  * Calculate dominators using Langauer and Tarjan's fastest algorithm.

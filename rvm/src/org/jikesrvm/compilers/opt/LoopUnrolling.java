@@ -46,6 +46,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
+import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /*
  * Loop unrolling

@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Iterator;
 
+import org.jikesrvm.compilers.opt.util.GraphNode;
+
 /**
  * DF_LatticeCell.java
  *
