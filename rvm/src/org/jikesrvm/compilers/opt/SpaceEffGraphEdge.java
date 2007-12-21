@@ -107,7 +107,7 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * @param fromNode start node
    * @param toNode end node
    */
-  SpaceEffGraphEdge(SpaceEffGraphNode fromNode, SpaceEffGraphNode toNode) {
+  protected SpaceEffGraphEdge(SpaceEffGraphNode fromNode, SpaceEffGraphNode toNode) {
     _toNode = toNode;
     _fromNode = fromNode;
   }

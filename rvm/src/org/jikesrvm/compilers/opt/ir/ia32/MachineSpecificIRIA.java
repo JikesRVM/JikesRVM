@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt.ir.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
@@ -54,6 +53,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 import static org.jikesrvm.compilers.opt.ir.Operators.PREFETCH_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
  * Wrappers around IA32-specific IR common to both 32 & 64 bit

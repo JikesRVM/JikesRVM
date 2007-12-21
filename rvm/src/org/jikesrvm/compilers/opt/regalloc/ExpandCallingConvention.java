@@ -10,14 +10,17 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.regalloc;
 
+import org.jikesrvm.ArchitectureSpecific.CallingConvention;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
- * This class is a phase that inserts prologues and epilogues
+ *  Phase for expanding the calling convention
  */
-public final class PrologueEpilogueCreator extends CompilerPhase {
+public final class ExpandCallingConvention extends CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -29,12 +32,15 @@ public final class PrologueEpilogueCreator extends CompilerPhase {
     return this;
   }
 
-  public String getName() { return "Insert Prologue/Epilogue"; }
+  public boolean printingEnabled(OptOptions options, boolean before) {
+    return options.PRINT_CALLING_CONVENTIONS && !before;
+  }
 
-  /**
-   *  Insert the prologue and epilogue
-   */
-  public void perform(IR ir) {
-    ir.stackManager.insertPrologueAndEpilogue();
+  public String getName() {
+    return "Expand Calling Convention";
+  }
+
+  public void perform(org.jikesrvm.compilers.opt.ir.IR ir) {
+    CallingConvention.expandCallingConventions(ir);
   }
 }

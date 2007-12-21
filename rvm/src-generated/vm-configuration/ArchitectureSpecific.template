@@ -94,7 +94,7 @@ public class ArchitectureSpecific {
     public BURS_TreeNode(char int_constant_opcode) {
       super(int_constant_opcode);
     }}
-  public static final class CallingConvention extends org.jikesrvm.compilers.opt.@_ARCH_@.CallingConvention {}
+  public static final class CallingConvention extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.CallingConvention {}
   public static final class ComplexLIR2MIRExpansion extends org.jikesrvm.compilers.opt.@_ARCH_@.ComplexLIR2MIRExpansion {}
   public static final class ConvertALUOperators extends org.jikesrvm.compilers.opt.@_ARCH_@.ConvertALUOperators {}
   public static final class FinalMIRExpansion extends org.jikesrvm.compilers.opt.@_ARCH_@.FinalMIRExpansion {}
@@ -102,12 +102,12 @@ public class ArchitectureSpecific {
   public static final class NormalizeConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.NormalizeConstants {}
   public interface PhysicalRegisterConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.PhysicalRegisterConstants {}
   public abstract static class PhysicalRegisterTools extends org.jikesrvm.compilers.opt.@_ARCH_@.PhysicalRegisterTools {}
-  public static final class RegisterPreferences extends org.jikesrvm.compilers.opt.@_ARCH_@.RegisterPreferences {}
-  public static final class RegisterRestrictions extends org.jikesrvm.compilers.opt.@_ARCH_@.RegisterRestrictions {
+  public static final class RegisterPreferences extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.RegisterPreferences {}
+  public static final class RegisterRestrictions extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.RegisterRestrictions {
     public RegisterRestrictions(PhysicalRegisterSet phys) {
       super(phys);
     }}
-  public static final class StackManager extends org.jikesrvm.compilers.opt.@_ARCH_@.StackManager {}
+  public static final class StackManager extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.StackManager {}
   public static final class VM_OptExceptionDeliverer extends org.jikesrvm.compilers.opt.runtimesupport.@_ARCH_@.VM_OptExceptionDeliverer {}
   public static final class VM_OptGCMapIterator extends org.jikesrvm.compilers.opt.runtimesupport.@_ARCH_@.VM_OptGCMapIterator {
     public VM_OptGCMapIterator(WordArray registerLocations) {

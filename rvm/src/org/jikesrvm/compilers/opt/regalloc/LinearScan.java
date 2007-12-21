@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.regalloc;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -22,11 +22,20 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecific.RegisterRestrictions;
 import org.jikesrvm.ArchitectureSpecific.StackManager;
-import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.GraphEdge;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.SpaceEffGraphNode;
 import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;

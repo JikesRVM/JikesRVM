@@ -10,13 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
@@ -24,6 +22,8 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
@@ -63,7 +63,7 @@ import org.jikesrvm.ia32.VM_ArchConstants;
  * beginning of each catch block.
  */
 
-final class ExpandFPRStackConvention extends CompilerPhase implements Operators {
+public final class ExpandFPRStackConvention extends CompilerPhase implements Operators {
 
   /**
    * The number of FPRs available for allocation.

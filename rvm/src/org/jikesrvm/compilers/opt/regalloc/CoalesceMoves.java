@@ -10,20 +10,25 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.HashSet;
-import org.jikesrvm.compilers.opt.ir.Move;
+
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.LiveAnalysis;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Register;
 
 /**
  * Coalesce registers in move instructions where possible.
  */
-class CoalesceMoves extends CompilerPhase {
+public class CoalesceMoves extends CompilerPhase {
 
   /**
    *  verbose debugging flag

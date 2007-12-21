@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 
+import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
+
 /**
  * Enumerator for a list of live intervals stored on a basic block.
  *

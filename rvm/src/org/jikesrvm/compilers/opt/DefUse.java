@@ -12,7 +12,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
+
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -20,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
-import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
@@ -112,7 +114,7 @@ public final class DefUse {
    * Record a use of a register
    * @param regOp the operand that uses the register
    */
-  static void recordUse(RegisterOperand regOp) {
+  public static void recordUse(RegisterOperand regOp) {
     Register reg = regOp.getRegister();
     regOp.append(reg.useList);
     reg.useList = regOp;
@@ -136,7 +138,7 @@ public final class DefUse {
    * Record a def of a register
    * @param regOp the operand that uses the register
    */
-  static void recordDef(RegisterOperand regOp) {
+  public static void recordDef(RegisterOperand regOp) {
     Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     regOp.append(reg.defList);
@@ -233,7 +235,7 @@ public final class DefUse {
   /**
    * Remove an instruction and update register lists.
    */
-  static void removeInstructionAndUpdateDU(Instruction s) {
+  public static void removeInstructionAndUpdateDU(Instruction s) {
     for (OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
       Operand op = e.next();
       if (op instanceof RegisterOperand) {
@@ -280,7 +282,7 @@ public final class DefUse {
   /**
    * Enumerate all operands that use a given register.
    */
-  static RegisterOperandEnumeration uses(Register reg) {
+  public static RegisterOperandEnumeration uses(Register reg) {
     return new RegOpListWalker(reg.useList);
   }
 

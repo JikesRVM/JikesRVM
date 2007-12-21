@@ -16,7 +16,6 @@ import java.util.ArrayList;
 
 import org.jikesrvm.compilers.opt.ConvertLIRtoMIR;
 import org.jikesrvm.compilers.opt.ConvertMIRtoMC;
-import org.jikesrvm.compilers.opt.ExpandCallingConvention;
 import org.jikesrvm.compilers.opt.IRPrinter;
 import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.MIRBranchOptimizations;
@@ -24,9 +23,12 @@ import org.jikesrvm.compilers.opt.MutateSplits;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.PrologueEpilogueCreator;
-import org.jikesrvm.compilers.opt.RegisterAllocator;
 import org.jikesrvm.compilers.opt.SplitBasicBlock;
+import org.jikesrvm.compilers.opt.regalloc.ExpandCallingConvention;
+import org.jikesrvm.compilers.opt.regalloc.PrologueEpilogueCreator;
+import org.jikesrvm.compilers.opt.regalloc.RegisterAllocator;
+import org.jikesrvm.compilers.opt.regalloc.ia32.ExpandFPRStackConvention;
+import org.jikesrvm.compilers.opt.regalloc.ia32.MIRSplitRanges;
 
 /**
  * This class specifies the order in which CompilerPhases are

@@ -16,6 +16,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
  * This class contains useful methods for managing liveIntervals.
@@ -128,7 +129,7 @@ final class LiveInterval {
       // be the most recent.  Thus, we move "elem" to the front of the list.
       if (prev != null) {
         // remove elem from current position
-        prev.setNext(elem.next);
+        prev.setNext(elem.getNext());
 
         // add it to the begining
         block.prependLiveIntervalElement(elem);

@@ -14,14 +14,6 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 
-// For now, SortedGraphNode inherits from DoublyLinkedList only
-// for compatibility
-// with the current implementation of BasicBlock.
-// In the future, this inheritance will be removed.
-// Therefore, the user of this class should ignore that
-// this class extends DoublyLinkedList.
-
-// In short, it does NOT INHERIT FROM DoublyLinkedListElement.
 public abstract class SortedGraphNode extends SpaceEffGraphNode {
 
   // Return enumerator for all the in nodes.
@@ -128,7 +120,8 @@ public abstract class SortedGraphNode extends SpaceEffGraphNode {
     return (this.sortMarker >= sortMarker);
   }
 
-  protected SortedGraphNode sortedPrev = null, sortedNext = null;
+  public SortedGraphNode sortedPrev = null;
+  public SortedGraphNode sortedNext = null;
   protected int forwardSortNumber;
   protected int backwardSortNumber;
 }

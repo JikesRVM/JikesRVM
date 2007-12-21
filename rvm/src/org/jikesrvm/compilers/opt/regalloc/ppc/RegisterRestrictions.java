@@ -10,10 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.regalloc.ppc;
 
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.GenericRegisterRestrictions;
+import org.jikesrvm.compilers.opt.regalloc.GenericRegisterRestrictions;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 

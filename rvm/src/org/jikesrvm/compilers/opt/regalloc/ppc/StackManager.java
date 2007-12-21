@@ -10,14 +10,13 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.regalloc.ppc;
 
 import java.util.Enumeration;
 import java.util.Iterator;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_Constants.NOT_REACHED;
 import org.jikesrvm.compilers.opt.Bits;
-import org.jikesrvm.compilers.opt.GenericStackManager;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Binary;
 import org.jikesrvm.compilers.opt.ir.MIR_Load;
@@ -82,6 +81,7 @@ import static org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants.FLOAT_VAL
 import static org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants.INT_REG;
 import static org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants.INT_VALUE;
 import static org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
+import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
 import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET;

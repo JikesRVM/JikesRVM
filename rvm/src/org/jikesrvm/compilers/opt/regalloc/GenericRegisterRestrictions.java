@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.BitSet;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;

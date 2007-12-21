@@ -10,8 +10,13 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.regalloc;
 
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

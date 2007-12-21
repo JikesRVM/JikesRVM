@@ -170,7 +170,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    * @param e edge to insert
    * @see #addGraphEdge(GraphNode,GraphNode)
    */
-  void addGraphEdge(SpaceEffGraphEdge e) {
+  protected void addGraphEdge(SpaceEffGraphEdge e) {
     e.fromNode().appendOutEdge(e);
     e.toNode().appendInEdge(e);
   }

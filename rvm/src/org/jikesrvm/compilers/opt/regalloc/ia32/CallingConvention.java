@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
@@ -18,6 +18,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;

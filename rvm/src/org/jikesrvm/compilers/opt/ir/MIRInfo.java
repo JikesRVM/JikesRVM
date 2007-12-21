@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.compilers.opt.LinearScan;
+import org.jikesrvm.compilers.opt.regalloc.LinearScan;
 import org.jikesrvm.osr.OSR_VariableMap;
 
 /**

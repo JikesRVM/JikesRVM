@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -29,6 +29,8 @@ import org.jikesrvm.ArchitectureSpecific.RegisterRestrictions;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_Constants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM_Constants.NOT_REACHED;
+
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;

@@ -22,6 +22,7 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCount
 import org.jikesrvm.adaptive.recompilation.instrumentation.InstrumentationSamplingFramework;
 import org.jikesrvm.adaptive.recompilation.instrumentation.LowerInstrumentation;
 import org.jikesrvm.compilers.opt.ir.ConvertBCtoHIR;
+import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
 import org.jikesrvm.osr.OSR_AdjustBCIndexes;
 
 /**

@@ -10,13 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.GenericRegisterRestrictions;
-import org.jikesrvm.compilers.opt.LiveIntervalElement;
+import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_CacheOp;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;
@@ -37,6 +36,8 @@ import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.BURSManagedFPROperand;
+import org.jikesrvm.compilers.opt.regalloc.GenericRegisterRestrictions;
+import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
  * An instance of this class encapsulates restrictions on register

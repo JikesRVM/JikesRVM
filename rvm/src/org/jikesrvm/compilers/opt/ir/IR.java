@@ -46,13 +46,13 @@ import org.jikesrvm.compilers.opt.BitVector;
 import org.jikesrvm.compilers.opt.CompilationPlan;
 import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.GenericStackManager;
 import org.jikesrvm.compilers.opt.HeapVariable;
 import org.jikesrvm.compilers.opt.InlineOracle;
 import org.jikesrvm.compilers.opt.InstrumentationPlan;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.SSAOptions;
+import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.vmmagic.pragma.NoInline;
 

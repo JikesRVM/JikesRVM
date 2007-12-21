@@ -10,14 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import java.util.Enumeration;
 import java.util.Iterator;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.GenericStackManager;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.RegisterAllocatorState;
 import static org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants.DOUBLE_VALUE;
 import static org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants.FLOAT_VALUE;
@@ -74,6 +72,8 @@ import org.jikesrvm.compilers.opt.ir.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
+import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;

@@ -10,15 +10,16 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import org.jikesrvm.compilers.opt.CompilerPhase;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
@@ -29,7 +30,7 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperand;
  * This class splits live ranges for certain special cases to ensure
  * correctness during IA32 register allocation.
  */
-class MIRSplitRanges extends CompilerPhase implements Operators {
+public class MIRSplitRanges extends CompilerPhase implements Operators {
 
   /**
    * Return this instance of this phase. This phase contains no

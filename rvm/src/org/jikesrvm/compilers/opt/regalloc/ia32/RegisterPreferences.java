@@ -10,9 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.regalloc.ia32;
 
-import org.jikesrvm.compilers.opt.GenericRegisterPreferences;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -20,6 +19,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
 
 public class RegisterPreferences extends GenericRegisterPreferences implements Operators {
 

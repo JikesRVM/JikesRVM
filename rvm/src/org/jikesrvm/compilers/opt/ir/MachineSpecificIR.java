@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.LiveIntervalElement;
+import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
  * Generic wrappers around machine-specific IR

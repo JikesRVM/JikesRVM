@@ -16,7 +16,7 @@ package org.jikesrvm.compilers.opt;
  *  Graph representations that use explicit edge objects should have
  * their edge objects implement this interface.
  */
-interface GraphEdge {
+public interface GraphEdge {
 
   GraphNode from();
 
