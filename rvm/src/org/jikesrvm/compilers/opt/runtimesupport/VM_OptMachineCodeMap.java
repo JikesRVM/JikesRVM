@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.runtimesupport;
 
 import java.util.ArrayList;
 import org.jikesrvm.ArchitectureSpecific;
@@ -22,6 +22,8 @@ import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.Constants;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.GCIRMap;

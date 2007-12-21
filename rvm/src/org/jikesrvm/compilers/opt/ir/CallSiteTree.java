@@ -28,8 +28,8 @@ import org.jikesrvm.compilers.opt.Tree;
  *
  * @see InlineSequence
  * @see CallSiteTreeNode
- * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree
- * @see org.jikesrvm.compilers.opt.VM_OptMachineCodeMap
+ * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree
+ * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap
  */
 public class CallSiteTree extends Tree {
 

@@ -12,22 +12,23 @@
  */
 package org.jikesrvm.compilers.common;
 
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.Comparator;
 
 /**
  * Manage pool of compiled methods. <p>

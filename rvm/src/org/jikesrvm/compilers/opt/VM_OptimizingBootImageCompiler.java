@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Vector;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
@@ -46,7 +47,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
     String clsName = cls.toString();
-    if (clsName.compareTo("org.jikesrvm.compilers.opt.VM_OptSaveVolatile") == 0) return true;
+    if (clsName.compareTo("org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile") == 0) return true;
     String methodName = method.getName().toString();
     String fullName = clsName + "." + methodName;
     return (fullName.indexOf(excludePattern)) < 0;

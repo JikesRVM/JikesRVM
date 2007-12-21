@@ -12,29 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Stack;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.ArchitectureSpecific.StackManager;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.BitVector;
-import org.jikesrvm.compilers.opt.CompilationPlan;
-import org.jikesrvm.compilers.opt.CompilerPhase;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.GenericStackManager;
-import org.jikesrvm.compilers.opt.HeapVariable;
-import org.jikesrvm.compilers.opt.InlineOracle;
-import org.jikesrvm.compilers.opt.InstrumentationPlan;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.SSAOptions;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
@@ -52,6 +29,31 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PHI_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Stack;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.ArchitectureSpecific.StackManager;
+import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.opt.BitVector;
+import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.GenericStackManager;
+import org.jikesrvm.compilers.opt.HeapVariable;
+import org.jikesrvm.compilers.opt.InlineOracle;
+import org.jikesrvm.compilers.opt.InstrumentationPlan;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.SSAOptions;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.vmmagic.pragma.NoInline;
 
 /**

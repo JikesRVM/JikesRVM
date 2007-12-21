@@ -24,8 +24,8 @@ import org.jikesrvm.compilers.opt.TreeNode;
  *
  * @see CallSiteTree
  * @see InlineSequence
- * @see org.jikesrvm.compilers.opt.VM_OptMachineCodeMap
- * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree
+ * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap
+ * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree
  */
 public class CallSiteTreeNode extends TreeNode {
   /**
@@ -37,7 +37,7 @@ public class CallSiteTreeNode extends TreeNode {
    * The position of this call site in the binary encoding.  It is set
    * by VM_OptEncodedCallSiteTree.getEncoding.
    *
-   * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree#getEncoding
+   * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree#getEncoding
    */
   public int encodedOffset;
 

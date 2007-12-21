@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.osr.OSR_Constants;

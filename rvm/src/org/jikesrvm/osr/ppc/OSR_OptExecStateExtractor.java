@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;

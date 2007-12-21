@@ -10,12 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;

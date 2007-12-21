@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.runtimesupport;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.TreeNode;
 import org.jikesrvm.compilers.opt.ir.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.CallSiteTreeNode;
 import org.vmmagic.pragma.Interruptible;

@@ -20,6 +20,6 @@
  */
 class OptDummy {
   static org.jikesrvm.compilers.opt.Compiler a;
-  static org.jikesrvm.compilers.opt.VM_OptSaveVolatile g;
+  static org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile g;
   static org.jikesrvm.compilers.opt.SpecializedMethodPool q;
 }

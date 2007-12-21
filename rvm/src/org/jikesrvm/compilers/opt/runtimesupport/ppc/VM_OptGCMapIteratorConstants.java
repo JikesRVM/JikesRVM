@@ -10,10 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.runtimesupport.ppc;
+
+import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
 
 /**
- * This interface holds constants for the Opt GC map code specific to IA32
+ * This interface holds constants for the Opt GC map code specific to PowerPC
  */
 public interface VM_OptGCMapIteratorConstants extends PhysicalRegisterConstants {
 
@@ -24,12 +26,11 @@ public interface VM_OptGCMapIteratorConstants extends PhysicalRegisterConstants 
   //       below these contants.
 
   /*
-   * The index of the first nonvolatile register that may hold a reference,
+   * The first register that may hold a reference
    */
-  int FIRST_GCMAP_REG = 0;
+  int FIRST_GCMAP_REG = 1;
 
   /*
-   * the index of last register that may hold a reference
-   */ int LAST_GCMAP_REG = 7;
-
+   * The last register that may hold a reference
+   */ int LAST_GCMAP_REG = NUM_GPRS - 1;
 }

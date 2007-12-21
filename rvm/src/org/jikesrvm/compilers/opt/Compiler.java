@@ -72,7 +72,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
         // compiled (to get special prologues/epilogues)
         // TODO: This could be phased out as the new DynamicBridge
         // magic comes on line.
-        loadSpecialClass("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", options);
+        loadSpecialClass("Lorg/jikesrvm/compilers/opt/runtimesupport/VM_OptSaveVolatile;", options);
 
       }
       // want to be notified when VM boot is done and ready to start application

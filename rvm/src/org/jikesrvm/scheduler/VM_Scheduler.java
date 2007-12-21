@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
@@ -21,13 +23,12 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;

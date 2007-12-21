@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 
 /**
  * Abstract parent class for events from organizers to the controller

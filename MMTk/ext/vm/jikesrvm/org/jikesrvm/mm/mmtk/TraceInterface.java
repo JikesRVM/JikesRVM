@@ -12,28 +12,31 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Type;
-
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.ArchitectureSpecific;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Class that supports scanning Objects or Arrays for references

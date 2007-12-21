@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  *        lazy method compilation.  Need to generalize to support
  *        opt's use for other purposes.
  *
- * @see Compiler (hooks to recognize & specially compile this class)
+ * @see org.jikesrvm.compilers.opt.Compiler (hooks to recognize & specially compile this class)
  */
 @SaveVolatile
 @Uninterruptible

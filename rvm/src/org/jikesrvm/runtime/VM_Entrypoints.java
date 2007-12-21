@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.runtime.VM_EntrypointHelper.getField;
+import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import static org.jikesrvm.runtime.VM_EntrypointHelper.getField;
-import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
 
 /**
  * Fields and methods of the virtual machine that are needed by
@@ -382,21 +383,21 @@ public class VM_Entrypoints {
                    org.jikesrvm.ArchitectureSpecific.VM_CodeArray[].class);
       osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSR_OrganizerThread.class, "queueLock", int.class);
       optThreadSwitchFromOsrOptMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "yieldpointFromOsrOpt", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromOsrOpt", "()V");
       optThreadSwitchFromPrologueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "yieldpointFromPrologue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromPrologue", "()V");
       optThreadSwitchFromBackedgeMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "yieldpointFromBackedge", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromBackedge", "()V");
       optThreadSwitchFromEpilogueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "yieldpointFromEpilogue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromEpilogue", "()V");
       yieldpointFromNativePrologueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "yieldpointFromNativePrologue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromNativePrologue", "()V");
       yieldpointFromNativeEpilogueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "yieldpointFromNativeEpilogue", "()V");
-      optResolveMethod = getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "resolve", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromNativeEpilogue", "()V");
+      optResolveMethod = getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "resolve", "()V");
 
       optNewArrayArrayMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
 
       sysArrayCopy = getMethod(java.lang.VMSystem.class, "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);

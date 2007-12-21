@@ -10,11 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.compilers.opt.VM_OptGenericGCMapIterator;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptGenericGCMapIterator;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;

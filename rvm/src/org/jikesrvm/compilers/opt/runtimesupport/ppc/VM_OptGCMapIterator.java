@@ -10,10 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.VM_OptGenericGCMapIterator;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptGenericGCMapIterator;
 import org.jikesrvm.ppc.VM_ArchConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;

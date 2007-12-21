@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Options;
 import org.jikesrvm.classloader.VM_Atom;
@@ -22,9 +23,9 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
