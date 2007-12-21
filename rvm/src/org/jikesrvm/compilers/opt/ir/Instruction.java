@@ -18,6 +18,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 

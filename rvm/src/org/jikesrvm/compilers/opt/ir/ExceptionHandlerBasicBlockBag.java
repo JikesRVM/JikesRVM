@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  * @see BasicBlock
  * @see ExceptionHandlerBasicBlock
  */
-final class ExceptionHandlerBasicBlockBag {
+public final class ExceptionHandlerBasicBlockBag {
 
   /**
    * The array of ExceptionHandlerBasicBlocks constructed by BC2IR
@@ -49,7 +49,7 @@ final class ExceptionHandlerBasicBlockBag {
    * @param l the local array of EHBBs
    * @param c the enclosing EHBBB
    */
-  ExceptionHandlerBasicBlockBag(ExceptionHandlerBasicBlock[] l, ExceptionHandlerBasicBlockBag c) {
+  public ExceptionHandlerBasicBlockBag(ExceptionHandlerBasicBlock[] l, ExceptionHandlerBasicBlockBag c) {
     local = l;
     caller = c;
   }

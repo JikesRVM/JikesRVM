@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.inlining;
 
 import org.jikesrvm.compilers.opt.util.Tree;
 

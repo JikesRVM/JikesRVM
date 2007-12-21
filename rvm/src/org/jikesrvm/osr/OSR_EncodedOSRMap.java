@@ -15,7 +15,7 @@ package org.jikesrvm.osr;
 import java.util.LinkedList;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.CallSiteTree;
+import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;

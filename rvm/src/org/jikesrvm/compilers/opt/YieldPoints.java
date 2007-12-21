@@ -14,11 +14,12 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
 import static org.jikesrvm.compilers.opt.Constants.INSTRUMENTATION_BCI;
+
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;

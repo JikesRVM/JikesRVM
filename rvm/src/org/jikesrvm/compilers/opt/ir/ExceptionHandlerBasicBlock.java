@@ -19,6 +19,7 @@ import static org.jikesrvm.compilers.opt.Constants.MAYBE;
 import static org.jikesrvm.compilers.opt.Constants.NO;
 import static org.jikesrvm.compilers.opt.Constants.YES;
 import org.jikesrvm.compilers.opt.LiveSet;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 
 /**
  * A basic block that marks the start of an exception handler.

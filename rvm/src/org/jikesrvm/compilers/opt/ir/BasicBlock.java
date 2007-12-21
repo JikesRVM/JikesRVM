@@ -12,16 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.Constants;
 import static org.jikesrvm.compilers.opt.Constants.NO;
-import org.jikesrvm.compilers.opt.LiveIntervalEnumeration;
-import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
-import org.jikesrvm.compilers.opt.util.SortedGraphNode;
-import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
-import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
-
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
@@ -35,6 +26,16 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.Constants;
+import org.jikesrvm.compilers.opt.LiveIntervalEnumeration;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
+import org.jikesrvm.compilers.opt.util.SortedGraphNode;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
+import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.pragma.NoInline;
 
@@ -107,7 +108,7 @@ public class BasicBlock extends SortedGraphNode {
    * May be shared if multiple blocks have exactly the same chain
    * of exception handlers.
    */
-  protected ExceptionHandlerBasicBlockBag exceptionHandlers;
+  public ExceptionHandlerBasicBlockBag exceptionHandlers;
 
   /**
    * First instruction of the basic block (LABEL).

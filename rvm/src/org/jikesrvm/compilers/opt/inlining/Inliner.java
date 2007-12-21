@@ -10,9 +10,17 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.inlining;
+
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
+import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_NOTNULL;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
@@ -23,15 +31,29 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.Constants;
-import org.jikesrvm.compilers.opt.InlineDecision;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_NOTNULL;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.BC2IR;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlockBag;
+import org.jikesrvm.compilers.opt.ir.GenerationContext;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
+import org.jikesrvm.compilers.opt.ir.TypeOperand;
 
 /**
  * This class contains the high level logic for executing an inlining decision.

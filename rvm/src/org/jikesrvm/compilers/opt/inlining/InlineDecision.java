@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.inlining;
 
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.opt.OptOptions;
 
 /**
  * Instances of this class represent decisions to inline.

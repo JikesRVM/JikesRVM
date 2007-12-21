@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.inlining.DefaultInlineOracle;
+import org.jikesrvm.compilers.opt.inlining.InlineOracle;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /*

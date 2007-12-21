@@ -10,7 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.inlining;
+
 
 /**
  * Oracle interface: the compiler queries this oracle to decide whether
@@ -23,7 +24,7 @@ public interface InlineOracle {
    * @param state information needed to make the inlining decision
    * @return an InlineDecision with the result
    */
-  InlineDecision shouldInline(org.jikesrvm.compilers.opt.ir.CompilationState state);
+  InlineDecision shouldInline(org.jikesrvm.compilers.opt.inlining.CompilationState state);
 }
 
 

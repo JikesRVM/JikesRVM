@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.inlining;
 
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.util.Stack;
 
 /**
@@ -72,7 +73,7 @@ public final class InlineSequence {
    *
    * @param method current method
    */
-  InlineSequence(VM_NormalMethod method) {
+  public InlineSequence(VM_NormalMethod method) {
     this(method, null, -1);
   }
 
@@ -97,7 +98,7 @@ public final class InlineSequence {
    * @param caller caller info
    * @param callsite the call site instruction of this callee
    */
-  InlineSequence(VM_NormalMethod method, InlineSequence caller, Instruction callsite) {
+  public InlineSequence(VM_NormalMethod method, InlineSequence caller, Instruction callsite) {
     this.method = method;
     this.caller = caller;
     this.callSite = callsite;

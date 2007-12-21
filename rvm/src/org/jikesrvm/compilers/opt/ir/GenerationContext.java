@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.jikesrvm.ArchitectureSpecific.RegisterPool;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -28,9 +29,10 @@ import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.InlineOracle;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.inlining.InlineOracle;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
@@ -59,7 +61,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
   /**
    * The method to be generated
    */
-  VM_NormalMethod method;
+  public VM_NormalMethod method;
 
   /**
    * The BranchProfile data for method, if available
@@ -74,7 +76,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
   /**
    * The CFG object into which instructions should be generated.
    */
-  ControlFlowGraph cfg;
+  public ControlFlowGraph cfg;
 
   /**
    * The register pool to be used during generation
@@ -98,7 +100,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * (ie prologue can assume it will fallthrough
    * to the first basic block in the ir generated for method.
    */
-  BasicBlock prologue;
+  public BasicBlock prologue;
 
   /**
    * The basic block into which BC2IR's caller will generate an epilogue.
@@ -116,7 +118,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * NOTE: BC2IR assumes that epilogue is a single basic block
    *       (ie it has no out edges)
    */
-  BasicBlock epilogue;
+  public BasicBlock epilogue;
 
   /**
    * The exit node of the outermost CFG
@@ -172,7 +174,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * BC2IR object
    * to exploit knowledge the callee BC2IR object had about the result.
    */
-  Operand result;
+  public Operand result;
 
   //////////
   // Main public methods
@@ -275,7 +277,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * @param callSite the Call instruction to be inlined.
    * @return the child context
    */
-  static GenerationContext createChildContext(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag,
+  public static GenerationContext createChildContext(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag,
                                                   VM_NormalMethod callee, Instruction callSite) {
     GenerationContext child = new GenerationContext();
     child.method = callee;
@@ -395,7 +397,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * @param ebag the enclosing exception handlers (null if none)
    * @return the synthetic context
    */
-  static GenerationContext createSynthetic(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag) {
+  public static GenerationContext createSynthetic(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag) {
     // Create the CFG. Initially contains prologue and epilogue
     GenerationContext child = new GenerationContext();
 
