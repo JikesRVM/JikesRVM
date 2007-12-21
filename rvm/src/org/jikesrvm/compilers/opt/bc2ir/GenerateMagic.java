@@ -10,18 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.bc2ir;
 
-import org.jikesrvm.ArchitectureSpecific.GenerateMachineSpecificMagic;
-import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_MethodReference;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
@@ -74,6 +66,38 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.GenerateMachineSpecificMagic;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.Attempt;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BooleanCmp;
+import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Nullary;
+import org.jikesrvm.compilers.opt.ir.ObjectConstantOperand;
+import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.Prepare;
+import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;

@@ -10,9 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.bc2ir;
 
 import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.ir.HIRInfo;
+import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
  * Translate from bytecodes to HIR

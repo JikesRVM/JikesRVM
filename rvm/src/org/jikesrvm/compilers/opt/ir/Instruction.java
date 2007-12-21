@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -1808,7 +1808,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
    *
    * @return the contents of {@link #next}
    */
-  Instruction getNext() {
+   public Instruction getNext() {
     return next;
   }
 

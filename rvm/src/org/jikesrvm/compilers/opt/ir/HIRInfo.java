@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.SSADictionary;
  */
 public final class HIRInfo {
 
-  HIRInfo(IR ir) { }
+  public HIRInfo(IR ir) { }
 
   /** Place to hang dominator tree. */
   public DominatorTree dominatorTree;

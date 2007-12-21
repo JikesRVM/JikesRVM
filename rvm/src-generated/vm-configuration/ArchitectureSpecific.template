@@ -114,7 +114,7 @@ public class ArchitectureSpecific {
       super(registerLocations);
     }}
   public interface VM_OptGCMapIteratorConstants extends org.jikesrvm.compilers.opt.runtimesupport.@_ARCH_@.VM_OptGCMapIteratorConstants {}
-  public static final class GenerateMachineSpecificMagic extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.GenerateMachineSpecificMagic {}
+  public static final class GenerateMachineSpecificMagic extends org.jikesrvm.compilers.opt.bc2ir.@_ARCH_@.GenerateMachineSpecificMagic {}
   public static final class PhysicalDefUse extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalDefUse {}
   public static final class PhysicalRegisterSet extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalRegisterSet {}
   public static final class RegisterPool extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.RegisterPool {

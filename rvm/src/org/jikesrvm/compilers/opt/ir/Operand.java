@@ -17,6 +17,8 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
+import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
 import org.vmmagic.unboxed.Address;
 
 /**

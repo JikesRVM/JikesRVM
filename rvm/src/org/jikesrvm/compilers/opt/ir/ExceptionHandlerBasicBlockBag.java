@@ -40,7 +40,7 @@ public final class ExceptionHandlerBasicBlockBag {
    * only for use by BC2IR; return {@link #caller}
    * @return the contents of {@link #caller}
    */
-  ExceptionHandlerBasicBlockBag getCaller() {
+  public ExceptionHandlerBasicBlockBag getCaller() {
     return caller;
   }
 

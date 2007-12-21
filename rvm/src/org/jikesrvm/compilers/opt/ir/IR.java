@@ -50,6 +50,7 @@ import org.jikesrvm.compilers.opt.InstrumentationPlan;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.SSAOptions;
+import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.inlining.InlineOracle;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;

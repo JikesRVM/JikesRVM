@@ -12,12 +12,14 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import java.util.Enumeration;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import static org.jikesrvm.compilers.opt.Constants.MAYBE;
 import static org.jikesrvm.compilers.opt.Constants.NO;
 import static org.jikesrvm.compilers.opt.Constants.YES;
+
+import java.util.Enumeration;
+
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.LiveSet;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 
@@ -48,7 +50,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    * @param type  The exception type
    * @param cfg   The ControlFlowGraph that will contain the basic block
    */
-  ExceptionHandlerBasicBlock(int loc, InlineSequence position, TypeOperand type, ControlFlowGraph cfg) {
+  public ExceptionHandlerBasicBlock(int loc, InlineSequence position, TypeOperand type, ControlFlowGraph cfg) {
     super(loc, position, cfg);
     exceptionTypes = new TypeOperand[1];
     exceptionTypes[0] = type;
@@ -60,7 +62,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    * Add a new exception type to an extant exception handler block.
    * Do filtering of duplicates internally for efficiency.
    * NOTE: this routine is only intended to be called by
-   * {@link BC2IR}.
+   * {@link org.jikesrvm.compilers.opt.bc2ir.BC2IR}.
    *
    * @param et the exception type to be added
    */

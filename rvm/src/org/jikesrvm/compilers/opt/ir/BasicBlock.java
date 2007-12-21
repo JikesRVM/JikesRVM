@@ -2006,4 +2006,10 @@ public class BasicBlock extends SortedGraphNode {
       return null;
     }
   }
+
+  public void discardInstructions() {
+    start.getNext().setPrev(null);
+    end.getPrev().setNext(null);
+    start.linkWithNext(end);
+  }
 }

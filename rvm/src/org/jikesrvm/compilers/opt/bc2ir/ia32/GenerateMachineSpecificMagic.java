@@ -10,13 +10,15 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir.ia32;
+package org.jikesrvm.compilers.opt.bc2ir.ia32;
 
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
+import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
@@ -24,8 +26,6 @@ import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.BC2IR;
-import org.jikesrvm.compilers.opt.ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.Operand;
@@ -33,6 +33,7 @@ import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
@@ -41,7 +42,7 @@ import org.jikesrvm.runtime.VM_MagicNames;
 /**
  * This class implements the machine-specific magics for the opt compiler.
  *
- * @see org.jikesrvm.compilers.opt.ir.GenerateMagic for the machine-independent magics
+ * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics
  */
 public abstract class GenerateMachineSpecificMagic implements Operators, VM_StackframeLayoutConstants {
 

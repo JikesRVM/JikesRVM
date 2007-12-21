@@ -10,19 +10,19 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir.ppc;
+package org.jikesrvm.compilers.opt.bc2ir.ppc;
 
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
+import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.BC2IR;
-import org.jikesrvm.compilers.opt.ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operators;

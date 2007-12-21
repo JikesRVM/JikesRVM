@@ -194,7 +194,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
   /**
    * @param number starting value for assigning node numbers
    */
-  ControlFlowGraph(int number) {
+  public ControlFlowGraph(int number) {
     _exitNode = BasicBlock.makeExit();
     numberOfNodes = number;
   }

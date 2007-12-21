@@ -21,7 +21,7 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.InsertMethodInvocatio
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCounters;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InstrumentationSamplingFramework;
 import org.jikesrvm.adaptive.recompilation.instrumentation.LowerInstrumentation;
-import org.jikesrvm.compilers.opt.ir.ConvertBCtoHIR;
+import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
 import org.jikesrvm.osr.OSR_AdjustBCIndexes;
 

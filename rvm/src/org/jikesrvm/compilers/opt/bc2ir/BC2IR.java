@@ -10,14 +10,15 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.bc2ir;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+
 import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.RegisterPool;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.classloader.VM_Array;
@@ -35,10 +36,10 @@ import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.FieldAnalysis;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
+import org.jikesrvm.compilers.opt.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.StaticFieldReader;
@@ -46,6 +47,67 @@ import org.jikesrvm.compilers.opt.inlining.CompilationState;
 import org.jikesrvm.compilers.opt.inlining.InlineDecision;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.inlining.Inliner;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.Athrow;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
+import org.jikesrvm.compilers.opt.ir.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlockBag;
+import org.jikesrvm.compilers.opt.ir.FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.LookupSwitch;
+import org.jikesrvm.compilers.opt.ir.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.Nullary;
+import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.OsrBarrier;
+import org.jikesrvm.compilers.opt.ir.OsrPoint;
+import org.jikesrvm.compilers.opt.ir.OsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.ir.StoreCheck;
+import org.jikesrvm.compilers.opt.ir.TableSwitch;
+import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.ir.TrapCodeOperand;
+import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
+import org.jikesrvm.compilers.opt.ir.TypeOperand;
+import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_ObjectHolder;
 import org.jikesrvm.runtime.VM_Entrypoints;
@@ -94,7 +156,7 @@ public final class BC2IR
    * This field needs to be accessed by several of the IR classes,
    * but is not intended to be referenced by general client code.
    */
-  static final DummyStackSlot DUMMY = new DummyStackSlot();
+  public static final DummyStackSlot DUMMY = new DummyStackSlot();
 
   /**
    * Generate HIR as specified by the argument GenerationContext.
@@ -5019,9 +5081,7 @@ public final class BC2IR
       }
       // discard any "real" instructions in the block
       if (!p.block.isEmpty()) {
-        p.block.start.getNext().setPrev(null);
-        p.block.end.getPrev().setNext(null);
-        p.block.start.linkWithNext(p.block.end);
+        p.block.discardInstructions();
       }
       p.setSelfRegen();
       p.clearGenerated();

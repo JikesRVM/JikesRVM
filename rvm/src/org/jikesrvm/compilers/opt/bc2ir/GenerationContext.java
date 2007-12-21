@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.compilers.opt.bc2ir;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +33,30 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.inlining.InlineOracle;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.ClassConstantOperand;
+import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlockBag;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Nullary;
+import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.Return;
+import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.TypeOperand;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
@@ -161,7 +185,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
    * Did BC2IR generate a reachable exception handler while generating
    * the IR for this method
    */
-  boolean generatedExceptionHandlers;
+  public boolean generatedExceptionHandlers;
 
   /**
    * Did BC2IR encounter a magic that requires us to allocate a stack frame?
@@ -770,7 +794,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.Const
   private void resync_ncGuards() {
     HashSet<Register> regPool = new HashSet<Register>();
 
-    for (Register r = temps.getFirstSymbolicRegister(); r != null; r = r.next) {
+    for (Register r = temps.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       regPool.add(r);
     }
 
