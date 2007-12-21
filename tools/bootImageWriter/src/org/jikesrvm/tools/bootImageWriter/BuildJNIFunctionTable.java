@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
