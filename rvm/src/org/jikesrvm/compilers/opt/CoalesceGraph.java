@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.util.Enumeration;
 import java.util.HashMap;
+
+import org.jikesrvm.compilers.opt.SpaceEffGraphNode.GraphEdgeEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 
 /**
@@ -59,8 +60,8 @@ class CoalesceGraph extends SpaceEffGraph {
    */
   private Edge findOrCreateEdge(Node src, Node dest) {
     Edge edge = null;
-    for (Enumeration<VisEdge> e = src.edges(); e.hasMoreElements();) {
-      Edge candidate = (Edge) e.nextElement();
+    for (GraphEdgeEnumeration<GraphEdge> e = src.outEdges(); e.hasMoreElements();) {
+       Edge candidate = (Edge)e.next();
       if (candidate.toNode() == dest) {
         edge = candidate;
         break;

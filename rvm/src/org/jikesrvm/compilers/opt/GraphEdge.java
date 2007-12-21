@@ -13,10 +13,10 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- *  Graph representations that use explicit ede objects should have
+ *  Graph representations that use explicit edge objects should have
  * their edge objects implement this interface.
  */
-interface GraphEdge extends VCGEdge {
+interface GraphEdge {
 
   GraphNode from();
 

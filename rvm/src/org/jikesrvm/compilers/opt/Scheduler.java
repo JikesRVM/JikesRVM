@@ -77,15 +77,6 @@ final class Scheduler {
   }
 
   /**
-   * Should we produce a visualization the dependence graph?
-   * @param options the options object
-   * @return true if we should visualize depgraph, false otherwise
-   */
-  private boolean vcgDepgraph(OptOptions options) {
-    return (phase == PREPASS && options.VCG_DG_SCHED_PRE) || (phase == POSTPASS && options.VCG_DG_SCHED_POST);
-  }
-
-  /**
    * For each basic block, build the dependence graph and
    * perform instruction scheduling.
    * This is an MIR to MIR transformation.
@@ -133,11 +124,6 @@ final class Scheduler {
         System.out.println("**** START OF " + PhaseName[phase].toUpperCase() + " DEPENDENCE GRAPH ****");
         dg.printDepGraph();
         System.out.println("**** END   OF " + PhaseName[phase].toUpperCase() + " DEPENDENCE GRAPH ****");
-      }
-      if (vcgDepgraph(ir.options)) {
-        // output dependence graph in VCG format.
-        // CAUTION: creates A LOT of files (one per BB)
-        VCG.printVCG("depgraph_sched_" + PhaseName[phase] + "_" + ir.method + "_" + bb + ".vcg", dg);
       }
       scheduleBasicBlock();
     }

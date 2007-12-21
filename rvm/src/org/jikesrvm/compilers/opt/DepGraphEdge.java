@@ -255,17 +255,6 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
   }
 
   /**
-   * Returns a VCG descriptor for the edge which will provide VCG-relevant
-   * information for the edge.
-   * @return edge descriptor
-   */
-  public VCGEdge.EdgeDesc getVCGDescriptor() {
-    return new VCGEdge.EdgeDesc() {
-      public String getLabel() { return getTypeString(); }
-    };
-  }
-
-  /**
    * Returns the string representation of the edge.
    * @return string representation of the edge
    */

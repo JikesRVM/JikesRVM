@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 import java.util.HashMap;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
@@ -44,8 +45,6 @@ public class LSTGraph extends SpaceEffGraph {
     if (DEBUG) System.out.println("LSTGraph:" + ir.method);
     ir.HIRInfo.LoopStructureTree = new LSTGraph(ir);
     if (DEBUG) {
-      VCG.printVCG("cfg", ir.cfg);
-      VCG.printVCG("lst", ir.HIRInfo.LoopStructureTree);
       System.out.println(ir.HIRInfo.LoopStructureTree.toString());
     }
   }

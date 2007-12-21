@@ -22,7 +22,7 @@ import java.util.HashSet;
  * SpaceEffGraph is a generic graph.  Extend to implement specific
  * graph types.
  */
-public class SpaceEffGraph implements Graph, VCGGraph, TopSortInterface {
+public class SpaceEffGraph implements Graph, TopSortInterface {
   /**
    * First node
    */
@@ -405,36 +405,5 @@ public class SpaceEffGraph implements Graph, VCGGraph, TopSortInterface {
       return n;
     }
   }
-
-  protected static final class VCGNodeEnumeration implements Enumeration<VCGNode> {
-    private SpaceEffGraphNode _node;
-
-    public VCGNodeEnumeration(SpaceEffGraphNode n) { _node = n; }
-
-    public boolean hasMoreElements() { return _node != null; }
-
-    public VCGNode nextElement() {
-      SpaceEffGraphNode n = _node;
-      _node = n.getNext();
-      return n;
-    }
-  }
-
-  /**
-   * Returns the nodes of the graph.
-   * @return the enumeration that would list the nodes of the graph
-   * @see VCGGraph#nodes
-   */
-  public Enumeration<VCGNode> nodes() {
-    return new VCGNodeEnumeration(firstNode());
-  }
-
-  /**
-   * Returns a VCG descriptor for the graph which will provide VCG-relevant
-   * information for the graph.
-   * @return graph descriptor
-   * @see VCGGraph#getVCGDescriptor
-   */
-  public VCGGraph.GraphDesc getVCGDescriptor() { return defaultVCGDesc; }
 }
 

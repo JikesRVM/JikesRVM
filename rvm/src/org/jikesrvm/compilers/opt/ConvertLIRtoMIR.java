@@ -12,28 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.ArchitectureSpecific.CallingConvention;
-import org.jikesrvm.ArchitectureSpecific.ComplexLIR2MIRExpansion;
-import org.jikesrvm.ArchitectureSpecific.ConvertALUOperators;
-import org.jikesrvm.ArchitectureSpecific.NormalizeConstants;
-import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.GuardedBinary;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.MIRInfo;
-import org.jikesrvm.compilers.opt.ir.MethodOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_REM_opcode;
@@ -53,14 +32,36 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
-import org.jikesrvm.compilers.opt.ir.TypeOperand;
-import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
 import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_INDEX;
 import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
 import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
 import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_TYPE_INDEX;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.CallingConvention;
+import org.jikesrvm.ArchitectureSpecific.ComplexLIR2MIRExpansion;
+import org.jikesrvm.ArchitectureSpecific.ConvertALUOperators;
+import org.jikesrvm.ArchitectureSpecific.NormalizeConstants;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.MIRInfo;
+import org.jikesrvm.compilers.opt.ir.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.TypeOperand;
+import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -396,11 +397,6 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
           OptimizingCompiler.header("DepGraph", ir.method);
           dgraph.printDepGraph();
           OptimizingCompiler.bottom("DepGraph", ir.method);
-        }
-        if (options.VCG_DG_BURS) {
-          // output dependence graph in VCG format.
-          // CAUTION: creates A LOT of files (one per BB)
-          VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + ".vcg", dgraph);
         }
         // II. Invoke BURS and rewrite block from LIR to MIR
         try {

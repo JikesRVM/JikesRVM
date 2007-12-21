@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
+import static org.jikesrvm.osr.OSR_Constants.LongTypeCode;
+import static org.jikesrvm.osr.OSR_Constants.VoidTypeCode;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -20,6 +24,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -32,15 +37,12 @@ import org.jikesrvm.compilers.opt.ir.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
-import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
+import org.jikesrvm.compilers.opt.ir.OsrPoint;
+import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.OsrPoint;
-import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.osr.OSR_Constants;
-import static org.jikesrvm.osr.OSR_Constants.LongTypeCode;
-import static org.jikesrvm.osr.OSR_Constants.VoidTypeCode;
 import org.jikesrvm.osr.OSR_LocalRegPair;
 import org.jikesrvm.osr.OSR_MethodVariables;
 import org.jikesrvm.osr.OSR_VariableMap;
@@ -940,7 +942,6 @@ public final class LiveAnalysis extends CompilerPhase {
         // Print the basic blocks
         System.out.println(" .... CFG:");
         System.out.println(ir.cfg);
-        VCG.printVCG(ir.method + ".vcg", ir.cfg);
         // Print the results for basic blocks
         printFixedPointResults(ir);
       }

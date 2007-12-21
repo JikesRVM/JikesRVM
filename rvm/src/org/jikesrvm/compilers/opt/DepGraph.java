@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
 import static org.jikesrvm.compilers.opt.DepGraphConstants.CONTROL;
 import static org.jikesrvm.compilers.opt.DepGraphConstants.EXCEPTION_E;
 import static org.jikesrvm.compilers.opt.DepGraphConstants.EXCEPTION_MS;
@@ -28,22 +27,24 @@ import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_ANTI;
 import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_MAY_DEF;
 import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_OUTPUT;
 import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_TRUE;
-import org.jikesrvm.compilers.opt.ir.LocationCarrier;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
+
+import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.LocationCarrier;
+import org.jikesrvm.compilers.opt.ir.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 
@@ -559,17 +560,5 @@ final class DepGraph extends SpaceEffGraph {
   public void printDepGraph() {
     System.out.println(toString());
     System.out.println("-----------------------------------");
-  }
-
-  /**
-   * Returns a VCG descriptor for the graph which will provide VCG-relevant
-   * information for the graph.
-   * @return graph descriptor
-   * @see VCGGraph#getVCGDescriptor
-   */
-  public VCGGraph.GraphDesc getVCGDescriptor() {
-    return new GraphDesc() {
-      public String getTitle() { return "Dependence Graph"; }
-    };
   }
 }

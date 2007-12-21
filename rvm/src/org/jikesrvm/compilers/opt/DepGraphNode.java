@@ -50,18 +50,6 @@ public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphCon
   }
 
   /**
-   * Returns a VCG descriptor for the node which will provide VCG-relevant
-   * information for the node.
-   * @return node descriptor
-   * @see VCGNode#getVCGDescriptor
-   */
-  public VCGNode.NodeDesc getVCGDescriptor() {
-    return new VCGNode.NodeDesc() {
-      public String getLabel() { return _instr.toString(); }
-    };
-  }
-
-  /**
    * Add an out edge from this node to the given node.
    * @param node destination node for the edge
    * @param type the type of the edge to add

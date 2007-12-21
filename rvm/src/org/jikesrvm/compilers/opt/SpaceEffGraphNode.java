@@ -20,7 +20,7 @@ import java.util.Enumeration;
  * list of in edges.  We maintain both to support bidirectional traversal
  * of the graph.
  */
-public class SpaceEffGraphNode implements GraphNode, VCGNode {
+public class SpaceEffGraphNode implements GraphNode {
 
   /** scratch field: optimizations use as they wish */
   public Object scratchObject;
@@ -699,38 +699,6 @@ public class SpaceEffGraphNode implements GraphNode, VCGNode {
       _edge = e.nextOut;
       return e.toNode();
     }
-  }
-
-  /**
-   * Returns the out edges of the node.
-   * @return the enumeration that would list the out edges of the node
-   * @see VCGNode#edges
-   */
-  public final Enumeration<VisEdge> edges() {
-    return new Enumeration<VisEdge>() {
-      OutEdgeEnumeration underlying = outEdges();
-
-      public boolean hasMoreElements() { return underlying.hasMoreElements(); }
-
-      public VisEdge nextElement() { return underlying.nextElement(); }
-    };
-  }
-
-  /**
-   * Returns a VCG descriptor for the graph which will provide VCG-relevant
-   * information for the graph.
-   * @return graph descriptor
-   * @see VCGGraph#getVCGDescriptor
-   */
-  public VCGNode.NodeDesc getVCGDescriptor() {
-    final SpaceEffGraphNode node = this;
-    return new VCGNode.NodeDesc() {
-      public String getLabel() { return node.toString(); }
-
-      public String getShape() { return isLoopHeader() ? "triangle" : null; }
-
-      public int getBorderWidth() { return isLoopHeader() ? 2 : 1; }
-    };
   }
 
   /**

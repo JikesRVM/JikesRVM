@@ -13,12 +13,11 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.GraphNode;
 import org.jikesrvm.compilers.opt.SortedGraphNode;
 import org.jikesrvm.compilers.opt.SpaceEffGraph;
 import org.jikesrvm.compilers.opt.SpaceEffGraphNode;
-import org.jikesrvm.compilers.opt.VCGNode;
 
 /**
  * The Factored Control Flow Graph (FCFG).
@@ -387,13 +386,5 @@ public final class ControlFlowGraph extends SpaceEffGraph {
     }
   }
 
-  // implements VCGGraph
-  @Override
-  public Enumeration<VCGNode> nodes() { return new NodeEnumeration<VCGNode>(this); }
-
-  // implements VCGGraph
-  public Enumeration<GraphNode> graphNodes() { return new NodeEnumeration<GraphNode>(this); }
-
-  // implements VCGGraph
   public Enumeration<BasicBlock> basicBlocks() { return new NodeEnumeration<BasicBlock>(this); }
 }

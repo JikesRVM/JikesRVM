@@ -171,7 +171,7 @@ Focus compilation effort based on frequency profile data
 
 ##########
 # Next, declare all the printing options
-# MUST start with PRINT_ or VCG_ prefix
+# MUST start with PRINT_
 #
 PRINT_PHASES -1 false phases
 Print short message for each compilation phase
@@ -239,15 +239,6 @@ Print IR before and after register allocation
 
 PRINT_CALLING_CONVENTIONS -1 false
 Print IR after expanding calling conventions
-
-VCG_DG_BURS -1 false
-Dump dependence graph before BURS in vcg form
-
-VCG_DG_SCHED_PRE -1 false
-Dump dependence graph before prepass scheduling in vcg form
-
-VCG_DG_SCHED_POST -1 false
-Dump dependence graph before postpass scheduling in vcg form
 
 ##########
 # Finally, the debugging flags

@@ -18,7 +18,7 @@ package org.jikesrvm.compilers.opt;
  * SpaceEffGraphEdges are directed, and therefore, have a from-node and
  * a to-node.
  */
-public class SpaceEffGraphEdge implements GraphEdge, VCGEdge {
+public class SpaceEffGraphEdge implements GraphEdge {
   /**
    * End node.
    */
@@ -153,44 +153,6 @@ public class SpaceEffGraphEdge implements GraphEdge, VCGEdge {
    * @return start node for the edge
    */
   public final GraphNode from() { return _fromNode; }
-
-  /**
-   * Returns the source node of the edge.
-   * @return edge source node
-   * @see VisEdge#sourceNode
-   */
-  public VisNode sourceNode() { return _fromNode; }
-
-  /**
-   * Returns the target node of the edge.
-   * @return edge target node
-   * @see VisEdge#targetNode
-   */
-  public VisNode targetNode() { return _toNode; }
-
-  /**
-   * Returns whether this edge is a backedge.
-   * @return true if the edge is a backedge, false otherwise
-   * @see VCGEdge#backEdge
-   */
-  // Already defined above.
-  //public boolean backEdge();
-
-  /**
-   * Returns a VCG descriptor for the edge which will provide VCG-relevant
-   * information for the edge.
-   * @return edge descriptor
-   * @see VCGEdge#getVCGDescriptor
-   */
-  public VCGEdge.EdgeDesc getVCGDescriptor() {
-    return new VCGEdge.EdgeDesc() {
-      public String getStyle() { return backEdge() ? "dotted" : null; }
-
-      public String getColor() { return backEdge() ? "red" : null; }
-
-      public int getThickness() { return dominatorEdge() ? 3 : 1; }
-    };
-  }
 
   /**
    * Links inlined from LinkedListElement2.
