@@ -65,7 +65,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       // Writing a boot image is a little bit special.  We're not really
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
-      Compiler.setBootOptions(masterOptions);
+      OptimizingCompiler.setBootOptions(masterOptions);
 
       // Allow further customization by the user.
       for (int i = 0, n = args.length; i < n; i++) {
@@ -79,7 +79,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         }
       }
       VM_EdgeCounts.boot(masterOptions.EDGE_COUNT_INPUT_FILE);
-      Compiler.init(masterOptions);
+      OptimizingCompiler.init(masterOptions);
     } catch (OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: Compiler failed during initialization: " + e + "\n";
       if (e.isFatal) {
@@ -113,7 +113,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
         OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
         CompilationPlan cp =
           new CompilationPlan(method, params, optimizationPlan, null, options.get(freeOptimizationPlan));
-        cm = Compiler.compile(cp);
+        cm = OptimizingCompiler.compile(cp);
         if (VM.BuildForAdaptiveSystem) {
           /* We can't accurately measure compilation time on Host JVM, so just approximate with DNA */
           int compilerId = VM_CompilerDNA.getCompilerConstant(cp.options.getOptLevel());

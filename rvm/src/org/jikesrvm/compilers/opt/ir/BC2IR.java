@@ -35,7 +35,7 @@ import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.Compiler;
+import org.jikesrvm.compilers.opt.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.FieldAnalysis;
 import org.jikesrvm.compilers.opt.InlineDecision;
@@ -270,7 +270,7 @@ public final class BC2IR
     this.osrGuardedInline = VM.runningVM &&
        context.options.OSR_GUARDED_INLINING &&
        !context.method.isForOsrSpecialization() &&
-       Compiler.getAppStarted() &&
+       OptimizingCompiler.getAppStarted() &&
        (VM_Controller.options != null) &&
        VM_Controller.options.ENABLE_RECOMPILATION;
   }

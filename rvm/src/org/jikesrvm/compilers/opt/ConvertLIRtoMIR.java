@@ -393,9 +393,9 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
         DepGraph dgraph = new DepGraph(ir, bb.firstRealInstruction(), bb.lastRealInstruction(), bb);
         if (options.PRINT_DG_BURS) {
           // print dependence graph.
-          Compiler.header("DepGraph", ir.method);
+          OptimizingCompiler.header("DepGraph", ir.method);
           dgraph.printDepGraph();
-          Compiler.bottom("DepGraph", ir.method);
+          OptimizingCompiler.bottom("DepGraph", ir.method);
         }
         if (options.VCG_DG_BURS) {
           // output dependence graph in VCG format.

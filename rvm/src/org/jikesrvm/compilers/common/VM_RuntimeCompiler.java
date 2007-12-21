@@ -32,7 +32,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.opt.CompilationPlan;
-import org.jikesrvm.compilers.opt.Compiler;
+import org.jikesrvm.compilers.opt.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
@@ -355,7 +355,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
           start = VM_Scheduler.getCurrentThread().startTimedInterval();
         }
-        cm = Compiler.compile(plan);
+        cm = OptimizingCompiler.compile(plan);
       } finally {
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
           long end = VM_Scheduler.getCurrentThread().endTimedInterval();
@@ -608,7 +608,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
         OptimizationPlanner.initializeMeasureCompilation();
       }
 
-      Compiler.init((OptOptions) options);
+      OptimizingCompiler.init((OptOptions) options);
 
       VM_PreCompile.init();
       // when we reach here the OPT compiler is enabled.
@@ -661,7 +661,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
             } else {
               tmpoptions = (OptOptions) options;
             }
-            Compiler.preloadSpecialClass(tmpoptions);
+            OptimizingCompiler.preloadSpecialClass(tmpoptions);
             compilationInProgress = false;
           }
         }

@@ -117,7 +117,7 @@ public final class ConvertMIRtoMC extends OptimizationPlanCompositeElement {
       if (shouldPrint) {
         // print exception tables (if any)
         ir.compiledMethod.printExceptionTable();
-        Compiler.bottom("Final machine code", ir.method);
+        OptimizingCompiler.bottom("Final machine code", ir.method);
       }
 
       if (VM.runningVM) {

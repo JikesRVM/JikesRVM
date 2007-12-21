@@ -65,7 +65,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
    */
   public VM_CompiledMethod specialCompile(VM_NormalMethod source) {
     CompilationPlan plan = new CompilationPlan(source, optimizationPlan, null, options);
-    return Compiler.compile(plan);
+    return OptimizingCompiler.compile(plan);
   }
 
   /**

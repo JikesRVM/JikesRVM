@@ -100,7 +100,7 @@ final class DominatorsPhase extends CompilerPhase {
       // computation completed, so set flag
       ir.HIRInfo.dominatorsAreComputed = true;
     } catch (OperationNotImplementedException e) {
-      Compiler.report(e.getMessage());
+      OptimizingCompiler.report(e.getMessage());
     }
   }
 }

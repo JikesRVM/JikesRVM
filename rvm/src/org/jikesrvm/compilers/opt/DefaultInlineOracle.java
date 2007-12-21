@@ -370,7 +370,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
              */
             if (opts.OSR_GUARDED_INLINING && VM_Controller.options.ENABLE_RECOMPILATION &&
                 caller.isInterruptible() &&
-                Compiler.getAppStarted()) {
+                OptimizingCompiler.getAppStarted()) {
                 if (VM.VerifyAssertions) VM._assert(VM.runningVM);
                 d.setOSRTestFailed();
             }

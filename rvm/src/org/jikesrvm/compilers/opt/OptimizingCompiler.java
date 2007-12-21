@@ -46,7 +46,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
  *
  * <p> This class is not meant to be instantiated.
  */
-public final class Compiler implements VM_Callbacks.StartupMonitor {
+public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
 
   ////////////////////////////////////////////
   // Initialization
@@ -76,7 +76,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
 
       }
       // want to be notified when VM boot is done and ready to start application
-      VM_Callbacks.addStartupMonitor(new Compiler());
+      VM_Callbacks.addStartupMonitor(new OptimizingCompiler());
       isInitialized = true;
     } catch (OptimizingCompilerException e) {
       // failures during initialization can't be ignored
@@ -179,7 +179,7 @@ public final class Compiler implements VM_Callbacks.StartupMonitor {
   /**
    * Prevent instantiation by clients
    */
-  private Compiler() {
+  private OptimizingCompiler() {
   }
 
   /**

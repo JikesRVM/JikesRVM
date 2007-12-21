@@ -84,7 +84,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
     } catch (OperationNotImplementedException e) {
       OptOptions options = ir.options;
       if (options.PRINT_POST_DOMINATORS) {
-        Compiler.report(e.getMessage());
+        OptimizingCompiler.report(e.getMessage());
       }
     }
   }

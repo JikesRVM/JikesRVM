@@ -780,7 +780,7 @@ class SimpleEscape extends CompilerPhase {
     CompilationPlan plan = new CompilationPlan((VM_NormalMethod) m, escapePlan, null, options);
     plan.analyzeOnly = true;
     try {
-      Compiler.compile(plan);
+      OptimizingCompiler.compile(plan);
     } catch (MagicNotImplementedException e) {
       summ.setInProgress(false); // summary stays at bottom
     }

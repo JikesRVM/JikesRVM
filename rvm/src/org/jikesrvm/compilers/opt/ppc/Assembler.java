@@ -17,7 +17,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.compilers.opt.Compiler;
+import org.jikesrvm.compilers.opt.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
@@ -1215,7 +1215,7 @@ public abstract class Assembler implements Operators, VM_Constants, VM_ArchConst
     }
 
     if (shouldPrint) {
-      Compiler.header("Final machine code", ir.method);
+      OptimizingCompiler.header("Final machine code", ir.method);
       for (int i = 0; i < machinecodes.length(); i++) {
         System.out.print(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true) +
                          " : " +

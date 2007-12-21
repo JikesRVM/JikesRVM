@@ -62,7 +62,7 @@ public final class DominatorTreePhase extends CompilerPhase {
       DominatorTree.perform(ir, true);
     } catch (OperationNotImplementedException e) {
       if (ir.options.PRINT_DOMINATORS || ir.options.PRINT_SSA) {
-        Compiler.report(e.getMessage());
+        OptimizingCompiler.report(e.getMessage());
       }
     }
   }

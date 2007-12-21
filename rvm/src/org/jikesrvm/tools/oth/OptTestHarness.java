@@ -29,7 +29,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.CompilationPlan;
-import org.jikesrvm.compilers.opt.Compiler;
+import org.jikesrvm.compilers.opt.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -209,7 +209,7 @@ class OptTestHarness {
         if (arg.startsWith("-oc:") && options.processAsOption("-X:irc:", arg.substring(4))) {
           // handled in processAsOption
         } else if (arg.equals("-useBootOptions")) {
-          Compiler.setBootOptions(options);
+          OptimizingCompiler.setBootOptions(options);
         } else if (arg.equals("-longcommandline")) {
           // the -longcommandline option reads options from a file.
           // use for cases when the command line is too long for AIX
@@ -284,7 +284,7 @@ class OptTestHarness {
             CompilationPlan cp =
                 new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(options), null, options);
             try {
-              cm = Compiler.compile(cp);
+              cm = OptimizingCompiler.compile(cp);
             } catch (Throwable e) {
               System.err.println("SKIPPING method:" + method + "Due to exception: " + e);
             }
@@ -347,7 +347,7 @@ class OptTestHarness {
         VM_CompiledMethod cm = null;
         CompilationPlan cp =
             new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
-        cm = Compiler.compile(cp);
+        cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
@@ -409,8 +409,8 @@ class OptTestHarness {
     reflectoidVector = new Vector<Method>(10);
     reflectMethodVector = new Vector<VM_Method>(10);
     reflectMethodArgsVector = new Vector<Object[]>(10);
-    if (!Compiler.isInitialized()) {
-      Compiler.init(options);
+    if (!OptimizingCompiler.isInitialized()) {
+      OptimizingCompiler.init(options);
     }
     processOptionString(args);
     if (perf != null) {
