@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
@@ -22,6 +23,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
 import org.jikesrvm.compilers.opt.ir.MIR_DoubleShift;
 import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Set;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
@@ -212,7 +214,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       case IA32_CVTTSS2SI_opcode:
       case IA32_CVTSI2SS_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
 
@@ -227,21 +229,21 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       case IA32_SUBSD_opcode:
       case IA32_XORPD_opcode: {
         RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
 
       case IA32_UCOMISD_opcode:
       case IA32_UCOMISS_opcode: {
         RegisterOperand op = MIR_Compare.getVal1(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
 
       case IA32_SHRD_opcode:
       case IA32_SHLD_opcode: {
         RegisterOperand op = MIR_DoubleShift.getSource(s);
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
       case IA32_FCOMI_opcode:
@@ -254,30 +256,52 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       break;
       case IA32_IMUL2_opcode: {
         RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
       case MIR_LOWTABLESWITCH_opcode: {
         RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
       case IA32_CMOV_opcode:
       case IA32_FCMOV_opcode: {
         RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
+      }
+      break;
+      case IA32_MOVD_opcode: {
+        RegisterOperand res = MIR_Move.getResult(s).asRegister();
+        if (!res.isFloat() && !res.isDouble()) {
+          // result is integer so source must be MM/XMM register and
+          // result must remain a register
+          if (VM.VerifyAssertions) {
+            Operand val = MIR_Move.getValue(s);
+            VM._assert(val.isRegister() && (val.isFloat() || val.isDouble()));
+          }
+          return true;
+        }
+        Operand val = MIR_Move.getValue(s);
+        if (!val.isFloat() && !val.isDouble()) {
+          // source is integer so destination must be MM/XMM register and
+          // source must remain a register
+          if (VM.VerifyAssertions) {
+            VM._assert(res.isRegister() && (res.isFloat() || res.isDouble()));
+          }
+          return true;
+        }
       }
       break;
       case IA32_MOVZX__B_opcode:
       case IA32_MOVSX__B_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
       case IA32_MOVZX__W_opcode:
       case IA32_MOVSX__W_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-        if (op.asRegister().getRegister() == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
       case IA32_SET__B_opcode: {
