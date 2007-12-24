@@ -1626,7 +1626,7 @@ EOF
     int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
-    emitRegRegOperands(srcReg, dstReg);$condLine
+    emitRegRegOperands(dstReg, srcReg);$condLine
     if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
   }
 EOF
