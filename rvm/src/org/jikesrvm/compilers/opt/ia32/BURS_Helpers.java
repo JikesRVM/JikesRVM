@@ -95,6 +95,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LEA;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG8B;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSX__B;
@@ -114,6 +115,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SUB;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XOR;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XORPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XORPS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
@@ -911,20 +914,22 @@ Operand value, boolean signExtend) {
    * Emit code to move 32 bits from FPRs to GPRs
    */
   protected final void SSE2_FPR2GPR_32(Instruction s) {
-    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
-    StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOVSS, sl, Unary.getVal(s))));
-    EMIT(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl.copy()));
+    EMIT(MIR_Move.mutate(s, IA32_MOVD, Unary.getResult(s), Unary.getVal(s)));
+//    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+//    StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
+//    EMIT(CPOS(s, MIR_Move.create(IA32_MOVSS, sl, Unary.getVal(s))));
+//    EMIT(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl.copy()));
   }
 
   /**
    * Emit code to move 32 bits from GPRs to FPRs
    */
   protected final void SSE2_GPR2FPR_32(Instruction s) {
-    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
-    StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl, Unary.getVal(s))));
-    EMIT(MIR_Move.mutate(s, IA32_MOVSS, Unary.getResult(s), sl.copy()));
+    EMIT(MIR_Move.mutate(s, IA32_MOVD, Unary.getResult(s), Unary.getVal(s)));
+//    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+//    StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
+//    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl, Unary.getVal(s))));
+//    EMIT(MIR_Move.mutate(s, IA32_MOVSS, Unary.getResult(s), sl.copy()));
   }
 
   /**
@@ -1007,7 +1012,15 @@ Operand value, boolean signExtend) {
    * Expansion of SSE2 floating point constant loads
    */
   protected final void SSE2_FPCONSTANT(Instruction s) {
-    EMIT(MIR_Move.mutate(s, SSE2_MOVE(Binary.getResult(s)), Binary.getResult(s), MO_MC(s)));
+    RegisterOperand res = Binary.getResult(s);
+    Operand val = Binary.getVal2(s); // float or double value
+    if (val.isFloatConstant() && val.asFloatConstant().value == 0.0F) {
+      EMIT(MIR_BinaryAcc.mutate(s, IA32_XORPS, res, res.copyRO()));
+    } else if (val.isDoubleConstant() && val.asDoubleConstant().value == 0.0D) {
+      EMIT(MIR_BinaryAcc.mutate(s, IA32_XORPD, res, res.copyRO()));
+    }else {
+      EMIT(MIR_Move.mutate(s, SSE2_MOVE(res), res, MO_MC(s)));
+    }
   }
 
   /**
