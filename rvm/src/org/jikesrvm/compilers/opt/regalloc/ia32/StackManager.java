@@ -574,7 +574,7 @@ public abstract class StackManager extends GenericStackManager {
       for (int i=0; i < 8; i++) {
         inst.insertBefore(MIR_Move.create(IA32_MOVQ,
             new StackLocationOperand(true, -fsaveLocation + (i * 8), 8),
-            new RegisterOperand(phys.getFPR(i), VM_TypeReference.Long)));
+            new RegisterOperand(phys.getFPR(i), VM_TypeReference.Double)));
       }
     } else {
       Operand M = new StackLocationOperand(true, -fsaveLocation, 4);
@@ -592,7 +592,7 @@ public abstract class StackManager extends GenericStackManager {
       PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       for (int i=0; i < 8; i++) {
         inst.insertBefore(MIR_Move.create(IA32_MOVQ,
-            new RegisterOperand(phys.getFPR(i), VM_TypeReference.Long),
+            new RegisterOperand(phys.getFPR(i), VM_TypeReference.Double),
             new StackLocationOperand(true, -fsaveLocation + (i * 8), 8)));
       }
     } else {
