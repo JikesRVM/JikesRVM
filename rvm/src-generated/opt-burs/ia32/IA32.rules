@@ -1197,16 +1197,6 @@ szp:	INT_AND(r, riv)
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, Binary.getVal1(P(p)), Binary.getVal2(P(p))));
 
-szp:	INT_AND(load8_16_32, riv)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal2(P(p))));
-
-szp:	INT_AND(riv, load8_16_32)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal1(P(p))));
-
 ### Memory operands ###
 szpr:	INT_AND(riv, load32)
 15
@@ -1218,15 +1208,15 @@ szpr:	INT_AND(load32, riv)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
-szp:	INT_AND(riv, load32)
-13
-EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal1(P(p))));
-
-szp:	INT_AND(load32, riv)
-13
+szp:	INT_AND(load8_16_32, riv)
+11
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal2(P(p))));
+
+szp:	INT_AND(riv, load8_16_32)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal1(P(p))));
 
 stm:	INT_STORE(INT_AND(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -2605,19 +2595,6 @@ EMIT_INSTRUCTION
 RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Int); \\
 EMIT(MIR_Move.create(IA32_MOV, temp, Call.getAddress(P(p)))); \\
 SYSCALL(P(p), temp.copyRO());
-
-###########
-# Rules for exceptions
-###########
-r:      GET_CAUGHT_EXCEPTION
-15
-EMIT_INSTRUCTION
-GET_EXCEPTION_OBJECT(P(p));
-
-stm:      SET_CAUGHT_EXCEPTION(r)
-17
-EMIT_INSTRUCTION
-SET_EXCEPTION_OBJECT(P(p));
 
 #####
 # RDTSC
