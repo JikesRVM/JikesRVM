@@ -197,7 +197,7 @@ abstract class AssemblerBase extends VM_Assembler
   }
 
   boolean isXMM_Reg(Operand op) {
-    return isReg(op);
+    return op.isRegister() && (op.isFloat() || op.isDouble());
   }
 
   /**
