@@ -120,7 +120,7 @@ public class OSR_SpecialCompiler {
   /**
    *     1. generate prologue PSEUDO_bytecode from the state.
    *     2. make new bytecodes with prologue.
-   *     3. set method's bytecode to specilizaed one.
+   *     3. set method's bytecode to specialized one.
    *     4. adjust exception map, line number map.
    *     5. compile the method.
    *     6. restore bytecode, exception, linenumber map to the original one.
