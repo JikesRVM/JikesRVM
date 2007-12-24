@@ -1307,13 +1307,6 @@ move
 
 
 ####################
-IA32_MOVDr
-MIR_Move
-move
-
-
-
-####################
 IA32_MOVQ
 MIR_Move
 move
