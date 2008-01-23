@@ -1034,11 +1034,22 @@ Operand value, boolean signExtend) {
    */
   protected final void INT_DIVIDES(Instruction s, RegisterOperand result, Operand val1, Operand val2,
                                    boolean isDiv) {
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), VM_TypeReference.Int), val1)));
-    EMIT(CPOS(s, MIR_ConvertDW2QW.create(IA32_CDQ,
-                                 new RegisterOperand(getEDX(), VM_TypeReference.Int),
-                                 new RegisterOperand(getEAX(), VM_TypeReference.Int))));
-    if (val2 instanceof IntConstantOperand) {
+    if (val1.isIntConstant()) {
+      int value = val1.asIntConstant().value;
+      if (value < 0) {
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEDX(), VM_TypeReference.Int), IC(-1))));
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), VM_TypeReference.Int), val1)));
+      } else {
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEDX(), VM_TypeReference.Int), IC(0))));
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), VM_TypeReference.Int), val1)));
+      }
+    } else {
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), VM_TypeReference.Int), val1)));
+      EMIT(CPOS(s, MIR_ConvertDW2QW.create(IA32_CDQ,
+                                   new RegisterOperand(getEDX(), VM_TypeReference.Int),
+                                   new RegisterOperand(getEAX(), VM_TypeReference.Int))));
+    }
+    if (val2.isIntConstant()) {
       RegisterOperand temp = regpool.makeTempInt();
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val2)));
       val2 = temp.copyRO();
