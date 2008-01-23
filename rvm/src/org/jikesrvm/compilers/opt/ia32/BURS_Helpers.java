@@ -96,6 +96,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG8B;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVLPD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSX__B;
@@ -878,7 +879,7 @@ Operand value, boolean signExtend) {
     StackLocationOperand sl = new StackLocationOperand(true, offset, QW);
     StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
     StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOVLPD, sl, Unary.getVal(s))));
     RegisterOperand i1 = Unary.getResult(s);
     RegisterOperand i2 = new RegisterOperand(regpool
         .getSecondReg(i1.getRegister()), VM_TypeReference.Int);
@@ -907,7 +908,7 @@ Operand value, boolean signExtend) {
     }
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl1, i1)));
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl2, i2)));
-    EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
+    EMIT(MIR_Move.mutate(s, IA32_MOVLPD, Unary.getResult(s), sl));
   }
 
   /**

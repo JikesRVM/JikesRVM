@@ -1390,10 +1390,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_dadd() {
     if (SSE2_BASE) {
-      asm.emitMOVSD_Reg_RegInd(XMM0, SP);                // XMM0 = value2
+      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
       asm.emitADDSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 += value1
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value2
       asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack += value1
@@ -1408,10 +1408,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_dsub() {
     if (SSE2_BASE) {
-      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 = value1
+      asm.emitMOVLPD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);   // XMM0 = value1
       asm.emitSUBSD_Reg_RegInd(XMM0, SP);                // XMM0 -= value2
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
       asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);  // FPU reg. stack <- value1
       asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, NO_SLOT);   // FPU reg. stack -= value2
@@ -1426,10 +1426,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_dmul() {
     if (SSE2_BASE) {
-      asm.emitMOVSD_Reg_RegInd(XMM0, SP);                // XMM0 = value2
+      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
       asm.emitMULSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 *= value1
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value2
       asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack *= value1
@@ -1444,10 +1444,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_ddiv() {
     if (SSE2_BASE) {
-      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 = value1
+      asm.emitMOVLPD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);   // XMM0 = value1
       asm.emitDIVSD_Reg_RegInd(XMM0, SP);                // XMM0 /= value2
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
       asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);  // FPU reg. stack <- value1
       asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);             // FPU reg. stack /= value2
@@ -1478,7 +1478,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     if (SSE2_BASE) {
       asm.emitXORPD_Reg_Reg(XMM0, XMM0);                 // XMM0 = 0
       asm.emitSUBSD_Reg_RegInd(XMM0, SP);                // XMM0 -= value
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value1
       asm.emitFCHS();                                    // change sign to stop of FPU stack
@@ -1531,7 +1531,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     if (SSE2_BASE) {
       asm.emitCVTSI2SD_Reg_RegInd(XMM0, SP);
       asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
     } else {
       asm.emitFILD_Reg_RegInd(FP0, SP);
       asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
@@ -1566,7 +1566,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     if (SSE2_BASE) {
       asm.emitCVTSS2SD_Reg_RegInd(XMM0, SP);
       asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+      asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);
       asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
@@ -1687,9 +1687,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_d2i() {
     if (SSE2_BASE) {
       // Set up max int in XMM0
-      asm.emitMOVSD_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintField.getOffset());
+      asm.emitMOVLPD_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintField.getOffset());
       // Set up value in XMM1
-      asm.emitMOVSD_Reg_RegInd(XMM1, SP);
+      asm.emitMOVLPD_Reg_RegInd(XMM1, SP);
       asm.emitADD_Reg_Imm(SP, 4);        // adjust stack
       // if value > maxint or NaN goto fr1; FP0 = value
       asm.emitUCOMISD_Reg_Reg(XMM0, XMM1);
@@ -1923,8 +1923,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_dcmpl() {
     if (SSE2_BASE) {
-      asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitMOVSD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);   // XMM1 = value1
+      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
+      asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
       asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
       asm.emitUCOMISD_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
     } else {
@@ -1955,8 +1955,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_dcmpg() {
     if (SSE2_BASE) {
-      asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitMOVSD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);   // XMM1 = value1
+      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
+      asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
       asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
       asm.emitUCOMISD_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
     } else {
@@ -2339,7 +2339,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_dreturn() {
     if (method.isSynchronized()) genMonitorExit();
     if (SSE2_FULL) {
-      asm.emitMOVSD_Reg_RegInd(XMM0, SP);
+      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
     }
@@ -3497,7 +3497,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       } else if (t.isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           if (SSE2_FULL) {
-            asm.emitMOVSD_Reg_RegDisp(XMM.lookup(fpr), SP, offset.minus(WORDSIZE));
+            asm.emitMOVLPD_Reg_RegDisp(XMM.lookup(fpr), SP, offset.minus(WORDSIZE));
           } else {
             asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, offset.minus(WORDSIZE));
           }
@@ -3593,7 +3593,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           dstOffset = dstOffset.minus(WORDSIZE);
           //fprOffset.set(fpr,  dstOffset);
           if (SSE2_FULL) {
-            asm.emitMOVSD_RegDisp_Reg(SP, dstOffset, XMM.lookup(fpr));
+            asm.emitMOVLPD_RegDisp_Reg(SP, dstOffset, XMM.lookup(fpr));
           } else {
             fprOffset[fpr] = dstOffset.toInt();
             is32bit[fpr] = false;
@@ -3655,7 +3655,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     } else if (t.isDoubleType()) {
       asm.emitSUB_Reg_Imm(SP, 8);
       if (SSE2_FULL) {
-        asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+        asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
       } else {
         asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
       }
@@ -4385,7 +4385,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitCALL_RegDisp(JTOC, offset);
       asm.emitSUB_Reg_Imm(SP, 8);
       if (SSE2_FULL) {
-        asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+        asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
       } else {
         asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
       }
@@ -4480,7 +4480,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           if (VM.VerifyAssertions)
             VM._assert(argType == VM_TypeReference.Double);
           asm.emitSQRTSD_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
-          asm.emitMOVSD_RegInd_Reg(SP, XMM0);            // set result on stack
+          asm.emitMOVLPD_RegInd_Reg(SP, XMM0);            // set result on stack
         }
       } else {
         if (VM.VerifyAssertions)

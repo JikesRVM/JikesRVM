@@ -1286,6 +1286,20 @@ none
 
 
 ####################
+IA32_MOVLPD
+MIR_Move
+move
+
+
+
+####################
+IA32_MOVLPS
+MIR_Move
+move
+
+
+
+####################
 IA32_MOVSS
 MIR_Move
 move
