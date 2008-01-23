@@ -931,7 +931,17 @@ EMIT_INSTRUCTION
 EMIT_Commutative(IA32_IMUL2, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 ### Memory operands ###
-# TODO: consider adding rules for memory operands for INT_MUL
+r:	INT_MUL(riv, load32)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_IMUL2, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r:	INT_MUL(load32, riv)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_IMUL2, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+# TODO: consider adding rules for the many IMUL forms, such as reg1 = reg2 * imm
 #####
 # INT_DIV
 #####
@@ -942,7 +952,12 @@ INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
 	                GuardedBinary.getVal2(P(p)), true);
 
 ### Memory operands ###
-# TODO: consider adding rules for memory operands INT_DIV
+r:	INT_DIV(riv, load32)
+55
+EMIT_INSTRUCTION
+INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+	                consumeMO(), true);
+
 #####
 # INT_REM
 #####
@@ -953,7 +968,12 @@ INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
 	                GuardedBinary.getVal2(P(p)), false);
 
 ### Memory operands ###
-# TODO: consider adding rules for memory operands for INT_REM
+r:	INT_REM(riv, load32)
+55
+EMIT_INSTRUCTION
+INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+	                consumeMO(), false);
+
 #####
 # INT_NEG
 #####
