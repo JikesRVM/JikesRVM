@@ -996,7 +996,6 @@ Operand value, boolean signExtend) {
    */
   protected final void SSE2_CONV(Operator op, Instruction s, Operand result, Operand value) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
-    if(VM.VerifyAssertions) VM._assert(value.isRegister());
     EMIT(MIR_Unary.mutate(s, op, result, value));
   }
 
