@@ -395,6 +395,9 @@ public abstract class Simplifier extends IRTools {
       case FLOAT_SUB_opcode:
         result = floatSub(s);
         break;
+      case FLOAT_SQRT_opcode:
+        result = floatSqrt(s);
+        break;        
         ////////////////////
         // DOUBLE ALU operations
         ////////////////////
@@ -421,6 +424,9 @@ public abstract class Simplifier extends IRTools {
         break;
       case DOUBLE_SUB_opcode:
         result = doubleSub(s);
+        break;
+      case DOUBLE_SQRT_opcode:
+        result = doubleSqrt(s);
         break;
         ////////////////////
         // CONVERSION operations
@@ -2558,6 +2564,19 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
+  private static DefUseEffect floatSqrt(Instruction s) {
+    if (CF_FLOAT) {
+      Operand op = Unary.getVal(s);
+      if (op.isFloatConstant()) {
+        // CONSTANT: FOLD
+        float val = op.asFloatConstant().value;
+        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC((float)Math.sqrt(val)));
+        return DefUseEffect.MOVE_FOLDED;
+      }
+    }
+    return DefUseEffect.UNCHANGED;
+  }
+
   private static DefUseEffect doubleAdd(Instruction s) {
     if (CF_DOUBLE) {
       canonicalizeCommutativeOperator(s);
@@ -2707,6 +2726,19 @@ public abstract class Simplifier extends IRTools {
       } else if (op1.isDoubleConstant() && (op1.asDoubleConstant().value == 0.0)) {
         Unary.mutate(s, DOUBLE_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
         return DefUseEffect.REDUCED;
+      }
+    }
+    return DefUseEffect.UNCHANGED;
+  }
+
+  private static DefUseEffect doubleSqrt(Instruction s) {
+    if (CF_DOUBLE) {
+      Operand op = Unary.getVal(s);
+      if (op.isDoubleConstant()) {
+        // CONSTANT: FOLD
+        double val = op.asDoubleConstant().value;
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC(Math.sqrt(val)));
+        return DefUseEffect.MOVE_FOLDED;
       }
     }
     return DefUseEffect.UNCHANGED;
