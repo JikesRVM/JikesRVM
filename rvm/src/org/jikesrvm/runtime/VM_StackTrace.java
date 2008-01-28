@@ -45,29 +45,21 @@ public class VM_StackTrace {
   /** The offset of the instruction within the compiled method */
   private final int[] instructionOffsets;
 
-  /** Index of the last stack trace */
+  /** Index of the last stack trace; only used to support VM.VerboseStackTracePeriod */
   private static int lastTraceIndex = 0;
-
-  /** Index of this stack trace */
-  private final int traceIndex;
-
-  /** Should this be (or is this) a verbose stack trace? */
-  private boolean isVerbose() {
-    // If we're printing verbose stack traces...
-    // AND this particular trace meets the periodicity requirements
-    return (VM.VerboseStackTracePeriod > 0) &&
-    (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
-
-  }
 
   /**
    * Create a trace of the current call stack
    */
   public VM_StackTrace() {
-    // Poor man's atomic integer, to get through bootstrap
-    synchronized(VM_StackTrace.class) {
-      lastTraceIndex++;
-      traceIndex = lastTraceIndex;
+    boolean isVerbose = false;
+    int traceIndex = 0;
+    if (VM.VerboseStackTracePeriod > 0) {
+      // Poor man's atomic integer, to get through bootstrap
+      synchronized(VM_StackTrace.class) {
+         traceIndex = lastTraceIndex++;
+      }
+      isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
     // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false);
@@ -77,7 +69,7 @@ public class VM_StackTrace {
     // (3) Fill in arrays
     walkFrames(true);
     // Debugging trick: print every nth stack trace created
-    if (isVerbose()) {
+    if (isVerbose) {
       VM.disableGC();
       VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex);
       VM_Scheduler.dumpStack();
