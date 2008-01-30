@@ -1845,13 +1845,19 @@ public final class BC2IR
               tr = receiver.getType();
             }
             VM_Type type = tr.peekType();
-            if (type != null && type.isResolved() && type.isClassType()) {
-              VM_Method vmeth = target;
-              if (target == null || type != target.getDeclaringClass()) {
-                vmeth = ClassLoaderProxy.lookupMethod(type.asClass(), ref);
-              }
-              if (vmeth != null) {
-                methOp.refine(vmeth, isPreciseType || type.asClass().isFinal());
+            if (type != null && type.isResolved()) {
+              if (type.isClassType()) {
+                VM_Method vmeth = target;
+                if (target == null || type != target.getDeclaringClass()) {
+                  vmeth = ClassLoaderProxy.lookupMethod(type.asClass(), ref);
+                }
+                if (vmeth != null) {
+                  methOp.refine(vmeth, isPreciseType || type.asClass().isFinal());
+                }
+              } else {
+                // Array: will always be calling the method defined in java.lang.Object
+                if (VM.VerifyAssertions) VM._assert(target != null, "Huh?  Target method must already be resolved if receiver is array");
+                methOp.refine(target, true);
               }
             }
 
