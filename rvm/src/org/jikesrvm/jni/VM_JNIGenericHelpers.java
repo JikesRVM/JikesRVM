@@ -13,11 +13,14 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
+import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_SysCall;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Platform independent utility functions called from VM_JNIFunctions
@@ -29,6 +32,56 @@ import org.vmmagic.unboxed.Address;
 public abstract class VM_JNIGenericHelpers {
 
   /**
+   * Compute the length of the given null-terminated string
+   *
+   * @param ptr address of string in memory
+   * @return the length of the string in bytes
+   */
+  public static int strlen(Address ptr) {
+    int length=0;
+    // align address to size of machine
+    while (!ptr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_ADDRESS - 1)).isZero()) {
+      byte bits = ptr.loadByte(Offset.fromIntZeroExtend(length));
+      if (bits == 0) {
+        return length;
+      }
+      length++;
+    }
+    // Ascii characters are normally in the range 1 to 128, if we subtract 1
+    // from each byte and look if the top bit of the byte is set then if it is
+    // the chances are the byte's value is 0. Loop over words doing this quick
+    // test and then do byte by byte tests when we think we have the 0
+    Word onesToSubtract;
+    Word maskToTestHighBits;
+    if (VM.BuildFor32Addr) {
+      onesToSubtract     = Word.fromIntZeroExtend(0x01010101);
+      maskToTestHighBits = Word.fromIntZeroExtend(0x80808080);
+    } else {
+      onesToSubtract     = Word.fromLong(0x0101010101010101L);
+      maskToTestHighBits = Word.fromLong(0x8080808080808080L);
+    }
+    while (true) {
+      Word bytes = ptr.loadWord(Offset.fromIntZeroExtend(length));
+      if(!bytes.minus(onesToSubtract).and(maskToTestHighBits).isZero()) {
+        if (VM.LittleEndian) {
+          for(int byteOff=0; byteOff < BYTES_IN_ADDRESS; byteOff++) {
+            if(bytes.and(Word.fromIntZeroExtend(0xFF)).isZero()) {
+              return length + byteOff;
+            }
+            bytes = bytes.rshl(8);
+          }
+        } else {
+          for(int byteOff=BYTES_IN_ADDRESS-1; byteOff >= 0; byteOff--) {
+            if(bytes.rshl(byteOff*8).and(Word.fromIntZeroExtend(0xFF)).isZero()) {
+              return length + (BYTES_IN_ADDRESS - 1 - byteOff);
+            }
+          }
+        }
+      }       
+      length += BYTES_IN_ADDRESS;
+    } 
+  }
+  /**
    * Given an address in C that points to a null-terminated string,
    * create a new Java byte[] with a copy of the string.
    *
@@ -37,52 +90,9 @@ public abstract class VM_JNIGenericHelpers {
    */
   public static byte[] createByteArrayFromC(Address stringAddress) {
 
-    // disable alignment checking for this method
-    if (VM.AlignmentChecking) {
-      VM_SysCall.sysCall.sysDisableAlignmentChecking();
-    }
-
-    // scan the memory for the null termination of the string
-    int length = 0;
-    for (Address addr = stringAddress; true; addr = addr.plus(4)) {
-      int word = addr.loadInt();
-      int byte0, byte1, byte2, byte3;
-      if (VM.LittleEndian) {
-        byte3 = ((word >> 24) & 0xFF);
-        byte2 = ((word >> 16) & 0xFF);
-        byte1 = ((word >> 8) & 0xFF);
-        byte0 = (word & 0xFF);
-      } else {
-        byte0 = ((word >> 24) & 0xFF);
-        byte1 = ((word >> 16) & 0xFF);
-        byte2 = ((word >> 8) & 0xFF);
-        byte3 = (word & 0xFF);
-      }
-      if (byte0 == 0) {
-        break;
-      }
-      length++;
-      if (byte1 == 0) {
-        break;
-      }
-      length++;
-      if (byte2 == 0) {
-        break;
-      }
-      length++;
-      if (byte3 == 0) {
-        break;
-      }
-      length++;
-    }
-
+    int length = strlen(stringAddress);
     byte[] contents = new byte[length];
     VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
-
-    // re-enable alignment checking
-    if (VM.AlignmentChecking) {
-      VM_SysCall.sysCall.sysEnableAlignmentChecking();
-    }
 
     return contents;
   }
@@ -122,26 +132,10 @@ public abstract class VM_JNIGenericHelpers {
     if (boolPtr.isZero()) {
       return;
     }
-    int temp = boolPtr.loadInt();
-    int intval;
-    if (VM.LittleEndian) {
-      if (val) {
-        // set to true.
-        intval = (temp & 0xffffff00) | 0x00000001;
-      } else {
-        // set to false
-        intval = (temp & 0xffffff00);
-      }
+    if (val) {
+      boolPtr.store((byte)1);
     } else {
-      /* Big Endian */
-      if (val) {
-        // set to true
-        intval = (temp & 0x00ffffff) | 0x01000000;
-      } else {
-        // set to false
-        intval = temp & 0x00ffffff;
-      }
+      boolPtr.store((byte)0);
     }
-    boolPtr.store(intval);
   }
 }
