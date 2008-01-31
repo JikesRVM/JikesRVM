@@ -21,6 +21,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Atom;
 
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Runtime;
 
 /**
@@ -55,27 +56,27 @@ public final class Field extends AccessibleObject implements Member {
   public Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
 
-    VM_TypeReference type = field.getType();
-    if (type.isReferenceType()) {
+    if (field.isReferenceType()) {
       return field.getObjectValueUnchecked(object);
+    }
+    VM_TypeReference type = field.getType();
+    if (type.isIntType()) {
+      return field.getIntValueUnchecked(object);
     } else if (type.isCharType()) {
       return field.getCharValueUnchecked(object);
-    } else if (type.isDoubleType()) {
-      return field.getDoubleValueUnchecked(object);
-    } else if (type.isFloatType()) {
-      return field.getFloatValueUnchecked(object);
-    } else if (type.isLongType()) {
-      return field.getLongValueUnchecked(object);
-    } else if (type.isIntType()) {
-      return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
       return field.getShortValueUnchecked(object);
+    } else if (type.isLongType()) {
+      return field.getLongValueUnchecked(object);
     } else if (type.isByteType()) {
       return field.getByteValueUnchecked(object);
     } else if (type.isBooleanType()) {
       return field.getBooleanValueUnchecked(object);
+    } else if (type.isDoubleType()) {
+      return field.getDoubleValueUnchecked(object);
     } else {
-      throw new InternalError("Huh?  Field of unknown primitive type "+type);
+      if (VM.VerifyAssertions) VM._assert(type.isFloatType());
+      return field.getFloatValueUnchecked(object);
     }
   }
 
@@ -153,13 +154,12 @@ public final class Field extends AccessibleObject implements Member {
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);
 
-    VM_TypeReference type = field.getType();
-    if (type.isReferenceType()) {
+    if (field.isReferenceType()) {
       if (value != null) {
         VM_Type valueType = VM_ObjectModel.getObjectType(value);
         VM_Type fieldType;
         try {
-          fieldType = type.resolve();
+          fieldType = field.getType().resolve();
         } catch (NoClassDefFoundError e) {
           throw new IllegalArgumentException("field type mismatch");
         }
