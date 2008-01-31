@@ -1681,10 +1681,9 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     //
     for (int i = 0, n = staticFields.length; i < n; ++i) {
       VM_Field field = staticFields[i];
-      VM_TypeReference fieldType = field.getType();
-      if (fieldType.isReferenceType()) {
+      if (field.isReferenceType()) {
         field.setOffset(VM_Statics.allocateReferenceSlot());
-      } else if (field.getType().getMemoryBytes() <= BYTES_IN_INT) {
+      } else if (field.getSize() <= BYTES_IN_INT) {
         field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_INT));
       } else {
         field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_LONG));
@@ -1707,7 +1706,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     int referenceFieldCount = 0;
     for (int i = 0, n = instanceFields.length; i < n; ++i) {
       VM_Field field = instanceFields[i];
-      if (field.getType().isReferenceType() && !field.isUntraced()) {
+      if (field.isReferenceType() && !field.isUntraced()) {
         referenceFieldCount += 1;
       }
     }
@@ -1720,7 +1719,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       referenceOffsets = MM_Interface.newNonMovingIntArray(referenceFieldCount);
       for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
         VM_Field field = instanceFields[i];
-        if (field.getType().isReferenceType() && !field.isUntraced()) {
+        if (field.isReferenceType() && !field.isUntraced()) {
           referenceOffsets[j++] = field.getOffset().toInt();
         }
       }
@@ -1872,7 +1871,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     if (VM.runningVM && VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
       Object obj = VM_Statics.getSlotContentsAsObject(literalOffset);
       VM_Statics.setSlotContents(fieldOffset, obj);
-    } else if (field.getType().getMemoryBytes() <= BYTES_IN_INT) {
+    } else if (field.getSize() <= BYTES_IN_INT) {
       // copy one word from constant pool to JTOC
       int value = VM_Statics.getSlotContentsAsInt(literalOffset);
       VM_Statics.setSlotContents(fieldOffset, value);

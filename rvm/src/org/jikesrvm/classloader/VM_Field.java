@@ -33,6 +33,16 @@ public final class VM_Field extends VM_Member {
   private final int constantValueIndex;
 
   /**
+   * The size of the field in bytes
+   */
+  private final byte size;
+
+  /**
+   * Does the field hold a reference value?
+   */
+  private final boolean reference;
+
+  /**
    * Create a field.
    *
    * @param declaringClass the VM_TypeReference object of the class
@@ -47,7 +57,9 @@ public final class VM_Field extends VM_Member {
                    int constantValueIndex, VM_Annotation[] annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
-
+    VM_TypeReference typeRef = memRef.asFieldReference().getFieldContentsType();
+    this.size = (byte)typeRef.getMemoryBytes();
+    this.reference = typeRef.isReferenceType();
     if (isUntraced() && VM.runningVM) {
       VM.sysFail("Untraced field " + toString() + " created at runtime!");
     }
@@ -120,7 +132,14 @@ public final class VM_Field extends VM_Member {
    * How many bytes of memory words do value of this type take?
    */
   public int getSize() {
-    return getType().getMemoryBytes();
+    return size;
+  }
+
+  /**
+   * Does the field hold a reference?
+   */
+  public boolean isReferenceType() {
+    return reference;
   }
 
   /**
@@ -227,10 +246,10 @@ public final class VM_Field extends VM_Member {
    * If the contents of this field is a primitive, get the value and wrap it in an object.
    */
   public Object getObjectUnchecked(Object obj) {
-    VM_TypeReference type = getType();
-    if (type.isReferenceType()) {
+    if (isReferenceType()) {
       return getObjectValueUnchecked(obj);
     } else {
+      VM_TypeReference type = getType();
       if (type.isCharType()) return getCharValueUnchecked(obj);
       if (type.isDoubleType()) return getDoubleValueUnchecked(obj);
       if (type.isFloatType()) return getFloatValueUnchecked(obj);

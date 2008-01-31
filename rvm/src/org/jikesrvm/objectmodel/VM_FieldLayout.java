@@ -101,7 +101,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
       // For every field
       for (VM_Field field : fields) {
         if (!field.isStatic() && !field.hasOffset()) {
-          if (field.getType().isReferenceType()) {
+          if (field.isReferenceType()) {
             layoutField(fieldLayout, klass, field, BYTES_IN_ADDRESS);
           }
         }
@@ -117,7 +117,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
       for (VM_Field field : fields) {
         // Should we allocate space in the object now?
         if (!field.isStatic() && !field.hasOffset()) {
-          if (field.getType().getMemoryBytes() == BYTES_IN_LONG) {
+          if (field.getSize() == BYTES_IN_LONG) {
             layoutField(fieldLayout, klass, field, BYTES_IN_LONG);
           }
         }
@@ -125,7 +125,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
     }
 
     for (VM_Field field : fields) {                               // For every field
-      int fieldSize = field.getType().getMemoryBytes();           // size of field
+      int fieldSize = field.getSize();                            // size of field
       if (!field.isStatic() && !field.hasOffset()) {              // Allocate space in the object?
         layoutField(fieldLayout, klass, field, fieldSize);
       }
@@ -189,7 +189,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
    * @param fieldSize The size of the field.
    */
   protected void layoutField(VM_FieldLayoutContext layout, VM_Class klass, VM_Field field, int fieldSize) {
-    boolean isRef = field.getType().isReferenceType();
+    boolean isRef = field.isReferenceType();
     setOffset(klass, field, layout.nextOffset(fieldSize, isRef));
   }
 }

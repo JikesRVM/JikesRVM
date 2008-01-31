@@ -2440,11 +2440,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     VM_Field field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType() && !field.isUntraced()) {
+    if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && field.isReferenceType() && !field.isUntraced()) {
       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE);
     } else {
-      if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+      if (field.getSize() <= BYTES_IN_INT) { // field is one word
         asm.emitPOP_RegDisp(JTOC, fieldOffset);
       } else { // field is two words (double or long)
         if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
@@ -2522,7 +2522,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     VM_Field field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (fieldType.isReferenceType()) {
+    if (field.isReferenceType()) {
       // 32bit reference load
       if (MM_Constants.NEEDS_READ_BARRIER && !field.isUntraced()) {
         VM_Barriers.compileGetfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
@@ -2633,11 +2633,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   @Override
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
-    VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     VM_Field field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
-    if (fieldType.isReferenceType()) {
+    if (field.isReferenceType()) {
       // 32bit reference store
       if (MM_Constants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
         VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
@@ -2649,21 +2648,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         // [S0+fieldOffset] <- T0
         asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);
       }
-    } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
+    } else if (field.getSize() == BYTES_IN_BYTE) {
       // 8bit store
       asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
       asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       // [S0+fieldOffset] <- T0
       asm.emitMOV_RegDisp_Reg_Byte(S0, fieldOffset, T0);
-    } else if (fieldType.isShortType() || fieldType.isCharType()) {
+    } else if (field.getSize() == BYTES_IN_SHORT) {
       // 16bit store
       asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
       asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       // [S0+fieldOffset] <- T0
       asm.emitMOV_RegDisp_Reg_Word(S0, fieldOffset, T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
+    } else if (field.getSize() == BYTES_IN_INT) {
       // 32bit store
       asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
@@ -2673,7 +2672,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     } else {
       // 64bit store
       if (VM.VerifyAssertions) {
-        VM._assert(fieldType.isLongType() || fieldType.isDoubleType(), "What type is this?" + fieldType);
+        VM._assert(field.getSize() == BYTES_IN_LONG);
       }
       // NB this is a 64bit copy from the stack to memory so implement
       // as a slightly optimized Intel memory copy using the FPU

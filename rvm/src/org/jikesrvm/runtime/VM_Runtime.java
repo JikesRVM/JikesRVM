@@ -476,59 +476,117 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * we avoid having to add special case code to deal with write barriers,
    * and other such things.
    *
+   * This method calls specific cloning routines based on type to help
+   * guide the inliner (which won't inline a single large method).
+   *
    * @param obj the object to clone
    * @return the cloned object
    */
   public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
     if (type.isArrayType()) {
-      VM_Array ary = type.asArray();
-      int nelts = VM_ObjectModel.getArrayLength(obj);
-      Object newObj = resolvedNewArray(nelts, ary);
-      System.arraycopy(obj, 0, newObj, 0, nelts);
-      return newObj;
+      return cloneArray(obj, type);
     } else {
-      if (!(obj instanceof Cloneable)) {
-        throw new CloneNotSupportedException();
-      }
-      VM_Class cls = type.asClass();
-      Object newObj = resolvedNewScalar(cls);
-      for (VM_Field f : cls.getInstanceFields()) {
-        VM_TypeReference ft = f.getType();
-        if (ft.isReferenceType()) {
-          // Do via slower "VM-internal reflection" to enable
-          // collectors to do the right thing wrt reference counting
-          // and write barriers.
-          f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-        } else {
-          Offset offset = f.getOffset();
-          switch (ft.getMemoryBytes()) {
-            case BYTES_IN_BYTE: {
-              byte bits = VM_Magic.getByteAtOffset(obj, offset);
-              VM_Magic.setByteAtOffset(newObj, offset, bits);
-              break;
-            }
-            case BYTES_IN_CHAR: {
-              char bits = VM_Magic.getCharAtOffset(obj, offset);
-              VM_Magic.setCharAtOffset(newObj, offset, bits);
-              break;
-            }
-            case BYTES_IN_LONG: {
-              long bits = VM_Magic.getLongAtOffset(obj, offset);
-              VM_Magic.setLongAtOffset(newObj, offset, bits);
-              break;
-            }
-            default: {
-              if (VM.VerifyAssertions) VM._assert(ft.getMemoryBytes() == BYTES_IN_INT);
-              int bits = VM_Magic.getIntAtOffset(obj, offset);
-              VM_Magic.setIntAtOffset(newObj, offset, bits);
-              break;
-            }
+      return cloneClass(obj, type);
+    }
+  }
+
+  /**
+   * Clone an array
+   *
+   * @param obj the array to clone
+   * @param type the type information for the array
+   * @return the cloned object
+   */
+  private static Object cloneArray(Object obj, VM_Type type) throws OutOfMemoryError {
+    VM_Array ary = type.asArray();
+    int nelts = VM_ObjectModel.getArrayLength(obj);
+    Object newObj = resolvedNewArray(nelts, ary);
+    System.arraycopy(obj, 0, newObj, 0, nelts);
+    return newObj;
+  }
+
+  /**
+   * Clone an object implementing a class - check that the class is cloneable
+   * (we make this a small method with just a test so that the inliner will
+   * inline it and hopefully eliminate the instanceof test).
+   *
+   * @param obj the object to clone
+   * @param type the type information for the class
+   * @return the cloned object
+   */
+  private static Object cloneClass(Object obj, VM_Type type) throws OutOfMemoryError, CloneNotSupportedException {
+    if (!(obj instanceof Cloneable)) {
+      throw new CloneNotSupportedException();
+    } else {
+      return cloneClass2(obj, type);
+    }
+  }
+
+  /**
+   * Clone an object implementing a class - the actual clone
+   *
+   * @param obj the object to clone
+   * @param type the type information for the class
+   * @return the cloned object
+   */
+  private static Object cloneClass2(Object obj, VM_Type type) throws OutOfMemoryError {
+    VM_Class cls = type.asClass();
+    Object newObj = resolvedNewScalar(cls);
+    for (VM_Field f : cls.getInstanceFields()) {
+      int size = f.getSize();
+      if (VM.BuildFor32Addr) {
+        if (size == BYTES_IN_INT) {
+          if (f.isReferenceType()) {
+            // Do via slower "VM-internal reflection" to enable
+            // collectors to do the right thing wrt reference counting
+            // and write barriers.
+            f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
+          } else {
+            Offset offset = f.getOffset();
+            int bits = VM_Magic.getIntAtOffset(obj, offset);
+            VM_Magic.setIntAtOffset(newObj, offset, bits);
           }
+          continue;
+        } else if (size == BYTES_IN_LONG) {
+          Offset offset = f.getOffset();
+          long bits = VM_Magic.getLongAtOffset(obj, offset);
+          VM_Magic.setLongAtOffset(newObj, offset, bits);
+          continue;
+        }
+      } else {
+        // BuildFor64Addr
+        if (size == BYTES_IN_LONG) {
+          if (f.isReferenceType()) {
+            // Do via slower "VM-internal reflection" to enable
+            // collectors to do the right thing wrt reference counting
+            // and write barriers.
+            f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
+          } else {
+            Offset offset = f.getOffset();
+            long bits = VM_Magic.getLongAtOffset(obj, offset);
+            VM_Magic.setLongAtOffset(newObj, offset, bits);
+          }
+          continue;
+        } else if (size == BYTES_IN_INT) {
+          Offset offset = f.getOffset();
+          int bits = VM_Magic.getIntAtOffset(obj, offset);
+          VM_Magic.setIntAtOffset(newObj, offset, bits);
+          continue;
         }
       }
-      return newObj;
+      if (size == BYTES_IN_CHAR) {
+        Offset offset = f.getOffset();
+        char bits = VM_Magic.getCharAtOffset(obj, offset);
+        VM_Magic.setCharAtOffset(newObj, offset, bits);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(size == BYTES_IN_BYTE);
+        Offset offset = f.getOffset();
+        byte bits = VM_Magic.getByteAtOffset(obj, offset);
+        VM_Magic.setByteAtOffset(newObj, offset, bits);
+      }
     }
+    return newObj;
   }
 
   /**
