@@ -458,6 +458,21 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
+   * Is this method a bridge method? Bridge methods are generated in some cases
+   * of generics and inheritance.
+   */
+  public boolean isBridge() {
+    return (modifiers & BRIDGE) != 0;
+  }
+
+  /**
+   * Is this a varargs method taking a variable number of arguments?
+   */
+  public boolean isVarArgs() {
+    return (modifiers & VARARGS) != 0;
+  }
+
+  /**
    * Exceptions thrown by this method -
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)

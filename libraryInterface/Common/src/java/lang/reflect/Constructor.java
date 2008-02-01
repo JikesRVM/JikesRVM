@@ -79,10 +79,14 @@ public final class Constructor<T> extends AccessibleObject
     return constructor.isSynthetic();
   }
 
-  public Object newInstance(Object[] args) throws InstantiationException,
-                                                  IllegalAccessException,
-                                                  IllegalArgumentException,
-                                                  InvocationTargetException {
+  public boolean isVarArgs() {
+    return constructor.isVarArgs();
+  }
+
+  public T newInstance(Object[] args) throws InstantiationException,
+                                             IllegalAccessException,
+                                             IllegalArgumentException,
+                                             InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !isAccessible()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
@@ -121,7 +125,7 @@ public final class Constructor<T> extends AccessibleObject
     }
 
     // Allocate an uninitialized instance;
-    Object obj = VM_Runtime.resolvedNewScalar(cls);
+    T obj = (T)VM_Runtime.resolvedNewScalar(cls);
 
     // Run the constructor on the instance.
     try {
@@ -156,7 +160,7 @@ public final class Constructor<T> extends AccessibleObject
 
   // Generics support
 
-  public TypeVariable<?>[] getTypeParameters() {
+  public TypeVariable<Constructor<T>>[] getTypeParameters() {
     VM_Atom sig = constructor.getSignature();
     if (sig == null) {
       return new TypeVariable[0];

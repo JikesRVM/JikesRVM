@@ -25,7 +25,7 @@ import org.jikesrvm.runtime.VM_Runtime;
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
-public final class Method extends AccessibleObject implements Member {
+public final class Method extends AccessibleObject implements Member, GenericDeclaration {
   final VM_Method method;
 
    // Prevent this class from being instantiated.
@@ -74,6 +74,14 @@ public final class Method extends AccessibleObject implements Member {
 
   public boolean isSynthetic() {
     return method.isSynthetic();
+  }
+
+  public boolean isBridge() {
+    return method.isBridge();
+  }
+
+  public boolean isVarArgs() {
+    return method.isVarArgs();
   }
 
   public Class<?> getReturnType() {
@@ -179,9 +187,13 @@ public final class Method extends AccessibleObject implements Member {
     return method.getAnnotation(annotationClass);
   }
 
+  public Object getDefaultValue() {
+    return null;
+  }
+
   // Generics support
 
-  public TypeVariable<?>[] getTypeParameters() {
+  public TypeVariable<Method>[] getTypeParameters() {
     VM_Atom sig = method.getSignature();
     if (sig == null) {
       return new TypeVariable[0];

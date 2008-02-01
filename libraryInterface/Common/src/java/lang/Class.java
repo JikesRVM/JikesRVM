@@ -160,7 +160,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return type.isArrayType() ? type.asArray().getElementType().getClassForType(): null;
   }
 
-  public Constructor<?> getConstructor(Class<?>[] parameterTypes)
+  public Constructor<T> getConstructor(Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException {
 
     checkMemberAccess(Member.PUBLIC);
@@ -225,7 +225,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return result;
   }
 
-  public Constructor<?> getDeclaredConstructor(Class<?>[] parameterTypes)
+  public Constructor<T> getDeclaredConstructor(Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchMethodException();
@@ -530,7 +530,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public Class<?> getSuperclass() {
     if (type.isArrayType()) {
-      return VM_Type.JavaLangObjectType.getClassForType();
+      return Object.class;
     } else if (type.isClassType()) {
       VM_Class myClass = type.asClass();
       if (myClass.isInterface()) return null;
@@ -904,7 +904,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public TypeVariable<?>[] getTypeParameters() {
+  public TypeVariable<Class<T>>[] getTypeParameters() {
     if (!type.isClassType()) {
       return new TypeVariable[0];
     } else {
@@ -964,18 +964,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     throw new VM_UnimplementedError();
   }
 
-  public Object cast(Object obj) {
+  public T cast(Object obj) {
     if (obj != null && ! isInstance(obj))
       throw new ClassCastException();
-    return obj;
+    return (T)obj;
   }
 
   // Enumeration support
 
-  public Object[] getEnumConstants() {
+  public T[] getEnumConstants() {
     if (isEnum()) {
       try {
-        return (Object[])getMethod("values", new Class[0]).invoke(null, new Object[0]);
+        return (T[])getMethod("values", new Class[0]).invoke(null, new Object[0]);
       } catch (NoSuchMethodException exception) {
         throw new Error("Enum lacks values() method");
       } catch (IllegalAccessException exception) {

@@ -28,7 +28,7 @@ class JikesRVMHelpers {
     return ClassHelper.getUserName(c);
   }
 
-  static TypeVariable<?>[] getTypeParameters(Constructor<?> constructor, VM_Atom sig) {
+  static <T> TypeVariable<Constructor<T>>[] getTypeParameters(Constructor<T> constructor, VM_Atom sig) {
     MethodSignatureParser p = new MethodSignatureParser(constructor, sig.toString());
     return p.getTypeParameters();
   }
@@ -43,7 +43,7 @@ class JikesRVMHelpers {
     return p.getGenericParameterTypes();
   }
 
-  static TypeVariable<?>[] getTypeParameters(Method method, VM_Atom sig) {
+  static TypeVariable<Method>[] getTypeParameters(Method method, VM_Atom sig) {
     MethodSignatureParser p = new MethodSignatureParser(method, sig.toString());
     return p.getTypeParameters();
   }
