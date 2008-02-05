@@ -19,7 +19,7 @@
   <!-- in target patch-classpath-web                                -->
   <property name="classpath.version" value="96.1"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="7"/>
+  <property name="classpath.patchlevel" value="8"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -115,6 +115,8 @@
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-367.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-solaris.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
@@ -140,6 +142,8 @@
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-311.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-345.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-367.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
