@@ -22,6 +22,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_IdentityHashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -134,13 +135,20 @@ public class VM_Statics implements VM_Constants {
   /**
    * Mapping from object literals to the jtoc slot that contains them.
    */
-  private static final VM_HashMap<Object, Integer> objectLiterals = new VM_HashMap<Object, Integer>();
+  private static final VM_IdentityHashMap<Object, Integer> objectLiterals = new VM_IdentityHashMap<Object, Integer>();
+
+
+  /**
+   * Mapping from String literals to the jtoc slot that contains them. Used by
+   * String interning to ensure String literals and interned Strings are ==.
+   */
+  private static final VM_HashMap<String, Integer> stringLiterals = new VM_HashMap<String, Integer>();
 
   /**
    * A special mapping from VM_Atom objects to the jtoc slot of String
    * objects that represent the same value.
    */
-  private static final VM_HashMap<VM_Atom, Integer> stringLiterals = new VM_HashMap<VM_Atom, Integer>();
+  private static final VM_HashMap<VM_Atom, Integer> atomLiterals = new VM_HashMap<VM_Atom, Integer>();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
@@ -225,8 +233,8 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
     Integer offAsInt;
-    synchronized (stringLiterals) {
-      offAsInt = stringLiterals.get(literal);
+    synchronized (atomLiterals) {
+      offAsInt = atomLiterals.get(literal);
       if (offAsInt != null) {
         return offAsInt;
       } else {
@@ -235,10 +243,13 @@ public class VM_Statics implements VM_Constants {
           stringValue = stringValue.intern();
         }
         Offset newOff = allocateReferenceSlot();
-        stringLiterals.put(literal, newOff.toInt());
+        atomLiterals.put(literal, newOff.toInt());
         synchronized (objectLiterals) {
           objectLiterals.put(stringValue, newOff.toInt());
           setSlotContents(newOff, stringValue);
+        }
+        synchronized (stringLiterals) {
+          stringLiterals.put(stringValue, newOff.toInt());
         }
         return newOff.toInt();
       }
@@ -252,8 +263,8 @@ public class VM_Statics implements VM_Constants {
    */
   public static String findStringLiteral(String literal) {
     Integer offAsInt;
-    synchronized (objectLiterals) {
-      offAsInt = objectLiterals.get(literal);
+    synchronized (stringLiterals) {
+      offAsInt = stringLiterals.get(literal);
     }
     if (offAsInt != null) {
       Offset off = Offset.fromIntSignExtend(offAsInt);
@@ -299,6 +310,14 @@ public class VM_Statics implements VM_Constants {
         Offset newOff = allocateReferenceSlot();
         objectLiterals.put(literal, newOff.toInt());
         setSlotContents(newOff, literal);
+        if (literal instanceof String) {
+          String internedString = ((String)literal).intern();
+          if (internedString == literal) {
+            synchronized (stringLiterals) {
+              stringLiterals.put(internedString, newOff.toInt());
+            }
+          }
+        }
         return newOff.toInt();
       }
     }

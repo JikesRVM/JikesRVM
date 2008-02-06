@@ -517,6 +517,7 @@ Ljava/util/logging/Logger$1;
 Ljava/util/logging/Handler;
 Ljava/util/logging/LogManager;
 Ljava/util/logging/Level;
+[Ljava/util/logging/Level;
 Ljava/beans/PropertyChangeSupport;
 Lgnu/java/net/protocol/file/Connection;
 Lgnu/java/net/protocol/file/Connection$StaticData;
