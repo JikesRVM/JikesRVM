@@ -1,5 +1,10 @@
---- java/lang/String.java	2008-01-23 09:01:02.000000000 +0000
-+++ java/lang/String.java	2008-02-05 10:07:56.000000000 +0000
+Index: java/lang/String.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/String.java,v
+retrieving revision 1.87
+diff -u -r1.87 String.java
+--- java/lang/String.java	23 Nov 2007 15:04:25 -0000	1.87
++++ java/lang/String.java	7 Feb 2008 09:24:22 -0000
 @@ -1303,13 +1303,13 @@
          break;
      if (i < 0)
@@ -7,11 +12,11 @@
 -    char[] newStr = (char[]) value.clone();
 -    newStr[x] = newChar;
 +    char[] newStr = toCharArray();
-+    newStr[x-offset] = newChar;
++    newStr[x - offset] = newChar;
      while (--i >= 0)
        if (value[++x] == oldChar)
 -        newStr[x] = newChar;
-+        newStr[x-offset] = newChar;
++        newStr[x - offset] = newChar;
      // Package constructor avoids an array copy.
 -    return new String(newStr, offset, count, true);
 +    return new String(newStr, 0, count, true);
@@ -24,7 +29,7 @@
      // lowercase expansions in Unicode 3.0.0.
 -    char[] newStr = (char[]) value.clone();
 +    char[] newStr = new char[count];
-+    VMSystem.arraycopy(value, offset, newStr, 0, count-(x-offset));
++    VMSystem.arraycopy(value, offset, newStr, 0, count - (x - offset));
      do
        {
          char ch = value[x];
@@ -32,12 +37,12 @@
          if (ch != '\u0049')
            {
 -            newStr[x++] = Character.toLowerCase(ch);
-+            newStr[x-offset] = Character.toLowerCase(ch);
++            newStr[x - offset] = Character.toLowerCase(ch);
            }
          else
            {
 -            newStr[x++] = '\u0131';
-+            newStr[x-offset] = '\u0131';
++            newStr[x - offset] = '\u0131';
            }
 +        x++;
        }
@@ -54,13 +59,13 @@
          // multi-character lowercase expansions in Unicode 3.0.0.
 -        char[] newStr = (char[]) value.clone();
 +        char[] newStr = new char[count];
-+        VMSystem.arraycopy(value, offset, newStr, 0, count-(x-offset));
++        VMSystem.arraycopy(value, offset, newStr, 0, count - (x - offset));
          do
            {
              char ch = value[x];
              // Hardcoded special case.
 -            newStr[x++] = Character.toLowerCase(ch);
-+            newStr[x-offset] = Character.toLowerCase(ch);
++            newStr[x - offset] = Character.toLowerCase(ch);
 +            x++;
            }
          while (--i >= 0);
@@ -76,7 +81,7 @@
        {
 -        char[] newStr = (char[]) value.clone();
 +        char[] newStr = new char[count];
-+        VMSystem.arraycopy(value, offset, newStr, 0, count-(x-offset));
++        VMSystem.arraycopy(value, offset, newStr, 0, count - (x - offset));
          while (--i >= 0)
            {
              char ch = value[x];
@@ -84,12 +89,12 @@
              if (ch != '\u0069')
                {
 -                newStr[x++] = Character.toUpperCase(ch);
-+                newStr[x-offset] = Character.toUpperCase(ch);
++                newStr[x - offset] = Character.toUpperCase(ch);
                }
              else
                {
 -                newStr[x++] = '\u0130';
-+                newStr[x-offset] = '\u0130';
++                newStr[x - offset] = '\u0130';
                }
 +            x++;
            }
@@ -105,12 +110,12 @@
            {
 -            char[] newStr = (char[]) value.clone();
 +            char[] newStr = new char[count];
-+            VMSystem.arraycopy(value, offset, newStr, 0, count-(x-offset));
++            VMSystem.arraycopy(value, offset, newStr, 0, count - (x - offset));
              while (--i >= 0)
                {
                  char ch = value[x];
 -                newStr[x++] = Character.toUpperCase(ch);
-+                newStr[x-offset] = Character.toUpperCase(ch);
++                newStr[x - offset] = Character.toUpperCase(ch);
 +                x++;
                }
              // Package constructor avoids an array copy.
