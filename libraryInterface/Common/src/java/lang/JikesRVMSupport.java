@@ -76,6 +76,10 @@ public class JikesRVMSupport {
     return str.offset;
   }
 
+  public static String newStringWithoutCopy(char[] data, int offset, int count) {
+    return new String(data, offset, count, true);
+  }
+
   /***
    * Thread stuff
    * */

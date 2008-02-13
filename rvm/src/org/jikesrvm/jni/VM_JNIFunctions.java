@@ -3838,7 +3838,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       final char[] contents = new char[len];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len * 2);
-      return env.pushJNIRef(new String(contents));
+      return env.pushJNIRef(java.lang.JikesRVMSupport.newStringWithoutCopy(contents, 0, len));
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5864,11 +5864,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         env.recordException(new StringIndexOutOfBoundsException());
         return;
       }
-      /* XXX TODO This is pretty inefficient.  We create another String,
-       * just to feed it to the UTF8 method, but I'm feeling lazy and
-       * don't want to go into writing another interface to
-       * VM_UTF8Convert.toUTF8() to handle ranges of char arrays. */
-      String region = new String(strChars, strOffset + start, len);
+      String region = java.lang.JikesRVMSupport.newStringWithoutCopy(strChars, strOffset + start, len);
       byte[] utfcontents = VM_UTF8Convert.toUTF8(region);
       VM_Memory.memcopy(buf, VM_Magic.objectAsAddress(utfcontents), utfcontents.length);
     } catch (Throwable unexpected) {
