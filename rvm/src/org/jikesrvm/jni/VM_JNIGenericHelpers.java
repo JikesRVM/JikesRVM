@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.runtime.VM_SysCall;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -77,9 +76,9 @@ public abstract class VM_JNIGenericHelpers {
             }
           }
         }
-      }       
+      }
       length += BYTES_IN_ADDRESS;
-    } 
+    }
   }
   /**
    * Given an address in C that points to a null-terminated string,
