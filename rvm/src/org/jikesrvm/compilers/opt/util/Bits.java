@@ -127,16 +127,4 @@ public class Bits {
     val = val >> bits - 1;
     return (val == 0 || val == -1);
   }
-
-  /**
-   * Return the number of ones in the binary representation of an integer.
-   */
-  public static int populationCount(int value) {
-    int result = 0;
-    while (value != 0) {
-      result++;
-      value &= (value - 1); // clear lsb 1 bit
-    }
-    return result;
-  }
 }

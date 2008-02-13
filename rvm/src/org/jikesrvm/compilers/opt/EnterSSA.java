@@ -50,9 +50,9 @@ import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Prepare;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.Pair;
 import org.jikesrvm.compilers.opt.util.TreeNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * This compiler phase constructs SSA form.
@@ -367,7 +367,7 @@ public class EnterSSA extends CompilerPhase {
     //    for each symbolic register (more efficient than using register
     //  lists)
     if (DEBUG) System.out.println("Find defs for each register...");
-    BitVector[] defSets = getDefSets();
+    VM_BitVector[] defSets = getDefSets();
 
     // 4. Insert phi functions for scalars
     if (DEBUG) System.out.println("Insert phi functions...");
@@ -504,10 +504,10 @@ public class EnterSSA extends CompilerPhase {
       if (DEBUG) System.out.println("Inserting phis for Heap " + H);
       if (DEBUG) System.out.println("Start iterated frontier...");
 
-      BitVector defH = H.getDefBlocks();
+      VM_BitVector defH = H.getDefBlocks();
       if (DEBUG) System.out.println(H + " DEFINED IN " + defH);
 
-      BitVector needsPhi = DominanceFrontier.
+      VM_BitVector needsPhi = DominanceFrontier.
           getIteratedDominanceFrontier(ir, defH);
       if (DEBUG) System.out.println(H + " NEEDS PHI " + needsPhi);
 
@@ -530,12 +530,12 @@ public class EnterSSA extends CompilerPhase {
    * @return an array of BitVectors, where element <em>i</em> represents the
    *    basic blocks that contain defs for symbolic register <em>i</em>
    */
-  private BitVector[] getDefSets() {
+  private VM_BitVector[] getDefSets() {
     int nBlocks = ir.getMaxBasicBlockNumber();
-    BitVector[] result = new BitVector[ir.getNumberOfSymbolicRegisters()];
+    VM_BitVector[] result = new VM_BitVector[ir.getNumberOfSymbolicRegisters()];
 
     for (int i = 0; i < result.length; i++) {
-      result[i] = new BitVector(nBlocks + 1);
+      result[i] = new VM_BitVector(nBlocks + 1);
     }
 
     // loop over each basic block
@@ -577,7 +577,7 @@ public class EnterSSA extends CompilerPhase {
    *            symbolic register i.
    * @param symbolics symbolics[i] is symbolic register number i
    */
-  private void insertPhiFunctions(IR ir, BitVector[] defs, Register[] symbolics, boolean excludeGuards) {
+  private void insertPhiFunctions(IR ir, VM_BitVector[] defs, Register[] symbolics, boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
       if (symbolics[r] == null) continue;
       if (symbolics[r].isSSA()) continue;
@@ -585,7 +585,7 @@ public class EnterSSA extends CompilerPhase {
       if (excludeGuards && symbolics[r].isValidation()) continue;
       if (DEBUG) System.out.println("Inserting phis for register " + r);
       if (DEBUG) System.out.println("Start iterated frontier...");
-      BitVector needsPhi = DominanceFrontier.getIteratedDominanceFrontier(ir, defs[r]);
+      VM_BitVector needsPhi = DominanceFrontier.getIteratedDominanceFrontier(ir, defs[r]);
       removePhisThatDominateAllDefs(needsPhi, ir, defs[r]);
       if (DEBUG) System.out.println("Done.");
 
@@ -610,7 +610,7 @@ public class EnterSSA extends CompilerPhase {
    * @param ir the governing IR
    * @param defs set of nodes that define register r
    */
-  private void removePhisThatDominateAllDefs(BitVector needsPhi, IR ir, BitVector defs) {
+  private void removePhisThatDominateAllDefs(VM_BitVector needsPhi, IR ir, VM_BitVector defs) {
     for (int i = 0; i < needsPhi.length(); i++) {
       if (!needsPhi.get(i)) {
         continue;

@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * An HeapVariable represents a heap variable for heap array SSA form
@@ -29,7 +29,7 @@ public class HeapVariable<T> {
    * a bit vector representing the basic blocks that write to this
    * variable
    */
-  private final BitVector definedIn;
+  private final VM_BitVector definedIn;
   /**
    * The type of this heap variable.  Must be either a
    * VM_TypeReference, VM_FieldReference, VM_Field or a String
@@ -47,7 +47,7 @@ public class HeapVariable<T> {
   public HeapVariable(T type, int number, IR ir) {
     this.type = type;
     this.number = number;
-    definedIn = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+    definedIn = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
   }
 
   /**
@@ -82,7 +82,7 @@ public class HeapVariable<T> {
    * @return a bit vector that represents the basic blocks that define
    * this heap variable.
    */
-  public BitVector getDefBlocks() {
+  public VM_BitVector getDefBlocks() {
     return definedIn;
   }
 

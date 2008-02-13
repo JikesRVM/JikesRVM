@@ -54,7 +54,7 @@ import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.inlining.InlineOracle;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.util.VM_BitVector;
 import org.vmmagic.pragma.NoInline;
 
 /**
@@ -482,7 +482,7 @@ public final class IR {
    *             enumerate.
    * @return an enumeration of said blocks.
    */
-  public BasicBlockEnumeration getBasicBlocks(BitVector bits) {
+  public BasicBlockEnumeration getBasicBlocks(VM_BitVector bits) {
     return new BitSetBBEnum(this, bits);
   }
 
@@ -492,7 +492,7 @@ public final class IR {
   private static final class BitSetBBEnum implements BasicBlockEnumeration {
     private final Stack<BasicBlock> stack;
 
-    BitSetBBEnum(IR ir, BitVector bits) {
+    BitSetBBEnum(IR ir, VM_BitVector bits) {
       stack = new Stack<BasicBlock>();
       int size = bits.length();
       Enumeration<BasicBlock> bbEnum = ir.getBasicBlocks();
@@ -1061,8 +1061,8 @@ public final class IR {
   @SuppressWarnings("unused")
   // used when needed for debugging
   private void verifyAllBlocksAreReachable(String where) {
-    BitVector reachableNormalBlocks = new BitVector(cfg.numberOfNodes());
-    BitVector reachableExceptionBlocks = new BitVector(cfg.numberOfNodes());
+    VM_BitVector reachableNormalBlocks = new VM_BitVector(cfg.numberOfNodes());
+    VM_BitVector reachableExceptionBlocks = new VM_BitVector(cfg.numberOfNodes());
     resetBasicBlockMap();
     verifyAllBlocksAreReachable(where, cfg.entry(), reachableNormalBlocks, reachableExceptionBlocks, false);
     boolean hasUnreachableBlocks = false;
@@ -1096,8 +1096,8 @@ public final class IR {
    * @param visitedExceptionalBBs the blocks already visited (to avoid cycles) on exceptional out edges
    * @param fromExceptionEdge should paths from exceptions be validated?
    */
-  private void verifyAllBlocksAreReachable(String where, BasicBlock curBB, BitVector visitedNormalBBs,
-                                           BitVector visitedExceptionalBBs, boolean fromExceptionEdge) {
+  private void verifyAllBlocksAreReachable(String where, BasicBlock curBB, VM_BitVector visitedNormalBBs,
+                                           VM_BitVector visitedExceptionalBBs, boolean fromExceptionEdge) {
     // Set visited information
     if (fromExceptionEdge) {
       visitedExceptionalBBs.set(curBB.getNumber());
@@ -1195,7 +1195,7 @@ public final class IR {
     verifyUseFollowsDef(where,
                         definedVariables,
                         cfg.entry(),
-                        new BitVector(cfg.numberOfNodes()),
+                        new VM_BitVector(cfg.numberOfNodes()),
                         new ArrayList<BasicBlock>(),
                         5,
                         // <-- maximum number of basic blocks followed
@@ -1216,7 +1216,7 @@ public final class IR {
    * @param traceExceptionEdges    should paths from exceptions be validated?
    */
   private void verifyUseFollowsDef(String where, HashSet<Object> definedVariables, BasicBlock curBB,
-                                   BitVector visitedBBs, ArrayList<BasicBlock> path, int maxPathLength,
+                                   VM_BitVector visitedBBs, ArrayList<BasicBlock> path, int maxPathLength,
                                    boolean traceExceptionEdges) {
     if (path.size() > maxPathLength) {
       return;
@@ -1299,7 +1299,7 @@ public final class IR {
         verifyUseFollowsDef(where,
                             new HashSet<Object>(definedVariables),
                             out,
-                            new BitVector(visitedBBs),
+                            new VM_BitVector(visitedBBs),
                             new ArrayList<BasicBlock>(path),
                             maxPathLength,
                             traceExceptionEdges);

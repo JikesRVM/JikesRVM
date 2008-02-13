@@ -46,8 +46,8 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * <p>A node in the LST (Loop Structure Tree) with added information
@@ -582,7 +582,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param header The loop header for determining if PEIs are invariant
    * @return Whether the operand is invariant or not
    */
-  private static boolean isLoopInvariant(Operand op, BitVector loop, BasicBlock header) {
+  private static boolean isLoopInvariant(Operand op, VM_BitVector loop, BasicBlock header) {
     boolean result;
     if (op.isConstant()) {
       result = true;
@@ -887,7 +887,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param blocksLeftToVisit blocks left to visit
    * @return Blocks in loop with header first and exit last
    */
-  private BBEnum getBasicBlocks(BasicBlock block, BBEnum bbs, BitVector blocksLeftToVisit) {
+  private BBEnum getBasicBlocks(BasicBlock block, BBEnum bbs, VM_BitVector blocksLeftToVisit) {
     if (block != exit) {
       bbs.add(block);
     }
@@ -909,7 +909,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @return Blocks in loop with header first and exit last
    */
   BasicBlockEnumeration getBasicBlocks() {
-    BitVector blocksLeftToVisit = new BitVector(loop);
+    VM_BitVector blocksLeftToVisit = new VM_BitVector(loop);
     BBEnum bbs = getBasicBlocks(header, new BBEnum(), blocksLeftToVisit);
     if (exit != null) {
       // place the exit block at the end of the list if we've recognized one

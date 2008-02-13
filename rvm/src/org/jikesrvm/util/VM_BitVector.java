@@ -10,17 +10,16 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.util;
+package org.jikesrvm.util;
 
 import java.io.Serializable;
 
-
 /**
- * BitVector.java
+ * VM_BitVector.java
  *
  * implements a bit vector
  */
-public final class BitVector implements Serializable {
+public final class VM_BitVector implements Serializable {
   /** Support for serialization */
   static final long serialVersionUID = 6961578653974090041L;
 
@@ -41,7 +40,7 @@ public final class BitVector implements Serializable {
    * Creates an empty string with the specified size.
    * @param nbits the size of the string
    */
-  public BitVector(int nbits) {
+  public VM_BitVector(int nbits) {
     // subscript(nbits) is the length of the array needed to
     // hold nbits
     bits = new int[subscript(nbits) + 1];
@@ -52,7 +51,7 @@ public final class BitVector implements Serializable {
    * Creates a copy of a Bit String
    * @param s the string to copy
    */
-  public BitVector(BitVector s) {
+  public VM_BitVector(VM_BitVector s) {
     bits = new int[s.bits.length];
     this.nbits = s.nbits;
     System.arraycopy(s.bits, 0, this.bits, 0, s.bits.length);
@@ -116,8 +115,8 @@ public final class BitVector implements Serializable {
   /**
    * Return the NOT of a bit string
    */
-  public static BitVector not(BitVector s) {
-    BitVector b = new BitVector(s);
+  public static VM_BitVector not(VM_BitVector s) {
+    VM_BitVector b = new VM_BitVector(s);
     b.not();
     return b;
   }
@@ -126,7 +125,7 @@ public final class BitVector implements Serializable {
    * Logically ANDs this bit set with the specified set of bits.
    * @param set the bit set to be ANDed with
    */
-  public void and(BitVector set) {
+  public void and(VM_BitVector set) {
     if (this == set) {
       return;
     }
@@ -139,8 +138,8 @@ public final class BitVector implements Serializable {
   /**
    * Return a new bit string as the AND of two others.
    */
-  public static BitVector and(BitVector b1, BitVector b2) {
-    BitVector b = new BitVector(b1);
+  public static VM_BitVector and(VM_BitVector b1, VM_BitVector b2) {
+    VM_BitVector b = new VM_BitVector(b1);
     b.and(b2);
     return b;
   }
@@ -149,7 +148,7 @@ public final class BitVector implements Serializable {
    * Logically ORs this bit set with the specified set of bits.
    * @param set the bit set to be ORed with
    */
-  public void or(BitVector set) {
+  public void or(VM_BitVector set) {
     if (this == set) { // should help alias analysis
       return;
     }
@@ -160,10 +159,10 @@ public final class BitVector implements Serializable {
   }
 
   /**
-   * Return a new BitVector as the OR of two others
+   * Return a new VM_BitVector as the OR of two others
    */
-  public static BitVector or(BitVector b1, BitVector b2) {
-    BitVector b = new BitVector(b1);
+  public static VM_BitVector or(VM_BitVector b1, VM_BitVector b2) {
+    VM_BitVector b = new VM_BitVector(b1);
     b.or(b2);
     return b;
   }
@@ -172,7 +171,7 @@ public final class BitVector implements Serializable {
    * Logically XORs this bit set with the specified set of bits.
    * @param set the bit set to be XORed with
    */
-  public void xor(BitVector set) {
+  public void xor(VM_BitVector set) {
     int setLength = set.bits.length;
     for (int i = setLength; i-- > 0;) {
       bits[i] ^= set.bits[i];
@@ -183,7 +182,7 @@ public final class BitVector implements Serializable {
    * Check if the intersection of the two sets is empty
    * @param other the set to check intersection with
    */
-  public boolean intersectionEmpty(BitVector other) {
+  public boolean intersectionEmpty(VM_BitVector other) {
     int n = bits.length;
     for (int i = n; i-- > 0;) {
       if ((bits[i] & other.bits[i]) != 0) return false;
@@ -195,7 +194,7 @@ public final class BitVector implements Serializable {
    * Copies the values of the bits in the specified set into this set.
    * @param set the bit set to copy the bits from
    */
-  public void copyBits(BitVector set) {
+  public void copyBits(VM_BitVector set) {
     System.arraycopy(set.bits, 0, this.bits, 0, set.bits.length);
   }
 
@@ -216,7 +215,7 @@ public final class BitVector implements Serializable {
   public int populationCount() {
     int count = 0;
     for (int bit : bits) {
-      count += Bits.populationCount(bit);
+      count += Integer.bitCount(bit);
     }
     return count;
   }
@@ -235,11 +234,11 @@ public final class BitVector implements Serializable {
    * @return true if the objects are the same; false otherwise.
    */
   public boolean equals(Object obj) {
-    if ((obj != null) && (obj instanceof BitVector)) {
+    if ((obj != null) && (obj instanceof VM_BitVector)) {
       if (this == obj) { // should help alias analysis
         return true;
       }
-      BitVector set = (BitVector) obj;
+      VM_BitVector set = (VM_BitVector) obj;
       int n = bits.length;
       if (n != set.bits.length) return false;
       for (int i = n; i-- > 0;) {
@@ -260,8 +259,8 @@ public final class BitVector implements Serializable {
     return true;
   }
 
-  public BitVector dup() {
-    return new BitVector(this);
+  public VM_BitVector dup() {
+    return new VM_BitVector(this);
   }
 
   /**

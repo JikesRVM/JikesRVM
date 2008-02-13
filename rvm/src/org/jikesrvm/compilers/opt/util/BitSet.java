@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.util;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * BitSet.java
@@ -25,7 +26,7 @@ public final class BitSet {
   /**
    * The backing bit vector that determines set membership.
    */
-  private final BitVector vector;
+  private final VM_BitVector vector;
 
   /**
    * The bijection between integer to object.
@@ -37,7 +38,7 @@ public final class BitSet {
    */
   public BitSet(BitSetMapping map) {
     int length = map.getMappingSize();
-    vector = new BitVector(length);
+    vector = new VM_BitVector(length);
     this.map = map;
   }
 

@@ -46,8 +46,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /*
  * Loop unrolling
@@ -153,7 +153,7 @@ public class LoopUnrolling extends CompilerPhase {
   boolean unrollLeaf(LSTNode t, IR ir) {
     int instructionsInLoop = 0;
     BasicBlock exitBlock = null, backEdgeBlock = null, succBlock = null, predBlock = null;
-    BitVector nloop = t.loop;
+    VM_BitVector nloop = t.loop;
     BasicBlock header = t.header;
     Instruction tmp;
 
@@ -603,7 +603,7 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   private void naiveUnroller(LSTNode t, IR ir) {
-    BitVector nloop = t.loop;
+    VM_BitVector nloop = t.loop;
     BasicBlock seqStart = null;
     BasicBlockEnumeration bs;
 
@@ -769,7 +769,7 @@ public class LoopUnrolling extends CompilerPhase {
     return def;
   }
 
-  private static boolean loopInvariant(Operand op, BitVector nloop, int depth) {
+  private static boolean loopInvariant(Operand op, VM_BitVector nloop, int depth) {
     if (depth <= 0) {
       return false;
     } else if (op instanceof ConstantOperand) {
@@ -788,7 +788,7 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  private static boolean printDefs(Operand op, BitVector nloop, int depth) {
+  private static boolean printDefs(Operand op, VM_BitVector nloop, int depth) {
     if (depth <= 0) return false;
     if (op instanceof ConstantOperand) {
       VM.sysWrite(">> " + op + "\n");
@@ -859,12 +859,12 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   // inserts unrollFactor copies of the loop after seqStart
-  static BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, BitVector nloop, int blocks,
+  static BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, VM_BitVector nloop, int blocks,
                                          BasicBlock header, BasicBlock exitBlock, BasicBlock seqStart) {
     // make some copies of the original loop
 
     // first, capture the blocks in the loop body.
-    BitVector loop = new BitVector(nloop);
+    VM_BitVector loop = new VM_BitVector(nloop);
     loop.clear(header.getNumber());
     loop.clear(exitBlock.getNumber());
     int bodyBlocks = 0;

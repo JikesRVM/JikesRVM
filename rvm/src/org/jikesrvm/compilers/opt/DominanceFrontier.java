@@ -16,8 +16,8 @@ import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.TreeNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * Calculate dominance frontier for a set of basic blocks.
@@ -109,7 +109,7 @@ class DominanceFrontier extends CompilerPhase {
       if (DEBUG) {
         System.out.println("Computing frontier for node " + X);
       }
-      BitVector DF = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+      VM_BitVector DF = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
       v.setDominanceFrontier(DF);
       // for each Y in Succ(X) do
       for (BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
@@ -159,17 +159,17 @@ class DominanceFrontier extends CompilerPhase {
 
   /**
    * Calculate the dominance frontier for the set of basic blocks
-   * represented by a BitVector.
+   * represented by a VM_BitVector.
    *
    * <p> NOTE: The dominance frontiers for the IR MUST be calculated
    *    BEFORE calling this routine.
    *
    * @param ir the governing IR
-   * @param bits the BitVector representing the set of basic blocks
-   * @return a BitVector representing the dominance frontier for the set
+   * @param bits the VM_BitVector representing the set of basic blocks
+   * @return a VM_BitVector representing the dominance frontier for the set
    */
-  public static BitVector getDominanceFrontier(IR ir, BitVector bits) {
-    BitVector result = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+  public static VM_BitVector getDominanceFrontier(IR ir, VM_BitVector bits) {
+    VM_BitVector result = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
     DominatorTree dTree = ir.HIRInfo.dominatorTree;
     for (int i = 0; i < bits.length(); i++) {
       if (bits.get(i)) {
@@ -181,20 +181,20 @@ class DominanceFrontier extends CompilerPhase {
 
   /**
    * Calculate the iterated dominance frontier for a set of basic blocks
-   * represented by a BitVector.
+   * represented by a VM_BitVector.
    *
    * <p> NOTE: The dominance frontiers for the IR MUST be calculated
    *    BEFORE calling this routine.
    *
    * @param ir The governing IR
-   * @param S  The {@link BitVector} representing the set of basic blocks
-   * @return an {@link BitVector} representing the dominance frontier for
+   * @param S  The {@link VM_BitVector} representing the set of basic blocks
+   * @return an {@link VM_BitVector} representing the dominance frontier for
    *    the set
    */
-  public static BitVector getIteratedDominanceFrontier(IR ir, BitVector S) {
-    BitVector DFi = getDominanceFrontier(ir, S);
+  public static VM_BitVector getIteratedDominanceFrontier(IR ir, VM_BitVector S) {
+    VM_BitVector DFi = getDominanceFrontier(ir, S);
     while (true) {
-      BitVector DFiplus1 = getDominanceFrontier(ir, DFi);
+      VM_BitVector DFiplus1 = getDominanceFrontier(ir, DFi);
       DFiplus1.or(DFi);
       if (DFi.equals(DFiplus1)) {
         break;

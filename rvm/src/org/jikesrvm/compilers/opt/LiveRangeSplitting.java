@@ -26,8 +26,8 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.GraphNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * Perform live-range splitting.
@@ -141,7 +141,7 @@ class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       for (Enumeration<GraphNode> e = lst.enumerateNodes(); e.hasMoreElements();) {
         LSTNode node = (LSTNode) e.nextElement();
         BasicBlock header = node.getHeader();
-        BitVector loop = node.getLoop();
+        VM_BitVector loop = node.getLoop();
         if (loop == null) continue;
 
         // First split live ranges on edges coming into the loop header.

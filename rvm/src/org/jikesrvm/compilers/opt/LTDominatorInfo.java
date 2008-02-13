@@ -17,7 +17,7 @@ import java.util.Iterator;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * This class holds data associated with a basic block as computed by the
@@ -66,13 +66,13 @@ class LTDominatorInfo {
    *
    *   @param block the block of interest
    *   @param ir    the governing ir
-   *   @return a BitVector containing those blocks that dominate the passed one
+   *   @return a VM_BitVector containing those blocks that dominate the passed one
    */
-  public BitVector dominators(BasicBlock block, IR ir) {
+  public VM_BitVector dominators(BasicBlock block, IR ir) {
     // Currently this set is computed on demand.  We may want to cache
     // the result for reuse.  The cost of computing is the height of the
     // the dominator tree.
-    BitVector dominators = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+    VM_BitVector dominators = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
     dominators.set(block.getNumber());
     while ((block = getIdom(block)) != null) {
       dominators.set(block.getNumber());

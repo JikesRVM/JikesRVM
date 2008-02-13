@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * DominatorCell represents a set of basic blocks, used in
@@ -34,7 +34,7 @@ class DominatorCell extends DF_AbstractCell {
   /**
    * Bit set representation of the dominators for this basic block.
    */
-  BitVector dominators;
+  VM_BitVector dominators;
   /**
    * A guess of the upper bound on the number of out edges for most basic
    * blocks.
@@ -49,7 +49,7 @@ class DominatorCell extends DF_AbstractCell {
   public DominatorCell(BasicBlock bb, IR ir) {
     super(CAPACITY);
     block = bb;
-    dominators = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+    dominators = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
     this.ir = ir;
   }
 

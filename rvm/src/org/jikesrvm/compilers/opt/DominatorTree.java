@@ -15,9 +15,9 @@ package org.jikesrvm.compilers.opt;
 import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.Tree;
 import org.jikesrvm.compilers.opt.util.TreeNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * This class provides the abstraction of a dominator tree
@@ -186,9 +186,9 @@ public class DominatorTree extends Tree {
    * a basic block
    *
    * @param bb the basic block
-   * @return a BitVector representing the dominance frontier
+   * @return a VM_BitVector representing the dominance frontier
    */
-  public BitVector getDominanceFrontier(BasicBlock bb) {
+  public VM_BitVector getDominanceFrontier(BasicBlock bb) {
     DominatorTreeNode info = dominatorInfoMap[bb.getNumber()];
     return info.getDominanceFrontier();
   }
@@ -198,9 +198,9 @@ public class DominatorTree extends Tree {
    * a basic block
    *
    * @param number the number of the basic block
-   * @return a BitVector representing the dominance frontier
+   * @return a VM_BitVector representing the dominance frontier
    */
-  public BitVector getDominanceFrontier(int number) {
+  public VM_BitVector getDominanceFrontier(int number) {
     return getDominanceFrontier(ir.getBasicBlock(number));
   }
 
@@ -208,10 +208,10 @@ public class DominatorTree extends Tree {
    * Does basic block number b dominate all basic blocks in a set?
    *
    * @param b the number of the basic block to test
-   * @param bits BitVector representation of the set of basic blocks to test
+   * @param bits VM_BitVector representation of the set of basic blocks to test
    * @return true or false
    */
-  public boolean dominates(int b, BitVector bits) {
+  public boolean dominates(int b, VM_BitVector bits) {
     for (int i = 0; i < bits.length(); i++) {
       if (!bits.get(i)) {
         continue;

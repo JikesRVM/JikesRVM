@@ -16,8 +16,8 @@ import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.TreeNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * This class implements a node in the dominator tree.
@@ -39,13 +39,13 @@ class DominatorTreeNode extends TreeNode {
   /**
    * representation of the dominance frontier for this node
    */
-  private BitVector dominanceFrontier;
+  private VM_BitVector dominanceFrontier;
 
   /**
    * the cache to hold the set of nodes that dominate this one.  This is
    * computed on demand by walking up the tree.
    */
-  BitVector dominators;
+  VM_BitVector dominators;
 
   /**
    * lower bound of dominated nodes range
@@ -93,7 +93,7 @@ class DominatorTreeNode extends TreeNode {
    * Return a bit set representing the dominance frontier for this node
    * @return a bit set representing the dominance frontier for this node
    */
-  BitVector getDominanceFrontier() {
+  VM_BitVector getDominanceFrontier() {
     return dominanceFrontier;
   }
 
@@ -101,7 +101,7 @@ class DominatorTreeNode extends TreeNode {
    * Set a bit set representing the dominance frontier for this node
    * @param set the bit set
    */
-  void setDominanceFrontier(BitVector set) {
+  void setDominanceFrontier(VM_BitVector set) {
     dominanceFrontier = set;
   }
 
@@ -120,13 +120,13 @@ class DominatorTreeNode extends TreeNode {
    *   block, i.e., it answers the question "Who dominates me?"
    *
    *   @param ir the governing IR
-   *   @return a BitVector containing those blocks that dominate me
+   *   @return a VM_BitVector containing those blocks that dominate me
    */
-  BitVector dominators(IR ir) {
+  VM_BitVector dominators(IR ir) {
     // Currently, this set is computed on demand,
     // but we cache it for the next time.
     if (dominators == null) {
-      dominators = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+      dominators = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
       dominators.set(block.getNumber());
       DominatorTreeNode node = this;
       while ((node = (DominatorTreeNode) getParent()) != null) {

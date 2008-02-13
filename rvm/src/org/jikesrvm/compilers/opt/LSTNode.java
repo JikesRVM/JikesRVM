@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * A node in the LST (Loop Structure Tree)
@@ -33,7 +33,7 @@ class LSTNode extends SpaceEffGraphNode {
   /**
    * Basic blocks in the loop
    */
-  BitVector loop;
+  VM_BitVector loop;
 
   /**
    * The depth of the loop
@@ -72,7 +72,7 @@ class LSTNode extends SpaceEffGraphNode {
     return header;
   }
 
-  BitVector getLoop() {
+  VM_BitVector getLoop() {
     return loop;
   }
 

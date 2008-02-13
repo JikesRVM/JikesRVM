@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.util.BitVector;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  * This class implements the MEET operation for the
@@ -32,8 +32,8 @@ class DominatorOperator extends DF_Operator {
     DominatorCell lhs = (DominatorCell) operands[0];
     IR ir = lhs.ir;
     BasicBlock bb = lhs.block;
-    BitVector oldSet = lhs.dominators.dup();
-    BitVector newDominators = new BitVector(ir.getMaxBasicBlockNumber() + 1);
+    VM_BitVector oldSet = lhs.dominators.dup();
+    VM_BitVector newDominators = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
     if (operands.length > 1) {
       if (operands[1] != null) {
         newDominators.or(((DominatorCell) operands[1]).dominators);

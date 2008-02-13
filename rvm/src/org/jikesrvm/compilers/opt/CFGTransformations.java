@@ -20,8 +20,8 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
-import org.jikesrvm.compilers.opt.util.BitVector;
 import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+import org.jikesrvm.util.VM_BitVector;
 
 /**
  *  This Phase supports
@@ -250,7 +250,7 @@ class CFGTransformations extends CompilerPhase {
    */
   private static BasicBlock[] loopPredecessors(LSTNode n) {
     BasicBlock header = n.header;
-    BitVector loop = n.loop;
+    VM_BitVector loop = n.loop;
 
     int i = 0;
     BasicBlockEnumeration be = header.getIn();
@@ -272,7 +272,7 @@ class CFGTransformations extends CompilerPhase {
    */
   private static BasicBlock[] inLoopPredecessors(LSTNode n) {
     BasicBlock header = n.header;
-    BitVector loop = n.loop;
+    VM_BitVector loop = n.loop;
 
     int i = 0;
     BasicBlockEnumeration be = header.getIn();
@@ -294,7 +294,7 @@ class CFGTransformations extends CompilerPhase {
    */
   private static BasicBlock[] inLoopSuccessors(LSTNode n) {
     BasicBlock header = n.header;
-    BitVector loop = n.loop;
+    VM_BitVector loop = n.loop;
 
     int i = 0;
     BasicBlockEnumeration be = header.getOut();
@@ -311,7 +311,7 @@ class CFGTransformations extends CompilerPhase {
     return res;
   }
 
-  static void killFallThroughs(IR ir, BitVector nloop) {
+  static void killFallThroughs(IR ir, VM_BitVector nloop) {
     BasicBlockEnumeration bs = ir.getBasicBlocks(nloop);
     while (bs.hasMoreElements()) {
       BasicBlock block = bs.next();
@@ -325,13 +325,13 @@ class CFGTransformations extends CompilerPhase {
     }
   }
 
-  static boolean inLoop(BasicBlock b, BitVector nloop) {
+  static boolean inLoop(BasicBlock b, VM_BitVector nloop) {
     int idx = b.getNumber();
     if (idx >= nloop.length()) return false;
     return nloop.get(idx);
   }
 
-  private static boolean exitsLoop(BasicBlock b, BitVector loop) {
+  private static boolean exitsLoop(BasicBlock b, VM_BitVector loop) {
     BasicBlockEnumeration be = b.getOut();
     while (be.hasMoreElements()) {
       if (!inLoop(be.next(), loop)) return true;
