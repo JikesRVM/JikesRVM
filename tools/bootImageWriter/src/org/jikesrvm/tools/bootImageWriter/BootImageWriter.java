@@ -2597,13 +2597,13 @@ public class BootImageWriter extends BootImageWriterMessages
           long lval = VM_Statics.getSlotContentsAsLong(jtocOff);
           contents = VM.intAsHexString((int) (lval >> 32)) +
             VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
-          details  = lval + "L / " + field2.toString();          
+          details  = lval + "L / " + field2.toString();
         } else if ((field != null) && (field2 == null)) {
           category = "literal/field";
           long lval = VM_Statics.getSlotContentsAsLong(jtocOff);
           contents = VM.intAsHexString((int) (lval >> 32)) +
             VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
-          details  = lval + "L / " + field.toString();          
+          details  = lval + "L / " + field.toString();
         } else {
           throw new Error("Unreachable");
         }

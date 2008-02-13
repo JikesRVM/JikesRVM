@@ -53,7 +53,7 @@ public abstract class VM_UTF8Convert {
   /**
    * UTF8 character visitor abstraction
    */
-  private static abstract class UTF8CharacterVisitor {
+  private abstract static class UTF8CharacterVisitor {
     abstract void visit_char(char c);
   }
 
@@ -92,7 +92,7 @@ public abstract class VM_UTF8Convert {
       return result;
     }
   }
-    
+
   /**
    * Convert the given sequence of (pseudo-)utf8 formatted bytes
    * into a String.

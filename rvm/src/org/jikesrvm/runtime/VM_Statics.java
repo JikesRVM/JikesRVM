@@ -23,7 +23,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.util.VM_BitVector;
 import org.jikesrvm.util.VM_HashMap;
-import org.jikesrvm.util.VM_IdentityHashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;

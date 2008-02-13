@@ -763,23 +763,22 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * A Key into the atom dictionary.
    * We do this to enable VM_Atom.equals to be efficient (==).
    */
-  private final static class Key {
+  private static final class Key {
     final byte[] val;
 
     Key(byte[] utf8) {
       val = utf8;
     }
 
-    public final int hashCode() {
+    public int hashCode() {
       try {
         return VM_UTF8Convert.computeStringHashCode(val);
-      }
-      catch (UTFDataFormatException e) {
+      } catch (UTFDataFormatException e) {
         return 0;
       }
     }
 
-    public final boolean equals(Object other) {
+    public boolean equals(Object other) {
       if (this == other) return true;
       if (other instanceof Key) {
         Key that = (Key) other;

@@ -23,7 +23,7 @@ final class BootImageObjectAddressRemapper implements VM_ObjectAddressRemapper {
   static final BootImageObjectAddressRemapper singleton = new BootImageObjectAddressRemapper();
 
   static BootImageObjectAddressRemapper getInstance() {
-	 return singleton;
+    return singleton;
   }
 
   /**
@@ -32,8 +32,8 @@ final class BootImageObjectAddressRemapper implements VM_ObjectAddressRemapper {
    * @return its address in a foreign virtual machine
    */
   public <T> Address objectAsAddress(T jdkObject) {
-	 jdkObject = intern(jdkObject);
-	 return BootImageMap.findOrCreateEntry(jdkObject).objectId;
+    jdkObject = intern(jdkObject);
+    return BootImageMap.findOrCreateEntry(jdkObject).objectId;
   }
 
   /**
@@ -42,25 +42,25 @@ final class BootImageObjectAddressRemapper implements VM_ObjectAddressRemapper {
    * @return corresponding object
    */
   public Object addressAsObject(Address address) {
-	 VM.sysWriteln("BootImageObjectAddressRemapper: called addressAsObject");
-	 VM._assert(VM.NOT_REACHED);
-	 return null;
+    VM.sysWriteln("BootImageObjectAddressRemapper: called addressAsObject");
+    VM._assert(VM.NOT_REACHED);
+    return null;
   }
 
   /**
-	* Avoid duplicates of certain objects
-	*/
+   * Avoid duplicates of certain objects
+   */
   public <T> T intern(T obj) {
-	 if (obj instanceof String) {
-		obj = (T)(((String)obj).intern());
-	 } else if (obj instanceof Integer) {
-		Integer i = (Integer)obj;
-		if (uniqueIntegers.containsKey(i)) {
-		  obj = (T)uniqueIntegers.get(i);
-		} else {
-		  uniqueIntegers.put(i, i);
-		}
-	 }
-	 return obj;
+    if (obj instanceof String) {
+      obj = (T)(((String)obj).intern());
+    } else if (obj instanceof Integer) {
+      Integer i = (Integer)obj;
+      if (uniqueIntegers.containsKey(i)) {
+        obj = (T)uniqueIntegers.get(i);
+      } else {
+        uniqueIntegers.put(i, i);
+      }
+    }
+    return obj;
   }
 }
