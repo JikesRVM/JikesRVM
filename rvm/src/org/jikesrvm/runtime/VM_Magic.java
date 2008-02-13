@@ -496,6 +496,23 @@ public final class VM_Magic {
   }
 
   /**
+   * Certain objects aren't replicated in the boot image to save space.
+   * @param object to intern
+   * @return interned object
+   */
+  public static <T> T bootImageIntern(T object) {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
+    }
+
+    if (objectAddressRemapper == null) {
+      return object;                 // tool isn't interested in remapping
+    }
+
+    return objectAddressRemapper.intern(object);
+  }
+
+  /**
    * Cast bits.
    * @param address object reference as bits
    * @return object reference

@@ -1682,11 +1682,11 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     for (int i = 0, n = staticFields.length; i < n; ++i) {
       VM_Field field = staticFields[i];
       if (field.isReferenceType()) {
-        field.setOffset(VM_Statics.allocateReferenceSlot());
+        field.setOffset(VM_Statics.allocateReferenceSlot(true));
       } else if (field.getSize() <= BYTES_IN_INT) {
-        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_INT));
+        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_INT, true));
       } else {
-        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_LONG));
+        field.setOffset(VM_Statics.allocateNumericSlot(BYTES_IN_LONG, true));
       }
 
       // (SJF): Serialization nastily accesses even final private static
@@ -1729,7 +1729,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     //
     for (int i = 0, n = constructorMethods.length; i < n; ++i) {
       VM_Method method = constructorMethods[i];
-      method.setOffset(VM_Statics.allocateReferenceSlot());
+      method.setOffset(VM_Statics.allocateReferenceSlot(true));
     }
 
     // Allocate space for static method pointers
@@ -1739,7 +1739,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       if (method.isClassInitializer()) {
         method.setOffset(Offset.fromIntZeroExtend(0xebad0ff5)); // should never be used.
       } else {
-        method.setOffset(VM_Statics.allocateReferenceSlot());
+        method.setOffset(VM_Statics.allocateReferenceSlot(true));
       }
     }
 
@@ -1853,6 +1853,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   private void setFinalStaticJTOCEntry(VM_Field field, Offset fieldOffset) {
     if (!field.isFinal()) return;
+
     // value Index: index into the classes constant pool.
     int valueIndex = field.getConstantValueIndex();
 
@@ -1948,6 +1949,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
     if (VM.writingBootImage) {
       state = CLASS_INITIALIZED;
+      // Mark final fields as literals as class initializer won't have been called
+      markFinalFieldsAsLiterals();
     } else {
       state = CLASS_INSTANTIATED;
     }
@@ -2025,8 +2028,26 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
     VM_Callbacks.notifyClassInitialized(this);
 
+    markFinalFieldsAsLiterals();
+
     if (VM.verboseClassLoading) VM.sysWrite("[Initialized " + this + "]\n");
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   initialize " + this);
+  }
+
+  /**
+   * Mark final fields as being available as literals
+   */
+  private void markFinalFieldsAsLiterals() {
+    for (VM_Field f : getStaticFields()) {
+      if (f.isFinal()) {
+        Offset fieldOffset = f.getOffset();
+        if (VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
+          VM_Statics.markAsReferenceLiteral(fieldOffset);
+        } else {
+          VM_Statics.markAsNumericLiteral(fieldOffset);
+        }
+      }
+    }
   }
 
   /**

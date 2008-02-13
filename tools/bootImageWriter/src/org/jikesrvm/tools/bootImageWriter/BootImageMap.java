@@ -137,6 +137,9 @@ public class BootImageMap extends BootImageWriterMessages
     if (jdkObject == null)
       return nullEntry;
 
+    // Avoid duplicates of some known "safe" classes
+    jdkObject = BootImageObjectAddressRemapper.getInstance().intern(jdkObject);
+
     synchronized (BootImageMap.class) {
       Key key   = new Key(jdkObject);
       Entry entry = keyToEntry.get(key);

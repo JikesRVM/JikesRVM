@@ -218,7 +218,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected VM_Type(VM_TypeReference typeRef, Class<?> classForType, int dimension, VM_Annotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
-    this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
+    this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
     this.id = nextId(this);
     this.classForType = classForType;
     this.dimension = dimension;
@@ -238,7 +238,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected VM_Type(VM_TypeReference typeRef, int dimension, VM_Annotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
-    this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
+    this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
     this.id = nextId(this);
     this.classForType = createClassForType(this, typeRef);
     this.dimension = dimension;

@@ -106,7 +106,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public void setSpecialForOSR() {
     flags |= SPECIAL_FOR_OSR;
     // set jtoc
-    this.osrJTOCoffset = VM_Statics.allocateReferenceSlot().toInt();
+    this.osrJTOCoffset = VM_Statics.allocateReferenceSlot(false).toInt();
     VM_Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
 

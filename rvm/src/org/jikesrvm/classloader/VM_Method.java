@@ -701,7 +701,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final synchronized Offset findOrCreateJtocOffset() {
     if (VM.VerifyAssertions) VM._assert(!isStatic() && !isObjectInitializer());
     if (jtocOffset.EQ(Offset.zero())) {
-      jtocOffset = VM_Statics.allocateReferenceSlot();
+      jtocOffset = VM_Statics.allocateReferenceSlot(true);
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
     }
     return jtocOffset;
