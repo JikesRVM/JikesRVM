@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.classloader;
 
+import java.io.UTFDataFormatException;
 import org.jikesrvm.VM;
 import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_StringUtilities;
@@ -762,7 +763,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * A Key into the atom dictionary.
    * We do this to enable VM_Atom.equals to be efficient (==).
    */
-  private static class Key {
+  private final static class Key {
     final byte[] val;
 
     Key(byte[] utf8) {
@@ -770,11 +771,12 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     }
 
     public final int hashCode() {
-      int tmp = 99989;
-      for (int i = val.length; --i >= 0;) {
-        tmp = 99991 * tmp + val[i];
+      try {
+        return VM_UTF8Convert.computeStringHashCode(val);
       }
-      return tmp;
+      catch (UTFDataFormatException e) {
+        return 0;
+      }
     }
 
     public final boolean equals(Object other) {
