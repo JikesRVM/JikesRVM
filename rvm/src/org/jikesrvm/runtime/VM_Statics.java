@@ -376,7 +376,7 @@ public class VM_Statics implements VM_Constants {
    * Mark a slot that was previously a field as being a literal as its value is
    * final
    */
-  public static void markAsNumericLiteral(Offset fieldOffset) {
+  public static synchronized void markAsNumericLiteral(Offset fieldOffset) {
     int slot = offsetAsSlot(fieldOffset);
     numericFieldVector.clear(slot);
   }
@@ -385,7 +385,7 @@ public class VM_Statics implements VM_Constants {
    * Mark a slot that was previously a field as being a literal as its value is
    * final
    */
-  public static void markAsReferenceLiteral(Offset fieldOffset) {
+  public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
     int slot = offsetAsSlot(fieldOffset);
     referenceFieldVector.clear(slot-middleOfTable);
   }
