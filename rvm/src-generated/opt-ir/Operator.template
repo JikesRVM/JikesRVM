@@ -259,7 +259,7 @@ $$$$ END IF
    * @return number of implicit defs
    */
   public int getNumberOfImplicitDefs() {
-    return Bits.populationCount(implicitDefs);
+    return Integer.bitCount(implicitDefs);
   }
 
   /**
@@ -269,7 +269,7 @@ $$$$ END IF
    * @return number of implicit uses
    */
   public int getNumberOfImplicitUses() {
-    return Bits.populationCount(implicitUses);
+    return Integer.bitCount(implicitUses);
   }
 
   /*
