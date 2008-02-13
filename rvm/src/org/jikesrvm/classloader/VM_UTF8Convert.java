@@ -13,6 +13,8 @@
 package org.jikesrvm.classloader;
 
 import java.io.UTFDataFormatException;
+import org.jikesrvm.VM;
+import org.vmmagic.pragma.Inline;
 
 /**
  * VM_UTF8Convert
@@ -49,6 +51,49 @@ public abstract class VM_UTF8Convert {
   static final boolean WRITE_PSEUDO_UTF8 = true;
 
   /**
+   * UTF8 character visitor abstraction
+   */
+  private static abstract class UTF8CharacterVisitor {
+    abstract void visit_char(char c);
+  }
+
+  /**
+   * Visitor that builds up a char[] as characters are decoded
+   */
+  private static final class StringEncoderVisitor extends UTF8CharacterVisitor {
+    final char[] result;
+    int index;
+    StringEncoderVisitor(byte[] utf8) {
+      result = new char[utf8.length];
+      index = 0;
+    }
+    void visit_char(char c) {
+      result[index] = c;
+      index++;
+    }
+    public String toString() {
+      if (VM.runningVM) {
+        return java.lang.JikesRVMSupport.newStringWithoutCopy(result, 0, index);
+      } else {
+        return new String(result, 0, index);
+      }
+    }
+  }
+
+  /**
+   * Visitor that builds up a String.hashCode form hashCode as characters are decoded
+   */
+  private static final class StringHashCodeVisitor extends UTF8CharacterVisitor {
+    int result = 0;
+    void visit_char(char c) {
+      result = result * 31 + c;
+    }
+    int getResult() {
+      return result;
+    }
+  }
+    
+  /**
    * Convert the given sequence of (pseudo-)utf8 formatted bytes
    * into a String.
    *
@@ -61,8 +106,44 @@ public abstract class VM_UTF8Convert {
    * @return unicode string
    */
   public static String fromUTF8(byte[] utf8) throws UTFDataFormatException {
-    char[] result = new char[utf8.length];
-    int result_index = 0;
+    StringEncoderVisitor visitor = new StringEncoderVisitor(utf8);
+    visitUTF8(utf8, visitor);
+    return visitor.toString();
+  }
+
+  /**
+   * Convert the given sequence of (pseudo-)utf8 formatted bytes
+   * into a String hashCode.
+   *
+   * The acceptable input formats are controlled by the
+   * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
+   * flags.
+   *
+   * @param utf8 (pseudo-)utf8 byte array
+   * @throws UTFDataFormatException if the (pseudo-)utf8 byte array is not valid (pseudo-)utf8
+   * @return hashCode corresponding to if this were a String.hashCode
+   */
+  public static int computeStringHashCode(byte[] utf8) throws UTFDataFormatException {
+    StringHashCodeVisitor visitor = new StringHashCodeVisitor();
+    visitUTF8(utf8, visitor);
+    return visitor.getResult();
+  }
+
+
+  /**
+   * Visit all bytes of the given utf8 string calling the visitor when a
+   * character is decoded.
+   *
+   * The acceptable input formats are controlled by the
+   * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
+   * flags.
+   *
+   * @param utf8 (pseudo-)utf8 byte array
+   * @param visitor called when characters are decoded
+   * @throws UTFDataFormatException if the (pseudo-)utf8 byte array is not valid (pseudo-)utf8
+   */
+  @Inline
+  private static void visitUTF8(byte[] utf8, UTF8CharacterVisitor visitor) throws UTFDataFormatException {
     for (int i = 0, n = utf8.length; i < n;) {
       byte b = utf8[i++];
       if (STRICTLY_CHECK_FORMAT && !ALLOW_NORMAL_UTF8) {
@@ -72,14 +153,15 @@ public abstract class VM_UTF8Convert {
       }
       if (b >= 0) {  // < 0x80 unsigned
         // in the range '\001' to '\177'
-        result[result_index++] = (char) b;
+        visitor.visit_char((char) b);
         continue;
       }
       try {
         byte nb = utf8[i++];
         if (b < -32) {  // < 0xe0 unsigned
           // '\000' or in the range '\200' to '\u07FF'
-          char c = result[result_index++] = (char) (((b & 0x1f) << 6) | (nb & 0x3f));
+          char c = (char) (((b & 0x1f) << 6) | (nb & 0x3f));
+          visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
               throw new UTFDataFormatException("invalid marker bits for double byte char at location " + (i - 2));
@@ -97,7 +179,8 @@ public abstract class VM_UTF8Convert {
         } else {
           byte nnb = utf8[i++];
           // in the range '\u0800' to '\uFFFF'
-          char c = result[result_index++] = (char) (((b & 0x0f) << 12) | ((nb & 0x3f) << 6) | (nnb & 0x3f));
+          char c = (char) (((b & 0x0f) << 12) | ((nb & 0x3f) << 6) | (nnb & 0x3f));
+          visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xf0) != 0xe0) || ((nb & 0xc0) != 0x80) || ((nnb & 0xc0) != 0x80)) {
               throw new UTFDataFormatException("invalid marker bits for triple byte char at location " + (i - 3));
@@ -112,7 +195,6 @@ public abstract class VM_UTF8Convert {
         throw new UTFDataFormatException("unexpected end at location " + i);
       }
     }
-    return new String(result, 0, result_index);
   }
 
   /**
