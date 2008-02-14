@@ -56,6 +56,10 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract void sysConsoleWriteDouble(double value, int postDecimalDigits);
 
+  // Register offsets of static fields in the JTOC
+  @SysCallTemplate
+  public abstract void sysRegisterStaticFieldOffsets(int gcStatusOffset, int timerTickOffset, int reportedTimerTickOffset);
+
   // startup/shutdown
   @SysCallTemplate
   public abstract void sysExit(int value);

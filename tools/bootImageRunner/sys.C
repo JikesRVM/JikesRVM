@@ -199,12 +199,6 @@ sysConsoleWriteDouble(double value,  int postDecimalDigits)
     }
 }
 
-// Exit with a return code.
-//
-pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
-
-static bool systemExiting = false;
-
 // alignment checking: hardware alignment checking variables and functions
 
 #ifdef RVM_WITH_ALIGNMENT_CHECKING
@@ -261,6 +255,27 @@ extern "C" void sysReportAlignmentChecking() { }
 
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
+// Static fields offset from the JTOC. Not generated as part of generate
+// interface declarations to avoid races causing different static field
+// layouts
+VM_Offset GCStatusOffset;
+VM_Offset TimerTicksOffset;
+VM_Offset ReportedTimerTicksOffset;
+
+extern "C" void
+sysRegisterStaticFieldOffsets(int gcOffset, int ttOffset, int rttOffset)
+{
+	GCStatusOffset = (VM_Offset)gcOffset;
+	ReportedTimerTicksOffset = (VM_Offset)rttOffset;
+	TimerTicksOffset = (VM_Offset)ttOffset;
+}
+
+pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
+
+static bool systemExiting = false;
+
+// Exit with a return code.
+//
 extern "C" void
 sysExit(int value)
 {
@@ -719,20 +734,21 @@ extern "C" void processTimerTick(void) {
     /*
      * Increment VM_Processor.timerTicks
      */
-    int* ttp = (int *) ((char *) VmToc + VM_GreenProcessor_timerTicks_offset);
+    if (TimerTicksOffset == 0) return; // static field offsets not yet known
+    int* ttp = (int *) ((char *) VmToc + TimerTicksOffset);
     *ttp = *ttp + 1;
 
     /*
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    int gcStatus = *(int *) ((char *) VmToc + org_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset);
+    int gcStatus = *(int *) ((char *) VmToc + GCStatusOffset);
     if (gcStatus != 0) return;
 
     /*
      * Increment VM_Processor.reportedTimerTicks
      */
-    int* rttp = (int *) ((char *) VmToc + VM_GreenProcessor_reportedTimerTicks_offset);
+    int* rttp = (int *) ((char *) VmToc + ReportedTimerTicksOffset);
     *rttp = *rttp + 1;
 
     /*

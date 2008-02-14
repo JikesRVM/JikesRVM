@@ -131,6 +131,13 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
+    // Register the offsets of static fields that would be potentially
+    // erroneously calculated during interface declaration
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up static fields");
+    VM_SysCall.sysCall.sysRegisterStaticFieldOffsets(VM_Entrypoints.gcStatusField.getOffset().toInt(),
+        VM_Entrypoints.timerTicksField.getOffset().toInt(),
+        VM_Entrypoints.reportedTimerTicksField.getOffset().toInt());
+
     // Set up the current VM_Processor object.  The bootstrap program
     // has placed a pointer to the current VM_Processor in a special
     // register.
