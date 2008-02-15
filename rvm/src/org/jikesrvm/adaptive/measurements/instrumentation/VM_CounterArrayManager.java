@@ -21,15 +21,15 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
-import org.jikesrvm.compilers.opt.ir.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.unboxed.Offset;
 
 /**

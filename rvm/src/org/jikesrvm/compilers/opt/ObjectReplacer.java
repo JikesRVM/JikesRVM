@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
@@ -51,8 +50,9 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Class that performs scalar replacement of aggregates for non-array

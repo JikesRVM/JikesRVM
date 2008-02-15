@@ -17,6 +17,17 @@ import org.jikesrvm.ArchitectureSpecific.RegisterPool;
 import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_COND_MOVE;

@@ -21,11 +21,11 @@ import java.util.TreeSet;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 
 /**
  * Reorder code layout of basic blocks for improved I-cache locality and

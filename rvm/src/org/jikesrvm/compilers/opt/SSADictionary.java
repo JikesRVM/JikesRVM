@@ -31,13 +31,9 @@ import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.BasicBlockOperand;
-import org.jikesrvm.compilers.opt.ir.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
@@ -98,6 +94,10 @@ import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
+import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
 /*
  * This module tracks heap variables needed for Array SSA form.

@@ -26,8 +26,6 @@ import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.MethodOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
@@ -138,12 +136,14 @@ import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Simple flow-insensitive escape analysis

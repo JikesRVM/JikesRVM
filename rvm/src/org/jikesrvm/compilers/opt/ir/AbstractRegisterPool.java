@@ -15,6 +15,8 @@ package org.jikesrvm.compilers.opt.ir;
 import java.util.HashMap;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 public abstract class AbstractRegisterPool {
 

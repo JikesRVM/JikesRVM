@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.NullConstantOperand;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL;
@@ -31,8 +30,9 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.TypeCheck;
+import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Perform simple peephole optimizations to reduce the overhead of

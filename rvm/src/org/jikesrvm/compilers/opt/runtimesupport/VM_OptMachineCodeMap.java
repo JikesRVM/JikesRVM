@@ -30,7 +30,7 @@ import org.jikesrvm.compilers.opt.ir.GCIRMap;
 import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;

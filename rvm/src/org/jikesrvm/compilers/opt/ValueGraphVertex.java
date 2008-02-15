@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.compilers.opt.ir.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**

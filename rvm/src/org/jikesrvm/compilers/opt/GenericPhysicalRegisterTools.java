@@ -17,8 +17,8 @@ import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * This abstract class provides a set of useful architecture-independent

@@ -20,10 +20,10 @@ import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Perform local copy propagation for a factored basic block.

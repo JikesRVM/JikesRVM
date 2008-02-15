@@ -41,12 +41,12 @@ import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LocationCarrier;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 
 /**

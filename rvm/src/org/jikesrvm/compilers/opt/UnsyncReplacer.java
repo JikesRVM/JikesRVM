@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MethodOperand;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
@@ -27,7 +26,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Replace calls to synchronized methods to calls specialized to be

@@ -17,9 +17,9 @@ import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
 /**
  * An instance of this class provides a mapping from symbolic register to

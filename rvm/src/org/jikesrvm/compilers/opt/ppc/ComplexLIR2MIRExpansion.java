@@ -28,14 +28,9 @@ import org.jikesrvm.compilers.opt.ir.MIR_Store;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
-import org.jikesrvm.compilers.opt.ir.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT_opcode;
@@ -84,10 +79,16 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFD;
 import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STWCXr;
 import static org.jikesrvm.compilers.opt.ir.Operators.PPC_SUBFIC;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.ppc.PowerPCConditionOperand;
+
 
 /**
  * Handles the conversion from LIR to MIR of operators whose

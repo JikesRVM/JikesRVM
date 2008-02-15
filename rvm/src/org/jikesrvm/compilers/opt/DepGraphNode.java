@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
 /**

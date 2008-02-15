@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
 
 /**
  * Used to iterate over the branch targets (including the fall through edge)

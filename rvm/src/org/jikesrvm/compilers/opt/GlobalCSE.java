@@ -131,9 +131,9 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**

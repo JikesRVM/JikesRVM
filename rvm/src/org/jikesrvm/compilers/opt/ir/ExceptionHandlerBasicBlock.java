@@ -22,6 +22,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.LiveSet;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 
 /**
  * A basic block that marks the start of an exception handler.

@@ -18,10 +18,10 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.MemoryOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
 /**
  * An object that returns an estimate of the relative cost of spilling a

@@ -37,9 +37,7 @@ import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlockBag;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -47,13 +45,15 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.InstanceOf;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.MethodOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.TypeCheck;
-import org.jikesrvm.compilers.opt.ir.TypeOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 
 /**
  * This class contains the high level logic for executing an inlining decision.

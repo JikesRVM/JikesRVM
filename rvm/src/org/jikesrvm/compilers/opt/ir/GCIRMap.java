@@ -18,6 +18,7 @@ import java.util.ListIterator;
 import org.jikesrvm.compilers.opt.LiveSet;
 import org.jikesrvm.compilers.opt.LiveSetEnumerator;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.util.VM_LinkedList;
 
 /**

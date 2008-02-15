@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**

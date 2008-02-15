@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.MachineSpecificIR;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
@@ -52,7 +51,10 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 import static org.jikesrvm.compilers.opt.ir.Operators.PREFETCH_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.BURSManagedFPROperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**

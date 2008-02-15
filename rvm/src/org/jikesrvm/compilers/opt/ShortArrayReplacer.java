@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
@@ -53,7 +52,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Class that performs scalar replacement of short arrays

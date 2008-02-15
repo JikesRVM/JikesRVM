@@ -17,15 +17,15 @@ import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.DoubleConstantOperand;
-import org.jikesrvm.compilers.opt.ir.FloatConstantOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.MemoryOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.unboxed.Offset;
 
 /**

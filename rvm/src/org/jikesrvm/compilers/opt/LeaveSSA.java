@@ -24,21 +24,21 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import static org.jikesrvm.compilers.opt.Constants.SSA_SYNTH_BCI;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
-import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
-import org.jikesrvm.compilers.opt.ir.UnreachableOperand;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
+import org.jikesrvm.compilers.opt.ir.operand.UnreachableOperand;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**

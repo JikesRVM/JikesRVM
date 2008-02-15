@@ -20,20 +20,20 @@ import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.LookupSwitch;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
-import org.jikesrvm.compilers.opt.ir.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IREnumeration;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.TableSwitch;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 
 /**
  * Simplify and canonicalize conditional branches with constant operands.

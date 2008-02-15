@@ -18,9 +18,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**

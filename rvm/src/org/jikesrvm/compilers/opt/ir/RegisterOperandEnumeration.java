@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
 
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  */

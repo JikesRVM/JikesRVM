@@ -19,6 +19,10 @@ import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 

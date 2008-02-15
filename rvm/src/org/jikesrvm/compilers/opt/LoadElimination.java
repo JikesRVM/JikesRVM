@@ -29,12 +29,10 @@ import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.GetStatic;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD_opcode;
@@ -56,10 +54,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
+import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * This class implements the redundant load elimination by

@@ -24,16 +24,11 @@ import org.jikesrvm.compilers.opt.ir.IfCmp2;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
-import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
-import org.jikesrvm.compilers.opt.ir.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import static org.jikesrvm.compilers.opt.ir.IRTools.CPOS;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
@@ -72,9 +67,14 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Perform simple peephole optimizations for branches.

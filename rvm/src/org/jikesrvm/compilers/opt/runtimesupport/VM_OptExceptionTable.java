@@ -18,7 +18,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.TypeOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 
 /**
  * Encoding of try ranges in the final machinecode and the

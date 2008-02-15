@@ -16,7 +16,8 @@ import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ADD;

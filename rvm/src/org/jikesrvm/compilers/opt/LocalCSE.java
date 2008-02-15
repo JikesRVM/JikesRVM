@@ -32,9 +32,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionFormat;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
@@ -48,8 +45,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
@@ -57,6 +52,11 @@ import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 
 /**
  * Perform local common-subexpression elimination for a factored basic

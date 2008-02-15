@@ -40,13 +40,13 @@ import org.jikesrvm.compilers.opt.ir.MIR_Ternary;
 import org.jikesrvm.compilers.opt.ir.MIR_Trap;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.ppc.PowerPCTrapOperand;
 import org.jikesrvm.ppc.VM_ArchConstants;
 import org.jikesrvm.ppc.VM_Disassembler;
 

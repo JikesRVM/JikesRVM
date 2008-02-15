@@ -21,8 +21,8 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**

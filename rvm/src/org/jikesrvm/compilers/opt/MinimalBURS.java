@@ -16,23 +16,23 @@ import org.jikesrvm.ArchitectureSpecific.BURS_Debug;
 import org.jikesrvm.ArchitectureSpecific.BURS_STATE;
 import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
-import org.jikesrvm.compilers.opt.ir.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.LongConstantOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OTHER_OPERAND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * This class contains code for quick and dirty instruction selection

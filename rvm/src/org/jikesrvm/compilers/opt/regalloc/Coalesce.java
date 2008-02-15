@@ -19,12 +19,12 @@ import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.SPLIT;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Utility to help coalesce registers.

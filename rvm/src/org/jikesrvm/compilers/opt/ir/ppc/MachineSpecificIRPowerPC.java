@@ -17,9 +17,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
 import org.jikesrvm.compilers.opt.ir.MIR_Load;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.MachineSpecificIR;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.DCBST_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DCBTST_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DCBT_opcode;
@@ -38,6 +36,9 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SUB_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCOND;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 
 /**
  * Wrappers around PowerPC-specific IR common to both 32 & 64 bit

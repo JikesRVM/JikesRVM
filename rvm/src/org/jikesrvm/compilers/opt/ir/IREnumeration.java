@@ -16,6 +16,10 @@ import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.vmmagic.pragma.NoInline;
 

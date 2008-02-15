@@ -28,17 +28,17 @@ import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Prepare;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
 /**
  * Represents a set of dataflow equations used to solve the

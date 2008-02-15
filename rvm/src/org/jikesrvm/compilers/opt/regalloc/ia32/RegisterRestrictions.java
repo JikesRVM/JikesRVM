@@ -31,13 +31,13 @@ import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.MemoryOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.ia32.BURSManagedFPROperand;
+import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.BURSManagedFPROperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericRegisterRestrictions;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 

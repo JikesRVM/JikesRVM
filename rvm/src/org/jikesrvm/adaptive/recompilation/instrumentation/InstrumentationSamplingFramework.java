@@ -29,19 +29,12 @@ import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
-import org.jikesrvm.compilers.opt.ir.BranchProfileOperand;
-import org.jikesrvm.compilers.opt.ir.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
@@ -55,9 +48,16 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  *  InstrumentationSamplingFramework

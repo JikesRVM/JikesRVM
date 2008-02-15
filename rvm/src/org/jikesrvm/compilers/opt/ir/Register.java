@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Represents a symbolic or physical register.

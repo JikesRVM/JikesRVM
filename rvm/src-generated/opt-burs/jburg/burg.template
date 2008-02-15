@@ -18,6 +18,8 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.operand.*;
+import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
 import org.jikesrvm.compilers.opt.BURS;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.util.Bits; //NOPMD

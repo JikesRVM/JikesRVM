@@ -17,8 +17,8 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 
 /**
  * This class represents a diamond (if-then-else) structure in the

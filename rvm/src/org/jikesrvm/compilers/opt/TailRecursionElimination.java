@@ -21,8 +21,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MethodOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
@@ -31,9 +29,11 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Return;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Transform tail recursive calls into loops.

@@ -21,10 +21,11 @@ import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MemoryOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COMBINE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK;

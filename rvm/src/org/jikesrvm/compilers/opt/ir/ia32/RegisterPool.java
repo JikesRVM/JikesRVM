@@ -16,9 +16,9 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Address;
 

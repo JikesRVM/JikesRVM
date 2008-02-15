@@ -17,14 +17,14 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
-import org.jikesrvm.compilers.opt.ir.OsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
+import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.OsrTypeInfoOperand;
 
 /**
  * A phase in the OPT compiler for construction OsrPoint instructions

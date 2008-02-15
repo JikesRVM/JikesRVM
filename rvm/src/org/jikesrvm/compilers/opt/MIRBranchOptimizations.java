@@ -16,10 +16,11 @@ import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 
 /**

@@ -13,7 +13,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.vmmagic.unboxed.Word;
 
 /**

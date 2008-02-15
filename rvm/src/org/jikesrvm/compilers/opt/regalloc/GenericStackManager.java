@@ -35,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
@@ -45,7 +44,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * Class to manage the allocation of the "compiler-independent" portion of

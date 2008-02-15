@@ -22,7 +22,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.ia32.VM_ArchConstants;
 
 /**

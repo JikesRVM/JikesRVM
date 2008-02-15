@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ppc;
 
 import org.jikesrvm.compilers.opt.GenericPhysicalRegisterTools;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 
 /**

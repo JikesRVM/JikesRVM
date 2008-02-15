@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /*
  *

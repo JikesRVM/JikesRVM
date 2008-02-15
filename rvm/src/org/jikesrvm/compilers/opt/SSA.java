@@ -20,20 +20,20 @@ import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.BasicBlockOperand;
-import org.jikesrvm.compilers.opt.ir.ConstantOperand;
-import org.jikesrvm.compilers.opt.ir.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * This module holds utility functions for SSA form.

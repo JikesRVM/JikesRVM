@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  */

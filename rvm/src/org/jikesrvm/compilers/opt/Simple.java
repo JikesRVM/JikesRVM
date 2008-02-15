@@ -23,8 +23,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.Operand;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
@@ -38,9 +36,11 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 
 /*
  * Simple flow-insensitive optimizations.
