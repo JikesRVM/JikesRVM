@@ -160,7 +160,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
     if (null != declaredAnnotationDatas) {
       for (VM_Annotation annotation : declaredAnnotationDatas) {
-        if (annotation.getType().equals(annotationTypeRef.getName()) &&
+        if (annotation.getType() == annotationTypeRef.getName() &&
             annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
           return true;
         }
