@@ -229,18 +229,9 @@ public class VM_Statics implements VM_Constants {
   public static int findOrCreateIntSizeLiteral(int literal) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable;
-    if (numericSlotHole != middleOfTable) {
-      for (int i=top; i >= bottom; i--) {
-        if ((slots[i] == literal) && !numericFieldVector.get(i)) {
-          return slotAsOffset(i).toInt();
-        }
-      }
-    } else {
-      for (int i=top; i >= bottom; i--) {
-        if (i == numericSlotHole) continue;
-        if ((slots[i] == literal) && !numericFieldVector.get(i)) {
-          return slotAsOffset(i).toInt();
-        }
+    for (int i=top; i >= bottom; i--) {
+      if ((slots[i] == literal) && !numericFieldVector.get(i) && (i != numericSlotHole)) {
+        return slotAsOffset(i).toInt();
       }
     }
     Offset newOff = allocateNumericSlot(BYTES_IN_INT, false);
@@ -260,7 +251,8 @@ public class VM_Statics implements VM_Constants {
     for (int i=top; i >= bottom; i-=2) {
       Offset off = slotAsOffset(i);
       if ((getSlotContentsAsLong(off) == literal) &&
-          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1))) {
+          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1)) &&
+          (i != numericSlotHole) && (i+1 != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
     }
