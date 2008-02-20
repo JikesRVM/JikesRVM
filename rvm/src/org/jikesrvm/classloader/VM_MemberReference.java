@@ -36,7 +36,7 @@ public abstract class VM_MemberReference {
   /**
    * Used to canonicalize memberReferences
    */
-  private static VM_HashSet<VM_MemberReference> dictionary = new VM_HashSet<VM_MemberReference>();
+  private static final VM_HashSet<VM_MemberReference> dictionary = new VM_HashSet<VM_MemberReference>();
 
   /**
    * Dictionary of all VM_MemberReference instances.

@@ -58,7 +58,7 @@ public final class SpecializationDatabase {
   }
 
   private static boolean specializationInProgress;
-  private static VM_HashSet<SpecializedMethod> deferredMethods = new VM_HashSet<SpecializedMethod>();
+  private static final VM_HashSet<SpecializedMethod> deferredMethods = new VM_HashSet<SpecializedMethod>();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod(SpecializedMethod m) {
