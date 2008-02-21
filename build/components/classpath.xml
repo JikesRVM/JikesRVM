@@ -218,12 +218,14 @@
       </sequential>
     </if>
 
+    <property environment="env"/>
     <exec executable="${classpath.dir}/configure" failonerror="true" dir="${classpath.dir}">
       <!-- need to pass thru compiler settings so if we are building on
       64 bit system the libraries are created appropriately -->
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
+      <env key="JAVAC" value="${env.JAVA_HOME}/bin/javac" />
       <arg value="--enable-jni"/>
       <arg value="${classpath.compiler.command}"/>
       <arg value="${classpath.compiler.command2}"/>
