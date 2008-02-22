@@ -28,7 +28,7 @@ public class InterfaceHierarchy {
    * a mapping from VM_Class (an interface) to a set of classes that
    * claim to implement this interface.
    */
-  private static VM_HashMap<VM_Class, VM_HashSet<VM_Class>> interfaceMapping =
+  private static final VM_HashMap<VM_Class, VM_HashSet<VM_Class>> interfaceMapping =
       new VM_HashMap<VM_Class, VM_HashSet<VM_Class>>();
 
   /**
