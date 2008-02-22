@@ -15,14 +15,11 @@ package org.jikesrvm.runtime;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.util.VM_BitVector;
-import org.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -133,60 +130,10 @@ public class VM_Statics implements VM_Constants {
    */
   private static final VM_BitVector referenceFieldVector = new VM_BitVector(middleOfTable);
 
-  /**
-   * A special mapping from VM_Atom and String objects to the jtoc slot of
-   * interned String objects that represent the same value.
-   */
-  private static final VM_HashMap<AtomOrStringKey, Integer> stringLiterals = new VM_HashMap<AtomOrStringKey, Integer>();
-
   static {
     // allocate a slot to be null - offset zero should map to null
     int offset = allocateReferenceSlot(false).toInt();
     if (VM.VerifyAssertions) VM._assert(offset == 0);
-  }
-
-  /**
-   * Key used to look up string literals JTOC locations. Encodes both an atom
-   * and/or String.
-   */
-  private static final class AtomOrStringKey {
-    /** Optional atom part of key */
-    private final VM_Atom atom;
-    /** Optional string part of key */
-    private final String string;
-    /** Construct key using just an atom */
-    AtomOrStringKey(VM_Atom atom) {
-      this.string = null;
-      this.atom = atom;
-    }
-    /** Construct key using just a String */
-    AtomOrStringKey(String string) {
-      this.string = string;
-      this.atom = null;
-    }
-    /** Construct key using both an atom or String */
-    AtomOrStringKey(VM_Atom atom, String string) {
-      this.string = string;
-      this.atom = atom;
-    }
-    /** HashCode of key corresponding to String.hashCode */
-    public int hashCode() {
-      if (string != null) return string.hashCode();
-      else return atom.hashCode();
-    }
-    /** Are two keys equivalent */
-    public boolean equals(Object obj) {
-      if (obj instanceof AtomOrStringKey) {
-        AtomOrStringKey other = (AtomOrStringKey)obj;
-        if ((atom != null) && (other.atom != null)) {
-          return atom.equals(other.atom);
-        }
-        if (VM.VerifyAssertions) VM._assert((string != null) && (other.string != null));
-        return string.equals(other.string);
-      } else {
-        return false;
-      }
-    }
   }
 
   /**
@@ -262,65 +209,6 @@ public class VM_Statics implements VM_Constants {
   }
 
   /**
-   * Find or allocate a slot in the jtoc for a string literal from the
-   * given VM_Atom. We register a mapping in the object and string
-   * literals if not.
-   * @param       literal value
-   * @return offset of slot that was allocated
-   * Side effect: literal value is stored into jtoc
-   */
-  public static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
-    Integer offAsInt;
-    AtomOrStringKey tempKey = new AtomOrStringKey(literal);
-    synchronized (stringLiterals) {
-      offAsInt = stringLiterals.get(tempKey);
-    }
-    if (offAsInt != null) {
-      return offAsInt;
-    } else {
-      String stringValue = literal.toUnicodeString();
-      if (VM.runningVM) {
-        stringValue = stringValue.intern();
-      }
-      Offset newOff = allocateReferenceSlot(false);
-      setSlotContents(newOff, stringValue);
-      AtomOrStringKey key = new AtomOrStringKey(literal, stringValue);
-      synchronized(stringLiterals) {
-        stringLiterals.put(key, newOff.toInt());
-      }
-      return newOff.toInt();
-    }
-  }
-
-  /**
-   * Try to find a string literal from the given String object.
-   * @param     literal value
-   * @return String literal if it exists, otherwise null.
-   */
-  public static String findStringLiteral(String literal) {
-    Integer offAsInt;
-    AtomOrStringKey tempKey = new AtomOrStringKey(literal);
-    synchronized (stringLiterals) {
-      offAsInt = stringLiterals.get(tempKey);
-    }
-    if (offAsInt != null) {
-      Offset off = Offset.fromIntSignExtend(offAsInt);
-      return (String) getSlotContentsAsObject(off);
-    }
-    return null;
-  }
-
-  /**
-   * Find or allocate a slot in the jtoc for a class literal
-   * @param typeReferenceID the type reference ID for the class
-   * @return the offset of slot that was allocated
-   */
-  public static int findOrCreateClassLiteral(int typeReferenceID) {
-    Class<?> literalAsClass = VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
-    return findOrCreateObjectLiteral(literalAsClass);
-  }
-
-  /**
    * Find or allocate a slot in the jtoc for an object literal.
    * @param       literal value
    * @return offset of slot that was allocated
@@ -333,15 +221,6 @@ public class VM_Statics implements VM_Constants {
     } else {
       Offset newOff = allocateReferenceSlot(false);
       setSlotContents(newOff, literal);
-      if (literal instanceof String) {
-        String internedString = ((String)literal).intern();
-        if (internedString == literal) {
-          AtomOrStringKey key = new AtomOrStringKey(VM_Atom.findOrCreateUnicodeAtom(internedString), internedString);
-          synchronized (stringLiterals) {
-            stringLiterals.put(key, newOff.toInt());
-          }
-        }
-      }
       return newOff.toInt();
     }
   }

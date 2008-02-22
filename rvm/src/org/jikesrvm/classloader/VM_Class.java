@@ -677,7 +677,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
           return Offset.fromIntSignExtend(value);
         case CP_CLASS: {
           int typeId = unpackUnsignedCPValue(cpValue);
-          return Offset.fromIntSignExtend(VM_Statics.findOrCreateClassLiteral(typeId));
+          Class<?> literalAsClass = VM_TypeReference.getTypeRef(typeId).resolve().getClassForType();
+          return Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(literalAsClass));
         }
         default:
           VM._assert(NOT_REACHED);
@@ -686,7 +687,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     } else {
       if (packedCPTypeIsClassType(cpValue)) {
         int typeId = unpackUnsignedCPValue(cpValue);
-        return Offset.fromIntSignExtend(VM_Statics.findOrCreateClassLiteral(typeId));
+        Class<?> literalAsClass = VM_TypeReference.getTypeRef(typeId).resolve().getClassForType();
+        return Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(literalAsClass));
       } else {
         int value = unpackSignedCPValue(cpValue);
         return Offset.fromIntSignExtend(value);
@@ -1299,7 +1301,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
           case TAG_STRING: { // in: utf index
             VM_Atom literal = getUtf(constantPool, constantPool[i]);
-            int offset = VM_Statics.findOrCreateStringLiteral(literal);
+            int offset = literal.getStringLiteralOffset();
             constantPool[i] = packCPEntry(CP_STRING, offset);
             break;
           } // out: jtoc slot number
@@ -2331,7 +2333,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
           try {
             constantPool[nextFreeConstantPoolSlot] =
                 packCPEntry(CP_STRING,
-                            VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom((String) value)));
+                            VM_Atom.findOrCreateUnicodeAtom((String) value).getStringLiteralOffset());
           } catch (UTFDataFormatException e) {
             throw new Error(e);
           }

@@ -13,11 +13,16 @@
 package org.jikesrvm.classloader;
 
 import java.io.UTFDataFormatException;
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.unboxed.Offset;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.*;
 
 /**
  * An  utf8-encoded byte string.
@@ -33,12 +38,12 @@ import org.vmmagic.pragma.Pure;
  *          return "";
  * will have one in its constant pool.
  */
-public final class VM_Atom implements VM_ClassLoaderConstants {
+public final class VM_Atom {
 
   /**
-   * Used to canonicalize VM_Atoms: Key => VM_Atom
+   * Used to canonicalize VM_Atoms: possibly non-canonical VM_Atom => VM_Atom
    */
-  private static final VM_HashMap<Key, VM_Atom> dictionary = new VM_HashMap<Key, VM_Atom>();
+  private static final VM_HashMap<VM_Atom, VM_Atom> dictionary = new VM_HashMap<VM_Atom, VM_Atom>();
 
   /**
    * Dictionary of all VM_Atom instances.
@@ -56,14 +61,15 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   private final byte[] val;
 
   /**
-   * Cached hash code for this atom.
-   */
-  private final int hash;
-
-  /**
    * The id of this atom
    */
   private final int id;
+
+  /**
+   * A reference to either a unicode String encoding the atom, an offset in the
+   * JTOC holding a unicode string encoding the atom or null.
+   */
+  private Object unicodeStringOrJTOCoffset;
 
   /**
    *@return the id of this atom.
@@ -77,8 +83,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   @Pure
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
-    byte[] utf8 = VM_UTF8Convert.toUTF8(str);
-    return findOrCreate(utf8, true);
+    return findOrCreate(null, true, str);
   }
 
   /**
@@ -87,8 +92,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom or null if it doesn't already exist
    */
   public static VM_Atom findUnicodeAtom(String str) {
-    byte[] utf8 = VM_UTF8Convert.toUTF8(str);
-    return findOrCreate(utf8, false);
+    return findOrCreate(null, false, str);
   }
 
   /**
@@ -99,7 +103,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   @Pure
   public static VM_Atom findOrCreateAsciiAtom(String str) {
-    return findOrCreate(VM_StringUtilities.stringToBytes(str), true);
+    return findOrCreate(null, true, str);
   }
 
   /**
@@ -109,7 +113,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom or null if it doesn't already exist
    */
   public static VM_Atom findAsciiAtom(String str) {
-    return findOrCreate(VM_StringUtilities.stringToBytes(str), false);
+    return findOrCreate(null, false, str);
   }
 
   /**
@@ -119,7 +123,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   @Pure
   public static VM_Atom findOrCreateUtf8Atom(byte[] utf8) {
-    return findOrCreate(utf8, true);
+    return findOrCreate(utf8, true, null);
   }
 
   /**
@@ -128,9 +132,54 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom or null it it doesn't already exist
    */
   public static VM_Atom findUtf8Atom(byte[] utf8) {
-    return findOrCreate(utf8, false);
+    return findOrCreate(utf8, false, null);
   }
 
+  /**
+   * Find an atom from the subsequence of another
+   * @param utf8 byte backing of atom
+   * @param off offset of new atom
+   * @param len length of new atom
+   * @param str possible string encoding of atom or null
+   * @return atom
+   */
+  private static VM_Atom findOrCreate(byte[] utf8, int off, int len, String str) {
+    if (str != null) {
+      // string substring is cheap, so try to find using this if possible
+      VM_Atom val = new VM_Atom(null, -1, str.substring(off, off+len));
+      val = dictionary.get(val);
+      if (val != null) return val;
+    }
+    byte[] val = new byte[len];
+    for (int i = 0; i < len; ++i) {
+      val[i] = utf8[off++];
+    }
+    return findOrCreate(val, true, null);
+  }
+
+  /**
+   * This is the findOrCreate() method through which all VM_Atoms are
+   * ultimately created.   The constructor for VM_Atom is a private method, so
+   * someone has to call one of the public findOrCreate() methods to get a new
+   * one.  And they all feed through here.
+   */
+  private static VM_Atom findOrCreate(byte[] bytes, boolean create, String str) {
+    VM_Atom val = new VM_Atom(bytes, -1, str);
+    val = dictionary.get(val);
+    if (val != null || !create) return val;
+    synchronized(VM_Atom.class) {
+      val = new VM_Atom(bytes, nextId++, str);
+      if (val.id == atoms.length) {
+        VM_Atom[] tmp = new VM_Atom[atoms.length + 1000];
+        System.arraycopy(atoms, 0, tmp, 0, atoms.length);
+        atoms = tmp;
+      }
+      atoms[val.id] = val;
+      dictionary.put(val, val);
+    }
+    return val;
+  }
+  
   /**
    * @param id the id of an Atom
    * @return the VM_Atom whose id was given
@@ -139,33 +188,6 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   @Uninterruptible
   public static VM_Atom getAtom(int id) {
     return atoms[id];
-  }
-
-  private static VM_Atom findOrCreate(byte[] utf8, int off, int len) {
-    byte[] val = new byte[len];
-    for (int i = 0; i < len; ++i) {
-      val[i] = utf8[off++];
-    }
-    return findOrCreate(val, true);
-  }
-
-  /** This is the findOrCreate() method through which all VM_Atoms are
-   * ultimately created.   The constructor for VM_Atom is a private method, so
-   * someone has to call one of the public findOrCreate() methods to get a new
-   * one.  And they all feed through here.  */
-  private static synchronized VM_Atom findOrCreate(byte[] bytes, boolean create) {
-    Key key = new Key(bytes);
-    VM_Atom val = dictionary.get(key);
-    if (val != null || !create) return val;
-    val = new VM_Atom(key, nextId++);
-    if (val.id == atoms.length) {
-      VM_Atom[] tmp = new VM_Atom[atoms.length + 1000];
-      System.arraycopy(atoms, 0, tmp, 0, atoms.length);
-      atoms = tmp;
-    }
-    atoms[val.id] = val;
-    dictionary.put(key, val);
-    return val;
   }
 
   //-------------//
@@ -181,19 +203,80 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     return VM_StringUtilities.asciiBytesToString(val);
   }
 
-  /** Get at a string-like representation without doing any heap allocation.
-   * Hideous but necessary.  We will use it in the VM_PrintContainer class. */
+  /**
+   * Get at a string-like representation without doing any heap allocation.
+   * Hideous but necessary.  We will use it in the VM_PrintContainer class.
+   */
   @Uninterruptible
   public byte[] toByteArray() {
     return val;
   }
 
   /**
-   * Return printable representation of "this" atom.
+   * Return atom as a string literal
    */
   @Pure
-  public String toUnicodeString() throws java.io.UTFDataFormatException {
-    return VM_UTF8Convert.fromUTF8(val);
+  public synchronized String toUnicodeString() throws java.io.UTFDataFormatException {
+    if (unicodeStringOrJTOCoffset == null) {
+      String s = VM_UTF8Convert.fromUTF8(val);
+      if (VM.runningVM) {
+        s = InternedStrings.internUnfoundString(s);
+      }
+      unicodeStringOrJTOCoffset = s;
+      return s;
+    } else if (unicodeStringOrJTOCoffset instanceof String) {
+      return (String)unicodeStringOrJTOCoffset;
+    } else {
+      if (VM.runningVM) {
+        return (String)VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend((Integer)unicodeStringOrJTOCoffset));
+      } else {
+        return VM_UTF8Convert.fromUTF8(val).intern();
+      }
+    }
+  }
+
+  /**
+   * Atom as string literal or null if atom hasn't been converted
+   */
+  private synchronized String toUnicodeStringInternal() {
+    if (unicodeStringOrJTOCoffset == null) {
+      return null;
+    } else if (unicodeStringOrJTOCoffset instanceof String) {
+      return (String)unicodeStringOrJTOCoffset;
+    } else {
+      if (VM.runningVM) {
+        return (String)VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend((Integer)unicodeStringOrJTOCoffset));
+      } else {
+        try {
+          return VM_UTF8Convert.fromUTF8(val).intern();
+        } catch (UTFDataFormatException e) {
+          throw new Error("Error in UTF data encoding: ", e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Offset of an atom's string in the JTOC, for string literals
+   * @return Offset of string literal in JTOC
+   * @throws java.io.UTFDataFormatException
+   */
+  public synchronized int getStringLiteralOffset() throws java.io.UTFDataFormatException {
+    if (unicodeStringOrJTOCoffset == null) {
+      String s = VM_UTF8Convert.fromUTF8(val);
+      if (VM.runningVM) {
+        s = InternedStrings.internUnfoundString(s);
+      }
+      int offset = VM_Statics.findOrCreateObjectLiteral(s);
+      unicodeStringOrJTOCoffset = offset;
+      return offset;
+    } else if (unicodeStringOrJTOCoffset instanceof String) {
+      int offset = VM_Statics.findOrCreateObjectLiteral(unicodeStringOrJTOCoffset);
+      unicodeStringOrJTOCoffset = offset;
+      return offset;
+    } else {
+      return (Integer)unicodeStringOrJTOCoffset;
+    }
   }
 
   /**
@@ -211,7 +294,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     for (int i = 0, n = val.length; i < n; ++i) {
       sig[i + 1] = val[i];
     }
-    return findOrCreate(sig, true);
+    return findOrCreate(sig, true, null);
   }
 
   /**
@@ -231,7 +314,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       sig[i + 1] = val[i];
     }
     sig[sig.length - 1] = (byte) ';';
-    return findOrCreate(sig, true);
+    return findOrCreate(sig, true, null);
   }
 
   /**
@@ -245,7 +328,11 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length - 1] == ';');
     }
-    return VM_StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/', '.');
+    if (unicodeStringOrJTOCoffset == null) {
+      return VM_StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/', '.');
+    } else {
+      return toUnicodeStringInternal().substring(1, val.length-1).replace('/','.');
+    }
   }
 
   /**
@@ -259,7 +346,11 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       VM._assert(val.length > 0);
       VM._assert(val[0] == 'L' && val[val.length - 1] == ';');
     }
-    return VM_StringUtilities.asciiBytesToString(val, 1, val.length - 2) + ".class";
+    if (unicodeStringOrJTOCoffset == null) {
+      return VM_StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/', '.') + ".class";
+    } else {
+      return toUnicodeStringInternal().substring(1, val.length-1).replace('/','.') + ".class";
+    }
   }
 
   //----------------//
@@ -354,23 +445,18 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
         return VM_TypeReference.Char;
       case ClassTypeCode:   // fall through
       case ArrayTypeCode:
-        return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i));
+        return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i, toUnicodeStringInternal()));
       default:
         if (VM.VerifyAssertions) {
           VM._assert(false,
                      "Need a valid method descriptor; got \"" +
                      this +
                      "\"; can't parse the character '" +
-                     byteToString(val[i]) +
+                     ((char)val[i]) +
                      "'");
         }
         return null;            // NOTREACHED
     }
-  }
-
-  @Pure
-  private String byteToString(byte b) {
-    return Character.toString((char) b);
   }
 
   /**
@@ -428,7 +514,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
             }
           }
           sigs.addElement(VM_TypeReference
-              .findOrCreate(cl, findOrCreate(val, off, i - off)));
+              .findOrCreate(cl, findOrCreate(val, off, i - off, toUnicodeStringInternal())));
           continue;
         }
         case ArrayTypeCode: {
@@ -440,7 +526,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
             ++i;
           }
           if (val[i++] == ClassTypeCode) while (val[i++] != ';') ;
-          sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+          sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off, toUnicodeStringInternal())));
           continue;
         }
         case(byte) ')': // end of parameter list
@@ -453,7 +539,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
                        this +
                        "\" contains the illegal" +
                        " character '" +
-                       byteToString(val[i]) +
+                       ((char)val[i]) +
                        "'");
           }
       }
@@ -576,7 +662,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       }
       i++;
     }
-    return findOrCreate(val, i, val.length - i);
+    return findOrCreate(val, i, val.length - i, toUnicodeStringInternal());
   }
 
   /**
@@ -591,7 +677,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       VM._assert(val.length > 1, "An array descriptor has at least two characters");
       VM._assert(val[0] == '[', "An array descriptor must start with '['");
     }
-    return findOrCreate(val, 1, val.length - 1);
+    return findOrCreate(val, 1, val.length - 1, toUnicodeStringInternal());
   }
 
   /**
@@ -740,56 +826,165 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Create atom from the key that maps to it.
    */
-  private VM_Atom(Key key, int id) {
-    this.val = key.val;
-    this.hash = key.hashCode();
+  private VM_Atom(byte[] val, int id, String str) {
     this.id = id;
-  }
-
-  public int hashCode() {
-    return hash;
+    this.unicodeStringOrJTOCoffset = str;
+    if ((val == null) && (id != -1)) {
+      this.val = VM_UTF8Convert.toUTF8(str);
+    } else {
+      this.val = val;
+    }
   }
 
   /*
-   * We canonicalize VM_Atoms, therefore we can use == for equals
+   * Hash table utilities
    */
-  @Pure
-  @Uninterruptible
-  public boolean equals(Object other) {
-    return this == other;
+  /**
+   * Return the hashCode of an atom, this equals the unicode string encoding of
+   * the atom
+   */
+  public int hashCode() {
+    try {
+      if (unicodeStringOrJTOCoffset != null) {
+        return toUnicodeStringInternal().hashCode();
+      } else {
+        return VM_UTF8Convert.computeStringHashCode(val);
+      }
+    } catch (UTFDataFormatException e) {
+      return 0;
+    }
   }
 
   /**
-   * A Key into the atom dictionary.
-   * We do this to enable VM_Atom.equals to be efficient (==).
+   * Outside of this class atoms are canonical and should be compared using ==.
+   * This method is used to maintain atoms in internal hash tables and shouldn't
+   * be used externally.
    */
-  private static final class Key {
-    final byte[] val;
-
-    Key(byte[] utf8) {
-      val = utf8;
+  @Pure
+  public boolean equals(Object other) {
+    // quick test as atoms are generally canonical
+    if (this == other) {
+      return true;
     }
-
-    public int hashCode() {
-      try {
-        return VM_UTF8Convert.computeStringHashCode(val);
-      } catch (UTFDataFormatException e) {
-        return 0;
-      }
-    }
-
-    public boolean equals(Object other) {
-      if (this == other) return true;
-      if (other instanceof Key) {
-        Key that = (Key) other;
-        if (val.length != that.val.length) return false;
-        for (int i = 0; i < val.length; i++) {
-          if (val[i] != that.val[i]) return false;
+    else {
+      if (other instanceof VM_Atom) {
+        VM_Atom that = (VM_Atom)other;
+        // if the atoms are well formed then their identifiers are unique
+        if ((that.id != -1) && (this.id != -1)) {
+          return that.id == this.id;
         }
-        return true;
-      } else {
-        return false;
+        // one atom isn't well formed, can we do a string comparison to work out equality?
+        if ((this.unicodeStringOrJTOCoffset != null) && (that.unicodeStringOrJTOCoffset != null)) {
+          return toUnicodeStringInternal().equals(that.toUnicodeStringInternal());
+        }
+        try {
+          // perform byte by byte comparison
+          byte[] val1;
+          if (that.val != null) {
+            val1 = that.val;
+          } else {
+            val1 = VM_UTF8Convert.toUTF8(that.toUnicodeString());
+          }
+          byte[] val2;
+          if (this.val != null) {
+            val2 = this.val;
+          } else {
+            val2 = VM_UTF8Convert.toUTF8(toUnicodeString());
+          }
+          if (val1.length == val2.length) {
+            for (int i = 0; i < val1.length; i++) {
+              if (val1[i] != val2[i]) return false;
+            }
+            return true;
+          }
+        } catch (UTFDataFormatException e) {
+          throw new Error("Error in UTF data encoding: ",e);
+        }
       }
+      return false;
     }
+  }
+  
+  
+  /**
+   * Inner class responsible for string interning. This class' initializer is
+   * run during booting.
+   */
+  private static class InternedStrings {
+    /**
+     * Look up for interned strings.
+     */
+    private static final WeakHashMap<String,WeakReference<String>> internedStrings =
+      new WeakHashMap<String,WeakReference<String>>();
+
+    /**
+     * Find an interned string but don't create it if not found
+     * @param str string to lookup
+     * @return the interned string or null if it isn't interned
+     */
+    static synchronized String findInternedString(String str) {
+      WeakReference<String> ref;
+      ref = internedStrings.get(str);
+      if (ref != null) {
+        String s = ref.get();
+        if (s != null) {
+          return s;
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Find a string literal from an atom
+     * @param str string to find
+     * @return the string literal or null
+     */
+    static String findAtomString(String str) {
+      VM_Atom atom = findUnicodeAtom(str);
+      if (atom != null) {
+        try {
+          return atom.toUnicodeString();
+        } catch (UTFDataFormatException e) {
+          throw new Error("Error in UTF data encoding: ", e);
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Intern a string that is not an atom or already interned string
+     * @param str string to intern
+     * @return interned string
+     */
+    static synchronized String internUnfoundString(String str) {
+      // double check string isn't found as we're holding the lock on the class
+      String s = findInternedString(str);
+      if (s != null) return s;
+      // If we get to here, then there is no interned version of the String.
+      // So we make one.
+      WeakReference<String> ref = new WeakReference<String>(str);
+      internedStrings.put(str, ref);
+      return str;      
+    }
+  }
+  
+  /**
+   * External string intern method called from String.intern. This method should
+   * return a canonical string encoding for the given string and this string
+   * should also be canonical with string literals.
+   * @param str string to intern
+   * @return interned version of string
+   */
+  public static String internString(String str) {
+    // Has the string already been interned
+    String s = InternedStrings.findInternedString(str);
+    if (s != null) return s;
+
+    // Check to see if this is a StringLiteral:
+    s = InternedStrings.findAtomString(str);
+    if (s != null) return s;
+
+    // Intern this string
+    return InternedStrings.internUnfoundString(str);
   }
 }

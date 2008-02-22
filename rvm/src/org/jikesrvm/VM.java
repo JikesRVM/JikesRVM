@@ -231,6 +231,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.lang.Character");
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
+    runClassInitializer("org.jikesrvm.classloader.VM_Atom$InternedStrings");
     // Turn off security checks; about to hit EncodingManager.
     // Commented out because we haven't incorporated this into the CVS head
     // yet.
@@ -260,7 +261,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
     runClassInitializer("java.lang.String");
-    runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
     /* Needed for VM_ApplicationClassLoader, which in turn is needed by

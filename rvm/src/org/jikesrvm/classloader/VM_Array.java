@@ -29,6 +29,7 @@ import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.*;
 
 /**
  * Description of a java "array" type. <p>
@@ -182,25 +183,25 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
       return ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH;
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
-      case VM_Atom.ClassTypeCode:
+      case ClassTypeCode:
         return LOG_BYTES_IN_ADDRESS;
-      case VM_Atom.ArrayTypeCode:
+      case ArrayTypeCode:
         return LOG_BYTES_IN_ADDRESS;
-      case VM_Atom.BooleanTypeCode:
+      case BooleanTypeCode:
         return LOG_BYTES_IN_BOOLEAN;
-      case VM_Atom.ByteTypeCode:
+      case ByteTypeCode:
         return 0;
-      case VM_Atom.ShortTypeCode:
+      case ShortTypeCode:
         return LOG_BYTES_IN_SHORT;
-      case VM_Atom.IntTypeCode:
+      case IntTypeCode:
         return LOG_BYTES_IN_INT;
-      case VM_Atom.LongTypeCode:
+      case LongTypeCode:
         return LOG_BYTES_IN_LONG;
-      case VM_Atom.FloatTypeCode:
+      case FloatTypeCode:
         return LOG_BYTES_IN_FLOAT;
-      case VM_Atom.DoubleTypeCode:
+      case DoubleTypeCode:
         return LOG_BYTES_IN_DOUBLE;
-      case VM_Atom.CharTypeCode:
+      case CharTypeCode:
         return LOG_BYTES_IN_CHAR;
     }
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

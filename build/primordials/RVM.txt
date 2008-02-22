@@ -42,7 +42,6 @@
 [Lorg/jikesrvm/compilers/common/VM_CompiledMethod;
 
 [Lorg/jikesrvm/runtime/VM_DynamicLibrary;
-[Lorg/jikesrvm/runtime/VM_Statics$AtomOrStringKey;
 
 [Lorg/jikesrvm/scheduler/VM_Processor;
 [Lorg/jikesrvm/scheduler/VM_Thread;
