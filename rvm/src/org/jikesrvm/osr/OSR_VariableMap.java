@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 public final class OSR_VariableMap {
 
   /* A list of OSR_VariableMapElement */
-  public LinkedList<OSR_VariableMapElement> list = new LinkedList<OSR_VariableMapElement>();
+  public final LinkedList<OSR_VariableMapElement> list = new LinkedList<OSR_VariableMapElement>();
 
   public int getNumberOfElements() {
     return list.size();
