@@ -27,10 +27,14 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   /**
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
+   * This is either null, a VM_Annotation if a single annotation is
+   * present, or an array of VM_Annotation if there is &gt;1
    */
-  protected final VM_Annotation[] declaredAnnotationDatas;
+  protected final Object declaredAnnotationDatas;
   /** Cached array of declared annotations. */
   private Annotation[] declaredAnnotations;
+  /** Empty annotation array */
+  private static final Annotation[] emptyAnnotationArray = new Annotation[0];
 
   /**
    * Constructor used by all annotated elements
@@ -38,7 +42,14 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * @param annotations array of runtime visible annotations
    */
   protected VM_AnnotatedElement(VM_Annotation[] annotations) {
-    this.declaredAnnotationDatas = annotations;
+    if (annotations == null) {
+      declaredAnnotationDatas = null;
+      declaredAnnotations = emptyAnnotationArray;
+    } else if (annotations.length == 1) {
+      this.declaredAnnotationDatas = annotations[0];
+    } else {
+      this.declaredAnnotationDatas = annotations;
+    }
   }
 
   /**
@@ -101,9 +112,13 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Copy array of annotations so can be safely returned to user.
    */
   private Annotation[] cloneAnnotations(final Annotation[] internal) {
-    final Annotation[] annotations = new Annotation[internal.length];
-    System.arraycopy(internal, 0, annotations, 0, internal.length);
-    return annotations;
+    if (internal.length == 0) {
+      return emptyAnnotationArray;
+    } else {
+      final Annotation[] annotations = new Annotation[internal.length];
+      System.arraycopy(internal, 0, annotations, 0, internal.length);
+      return annotations;
+    }
   }
 
   /**
@@ -112,10 +127,15 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * @param annotations the annotations.
    * @return the annotation instances.
    */
-  final Annotation[] toAnnotations(final VM_Annotation[] annotations) {
-    if (null == annotations) {
-      return new Annotation[0];
-    } else {
+  final Annotation[] toAnnotations(final Object datas) {
+    if (null == datas) {
+      return emptyAnnotationArray;
+    } else if (datas instanceof VM_Annotation) {
+      final Annotation[] copy = new Annotation[1];
+      copy[0] = ((VM_Annotation)datas).getValue();
+      return copy;
+	 } else {
+      VM_Annotation[] annotations = (VM_Annotation[])datas;
       final Annotation[] copy = new Annotation[annotations.length];
       for (int i = 0; i < copy.length; i++) {
         copy[i] = annotations[i].getValue();
@@ -158,15 +178,21 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   @Uninterruptible
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
-    if (null != declaredAnnotationDatas) {
-      for (VM_Annotation annotation : declaredAnnotationDatas) {
+    if (declaredAnnotationDatas == null) {
+      return false;
+    } else if (declaredAnnotationDatas instanceof VM_Annotation) {
+      VM_Annotation annotation = (VM_Annotation)declaredAnnotationDatas;
+		return annotation.getType() == annotationTypeRef.getName() &&
+		  annotation.getClassLoader() == annotationTypeRef.getClassLoader();
+    } else {
+      for (VM_Annotation annotation : (VM_Annotation[])declaredAnnotationDatas) {
         if (annotation.getType() == annotationTypeRef.getName() &&
-            annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
+          annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
           return true;
         }
       }
+      return false;
     }
-    return false;
   }
 
   /**
