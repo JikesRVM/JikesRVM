@@ -1053,6 +1053,7 @@ Check to make sure all required properties are specified. This includes properti
       <exclude name="org/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
       <include name="**/JikesRVMSupport.class"/>
       <include name="org/mmtk/**/*.class"/>
+      <exclude name="org/jikesrvm/compilers/**/*BootImageCompiler.class"/>
     </fileset>
     <fileset id="primordials.vmmagic" dir="${build.vmmagic.classes}">
       <include name="**/*.class"/>
