@@ -19,6 +19,7 @@ import java.util.Arrays;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -44,6 +45,11 @@ public final class VM_Annotation {
    * A reference to the constructor of the base annotation
    */
   private static final VM_MethodReference baseAnnotationInitMethod;
+  /**
+   * Remembered unique annotations
+   */
+  private static final VM_HashMap<VM_Annotation, VM_Annotation>
+    uniqueMap = new VM_HashMap<VM_Annotation, VM_Annotation>();
 
   /**
    * The concrete annotation represented by this VM_Annotation
@@ -96,7 +102,14 @@ public final class VM_Annotation {
       elementValuePairs[i] = AnnotationMember.readAnnotationMember(constantPool, input, classLoader);
     }
     // Arrays.sort(elementValuePairs);
-    return new VM_Annotation(type, elementValuePairs, classLoader);
+    VM_Annotation result = new VM_Annotation(type, elementValuePairs, classLoader);
+    VM_Annotation unique = uniqueMap.get(result);
+    if (unique != null) {
+   	return unique;
+    } else {
+      uniqueMap.put(result, result);
+      return result;
+    }
   }
 
   /**
@@ -318,19 +331,48 @@ public final class VM_Annotation {
     VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
     String typeString = type.toString();
     int result = typeString.substring(1, typeString.length() - 1).hashCode();
-    for (VM_Field field : annotationClassFields) {
-      String name = field.getName().toString();
-      name = name.substring(0, name.length() - 6); // remove "_field" from name
-      Object value = field.getObjectUnchecked(a);
-      int part_result = name.hashCode() * 127;
-      if (value.getClass().isArray()) {
-        part_result ^= Arrays.hashCode((Object[]) value);
-      } else {
-        part_result ^= value.hashCode();
+    try {
+      for (VM_Field field : annotationClassFields) {
+        String name = field.getName().toUnicodeString();
+        name = name.substring(0, name.length() - 6); // remove "_field" from name
+        Object value = field.getObjectUnchecked(a);
+        int part_result = name.hashCode() * 127;
+        if (value.getClass().isArray()) {
+          part_result ^= Arrays.hashCode((Object[]) value);
+        } else {
+          part_result ^= value.hashCode();
+        }
+        result += part_result;
       }
-      result += part_result;
+	 } catch (java.io.UTFDataFormatException e) {
+      throw new Error(e);
     }
     return result;
+  }
+
+  /*
+	* Hash map support
+	*/
+  public int hashCode() {
+    return type.hashCode();
+  }
+
+  public boolean equals(Object o) {
+    if (o instanceof VM_Annotation) {
+      VM_Annotation that = (VM_Annotation)o;
+      if (type == that.type && classLoader == that.classLoader) {
+        for (int i=0; i<elementValuePairs.length; i++) {
+          if (!elementValuePairs[i].equals(that.elementValuePairs[i])) {
+            return false;
+          }
+        }
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -495,6 +537,18 @@ public final class VM_Annotation {
         result += value.toString();
       }
       return result;
+    }
+
+    /**
+     * Are two members equivalent?
+     */
+    public boolean equals(Object o) {
+      if (o instanceof AnnotationMember) {
+        AnnotationMember that = (AnnotationMember)o;
+        return that.name == name && that.value.equals(value);
+      } else {
+        return false;
+      }
     }
 
     /**
