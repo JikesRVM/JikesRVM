@@ -76,10 +76,6 @@
   <!-- Permit parallelisation of the bootimage build -->
   <property name="bootimage.threads" value="1"/>
 
-  <!-- Compiler to compile Classpath -->
-  <!-- Remember to edit the same property in build/components/classpath.xml -->
-  <property name="classpath.compiler" value="ecj"/>
-
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *             Property initialization section of the build                 * -->
@@ -183,16 +179,6 @@
 
   <target name="check-components-properties" depends="include-gcspy-check,prepare-ant-tasks">
     <mkdir dir="${components.dir}"/>
-    <if>
-      <conditions>
-        <equals arg1="${classpath.compiler}" arg2="ecj"/>
-      </conditions>
-      <sequential>
-        <ant antfile="build/components/ecj.xml" target="ensure">
-          <property name="classpath.compiler" value="${classpath.compiler}"/>
-        </ant>
-      </sequential>
-    </if>
     <ant antfile="build/components/classpath.xml" target="ensure"/>
     <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <ant antfile="build/components/asm.xml" target="ensure"/>
@@ -1150,7 +1136,10 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-demographics"/>
       <arg value="-m"/>
       <arg value="${build.base}/RVM.map"/>
-      <!-- -X:bc:verbose=true -->
+      <!-- <arg value="-trace"/> -->
+      <!-- <arg value="-detailed"/> -->
+      <!-- <arg value="-X:bc:verbose=true"/> -->
+      <!-- <arg value="-X:bc:mc=true"/> -->
       <arg line="${config.bootimage.compiler.args} ${endian_opt} -da"/>
       <arg value="${target.bootimage.data.address}"/>
       <arg value="-ca"/>
