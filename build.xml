@@ -179,6 +179,7 @@
 
   <target name="check-components-properties" depends="include-gcspy-check,prepare-ant-tasks">
     <mkdir dir="${components.dir}"/>
+    <ant antfile="build/components/ecj.xml" target="ensure"/>
     <ant antfile="build/components/classpath.xml" target="ensure"/>
     <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <ant antfile="build/components/asm.xml" target="ensure"/>
