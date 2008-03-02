@@ -12,6 +12,8 @@
  */
 package java.lang.reflect;
 
+import gnu.java.lang.CPStringBuilder;
+
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
@@ -137,7 +139,7 @@ public final class Constructor<T> extends AccessibleObject
   }
 
   public String toString() {
-    StringBuilder sb = new StringBuilder(128);
+    CPStringBuilder sb = new CPStringBuilder(128);
     Modifier.toString(getModifiers(), sb).append(' ');
     sb.append(getDeclaringClass().getName()).append('(');
     Class<?>[] c = getParameterTypes();
@@ -188,7 +190,7 @@ public final class Constructor<T> extends AccessibleObject
   }
 
   public String toGenericString() {
-    StringBuilder sb = new StringBuilder(128);
+    CPStringBuilder sb = new CPStringBuilder(128);
     Modifier.toString(getModifiers(), sb).append(' ');
     addTypeParameters(sb, getTypeParameters());
     sb.append(getDeclaringClass().getName()).append('(');
@@ -210,7 +212,7 @@ public final class Constructor<T> extends AccessibleObject
     return sb.toString();
   }
 
-  static void addTypeParameters(StringBuilder sb, TypeVariable<?>[] typeArgs) {
+  static void addTypeParameters(CPStringBuilder sb, TypeVariable<?>[] typeArgs) {
     if (typeArgs.length == 0)
       return;
     sb.append('<');

@@ -12,6 +12,8 @@
  */
 package java.lang.reflect;
 
+import gnu.java.lang.CPStringBuilder;
+
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.VM_Class;
@@ -239,7 +241,7 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   public String toString() {
-    StringBuilder sb = new StringBuilder(64);
+    CPStringBuilder sb = new CPStringBuilder(64);
     Modifier.toString(getModifiers(), sb).append(' ');
     sb.append(JikesRVMHelpers.getUserName(getType())).append(' ');
     sb.append(getDeclaringClass().getName()).append('.');
@@ -544,7 +546,7 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   public String toGenericString() {
-    StringBuilder sb = new StringBuilder(64);
+    CPStringBuilder sb = new CPStringBuilder(64);
     Modifier.toString(getModifiers(), sb).append(' ');
     sb.append(getGenericType()).append(' ');
     sb.append(getDeclaringClass().getName()).append('.');

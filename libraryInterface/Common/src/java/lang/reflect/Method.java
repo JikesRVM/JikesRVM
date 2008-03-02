@@ -12,6 +12,8 @@
  */
 package java.lang.reflect;
 
+import gnu.java.lang.CPStringBuilder;
+
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
@@ -155,7 +157,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
   }
 
   public String toString() {
-    StringBuilder sb = new StringBuilder(128);
+    CPStringBuilder sb = new CPStringBuilder(128);
     Modifier.toString(getModifiers(), sb).append(' ');
     sb.append(JikesRVMHelpers.getUserName(getReturnType())).append(' ');
     sb.append(getDeclaringClass().getName()).append('.');
@@ -230,7 +232,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
   }
 
   public String toGenericString() {
-    StringBuilder sb = new StringBuilder(128);
+    CPStringBuilder sb = new CPStringBuilder(128);
     Modifier.toString(getModifiers(), sb).append(' ');
     Constructor.addTypeParameters(sb, getTypeParameters());
     sb.append(getGenericReturnType()).append(' ');
