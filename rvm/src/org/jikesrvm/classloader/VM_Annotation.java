@@ -16,6 +16,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Statics;
@@ -105,7 +106,7 @@ public final class VM_Annotation {
     VM_Annotation result = new VM_Annotation(type, elementValuePairs, classLoader);
     VM_Annotation unique = uniqueMap.get(result);
     if (unique != null) {
-   	return unique;
+      return unique;
     } else {
       uniqueMap.put(result, result);
       return result;
@@ -344,15 +345,15 @@ public final class VM_Annotation {
         }
         result += part_result;
       }
-	 } catch (java.io.UTFDataFormatException e) {
+    } catch (java.io.UTFDataFormatException e) {
       throw new Error(e);
     }
     return result;
   }
 
   /*
-	* Hash map support
-	*/
+   * Hash map support
+   */
   public int hashCode() {
     return type.hashCode();
   }

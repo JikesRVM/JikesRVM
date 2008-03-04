@@ -12,17 +12,29 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.VM_ClassLoaderConstants.VoidTypeCode;
+
 import java.io.UTFDataFormatException;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_StringUtilities;
-import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.classloader.VM_ClassLoaderConstants.*;
 
 /**
  * An  utf8-encoded byte string.
@@ -179,7 +191,7 @@ public final class VM_Atom {
     }
     return val;
   }
-  
+
   /**
    * @param id the id of an Atom
    * @return the VM_Atom whose id was given
@@ -865,8 +877,7 @@ public final class VM_Atom {
     // quick test as atoms are generally canonical
     if (this == other) {
       return true;
-    }
-    else {
+    } else {
       if (other instanceof VM_Atom) {
         VM_Atom that = (VM_Atom)other;
         // if the atoms are well formed then their identifiers are unique
@@ -904,8 +915,8 @@ public final class VM_Atom {
       return false;
     }
   }
-  
-  
+
+
   /**
    * Inner class responsible for string interning. This class' initializer is
    * run during booting.
@@ -964,10 +975,10 @@ public final class VM_Atom {
       // So we make one.
       WeakReference<String> ref = new WeakReference<String>(str);
       internedStrings.put(str, ref);
-      return str;      
+      return str;
     }
   }
-  
+
   /**
    * External string intern method called from String.intern. This method should
    * return a canonical string encoding for the given string and this string

@@ -79,7 +79,7 @@ final class VM_TypeReferenceVector {
   public int hashCode() {
     int val=0;
     for(int i=0; i<cnt; i++) {
-		val ^= array[i].hashCode();
+      val ^= array[i].hashCode();
     }
     return val;
   }
@@ -88,10 +88,10 @@ final class VM_TypeReferenceVector {
     if (obj instanceof VM_TypeReferenceVector) {
       VM_TypeReferenceVector that = (VM_TypeReferenceVector)obj;
       if (cnt != that.cnt) return false;
-		for(int i=0; i<cnt; i++) {
-		  if (array[i] != that.array[i]) return false;
-		}
- 		return true;
+      for(int i=0; i<cnt; i++) {
+        if (array[i] != that.array[i]) return false;
+      }
+      return true;
     } else {
       return false;
     }

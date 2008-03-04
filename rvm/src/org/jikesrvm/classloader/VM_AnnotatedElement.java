@@ -16,6 +16,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -134,7 +135,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       final Annotation[] copy = new Annotation[1];
       copy[0] = ((VM_Annotation)datas).getValue();
       return copy;
-	 } else {
+    } else {
       VM_Annotation[] annotations = (VM_Annotation[])datas;
       final Annotation[] copy = new Annotation[annotations.length];
       for (int i = 0; i < copy.length; i++) {
@@ -182,12 +183,12 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       return false;
     } else if (declaredAnnotationDatas instanceof VM_Annotation) {
       VM_Annotation annotation = (VM_Annotation)declaredAnnotationDatas;
-		return annotation.getType() == annotationTypeRef.getName() &&
-		  annotation.getClassLoader() == annotationTypeRef.getClassLoader();
+      return annotation.getType() == annotationTypeRef.getName() &&
+      annotation.getClassLoader() == annotationTypeRef.getClassLoader();
     } else {
       for (VM_Annotation annotation : (VM_Annotation[])declaredAnnotationDatas) {
         if (annotation.getType() == annotationTypeRef.getName() &&
-          annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
+            annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
           return true;
         }
       }
