@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -24,7 +25,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * <p> TODO: we do not support IRs with exception handlers!!
  */
-class DominatorTreeNode extends TreeNode {
+public class DominatorTreeNode extends TreeNode {
 
   /**
    * the basic block this node represents
@@ -69,7 +70,7 @@ class DominatorTreeNode extends TreeNode {
    * Get the basic block for this dominator tree node
    * @return the basic block
    */
-  BasicBlock getBlock() {
+  public BasicBlock getBlock() {
     return block;
   }
 

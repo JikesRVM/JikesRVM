@@ -10,20 +10,27 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.Goto;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.InlineGuard;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DominatorTree;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Move;
 
 /**
  * Redundant branch elimination based on SSA form, global value numbers,
@@ -51,7 +58,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
  * reachable (but not dominated) from the continutation
  * block of cb2!
  */
-final class RedundantBranchElimination extends OptimizationPlanCompositeElement {
+public final class RedundantBranchElimination extends OptimizationPlanCompositeElement {
 
   public boolean shouldPerform(OptOptions options) {
     return options.REDUNDANT_BRANCH_ELIMINATION;
@@ -60,7 +67,7 @@ final class RedundantBranchElimination extends OptimizationPlanCompositeElement 
   /**
    * Create this phase element as a composite of other elements
    */
-  RedundantBranchElimination() {
+  public RedundantBranchElimination() {
     super("RedundantBranchElimination", new OptimizationPlanElement[]{
         // Stage 1: Require SSA form
         new OptimizationPlanAtomicElement(new EnsureSSA()),

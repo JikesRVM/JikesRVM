@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.util.Tree;
@@ -90,7 +91,7 @@ public class DominatorTree extends Tree {
    * @param ir the governing IR
    * @param forward are we building regular dominators or post-dominators?
    */
-  DominatorTree(IR ir, boolean forward) {
+  public DominatorTree(IR ir, boolean forward) {
     this.ir = ir;
     this.forward = forward;
 

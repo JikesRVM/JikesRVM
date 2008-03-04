@@ -12,19 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.lang.reflect.Constructor;
-import org.jikesrvm.VM;
 import static org.jikesrvm.compilers.opt.Constants.YES;
-import org.jikesrvm.compilers.opt.ir.BoundsCheck;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.NewArray;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
@@ -35,8 +23,22 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
-import org.jikesrvm.compilers.opt.ir.Register;
+
+import java.lang.reflect.Constructor;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -221,7 +223,7 @@ public final class Simple extends CompilerPhase {
    *
    * @param ir the IR in question
    */
-  static void copyPropagation(IR ir) {
+  public static void copyPropagation(IR ir) {
     // Use register list to enumerate register objects
     Register elemNext;
     boolean reiterate = true;
@@ -490,7 +492,7 @@ public final class Simple extends CompilerPhase {
    * @param preserveImplicitSSA if this is true, do not eliminate dead
    * instructions that have implicit operands for heap array SSA form
    */
-  static void eliminateDeadInstructions(IR ir, boolean preserveImplicitSSA) {
+  public static void eliminateDeadInstructions(IR ir, boolean preserveImplicitSSA) {
     // (USE BACKWARDS PASS FOR INCREASED EFFECTIVENESS)
     for (Instruction instr = ir.lastInstructionInCodeOrder(),
         prevInstr = null; instr != null; instr = prevInstr) {

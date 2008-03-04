@@ -205,7 +205,7 @@ public final class DefUse {
    *  @param origRegOp the register operand to change
    *  @param newRegOp the register operand to use for the change
    */
-  static void transferUse(RegisterOperand origRegOp, RegisterOperand newRegOp) {
+  public static void transferUse(RegisterOperand origRegOp, RegisterOperand newRegOp) {
     if (VM.VerifyAssertions) {
       VM._assert(origRegOp.getRegister().getType() == newRegOp.getRegister().getType());
     }

@@ -23,6 +23,14 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.InstrumentationSampli
 import org.jikesrvm.adaptive.recompilation.instrumentation.LowerInstrumentation;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
+import org.jikesrvm.compilers.opt.ssa.GCP;
+import org.jikesrvm.compilers.opt.ssa.LeaveSSA;
+import org.jikesrvm.compilers.opt.ssa.LiveRangeSplitting;
+import org.jikesrvm.compilers.opt.ssa.LoadElimination;
+import org.jikesrvm.compilers.opt.ssa.LoopVersioning;
+import org.jikesrvm.compilers.opt.ssa.PiNodes;
+import org.jikesrvm.compilers.opt.ssa.RedundantBranchElimination;
+import org.jikesrvm.compilers.opt.ssa.SSATuneUp;
 import org.jikesrvm.osr.OSR_AdjustBCIndexes;
 
 /**

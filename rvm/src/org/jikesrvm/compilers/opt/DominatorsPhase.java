@@ -13,13 +13,14 @@
 package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
+
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
  * Driver routine for dominator computation.  This phase invokes
  * the Lengauer-Tarjan dominator calculation.
  */
-final class DominatorsPhase extends CompilerPhase {
+public final class DominatorsPhase extends CompilerPhase {
 
   /**
    * Should we unfactor the CFG?

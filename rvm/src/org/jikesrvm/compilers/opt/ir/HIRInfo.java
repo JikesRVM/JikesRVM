@@ -14,9 +14,9 @@ package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.compilers.opt.DF_Solution;
 import org.jikesrvm.compilers.opt.DominatorTree;
-import org.jikesrvm.compilers.opt.GlobalValueNumberState;
 import org.jikesrvm.compilers.opt.LSTGraph;
-import org.jikesrvm.compilers.opt.SSADictionary;
+import org.jikesrvm.compilers.opt.ssa.GlobalValueNumberState;
+import org.jikesrvm.compilers.opt.ssa.SSADictionary;
 
 /**
  * Wrapper class around IR info that is valid on the HIR/LIR/MIR

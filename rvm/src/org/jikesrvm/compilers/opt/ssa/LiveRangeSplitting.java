@@ -10,17 +10,32 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
+
+import static org.jikesrvm.compilers.opt.ir.Operators.SPLIT;
 
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.BranchOptimizations;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.DominanceFrontier;
+import org.jikesrvm.compilers.opt.DominatorsPhase;
+import org.jikesrvm.compilers.opt.LSTGraph;
+import org.jikesrvm.compilers.opt.LSTNode;
+import org.jikesrvm.compilers.opt.LiveAnalysis;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.SPLIT;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
@@ -28,6 +43,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.util.VM_BitVector;
+
 
 /**
  * Perform live-range splitting.
@@ -43,7 +59,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * <p> This composite phase should be performed at the end of SSA in LIR.
  */
-class LiveRangeSplitting extends OptimizationPlanCompositeElement {
+public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
 
   public final boolean shouldPerform(OptOptions options) {
     return options.LIVE_RANGE_SPLITTING;
@@ -52,7 +68,7 @@ class LiveRangeSplitting extends OptimizationPlanCompositeElement {
   /**
    * Build this phase as a composite of others.
    */
-  LiveRangeSplitting() {
+  public LiveRangeSplitting() {
     super("LIR SSA Live Range Splitting", new OptimizationPlanElement[]{
         // 0. Clean up the IR
         new OptimizationPlanAtomicElement(new BranchOptimizations(2, true, true)),

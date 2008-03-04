@@ -12,32 +12,34 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.BoundsCheck;
-import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
-import org.jikesrvm.compilers.opt.ir.GuardedBinary;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.Label;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.NullCheck;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IREnumeration;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionFormat;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARCH_INDEPENDENT_END_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IREnumeration;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.InstructionFormat;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
+import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
@@ -46,6 +48,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ssa.GCP;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.util.VM_BitVector;
 
@@ -91,7 +94,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * @see LSTNode
  */
-final class AnnotatedLSTNode extends LSTNode {
+public final class AnnotatedLSTNode extends LSTNode {
   // -oO Debug information Oo-
   /**
    * Flag to optionally print verbose debugging messages
@@ -108,16 +111,16 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * The out of loop block before the header
    */
-  BasicBlock predecessor;
+  public BasicBlock predecessor;
   // N.B. the header is defined in the superclass
   /**
    * The in loop block that either loops or leaves the loop
    */
-  BasicBlock exit;
+  public BasicBlock exit;
   /**
    * The out of loop block following the exit block
    */
-  BasicBlock successor;
+  public BasicBlock successor;
 
   // -oO Instructions that get set up during the recognition of the loop Oo-
   /**
@@ -133,7 +136,7 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * The the initial iterator that comes into the phi node in the header
    */
-  Operand initialIteratorValue;
+  public Operand initialIteratorValue;
   /**
    * The iterator that is used to loop within the exit block
    */
@@ -145,15 +148,15 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * The value that ends the loop
    */
-  Operand terminalIteratorValue;
+  public Operand terminalIteratorValue;
   /**
    * The condition that is used to check for the end of loop
    */
-  ConditionOperand condition;
+  public ConditionOperand condition;
   /**
    * The stride operand to the iterator instruction
    */
-  Operand strideValue;
+  public Operand strideValue;
 
   // -oO Interfaces to the rest of the compiler Oo-
   /**
@@ -162,7 +165,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param ir   The containing IR
    * @param node The node that's being annotated
    */
-  AnnotatedLSTNode(IR ir, LSTNode node) {
+  public AnnotatedLSTNode(IR ir, LSTNode node) {
     // Clone information from non-annotated node
     super(node);
     this.ir = ir;
@@ -197,7 +200,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @return Whether this a countable loop or not
    */
-  boolean isCountableLoop() {
+  public boolean isCountableLoop() {
     return (initialIteratorValue != null) &&
            isConstant(initialIteratorValue) &&
            (terminalIteratorValue != null) &&
@@ -227,7 +230,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @return Whether this an affine loop or not
    */
-  boolean isAffineLoop() {
+  public boolean isAffineLoop() {
     return (initialIteratorValue != null) &&
            isLoopInvariant(initialIteratorValue, loop, header) &&
            (terminalIteratorValue != null) &&
@@ -243,7 +246,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @return Whether this is a non-regular loop
    */
-  boolean isNonRegularLoop() {
+  public boolean isNonRegularLoop() {
     return !isAffineLoop();
   }
 
@@ -252,7 +255,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @return whether the value is modified
    */
-  boolean isInvariant(Operand op) {
+  public boolean isInvariant(Operand op) {
     return isLoopInvariant(op, loop, header);
   }
 
@@ -262,7 +265,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param  op Operand to test
    * @return whether related to iterator (initial, phi or carried)
    */
-  boolean isRelatedToIterator(Operand op) {
+  public boolean isRelatedToIterator(Operand op) {
     return isFixedDistanceFromPhiIterator(op);
   }
 
@@ -271,7 +274,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param op Operand to test
    * @return whether related to iterator (phi)
    */
-  boolean isPhiLoopIterator(Operand op) {
+  public boolean isPhiLoopIterator(Operand op) {
     return op.similar(phiLoopIterator);
   }
 
@@ -280,14 +283,14 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param op Operand to test
    * @return whether related to iterator (carried)
    */
-  boolean isCarriedLoopIterator(Operand op) {
+  public boolean isCarriedLoopIterator(Operand op) {
     return op.similar(carriedLoopIterator);
   }
 
   /**
    * Is the loop iterator monotonic?
    */
-  boolean isMonotonic() {
+  public boolean isMonotonic() {
     return isConstant(strideValue);
   }
 
@@ -296,7 +299,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @return the constant stride value
    */
-  int getMonotonicStrideValue() {
+  public int getMonotonicStrideValue() {
     if (iteratorInstr.operator.opcode == INT_SUB_opcode) {
       return -((IntConstantOperand) strideValue).value;
     } else if (iteratorInstr.operator.opcode == INT_ADD_opcode) {
@@ -309,7 +312,7 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is the loop iterator a monotonic increasing value
    */
-  boolean isMonotonicIncreasing() {
+  public boolean isMonotonicIncreasing() {
     if ((!isMonotonic()) ||
         condition.isGREATER() ||
         condition.isGREATER_EQUAL() ||
@@ -324,7 +327,7 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is the loop iterator a monotonic decreasing value
    */
-  boolean isMonotonicDecreasing() {
+  public boolean isMonotonicDecreasing() {
     if ((!isMonotonic()) ||
         condition.isLESS() ||
         condition.isLESS_EQUAL() ||
@@ -339,7 +342,7 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * Does this basic block appear in the loop?
    */
-  boolean contains(BasicBlock block) {
+  public boolean contains(BasicBlock block) {
     return (block.getNumber() < loop.length()) && loop.get(block.getNumber());
   }
 
@@ -397,7 +400,7 @@ final class AnnotatedLSTNode extends LSTNode {
   /**
    * Dump a human readable description of the loop
    */
-  void dump() {
+  public void dump() {
     VM.sysWrite("********* START OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method + "\n");
     if (isNonRegularLoop()) {
       VM.sysWrite("Non-regular");
@@ -544,7 +547,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param op the operand to test
    * @return the fixed distance
    */
-  int getFixedDistanceFromPhiIterator(Operand op) {
+  public int getFixedDistanceFromPhiIterator(Operand op) {
     if (op.similar(phiLoopIterator)) {
       return 0;
     } else {
@@ -730,7 +733,7 @@ final class AnnotatedLSTNode extends LSTNode {
    * @param block to generate instructions into
    * @param op the operand we hope to use before the loop
    */
-  Operand generateLoopInvariantOperand(BasicBlock block, Operand op) {
+  public Operand generateLoopInvariantOperand(BasicBlock block, Operand op) {
     Instruction instr = definingInstruction(op);
     if (op.isConstant() || !CFGTransformations.inLoop(instr.getBasicBlock(), loop)) {
       // the operand is already invariant
@@ -847,7 +850,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @param op The operand we're searching for the definition of
    */
-  static Instruction definingInstruction(Operand op) {
+  public static Instruction definingInstruction(Operand op) {
     Instruction result = op.instruction;
     // Is operand a register?
     if (op instanceof RegisterOperand) {
@@ -908,7 +911,7 @@ final class AnnotatedLSTNode extends LSTNode {
    *
    * @return Blocks in loop with header first and exit last
    */
-  BasicBlockEnumeration getBasicBlocks() {
+  public BasicBlockEnumeration getBasicBlocks() {
     VM_BitVector blocksLeftToVisit = new VM_BitVector(loop);
     BBEnum bbs = getBasicBlocks(header, new BBEnum(), blocksLeftToVisit);
     if (exit != null) {

@@ -1016,7 +1016,7 @@ public final class LiveAnalysis extends CompilerPhase {
    * @param bb the basic block of interest
    * @return the live information for the block
    */
-  BBLiveElement getLiveInfo(BasicBlock bb) {
+  public BBLiveElement getLiveInfo(BasicBlock bb) {
     return bbLiveInfo[bb.getNumber()];
   }
 
@@ -1024,7 +1024,7 @@ public final class LiveAnalysis extends CompilerPhase {
    * Return the set of registers that are live on the control-flow edge
    * basic block bb1 to basic block bb2
    */
-  HashSet<Register> getLiveRegistersOnEdge(BasicBlock bb1, BasicBlock bb2) {
+  public HashSet<Register> getLiveRegistersOnEdge(BasicBlock bb1, BasicBlock bb2) {
     HashSet<Register> s1 = getLiveRegistersOnExit(bb1);
     HashSet<Register> s2 = getLiveRegistersOnEntry(bb2);
     s1.retainAll(s2);
@@ -1060,7 +1060,7 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   // A simple class used to store live info
-  static final class BBLiveElement {
+  public static final class BBLiveElement {
     private LiveSet gen;
     private LiveSet BBKillSet;
     private LiveSet firstPEIKillSet;

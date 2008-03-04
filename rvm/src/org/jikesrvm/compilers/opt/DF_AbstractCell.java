@@ -23,12 +23,12 @@ import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
  *
  * Represents a single lattice cell in a dataflow system.
  */
-abstract class DF_AbstractCell implements DF_LatticeCell {
+public abstract class DF_AbstractCell implements DF_LatticeCell {
 
   /**
    * Default Constructor
    */
-  DF_AbstractCell() {
+  public DF_AbstractCell() {
     uses = new HashSet<DF_Equation>(1);
     defs = new HashSet<DF_Equation>(1);
   }
@@ -37,7 +37,7 @@ abstract class DF_AbstractCell implements DF_LatticeCell {
    * This constructor bounds the initial capacity to save space.
    * @param capacity the initial capacity of the "uses" set
    */
-  DF_AbstractCell(int capacity) {
+  public DF_AbstractCell(int capacity) {
     uses = new HashSet<DF_Equation>(capacity);
     defs = new HashSet<DF_Equation>(capacity);
   }

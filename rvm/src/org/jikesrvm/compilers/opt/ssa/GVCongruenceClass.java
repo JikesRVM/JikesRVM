@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
 
 import java.util.HashSet;
 import java.util.Iterator;
+
 
 /**
  * This class represents a congruence class for

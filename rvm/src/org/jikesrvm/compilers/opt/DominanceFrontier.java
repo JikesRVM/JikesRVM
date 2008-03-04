@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -40,7 +41,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * <p> TODO: we do not support IRs with exception handlers!!
  */
-class DominanceFrontier extends CompilerPhase {
+public class DominanceFrontier extends CompilerPhase {
   static final boolean DEBUG = false;
 
   /**

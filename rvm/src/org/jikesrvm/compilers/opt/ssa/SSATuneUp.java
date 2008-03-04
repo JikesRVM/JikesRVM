@@ -10,21 +10,32 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
 
 import java.lang.reflect.Constructor;
+
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.DominanceFrontier;
+import org.jikesrvm.compilers.opt.DominatorsPhase;
+import org.jikesrvm.compilers.opt.ExpressionFolding;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
  * This phase puts the IR in SSA form and performs a set of simple
  * optimizations to clean up.
  */
-final class SSATuneUp extends OptimizationPlanCompositeElement {
+public final class SSATuneUp extends OptimizationPlanCompositeElement {
 
   /**
    * Build this phase as a composite of others.
    */
-  SSATuneUp() {
+  public SSATuneUp() {
     super("SSA Tune Up", new OptimizationPlanElement[]{
         // 1. Set up IR state to control SSA translation as needed
         new OptimizationPlanAtomicElement(new TuneUpPreparation()),

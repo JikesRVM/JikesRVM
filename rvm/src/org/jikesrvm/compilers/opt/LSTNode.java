@@ -23,12 +23,12 @@ import org.jikesrvm.util.VM_BitVector;
 /**
  * A node in the LST (Loop Structure Tree)
  */
-class LSTNode extends SpaceEffGraphNode {
+public class LSTNode extends SpaceEffGraphNode {
 
   /**
    * Basic block which is the loop head
    */
-  final BasicBlock header;
+  public final BasicBlock header;
 
   /**
    * Basic blocks in the loop
@@ -68,11 +68,11 @@ class LSTNode extends SpaceEffGraphNode {
     loopExits = node.loopExits;
   }
 
-  BasicBlock getHeader() {
+  public BasicBlock getHeader() {
     return header;
   }
 
-  VM_BitVector getLoop() {
+  public VM_BitVector getLoop() {
     return loop;
   }
 

@@ -41,11 +41,11 @@ public abstract class DF_System {
 
   final boolean EAGER;
 
-  DF_System() {
+  public DF_System() {
     EAGER = false;
   }
 
-  DF_System(boolean eager) {
+  public DF_System(boolean eager) {
     EAGER = eager;
   }
 
@@ -170,7 +170,7 @@ public abstract class DF_System {
    *
    * @param key the key for the lattice cell.
    */
-  DF_LatticeCell findOrCreateCell(Object key) {
+  protected DF_LatticeCell findOrCreateCell(Object key) {
     DF_LatticeCell result = cells.get(key);
     if (result == null) {
       result = makeCell(key);
@@ -186,7 +186,7 @@ public abstract class DF_System {
    * @param operator the equation operator
    * @param op1 first operand on the rhs
    */
-  void newEquation(DF_LatticeCell lhs, DF_Operator operator, DF_LatticeCell op1) {
+  protected void newEquation(DF_LatticeCell lhs, DF_Operator operator, DF_LatticeCell op1) {
     // add to the list of equations
     DF_Equation eq = new DF_Equation(lhs, operator, op1);
     equations.addGraphNode(eq);
@@ -266,7 +266,7 @@ public abstract class DF_System {
    * @param operator the equation operator
    * @param rhs the operands on the rhs
    */
-  void newEquation(DF_LatticeCell lhs, DF_Operator operator, DF_LatticeCell[] rhs) {
+  protected void newEquation(DF_LatticeCell lhs, DF_Operator operator, DF_LatticeCell[] rhs) {
     // add to the list of equations
     DF_Equation eq = new DF_Equation(lhs, operator, rhs);
     equations.addGraphNode(eq);

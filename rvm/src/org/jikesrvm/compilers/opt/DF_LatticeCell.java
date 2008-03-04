@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *
  * Represents a single lattice cell in a dataflow equation system.
  */
-interface DF_LatticeCell extends GraphNode {
+public interface DF_LatticeCell extends GraphNode {
 
   /**
    * Returns an enumeration of the equations in which this

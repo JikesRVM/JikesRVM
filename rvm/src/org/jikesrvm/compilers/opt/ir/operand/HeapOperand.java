@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.compilers.opt.HeapVariable;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ssa.HeapVariable;
 
 /**
  * Represents a heap variable for instructions in Heap Array SSA form.

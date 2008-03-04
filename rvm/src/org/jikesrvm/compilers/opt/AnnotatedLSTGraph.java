@@ -58,7 +58,7 @@ public class AnnotatedLSTGraph extends LSTGraph {
    * @param ir    The containing IR
    * @param graph The {@link LSTGraph} to convert into an annotated graph
    */
-  AnnotatedLSTGraph(IR ir, LSTGraph graph) {
+  public AnnotatedLSTGraph(IR ir, LSTGraph graph) {
     super(graph);
     rootNode = new AnnotatedLSTNode(ir, rootNode);
   }

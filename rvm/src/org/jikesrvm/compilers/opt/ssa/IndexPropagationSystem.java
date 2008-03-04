@@ -10,35 +10,42 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
+
+import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
+import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.IndexPropagation.ArrayCell;
-import org.jikesrvm.compilers.opt.IndexPropagation.ObjectCell;
+import org.jikesrvm.compilers.opt.DF_Equation;
+import org.jikesrvm.compilers.opt.DF_LatticeCell;
+import org.jikesrvm.compilers.opt.DF_Operator;
+import org.jikesrvm.compilers.opt.DF_System;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Attempt;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.GetStatic;
-import org.jikesrvm.compilers.opt.ir.MonitorOp;
-import org.jikesrvm.compilers.opt.ir.New;
-import org.jikesrvm.compilers.opt.ir.NewArray;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
-import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Prepare;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ssa.IndexPropagation.ArrayCell;
+import org.jikesrvm.compilers.opt.ssa.IndexPropagation.ObjectCell;
 
 /**
  * Represents a set of dataflow equations used to solve the
@@ -473,7 +480,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands the operands of the dataflow equation
      * @return true iff the value of the lhs changes
      */
-    boolean evaluate(DF_LatticeCell[] operands) {
+    public boolean evaluate(DF_LatticeCell[] operands) {
       DF_LatticeCell lhs = operands[0];
       if (lhs instanceof ObjectCell) {
         return evaluateObjectMeet(operands);
@@ -655,7 +662,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate(DF_LatticeCell[] operands) {
+    public boolean evaluate(DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell) operands[0];
 
       if (lhs.isBOTTOM()) {
@@ -720,7 +727,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate(DF_LatticeCell[] operands) {
+    public boolean evaluate(DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell) operands[0];
 
       if (lhs.isBOTTOM()) {
@@ -783,7 +790,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate(DF_LatticeCell[] operands) {
+    public boolean evaluate(DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell) operands[0];
 
       if (lhs.isBOTTOM()) {
@@ -852,7 +859,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate(DF_LatticeCell[] operands) {
+    public boolean evaluate(DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell) operands[0];
 
       if (lhs.isBOTTOM()) {

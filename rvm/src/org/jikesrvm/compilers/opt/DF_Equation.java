@@ -45,7 +45,7 @@ public class DF_Equation implements GraphNode {
    * Return the operandsin this equation.
    * @return the operands in this equation.
    */
-  DF_LatticeCell[] getOperands() {
+  public DF_LatticeCell[] getOperands() {
     return operands;
   }
 

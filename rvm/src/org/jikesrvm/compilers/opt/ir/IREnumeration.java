@@ -226,7 +226,7 @@ public abstract class IREnumeration {
    * explicit instructions in the IR and implicit phi instructions for
    * heap variables, which are stored only in this lookaside
    * structure.
-   * @see org.jikesrvm.compilers.opt.SSADictionary
+   * @see org.jikesrvm.compilers.opt.ssa.SSADictionary
    */
   public static final class AllInstructionsEnum implements InstructionEnumeration {
     /**
@@ -308,7 +308,7 @@ public abstract class IREnumeration {
    * used as an enumeration for iterating over. It differs from other
    * {@link OperandEnumeration} as it iterates over both implicit
    * and explicit operands.
-   * @see org.jikesrvm.compilers.opt.SSADictionary
+   * @see org.jikesrvm.compilers.opt.ssa.SSADictionary
    */
   public static final class AllDefsEnum implements OperandEnumeration {
     /**
@@ -400,7 +400,7 @@ public abstract class IREnumeration {
    * as an enumeration for iterating over. It differs from other
    * {@link OperandEnumeration} as it iterates over both implicit
    * and explicit operands.
-   * @see org.jikesrvm.compilers.opt.SSADictionary
+   * @see org.jikesrvm.compilers.opt.ssa.SSADictionary
    */
   public static final class AllUsesEnum implements OperandEnumeration {
     /**

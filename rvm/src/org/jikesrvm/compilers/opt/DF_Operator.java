@@ -17,7 +17,7 @@ package org.jikesrvm.compilers.opt;
  *
  * represents a function for DF_LatticeCell values
  */
-abstract class DF_Operator {
+public abstract class DF_Operator {
 
   /**
    * Evaluate this equation, setting a new value for the
@@ -27,7 +27,7 @@ abstract class DF_Operator {
    *                is the left-hand side.
    * @return true if the lhs value changes. false otherwise.
    */
-  abstract boolean evaluate(DF_LatticeCell[] operands);
+  public abstract boolean evaluate(DF_LatticeCell[] operands);
 }
 
 

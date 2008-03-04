@@ -10,29 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
 
-import java.lang.reflect.Constructor;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_TypeReference;
-import static org.jikesrvm.compilers.opt.IndexPropagation.ArrayCell;
-import static org.jikesrvm.compilers.opt.IndexPropagation.ObjectCell;
-import org.jikesrvm.compilers.opt.ir.ALoad;
-import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GetStatic;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD_opcode;
@@ -53,24 +32,54 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
-import org.jikesrvm.compilers.opt.ir.Register;
+
+import java.lang.reflect.Constructor;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+
+import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DF_Solution;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ssa.IndexPropagation.ArrayCell;
+import org.jikesrvm.compilers.opt.ssa.IndexPropagation.ObjectCell;
 
 /**
  * This class implements the redundant load elimination by
  * Fink, Knobe && Sarkar.  See SAS 2000 paper for details.
  */
-final class LoadElimination extends OptimizationPlanCompositeElement {
+public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   /**
    * @param round which round of load elimination is this?
    */
-  LoadElimination(int round) {
+  public LoadElimination(int round) {
     super("Load Elimination",
           new OptimizationPlanElement[]{new OptimizationPlanAtomicElement(new GVNPreparation(round)),
                                             new OptimizationPlanAtomicElement(new EnterSSA()),

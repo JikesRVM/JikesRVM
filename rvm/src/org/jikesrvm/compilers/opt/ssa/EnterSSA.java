@@ -10,7 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
+
+import static org.jikesrvm.compilers.opt.Constants.SSA_SYNTH_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
+import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
@@ -19,30 +26,34 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
-import static org.jikesrvm.compilers.opt.Constants.SSA_SYNTH_BCI;
+import org.jikesrvm.compilers.opt.ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.DominanceFrontier;
+import org.jikesrvm.compilers.opt.DominatorTreeNode;
+import org.jikesrvm.compilers.opt.LiveAnalysis;
+import org.jikesrvm.compilers.opt.LiveSet;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.BBend;
-import org.jikesrvm.compilers.opt.ir.CacheOp;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.Label;
-import org.jikesrvm.compilers.opt.ir.MonitorOp;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
-import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
-import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
-import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
-import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Prepare;
+import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
@@ -72,7 +83,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * @see SSA
  * @see SSAOptions
- * @see LTDominators
+ * @see org.jikesrvm.compilers.opt.LTDominators
  */
 public class EnterSSA extends CompilerPhase {
   /**

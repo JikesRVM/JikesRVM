@@ -20,7 +20,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * This structure holds dominator-related information for a basic block.
  */
-class DominatorInfo {
+public class DominatorInfo {
   /**
    * A VM_BitVector which represents the dominators of the basic block
    */
@@ -61,7 +61,7 @@ class DominatorInfo {
    * @param bb the basic block in question
    * @return true or false
    */
-  boolean isDominatedBy(BasicBlock bb) {
+  public boolean isDominatedBy(BasicBlock bb) {
     return dominators.get(bb.getNumber());
   }
 

@@ -28,7 +28,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
  * </pre>
  * <p> TODO: we do not support IRs with exception handlers!!
  */
-class Dominators {
+public class Dominators {
   /**
    * Control for debug output
    */

@@ -28,7 +28,7 @@ class DominatorOperator extends DF_Operator {
    *       of the equation.
    * @return true if the value of the lhs changes. false otherwise
    */
-  boolean evaluate(DF_LatticeCell[] operands) {
+  public boolean evaluate(DF_LatticeCell[] operands) {
     DominatorCell lhs = (DominatorCell) operands[0];
     IR ir = lhs.ir;
     BasicBlock bb = lhs.block;

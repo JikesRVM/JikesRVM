@@ -10,8 +10,13 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ssa;
 
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -31,13 +36,13 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *
  * There is no code yet to deal with partial redundancies.
  */
-final class GCP extends OptimizationPlanCompositeElement {
+public final class GCP extends OptimizationPlanCompositeElement {
 
   /**
    * Makes sure we are in SSA and have global value numbers at hand.
    * Then execute the transformations.
    */
-  GCP() {
+  public GCP() {
     super("Global Code Placement", new OptimizationPlanElement[]{
         // 1. Set up IR state to control SSA translation as needed
         new OptimizationPlanAtomicElement(new GCPPreparation()),
@@ -196,7 +201,7 @@ final class GCP extends OptimizationPlanCompositeElement {
     }
   }
 
-  static boolean usesOrDefsPhysicalRegisterOrAddressType(Instruction inst) {
+  public static boolean usesOrDefsPhysicalRegisterOrAddressType(Instruction inst) {
 
     for (int i = inst.getNumberOfOperands() - 1; i >= 0; --i) {
       Operand op = inst.getOperand(i);

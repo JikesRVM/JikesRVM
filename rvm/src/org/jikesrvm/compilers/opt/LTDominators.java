@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
@@ -32,7 +33,7 @@ import org.jikesrvm.compilers.opt.util.Stack;
  * in any solution despite the fact that it is part of the CFG (it has
  * incoming edges).  This is to be compatible with the old code.
  */
-class LTDominators extends Stack<BasicBlock> {
+public class LTDominators extends Stack<BasicBlock> {
   static final boolean DEBUG = false;
 
   /*
