@@ -28,11 +28,11 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.CompilationPlan;
-import org.jikesrvm.compilers.opt.OptimizingCompiler;
-import org.jikesrvm.compilers.opt.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Time;
 

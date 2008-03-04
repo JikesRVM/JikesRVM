@@ -22,7 +22,7 @@ import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_Profiler;

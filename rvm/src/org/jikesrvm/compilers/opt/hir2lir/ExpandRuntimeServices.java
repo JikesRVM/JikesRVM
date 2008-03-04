@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.hir2lir;
 
-import static org.jikesrvm.compilers.opt.Constants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.Constants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
@@ -41,9 +41,9 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.BranchOptimizations;
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.inlining.InlineDecision;
 import org.jikesrvm.compilers.opt.inlining.Inliner;
 import org.jikesrvm.compilers.opt.ir.ALoad;

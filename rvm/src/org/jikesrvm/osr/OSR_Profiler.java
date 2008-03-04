@@ -23,7 +23,7 @@ import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 
 /**

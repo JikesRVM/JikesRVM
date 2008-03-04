@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
 
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

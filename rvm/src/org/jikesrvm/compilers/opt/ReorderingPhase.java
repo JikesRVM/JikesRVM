@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
@@ -36,7 +37,7 @@ import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
  *     to the end of the code order.
  * (2) Pettis and Hansen Algo2.
  */
-final class ReorderingPhase extends CompilerPhase {
+public final class ReorderingPhase extends CompilerPhase {
 
   private static final boolean DEBUG = false;
 

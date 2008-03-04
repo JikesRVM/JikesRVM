@@ -20,6 +20,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
+import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;

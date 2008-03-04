@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Iterator;
+
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_HashSet;
@@ -35,7 +36,7 @@ public final class SpecializationDatabase {
    * Drain the queue of methods waiting for specialized code
    * generation.
    */
-  static synchronized void doDeferredSpecializations() {
+  public static synchronized void doDeferredSpecializations() {
     // prevent recursive entry to this method
     if (specializationInProgress) {
       return;

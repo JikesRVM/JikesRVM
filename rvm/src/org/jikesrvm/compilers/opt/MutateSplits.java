@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
+
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;

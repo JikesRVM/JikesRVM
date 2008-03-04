@@ -12,15 +12,17 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.Goto;
-import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 
 /**
  * Static splitting based on very simple hints left by
@@ -42,13 +44,13 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
  * been able to use a subset of to common-case trace.
  * <p>
  */
-class StaticSplitting extends CompilerPhase {
+public class StaticSplitting extends CompilerPhase {
 
   private static final boolean DEBUG = false;
   private static final int MAX_COST = 10; // upper bound on instructions duplicated
   private final BranchOptimizations branchOpts;
 
-  protected StaticSplitting() {
+  public StaticSplitting() {
     branchOpts = new BranchOptimizations(-1, false, false);
   }
 

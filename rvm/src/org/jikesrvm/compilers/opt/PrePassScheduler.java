@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+
 /**
  * Pre-pass Instruction Scheduling Phase
  *

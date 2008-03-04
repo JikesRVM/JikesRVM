@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

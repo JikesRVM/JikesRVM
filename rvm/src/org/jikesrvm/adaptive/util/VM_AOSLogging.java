@@ -27,7 +27,7 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;

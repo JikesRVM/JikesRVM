@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;

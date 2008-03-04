@@ -14,10 +14,10 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.HashSet;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;

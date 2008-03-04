@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.driver;
 
 import java.util.ArrayList;
 
@@ -21,6 +21,27 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.InsertMethodInvocatio
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCounters;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InstrumentationSamplingFramework;
 import org.jikesrvm.adaptive.recompilation.instrumentation.LowerInstrumentation;
+import org.jikesrvm.compilers.opt.AdjustBranchProbabilities;
+import org.jikesrvm.compilers.opt.BranchOptimizations;
+import org.jikesrvm.compilers.opt.BuildLST;
+import org.jikesrvm.compilers.opt.CFGTransformations;
+import org.jikesrvm.compilers.opt.DominanceFrontier;
+import org.jikesrvm.compilers.opt.DominatorsPhase;
+import org.jikesrvm.compilers.opt.EscapeTransformations;
+import org.jikesrvm.compilers.opt.EstimateBlockFrequencies;
+import org.jikesrvm.compilers.opt.FieldAnalysis;
+import org.jikesrvm.compilers.opt.LocalCSE;
+import org.jikesrvm.compilers.opt.LocalCastOptimization;
+import org.jikesrvm.compilers.opt.LocalConstantProp;
+import org.jikesrvm.compilers.opt.LocalCopyProp;
+import org.jikesrvm.compilers.opt.LoopUnrolling;
+import org.jikesrvm.compilers.opt.OSR_OsrPointConstructor;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.ReorderingPhase;
+import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.StaticSplitting;
+import org.jikesrvm.compilers.opt.TailRecursionElimination;
+import org.jikesrvm.compilers.opt.YieldPoints;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertHIRtoLIR;
 import org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices;

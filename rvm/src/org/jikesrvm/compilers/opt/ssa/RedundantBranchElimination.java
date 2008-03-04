@@ -17,12 +17,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DominatorTree;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;

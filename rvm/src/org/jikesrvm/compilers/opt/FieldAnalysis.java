@@ -17,6 +17,7 @@ import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;

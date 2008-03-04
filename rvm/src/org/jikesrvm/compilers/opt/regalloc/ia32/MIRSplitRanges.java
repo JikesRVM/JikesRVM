@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;

@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  *        lazy method compilation.  Need to generalize to support
  *        opt's use for other purposes.
  *
- * @see org.jikesrvm.compilers.opt.OptimizingCompiler (hooks to recognize & specially compile this class)
+ * @see org.jikesrvm.compilers.opt.driver.OptimizingCompiler (hooks to recognize & specially compile this class)
  */
 @SaveVolatile
 @Uninterruptible

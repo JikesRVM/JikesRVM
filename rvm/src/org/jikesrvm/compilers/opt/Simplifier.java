@@ -26,6 +26,7 @@ import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;

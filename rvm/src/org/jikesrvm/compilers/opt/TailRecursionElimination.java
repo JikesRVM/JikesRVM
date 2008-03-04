@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.Move;

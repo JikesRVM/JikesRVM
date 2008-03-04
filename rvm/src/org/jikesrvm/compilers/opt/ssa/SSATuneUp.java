@@ -14,16 +14,16 @@ package org.jikesrvm.compilers.opt.ssa;
 
 import java.lang.reflect.Constructor;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.DominanceFrontier;
 import org.jikesrvm.compilers.opt.DominatorsPhase;
 import org.jikesrvm.compilers.opt.ExpressionFolding;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.OptimizationPlanAtomicElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanCompositeElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

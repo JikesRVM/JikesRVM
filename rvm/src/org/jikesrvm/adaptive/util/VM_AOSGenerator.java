@@ -18,7 +18,7 @@ import java.io.PrintStream;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 
 /**
  * This class provides advice file used by compile replay experiments

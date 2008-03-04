@@ -12,20 +12,21 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.VM;
-import static org.jikesrvm.compilers.opt.Constants.INSTRUMENTATION_BCI;
-
-import org.jikesrvm.compilers.opt.inlining.InlineSequence;
-import org.jikesrvm.compilers.opt.ir.Empty;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
+import static org.jikesrvm.compilers.opt.driver.Constants.INSTRUMENTATION_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Operator;
 
 /**
  * This class inserts yield points in
@@ -33,7 +34,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
  *  2) loop headers
  *  3) (optionally) method exits (epilogue, athrow)
  */
-class YieldPoints extends CompilerPhase {
+public class YieldPoints extends CompilerPhase {
 
   /**
    * Should this phase be performed?

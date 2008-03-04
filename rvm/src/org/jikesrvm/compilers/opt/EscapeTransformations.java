@@ -12,16 +12,18 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.New;
-import org.jikesrvm.compilers.opt.ir.NewArray;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEW_opcode;
+
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -34,7 +36,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *  <li> 2. scalar replacement of aggregates and short arrays
  * </ul>
  */
-class EscapeTransformations extends CompilerPhase {
+public class EscapeTransformations extends CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

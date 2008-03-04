@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.GuardCarrier;
 import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;

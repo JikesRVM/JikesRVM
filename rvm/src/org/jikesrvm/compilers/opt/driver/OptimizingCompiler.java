@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.driver;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
@@ -21,6 +21,11 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.InvokeeThreadLocalContext;
+import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.SpecializationDatabase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

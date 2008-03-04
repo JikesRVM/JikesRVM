@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import static org.jikesrvm.compilers.opt.Constants.SYNTH_LOOP_VERSIONING_BCI;
+import static org.jikesrvm.compilers.opt.driver.Constants.SYNTH_LOOP_VERSIONING_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
@@ -36,7 +36,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.AnnotatedLSTGraph;
 import org.jikesrvm.compilers.opt.AnnotatedLSTNode;
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.DominatorTree;
 import org.jikesrvm.compilers.opt.DominatorsPhase;
@@ -44,6 +43,7 @@ import org.jikesrvm.compilers.opt.LSTGraph;
 import org.jikesrvm.compilers.opt.LTDominators;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;

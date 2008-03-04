@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt;
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;

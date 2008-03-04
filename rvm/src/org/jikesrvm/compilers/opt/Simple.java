@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.compilers.opt.Constants.YES;
+import static org.jikesrvm.compilers.opt.driver.Constants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
@@ -27,6 +27,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 import java.lang.reflect.Constructor;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;

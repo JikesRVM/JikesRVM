@@ -14,6 +14,10 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 
 /**
  * This class represents a specialization context meaning
@@ -81,7 +85,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
   /**
    * Initialize static members.
    */
-  static void init() {
+  public static void init() {
     options = new OptOptions();
     optimizationPlan = OptimizationPlanner.createOptimizationPlan(options);
     options.INVOKEE_THREAD_LOCAL = true;

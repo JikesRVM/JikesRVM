@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;

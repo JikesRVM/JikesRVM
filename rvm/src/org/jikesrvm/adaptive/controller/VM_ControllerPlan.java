@@ -19,7 +19,7 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 
 /**
  * An instance of this class describes a compilation decision made by

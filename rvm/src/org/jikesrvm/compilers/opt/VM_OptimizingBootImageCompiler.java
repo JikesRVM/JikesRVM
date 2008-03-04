@@ -25,6 +25,10 @@ import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.

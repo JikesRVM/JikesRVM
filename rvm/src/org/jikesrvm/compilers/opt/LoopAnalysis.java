@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

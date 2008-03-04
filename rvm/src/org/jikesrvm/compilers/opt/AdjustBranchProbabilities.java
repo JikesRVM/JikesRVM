@@ -13,12 +13,13 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Athrow;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Trap;
@@ -29,7 +30,7 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
  * This pass adjusts branch probabilities derived from static estimates
  * to account for blocks that are statically guessed to be infrequent.
  */
-class AdjustBranchProbabilities extends CompilerPhase {
+public class AdjustBranchProbabilities extends CompilerPhase {
 
   public final String getName() {
     return "Adjust Branch Probabilities";

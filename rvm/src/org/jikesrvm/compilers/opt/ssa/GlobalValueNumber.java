@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

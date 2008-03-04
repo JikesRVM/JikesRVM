@@ -14,7 +14,7 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.opt.InstrumentationPlan;
+import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
 
 /**
  * An instance of this class is created for each method that is

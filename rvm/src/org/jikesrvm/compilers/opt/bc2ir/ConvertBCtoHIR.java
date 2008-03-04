@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.HIRInfo;
 import org.jikesrvm.compilers.opt.ir.IR;
 

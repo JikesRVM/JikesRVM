@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import static org.jikesrvm.compilers.opt.Constants.SSA_SYNTH_BCI;
+import static org.jikesrvm.compilers.opt.driver.Constants.SSA_SYNTH_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
@@ -30,7 +30,6 @@ import java.util.Stack;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.CompilerPhase;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.DominanceFrontier;
 import org.jikesrvm.compilers.opt.DominatorTreeNode;
@@ -38,6 +37,7 @@ import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.LiveSet;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.BBend;

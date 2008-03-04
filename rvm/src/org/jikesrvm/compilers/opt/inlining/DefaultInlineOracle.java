@@ -24,7 +24,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.OptimizingCompiler;
+import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;

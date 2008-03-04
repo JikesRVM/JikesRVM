@@ -12,13 +12,15 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
 import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 import org.jikesrvm.util.VM_BitVector;
@@ -30,7 +32,7 @@ import org.jikesrvm.util.VM_BitVector;
  *    <li>  elimination of critical edges,
  *  </ul>
  */
-class CFGTransformations extends CompilerPhase {
+public class CFGTransformations extends CompilerPhase {
 
   private static final boolean DEBUG = false;
 

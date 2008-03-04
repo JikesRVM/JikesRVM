@@ -12,14 +12,17 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
+
 import java.util.LinkedList;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
 import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
@@ -58,7 +61,7 @@ public class OSR_OsrPointConstructor extends CompilerPhase {
   /**
    * Constructor
    */
-  OSR_OsrPointConstructor() {
+  public OSR_OsrPointConstructor() {
     branchOpts = new BranchOptimizations(-1, false, false);
   }
 

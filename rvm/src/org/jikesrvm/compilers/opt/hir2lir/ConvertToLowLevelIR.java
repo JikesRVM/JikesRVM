@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.hir2lir;
 
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.compilers.opt.Constants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.Constants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;

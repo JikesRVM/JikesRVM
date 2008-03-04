@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.ssa;
 import java.util.Enumeration;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
-import static org.jikesrvm.compilers.opt.Constants.SSA_SYNTH_BCI;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -26,6 +25,8 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
+
+import static org.jikesrvm.compilers.opt.driver.Constants.SSA_SYNTH_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Phi;

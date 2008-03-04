@@ -18,11 +18,11 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.CompilationPlan;
-import org.jikesrvm.compilers.opt.InstrumentationPlan;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.OptimizationPlanner;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 
 /**

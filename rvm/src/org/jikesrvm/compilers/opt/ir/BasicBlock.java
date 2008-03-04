@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import static org.jikesrvm.compilers.opt.Constants.NO;
+import static org.jikesrvm.compilers.opt.driver.Constants.NO;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
@@ -29,8 +29,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcod
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.Constants;
 import org.jikesrvm.compilers.opt.LiveIntervalEnumeration;
+import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
