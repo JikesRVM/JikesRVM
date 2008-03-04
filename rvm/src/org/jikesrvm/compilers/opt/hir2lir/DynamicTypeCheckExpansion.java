@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.hir2lir;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Array;
@@ -19,6 +19,7 @@ import org.jikesrvm.classloader.VM_DynamicTypeCheck;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;

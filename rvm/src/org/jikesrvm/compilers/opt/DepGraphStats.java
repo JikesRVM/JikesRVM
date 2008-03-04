@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK;
 
 /**
  * Dependence Graph Statistics
@@ -25,7 +26,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK;
  *
  * @see DepGraph
  */
-class DepGraphStats {
+public class DepGraphStats {
   /**
    * The number of nodes in the dependence graph
    */
@@ -108,7 +109,7 @@ class DepGraphStats {
    * Print the dependence graph stats for all basic blocks in an IR.
    * @param ir the IR
    */
-  static void printBasicBlockStatistics(IR ir) {
+  public static void printBasicBlockStatistics(IR ir) {
     System.out.println();
     System.out.println("**** START OF printBasicBlockStatistics() for method " + ir.method + " ****");
     if (debug) {

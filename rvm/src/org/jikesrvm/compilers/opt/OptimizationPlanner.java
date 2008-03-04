@@ -22,6 +22,8 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCount
 import org.jikesrvm.adaptive.recompilation.instrumentation.InstrumentationSamplingFramework;
 import org.jikesrvm.adaptive.recompilation.instrumentation.LowerInstrumentation;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
+import org.jikesrvm.compilers.opt.hir2lir.ConvertHIRtoLIR;
+import org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
 import org.jikesrvm.compilers.opt.ssa.GCP;
 import org.jikesrvm.compilers.opt.ssa.LeaveSSA;

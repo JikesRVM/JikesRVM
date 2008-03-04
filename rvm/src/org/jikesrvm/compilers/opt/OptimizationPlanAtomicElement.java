@@ -36,12 +36,12 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
   /**
    * Accumulated nanoseconds spent in the element.
    */
-  long phaseNanos = 0;
+  protected long phaseNanos = 0;
 
   /**
    * Counters to be used by myPhase to gather phase specific stats.
    */
-  double counter1, counter2;
+  public double counter1, counter2;
 
   /**
    * Create a plan element corresponding to a particular compiler phase.

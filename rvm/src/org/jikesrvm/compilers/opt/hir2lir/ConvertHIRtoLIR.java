@@ -10,15 +10,17 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.hir2lir;
 
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.DepGraphStats;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.LIRInfo;
 
 /**
  * Convert an IR object from HIR to LIR
  */
-final class ConvertHIRtoLIR extends CompilerPhase {
+public final class ConvertHIRtoLIR extends CompilerPhase {
 
   public String getName() {
     return "HIR Operator Expansion";

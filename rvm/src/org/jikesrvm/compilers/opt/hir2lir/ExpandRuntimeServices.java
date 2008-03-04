@@ -10,36 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.hir2lir;
 
-import java.lang.reflect.Constructor;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
 import static org.jikesrvm.compilers.opt.Constants.RUNTIME_SERVICES_BCI;
-
-import org.jikesrvm.compilers.opt.inlining.InlineDecision;
-import org.jikesrvm.compilers.opt.inlining.Inliner;
-import org.jikesrvm.compilers.opt.ir.ALoad;
-import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.Athrow;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GetStatic;
-import org.jikesrvm.compilers.opt.ir.MonitorOp;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.New;
-import org.jikesrvm.compilers.opt.ir.NewArray;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.PutStatic;
-
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
@@ -56,7 +29,38 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+
+import java.lang.reflect.Constructor;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.BranchOptimizations;
+import org.jikesrvm.compilers.opt.CompilerPhase;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.inlining.InlineDecision;
+import org.jikesrvm.compilers.opt.inlining.Inliner;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.Athrow;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;

@@ -10,44 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.hir2lir;
 
-import org.jikesrvm.VM;
-import static org.jikesrvm.VM_Constants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.VM_Constants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.VM_Constants.NEEDS_DYNAMIC_LINK;
-import static org.jikesrvm.VM_Constants.TIB_IMT_TIB_INDEX;
-import static org.jikesrvm.VM_Constants.TIB_ITABLES_TIB_INDEX;
-import org.jikesrvm.adaptive.VM_AosEntrypoints;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_InterfaceInvocation;
-import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.compilers.opt.Constants.RUNTIME_SERVICES_BCI;
-import org.jikesrvm.compilers.opt.ir.ALoad;
-import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.BoundsCheck;
-import org.jikesrvm.compilers.opt.ir.CacheOp;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GetStatic;
-import org.jikesrvm.compilers.opt.ir.Goto;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.IfCmp2;
-import org.jikesrvm.compilers.opt.ir.InlineGuard;
-import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.LookupSwitch;
-import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
@@ -119,6 +86,43 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_IMT_TIB_INDEX;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_ITABLES_TIB_INDEX;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_InterfaceInvocation;
+import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.BranchOptimizations;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.SpecializedMethod;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.IfCmp2;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.LookupSwitch;
+import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.Store;
@@ -157,12 +161,12 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * loads, (where we can use base + index*scale addressing modes),
    * we'll leave array loads in the LIR.
    */
-  static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
+  public static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
   /**
    * Plant virtual calls via the JTOC rather than from the tib of an
    * object when possible
    */
-  static final boolean CALL_VIA_JTOC = false;
+  public static final boolean CALL_VIA_JTOC = false;
 
   /**
    * Converts the given HIR to LIR.

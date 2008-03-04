@@ -50,7 +50,7 @@ public abstract class CompilerPhase {
    * Only useful if the phase wants to gather additional statistics
    * for a measure compilation report.
    */
-  OptimizationPlanAtomicElement container;
+  protected OptimizationPlanAtomicElement container;
 
   /**
    * Arguments to constructor that copies this phase

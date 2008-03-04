@@ -43,6 +43,7 @@ import org.jikesrvm.ArchitectureSpecific.ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecific.ConvertALUOperators;
 import org.jikesrvm.ArchitectureSpecific.NormalizeConstants;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.Call;

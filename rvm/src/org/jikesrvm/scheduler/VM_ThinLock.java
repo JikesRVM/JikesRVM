@@ -70,7 +70,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    *
    * @param o the object to be locked
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see org.jikesrvm.compilers.opt.ExpandRuntimeServices
+   * @see org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices
    */
   @Inline
   @Entrypoint
@@ -96,7 +96,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    *
    * @param o the object to be unlocked
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see org.jikesrvm.compilers.opt.ExpandRuntimeServices
+   * @see org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices
    */
   @Inline
   @Entrypoint
