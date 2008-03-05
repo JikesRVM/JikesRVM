@@ -191,12 +191,12 @@ public final class Register {
   /**
    * Used in dependence graph construction.
    */
-  public void setdNode(org.jikesrvm.compilers.opt.DepGraphNode a) {
+  public void setdNode(org.jikesrvm.compilers.opt.depgraph.DepGraphNode a) {
     scratchObject = a;
   }
 
-  public org.jikesrvm.compilers.opt.DepGraphNode dNode() {
-    return (org.jikesrvm.compilers.opt.DepGraphNode) scratchObject;
+  public org.jikesrvm.compilers.opt.depgraph.DepGraphNode dNode() {
+    return (org.jikesrvm.compilers.opt.depgraph.DepGraphNode) scratchObject;
   }
 
   /**

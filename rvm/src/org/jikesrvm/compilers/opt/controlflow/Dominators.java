@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
-import org.jikesrvm.compilers.opt.DF_LatticeCell;
-import org.jikesrvm.compilers.opt.DF_Solution;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
+import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
+import org.jikesrvm.compilers.opt.dfsolver.DF_Solution;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;

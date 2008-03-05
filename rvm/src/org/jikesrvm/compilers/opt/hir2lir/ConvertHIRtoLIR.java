@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.hir2lir;
 
-import org.jikesrvm.compilers.opt.DepGraphStats;
+import org.jikesrvm.compilers.opt.depgraph.DepGraphStats;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.LIRInfo;

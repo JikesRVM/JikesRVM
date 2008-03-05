@@ -27,8 +27,6 @@ import java.util.Stack;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.LiveAnalysis;
-import org.jikesrvm.compilers.opt.LiveSet;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
@@ -51,6 +49,8 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.UnreachableOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
+import org.jikesrvm.compilers.opt.liveness.LiveSet;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 
 /**

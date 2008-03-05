@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
-import org.jikesrvm.compilers.opt.DF_AbstractCell;
+import org.jikesrvm.compilers.opt.dfsolver.DF_AbstractCell;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;

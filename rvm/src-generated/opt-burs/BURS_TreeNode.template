@@ -14,11 +14,10 @@ package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.compilers.opt.ir.operand.*;
 import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
-
-import org.jikesrvm.compilers.opt.DepGraphNode;
 
 /**
  * An BURS_TreeNode is a node in a binary tree that is fed

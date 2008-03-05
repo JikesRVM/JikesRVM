@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.dfsolver;
 
 import java.util.ArrayList;
 
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.util.Graph;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;

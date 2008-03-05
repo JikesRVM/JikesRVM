@@ -29,12 +29,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcod
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.LiveIntervalEnumeration;
 import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveIntervalEnumeration;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.util.SortedGraphNode;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;

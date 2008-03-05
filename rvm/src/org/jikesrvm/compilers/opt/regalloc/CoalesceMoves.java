@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 import java.util.HashSet;
 
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -24,6 +23,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 
 /**
  * Coalesce registers in move instructions where possible.

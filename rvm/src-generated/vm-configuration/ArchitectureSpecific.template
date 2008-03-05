@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.WordArray;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
-import org.jikesrvm.compilers.opt.DepGraphNode;
+import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 public class ArchitectureSpecific {

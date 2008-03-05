@@ -15,10 +15,10 @@ package org.jikesrvm.compilers.opt.ssa;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 
-import org.jikesrvm.compilers.opt.DF_AbstractCell;
-import org.jikesrvm.compilers.opt.DF_Solution;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.dfsolver.DF_AbstractCell;
+import org.jikesrvm.compilers.opt.dfsolver.DF_Solution;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 

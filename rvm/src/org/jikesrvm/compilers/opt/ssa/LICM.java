@@ -21,7 +21,6 @@ import java.util.Iterator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.controlflow.DominatorInfo;
 import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
@@ -52,6 +51,7 @@ import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 import org.jikesrvm.compilers.opt.util.Queue;
 
 /**

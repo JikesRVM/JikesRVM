@@ -18,11 +18,11 @@ import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import java.util.Enumeration;
 
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.DF_Equation;
-import org.jikesrvm.compilers.opt.DF_LatticeCell;
-import org.jikesrvm.compilers.opt.DF_Operator;
-import org.jikesrvm.compilers.opt.DF_System;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.dfsolver.DF_Equation;
+import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
+import org.jikesrvm.compilers.opt.dfsolver.DF_Operator;
+import org.jikesrvm.compilers.opt.dfsolver.DF_System;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Attempt;

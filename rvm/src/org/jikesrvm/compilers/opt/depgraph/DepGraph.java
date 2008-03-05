@@ -10,23 +10,23 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.depgraph;
 
-import static org.jikesrvm.compilers.opt.DepGraphConstants.CONTROL;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.EXCEPTION_E;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.EXCEPTION_MS;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.EXCEPTION_R;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.GUARD_ANTI;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.GUARD_OUTPUT;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.GUARD_TRUE;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.MEM_ANTI;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.MEM_OUTPUT;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.MEM_READS_KILL;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.MEM_TRUE;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_ANTI;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_MAY_DEF;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_OUTPUT;
-import static org.jikesrvm.compilers.opt.DepGraphConstants.REG_TRUE;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.CONTROL;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.EXCEPTION_E;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.EXCEPTION_MS;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.EXCEPTION_R;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.GUARD_ANTI;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.GUARD_OUTPUT;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.GUARD_TRUE;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.MEM_ANTI;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.MEM_OUTPUT;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.MEM_READS_KILL;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.MEM_TRUE;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.REG_ANTI;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.REG_MAY_DEF;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.REG_OUTPUT;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.REG_TRUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
@@ -47,6 +47,7 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveSet;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 
 /**

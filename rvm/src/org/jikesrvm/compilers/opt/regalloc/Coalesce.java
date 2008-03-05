@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 import java.util.Iterator;
 
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -25,6 +24,7 @@ import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 
 /**
  * Utility to help coalesce registers.

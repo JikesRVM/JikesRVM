@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.liveness;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.osr.OSR_Constants.LongTypeCode;
@@ -27,6 +27,7 @@ import java.util.Stack;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;

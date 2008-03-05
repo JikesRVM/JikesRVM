@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
-import org.jikesrvm.compilers.opt.DF_LatticeCell;
-import org.jikesrvm.compilers.opt.DF_Operator;
+import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
+import org.jikesrvm.compilers.opt.dfsolver.DF_Operator;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.util.VM_BitVector;

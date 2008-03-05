@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.DF_LatticeCell;
-import org.jikesrvm.compilers.opt.DF_System;
+import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
+import org.jikesrvm.compilers.opt.dfsolver.DF_System;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
