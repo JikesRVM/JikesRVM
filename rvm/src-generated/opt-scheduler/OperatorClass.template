@@ -11,7 +11,7 @@
  *  regarding copyright ownership.
  */
 //OperatorClass.java
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.instrsched;
 
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.ir.*;

@@ -10,6 +10,6 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-[Lorg/jikesrvm/compilers/opt/OperatorClass;
-[Lorg/jikesrvm/compilers/opt/ResourceReservation;
+[Lorg/jikesrvm/compilers/opt/instrsched/OperatorClass;
+[Lorg/jikesrvm/compilers/opt/instrsched/ResourceReservation;
 [Lorg/jikesrvm/compilers/opt/ir/Register;

@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.controlflow;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 
@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;

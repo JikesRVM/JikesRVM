@@ -23,6 +23,7 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.compilers.opt.instrsched.OperatorClass;
 import org.jikesrvm.compilers.opt.util.Bits;
 
 /**
