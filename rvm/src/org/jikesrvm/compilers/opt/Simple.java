@@ -27,6 +27,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 import java.lang.reflect.Constructor;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
+import org.jikesrvm.compilers.opt.controlflow.BranchSimplifier;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;

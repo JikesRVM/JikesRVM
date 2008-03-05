@@ -21,12 +21,12 @@ import java.util.Iterator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.DominatorInfo;
-import org.jikesrvm.compilers.opt.DominatorTree;
-import org.jikesrvm.compilers.opt.Dominators;
-import org.jikesrvm.compilers.opt.DominatorsPhase;
 import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.controlflow.DominatorInfo;
+import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
+import org.jikesrvm.compilers.opt.controlflow.Dominators;
+import org.jikesrvm.compilers.opt.controlflow.DominatorsPhase;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.BBend;

@@ -31,12 +31,12 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.DominanceFrontier;
-import org.jikesrvm.compilers.opt.DominatorTreeNode;
 import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.LiveSet;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.controlflow.DominanceFrontier;
+import org.jikesrvm.compilers.opt.controlflow.DominatorTreeNode;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.Attempt;
@@ -83,7 +83,7 @@ import org.jikesrvm.util.VM_BitVector;
  *
  * @see SSA
  * @see SSAOptions
- * @see org.jikesrvm.compilers.opt.LTDominators
+ * @see org.jikesrvm.compilers.opt.controlflow.LTDominators
  */
 public class EnterSSA extends CompilerPhase {
   /**

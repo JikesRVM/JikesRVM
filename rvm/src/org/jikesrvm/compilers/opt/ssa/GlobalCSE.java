@@ -20,10 +20,10 @@ import java.util.HashMap;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.DominatorTree;
-import org.jikesrvm.compilers.opt.DominatorTreeNode;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
+import org.jikesrvm.compilers.opt.controlflow.DominatorTreeNode;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;

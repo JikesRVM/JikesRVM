@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.compilers.opt.DF_Solution;
-import org.jikesrvm.compilers.opt.DominatorTree;
-import org.jikesrvm.compilers.opt.LSTGraph;
+import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
+import org.jikesrvm.compilers.opt.controlflow.LSTGraph;
 import org.jikesrvm.compilers.opt.ssa.GlobalValueNumberState;
 import org.jikesrvm.compilers.opt.ssa.SSADictionary;
 

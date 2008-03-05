@@ -17,8 +17,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.DominatorTree;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;

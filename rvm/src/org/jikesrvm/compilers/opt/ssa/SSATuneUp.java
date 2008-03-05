@@ -15,11 +15,11 @@ package org.jikesrvm.compilers.opt.ssa;
 import java.lang.reflect.Constructor;
 
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.DominanceFrontier;
-import org.jikesrvm.compilers.opt.DominatorsPhase;
 import org.jikesrvm.compilers.opt.ExpressionFolding;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
+import org.jikesrvm.compilers.opt.controlflow.DominanceFrontier;
+import org.jikesrvm.compilers.opt.controlflow.DominatorsPhase;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
