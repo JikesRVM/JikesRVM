@@ -98,7 +98,7 @@ public class ArchitectureSpecific {
   public static final class ComplexLIR2MIRExpansion extends org.jikesrvm.compilers.opt.@_ARCH_@.ComplexLIR2MIRExpansion {}
   public static final class ConvertALUOperators extends org.jikesrvm.compilers.opt.@_ARCH_@.ConvertALUOperators {}
   public static final class FinalMIRExpansion extends org.jikesrvm.compilers.opt.@_ARCH_@.FinalMIRExpansion {}
-  public static final class MIROptimizationPlanner extends org.jikesrvm.compilers.opt.@_ARCH_@.MIROptimizationPlanner {}
+  public static final class MIROptimizationPlanner extends org.jikesrvm.compilers.opt.driver.@_ARCH_@.MIROptimizationPlanner {}
   public static final class NormalizeConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.NormalizeConstants {}
   public interface PhysicalRegisterConstants extends org.jikesrvm.compilers.opt.@_ARCH_@.PhysicalRegisterConstants {}
   public abstract static class PhysicalRegisterTools extends org.jikesrvm.compilers.opt.@_ARCH_@.PhysicalRegisterTools {}
