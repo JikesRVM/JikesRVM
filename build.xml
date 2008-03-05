@@ -656,7 +656,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.ia32-assembler-opt.dir" location="${build.dir}/ia32-assembler-opt"/>
     <property name="ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
 
-    <mkdir dir="${generated.ia32.java}/org/jikesrvm/compilers/opt/ia32"/>
+    <mkdir dir="${generated.ia32.java}/org/jikesrvm/compilers/opt/mir2mc/ia32"/>
     <mkdir dir="${build.ia32-assembler-opt.dir}"/>
     <GenerateFromTemplate>
       <args>
@@ -705,7 +705,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.ia32-assembler-opt.dir}"/>
       </classpath>
-      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/org/jikesrvm/compilers/opt/ia32"/>
+      <jvmarg value="-DgenerateToDir=${generated.ia32.java}/org/jikesrvm/compilers/opt/mir2mc/ia32"/>
     </java>
   </target>
 

@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.driver.ppc;
 
 import java.util.ArrayList;
-import org.jikesrvm.compilers.opt.ConvertMIRtoMC;
+
 import org.jikesrvm.compilers.opt.LiveAnalysis;
 import org.jikesrvm.compilers.opt.MutateSplits;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -24,6 +24,7 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.instrsched.PrePassScheduler;
 import org.jikesrvm.compilers.opt.lir2mir.ConvertLIRtoMIR;
 import org.jikesrvm.compilers.opt.lir2mir.SplitBasicBlock;
+import org.jikesrvm.compilers.opt.mir2mc.ConvertMIRtoMC;
 import org.jikesrvm.compilers.opt.regalloc.ExpandCallingConvention;
 import org.jikesrvm.compilers.opt.regalloc.PrologueEpilogueCreator;
 import org.jikesrvm.compilers.opt.regalloc.RegisterAllocator;

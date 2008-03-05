@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
@@ -68,7 +68,7 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import static org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Thread;

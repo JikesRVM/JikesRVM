@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.osr.OSR_Constants;

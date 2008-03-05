@@ -73,7 +73,7 @@ import java.lang.reflect.*;
  *
  * @see InstructionFormatTables
  * @see OperatorFormatTables
- * @see org.jikesrvm.compilers.opt.AssemblerBase
+ * @see org.jikesrvm.compilers.opt.mir2mc.AssemblerBase
  * @see org.jikesrvm.compilers.opt.ir.Instruction
  * @see org.jikesrvm.compilers.opt.Assembler
  * @see VM_Assembler
@@ -1163,7 +1163,7 @@ public class GenerateAssembler {
       throw new Error(e);
     }
 
-    emit("package org.jikesrvm.compilers.opt.ia32;\n\n");
+    emit("package org.jikesrvm.compilers.opt.mir2mc.ia32;\n\n");
     emit("import org.jikesrvm.*;\n\n");
     emit("import org.jikesrvm.compilers.opt.*;\n\n");
     emit("import org.jikesrvm.compilers.opt.ir.*;\n\n");

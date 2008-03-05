@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
-import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 
 /**
  * This interface holds constants for the Opt GC map code specific to PowerPC

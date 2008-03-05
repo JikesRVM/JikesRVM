@@ -10,13 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 

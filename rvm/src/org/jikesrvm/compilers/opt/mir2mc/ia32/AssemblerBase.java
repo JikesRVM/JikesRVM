@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import java.util.ArrayList;
 import static org.jikesrvm.ia32.VM_ArchConstants.SSE2_FULL;
@@ -44,6 +44,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.VM_TrapConstants;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;

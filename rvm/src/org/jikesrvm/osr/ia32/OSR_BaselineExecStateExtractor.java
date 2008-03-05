@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.osr.OSR_Constants;

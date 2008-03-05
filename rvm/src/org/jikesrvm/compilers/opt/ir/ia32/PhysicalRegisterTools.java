@@ -10,11 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.ir.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.GenericPhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;

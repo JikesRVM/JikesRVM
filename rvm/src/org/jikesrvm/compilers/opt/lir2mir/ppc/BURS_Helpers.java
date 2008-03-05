@@ -63,7 +63,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.lir2mir.BURS_Common_Helpers;
-import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
+import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.ppc.VM_TrapConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;

@@ -13,7 +13,6 @@
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
-import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -23,6 +22,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 

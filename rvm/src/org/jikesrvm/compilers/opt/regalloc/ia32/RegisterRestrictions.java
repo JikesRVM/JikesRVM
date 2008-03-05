@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_CacheOp;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;

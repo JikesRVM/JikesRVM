@@ -10,11 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.ir.ppc;
 
-import org.jikesrvm.compilers.opt.GenericPhysicalRegisterTools;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 
 /**
  * This abstract class provides a set of useful methods for
