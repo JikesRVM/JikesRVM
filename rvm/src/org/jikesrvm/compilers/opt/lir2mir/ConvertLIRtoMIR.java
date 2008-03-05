@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.lir2mir;
 
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
@@ -43,6 +43,12 @@ import org.jikesrvm.ArchitectureSpecific.ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecific.ConvertALUOperators;
 import org.jikesrvm.ArchitectureSpecific.NormalizeConstants;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.DepGraph;
+import org.jikesrvm.compilers.opt.LiveAnalysis;
+import org.jikesrvm.compilers.opt.NullCheckCombining;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;

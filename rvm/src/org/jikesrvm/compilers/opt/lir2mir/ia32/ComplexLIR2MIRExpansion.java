@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ia32;
+package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;

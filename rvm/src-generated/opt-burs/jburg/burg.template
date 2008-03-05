@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.@_ARCH_@;
+package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
 import org.jikesrvm.compilers.opt.ir.@_ARCH_@.*;
 import org.jikesrvm.classloader.*;
@@ -20,7 +20,7 @@ import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.compilers.opt.ir.operand.*;
 import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
-import org.jikesrvm.compilers.opt.BURS;
+import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.util.Bits; //NOPMD
 import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;

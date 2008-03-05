@@ -30,7 +30,7 @@ public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphCon
    * Constructor.
    * @param instr the instruction this node represents
    */
-  DepGraphNode(Instruction instr) {
+  public DepGraphNode(Instruction instr) {
     _instr = instr;
   }
 
@@ -38,7 +38,7 @@ public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphCon
    * Get the instruction this node represents.
    * @return instruction this node represents
    */
-  Instruction instruction() {
+  public Instruction instruction() {
     return _instr;
   }
 

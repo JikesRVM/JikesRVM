@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;

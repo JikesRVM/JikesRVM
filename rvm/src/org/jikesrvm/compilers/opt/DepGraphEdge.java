@@ -20,102 +20,102 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
  * Dependence graph edges: connect operands of different instructions
  * represented by dependence graph nodes.
  */
-final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants {
+public final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants {
   /**
    * Does this edge represent a register true dependence?
    * @return true if yes, false otherwise
    */
-  boolean isRegTrue() { return (scratch & REG_TRUE) != 0; }
+  public boolean isRegTrue() { return (scratch & REG_TRUE) != 0; }
 
   /**
    * Does this edge represent a register anti-dependence?
    * @return true if yes, false otherwise
    */
-  boolean isRegAnti() { return (scratch & REG_ANTI) != 0; }
+  public boolean isRegAnti() { return (scratch & REG_ANTI) != 0; }
 
   /**
    * Does this edge represent a register output dependence?
    * @return true if yes, false otherwise
    */
-  boolean isRegOutput() { return (scratch & REG_OUTPUT) != 0; }
+  public boolean isRegOutput() { return (scratch & REG_OUTPUT) != 0; }
 
   /**
    * Does this edge represent a register may def?
    * @return true if yes, false otherwise
    */
-  boolean isRegMayDef() { return (scratch & REG_MAY_DEF) != 0; }
+  public boolean isRegMayDef() { return (scratch & REG_MAY_DEF) != 0; }
 
   /**
    * Does this edge represent a memory true dependence?
    * @return true if yes, false otherwise
    */
-  boolean isMemTrue() { return (scratch & MEM_TRUE) != 0; }
+  public boolean isMemTrue() { return (scratch & MEM_TRUE) != 0; }
 
   /**
    * Does this edge represent a memory anti-dependence?
    * @return true if yes, false otherwise
    */
-  boolean isMemAnti() { return (scratch & MEM_ANTI) != 0; }
+  public boolean isMemAnti() { return (scratch & MEM_ANTI) != 0; }
 
   /**
    * Does this edge represent a memory output dependence?
    * @return true if yes, false otherwise
    */
-  boolean isMemOutput() { return (scratch & MEM_OUTPUT) != 0; }
+  public boolean isMemOutput() { return (scratch & MEM_OUTPUT) != 0; }
 
   /**
    * Does this edge represent a memory reads-kill dependence?
    * @return true if yes, false otherwise
    */
-  boolean isMemReadsKill() { return (scratch & MEM_READS_KILL) != 0; }
+  public boolean isMemReadsKill() { return (scratch & MEM_READS_KILL) != 0; }
 
   /**
    * Does this edge represent a control dependence?
    * @return true if yes, false otherwise
    */
-  boolean isControl() { return (scratch & CONTROL) != 0; }
+  public boolean isControl() { return (scratch & CONTROL) != 0; }
 
   /**
    * Does this edge represent an exception-exception dependence?
    * @return true if yes, false otherwise
    */
-  boolean isExceptionE() { return (scratch & EXCEPTION_E) != 0; }
+  public boolean isExceptionE() { return (scratch & EXCEPTION_E) != 0; }
 
   /**
    * Does this edge represent an exception-store dependence?
    * @return true if yes, false otherwise
    */
-  boolean isExceptionMS() { return (scratch & EXCEPTION_MS) != 0; }
+  public boolean isExceptionMS() { return (scratch & EXCEPTION_MS) != 0; }
 
   /**
    * Does this edge represent an exception-load dependence?
    * @return true if yes, false otherwise
    */
-  boolean isExceptionML() { return (scratch & EXCEPTION_ML) != 0; }
+  public boolean isExceptionML() { return (scratch & EXCEPTION_ML) != 0; }
 
   /**
    * Does this edge represent an exception-register live dependence?
    * @return true if yes, false otherwise
    */
-  boolean isExceptionR() { return (scratch & EXCEPTION_R) != 0; }
+  public boolean isExceptionR() { return (scratch & EXCEPTION_R) != 0; }
 
   /**
    * Does this edge represent a guard true dependence?
    * @return true if yes, false otherwise
    */
-  boolean isGuardTrue() { return (scratch & GUARD_TRUE) != 0; }
+  public boolean isGuardTrue() { return (scratch & GUARD_TRUE) != 0; }
 
   /**
    * Does this edge represent a guard anti-dependence?
    * @return true if yes, false otherwise
    */
-  boolean isGuardAnti() { return (scratch & GUARD_ANTI) != 0; }
+  public boolean isGuardAnti() { return (scratch & GUARD_ANTI) != 0; }
 
   /**
    * Does this edge represent a guard output dependence?
    * @return true if yes, false otherwise
    */
-  boolean isGuardOutput() { return (scratch & GUARD_OUTPUT) != 0; }
+  public boolean isGuardOutput() { return (scratch & GUARD_OUTPUT) != 0; }
 
   /**
    * Does a given edge represent a register true dependence?
@@ -123,7 +123,7 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @param edge the edge to test
    * @return true if yes, false otherwise
    */
-  static boolean isRegTrue(SpaceEffGraphEdge edge) {
+  public static boolean isRegTrue(SpaceEffGraphEdge edge) {
     return (edge.getInfo() & REG_TRUE) != 0;
   }
 
@@ -133,7 +133,7 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @param edge the edge to test
    * @return true if yes, false otherwise
    */
-  static boolean isRegAnti(SpaceEffGraphEdge edge) {
+  public static boolean isRegAnti(SpaceEffGraphEdge edge) {
     return (edge.getInfo() & REG_ANTI) != 0;
   }
 
@@ -143,7 +143,7 @@ final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants 
    * @param edge the edge to test
    * @return true if yes, false otherwise
    */
-  static boolean isRegOutput(SpaceEffGraphEdge edge) {
+  public static boolean isRegOutput(SpaceEffGraphEdge edge) {
     return (edge.getInfo() & REG_OUTPUT) != 0;
   }
 

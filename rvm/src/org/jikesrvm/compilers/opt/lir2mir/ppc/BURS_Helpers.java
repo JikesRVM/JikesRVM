@@ -10,14 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ppc;
+package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.BURS;
-import org.jikesrvm.compilers.opt.BURS_Common_Helpers;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
@@ -38,7 +36,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Store;
 import org.jikesrvm.compilers.opt.ir.MIR_Trap;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.Nullary;
-
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
@@ -64,6 +61,9 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
+import org.jikesrvm.compilers.opt.lir2mir.BURS;
+import org.jikesrvm.compilers.opt.lir2mir.BURS_Common_Helpers;
+import org.jikesrvm.compilers.opt.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.ppc.VM_TrapConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;

@@ -73,7 +73,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
  * <li> more precise treatment of exceptions, control and acquire/release
  * </ul>
  */
-final class DepGraph extends SpaceEffGraph {
+public final class DepGraph extends SpaceEffGraph {
 
   /**
    * Set of variables that are live on entry to at least one catch block that
@@ -103,7 +103,7 @@ final class DepGraph extends SpaceEffGraph {
    * @param end instruction to end computation at
    * @param currentBlock the basic block that the instructions are living in
    */
-  DepGraph(IR ir, Instruction start, Instruction end, BasicBlock currentBlock) {
+  public DepGraph(IR ir, Instruction start, Instruction end, BasicBlock currentBlock) {
     this.currentBlock = currentBlock;
     this.ir = ir;
     handlerLiveSet = new LiveSet();

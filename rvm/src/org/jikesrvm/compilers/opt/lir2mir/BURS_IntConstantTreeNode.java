@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.lir2mir;
 
 import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
 import org.jikesrvm.compilers.opt.ir.Operators;

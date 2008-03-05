@@ -10,12 +10,13 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.lir2mir;
 
 import org.jikesrvm.ArchitectureSpecific.BURS_Debug;
 import org.jikesrvm.ArchitectureSpecific.BURS_STATE;
 import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;

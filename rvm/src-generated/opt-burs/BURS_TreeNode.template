@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.@_ARCH_@;
+package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
 import org.jikesrvm.*;
+import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.compilers.opt.ir.operand.*;
 import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
@@ -24,7 +25,7 @@ import org.jikesrvm.compilers.opt.DepGraphNode;
  * as input to BURS.
  * Machine-generated, do not edit.
  *
- * @see org.jikesrvm.compilers.opt.BURS
+ * @see org.jikesrvm.compilers.opt.lir2mir.BURS
  * @see BURS_STATE
  */
 public class BURS_TreeNode implements BURS_Definitions {

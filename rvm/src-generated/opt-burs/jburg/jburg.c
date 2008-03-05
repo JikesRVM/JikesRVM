@@ -590,7 +590,7 @@ emitdefs(Nonterm nts_)
 {
     Nonterm p;
 
-    print("package org.jikesrvm.compilers.opt.%s; \n", arch);
+    print("package org.jikesrvm.compilers.opt.lir2mir.%s; \n", arch);
     print("interface BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
         print("%1byte %S_NT  \t= %d;\n", p, p->number);
@@ -940,7 +940,7 @@ emitstring(Rule rules_)
 //    int k;
 //    Term p;
 
-    print("package org.jikesrvm.compilers.opt.%s; \n", arch);
+    print("package org.jikesrvm.compilers.opt.lir2mir.%s; \n", arch);
     print("public class BURS_Debug {\n");
 
 #if 0
