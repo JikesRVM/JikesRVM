@@ -303,7 +303,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_iload(int index) {
     Offset offset = localOffset(index);
-    asm.emitPUSH_RegDisp(ESP, offset);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitPUSH_RegInd(ESP);
+    } else {
+      asm.emitPUSH_RegDisp(ESP, offset);
+    }
   }
 
   /**
@@ -314,7 +318,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_fload(int index) {
     // identical to iload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
-    asm.emitPUSH_RegDisp(ESP, offset);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitPUSH_RegInd(ESP);
+    } else {
+      asm.emitPUSH_RegDisp(ESP, offset);
+    }
   }
 
   /**
@@ -325,7 +333,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_aload(int index) {
     // identical to iload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
-    asm.emitPUSH_RegDisp(ESP, offset);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitPUSH_RegInd(ESP);
+    } else {
+      asm.emitPUSH_RegDisp(ESP, offset);
+    }
   }
 
   /**
@@ -374,7 +386,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   @Override
   protected final void emit_istore(int index) {
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
-    asm.emitPOP_RegDisp(ESP, offset);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitPOP_RegInd(ESP);
+    } else {
+      asm.emitPOP_RegDisp(ESP, offset);
+    }
   }
 
   /**
@@ -385,7 +401,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_fstore(int index) {
     // identical to istore - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
-    asm.emitPOP_RegDisp(ESP, offset);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitPOP_RegInd(ESP);
+    } else {
+      asm.emitPOP_RegDisp(ESP, offset);
+    }
   }
 
   /**
@@ -396,7 +416,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_astore(int index) {
     // identical to istore - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
-    asm.emitPOP_RegDisp(ESP, offset);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitPOP_RegInd(ESP);
+    } else {
+      asm.emitPOP_RegDisp(ESP, offset);
+    }
   }
 
   /**
