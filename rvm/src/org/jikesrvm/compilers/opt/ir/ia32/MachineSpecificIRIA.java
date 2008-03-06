@@ -78,7 +78,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
         case GET_CURRENT_PROCESSOR_opcode:
           return true;
         default:
-          throw new OptimizingCompilerException("SimpleEscapge: Unexpected " + instruction);
+          throw new OptimizingCompilerException("SimpleEscape: Unexpected " + instruction);
       }
     }
 
@@ -230,7 +230,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
             RegisterOperand rop = op.asRegister();
             Register r = rop.getRegister();
 
-            // Update MIR state for every phyiscal FPR we see
+            // Update MIR state for every physical FPR we see
             if (r.isPhysical() && r.isFloatingPoint() && s.operator() != DUMMY_DEF && s.operator() != DUMMY_USE) {
               int n = PhysicalRegisterSet.getFPRIndex(r);
               if (fpStackOffset != 0) {
