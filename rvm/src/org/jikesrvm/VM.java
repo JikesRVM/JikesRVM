@@ -233,6 +233,8 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
     runClassInitializer("org.jikesrvm.classloader.VM_Atom$InternedStrings");
     runClassInitializer("org.jikesrvm.classloader.VM_TypeReferenceVector");
+    runClassInitializer("org.jikesrvm.classloader.VM_MethodVector");
+    runClassInitializer("org.jikesrvm.classloader.VM_FieldVector");
     // Turn off security checks; about to hit EncodingManager.
     // Commented out because we haven't incorporated this into the CVS head
     // yet.

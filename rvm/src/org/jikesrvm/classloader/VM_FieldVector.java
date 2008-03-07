@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.classloader;
 
+import java.util.WeakHashMap;
+
 /**
  *  Lightweight implementation of a vector of VM_Fields.
  */
@@ -63,8 +65,36 @@ final class VM_FieldVector {
   // Get array, trimmed to size.
   //
   public VM_Field[] finish() {
-    adjustLength(cnt);
-    return array;
+    VM_Field[] result = popularFVs.get(this);
+    if (result != null) {
+      array = result;
+      return result;
+    } else {
+      adjustLength(cnt);
+      popularFVs.put(this, array);
+      return array;
+    }
+  }
+
+  public int hashCode() {
+    int val = 0;
+    for (int i=cnt-1; i >= 0; i--) {
+      val ^= array[i].hashCode();
+    }
+    return val;
+  }
+
+  public boolean equals(Object obj) {
+    if (obj instanceof VM_FieldVector) {
+      VM_FieldVector that = (VM_FieldVector)obj;
+      if (cnt != that.cnt) return false;
+      for(int i=cnt-1; i>=0; i--) {
+        if (array[i] != that.array[i]) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   //----------------//
@@ -75,6 +105,8 @@ final class VM_FieldVector {
   private int cnt;
 
   private static final VM_Field[] empty = new VM_Field[0];
+  private static final WeakHashMap<VM_FieldVector, VM_Field[]>
+    popularFVs = new WeakHashMap<VM_FieldVector, VM_Field[]>();
 
   private void adjustLength(int newLength) {
     if (newLength == 0) {
