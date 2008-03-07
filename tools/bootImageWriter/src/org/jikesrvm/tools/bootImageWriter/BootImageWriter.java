@@ -13,6 +13,9 @@
 package org.jikesrvm.tools.bootImageWriter;
 
 import java.util.Hashtable;
+import java.util.SortedSet;
+import java.util.Iterator;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Stack;
 import java.util.Enumeration;
@@ -2753,8 +2756,18 @@ public class BootImageWriter extends BootImageWriterMessages
       out.println("                          -------             ------");
       out.println();
 
-      for (Enumeration e = BootImageMap.elements() ; e.hasMoreElements() ;) {
-        BootImageMap.Entry entry = (BootImageMap.Entry)e.nextElement();
+      SortedSet<BootImageMap.Entry> set = new TreeSet<BootImageMap.Entry>(new Comparator<BootImageMap.Entry>() {
+        public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
+          return Integer.valueOf(a.imageAddress.toInt()).compareTo(b.imageAddress.toInt());
+        }
+        public boolean equals() { throw new Error("Unreached");}
+      });
+      for (Enumeration<BootImageMap.Entry> e = BootImageMap.elements(); e.hasMoreElements();) {
+        BootImageMap.Entry entry = e.nextElement();
+        set.add(entry);
+      }
+      for (Iterator<BootImageMap.Entry> i = set.iterator(); i.hasNext();) {
+        BootImageMap.Entry entry = i.next();
         Address data = entry.imageAddress;
         out.println(".     .          data     " + VM.addressAsHexString(data) +
                     "          " + entry.jdkObject.getClass());
