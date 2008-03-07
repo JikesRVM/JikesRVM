@@ -91,6 +91,10 @@ public class JikesRVMSupport {
     return new Constructor(new VMConstructor(m));
   }
 
+  public static VMConstructor createVMConstructor(VM_Method m) {
+    return new VMConstructor(m);
+  }
+
   public static VM_Field getFieldOf(Field f) {
     return f.f.field;
   }

@@ -62,6 +62,8 @@ Lgnu/classpath/SystemProperties;
 Ljava/lang/reflect/Field;
 Ljava/lang/reflect/Method;
 Ljava/lang/reflect/Member;
+Ljava/lang/reflect/Modifier;
+Ljava/lang/reflect/VMConstructor;
 Ljava/lang/reflect/Constructor;
 Ljava/lang/reflect/AccessibleObject;
 

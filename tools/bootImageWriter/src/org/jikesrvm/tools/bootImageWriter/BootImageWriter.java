@@ -2167,7 +2167,7 @@ public class BootImageWriter extends BootImageWriterMessages
       }
     } else if (jdkObject instanceof java.lang.reflect.Constructor)   {
       Constructor cons = (Constructor)jdkObject;
-      if(rvmFieldName.equals("constructor")) {
+      if(rvmFieldName.equals("cons")) {
         // fill in this VM_Method field
         String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
         VM_Type type = VM_TypeReference.findOrCreate(typeName).peekType();
@@ -2191,20 +2191,21 @@ public class BootImageWriter extends BootImageWriterMessages
           }
         }
         if (constructor == null) {
-          throw new Error("Failed to populate Constructor.constructor for " + cons);
+          throw new Error("Failed to populate Constructor.cons for " + cons);
         }
-        if (verbose >= 2) traceContext.push("VM_Method",
+        if (verbose >= 2) traceContext.push("VMConstructor",
                                             "java.lang.Constructor",
-                                            "constructor");
-        Address imageAddress = BootImageMap.findOrCreateEntry(constructor).imageAddress;
+                                            "cons");
+        Object vmcons = java.lang.reflect.JikesRVMSupport.createVMConstructor(constructor);
+        Address imageAddress = BootImageMap.findOrCreateEntry(vmcons).imageAddress;
         if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
           // object not part of bootimage: install null reference
           if (verbose >= 2) traceContext.traceObjectNotInBootImage();
           bootImage.setNullAddressWord(rvmFieldAddress, true, false, false);
         } else if (imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
-            imageAddress = copyToBootImage(constructor, false, Address.max(), jdkObject, false);
-            if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
-            bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, false);
+          imageAddress = copyToBootImage(vmcons, false, Address.max(), jdkObject, false);
+          if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+          bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, false);
         } else {
           if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
           bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, false);
