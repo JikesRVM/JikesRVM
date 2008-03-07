@@ -253,7 +253,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
   @Interruptible
   public void createFinalOSRMap(IR ir) {
-    this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
+    this._osrMap = OSR_EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap);
   }
 
   public OSR_EncodedOSRMap getOSRMap() {
