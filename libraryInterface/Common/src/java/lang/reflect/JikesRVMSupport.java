@@ -78,29 +78,41 @@ public class JikesRVMSupport {
     throw new IllegalArgumentException();
   }
 
-  public static Field createField(VM_Field m) {
-    return new Field(m);
+  public static Field createField(VM_Field f) {
+    return new Field(new VMField(f));
   }
 
   public static Method createMethod(VM_Method m) {
-    return new Method(m);
+    return new Method(new VMMethod(m));
   }
 
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(VM_Method m) {
-    return new Constructor(m);
+    return new Constructor(new VMConstructor(m));
   }
 
   public static VM_Field getFieldOf(Field f) {
+    return f.f.field;
+  }
+
+  public static VM_Method getMethodOf(Method m) {
+    return m.m.method;
+  }
+
+  public static VM_Method getMethodOf(Constructor cons) {
+    return cons.cons.constructor;
+  }
+
+  public static VM_Field getFieldOf(VMField f) {
     return f.field;
   }
 
-  public static VM_Method getMethodOf(Method f) {
-    return f.method;
+  public static VM_Method getMethodOf(VMMethod m) {
+    return m.method;
   }
 
-  public static VM_Method getMethodOf(Constructor<?> f) {
-    return f.constructor;
+  public static VM_Method getMethodOf(VMConstructor cons) {
+    return cons.constructor;
   }
 
 

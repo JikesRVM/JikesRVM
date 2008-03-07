@@ -55,7 +55,7 @@ public final class VM_NativeMethod extends VM_Method {
    */
   VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
                   VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
-                  VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+                  VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass,
           memRef,
           modifiers,

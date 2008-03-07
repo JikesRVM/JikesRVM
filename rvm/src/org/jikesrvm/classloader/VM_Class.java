@@ -1474,7 +1474,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, typeRef.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, typeRef.getClassLoader());
       } else {
         input.skipBytes(attLength);
       }

@@ -32,30 +32,31 @@ import org.jikesrvm.runtime.VM_Runtime;
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
-public final class Field extends AccessibleObject implements Member {
+public final class VMField {
 
   final VM_Field field;
+  Field f;
 
   // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
-  private Field() {
+  private VMField() {
     field = null;
   }
 
   // For use by JikesRVMSupport
-  Field(VM_Field f) {
+  VMField(VM_Field f) {
     field = f;
   }
 
   public boolean equals(Object object) {
     if (object instanceof Field) {
-      return field == ((Field)object).field;
+      return field == ((Field)object).f.field;
     } else {
       return false;
     }
   }
 
-  public Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
+  Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
 
     if (field.isReferenceType()) {
@@ -82,17 +83,17 @@ public final class Field extends AccessibleObject implements Member {
     }
   }
 
-  public boolean getBoolean(Object object) throws IllegalAccessException, IllegalArgumentException {
+  boolean getBoolean(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getBooleanInternal(object);
   }
 
-  public byte getByte(Object object) throws IllegalAccessException, IllegalArgumentException {
+  byte getByte(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getByteInternal(object);
   }
 
-  public char getChar(Object object) throws IllegalAccessException, IllegalArgumentException {
+  char getChar(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getCharInternal(object);
   }
@@ -101,27 +102,27 @@ public final class Field extends AccessibleObject implements Member {
     return field.getDeclaringClass().getClassForType();
   }
 
-  public double getDouble(Object object) throws IllegalAccessException, IllegalArgumentException {
+  double getDouble(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getDoubleInternal(object);
   }
 
-  public float getFloat(Object object) throws IllegalAccessException, IllegalArgumentException {
+  float getFloat(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getFloatInternal(object);
   }
 
-  public int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
+  int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getIntInternal(object);
   }
 
-  public long getLong(Object object) throws IllegalAccessException, IllegalArgumentException {
+  long getLong(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getLongInternal(object);
   }
 
-  public int getModifiers() {
+  int getModifiersInternal() {
     return field.getModifiers();
   }
 
@@ -134,25 +135,11 @@ public final class Field extends AccessibleObject implements Member {
     return getShortInternal(object);
   }
 
-  public Class<?> getType() {
+  Class<?> getType() {
     return field.getType().resolve().getClassForType();
   }
 
-  public int hashCode() {
-    int code1 = getName().hashCode();
-    int code2 = field.getDeclaringClass().toString().hashCode();
-    return code1 ^ code2;
-  }
-
-  public boolean isSynthetic() {
-    return field.isSynthetic();
-  }
-
-  public boolean isEnumConstant() {
-    return field.isEnumConstant();
-  }
-
-  public void set(Object object, Object value)
+  void set(Object object, Object value)
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);
 
@@ -192,61 +179,52 @@ public final class Field extends AccessibleObject implements Member {
     }
   }
 
-  public void setBoolean(Object object, boolean value)
+  void setBoolean(Object object, boolean value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setBooleanInternal(object, value);
   }
 
-  public void setByte(Object object, byte value)
+   void setByte(Object object, byte value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setByteInternal(object, value);
   }
 
-  public void setChar(Object object, char value)
+  void setChar(Object object, char value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setCharInternal(object, value);
   }
 
-  public void setDouble(Object object, double value)
+  void setDouble(Object object, double value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setDoubleInternal(object, value);
   }
 
-  public void setFloat(Object object, float value)
+  void setFloat(Object object, float value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setFloatInternal(object, value);
   }
 
-  public void setInt(Object object, int value)
+  void setInt(Object object, int value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setIntInternal(object, value);
   }
 
-  public void setLong(Object object, long value)
+  void setLong(Object object, long value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setLongInternal(object, value);
   }
 
-  public void setShort(Object object, short value)
+  void setShort(Object object, short value)
     throws IllegalAccessException, IllegalArgumentException   {
     checkWriteAccess(object);
     setShortInternal(object, value);
-  }
-
-  public String toString() {
-    CPStringBuilder sb = new CPStringBuilder(64);
-    Modifier.toString(getModifiers(), sb).append(' ');
-    sb.append(JikesRVMHelpers.getUserName(getType())).append(' ');
-    sb.append(getDeclaringClass().getName()).append('.');
-    sb.append(getName());
-    return sb.toString();
   }
 
   private void checkReadAccess(Object obj) throws IllegalAccessException,
@@ -265,7 +243,7 @@ public final class Field extends AccessibleObject implements Member {
       }
     }
 
-    if (!field.isPublic() && !isAccessible()) {
+    if (!field.isPublic() && !f.isAccessible()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
       JikesRVMSupport.checkAccess(field, accessingClass);
     }
@@ -297,7 +275,7 @@ public final class Field extends AccessibleObject implements Member {
       }
     }
 
-    if (!field.isPublic() && !isAccessible()) {
+    if (!field.isPublic() && !f.isAccessible()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
       JikesRVMSupport.checkAccess(field, accessingClass);
     }
@@ -525,32 +503,17 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   // AnnotatedElement interface
-
-  public Annotation[] getDeclaredAnnotations() {
+  
+  Annotation[] getDeclaredAnnotations() {
     return field.getDeclaredAnnotations();
   }
-
-  public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+   
+  <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     return field.getAnnotation(annotationClass);
   }
 
-  // Generics support
-
-  public Type getGenericType() {
-    VM_Atom signature = field.getSignature();
-    if (signature == null) {
-      return getType();
-    } else {
-      return JikesRVMHelpers.getFieldType(this, signature);
-    }
+  String getSignature() {
+    return field.getSignature().toString();
   }
 
-  public String toGenericString() {
-    CPStringBuilder sb = new CPStringBuilder(64);
-    Modifier.toString(getModifiers(), sb).append(' ');
-    sb.append(getGenericType()).append(' ');
-    sb.append(getDeclaringClass().getName()).append('.');
-    sb.append(getName());
-    return sb.toString();
-  }
 }

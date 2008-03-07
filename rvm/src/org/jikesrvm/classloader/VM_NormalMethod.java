@@ -150,7 +150,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    */
   VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr, short mo, VM_TypeReference[] et, short lw, short ow,
                   byte[] bc, VM_ExceptionHandlerMap eMap, int[] lm, int[] constantPool, VM_Atom sig,
-                  VM_Annotation[] annotations, VM_Annotation[] parameterAnnotations, Object ad) {
+                  VM_Annotation[] annotations, VM_Annotation[][] parameterAnnotations, Object ad) {
     super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
     localWords = lw;
     operandWords = ow;

@@ -1,0 +1,1352 @@
+Index: java/lang/reflect/Constructor.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/reflect/Constructor.java,v
+retrieving revision 1.6
+diff -u -3 -p -u -r1.6 Constructor.java
+--- java/lang/reflect/Constructor.java	3 Mar 2008 18:59:10 -0000	1.6
++++ java/lang/reflect/Constructor.java	3 Mar 2008 21:15:40 -0000
+@@ -44,7 +44,6 @@ import gnu.java.lang.CPStringBuilder;
+ import gnu.java.lang.reflect.MethodSignatureParser;
+ 
+ import java.lang.annotation.Annotation;
+-import java.util.Arrays;
+ 
+ /**
+  * The Constructor class represents a constructor of a class. It also allows
+@@ -82,22 +81,20 @@ import java.util.Arrays;
+ public final class Constructor<T>
+   extends AccessibleObject
+   implements GenericDeclaration, Member
+-{
+-  Class<T> clazz;
+-  int slot;
+-  
+-  static final int CONSTRUCTOR_MODIFIERS
++{  
++  private static final int CONSTRUCTOR_MODIFIERS
+     = Modifier.PRIVATE | Modifier.PROTECTED | Modifier.PUBLIC;
+ 
+   private MethodSignatureParser p;
+ 
++  private VMConstructor cons;
++
+   /**
+    * This class is uninstantiable outside this package.
+    */
+-  Constructor(Class<T> declaringClass,int slot)
++  Constructor(VMConstructor cons)
+   {
+-    this.clazz = declaringClass;
+-    this.slot = slot;
++    this.cons = cons;
+   }
+ 
+   private Constructor()
+@@ -108,9 +105,10 @@ public final class Constructor<T>
+    * Gets the class that declared this constructor.
+    * @return the class that declared this member
+    */
++  @SuppressWarnings("unchecked")
+   public Class<T> getDeclaringClass()
+   {
+-    return clazz;
++    return (Class<T>) cons.getDeclaringClass();
+   }
+ 
+   /**
+@@ -120,7 +118,7 @@ public final class Constructor<T>
+    */
+   public String getName()
+   {
+-    return getDeclaringClass().getName();
++    return cons.getDeclaringClass().getName();
+   }
+ 
+   /**
+@@ -133,7 +131,7 @@ public final class Constructor<T>
+    */
+   public int getModifiers()
+   {
+-    return VMConstructor.getModifiersInternal(this) & CONSTRUCTOR_MODIFIERS;
++    return cons.getModifiersInternal() & CONSTRUCTOR_MODIFIERS;
+   }
+ 
+   /**
+@@ -144,7 +142,7 @@ public final class Constructor<T>
+    */
+   public boolean isSynthetic()
+   {
+-    return (VMConstructor.getModifiersInternal(this) & Modifier.SYNTHETIC) != 0;
++    return (cons.getModifiersInternal() & Modifier.SYNTHETIC) != 0;
+   }
+ 
+   /**
+@@ -154,7 +152,7 @@ public final class Constructor<T>
+    */
+   public boolean isVarArgs()
+   {
+-    return (VMConstructor.getModifiersInternal(this) & Modifier.VARARGS) != 0;
++    return (cons.getModifiersInternal() & Modifier.VARARGS) != 0;
+   }
+ 
+   /**
+@@ -166,7 +164,7 @@ public final class Constructor<T>
+   @SuppressWarnings("unchecked")
+   public Class<?>[] getParameterTypes()
+   {
+-    return (Class<?>[]) VMConstructor.getParameterTypes(this);
++    return (Class<?>[]) cons.getParameterTypes();
+   }
+ 
+   /**
+@@ -179,7 +177,7 @@ public final class Constructor<T>
+   @SuppressWarnings("unchecked")
+   public Class<?>[] getExceptionTypes()
+   {
+-    return (Class<?>[]) VMConstructor.getExceptionTypes(this);
++    return (Class<?>[]) cons.getExceptionTypes();
+   }
+ 
+   /**
+@@ -194,14 +192,7 @@ public final class Constructor<T>
+    */
+   public boolean equals(Object o)
+   {
+-    if (!(o instanceof Constructor))
+-      return false;
+-    Constructor that = (Constructor)o; 
+-    if (this.getDeclaringClass() != that.getDeclaringClass())
+-      return false;
+-    if (!Arrays.equals(this.getParameterTypes(), that.getParameterTypes()))
+-      return false;
+-    return true;
++    return cons.equals(o);
+   }
+ 
+   /**
+@@ -212,7 +203,7 @@ public final class Constructor<T>
+    */
+   public int hashCode()
+   {
+-    return getDeclaringClass().getName().hashCode();
++    return getName().hashCode();
+   }
+ 
+   /**
+@@ -323,7 +314,7 @@ public final class Constructor<T>
+     throws InstantiationException, IllegalAccessException,
+            InvocationTargetException
+   {
+-    return (T) VMConstructor.constructNative(args, clazz, slot);
++    return (T) cons.construct(args);
+   }
+ 
+   /**
+@@ -342,7 +333,7 @@ public final class Constructor<T>
+   {
+     if (p == null)
+       {
+-	String sig = VMConstructor.getSignature(this);
++	String sig = cons.getSignature();
+ 	if (sig == null)
+ 	  return new TypeVariable[0];
+ 	p = new MethodSignatureParser(this, sig);
+@@ -366,7 +357,7 @@ public final class Constructor<T>
+   {
+     if (p == null)
+       {
+-	String sig = VMConstructor.getSignature(this);
++	String sig = cons.getSignature();
+ 	if (sig == null)
+ 	  return getExceptionTypes();
+ 	p = new MethodSignatureParser(this, sig);
+@@ -390,7 +381,7 @@ public final class Constructor<T>
+   {
+     if (p == null)
+       {
+-	String sig = VMConstructor.getSignature(this);
++	String sig = cons.getSignature();
+ 	if (sig == null)
+ 	  return getParameterTypes();
+ 	p = new MethodSignatureParser(this, sig);
+@@ -420,7 +411,7 @@ public final class Constructor<T>
+    */
+   public Annotation[][] getParameterAnnotations()
+   {
+-    return VMConstructor.getParameterAnnotations(this);
++    return cons.getParameterAnnotations();
+   }
+ 
+ }
+Index: java/lang/reflect/Field.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/reflect/Field.java,v
+retrieving revision 1.6
+diff -u -3 -p -u -r1.6 Field.java
+--- java/lang/reflect/Field.java	3 Mar 2008 18:59:10 -0000	1.6
++++ java/lang/reflect/Field.java	3 Mar 2008 21:15:40 -0000
+@@ -79,10 +79,6 @@ import gnu.java.lang.reflect.FieldSignat
+ public final class Field
+ extends AccessibleObject implements Member
+ {
+-  Class declaringClass;
+-  String name;
+-  int slot;
+-
+   static final int FIELD_MODIFIERS
+     = Modifier.FINAL | Modifier.PRIVATE | Modifier.PROTECTED
+       | Modifier.PUBLIC | Modifier.STATIC | Modifier.TRANSIENT
+@@ -90,14 +86,14 @@ extends AccessibleObject implements Memb
+ 
+   private FieldSignatureParser p;
+ 
++  private VMField f;
++
+   /**
+    * This class is uninstantiable outside the package.
+    */
+-  Field(Class declaringClass, String name, int slot)
++  Field(VMField f)
+   {
+-    this.declaringClass = declaringClass;
+-    this.name = name;
+-    this.slot = slot;
++    this.f = f;
+   }
+ 
+   /**
+@@ -105,9 +101,10 @@ extends AccessibleObject implements Memb
+    * is a non-inherited member.
+    * @return the class that declared this member
+    */
++  @SuppressWarnings("unchecked")
+   public Class<?> getDeclaringClass()
+   {
+-    return declaringClass;
++    return (Class<?>) f.getDeclaringClass();
+   }
+ 
+   /**
+@@ -116,7 +113,7 @@ extends AccessibleObject implements Memb
+    */
+   public String getName()
+   {
+-    return name;
++    return f.getName();
+   }
+ 
+   /**
+@@ -130,7 +127,7 @@ extends AccessibleObject implements Memb
+    */
+   public int getModifiers()
+   {
+-    return VMField.getModifiersInternal(this) & FIELD_MODIFIERS;
++    return f.getModifiersInternal() & FIELD_MODIFIERS;
+   }
+ 
+   /**
+@@ -139,7 +136,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean isSynthetic()
+   {
+-    return (VMField.getModifiersInternal(this) & Modifier.SYNTHETIC) != 0;
++    return (f.getModifiersInternal() & Modifier.SYNTHETIC) != 0;
+   }
+ 
+   /**
+@@ -149,7 +146,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean isEnumConstant()
+   {
+-    return (VMField.getModifiersInternal(this) & Modifier.ENUM) != 0;
++    return (f.getModifiersInternal() & Modifier.ENUM) != 0;
+   }
+ 
+   /**
+@@ -158,7 +155,7 @@ extends AccessibleObject implements Memb
+    */
+   public Class<?> getType()
+   {
+-    return VMField.getType(this);
++    return f.getType();
+   }
+ 
+   /**
+@@ -172,16 +169,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean equals(Object o)
+   {
+-    if (!(o instanceof Field))
+-      return false;
+-    Field that = (Field)o; 
+-    if (this.getDeclaringClass() != that.getDeclaringClass())
+-      return false;
+-    if (!this.getName().equals(that.getName()))
+-      return false;
+-    if (this.getType() != that.getType())
+-      return false;
+-    return true;
++    return f.equals(o);
+   }
+ 
+   /**
+@@ -192,7 +180,7 @@ extends AccessibleObject implements Memb
+    */
+   public int hashCode()
+   {
+-    return getDeclaringClass().getName().hashCode() ^ getName().hashCode();
++    return f.getDeclaringClass().getName().hashCode() ^ f.getName().hashCode();
+   }
+ 
+   /**
+@@ -267,7 +255,7 @@ extends AccessibleObject implements Memb
+   public Object get(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.get(this, o);
++    return f.get(o);
+   }
+ 
+   /**
+@@ -290,7 +278,7 @@ extends AccessibleObject implements Memb
+   public boolean getBoolean(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getBoolean(this, o);
++    return f.getBoolean(o);
+   }
+ 
+   /**
+@@ -313,7 +301,7 @@ extends AccessibleObject implements Memb
+   public byte getByte(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getByte(this, o);
++    return f.getByte(o);
+   }
+ 
+   /**
+@@ -334,7 +322,7 @@ extends AccessibleObject implements Memb
+   public char getChar(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getChar(this, o);
++    return f.getChar(o);
+   }
+ 
+   /**
+@@ -357,7 +345,7 @@ extends AccessibleObject implements Memb
+   public short getShort(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getShort(this, o);
++    return f.getShort(o);
+   }
+ 
+   /**
+@@ -380,7 +368,7 @@ extends AccessibleObject implements Memb
+   public int getInt(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getInt(this, o);
++    return f.getInt(o);
+   }
+ 
+   /**
+@@ -403,7 +391,7 @@ extends AccessibleObject implements Memb
+   public long getLong(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getLong(this, o);
++    return f.getLong(o);
+   }
+ 
+   /**
+@@ -426,7 +414,7 @@ extends AccessibleObject implements Memb
+   public float getFloat(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getFloat(this, o);
++    return f.getFloat(o);
+   }
+ 
+   /**
+@@ -450,7 +438,7 @@ extends AccessibleObject implements Memb
+   public double getDouble(Object o)
+     throws IllegalAccessException
+   {
+-    return VMField.getDouble(this, o);
++    return f.getDouble(o);
+   }
+ 
+   /**
+@@ -501,7 +489,7 @@ extends AccessibleObject implements Memb
+   public void set(Object o, Object value)
+     throws IllegalAccessException
+   {
+-    VMField.set(this, o, value);
++    f.set(o, value);
+   }
+ 
+   /**
+@@ -524,7 +512,7 @@ extends AccessibleObject implements Memb
+   public void setBoolean(Object o, boolean value)
+     throws IllegalAccessException
+   {
+-    VMField.setBoolean(this, o, value);
++    f.setBoolean(o, value);
+   }
+ 
+   /**
+@@ -547,7 +535,7 @@ extends AccessibleObject implements Memb
+   public void setByte(Object o, byte value)
+     throws IllegalAccessException
+   {
+-    VMField.setByte(this, o, value);
++    f.setByte(o, value);
+   }
+ 
+   /**
+@@ -570,7 +558,7 @@ extends AccessibleObject implements Memb
+   public void setChar(Object o, char value)
+     throws IllegalAccessException
+   {
+-    VMField.setChar(this, o, value);
++    f.setChar(o, value);
+   }
+ 
+   /**
+@@ -593,7 +581,7 @@ extends AccessibleObject implements Memb
+   public void setShort(Object o, short value)
+     throws IllegalAccessException
+   {
+-    VMField.setShort(this, o, value);
++    f.setShort(o, value);
+   }
+ 
+   /**
+@@ -616,7 +604,7 @@ extends AccessibleObject implements Memb
+   public void setInt(Object o, int value)
+     throws IllegalAccessException
+   {
+-    VMField.setInt(this, o, value);
++    f.setInt(o, value);
+   }
+ 
+   /**
+@@ -639,7 +627,7 @@ extends AccessibleObject implements Memb
+   public void setLong(Object o, long value)
+     throws IllegalAccessException
+   {
+-    VMField.setLong(this, o, value);
++    f.setLong(o, value);
+   }
+ 
+   /**
+@@ -662,7 +650,7 @@ extends AccessibleObject implements Memb
+   public void setFloat(Object o, float value)
+     throws IllegalAccessException
+   {
+-    VMField.setFloat(this, o, value);
++    f.setFloat(o, value);
+   }
+ 
+   /**
+@@ -685,7 +673,7 @@ extends AccessibleObject implements Memb
+   public void setDouble(Object o, double value)
+     throws IllegalAccessException
+   {
+-    VMField.setDouble(this, o, value);
++    f.setDouble(o, value);
+   }
+ 
+   /**
+@@ -701,7 +689,7 @@ extends AccessibleObject implements Memb
+   {
+     if (p == null)
+       {
+-	String signature = VMField.getSignature(this);
++	String signature = f.getSignature();
+ 	if (signature == null)
+ 	  return getType();
+ 	p = new FieldSignatureParser(getDeclaringClass(),
+Index: java/lang/reflect/Method.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/reflect/Method.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 Method.java
+--- java/lang/reflect/Method.java	3 Mar 2008 18:59:10 -0000	1.5
++++ java/lang/reflect/Method.java	3 Mar 2008 21:15:40 -0000
+@@ -44,7 +44,6 @@ import gnu.java.lang.CPStringBuilder;
+ import gnu.java.lang.reflect.MethodSignatureParser;
+ 
+ import java.lang.annotation.Annotation;
+-import java.util.Arrays;
+ 
+ /**
+  * The Method class represents a member method of a class. It also allows
+@@ -82,25 +81,21 @@ import java.util.Arrays;
+ public final class Method
+ extends AccessibleObject implements Member, GenericDeclaration
+ {
+-  Class declaringClass;
+-  String name;
+-  int slot;
+-
+-  static final int METHOD_MODIFIERS
++  private static final int METHOD_MODIFIERS
+     = Modifier.ABSTRACT | Modifier.FINAL | Modifier.NATIVE
+       | Modifier.PRIVATE | Modifier.PROTECTED | Modifier.PUBLIC
+       | Modifier.STATIC | Modifier.STRICT | Modifier.SYNCHRONIZED;
+ 
+   private MethodSignatureParser p;
+ 
++  private VMMethod m;
++
+   /**
+    * This class is uninstantiable outside this package.
+    */
+-  Method(Class declaringClass, String name, int slot)
++  Method(VMMethod m)
+   {
+-    this.declaringClass = declaringClass;
+-    this.name = name;
+-    this.slot = slot;
++    this.m = m;
+   }
+ 
+   /**
+@@ -108,9 +103,10 @@ extends AccessibleObject implements Memb
+    * is a non-inherited member.
+    * @return the class that declared this member
+    */
++  @SuppressWarnings("unchecked")
+   public Class<?> getDeclaringClass()
+   {
+-    return declaringClass;
++    return (Class<?>) m.getDeclaringClass();
+   }
+ 
+   /**
+@@ -119,7 +115,7 @@ extends AccessibleObject implements Memb
+    */
+   public String getName()
+   {
+-    return name;
++    return m.getName();
+   }
+ 
+   /**
+@@ -133,7 +129,7 @@ extends AccessibleObject implements Memb
+    */
+   public int getModifiers()
+   {
+-    return VMMethod.getModifiersInternal(this) & METHOD_MODIFIERS;
++    return m.getModifiersInternal() & METHOD_MODIFIERS;
+   }
+ 
+   /**
+@@ -144,7 +140,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean isBridge()
+   {
+-    return (VMMethod.getModifiersInternal(this) & Modifier.BRIDGE) != 0;
++    return (m.getModifiersInternal() & Modifier.BRIDGE) != 0;
+   }
+ 
+   /**
+@@ -153,7 +149,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean isSynthetic()
+   {
+-    return (VMMethod.getModifiersInternal(this) & Modifier.SYNTHETIC) != 0;
++    return (m.getModifiersInternal() & Modifier.SYNTHETIC) != 0;
+   }
+ 
+   /**
+@@ -163,7 +159,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean isVarArgs()
+   {
+-    return (VMMethod.getModifiersInternal(this) & Modifier.VARARGS) != 0;
++    return (m.getModifiersInternal() & Modifier.VARARGS) != 0;
+   }
+ 
+   /**
+@@ -173,7 +169,7 @@ extends AccessibleObject implements Memb
+   @SuppressWarnings("unchecked")
+   public Class<?> getReturnType()
+   {
+-    return (Class<?>) VMMethod.getReturnType(this);
++    return (Class<?>) m.getReturnType();
+   }
+ 
+   /**
+@@ -185,7 +181,7 @@ extends AccessibleObject implements Memb
+   @SuppressWarnings("unchecked")
+   public Class<?>[] getParameterTypes()
+   {
+-    return (Class<?>[]) VMMethod.getParameterTypes(this);
++    return (Class<?>[]) m.getParameterTypes();
+   }
+ 
+   /**
+@@ -198,7 +194,7 @@ extends AccessibleObject implements Memb
+   @SuppressWarnings("unchecked")
+   public Class<?>[] getExceptionTypes()
+   {
+-    return (Class<?>[]) VMMethod.getExceptionTypes(this);
++    return (Class<?>[]) m.getExceptionTypes();
+   }
+ 
+   /**
+@@ -211,38 +207,7 @@ extends AccessibleObject implements Memb
+    */
+   public boolean equals(Object o)
+   {
+-      // Implementation note:
+-      // The following is a correct but possibly slow implementation.
+-      //
+-      // This class has a private field 'slot' that could be used by
+-      // the VM implementation to "link" a particular method to a Class.
+-      // In that case equals could be simply implemented as:
+-      //
+-      // if (o instanceof Method)
+-      // {
+-      //    Method m = (Method)o;
+-      //    return m.declaringClass == this.declaringClass
+-      //           && m.slot == this.slot;
+-      // }
+-      // return false;
+-      //
+-      // If a VM uses the Method class as their native/internal representation
+-      // then just using the following would be optimal:
+-      //
+-      // return this == o;
+-      //
+-    if (!(o instanceof Method))
+-      return false;
+-    Method that = (Method)o;
+-    if (this.getDeclaringClass() != that.getDeclaringClass())
+-      return false;
+-    if (!this.getName().equals(that.getName()))
+-      return false;
+-    if (this.getReturnType() != that.getReturnType())
+-      return false;
+-    if (!Arrays.equals(this.getParameterTypes(), that.getParameterTypes()))
+-      return false;
+-    return true;
++    return m.equals(o);
+   }
+ 
+   /**
+@@ -253,7 +218,7 @@ extends AccessibleObject implements Memb
+    */
+   public int hashCode()
+   {
+-    return getDeclaringClass().getName().hashCode() ^ getName().hashCode();
++    return m.getDeclaringClass().getName().hashCode() ^ m.getName().hashCode();
+   }
+ 
+   /**
+@@ -362,7 +327,7 @@ extends AccessibleObject implements Memb
+   public Object invoke(Object o, Object... args)
+     throws IllegalAccessException, InvocationTargetException
+   {
+-    return VMMethod.invokeNative(o, args, declaringClass, slot);
++    return m.invoke(o, args);
+   }
+ 
+   /**
+@@ -381,7 +346,7 @@ extends AccessibleObject implements Memb
+   {
+     if (p == null)
+       {
+-	String sig = VMMethod.getSignature(this);
++	String sig = m.getSignature();
+ 	if (sig == null)
+ 	  return (TypeVariable<Method>[]) new TypeVariable[0];
+ 	p = new MethodSignatureParser(this, sig);
+@@ -405,7 +370,7 @@ extends AccessibleObject implements Memb
+   {
+     if (p == null)
+       {
+-	String sig = VMMethod.getSignature(this);
++	String sig = m.getSignature();
+ 	if (sig == null)
+ 	  return getExceptionTypes();
+ 	p = new MethodSignatureParser(this, sig);
+@@ -429,7 +394,7 @@ extends AccessibleObject implements Memb
+   {
+     if (p == null)
+       {
+-	String sig = VMMethod.getSignature(this);
++	String sig = m.getSignature();
+ 	if (sig == null)
+ 	  return getParameterTypes();
+ 	p = new MethodSignatureParser(this, sig);
+@@ -450,7 +415,7 @@ extends AccessibleObject implements Memb
+   {
+     if (p == null)
+       {
+-	String sig = VMMethod.getSignature(this);
++	String sig = m.getSignature();
+ 	if (sig == null)
+ 	  return getReturnType();
+ 	p = new MethodSignatureParser(this, sig);
+@@ -471,7 +436,7 @@ extends AccessibleObject implements Memb
+    */
+   public Object getDefaultValue()
+   {
+-    return VMMethod.getDefaultValue(this);
++    return m.getDefaultValue();
+   }
+ 
+   /**
+@@ -496,7 +461,7 @@ extends AccessibleObject implements Memb
+    */
+   public Annotation[][] getParameterAnnotations()
+   {
+-    return VMMethod.getParameterAnnotations(this);
++    return m.getParameterAnnotations();
+   }
+ 
+ }
+Index: vm/reference/java/lang/reflect/VMConstructor.java
+===================================================================
+RCS file: /sources/classpath/classpath/vm/reference/java/lang/reflect/VMConstructor.java,v
+retrieving revision 1.1
+diff -u -3 -p -u -r1.1 VMConstructor.java
+--- vm/reference/java/lang/reflect/VMConstructor.java	3 Mar 2008 18:59:11 -0000	1.1
++++ vm/reference/java/lang/reflect/VMConstructor.java	3 Mar 2008 21:15:47 -0000
+@@ -40,46 +40,57 @@ package java.lang.reflect;
+ 
+ import java.lang.annotation.Annotation;
+ 
++import java.util.Arrays;
++
+ final class VMConstructor
+ {
++  Class clazz;
++  int slot;
++
++  VMConstructor(Class clazz, int slot)
++  {
++    this.clazz = clazz;
++    this.slot = slot;
++  }
++
++  public Class getDeclaringClass()
++  {
++    return clazz;
++  }
++
+   /**
+    * Return the raw modifiers for this constructor.  In particular
+    * this will include the synthetic and varargs bits.
+-   * @param c the constructor concerned.
+    * @return the constructor's modifiers
+    */
+-  static native int getModifiersInternal(Constructor c);
++  native int getModifiersInternal();
+ 
+   /**
+    * Get the parameter list for this constructor, in declaration order. If the
+    * constructor takes no parameters, returns a 0-length array (not null).
+    *
+-   * @param c the constructor concerned.
+    * @return a list of the types of the constructor's parameters
+    */
+-  static native Class[] getParameterTypes(Constructor c);
++  native Class[] getParameterTypes();
+ 
+   /**
+    * Get the exception types this constructor says it throws, in no particular
+    * order. If the constructor has no throws clause, returns a 0-length array
+    * (not null).
+    *
+-   * @param c the constructor concerned.
+    * @return a list of the types in the constructor's throws clause
+    */
+-  static native Class[] getExceptionTypes(Constructor c);
++  native Class[] getExceptionTypes();
+ 
+-  static native Object constructNative(Object[] args, Class declaringClass,
+-				       int slot)
++  native Object construct(Object[] args)
+     throws InstantiationException, IllegalAccessException,
+     InvocationTargetException;
+ 
+   /**
+    * Return the String in the Signature attribute for this constructor. If there
+    * is no Signature attribute, return null.
+-   * @param c the constructor concerned.
+    */
+-  static native String getSignature(Constructor c);
++  native String getSignature();
+   
+   /**
+    * <p>
+@@ -96,12 +107,33 @@ final class VMConstructor
+    * no affect on the return value of future calls to this method.
+    * </p>
+    * 
+-   * @param c the constructor concerned.
+    * @return an array of arrays which represents the annotations used on the
+    *         parameters of this constructor.  The order of the array elements
+    *         matches the declaration order of the parameters.
+    * @since 1.5
+    */
+-  static native Annotation[][] getParameterAnnotations(Constructor c);
++  native Annotation[][] getParameterAnnotations();
++
++  /**
++   * Compare two objects to see if they are semantically equivalent.
++   * Two Constructors are semantically equivalent if they have the same
++   * declaring class and the same parameter list.  This ignores different
++   * exception clauses, but since you can't create a Method except through the
++   * VM, this is just the == relation.
++   *
++   * @param o the object to compare to
++   * @return <code>true</code> if they are equal; <code>false</code> if not.
++   */
++  public boolean equals(Object o)
++  {
++    if (!(o instanceof Constructor))
++      return false;
++    Constructor that = (Constructor)o; 
++    if (clazz != that.getDeclaringClass())
++      return false;
++    if (!Arrays.equals(getParameterTypes(), that.getParameterTypes()))
++      return false;
++    return true;
++  }
+ 
+ }
+Index: vm/reference/java/lang/reflect/VMField.java
+===================================================================
+RCS file: /sources/classpath/classpath/vm/reference/java/lang/reflect/VMField.java,v
+retrieving revision 1.1
+diff -u -3 -p -u -r1.1 VMField.java
+--- vm/reference/java/lang/reflect/VMField.java	3 Mar 2008 18:59:11 -0000	1.1
++++ vm/reference/java/lang/reflect/VMField.java	3 Mar 2008 21:15:47 -0000
+@@ -40,20 +40,38 @@ package java.lang.reflect;
+ 
+ final class VMField
+ {
++  Class declaringClass;
++  String name;
++  int slot;
++
++  VMField(Class declaringClass, String name, int slot)
++  {
++    this.declaringClass = declaringClass;
++    this.name = name;
++    this.slot = slot;
++  }
++
++  public Class getDeclaringClass()
++  {
++    return declaringClass;
++  }
++
++  public String getName()
++  {
++    return name;
++  }
+ 
+   /**
+    * Return the raw modifiers for this field.
+-   * @param f the field concerned.
+    * @return the field's modifiers
+    */
+-  static native int getModifiersInternal(Field f);
++  native int getModifiersInternal();
+ 
+   /**
+    * Gets the type of this field.
+-   * @param f the field concerned.
+    * @return the type of this field
+    */
+-  static native Class getType(Field f);
++  native Class getType();
+ 
+   /**
+    * Get the value of this Field.  If it is primitive, it will be wrapped
+@@ -76,7 +94,6 @@ final class VMField
+    * declaring class, even if the instance passed in belongs to a subclass
+    * which declares another field to hide this one.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -96,14 +113,13 @@ final class VMField
+    * @see #getFloat(Object)
+    * @see #getDouble(Object)
+    */
+-  static native Object get(Field f, Object o)
++  native Object get(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this boolean Field. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -117,14 +133,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native boolean getBoolean(Field f, Object o)
++  native boolean getBoolean(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this byte Field. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -138,14 +153,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native byte getByte(Field f, Object o)
++  native byte getByte(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this Field as a char. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @throws IllegalAccessException if you could not normally access this field
+    *         (i.e. it is not public)
+@@ -158,14 +172,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native char getChar(Field f, Object o)
++  native char getChar(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this Field as a short. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -179,14 +192,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native short getShort(Field f, Object o)
++  native short getShort(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this Field as an int. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -200,14 +212,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native int getInt(Field f, Object o)
++  native int getInt(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this Field as a long. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -221,14 +232,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native long getLong(Field f, Object o)
++  native long getLong(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this Field as a float. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -242,14 +252,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native float getFloat(Field f, Object o)
++  native float getFloat(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+    * Get the value of this Field as a double. If the field is static,
+    * <code>o</code> will be ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to get the value of this Field from
+    * @return the value of the Field
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -264,7 +273,7 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #get(Object)
+    */
+-  static native double getDouble(Field f, Object o)
++  native double getDouble(Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -291,7 +300,6 @@ final class VMField
+    * the field of the declaring class, even if the instance passed in belongs
+    * to a subclass which declares another field to hide this one.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -313,14 +321,13 @@ final class VMField
+    * @see #setFloat(Object, float)
+    * @see #setDouble(Object, double)
+    */
+-  static native void set(Field f, Object o, Object value)
++  native void set(Object o, Object value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this boolean Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -334,14 +341,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setBoolean(Field f, Object o, boolean value)
++  native void setBoolean(Object o, boolean value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this byte Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -355,14 +361,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setByte(Field f, Object o, byte value)
++  native void setByte(Object o, byte value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this char Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -376,14 +381,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setChar(Field f, Object o, char value)
++  native void setChar(Object o, char value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this short Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -397,14 +401,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setShort(Field f, Object o, short value)
++  native void setShort(Object o, short value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this int Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -418,14 +421,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setInt(Field f, Object o, int value)
++  native void setInt(Object o, int value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this long Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -439,14 +441,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setLong(Field f, Object o, long value)
++  native void setLong(Object o, long value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this float Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -460,14 +461,13 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setFloat(Field f, Object o, float value)
++  native void setFloat(Object o, float value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Set this double Field. If the field is static, <code>o</code> will be
+    * ignored.
+    *
+-   * @param f the field concerned.
+    * @param o the object to set this Field on
+    * @param value the value to set this Field to
+    * @throws IllegalAccessException if you could not normally access this field
+@@ -481,15 +481,37 @@ final class VMField
+    *         class initialization, which then failed
+    * @see #set(Object, Object)
+    */
+-  static native void setDouble(Field f, Object o, double value)
++  native void setDouble(Object o, double value)
+     throws IllegalAccessException;
+ 
+   /**
+    * Return the String in the Signature attribute for this field. If there
+    * is no Signature attribute, return null.
+    *
+-   * @param f the field concerned.
+    */
+-  static native String getSignature(Field f);
++  native String getSignature();
++
++  /**
++   * Compare two objects to see if they are semantically equivalent.
++   * Two Fields are semantically equivalent if they have the same declaring
++   * class, name, and type. Since you can't create a Field except through
++   * the VM, this is just the == relation.
++   *
++   * @param o the object to compare to
++   * @return <code>true</code> if they are equal; <code>false</code> if not
++   */
++  public boolean equals(Object o)
++  {
++    if (!(o instanceof Field))
++      return false;
++    Field that = (Field)o; 
++    if (declaringClass != that.getDeclaringClass())
++      return false;
++    if (!name.equals(that.getName()))
++      return false;
++    if (getType() != that.getType())
++      return false;
++    return true;
++  }
+ 
+ }
+Index: vm/reference/java/lang/reflect/VMMethod.java
+===================================================================
+RCS file: /sources/classpath/classpath/vm/reference/java/lang/reflect/VMMethod.java,v
+retrieving revision 1.1
+diff -u -3 -p -u -r1.1 VMMethod.java
+--- vm/reference/java/lang/reflect/VMMethod.java	3 Mar 2008 18:59:11 -0000	1.1
++++ vm/reference/java/lang/reflect/VMMethod.java	3 Mar 2008 21:15:47 -0000
+@@ -40,51 +40,61 @@ package java.lang.reflect;
+ 
+ import java.lang.annotation.Annotation;
+ 
++import java.util.Arrays;
++
+ final class VMMethod
+ {
++  Class declaringClass;
++  String name;
++  int slot;
++
++  public Class getDeclaringClass()
++  {
++    return declaringClass;
++  }
++
++  public String getName()
++  {
++    return name;
++  }
++
+   /**
+    * Return the raw modifiers for this method.
+-   * @param m the method concerned.
+    * @return the method's modifiers
+    */
+-  static native int getModifiersInternal(Method m);
++  native int getModifiersInternal();
+ 
+   /**
+    * Gets the return type of this method.
+-   * @param m the method concerned.
+    * @return the type of this method
+    */
+-  static native Class getReturnType(Method m);
++  native Class getReturnType();
+ 
+   /**
+    * Get the parameter list for this method, in declaration order. If the
+    * method takes no parameters, returns a 0-length array (not null).
+    *
+-   * @param m the method concerned.
+    * @return a list of the types of the method's parameters
+    */
+-  static native Class[] getParameterTypes(Method m);
++  native Class[] getParameterTypes();
+ 
+   /**
+    * Get the exception types this method says it throws, in no particular
+    * order. If the method has no throws clause, returns a 0-length array
+    * (not null).
+    *
+-   * @param m the method concerned.
+    * @return a list of the types in the method's throws clause
+    */
+-  static native Class[] getExceptionTypes(Method m);
++  native Class[] getExceptionTypes();
+ 
+-  static native Object invokeNative(Object o, Object[] args,
+-				    Class declaringClass, int slot)
++  native Object invoke(Object o, Object[] args)
+     throws IllegalAccessException, InvocationTargetException;
+ 
+   /**
+    * Return the String in the Signature attribute for this method. If there
+    * is no Signature attribute, return null.
+-   * @param m the method concerned.
+    */
+-  static native String getSignature(Method m);
++  native String getSignature();
+ 
+   /**
+    * If this method is an annotation method, returns the default
+@@ -92,13 +102,12 @@ final class VMMethod
+    * method is not a member of an annotation type, returns null.
+    * Primitive types are wrapped.
+    *
+-   * @param m the method concerned.
+    * @throws TypeNotPresentException if the method returns a Class,
+    * and the class cannot be found
+    *
+    * @since 1.5
+    */
+-  static native Object getDefaultValue(Method m);
++  native Object getDefaultValue();
+ 
+   /**
+    * <p>
+@@ -115,13 +124,56 @@ final class VMMethod
+    * no affect on the return value of future calls to this method.
+    * </p>
+    * 
+-   * @param m the method concerned.
+    * @return an array of arrays which represents the annotations used on the
+    *         parameters of this method.  The order of the array elements
+    *         matches the declaration order of the parameters.
+    * @since 1.5
+    */
+-  static native Annotation[][] getParameterAnnotations(Method m);
++  native Annotation[][] getParameterAnnotations();
++
++  /**
++   * Compare two objects to see if they are semantically equivalent.
++   * Two Methods are semantically equivalent if they have the same declaring
++   * class, name, parameter list, and return type.
++   *
++   * @param o the object to compare to
++   * @return <code>true</code> if they are equal; <code>false</code> if not
++   */
++  public boolean equals(Object o)
++  {
++      // Implementation note:
++      // The following is a correct but possibly slow implementation.
++      //
++      // This class has a private field 'slot' that could be used by
++      // the VM implementation to "link" a particular method to a Class.
++      // In that case equals could be simply implemented as:
++      //
++      // if (o instanceof Method)
++      // {
++      //    Method m = (Method)o;
++      //    return m.declaringClass == this.declaringClass
++      //           && m.slot == this.slot;
++      // }
++      // return false;
++      //
++      // If a VM uses the Method class as their native/internal representation
++      // then just using the following would be optimal:
++      //
++      // return this == o;
++      //
++    if (!(o instanceof Method))
++      return false;
++    Method that = (Method)o;
++    if (declaringClass != that.getDeclaringClass())
++      return false;
++    if (!name.equals(that.getName()))
++      return false;
++    if (getReturnType() != that.getReturnType())
++      return false;
++    if (!Arrays.equals(getParameterTypes(), that.getParameterTypes()))
++      return false;
++    return true;
++  }
+ 
+ }
+ 

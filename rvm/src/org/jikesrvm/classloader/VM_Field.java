@@ -92,7 +92,7 @@ public final class VM_Field extends VM_Member {
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else {
         // all other attributes are boring...
         input.skipBytes(attLength);

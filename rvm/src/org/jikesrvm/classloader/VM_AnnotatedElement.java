@@ -59,21 +59,12 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * that's being constructed
    * @param input the DataInputStream to read the method's attributes
    * from
-   * @param numAnnotationBytes how many bytes are there in the number
-   * of annotations field? Normally 2, but parameter annotations just
-   * have 1.
    * @return an array of read annotations
    */
-  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input, int numAnnotationBytes,
+  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input,
                                                    ClassLoader classLoader) throws IOException {
     try {
-      int numAnnotations;
-      if (numAnnotationBytes == 2) {
-        numAnnotations = input.readUnsignedShort();
-      } else {
-        if (VM.VerifyAssertions) VM._assert(numAnnotationBytes == 1);
-        numAnnotations = input.readByte() & 0xFF;
-      }
+      int numAnnotations = input.readUnsignedShort();
       final VM_Annotation[] annotations = new VM_Annotation[numAnnotations];
       for (int j = 0; j < numAnnotations; j++) {
         annotations[j] = VM_Annotation.readAnnotation(constantPool, input, classLoader);

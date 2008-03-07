@@ -27,23 +27,24 @@ import org.jikesrvm.runtime.VM_Runtime;
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
-public final class Method extends AccessibleObject implements Member, GenericDeclaration {
+final class VMMethod {
   final VM_Method method;
+  Method m;
 
    // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
-  private Method() {
+  private VMMethod() {
     method = null;
   }
 
   // For use by JikesRVMSupport
-  Method(VM_Method m) {
+  VMMethod(VM_Method m) {
     method = m;
   }
 
   public boolean equals(Object other) {
     if (other instanceof Method) {
-      return method == ((Method)other).method;
+      return method == ((Method)other).m.method;
     } else {
       return false;
     }
@@ -53,7 +54,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
     return method.getDeclaringClass().getClassForType();
   }
 
-  public Class<?>[] getExceptionTypes() {
+  Class<?>[] getExceptionTypes() {
     VM_TypeReference[] exceptionTypes = method.getExceptionTypes();
     if (exceptionTypes == null) {
       return new Class[0];
@@ -62,7 +63,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
     }
   }
 
-  public int getModifiers() {
+  int getModifiersInternal() {
     return method.getModifiers();
   }
 
@@ -70,36 +71,18 @@ public final class Method extends AccessibleObject implements Member, GenericDec
     return method.getName().toString();
   }
 
-  public Class<?>[] getParameterTypes() {
+  Class<?>[] getParameterTypes() {
     return JikesRVMSupport.typesToClasses(method.getParameterTypes());
   }
 
-  public boolean isSynthetic() {
-    return method.isSynthetic();
-  }
-
-  public boolean isBridge() {
-    return method.isBridge();
-  }
-
-  public boolean isVarArgs() {
-    return method.isVarArgs();
-  }
-
-  public Class<?> getReturnType() {
+  Class<?> getReturnType() {
     return method.getReturnType().resolve().getClassForType();
   }
 
-  public int hashCode() {
-    int code1 = getName().hashCode();
-    int code2 = method.getDeclaringClass().toString().hashCode();
-    return code1 ^ code2;
-  }
-
-  public Object invoke(Object receiver, Object[] args) throws IllegalAccessException,
-                                                              IllegalArgumentException,
-                                                              ExceptionInInitializerError,
-                                                              InvocationTargetException {
+  Object invoke(Object receiver, Object[] args) throws IllegalAccessException,
+						       IllegalArgumentException,
+						       ExceptionInInitializerError,
+						       InvocationTargetException {
     VM_Method method = this.method;
     VM_Class declaringClass = method.getDeclaringClass();
 
@@ -123,7 +106,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
     }
 
     // Accessibility checks
-    if (!method.isPublic() && !isAccessible()) {
+    if (!method.isPublic() && !m.isAccessible()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
       JikesRVMSupport.checkAccess(method, accessingClass);
     }
@@ -156,103 +139,27 @@ public final class Method extends AccessibleObject implements Member, GenericDec
      }
   }
 
-  public String toString() {
-    CPStringBuilder sb = new CPStringBuilder(128);
-    Modifier.toString(getModifiers(), sb).append(' ');
-    sb.append(JikesRVMHelpers.getUserName(getReturnType())).append(' ');
-    sb.append(getDeclaringClass().getName()).append('.');
-    sb.append(getName()).append('(');
-    Class<?>[] c = getParameterTypes();
-    if (c.length > 0) {
-        sb.append(JikesRVMHelpers.getUserName(c[0]));
-        for (int i = 1; i < c.length; i++) {
-          sb.append(',').append(JikesRVMHelpers.getUserName(c[i]));
-        }
-      }
-    sb.append(')');
-    c = getExceptionTypes();
-    if (c.length > 0) {
-        sb.append(" throws ").append(c[0].getName());
-        for (int i = 1; i < c.length; i++)
-          sb.append(',').append(c[i].getName());
-      }
-    return sb.toString();
-  }
-
   // AnnotatedElement interface
 
-  public Annotation[] getDeclaredAnnotations() {
+  Annotation[] getDeclaredAnnotations() {
     return method.getDeclaredAnnotations();
   }
 
-  public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+  <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     return method.getAnnotation(annotationClass);
   }
 
-  public Object getDefaultValue() {
+  Object getDefaultValue() {
+    /* FIXME: This should handle the case where this is an annotation method */
     return null;
   }
 
-  // Generics support
-
-  public TypeVariable<Method>[] getTypeParameters() {
-    VM_Atom sig = method.getSignature();
-    if (sig == null) {
-      return new TypeVariable[0];
-    } else {
-      return JikesRVMHelpers.getTypeParameters(this, sig);
-    }
+  String getSignature() {
+    return method.getSignature().toString();
   }
 
-  public Type[] getGenericExceptionTypes() {
-    VM_Atom sig = method.getSignature();
-    if (sig == null) {
-      return getExceptionTypes();
-    } else {
-      return JikesRVMHelpers.getGenericExceptionTypes(this, sig);
-    }
+  Annotation[][] getParameterAnnotations() {
+    return method.getDeclaredParameterAnnotations();
   }
 
-  public Type[] getGenericParameterTypes() {
-    VM_Atom sig = method.getSignature();
-    if (sig == null) {
-      return getParameterTypes();
-    } else {
-      return JikesRVMHelpers.getGenericParameterTypes(this, sig);
-    }
-  }
-
-  public Type getGenericReturnType() {
-    VM_Atom sig = method.getSignature();
-    if (sig == null) {
-      return getReturnType();
-    } else {
-      return JikesRVMHelpers.getGenericReturnType(this, sig);
-    }
-  }
-
-  public String toGenericString() {
-    CPStringBuilder sb = new CPStringBuilder(128);
-    Modifier.toString(getModifiers(), sb).append(' ');
-    Constructor.addTypeParameters(sb, getTypeParameters());
-    sb.append(getGenericReturnType()).append(' ');
-    sb.append(getDeclaringClass().getName()).append('.');
-    sb.append(getName()).append('(');
-    Type[] types = getGenericParameterTypes();
-    if (types.length > 0) {
-        sb.append(types[0]);
-        for (int i = 1; i < types.length; i++) {
-          sb.append(',').append(types[i]);
-        }
-      }
-    sb.append(')');
-    types = getGenericExceptionTypes();
-    if (types.length > 0) {
-        sb.append(" throws ").append(types[0]);
-        for (int i = 1; i < types.length; i++) {
-          sb.append(',').append(types[i]);
-        }
-      }
-    return sb.toString();
-  }
 }

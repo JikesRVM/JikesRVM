@@ -12,8 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
+import java.lang.annotation.Annotation;
+
 import java.io.DataInputStream;
 import java.io.IOException;
+
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.VM;
@@ -41,11 +44,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   protected final VM_TypeReference[] exceptionTypes;
   /**
-   * Method paramter annotations from the class file that are
+   * Method parameter annotations from the class file that are
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  protected final VM_Annotation[] parameterAnnotations;
+  protected final VM_Annotation[][] parameterAnnotations;
   /**
    * A value present in the method info tables of annotation types. It
    * represents the default result from an annotation method.
@@ -56,6 +59,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * there by constant propagation, otherwise 0.
    */
   private Offset jtocOffset;
+
+  /** Cached array of declared parameter annotations. */
+  private Annotation[][] declaredParameterAnnotations;
 
   /**
    * Construct a read method
@@ -71,7 +77,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
                       VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
-                      VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+                      VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     this.parameterAnnotations = parameterAnnotations;
     this.annotationDefault = annotationDefault;
@@ -99,7 +105,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     int[] tmp_lineNumberMap = null;
     VM_Atom tmp_signature = null;
     VM_Annotation[] annotations = null;
-    VM_Annotation[] parameterAnnotations = null;
+    VM_Annotation[][] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
 
     // Read the attributes
@@ -148,10 +154,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
-        parameterAnnotations =
-            VM_AnnotatedElement.readAnnotations(constantPool, input, 1, declaringClass.getClassLoader());
+        int numParameters = input.readByte() & 0xFF;
+	parameterAnnotations = new VM_Annotation[numParameters][];
+	for (int a = 0; a < numParameters; ++a) {
+	  parameterAnnotations[a] = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
+	}
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
           tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
@@ -706,4 +715,17 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     }
     return jtocOffset;
   }
+
+  /**
+   * Returns the parameter annotations for this method.
+   */
+  public final Annotation[][] getDeclaredParameterAnnotations() {
+    if (declaredParameterAnnotations == null) {
+      declaredParameterAnnotations = new Annotation[parameterAnnotations.length][];
+      for (int a = 0; a < declaredParameterAnnotations.length; ++a)
+	declaredParameterAnnotations[a] = toAnnotations(parameterAnnotations[a]);
+    }
+    return declaredParameterAnnotations;
+  }
+
 }
