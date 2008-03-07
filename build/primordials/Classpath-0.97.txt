@@ -62,7 +62,6 @@ Lgnu/classpath/SystemProperties;
 Ljava/lang/reflect/Field;
 Ljava/lang/reflect/Method;
 Ljava/lang/reflect/Member;
-Ljava/lang/reflect/Modifier;
 Ljava/lang/reflect/VMConstructor;
 Ljava/lang/reflect/Constructor;
 Ljava/lang/reflect/AccessibleObject;
@@ -412,16 +411,10 @@ Ljava/io/BufferedReader;
 Ljava/io/Reader;
 Ljava/lang/Math;
 Ljava/io/Serializable;
-Ljava/util/Calendar;
-Ljava/util/GregorianCalendar;
 Ljava/util/Locale;
-Ljava/util/Date;
-Ljava/util/TimeZone;
-Ljava/util/TimeZone$1;
 
 ## No longer needed for class loading from Jars as of Classpath CVS head
 ## of Jan 23, 2005
-Ljava/util/SimpleTimeZone;
 Ljava/lang/Cloneable;
 Ljava/security/AccessController;
 Ljava/security/PrivilegedAction;

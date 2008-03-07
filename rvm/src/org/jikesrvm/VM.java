@@ -283,16 +283,12 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    runClassInitializer("java.util.SimpleTimeZone");
     runClassInitializer("java.util.Locale");
-    runClassInitializer("java.util.Calendar");
-    runClassInitializer("java.util.GregorianCalendar");
     runClassInitializer("java.util.ResourceBundle");
     runClassInitializer("java.util.zip.Inflater");
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    runClassInitializer("java.util.Date");
     runClassInitializer("java.lang.Throwable$StaticData");
     if (VM.BuildWithAllClasses) {
       runClassInitializer("java.util.jar.Attributes$Name");
