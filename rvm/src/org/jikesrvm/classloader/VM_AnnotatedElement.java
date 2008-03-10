@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
-import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**

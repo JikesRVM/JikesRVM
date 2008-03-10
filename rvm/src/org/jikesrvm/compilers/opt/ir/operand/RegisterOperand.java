@@ -557,7 +557,7 @@ public final class RegisterOperand extends Operand {
   /**
    * Refine the type of the register to t if t is a more precise type than the
    * register currently holds
-   * 
+   *
    * @param t type to try to refine to
    */
   public void refine(VM_TypeReference t) {

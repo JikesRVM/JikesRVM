@@ -113,7 +113,6 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.RuntimeFinal;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 

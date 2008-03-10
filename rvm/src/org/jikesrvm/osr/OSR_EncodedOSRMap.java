@@ -349,7 +349,7 @@ public final class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OS
   /**
    * Does the OSR map exist for a machine instruction offset
    */
-  public final boolean hasOSRMap(Offset mcOffset) {
+  public boolean hasOSRMap(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     return (entry != NO_OSR_ENTRY);
   }
@@ -361,7 +361,7 @@ public final class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OS
   /**
    * Get bytecode index for a given instruction offset in bytes.
    */
-  public final int getBytecodeIndexForMCOffset(Offset mcOffset) {
+  public int getBytecodeIndexForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     return getBCIndex(entry);
   }
@@ -369,7 +369,7 @@ public final class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OS
   /* TODO!
    * get inline encoding index for the machine instruction offset
    */
-  public final int getInlineEncodingForMCOffset(Offset mcOffset) {
+  public int getInlineEncodingForMCOffset(Offset mcOffset) {
     return -1;
   }
 

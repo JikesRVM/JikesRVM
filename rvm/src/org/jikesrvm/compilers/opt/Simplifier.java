@@ -22,10 +22,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;

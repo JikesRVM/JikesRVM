@@ -12,8 +12,6 @@
  */
 package java.lang.reflect;
 
-import gnu.java.lang.CPStringBuilder;
-
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
@@ -80,9 +78,9 @@ final class VMMethod {
   }
 
   Object invoke(Object receiver, Object[] args) throws IllegalAccessException,
-						       IllegalArgumentException,
-						       ExceptionInInitializerError,
-						       InvocationTargetException {
+                         IllegalArgumentException,
+                         ExceptionInInitializerError,
+                         InvocationTargetException {
     VM_Method method = this.method;
     VM_Class declaringClass = method.getDeclaringClass();
 

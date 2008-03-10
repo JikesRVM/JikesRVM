@@ -12,15 +12,12 @@
  */
 package java.lang.reflect;
 
-import gnu.java.lang.CPStringBuilder;
-
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_Atom;
 
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.VM;
@@ -503,11 +500,11 @@ public final class VMField {
   }
 
   // AnnotatedElement interface
-  
+
   Annotation[] getDeclaredAnnotations() {
     return field.getDeclaredAnnotations();
   }
-   
+
   <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     return field.getAnnotation(annotationClass);
   }

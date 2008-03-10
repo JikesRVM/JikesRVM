@@ -157,10 +157,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
         annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
         int numParameters = input.readByte() & 0xFF;
-	parameterAnnotations = new VM_Annotation[numParameters][];
-	for (int a = 0; a < numParameters; ++a) {
-	  parameterAnnotations[a] = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
-	}
+        parameterAnnotations = new VM_Annotation[numParameters][];
+        for (int a = 0; a < numParameters; ++a) {
+          parameterAnnotations[a] = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
+        }
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
           tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
@@ -723,7 +723,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (declaredParameterAnnotations == null) {
       declaredParameterAnnotations = new Annotation[parameterAnnotations.length][];
       for (int a = 0; a < declaredParameterAnnotations.length; ++a)
-	declaredParameterAnnotations[a] = toAnnotations(parameterAnnotations[a]);
+        declaredParameterAnnotations[a] = toAnnotations(parameterAnnotations[a]);
     }
     return declaredParameterAnnotations;
   }

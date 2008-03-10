@@ -12,8 +12,6 @@
  */
 package java.lang.reflect;
 
-import gnu.java.lang.CPStringBuilder;
-
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
@@ -75,9 +73,9 @@ final class VMConstructor {
   }
 
   Object construct(Object[] args) throws InstantiationException,
-					 IllegalAccessException,
-					 IllegalArgumentException,
-					 InvocationTargetException {
+                IllegalAccessException,
+                IllegalArgumentException,
+                InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !cons.isAccessible()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
