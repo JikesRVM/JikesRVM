@@ -32,6 +32,10 @@ public class VM_Entrypoints {
 
   public static final VM_NormalMethod bootMethod = VM_EntrypointHelper.getMethod(org.jikesrvm.VM.class, "boot", "()V");
 
+  public static final VM_Method java_lang_Class_forName =
+    getMethod(java.lang.Class.class, "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+  public static final VM_Method java_lang_Class_forName_withLoader =
+    getMethod(java.lang.Class.class, "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
   public static final VM_Method java_lang_reflect_Method_invokeMethod =
       getMethod(java.lang.reflect.Method.class, "invoke",
           "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");

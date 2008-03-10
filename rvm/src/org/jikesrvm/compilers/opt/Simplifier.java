@@ -3140,6 +3140,21 @@ public abstract class Simplifier extends IRTools {
             return DefUseEffect.UNCHANGED;
           }
         }
+      } else if (methOp.isStatic() && methOp.hasPreciseTarget()) {
+        VM_Method containingMethod = s.position.getMethod();
+        VM_Method method = methOp.getTarget();
+        // Can we remove the need for Class.forName to walk the stack?
+        if (method == VM_Entrypoints.java_lang_Class_forName) {
+          methOp = MethodOperand.STATIC(VM_Entrypoints.java_lang_Class_forName_withLoader.getMemberRef().asMethodReference(),
+                                        VM_Entrypoints.java_lang_Class_forName_withLoader);
+          Call.mutate3(s, CALL, Call.getResult(s),
+                       new AddressConstantOperand(VM_Entrypoints.java_lang_Class_forName_withLoader.getOffset()),
+                       methOp, Call.getGuard(s),
+                       Call.getParam(s, 0),
+                       new IntConstantOperand(1), // true
+                       new ObjectConstantOperand(containingMethod.getDeclaringClass().getClassLoader(), Offset.zero()));
+          return DefUseEffect.REDUCED;
+        }
       }
       if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
         // Look for a precise method call to a pure method with all constant arguments
