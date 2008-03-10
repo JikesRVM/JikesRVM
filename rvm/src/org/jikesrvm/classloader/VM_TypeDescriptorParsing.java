@@ -14,6 +14,7 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Pure;
 
 /** <p>A Java class for parsing type descriptors and class names.  The class
  is <code>abstract</code> to eliminate the temptation to instantiate it,
@@ -107,6 +108,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
    * <code>Character.isJavaIdentifier<i>*</i>()</code> is written.  Or is the
    * <code>String.charAt()</code> method inexpensive?</small> */
   @Interruptible
+  @Pure
   public static boolean isJavaClassName(String s) {
     boolean identStart = true;  // pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
@@ -155,8 +157,8 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
    * @param c      character to evaluate for VM identifier compatibility
    * @return boolean  true iff <code>c</code> represents a valid VM identifier starting character
    */
+  @Pure
   public static boolean isVMIdentifierStart(char c) {
-
     return ((!Character.isWhitespace(c)) && isVMIdentifierPart(c));
   }
 
@@ -179,15 +181,17 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
    * @param c      character to evaluate for VM identifier compatibility
    * @return boolean  true iff <code>c</code> represents a valid VM identifier non-starting character
    */
+  @Pure
   public static boolean isVMIdentifierPart(char c) {
-
     return ((c != '.') && (c != ';') && (c != '[') && (c != '/'));
   }
 
-  /** Is this the internal form of a Java class name?  (the one with the "/"
+  /**
+   * Is this the internal form of a Java class name?  (the one with the "/"
    * instead of the "." separating components?)
    * Takes a character array (i.e., an exploded string) and the indices of the
-   * first and last characters of the array that are to be checked. */
+   * first and last characters of the array that are to be checked.
+   */
   public static boolean isJavaClassNameInternalForm(char[] val, int first, int last) {
     if (val[first++] != ClassTypeCode) {
       // the L
@@ -223,6 +227,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
     return !identStart;
   }
 
+  @Pure
   public static boolean isValidTypeDescriptor(String s) {
     try {
       validateAsTypeDescriptor(s);
@@ -232,6 +237,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
     }
   }
 
+  @Pure
   public static boolean isValidTypeDescriptor(VM_Atom a) {
     try {
       validateAsTypeDescriptor(a);
@@ -242,6 +248,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
   }
 
   @Interruptible
+  @Pure
   public static void validateAsTypeDescriptor(VM_Atom a) throws IllegalArgumentException {
     try {
       // Atoms are always utf-8.
@@ -259,6 +266,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
    @throws IllegalArgumentException if it isn't.
    */
   @Interruptible
+  @Pure
   public static void validateAsTypeDescriptor(String s) throws IllegalArgumentException {
     char[] val = s.toCharArray();
 
@@ -304,6 +312,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
     }
   }
 
+  @Pure
   private static boolean isJavaPrimitive(char c) {
     byte b = (byte) c;
     if (c != (char) b) {
@@ -312,6 +321,7 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
     return isJavaPrimitive(b);
   }
 
+  @Pure
   private static boolean isJavaPrimitive(byte b) {
     switch (b) {
       case VoidTypeCode:
