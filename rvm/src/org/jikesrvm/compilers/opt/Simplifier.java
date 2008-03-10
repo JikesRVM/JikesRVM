@@ -22,7 +22,10 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
@@ -70,6 +73,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.UnreachableOperand;
 import org.jikesrvm.objectmodel.VM_TIB;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.vmmagic.unboxed.Address;
@@ -515,7 +519,7 @@ public abstract class Simplifier extends IRTools {
         result = boundsCheck(s);
         break;
       case CALL_opcode:
-        result = call(s);
+        result = call(regpool, s);
         break;
       case GETFIELD_opcode:
         result = getField(s);
@@ -673,8 +677,11 @@ public abstract class Simplifier extends IRTools {
   private static DefUseEffect checkcast(Instruction s) {
     Operand ref = TypeCheck.getRef(s);
     if (ref.isNullConstant()) {
-      Empty.mutate(s, NOP);
-      return DefUseEffect.REDUCED;
+      Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
+      if (ref.isConstant())
+        return DefUseEffect.MOVE_FOLDED;
+      else
+        return DefUseEffect.MOVE_REDUCED;
     } else if (ref.isConstant()) {
       s.operator = CHECKCAST_NOTNULL;
       return checkcastNotNull(s);
@@ -683,8 +690,11 @@ public abstract class Simplifier extends IRTools {
       VM_TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == Constants.YES) {
-        Empty.mutate(s, NOP);
-        return DefUseEffect.REDUCED;
+        Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
+        if (ref.isConstant())
+          return DefUseEffect.MOVE_FOLDED;
+        else
+          return DefUseEffect.MOVE_REDUCED;
       } else {
         // NOTE: Constants.NO can't help us because (T)null always succeeds
         return DefUseEffect.UNCHANGED;
@@ -698,8 +708,11 @@ public abstract class Simplifier extends IRTools {
     VM_TypeReference rhsType = ref.getType();
     byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
     if (ans == Constants.YES) {
-      Empty.mutate(s, NOP);
-      return DefUseEffect.REDUCED;
+      Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
+      if (ref.isConstant())
+        return DefUseEffect.MOVE_FOLDED;
+      else
+        return DefUseEffect.MOVE_REDUCED;
     } else if (ans == Constants.NO) {
       VM_Type rType = rhsType.peekType();
       if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
@@ -781,14 +794,16 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_REDUCED;
         }
       }
-      if (ref.isConstant() && (arrayTypeRef == VM_TypeReference.JavaLangObjectArray)) {
+      final boolean refIsPrecise = ref.isConstant() || (ref.isRegister() && ref.asRegister().isPreciseType());
+      if ((arrayTypeRef == VM_TypeReference.JavaLangObjectArray) && refIsPrecise) {
         // We know this to be an array of objects so any store must
         // be safe
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
         return DefUseEffect.MOVE_REDUCED;
       }
-      if (val.isConstant() && ref.isConstant()) {
-        // writing a constant value into a constant array
+      final boolean valIsPrecise = val.isConstant() || (val.isRegister() && val.asRegister().isPreciseType());
+      if (refIsPrecise && valIsPrecise) {
+        // writing a known type of value into a known type of array
         byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
         if (ans == Constants.YES) {
           // all stores should succeed
@@ -818,14 +833,16 @@ public abstract class Simplifier extends IRTools {
         return DefUseEffect.MOVE_REDUCED;
       }
     }
-    if (ref.isConstant() && (arrayTypeRef == VM_TypeReference.JavaLangObjectArray)) {
+    final boolean refIsPrecise = ref.isConstant() || (ref.isRegister() && ref.asRegister().isPreciseType());
+    if ((arrayTypeRef == VM_TypeReference.JavaLangObjectArray) && refIsPrecise) {
       // We know this to be an array of objects so any store must
       // be safe
       Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
       return DefUseEffect.MOVE_REDUCED;
     }
-    if (val.isConstant() && ref.isConstant()) {
-      // writing a constant value into a constant array
+    final boolean valIsPrecise = val.isConstant() || (val.isRegister() && val.asRegister().isPreciseType());
+    if (refIsPrecise && valIsPrecise) {
+      // writing a known type of value into a known type of array
       byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
       if (ans == Constants.YES) {
         // all stores should succeed
@@ -843,7 +860,7 @@ public abstract class Simplifier extends IRTools {
   private static DefUseEffect mustImplementInterface(Instruction s) {
     Operand ref = TypeCheck.getRef(s);
     if (ref.isNullConstant()) {
-      // Possible sitatution from constant propagation. This operation
+      // Possible situation from constant propagation. This operation
       // is really a nop as a null_check should have happened already
       Trap.mutate(s, TRAP, null, TrapCodeOperand.NullPtr());
       return DefUseEffect.TRAP_REDUCED;
@@ -852,8 +869,11 @@ public abstract class Simplifier extends IRTools {
       VM_TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == Constants.YES) {
-        Empty.mutate(s, NOP);
-        return DefUseEffect.REDUCED;
+        Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
+        if (ref.isConstant())
+          return DefUseEffect.MOVE_FOLDED;
+        else
+          return DefUseEffect.MOVE_REDUCED;
       } else if (ans == Constants.NO) {
         VM_Type rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
@@ -2045,7 +2065,7 @@ public abstract class Simplifier extends IRTools {
           // There will be a LONG_ZERO_CHECK
           // guarding this instruction that will result in an
           // ArithmeticException.  We
-          // should probabbly just remove the LONG_DIV as dead code.
+          // should probably just remove the LONG_DIV as dead code.
           return DefUseEffect.UNCHANGED;
         }
         if (op1.isLongConstant()) {
@@ -2219,7 +2239,7 @@ public abstract class Simplifier extends IRTools {
           // There will be a LONG_ZERO_CHECK
           // guarding this instruction that will result in an
           // ArithmeticException.  We
-          // should probabbly just remove the LONG_REM as dead code.
+          // should probably just remove the LONG_REM as dead code.
           return DefUseEffect.UNCHANGED;
         }
         if (op1.isLongConstant()) {
@@ -3102,10 +3122,13 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect call(Instruction s) {
+  private static DefUseEffect call(AbstractRegisterPool regpool, Instruction s) {
     if (CF_FIELDS) {
       MethodOperand methOp = Call.getMethod(s);
-      if ((methOp != null) && methOp.isVirtual() && !methOp.hasPreciseTarget()) {
+      if (methOp == null) {
+        return DefUseEffect.UNCHANGED;
+      }
+      if (methOp.isVirtual() && !methOp.hasPreciseTarget()) {
         Operand calleeThis = Call.getParam(s, 0);
         if (calleeThis.isNullConstant()) {
           Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
@@ -3118,8 +3141,8 @@ public abstract class Simplifier extends IRTools {
           }
         }
       }
-      // Look for a precise method call to a pure method with all constant arguments
-      if ((methOp != null) && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+      if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+        // Look for a precise method call to a pure method with all constant arguments
         VM_Method method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);
         for(int i=0; i < n; i++) {
@@ -3146,6 +3169,7 @@ public abstract class Simplifier extends IRTools {
           }
         }
         Throwable t = null;
+        Method m = null;
         try {
           if (VM.runningVM) {
             result = VM_Reflection.invoke(method, thisArg, otherArgs, !methOp.isVirtual());
@@ -3154,7 +3178,7 @@ public abstract class Simplifier extends IRTools {
             for(int i=0; i < n; i++) {
               argTypes[i] = Call.getParam(s,i).getType().resolve().getClassForType();
             }
-            Method m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
+            m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
             result = m.invoke(thisArg, otherArgs);
           }
         } catch (Throwable e) { t = e;}
@@ -3162,19 +3186,21 @@ public abstract class Simplifier extends IRTools {
           // Call threw exception so leave in to generate at execution time
           return DefUseEffect.UNCHANGED;
         }
+        if (result == null) throw new OptimizingCompilerException("Method " + m + "/" + method + " returned null");
         if(method.getReturnType().isVoidType()) {
           Empty.mutate(s, NOP);
           return DefUseEffect.REDUCED;
         } else {
           Operator moveOp = IRTools.getMoveOp(method.getReturnType());
           Move.mutate(s,moveOp, Call.getClearResult(s),
-              boxConstantObjectAsOperand(result, method.getReturnType()));
+                      boxConstantObjectAsOperand(result, method.getReturnType()));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
     }
     return DefUseEffect.UNCHANGED;
   }
+
   /**
    * Package up a constant operand as an object
    * @param op the constant operand to package
@@ -3212,6 +3238,9 @@ public abstract class Simplifier extends IRTools {
    */
   private static ConstantOperand boxConstantObjectAsOperand(Object x, VM_TypeReference t){
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
+    if (x == null) {
+      throw new Error("Field of type: " + t + " is null");
+    }
     if (t.isIntType()) {
       return IC((Integer)x);
     } else if (t.isBooleanType()) {

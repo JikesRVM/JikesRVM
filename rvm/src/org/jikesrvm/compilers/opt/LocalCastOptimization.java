@@ -119,6 +119,7 @@ public final class LocalCastOptimization extends CompilerPhase {
         s.remove();
         TypeCheck.mutate(s,
                          CHECKCAST_NOTNULL,
+                         TypeCheck.getClearResult(s),
                          TypeCheck.getClearRef(s),
                          TypeCheck.getClearType(s),
                          NullCheck.getGuardResult(n).copy());
@@ -199,6 +200,7 @@ public final class LocalCastOptimization extends CompilerPhase {
         s.remove();
         TypeCheck.mutate(s,
                          CHECKCAST_NOTNULL,
+                         TypeCheck.getClearResult(s),
                          TypeCheck.getClearRef(s),
                          TypeCheck.getClearType(s),
                          IfCmp.getGuardResult(n).copyRO());

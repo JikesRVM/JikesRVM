@@ -260,12 +260,16 @@ public class Inliner {
             requiresImplementsTest = doesImplement != Constants.YES;
           }
           if (requiresImplementsTest) {
+            RegisterOperand checkedReceiver = parent.temps.makeTemp(receiver);
             Instruction dtc =
                 TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                                 receiver.copy(),
-                                 new TypeOperand(interfaceType),
-                                 Call.getGuard(callSite).copy());
+                    checkedReceiver,
+                    receiver.copy(),
+                    new TypeOperand(interfaceType),
+                    Call.getGuard(callSite).copy());
             dtc.copyPosition(callSite);
+            checkedReceiver.refine(interfaceType.getTypeRef());
+            Call.setParam(callSite, 0, checkedReceiver.copyRO());
             testFailed.prependInstruction(dtc);
           }
         }

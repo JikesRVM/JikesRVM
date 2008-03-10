@@ -52,6 +52,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
@@ -250,6 +251,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     BasicBlock instanceOfBlock = myBlock.splitNodeAt(nullCond, ir);
     BasicBlock succBlock = instanceOfBlock.splitNodeAt(s, ir);
+    succBlock.firstInstruction().insertAfter(Move.create(REF_MOVE, TypeCheck.getClearResult(s), ref.copy()));
     IfCmp.setTarget(nullCond, succBlock.makeJumpTarget()); // fixup KLUDGE
     myBlock.insertOut(instanceOfBlock);
     myBlock.insertOut(succBlock);
@@ -289,6 +291,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     BasicBlock myBlock = s.getBasicBlock();
     BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
+    succBlock.firstInstruction().insertAfter(Move.create(REF_MOVE, TypeCheck.getClearResult(s), ref.copy()));
     myBlock.insertOut(failBlock);
     myBlock.insertOut(succBlock);
     ir.cfg.linkInCodeOrder(myBlock, succBlock);
@@ -328,6 +331,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     BasicBlock myBlock = s.getBasicBlock();
     BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
+    succBlock.firstInstruction().insertAfter(Move.create(REF_MOVE, TypeCheck.getClearResult(s), ref.copy()));
     myBlock.insertOut(failBlock);
     myBlock.insertOut(succBlock);
     ir.cfg.linkInCodeOrder(myBlock, succBlock);

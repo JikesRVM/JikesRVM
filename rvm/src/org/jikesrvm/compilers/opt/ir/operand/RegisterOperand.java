@@ -553,4 +553,17 @@ public final class RegisterOperand extends Operand {
   public VM_TypeReference getType() {
     return type;
   }
+
+  /**
+   * Refine the type of the register to t if t is a more precise type than the
+   * register currently holds
+   * 
+   * @param t type to try to refine to
+   */
+  public void refine(VM_TypeReference t) {
+    // TODO: see JIRA RVM-137
+    if (!isPreciseType()) {
+      setType(t);
+    }
+  }
 }

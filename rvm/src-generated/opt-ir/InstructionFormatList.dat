@@ -105,8 +105,8 @@ StoreCheck
 
 
 TypeCheck
-0 0 3
-"U Ref Operand" "U Type TypeOperand" "U Guard Operand opt"
+1 0 3
+"D Result RegisterOperand" "U Ref Operand" "U Type TypeOperand" "U Guard Operand opt"
 
 
 InstanceOf

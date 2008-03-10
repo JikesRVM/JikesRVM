@@ -43,6 +43,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -411,7 +412,7 @@ public class LocalCSE extends CompilerPhase {
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
       // it's a duplicate; blow it away.
-      inst.remove();
+      Move.mutate(inst, REF_MOVE, TypeCheck.getClearResult(inst), TypeCheck.getClearRef(inst));
     } else {
       // did not find a match: insert new entry in cache
       cache.insert(inst);

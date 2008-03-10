@@ -113,6 +113,7 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.RuntimeFinal;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -2052,10 +2053,15 @@ public final class BC2IR
             // requiresImplementsTest is still true.
             // Note that at this point requiresImplementsTest => resolvedMethod != null
             if (requiresImplementsTest) {
+              RegisterOperand checkedReceiver = gc.temps.makeTemp(receiver);
               appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                                                 receiver.copy(),
-                                                 makeTypeOperand(resolvedMethod.getDeclaringClass()),
-                                                 getCurrentGuard()));
+                  checkedReceiver,
+                  receiver.copy(),
+                  makeTypeOperand(resolvedMethod.getDeclaringClass()),
+                  getCurrentGuard()));
+              checkedReceiver.refine(resolvedMethod.getDeclaringClass().getTypeRef());
+              Call.setParam(s, 0, checkedReceiver.copyRO());
+              receiver = checkedReceiver;
               rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
             }
             MethodOperand mop = MethodOperand.VIRTUAL(vmethRef, vmeth);
@@ -2085,11 +2091,15 @@ public final class BC2IR
               return;
             } else {
               if (requiresImplementsTest) {
+                RegisterOperand checkedReceiver = gc.temps.makeTemp(receiver);
                 appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                                                   receiver.copy(),
-                                                   makeTypeOperand(resolvedMethod.getDeclaringClass()),
-                                                   getCurrentGuard()));
-                // don't have to rectify with error handlers; rectify call below subsusmes.
+                    checkedReceiver,
+                    receiver.copy(),
+                    makeTypeOperand(resolvedMethod.getDeclaringClass()),
+                    getCurrentGuard()));
+                checkedReceiver.refine(resolvedMethod.getDeclaringClass().getTypeRef());
+                Call.setParam(s, 0, checkedReceiver.copyRO());
+                // don't have to rectify with error handlers; rectify call below subsumes.
               }
             }
           }
@@ -2209,24 +2219,21 @@ public final class BC2IR
               break;
             }
           }
-
+          RegisterOperand refinedOp2 = gc.temps.makeTemp(op2);
           if (!gc.options.NO_CHECKCAST) {
             if (classLoading) {
-              s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, makeTypeOperand(typeRef));
+              s = TypeCheck.create(CHECKCAST_UNRESOLVED, refinedOp2, op2.copy(), makeTypeOperand(typeRef));
             } else {
               TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
               if (isNonNull(op2)) {
-                s = TypeCheck.create(CHECKCAST_NOTNULL, op2, typeOp, getGuard(op2));
+                s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, getGuard(op2));
               } else {
-                s = TypeCheck.create(CHECKCAST, op2, typeOp);
+                s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), typeOp);
               }
             }
           }
-          op2 = op2.copy();
-          if (op2 instanceof RegisterOperand && !op2.asRegister().isPreciseType()) {
-            op2.asRegister().setType(typeRef);
-          }
-          push(op2);
+          refinedOp2.refine(typeRef);
+          push(refinedOp2.copyRO());
           rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangClassCastException);
           if (classLoading) rectifyStateWithErrorHandler();
         }
