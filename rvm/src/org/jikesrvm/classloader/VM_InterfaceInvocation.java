@@ -402,8 +402,8 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * Helper class used for IMT construction
    */
   private static final class IMTDict {
-    private VM_Class klass;
-    private Link[] links;
+    private final VM_Class klass;
+    private final Link[] links;
 
     IMTDict(VM_Class c) {
       klass = c;
@@ -495,7 +495,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       }
     }
 
-    private static class Link {
+    private static final class Link {
       final VM_InterfaceMethodSignature signature;
       final VM_Method method;
       Link next;
