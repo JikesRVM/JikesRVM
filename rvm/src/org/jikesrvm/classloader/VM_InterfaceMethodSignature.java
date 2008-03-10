@@ -45,13 +45,14 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   private final VM_Atom descriptor;
 
   /**
-   * Id of this interface method signature.
+   * Id of this interface method signature (not used in hashCode or equals).
    */
-  private int id;
+  private final int id;
 
-  private VM_InterfaceMethodSignature(VM_Atom name, VM_Atom descriptor) {
+  private VM_InterfaceMethodSignature(VM_Atom name, VM_Atom descriptor, int id) {
     this.name = name;
     this.descriptor = descriptor;
+    this.id = id;
   }
 
   /**
@@ -61,10 +62,10 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * @return the interface method signature
    */
   public static synchronized VM_InterfaceMethodSignature findOrCreate(VM_MemberReference ref) {
-    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
+    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor(), nextId+1);
     VM_InterfaceMethodSignature val = dictionary.get(key);
     if (val != null) return val;
-    key.id = nextId++;
+    nextId++;
     dictionary.add(key);
     return key;
   }
