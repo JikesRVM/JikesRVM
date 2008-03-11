@@ -12,11 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
-import java.lang.annotation.Annotation;
-
 import java.io.DataInputStream;
 import java.io.IOException;
-
+import java.lang.annotation.Annotation;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.VM;
@@ -163,7 +161,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
         }
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
-          tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
+          tmp_annotationDefault = VM_Annotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
         } catch (ClassNotFoundException e) {
           throw new Error(e);
         }
@@ -275,7 +273,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     bytecode[3] = (byte) (objectInitIndex >>> 8);
     bytecode[4] = (byte) objectInitIndex;
     for (int i = 0, j = 0; i < aMethods.length; i++) {
-      if (aMethods[i].annotationDefault != null) {
+      Object value = aMethods[i].annotationDefault;
+      if (value != null) {
         bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
         if (VM_Class.getLiteralSize(constantPool, defaultConstants[j]) == BYTES_IN_INT) {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc_w; // stack[1] = value
@@ -560,8 +559,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @return whether the method has a pure annotation
    */
   public final boolean isPure() {
-   return hasPureAnnotation();
+    return hasPureAnnotation();
   }
+
   /**
    * Has this method been marked as forbidden to inline?
    * ie., it is marked with the <CODE>NoInline</CODE> annotation or
@@ -585,6 +585,21 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   public boolean isRuntimeServiceMethod() {
     return false; // only VM_NormalMethods can be runtime service impls in Jikes RVM and they override this method
+  }
+
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
+    T ann;
+    try {
+      ann = getDeclaringClass().getClassForType().
+      getMethod(getName().toString(), getDescriptor().parseForParameterClasses(getDeclaringClass().getClassLoader())).getAnnotation(annotationClass);
+    } catch (NoSuchMethodException e) {
+      throw new BootImageMemberLookupError(this, null, annotationClass, e);
+    }
+    return ann;
   }
 
   //------------------------------------------------------------------//

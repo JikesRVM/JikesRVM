@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.classloader;
 
+import java.lang.annotation.Annotation;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_SizeConstants;
@@ -270,12 +272,16 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * This is commonly used for reflection.
    */
   public final Class<?> getClassForType() {
-    // Resolve the class so that we don't need to resolve it
-    // in reflection code
-    if (!isResolved()) {
-      resolve();
+    if (VM.runningVM) {
+      // Resolve the class so that we don't need to resolve it
+      // in reflection code
+      if (!isResolved()) {
+        resolve();
+      }
+      return classForType;
+    } else {
+      return createClassForType(this, getTypeRef());
     }
-    return classForType;
   }
 
   /**
@@ -539,7 +545,28 @@ public abstract class VM_Type extends VM_AnnotatedElement
         } else if (className.isClassDescriptor()) {
           return Class.forName(className.classNameFromDescriptor(), false, VM_Type.class.getClassLoader());
         } else {
-          return Class.forName(className.toString().replace('/', '.'), false, VM_Type.class.getClassLoader());
+          String classNameString = className.toString();
+          if (classNameString.equals("V")) {
+            return void.class;
+          } else if(classNameString.equals("I")){
+            return int.class;
+          } else if(classNameString.equals("J")){
+            return long.class;
+          } else if(classNameString.equals("F")){
+            return float.class;
+          } else if(classNameString.equals("D")){
+            return double.class;
+          } else if(classNameString.equals("C")){
+            return char.class;
+          } else if(classNameString.equals("S")){
+            return short.class;
+          } else if(classNameString.equals("Z")){
+            return boolean.class;
+          } else if(classNameString.equals("B")){
+            return byte.class;
+          } else {
+            return Class.forName(classNameString.replace('/', '.'), false, VM_Type.class.getClassLoader());
+          }
         }
       } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
@@ -587,6 +614,14 @@ public abstract class VM_Type extends VM_AnnotatedElement
     return methods[index];
   }
   // Methods implemented in VM_Primitive, VM_Array or VM_Class
+
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
+    return getClassForType().getAnnotation(annotationClass);
+  }
 
   /**
    * Resolution status.

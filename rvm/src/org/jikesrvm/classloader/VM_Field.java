@@ -14,6 +14,8 @@ package org.jikesrvm.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -231,6 +233,22 @@ public final class VM_Field extends VM_Member {
   @Uninterruptible
   int getConstantValueIndex() {
     return constantValueIndex;
+  }
+
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
+    T ann;
+    Field field = null;
+    try {
+      field = getDeclaringClass().getClassForType().getField(getName().toString());
+      ann = field.getAnnotation(annotationClass);
+    } catch (NoSuchFieldException e) {
+      throw new BootImageMemberLookupError(this, field, getDeclaringClass().getClassForType(), e);
+    }
+    return ann;
   }
 
   //-------------------------------------------------------------------//

@@ -18,6 +18,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
 import org.vmmagic.pragma.Uninterruptible;
+import org.jikesrvm.VM;
 
 /**
  * A common abstract super class for all elements that can be
@@ -49,6 +50,11 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       this.declaredAnnotationDatas = annotations[0];
     } else {
       this.declaredAnnotationDatas = annotations;
+    }
+    if (annotations != null) {
+      for (VM_Annotation ann : annotations) {
+        if (ann == null)  throw new Error("null annotation in " + toString());
+      }
     }
   }
 
@@ -93,6 +99,9 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   }
 
   final Annotation[] getDeclaredAnnotationsInternal() {
+    if (!VM.runningVM) {
+      return toAnnotations(declaredAnnotationDatas);
+    }
     if (null == declaredAnnotations) {
       declaredAnnotations = toAnnotations(declaredAnnotationDatas);
     }
@@ -140,15 +149,25 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   @SuppressWarnings({"unchecked"})
   public final <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-    if (null == annotationClass) {
-      throw new NullPointerException("annotationClass");
+    if (true || VM.runningVM) {
+      if (null == annotationClass) {
+        throw new NullPointerException("annotationClass");
+      }
+      final Annotation[] annotations = getAnnotationsInternal();
+      for (final Annotation annotation : annotations) {
+        if (annotationClass.isInstance(annotation)) return (T) annotation;
+      }
+      return null;
+    } else {
+      return getBootImageWriteTimeAnnotation(annotationClass);
     }
-    final Annotation[] annotations = getAnnotationsInternal();
-    for (final Annotation annotation : annotations) {
-      if (annotationClass.isInstance(annotation)) return (T) annotation;
-    }
-    return null;
   }
+
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected abstract <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass);
 
   /**
    * Is there an annotation of this type implemented on this annotated
@@ -163,7 +182,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    *
    * This is provided as an alternative to isAnnotationPresent() as isAnnotationPresent()
    * may require classloading and instantiation of annotations. Classloading would mean
-   * that it would not be @Uninterruptible. Instantiation is not desirtable as checking
+   * that it would not be @Uninterruptible. Instantiation is not desirable as checking
    * of annotations occurs prior to the bootimage compiler being ready to instantiate
    * objects.
    */
@@ -173,17 +192,23 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       return false;
     } else if (declaredAnnotationDatas instanceof VM_Annotation) {
       VM_Annotation annotation = (VM_Annotation)declaredAnnotationDatas;
-      return annotation.getType() == annotationTypeRef.getName() &&
-      annotation.getClassLoader() == annotationTypeRef.getClassLoader();
+      return annotation.annotationType() == annotationTypeRef;
     } else {
       for (VM_Annotation annotation : (VM_Annotation[])declaredAnnotationDatas) {
-        if (annotation.getType() == annotationTypeRef.getName() &&
-            annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
+        if (annotation.annotationType() == annotationTypeRef) {
           return true;
         }
       }
       return false;
     }
+  }
+
+  /**
+   * Does the element have any annotations?
+   */
+  @Uninterruptible
+  public final boolean hasAnnotations() {
+    return declaredAnnotationDatas != null;
   }
 
   /**
