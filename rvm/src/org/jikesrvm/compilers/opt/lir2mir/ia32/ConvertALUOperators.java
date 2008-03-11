@@ -117,7 +117,7 @@ public class ConvertALUOperators extends CompilerPhase implements Operators, VM_
     // OPTIMIZE is false.
     for (InstructionEnumeration instrs = ir.forwardInstrEnumerator(); instrs.hasMoreElements();) {
       Instruction s = instrs.next();
-      Simplifier.simplify(ir.regpool, s);
+      Simplifier.simplify(false, ir.regpool, s);
     }
 
     if (OPTIMIZE) {

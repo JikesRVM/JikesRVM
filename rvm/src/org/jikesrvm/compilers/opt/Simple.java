@@ -575,7 +575,7 @@ public final class Simple extends CompilerPhase {
   void foldConstants(IR ir) {
     boolean recomputeRegList = false;
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
-      Simplifier.DefUseEffect code = Simplifier.simplify(ir.regpool, s);
+      Simplifier.DefUseEffect code = Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
       // If something was reduced (as opposed to folded) then its uses may
       // be different. This happens so infrequently that it's cheaper to
       // handle it by  recomputing the DU from

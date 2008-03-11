@@ -290,7 +290,7 @@ public abstract class NormalizeConstants extends IRTools {
       // in normalized form. This reduces the number of cases we have to
       // worry about (and does last minute constant folding on the off chance
       // we've missed an opportunity...)
-      Simplifier.simplify(ir.regpool, s);
+      Simplifier.simplify(false, ir.regpool, s);
 
       switch (s.getOpcode()) {
         //////////

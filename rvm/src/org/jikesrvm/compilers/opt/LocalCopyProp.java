@@ -100,7 +100,7 @@ public class LocalCopyProp extends CompilerPhase {
                 }
               }
             }
-            if (didSomething) Simplifier.simplify(ir.regpool, s);
+            if (didSomething) Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
           }
           // KILL
           boolean killPhysicals = s.isTSPoint() || s.operator().implicitDefs != 0;

@@ -95,7 +95,7 @@ public class LocalConstantProp extends CompilerPhase {
                 }
               }
             }
-            if (didSomething) Simplifier.simplify(ir.regpool, s);
+            if (didSomething) Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
           }
           // KILL
           for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {

@@ -171,11 +171,12 @@ public abstract class Simplifier extends IRTools {
    * doing peephole optimizations of branches
    * is the job of a separate module.
    *
+   * @param HIR is this the HIR phase?
    * @param regpool register pool in case simplification requires a temporary register
    * @param s the instruction to simplify
    * @return one of UNCHANGED, MOVE_FOLDED, MOVE_REDUCED, TRAP_REDUCED, REDUCED
    */
-  public static DefUseEffect simplify(AbstractRegisterPool regpool, Instruction s) {
+  public static DefUseEffect simplify(boolean hir, AbstractRegisterPool regpool, Instruction s) {
     DefUseEffect result;
     char opcode = s.getOpcode();
     switch (opcode) {
@@ -516,7 +517,7 @@ public abstract class Simplifier extends IRTools {
         result = boundsCheck(s);
         break;
       case CALL_opcode:
-        result = call(regpool, s);
+        result = call(hir, regpool, s);
         break;
       case GETFIELD_opcode:
         result = getField(s);
@@ -3119,7 +3120,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect call(AbstractRegisterPool regpool, Instruction s) {
+  private static DefUseEffect call(boolean HIR, AbstractRegisterPool regpool, Instruction s) {
     if (CF_FIELDS) {
       MethodOperand methOp = Call.getMethod(s);
       if (methOp == null) {
@@ -3137,7 +3138,7 @@ public abstract class Simplifier extends IRTools {
             return DefUseEffect.UNCHANGED;
           }
         }
-      } else if (methOp.isStatic() && methOp.hasPreciseTarget()) {
+      } else if (methOp.isStatic() && methOp.hasPreciseTarget() && HIR) {
         VM_Method containingMethod = s.position.getMethod();
         VM_Method method = methOp.getTarget();
         // Can we remove the need for Class.forName to walk the stack?
