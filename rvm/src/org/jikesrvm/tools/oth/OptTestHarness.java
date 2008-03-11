@@ -78,7 +78,7 @@ class OptTestHarness {
    * debugging)
    */
   static boolean PRINT_CODE_ADDRESS = true;
-  
+
   /** Record and show performance of executed methods, if any */
   static Performance perf;
 
