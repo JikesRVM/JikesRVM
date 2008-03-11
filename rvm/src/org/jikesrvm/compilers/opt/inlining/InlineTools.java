@@ -17,13 +17,13 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.VM;
+import org.vmmagic.pragma.Inline;
 
 /**
  * This class provides some utilities that are useful for inlining.
@@ -157,23 +157,49 @@ public abstract class InlineTools implements Constants {
    * @return whether or not the callee should be unconditionally inlined.
    */
   public static boolean hasInlinePragma(VM_Method callee, CompilationState state) {
-    if (callee.hasInlineAnnotation()) return true;
-    // If we know what kind of array "src" (argument 0) is
-    // then we always want to inline java.lang.System.arraycopy.
-    // TODO: Would be nice to discover this automatically!!!
-    //       There have to be other methods with similar properties.
-    if (callee == VM_Entrypoints.sysArrayCopy) {
-      Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return src.getType() != VM_TypeReference.JavaLangObject;
-    }
-    // More arraycopy hacks.  If we the two starting indices are constant and
-    // it's not the object array version
-    // (too big...kills other inlining), then inline it.
-    if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
-        callee.getName() == arraycopyName &&
-        callee.getDescriptor() != objectArrayCopyDescriptor) {
-      return Call.getParam(state.getCallInstruction(), 1).isConstant() &&
-             Call.getParam(state.getCallInstruction(), 3).isConstant();
+    if (callee.hasInlineAnnotation()) {
+      Inline ann = callee.getAnnotation(Inline.class);
+      if (ann == null) {
+        // annotation was lost, assume it was Always
+        return true;
+      }
+      switch (ann.value()) {
+      case Always:
+        return true;
+      case AllArgumentsAreConstant: {
+        boolean result = true;
+        Instruction s = state.getCallInstruction();
+        for (int i=0, n=Call.getNumberOfParams(s); i < n; i++) {
+          if (!Call.getParam(s, i).isConstant()) {
+            result = false;
+            break;
+          }
+        }
+        if (result) {
+          return true;
+        }
+        break;
+      }
+      case ArgumentsAreConstant: {
+        boolean result = true;
+        Instruction s = state.getCallInstruction();
+        int[] args = ann.arguments();
+        for (int arg : args) {
+          if (VM.VerifyAssertions) {
+            VM._assert(arg >= 0, "argument is invalid: " + arg);
+            VM._assert(arg < Call.getNumberOfParams(s), "argument is invalid: " + arg);
+          }
+          if (!Call.getParam(s, arg).isConstant()) {
+            result = false;
+            break;
+          }
+        }
+        if (result) {
+          return true;
+        }
+        break;
+      }
+      }
     }
     return false;
   }

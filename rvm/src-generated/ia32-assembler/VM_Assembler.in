@@ -442,7 +442,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private byte regRegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((3 << 6) | (reg2.value() << 3) | reg1.value());
   }
@@ -456,7 +456,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private byte regDisp32RegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((2 << 6) | (reg2.value() << 3) | reg1.value());
   }
@@ -470,7 +470,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private byte regDisp8RegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((1 << 6) | (reg2.value() << 3) | reg1.value());
   }
@@ -483,7 +483,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private byte regIndirectRegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((reg2.value() << 3) | reg1.value());
   }
@@ -499,7 +499,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param indexReg the index register.
    * @return the encoded SIB byte.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private byte sib(short scale, MachineRegister baseReg, MachineRegister indexReg) {
     return (byte) ((scale << 6) | (indexReg.value() << 3) | baseReg.value());
   }
@@ -511,7 +511,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg1 the r/m operand.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitRegRegOperands(MachineRegister reg1, MachineRegister reg2) {
     setMachineCodes(mi++, regRegModRM(reg1, reg2));
   }
@@ -529,7 +529,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param disp the 32 bit displacement.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitRegDisp32RegOperands(MachineRegister reg1, int disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
@@ -549,7 +549,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param disp the 8 bit displacement.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitRegDisp8RegOperands(MachineRegister reg1, byte disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
@@ -569,7 +569,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param disp the displacement.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitRegDispRegOperands(MachineRegister reg1, Offset disp, MachineRegister reg2) {
     if (fits(disp,8))
       emitRegDisp8RegOperands(reg1, (byte)disp.toInt(), reg2);
@@ -594,7 +594,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg1 the r/m operand
    * @param reg2 the other register or extended opcode
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitRegIndirectRegOperands(MachineRegister reg1, MachineRegister reg2) {
     if (reg1 == EBP) {
       emitRegDispRegOperands(reg1, Offset.zero(), reg2);
@@ -617,7 +617,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitRegOffRegOperands(MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));
     setMachineCodes(mi++, sib(scale, EBP, index));
@@ -631,7 +631,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitAbsRegOperands(Offset disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2));
     emitImm32(disp);
@@ -649,7 +649,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitSIBRegOperands(MachineRegister base, MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     if (VM.VerifyAssertions) VM._assert(index != ESP);
     if (disp.EQ(Offset.zero()) && base != EBP) {
@@ -672,7 +672,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param disp the displacement to generate.
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitImm32(Offset disp) {
     if (VM.VerifyAssertions) VM._assert(fits(disp,32));
     mi = emitImm32(disp.toInt(), mi);
@@ -833,7 +833,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param rel32     the new immediate to use in the branch instruction
    *          the code patcher is going to lay down before patchOffset
    */
-  @Inline
   public static void patchCode(ArchitectureSpecific.VM_CodeArray code,
                    int patchOffset,
                    int rel32) {
@@ -870,7 +869,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * Return the appropriate condition code if we want to
    * reverse the sense of the branch
    */
-  @Inline
   public final byte flipCode(byte cond) {
     switch (cond) {
       case EQ: return NE;
@@ -893,7 +891,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * compiler uses this form for jumps within the machine code for a
    * single bytecode.
    */
-  @Inline
   public final VM_ForwardReference forwardJMP () {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
@@ -915,7 +912,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param cond the condition code on which to branch
    */
-  @Inline
   public final VM_ForwardReference forwardJcc (byte cond) {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
@@ -961,7 +957,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param label the forward branch label to resolve
    */
-  @Inline
   public final void resolveForwardReferences (int label) {
     if (forwardRefs == null) return; // premature optimization
     forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
@@ -973,7 +968,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * 
    * @param bReturn the return address that is to be loaded.
    */
-  @Inline
   public final void generateLoadReturnAddress(int bReturn) {
     /* Push the IP */
     emitCALL_Imm(mi + 5);
@@ -989,7 +983,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param sourceIndex the machine code offset of the load return addres to patch.
    */
-  @Inline
   public final void patchLoadReturnAddress(int sourceIndex) {
     /* We have the following pattern:
      * | PUSH EIP | [SP] += | IMM32 |
@@ -1004,7 +997,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param btarget optional
    * @return a forward reference for patching later
    */
-  @Inline
   public final VM_ForwardReference generatePendingJMP(int btarget) {
     int miStart = mi;
     VM_ForwardReference r = new VM_ForwardReference.UnconditionalBranch(mi, btarget);
@@ -1024,7 +1016,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param sourceIndex the machine code offset of the unconditional
    *          branch to patch.
    */
-  @Inline
   public final void patchUnconditionalBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+5);
@@ -1041,7 +1032,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param sourceIndex the machine code offset of the conditional
    *          branch to patch.
    */
-  @Inline
   public final void patchConditionalBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+6);
@@ -1059,7 +1049,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param sourceIndex the machine code offset of the unconditional
    *          branch to patch.
    */
-  @Inline
   public final void patchShortBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+2);
@@ -1122,7 +1111,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param mTarget the method-relative target offset
    * @param bTarget the label associated with the branch target instrucion
    */
-  @Inline
   public final void emitOFFSET_Imm_ImmOrLabel(int c, int mTarget, int bTarget) {
     int miStart = mi;
     if (0 < mTarget) { // resolved (backward) reference
@@ -1146,7 +1134,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param sourceIndex the location of the offset to patch
    */
-  @Inline
   public final void patchSwitchCase (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int c = 0;
@@ -1171,7 +1158,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * if (cond) dst = src
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMOV_Cond_Reg_Reg(byte cond, GPR dst, GPR src) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1186,7 +1173,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * if (cond) dst = [src + disp]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMOV_Cond_Reg_RegDisp(byte cond, GPR dst, GPR src, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1201,7 +1188,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * if (cond) dst = [src]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMOV_Cond_Reg_RegInd(byte cond, GPR dst, GPR src) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1216,7 +1203,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * if (cond) dst = [index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMOV_Cond_Reg_RegOff(byte cond, GPR dst, GPR index2, short scale2, Offset disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1231,7 +1218,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * if (cond) dst = [disp2]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Offset disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1246,7 +1233,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * if (cond) dst = [base2 + index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMOV_Cond_Reg_RegIdx(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1265,7 +1252,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param cond the condition to be tested
    * @param dst the destination register
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSET_Cond_Reg_Byte(byte cond, GPR dst) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1274,7 +1261,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.R(miStart, "SET" + CONDITION[cond], dst);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSET_Cond_RegDisp_Byte(byte cond, GPR dst, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1283,7 +1270,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RD(miStart, "SET" + CONDITION[cond], dst, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSET_Cond_RegInd_Byte(byte cond, GPR dst) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1292,7 +1279,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RN(miStart, "SET" + CONDITION[cond], dst);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSET_Cond_RegIdx_Byte(byte cond, GPR base, GPR index, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1301,7 +1288,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RXD(miStart, "SET" + CONDITION[cond], base, index, scale, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSET_Cond_RegOff_Byte(byte cond, GPR index, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1310,7 +1297,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RFD(miStart, "SET" + CONDITION[cond], index, scale, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSET_Cond_Abs_Byte(byte cond, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1319,7 +1306,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RA(miStart, "SET" + CONDITION[cond], disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_Reg(GPR dstReg, GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1328,7 +1315,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RR(miStart, "IMUL", dstReg, srcReg);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_RegInd(GPR dstReg, GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1337,7 +1324,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRN(miStart, "IMUL", dstReg, srcReg);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_RegDisp(GPR dstReg, GPR srcReg, Offset srcDisp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1346,7 +1333,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRD(miStart, "IMUL", dstReg, srcReg, srcDisp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_RegOff(GPR dstReg, GPR srcIndex, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1355,7 +1342,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRFD(miStart, "IMUL", dstReg, srcIndex, scale, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_Abs(GPR dstReg, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1364,7 +1351,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRA(miStart, "IMUL", dstReg, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_RegIdx(GPR dstReg, GPR srcBase, GPR srcIndex, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1373,7 +1360,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRXD(miStart, "IMUL", dstReg, srcBase, srcIndex, scale, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitIMUL2_Reg_Imm(GPR dstReg, int imm) {
     int miStart = mi;
     if (fits(imm,8)) {
@@ -1389,7 +1376,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // trap
-  @Inline
   public final void emitINT_Imm (int v) {
     if (VM.VerifyAssertions) VM._assert(v <= 0xFF);
     int miStart = mi;
@@ -1427,7 +1413,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @see VM_ForwardReference.ConditionalBranch
    */
-  @Inline
   public final void emitJCC_Cond_Label (byte cond, int label) {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ConditionalBranch(mi, label);
@@ -1452,7 +1437,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param cond the IA32 ISA condition code bits to mask into opcode
    * @param mTarget the method-relative target offset
    */
-  @Inline
   public final void emitJCC_Cond_Imm (byte cond, int mTarget) {
     int miStart = mi;
     int relOffset = mTarget - (mi + 1 + 1); // address relative to next instruction
@@ -1485,7 +1469,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param mTarget the method-relative target offset
    * @param bTarget the label associated with the branch target instrucion
    */
-  @Inline
   public final void emitJCC_Cond_ImmOrLabel (byte cond, int mTarget, int bTarget) {
     if (mTarget == 0) { // forward branch
       emitJCC_Cond_Label(cond, bTarget);
@@ -1494,7 +1477,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     }
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitLEA_Reg_RegDisp(GPR dstReg, GPR srcReg, Offset srcDisp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1502,7 +1485,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRD(miStart, "LEA", dstReg, srcReg, srcDisp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitLEA_Reg_RegInd(GPR dstReg, GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1510,7 +1493,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRN(miStart, "LEA", dstReg, srcReg);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitLEA_Reg_RegOff(GPR dstReg, GPR idx, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1518,7 +1501,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRFD(miStart, "LEA", dstReg, idx, scale, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitLEA_Reg_Abs(GPR dstReg, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1526,7 +1509,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRA(miStart, "LEA", dstReg, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitLEA_Reg_RegIdx(GPR dstReg, GPR base, GPR idx, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1534,7 +1517,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RRXD(miStart, "LEA", dstReg, base, idx, scale, disp);
   }
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitMOV_Reg_Imm(GPR dst, int imm) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) (0xB8 | dst.value()));
@@ -1543,7 +1526,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // pop address and goto it
-  @Inline
   public final void emitRET () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xC3);
@@ -1551,7 +1533,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // pop address and goto it, pop parameterBytes additional bytes
-  @Inline
   public final void emitRET_Imm (int parameterBytes) {
     int miStart = mi;
     if (parameterBytes == 0) {
@@ -1566,7 +1547,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // allocate stack frame for procedure
-  @Inline
   public final void emitENTER_Imm (int frameSize) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xC8);
@@ -1576,7 +1556,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // sign extends EAX into EDX
-  @Inline
   public final void emitCDQ () {
     int miStart = mi;
     setMachineCodes(mi++, (byte)0x99);
@@ -1585,7 +1564,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
 
   // edx:eax <- time stamp counter
   // on Linux this appears to be unprivileged
-  @Inline
   public final void emitRDTSC() {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1594,7 +1572,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // software prefetch
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitPREFETCHNTA_Reg(GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1604,7 +1582,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // wait-loop pause
-  @Inline
   public final void emitPAUSE () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xF3);
@@ -1613,7 +1590,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // nop
-  @Inline
   public final void emitNOP () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x90);
@@ -1625,7 +1601,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   ////////////////////////////////////////////
 
   // floating point conditional moves
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFCMOV_Cond_Reg_Reg(byte cond, FPR reg1, FPR reg2) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(reg1 == FP0);
@@ -1669,7 +1645,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // floating point push of ST(i) into ST(0)
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFLD_Reg_Reg(FPR destReg, FPR srcReg) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(destReg == FP0);
@@ -1679,7 +1655,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // floating point copy of ST(0) into ST(I)
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFST_Reg_Reg(FPR destReg, FPR srcReg) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(srcReg == FP0);
@@ -1689,7 +1665,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // floating point pop of ST(0) into ST(I)
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFSTP_Reg_Reg(FPR destReg, FPR srcReg) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(srcReg == FP0);
@@ -1699,7 +1675,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // Change Sign: Top of FPU register stack -= Top og FPU register stack
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFCHS () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xD9);
@@ -1708,7 +1684,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
 
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFUCOMPP () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDA);
@@ -1717,7 +1693,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // Store Status Word into AX register/noexecptions
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFNSTSW () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDF);
@@ -1726,7 +1702,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // Store AH into Flags
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSAHF () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x9E);
@@ -1737,7 +1713,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   // Top of FPU register stack <- ST(0) - (Q*ST(1)
   // Q is the interger value obtained from truncating
   // ST(0)/ST(1) toward 0
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFPREM () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xD9);
@@ -1746,7 +1722,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // Blow away floating point state
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFINIT() {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x9B);
@@ -1757,7 +1733,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
 
   // Blow away floating point state
   // Pending exceptions??? Don't tell me about pending exceptions!!
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFNINIT() {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDB);
@@ -1766,7 +1742,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // Declare we are no longer using FP register
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFFREE_Reg(FPR reg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDD);
@@ -1776,7 +1752,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
 
   // The dreaded FXCH
   // (symbol of all that's wrong with Intel floating point :)
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFXCH_Reg_Reg(FPR regOne, FPR regTwo) {
     int miStart = mi;
 
@@ -1805,7 +1781,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.R(miStart, "FXCH", nonZeroReg);
   }
   
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitXORPS_Reg_Reg(XMM dstReg, XMM srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1814,7 +1790,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RR(miStart, "XORPS", dstReg, srcReg);
   }
   
-    @Inline
+    @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitXORPD_Reg_Reg(XMM dstReg, XMM srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x66);
@@ -1830,7 +1806,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * cmpxchg8b [dst + disp]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMPXCHG8B_RegDisp(GPR dst, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1845,7 +1821,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * cmpxchg8b [dst]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMPXCHG8B_RegInd(GPR dst) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1860,7 +1836,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * cmpxchg8b [index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMPXCHG8B_RegOff(GPR index2, short scale2, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1875,7 +1851,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * cmpxchg8b [base + index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitCMPXCHG8B_RegIdx(GPR base2, GPR index2, short scale2, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1890,7 +1866,6 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * emms
    * </PRE>
    */
-  @Inline
   public final void emitEMMS() {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);

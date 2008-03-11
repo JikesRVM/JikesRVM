@@ -35,6 +35,7 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -291,6 +292,8 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * (exact type match)
    *             so we need not repeat it here
    */
+  @Pure
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
     if (!lhs.isResolved()) {
       lhs.resolve();

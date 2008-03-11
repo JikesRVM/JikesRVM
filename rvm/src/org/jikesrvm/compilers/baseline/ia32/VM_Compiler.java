@@ -93,26 +93,22 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   @Uninterruptible
-  @Inline
   public static int getGeneralLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
                             (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
   }
 
   @Uninterruptible
-  @Inline
   public static int getFloatLocalLocation(int index, int[] localloc, VM_NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
                             (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
   }
 
-  @Inline
   @Uninterruptible
   public static int locationToOffset(int location) {
     return -location;
   }
 
-  @Inline
   @Uninterruptible
   public static int offsetToLocation(int offset) {
     return -offset;
@@ -131,7 +127,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * TODO!! make sure it is not being used incorrectly
    */
   @Uninterruptible
-  @Inline
   private static int getFirstLocalOffset(VM_NormalMethod method) {
     if (method.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
@@ -141,7 +136,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   @Uninterruptible
-  @Inline
   private static int getStartLocalOffset(VM_NormalMethod method) {
     return getFirstLocalOffset(method) + WORDSIZE;
   }
@@ -3380,7 +3374,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param indexReg the register containing the index
    * @param arrayRefReg the register containing the array reference
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void genBoundsCheck(VM_Assembler asm, GPR indexReg, GPR arrayRefReg) {
     if (generateBoundsChecks) {
       // compare index to array length
@@ -3424,7 +3418,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitJCC_Cond_ImmOrLabel(cond, mTarget, bTarget);
     }
   }
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void incEdgeCounter(GPR scratch, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod) compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx << 2));
@@ -3435,7 +3429,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx << 2), scratch);
     fr1.resolve(asm);
   }
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void incEdgeCounterIdx(GPR scratch, GPR idx, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod) compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, VM_Assembler.WORD, Offset.fromIntZeroExtend(counterIdx << 2));
