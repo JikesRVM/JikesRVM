@@ -1754,6 +1754,8 @@ public final class BC2IR
           if (ref.isMiranda()) {
             // An invokevirtual that is really an invokeinterface.
             s = _callHelper(ref, MethodOperand.INTERFACE(ref, null));
+            if (s == null)
+              break;
             Operand receiver = Call.getParam(s, 0);
             VM_Class receiverType = (VM_Class) receiver.getType().peekType();
             // null check on this parameter of call
@@ -1805,6 +1807,8 @@ public final class BC2IR
             MethodOperand methOp = MethodOperand.VIRTUAL(ref, target);
 
             s = _callHelper(ref, methOp);
+            if (s == null)
+              break;
 
             // Handle possibility of dynamic linking.
             // Must be done before null_check!
@@ -1884,6 +1888,8 @@ public final class BC2IR
           }
 
           s = _callHelper(ref, MethodOperand.SPECIAL(ref, target));
+          if (s == null)
+            break;
 
           // Handle possibility of dynamic linking. Must be done before null_check!
           // NOTE: different definition of unresolved due to semantics of invokespecial.
@@ -1938,22 +1944,28 @@ public final class BC2IR
           }
 
           s = _callHelper(ref, MethodOperand.STATIC(ref, target));
+          if (s == null)
+            break;
 
-          // Handle possibility of dynamic linking.
-          if (unresolved) {
-            RegisterOperand offsetrop = gc.temps.makeTempOffset();
-            appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
-            Call.setAddress(s, offsetrop);
-            rectifyStateWithErrorHandler();
-          } else {
-            Call.setAddress(s, new AddressConstantOperand(target.getOffset()));
+          if (Call.conforms(s)) {
+            MethodOperand methOp = Call.getMethod(s);
+            if (methOp.getTarget() == target) {
+              // Handle possibility of dynamic linking.
+              if (unresolved) {
+                RegisterOperand offsetrop = gc.temps.makeTempOffset();
+                appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+                Call.setAddress(s, offsetrop);
+                rectifyStateWithErrorHandler();
+              } else {
+                Call.setAddress(s, new AddressConstantOperand(target.getOffset()));
+              }
+
+              // Consider inlining it.
+              if (maybeInlineMethod(shouldInline(s, false), s)) {
+                return;
+              }
+            }
           }
-
-          // Consider inlining it.
-          if (maybeInlineMethod(shouldInline(s, false), s)) {
-            return;
-          }
-
           // noninlined CALL must be treated as potential throw of anything
           rectifyStateWithExceptionHandlers();
         }
@@ -1973,6 +1985,9 @@ public final class BC2IR
           }
 
           s = _callHelper(ref, MethodOperand.INTERFACE(ref, resolvedMethod));
+          if (s == null)
+            break;
+
           Operand receiver = Call.getParam(s, 0);
           VM_Class receiverType = (VM_Class) receiver.getType().peekType();
           // null check on this parameter of call
@@ -2527,6 +2542,8 @@ public final class BC2IR
               }
 
               s = _callHelper(meth.getMemberRef().asMethodReference(), MethodOperand.STATIC(meth));
+              if (s == null)
+                break;
               Call.setAddress(s, new AddressConstantOperand(meth.getOffset()));
 
               /* try to set the type of return register */
@@ -2558,9 +2575,10 @@ public final class BC2IR
               }
 
               /* the bcIndex should be adjusted to the original */
-              s =
-                  _callHelper(meth.getMemberRef().asMethodReference(),
+              s = _callHelper(meth.getMemberRef().asMethodReference(),
                               MethodOperand.COMPILED(meth, cm.getOsrJTOCoffset()));
+              if (s == null)
+                break;
 
               // adjust the bcindex of s to the original bytecode's index
               // it should be able to give the correct exception handling
@@ -2774,18 +2792,28 @@ public final class BC2IR
       Operand ref = pop();
       Call.setParam(s, 0, ref);
     }
-    VM_TypeReference rtype = meth.getReturnType();
-    if (!rtype.isVoidType()) {
-      RegisterOperand op0 = gc.temps.makeTemp(rtype);
-      Call.setResult(s, op0);
-      push(op0.copyD2U(), rtype);
-    }
     Call.setMethod(s, methOp);
 
     /* need to set it up early because inlining oracle use it */
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
-    return s;
+
+    VM_TypeReference rtype = meth.getReturnType();
+    if (rtype.isVoidType()) {
+      return s;
+    } else {
+      RegisterOperand t = gc.temps.makeTemp(rtype);
+      Call.setResult(s, t);
+      Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+      if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
+        gc.temps.release(t);
+        push(Move.getClearVal(s), rtype);
+        return null;
+      } else {
+        push(t.copyD2U(), rtype);
+        return s;
+      }
+    }
   }
 
   private void _returnHelper(Operator operator, Operand val) {
