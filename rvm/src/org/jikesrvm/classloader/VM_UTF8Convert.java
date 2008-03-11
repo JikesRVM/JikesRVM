@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import java.io.UTFDataFormatException;
+import org.vmmagic.pragma.Pure;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
 
@@ -230,6 +231,7 @@ public abstract class VM_UTF8Convert {
   /**
    * Returns the length of a string's UTF encoded form.
    */
+  @Pure
   public static int utfLength(String s) {
     int utflen = 0;
     for (int i = 0, n = s.length(); i < n; ++i) {
@@ -293,5 +295,4 @@ public abstract class VM_UTF8Convert {
     }
     return true;
   }
-
 }
