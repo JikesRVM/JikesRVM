@@ -32,6 +32,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_LinkedList;
 import org.jikesrvm.util.VM_Synchronizer;
 import org.vmmagic.pragma.NonMoving;
@@ -190,11 +191,10 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   // --- Annotation support --- //
 
   /**
-   * If this class is an annotation interface, this is the class that
-   * implements that interface and can be used to make instances of
-   * the annotation
+   * Map from interfaces of annotations to the classes that implement them
    */
-  private VM_Class annotationClass;
+  private static final VM_HashMap<VM_Class, VM_Class> annotationClasses =
+    new VM_HashMap<VM_Class, VM_Class>();
 
   // --- Memory manager support --- //
 
@@ -277,7 +277,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   VM_Class getAnnotationClass() {
     if (VM.VerifyAssertions) VM._assert(this.isAnnotation());
-    return annotationClass;
+    return annotationClasses.get(this);
   }
 
   /**
@@ -2452,7 +2452,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
                      new VM_Class[]{annotationInterface}, // declaredInterfaces
                      annotationFields, annotationMethods, null, null, null, null, null, null, null, null);
     annotationClass.setType(klass);
-    annotationInterface.annotationClass = klass;
+    annotationClasses.put(annotationInterface, klass);
     // Now the class is set up, try to resolve any VM_Annotation constants to Annotation constants
     for (int cpSlot : defaultConstants) {
       if (unpackCPType(constantPool[cpSlot]) == CP_STRING) {
