@@ -27,6 +27,7 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NonMoving;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.classloader.VM_ClassLoaderConstants.*;
@@ -111,7 +112,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * current class-loading stage (loaded, resolved or initialized)
    */
-  private int state;
+  private byte state;
 
   /**
    * Is this array type in the bootimage?
@@ -121,6 +122,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Name - something like "[I" or "[Ljava.lang.String;"
    */
+  @Override
+  @Pure
   public String toString() {
     return getDescriptor().toString().replace('/', '.');
   }
@@ -128,6 +131,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * @return java Expression stack space requirement.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getStackWords() {
     return 1;
@@ -136,6 +141,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Space required in memory in bytes.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getMemoryBytes() {
     return BYTES_IN_ADDRESS;
@@ -214,6 +221,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @return size in bytes
    */
   @Inline
+  @Pure
   @Uninterruptible
   public int getInstanceSize(int numelts) {
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
@@ -222,6 +230,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Does this class override java.lang.Object.finalize()?
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean hasFinalizer() {
     return false;
@@ -230,6 +240,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Static fields of this array type.
    */
+  @Override
+  @Pure
   public VM_Field[] getStaticFields() {
     return VM_Type.JavaLangObjectType.getStaticFields();
   }
@@ -237,6 +249,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Non-static fields of this array type.
    */
+  @Override
+  @Pure
   public VM_Field[] getInstanceFields() {
     return VM_Type.JavaLangObjectType.getInstanceFields();
   }
@@ -244,6 +258,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Statically dispatched methods of this array type.
    */
+  @Override
+  @Pure
   public VM_Method[] getStaticMethods() {
     return VM_Type.JavaLangObjectType.getStaticMethods();
   }
@@ -251,6 +267,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Virtually dispatched methods of this array type.
    */
+  @Override
+  @Pure
   public VM_Method[] getVirtualMethods() {
     return VM_Type.JavaLangObjectType.getVirtualMethods();
   }
@@ -258,6 +276,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Runtime type information for this array type.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public VM_TIB getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
@@ -268,6 +288,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * get number of superclasses to Object
    * @return 1
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getTypeDepth() {
     return 1;
@@ -278,6 +300,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * another object inherently acyclic (without cycles) ?
    * @return true
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isAcyclicReference() {
     return acyclic;
@@ -287,6 +311,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
    * classes
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getDimensionality() {
     return dimension;
@@ -295,6 +321,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Resolution status.
    */
+  @Override
   @Uninterruptible
   public boolean isResolved() {
     return state >= CLASS_RESOLVED;
@@ -303,6 +330,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Instantiation status.
    */
+  @Override
   @Uninterruptible
   public boolean isInstantiated() {
     return state >= CLASS_INSTANTIATED;
@@ -311,6 +339,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Initialization status.
    */
+  @Override
   @Uninterruptible
   public boolean isInitialized() {
     return state == CLASS_INITIALIZED;
@@ -319,6 +348,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Only intended to be used by the BootImageWriter
    */
+  @Override
   public void markAsBootImageClass() {
     inBootImage = true;
   }
@@ -326,6 +356,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Is this class part of the virtual machine's boot image?
    */
+  @Override
   @Uninterruptible
   public boolean isInBootImage() {
     return inBootImage;
@@ -335,6 +366,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Get the offset in instances of this type assigned to the thin lock word.
    * Offset.max() if instances of this type do not have thin lock words.
    */
+  @Override
   @Uninterruptible
   public Offset getThinLockOffset() {
     return VM_ObjectModel.defaultThinLockOffset();
@@ -344,6 +376,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Whether or not this is an instance of VM_Class?
    * @return false
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isClassType() {
     return false;
@@ -353,6 +387,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Whether or not this is an instance of VM_Array?
    * @return true
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isArrayType() {
     return true;
@@ -362,6 +398,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Whether or not this is a primitive type
    * @return false
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isPrimitiveType() {
     return false;
@@ -370,6 +408,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isReferenceType() {
     return true;
@@ -418,6 +458,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Resolve an array.
    * Also forces the resolution of the element type.
    */
+  @Override
   public synchronized void resolve() {
     if (isResolved()) return;
 
@@ -459,6 +500,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     state = CLASS_RESOLVED;
   }
 
+  @Override
   public void allBootImageTypesResolved() {
     // nothing to do
   }
@@ -467,6 +509,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * Instantiate an array.
    * Main result is to copy the virtual methods from JavaLangObject's tib.
    */
+  @Override
   public synchronized void instantiate() {
     if (isInstantiated()) return;
 
@@ -497,6 +540,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Initialization is a no-op (arrays have no <clinit> method).
    */
+  @Override
   public void initialize() { }
 
   //-------------------------------------------------------------------------------------------------//
@@ -508,6 +552,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param atype array type number (see "newarray" bytecode description in Java VM Specification)
    * @return array description
    */
+  @Pure
   public static VM_Array getPrimitiveArrayType(int atype) {
     switch (atype) {
       case 4:
@@ -544,6 +589,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -590,6 +636,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -636,6 +683,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -682,6 +730,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -728,6 +777,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -774,6 +824,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -820,6 +871,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -866,6 +918,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public static void arraycopy(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
