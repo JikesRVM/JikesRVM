@@ -33,6 +33,7 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Time;
 
@@ -69,10 +70,16 @@ class OptTestHarness {
   static boolean DISABLE_CLASS_LOADING = false;
   static boolean EXECUTE_WITH_REFLECTION = false;
   static boolean EXECUTE_MAIN = false;
-  // Default value for for compiling opt/baseline
+  /** Default value for for compiling opt/baseline */
   static boolean BASELINE = false;
 
-  // Record and show performance of executed methods, if any
+  /**
+   * Should we print the address of compiled methods (useful for
+   * debugging)
+   */
+  static boolean PRINT_CODE_ADDRESS = true;
+  
+  /** Record and show performance of executed methods, if any */
   static Performance perf;
 
   static ClassLoader cl;
@@ -289,7 +296,11 @@ class OptTestHarness {
               System.err.println("SKIPPING method:" + method + "Due to exception: " + e);
             }
           }
-          if (cm != null) method.replaceCompiledMethod(cm);
+          if (cm != null) {
+            method.replaceCompiledMethod(cm);
+            if (PRINT_CODE_ADDRESS)
+              VM.sysWriteln("Method: " + method + " compiled code: ", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
+          }
           VM_TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
           Object[] reflectMethodArgs = new Object[argDesc.length];
           i = parseMethodArgs(argDesc, args, i, reflectMethodArgs);
@@ -335,6 +346,8 @@ class OptTestHarness {
       VM_CompiledMethod cm = null;
       cm = VM_BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
+      if (PRINT_CODE_ADDRESS)
+        VM.sysWriteln("Method: " + method + " compiled code: ", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
     }
 
     // Now compile all methods in opt vector
@@ -349,6 +362,8 @@ class OptTestHarness {
             new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
+        if (PRINT_CODE_ADDRESS)
+          VM.sysWriteln("Method: " + method + " compiled code: ", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
