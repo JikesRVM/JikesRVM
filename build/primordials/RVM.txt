@@ -74,4 +74,5 @@
 
 [Lorg/jikesrvm/scheduler/VM_Thread$State;
 
+[Lorg/vmmagic/pragma/Inline$When;
 Lsun/misc/Unsafe;
