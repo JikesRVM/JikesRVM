@@ -494,7 +494,7 @@ public abstract class CallingConvention extends IRTools
    * using the Linux linkage conventions.
    */
   public static void expandSysCall(Instruction s, IR ir) {
-    RegisterOperand ip = (RegisterOperand) Call.getClearAddress(s);
+    Operand ip = Call.getClearAddress(s);
 
     // Allocate space to save non-volatiles.
     allocateSpaceForSysCall(ir);
