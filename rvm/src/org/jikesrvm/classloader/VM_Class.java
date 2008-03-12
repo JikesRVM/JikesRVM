@@ -719,6 +719,15 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Get description of a literal constant.
    */
+  static byte getLiteralDescription(int[] constantPool, int constantPoolIndex) {
+    int cpValue = constantPool[constantPoolIndex];
+    byte type = unpackCPType(cpValue);
+    return type;
+  }
+
+  /**
+   * Get description of a literal constant.
+   */
   public byte getLiteralDescription(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     byte type = unpackCPType(cpValue);
