@@ -542,6 +542,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
+  public boolean isAnnotation() {
+    return type.isClassType() && type.asClass().isAnnotation();
+  }
+
   public boolean isArray() {
     return type.isArrayType();
   }
@@ -562,6 +566,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public boolean isPrimitive() {
     return type.isPrimitiveType();
+  }
+
+  public boolean isSynthetic() {
+    return type.isClassType() && type.asClass().isSynthetic();
   }
 
   public T newInstance() throws IllegalAccessException,

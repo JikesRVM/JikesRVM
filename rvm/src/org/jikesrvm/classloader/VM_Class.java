@@ -337,7 +337,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Annotation type
    */
-  private boolean isAnnotation() {
+  public boolean isAnnotation() {
     return (modifiers & ACC_ANNOTATION) != 0;
   }
 
