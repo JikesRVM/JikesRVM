@@ -169,10 +169,10 @@ public final class VM_Annotation {
                   return evp.getValue();
                 }
               }
-              if (method.getName() == "hashCode") {
+              if (method.getName().equals("hashCode")) {
                 return hashCode();
               }
-              if (method.getName() == "equals") {
+              if (method.getName().equals("equals")) {
                 return equals(args[0]);
               }
               VM_MethodReference methRef = VM_MemberReference.findOrCreate(
