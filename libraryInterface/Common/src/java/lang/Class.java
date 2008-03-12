@@ -528,14 +528,15 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Class<?> getSuperclass() {
+  @SuppressWarnings("unchecked")
+  public Class<? super T> getSuperclass() {
     if (type.isArrayType()) {
       return Object.class;
     } else if (type.isClassType()) {
       VM_Class myClass = type.asClass();
       if (myClass.isInterface()) return null;
       VM_Type supe = myClass.getSuperClass();
-      return supe == null ? null : supe.getClassForType();
+      return supe == null ? null : (Class<? super T>) supe.getClassForType();
     } else {
       return null;
     }
@@ -956,7 +957,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Constructor<? super T> getEnclosingConstructor() {
+  public Constructor<?> getEnclosingConstructor() {
     throw new VM_UnimplementedError();
   }
 
