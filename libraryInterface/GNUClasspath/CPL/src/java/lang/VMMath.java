@@ -23,8 +23,8 @@ import org.vmmagic.unboxed.Address;
  * implementations in libm using system call (cheaper) native calls
  */
 class VMMath {
-  @SysCall private static native double mathMagic(Address functionAddress, double a);
-  @SysCall private static native double mathMagic(Address functionAddress, double a, double b);
+  @Pure @SysCall private static native double mathMagic(Address functionAddress, double a);
+  @Pure @SysCall private static native double mathMagic(Address functionAddress, double a, double b);
 
   @Pure
   public static double sin(double a) {
