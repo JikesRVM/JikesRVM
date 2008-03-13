@@ -56,6 +56,7 @@ import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
@@ -165,8 +166,10 @@ public class LocalCSE extends CompilerPhase {
       // 2. update the cache according to which expressions this
       // instruction kills
       cache.eliminate(inst);
-      // CALL instructions and synchronizations KILL all memory locations!
-      if (Call.conforms(inst) || isSynchronizing(inst) || inst.isDynamicLinkingPoint()) {
+      // Non-pure CALL instructions and synchronizations KILL all memory locations!
+      if (Call.conforms(inst) && !isPureCall(inst)) {
+        cache.invalidateAllLoads();
+      } else if (isSynchronizing(inst) || inst.isDynamicLinkingPoint()) {
         cache.invalidateAllLoads();
       }
     }
@@ -202,6 +205,19 @@ public class LocalCSE extends CompilerPhase {
   }
 
   /**
+   * Is a given instruction a CSE-able pure call?
+   */
+  private static boolean isPureCall(Instruction inst) {
+    if (Call.conforms(inst)) {
+      MethodOperand methOp = Call.getMethod(inst);
+      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Is a given instruction a CSE-able load?
    */
   public static boolean isLoadInstruction(Instruction s) {
@@ -230,6 +246,8 @@ public class LocalCSE extends CompilerPhase {
       case InstructionFormat.GuardedBinary_format:
       case InstructionFormat.InstanceOf_format:
         return true;
+      case InstructionFormat.Call_format:
+        return isPureCall(inst);
       default:
         return false;
     }
@@ -407,7 +425,7 @@ public class LocalCSE extends CompilerPhase {
    * @param cache  The cache of available expressions.
    * @param inst   The instruction being processed
    */
-  private void typeCheckHelper(IR ir, AvExCache cache, Instruction inst) {
+  private static void typeCheckHelper(IR ir, AvExCache cache, Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
@@ -419,7 +437,7 @@ public class LocalCSE extends CompilerPhase {
     }
   }
 
-  private Operator getMoveOp(RegisterOperand r) {
+  private static Operator getMoveOp(RegisterOperand r) {
     return IRTools.getMoveOp(r.getType());
   }
 
@@ -463,14 +481,12 @@ public class LocalCSE extends CompilerPhase {
      */
     public AvailableExpression find(Instruction inst) {
       Operator opr = inst.operator();
-      Operand op1 = null;
-      Operand op2 = null;
-      Operand op3 = null;
+      Operand[] ops = null;
       LocationOperand location = null;
       switch (inst.operator.format) {
         case InstructionFormat.GetField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
-          op1 = GetField.getRef(inst);
+          ops = new Operand[]{GetField.getRef(inst)};
           location = GetField.getLocation(inst);
           break;
         case InstructionFormat.GetStatic_format:
@@ -479,7 +495,7 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.PutField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
-          op1 = PutField.getRef(inst);
+          ops = new Operand[]{PutField.getRef(inst)};
           location = PutField.getLocation(inst);
           break;
         case InstructionFormat.PutStatic_format:
@@ -487,50 +503,50 @@ public class LocalCSE extends CompilerPhase {
           location = PutStatic.getLocation(inst);
           break;
         case InstructionFormat.Unary_format:
-          op1 = Unary.getVal(inst);
+          ops = new Operand[]{Unary.getVal(inst)};
           break;
         case InstructionFormat.GuardedUnary_format:
-          op1 = GuardedUnary.getVal(inst);
+          ops = new Operand[]{GuardedUnary.getVal(inst)};
           break;
         case InstructionFormat.Binary_format:
-          op1 = Binary.getVal1(inst);
-          op2 = Binary.getVal2(inst);
+          ops = new Operand[]{Binary.getVal1(inst), Binary.getVal2(inst)};
           break;
         case InstructionFormat.GuardedBinary_format:
-          op1 = GuardedBinary.getVal1(inst);
-          op2 = GuardedBinary.getVal2(inst);
+          ops = new Operand[]{GuardedBinary.getVal1(inst), GuardedBinary.getVal2(inst)};
           break;
         case InstructionFormat.Move_format:
-          op1 = Move.getVal(inst);
+          ops = new Operand[]{Move.getVal(inst)};
           break;
         case InstructionFormat.NullCheck_format:
-          op1 = NullCheck.getRef(inst);
+          ops = new Operand[]{NullCheck.getRef(inst)};
           break;
         case InstructionFormat.ZeroCheck_format:
-          op1 = ZeroCheck.getValue(inst);
+          ops = new Operand[]{ZeroCheck.getValue(inst)};
           break;
         case InstructionFormat.BoundsCheck_format:
-          op1 = BoundsCheck.getRef(inst);
-          op2 = BoundsCheck.getIndex(inst);
+          ops = new Operand[]{BoundsCheck.getRef(inst), BoundsCheck.getIndex(inst)};
           break;
         case InstructionFormat.TrapIf_format:
-          op1 = TrapIf.getVal1(inst);
-          op2 = TrapIf.getVal2(inst);
-          op3 = TrapIf.getTCode(inst);
+          ops = new Operand[]{TrapIf.getVal1(inst), TrapIf.getVal2(inst), TrapIf.getTCode(inst)};
           break;
         case InstructionFormat.TypeCheck_format:
-          op1 = TypeCheck.getRef(inst);
-          op2 = TypeCheck.getType(inst);
+          ops = new Operand[]{TypeCheck.getRef(inst), TypeCheck.getType(inst)};
           break;
         case InstructionFormat.InstanceOf_format:
-          op1 = InstanceOf.getRef(inst);
-          op2 = InstanceOf.getType(inst);
+          ops = new Operand[]{InstanceOf.getRef(inst), InstanceOf.getType(inst)};
+          break;
+        case InstructionFormat.Call_format:
+          int numParams = Call.getNumberOfParams(inst);
+          ops = new Operand[numParams];
+          for (int i=0; i < numParams; i++) {
+            ops[i] = Call.getParam(inst, i);
+          }
           break;
         default:
           throw new OptimizingCompilerException("Unsupported type " + inst);
       }
 
-      AvailableExpression ae = new AvailableExpression(inst, opr, op1, op2, op3, location, null);
+      AvailableExpression ae = new AvailableExpression(inst, opr, ops, location, null);
       int index = cache.indexOf(ae);
       if (index == -1) {
         return null;
@@ -545,15 +561,13 @@ public class LocalCSE extends CompilerPhase {
      */
     public void insert(Instruction inst) {
       Operator opr = inst.operator();
-      Operand op1 = null;
-      Operand op2 = null;
-      Operand op3 = null;
+      Operand[] ops = null;
       LocationOperand location = null;
 
       switch (inst.operator.format) {
         case InstructionFormat.GetField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
-          op1 = GetField.getRef(inst);
+          ops = new Operand[]{GetField.getRef(inst)};
           location = GetField.getLocation(inst);
           break;
         case InstructionFormat.GetStatic_format:
@@ -562,7 +576,7 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.PutField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
-          op1 = PutField.getRef(inst);
+          ops = new Operand[]{PutField.getRef(inst)};
           location = PutField.getLocation(inst);
           break;
         case InstructionFormat.PutStatic_format:
@@ -570,50 +584,50 @@ public class LocalCSE extends CompilerPhase {
           location = PutStatic.getLocation(inst);
           break;
         case InstructionFormat.Unary_format:
-          op1 = Unary.getVal(inst);
+          ops = new Operand[]{Unary.getVal(inst)};
           break;
         case InstructionFormat.GuardedUnary_format:
-          op1 = GuardedUnary.getVal(inst);
+          ops = new Operand[]{GuardedUnary.getVal(inst)};
           break;
         case InstructionFormat.Binary_format:
-          op1 = Binary.getVal1(inst);
-          op2 = Binary.getVal2(inst);
+          ops = new Operand[]{Binary.getVal1(inst), Binary.getVal2(inst)};
           break;
         case InstructionFormat.GuardedBinary_format:
-          op1 = GuardedBinary.getVal1(inst);
-          op2 = GuardedBinary.getVal2(inst);
+          ops = new Operand[]{GuardedBinary.getVal1(inst), GuardedBinary.getVal2(inst)};
           break;
         case InstructionFormat.Move_format:
-          op1 = Move.getVal(inst);
+          ops = new Operand[]{Move.getVal(inst)};
           break;
         case InstructionFormat.NullCheck_format:
-          op1 = NullCheck.getRef(inst);
+          ops = new Operand[]{NullCheck.getRef(inst)};
           break;
         case InstructionFormat.ZeroCheck_format:
-          op1 = ZeroCheck.getValue(inst);
+          ops = new Operand[]{ZeroCheck.getValue(inst)};
           break;
         case InstructionFormat.BoundsCheck_format:
-          op1 = BoundsCheck.getRef(inst);
-          op2 = BoundsCheck.getIndex(inst);
+          ops = new Operand[]{BoundsCheck.getRef(inst), BoundsCheck.getIndex(inst)};
           break;
         case InstructionFormat.TrapIf_format:
-          op1 = TrapIf.getVal1(inst);
-          op2 = TrapIf.getVal2(inst);
-          op3 = TrapIf.getTCode(inst);
+          ops = new Operand[]{TrapIf.getVal1(inst), TrapIf.getVal2(inst), TrapIf.getTCode(inst)};
           break;
         case InstructionFormat.TypeCheck_format:
-          op1 = TypeCheck.getRef(inst);
-          op2 = TypeCheck.getType(inst);
+          ops = new Operand[]{TypeCheck.getRef(inst), TypeCheck.getType(inst)};
           break;
         case InstructionFormat.InstanceOf_format:
-          op1 = InstanceOf.getRef(inst);
-          op2 = InstanceOf.getType(inst);
+          ops = new Operand[]{InstanceOf.getRef(inst), InstanceOf.getType(inst)};
+          break;
+        case InstructionFormat.Call_format:
+          int numParams = Call.getNumberOfParams(inst);
+          ops = new Operand[numParams];
+          for (int i=0; i < numParams; i++) {
+            ops[i] = Call.getParam(inst, i);
+          }
           break;
         default:
           throw new OptimizingCompilerException("Unsupported type " + inst);
       }
 
-      AvailableExpression ae = new AvailableExpression(inst, opr, op1, op2, op3, location, null);
+      AvailableExpression ae = new AvailableExpression(inst, opr, ops, location, null);
       cache.add(ae);
     }
 
@@ -624,22 +638,16 @@ public class LocalCSE extends CompilerPhase {
      */
     private void eliminate(RegisterOperand op) {
       int i = 0;
+      loop_over_expressions:
       while (i < cache.size()) {
         AvailableExpression ae = cache.get(i);
-        Operand opx = ae.op1;
-        if (opx instanceof RegisterOperand && ((RegisterOperand) opx).getRegister() == op.getRegister()) {
-          cache.remove(i);
-          continue;               // don't increment i, since we removed
-        }
-        opx = ae.op2;
-        if (opx instanceof RegisterOperand && ((RegisterOperand) opx).getRegister() == op.getRegister()) {
-          cache.remove(i);
-          continue;               // don't increment i, since we removed
-        }
-        opx = ae.op3;
-        if (opx instanceof RegisterOperand && ((RegisterOperand) opx).getRegister() == op.getRegister()) {
-          cache.remove(i);
-          continue;               // don't increment i, since we removed
+        if (ae.ops != null) {
+          for (Operand opx : ae.ops) {
+            if (opx instanceof RegisterOperand && ((RegisterOperand) opx).getRegister() == op.getRegister()) {
+              cache.remove(i);
+              continue loop_over_expressions; // don't increment i, since we removed
+            }
+          }
         }
         i++;
       }
@@ -719,17 +727,9 @@ public class LocalCSE extends CompilerPhase {
      */
     final Operator opr;
     /**
-     * first operand
+     * operands
      */
-    final Operand op1;
-    /**
-     * second operand
-     */
-    final Operand op2;
-    /**
-     * third operand
-     */
-    final Operand op3;
+    final Operand[] ops;
     /**
      * location operand for memory (load/store) expressions
      */
@@ -743,20 +743,16 @@ public class LocalCSE extends CompilerPhase {
     /**
      * @param i the instruction which makes this expression available
      * @param op the operator of the expression
-     * @param o1 first operand
-     * @param o2 second operand
-     * @param o3 third operand
+     * @param ops the operands
      * @param loc location operand for memory (load/store) expressions
      * @param t temporary register holding the result of the available
      * expression
      */
-    AvailableExpression(Instruction i, Operator op, Operand o1, Operand o2, Operand o3,
+    AvailableExpression(Instruction i, Operator op, Operand[] os,
                         LocationOperand loc, Register t) {
       inst = i;
       opr = op;
-      op1 = o1;
-      op2 = o2;
-      op3 = o3;
+      ops = os;
       location = loc;
       tmp = t;
     }
@@ -779,19 +775,15 @@ public class LocalCSE extends CompilerPhase {
           return false;
         }
         boolean result = LocationOperand.mayBeAliased(location, ae.location);
-        if (op1 != null) {
-          result = result && op1.similar(ae.op1);
-        } else {
-          /* op1 is null, so ae.op1 must also be null */
-          if (ae.op1 != null) {
-            return false;
-          }
+        if (ops == null || ae.ops == null){
+          return result && ops == ae.ops;
         }
-        if (op2 != null) {
-          result = result && op2.similar(ae.op2);
+        result = result && ops[0].similar(ae.ops[0]);
+        if (ops.length > 1) {
+          result = result && ops[1].similar(ae.ops[1]);
         } else {
-          /* op2 is null, so ae.op2 must also be null */
-          if (ae.op2 != null) {
+          /* ops[1] isn't present, so ae.ops[1] must also not be present */
+          if (ae.ops.length > 1) {
             return false;
           }
         }
@@ -802,15 +794,15 @@ public class LocalCSE extends CompilerPhase {
         if (!opr.equals(ae.opr)) {
           return false;
         }
-        if (!op1.similar(ae.op1)) {
+        if (!ops[0].similar(ae.ops[0])) {
           return false;
         }
-        if (op2.similar(ae.op2)) {
+        if (ops[1].similar(ae.ops[1])) {
           return true;
         }
-        if (op2 instanceof IntConstantOperand && ae.op2 instanceof IntConstantOperand) {
-          int C1 = ((IntConstantOperand) op2).value;
-          int C2 = ((IntConstantOperand) ae.op2).value;
+        if (ops[1] instanceof IntConstantOperand && ae.ops[1] instanceof IntConstantOperand) {
+          int C1 = ((IntConstantOperand) ops[1]).value;
+          int C2 = ((IntConstantOperand) ae.ops[1]).value;
           return C1 > 0 && C2 >= 0 && C1 > C2;
         } else {
           return false;
@@ -819,31 +811,22 @@ public class LocalCSE extends CompilerPhase {
         if (!opr.equals(ae.opr)) {
           return false;
         }
-        if (isTernary() && !op3.similar(ae.op3)) {
+        if (ops.length != ae.ops.length) {
           return false;
+        } else {
+          if (ops.length == 2) {
+            return (ops[0].similar(ae.ops[0]) && ops[1].similar(ae.ops[1])) ||
+              (isCommutative() && ops[0].similar(ae.ops[1]) && ops[1].similar(ae.ops[0]));
+          } else {
+            for (int i=0; i < ops.length; i++) {
+              if (!ops[i].similar(ae.ops[i])) {
+                return false;
+              }
+            }
+            return true;
+          }
         }
-        if (!isBinary()) {
-          return op1.similar(ae.op1);
-        }
-        if (op1.similar(ae.op1) && op2.similar(ae.op2)) {
-          return true;
-        }
-        return isCommutative() && op1.similar(ae.op2) && op2.similar(ae.op1);
       }
-    }
-
-    /**
-     * Does this expression use three operands?
-     */
-    public boolean isTernary() {
-      return op3 != null;
-    }
-
-    /**
-     * Does this expression use two or more operands?
-     */
-    public boolean isBinary() {
-      return op2 != null;
     }
 
     /**
@@ -870,14 +853,14 @@ public class LocalCSE extends CompilerPhase {
     /**
      * Does this expression represent the result of a bounds check?
      */
-    public boolean isBoundsCheck() {
-      return BoundsCheck.conforms(opr) || (TrapIf.conforms(opr) && ((TrapCodeOperand) op3).isArrayBounds());
+    private boolean isBoundsCheck() {
+      return BoundsCheck.conforms(opr) || (TrapIf.conforms(opr) && ((TrapCodeOperand) ops[2]).isArrayBounds());
     }
 
     /**
      * Is this expression commutative?
      */
-    public boolean isCommutative() {
+    private boolean isCommutative() {
       return opr.isCommutative();
     }
   }
