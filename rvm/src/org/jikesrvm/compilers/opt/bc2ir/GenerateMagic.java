@@ -453,6 +453,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         Call.setResult(call, op0);
         bc2ir.push(op0.copyD2U(), returnType);
       }
+      Call.setMethod(call, MethodOperand.STATIC(meth, meth.peekResolvedMethod()));
       bc2ir.appendInstruction(call);
     } else if (meth.isSpecializedInvoke()) {
       // The callsite looks like              RETURN = INVOKE (ID, OBJECT, P0, P1 .. PN)

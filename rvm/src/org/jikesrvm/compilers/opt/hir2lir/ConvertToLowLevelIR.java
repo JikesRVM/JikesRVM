@@ -1308,10 +1308,12 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    */
   public static void expandSysCallTarget(Instruction s, IR ir) {
     MethodOperand sysM = Call.getMethod(s);
-    RegisterOperand t1 = getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-    VM_Field target = sysM.getMemberRef().asFieldReference().resolve();
-    Operand ip = getField(s, ir, t1, target);
-    Call.setAddress(s, ip);
+    if (sysM.getMemberRef().isFieldReference()) {
+      RegisterOperand t1 = getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
+      VM_Field target = sysM.getMemberRef().asFieldReference().resolve();
+      Operand ip = getField(s, ir, t1, target);
+      Call.setAddress(s, ip);
+    }
   }
 
   /**
