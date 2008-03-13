@@ -33,7 +33,9 @@ import org.jikesrvm.runtime.VM_Time;
  */
 public final class VMSystem {
 
-
+  // TODO: clean this hack up
+  // NB opt compiler hack, we inline in the case that src is not a java.lang.Object
+  // see org.jikesrvm.compilers.opt.inlining.InlineTools.hasInlinePragma
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (src == null || dst == null) {
       VM_Runtime.raiseNullPointerException();

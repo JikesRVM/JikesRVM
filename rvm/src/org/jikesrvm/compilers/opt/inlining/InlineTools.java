@@ -17,11 +17,13 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
 
@@ -163,6 +165,7 @@ public abstract class InlineTools implements Constants {
         // annotation was lost, assume it was Always
         return true;
       }
+
       switch (ann.value()) {
       case Always:
         return true;
@@ -200,6 +203,13 @@ public abstract class InlineTools implements Constants {
         break;
       }
       }
+    }
+    // TODO: clean this hack up
+    // Hack to inline java.lang.VMSystem.arraycopy in the case that
+    // arg 0 isn't an Object
+    if (callee == VM_Entrypoints.sysArrayCopy) {
+      Operand src = Call.getParam(state.getCallInstruction(), 0);
+      return src.getType() != VM_TypeReference.JavaLangObject;
     }
     return false;
   }
