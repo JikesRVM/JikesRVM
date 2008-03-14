@@ -181,7 +181,7 @@ public final class VM_Annotation {
                   VM_Atom.findOrCreateAsciiAtom("()" +
                                                 VM_TypeReference.findOrCreate(method.getReturnType())
                                                 .getName())).asMethodReference();
-              return methRef.resolve().annotationDefault;
+              return methRef.resolve().getAnnotationDefault();
               //throw new Error("Annotation value not found for: " + method);
             }
           });

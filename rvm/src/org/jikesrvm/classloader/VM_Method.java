@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -48,10 +49,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   protected final VM_Annotation[][] parameterAnnotations;
   /**
-   * A value present in the method info tables of annotation types. It
-   * represents the default result from an annotation method.
+   * A table mapping to values present in the method info tables of annotation
+   * types. It represents the default result from an annotation method.
    */
-  protected final Object annotationDefault;
+  private static final VM_HashMap<VM_Method, Object> annotationDefaults = new VM_HashMap<VM_Method, Object>();
   /**
    * The offset of this virtual method in the jtoc if it's been placed
    * there by constant propagation, otherwise 0.
@@ -78,9 +79,18 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
                       VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     this.parameterAnnotations = parameterAnnotations;
-    this.annotationDefault = annotationDefault;
     this.exceptionTypes = exceptionTypes;
     this.jtocOffset = Offset.fromIntSignExtend(-1);
+    if (annotationDefault != null) {
+      annotationDefaults.put(this, annotationDefault);
+    }
+  }
+
+  /**
+   * Get the annotation default value for an annotation method
+   */
+  Object getAnnotationDefault() {
+    return annotationDefaults.get(this);
   }
 
   /**
@@ -273,7 +283,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     bytecode[3] = (byte) (objectInitIndex >>> 8);
     bytecode[4] = (byte) objectInitIndex;
     for (int i = 0, j = 0; i < aMethods.length; i++) {
-      Object value = aMethods[i].annotationDefault;
+      Object value = aMethods[i].getAnnotationDefault();
       if (value != null) {
         bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
         byte literalType = VM_Class.getLiteralDescription(constantPool, defaultConstants[j]);

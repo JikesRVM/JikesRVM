@@ -2314,7 +2314,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     // Count the number of default values for this class
     int numDefaultFields = 0;
     for (VM_Method declaredMethod : annotationInterface.declaredMethods) {
-      if (declaredMethod.annotationDefault != null) {
+      if (declaredMethod.getAnnotationDefault() != null) {
         numDefaultFields++;
       }
     }
@@ -2361,7 +2361,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     int nextFreeConstantPoolSlot = numFields + annotationInterface.declaredMethods.length;
     int[] defaultConstants = new int[numDefaultFields];
     for (int i = 0, j = 0; i < annotationInterface.declaredMethods.length; i++) {
-      Object value = annotationInterface.declaredMethods[i].annotationDefault;
+      Object value = annotationInterface.declaredMethods[i].getAnnotationDefault();
       if (value != null) {
         if (value instanceof Object[]) {
           // Special case of 0 length arrays that can't have their type resolved early
