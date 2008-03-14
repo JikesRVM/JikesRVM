@@ -17,6 +17,7 @@ import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.runtime.VM_DynamicLink;
+import org.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -121,14 +122,18 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   private final int[] lineNumberMap;
 
   // Extra fields for on-stack replacement
-  // TODO: rework the system so we don't waste space for this on the VM_Method object
-  /* bytecode array constists of prologue and original bytecodes */
-  private byte[] synthesizedBytecodes = null;
-  /* record osr prologue */
-  private byte[] osrPrologue = null;
-  /* prologue may change the maximum stack height, remember the
-   * original stack height */
-  private short savedOperandWords;
+  /** Possible OSR bytecode array consisting of prologue and original bytecodes */
+  private static final VM_HashMap<VM_NormalMethod, byte[]> synthesizedBytecodes =
+    new VM_HashMap<VM_NormalMethod, byte[]>();
+  /** Possible OSR record of osr prologue */
+  private static final VM_HashMap<VM_NormalMethod, byte[]> osrPrologues =
+    new VM_HashMap<VM_NormalMethod, byte[]>();
+  /**
+   * Possibly OSR prologue may change the maximum stack height, remember the
+   * original stack height
+   */
+  private static final VM_HashMap<VM_NormalMethod, Integer> savedOperandWords =
+    new VM_HashMap<VM_NormalMethod, Integer>();
 
   /**
    * Construct a normal Java bytecode method's information
@@ -260,7 +265,9 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    * @return true, if it is (with prologue)
    */
   public boolean isForOsrSpecialization() {
-    return this.synthesizedBytecodes != null;
+    synchronized(synthesizedBytecodes) {
+      return synthesizedBytecodes.get(this) != null;
+    }
   }
 
   /**
@@ -273,15 +280,25 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    *                        stack
    */
   public void setForOsrSpecialization(byte[] prologue, short newStackHeight) {
-    if (VM.VerifyAssertions) VM._assert(this.synthesizedBytecodes == null);
+    if (VM.VerifyAssertions) {
+      synchronized (synthesizedBytecodes) {
+        VM._assert(synthesizedBytecodes.get(this) == null);
+      }
+    }
 
     byte[] newBytecodes = new byte[prologue.length + bytecodes.length];
     System.arraycopy(prologue, 0, newBytecodes, 0, prologue.length);
     System.arraycopy(bytecodes, 0, newBytecodes, prologue.length, bytecodes.length);
 
-    this.osrPrologue = prologue;
-    this.synthesizedBytecodes = newBytecodes;
-    this.savedOperandWords = operandWords;
+    synchronized(osrPrologues) {
+      osrPrologues.put(this, prologue);
+    }
+    synchronized(synthesizedBytecodes) {
+      synthesizedBytecodes.put(this, newBytecodes);
+    }
+    synchronized(savedOperandWords) {
+      savedOperandWords.put(this, Integer.valueOf(operandWords));
+    }
     if (newStackHeight > operandWords) {
       this.operandWords = newStackHeight;
     }
@@ -291,10 +308,21 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    * Restores the original state of the method.
    */
   public void finalizeOsrSpecialization() {
-    if (VM.VerifyAssertions) VM._assert(this.synthesizedBytecodes != null);
-    this.synthesizedBytecodes = null;
-    this.osrPrologue = null;
-    this.operandWords = savedOperandWords;
+    if (VM.VerifyAssertions) {
+      synchronized (synthesizedBytecodes) {
+        VM._assert(synthesizedBytecodes.get(this) != null);
+      }
+    }
+    synchronized(osrPrologues) {
+      osrPrologues.remove(this);
+    }
+    synchronized(synthesizedBytecodes) {
+      synthesizedBytecodes.remove(this);
+    }
+    synchronized(savedOperandWords) {
+      this.operandWords = (short)(savedOperandWords.get(this).intValue());
+      savedOperandWords.remove(this);
+    }
   }
 
   /**
@@ -303,7 +331,13 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    *         0 otherwise.
    */
   public int getOsrPrologueLength() {
-    return isForOsrSpecialization() ? this.osrPrologue.length : 0;
+    if(isForOsrSpecialization()) {
+      synchronized(osrPrologues) {
+        return osrPrologues.get(this).length;
+      }
+    } else {
+      return 0;
+    }
   }
 
   /**
@@ -311,7 +345,15 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    * @return osr prologue bytecode stream
    */
   public VM_BytecodeStream getOsrPrologue() {
-    if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
+    if (VM.VerifyAssertions) {
+      synchronized (synthesizedBytecodes) {
+        VM._assert(synthesizedBytecodes.get(this) != null);
+      }
+    }
+    byte[] osrPrologue;
+    synchronized(osrPrologues) {
+      osrPrologue = osrPrologues.get(this);
+    }
     return new VM_BytecodeStream(this, osrPrologue);
   }
 
@@ -320,8 +362,12 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    * @return bytecode stream
    */
   public VM_BytecodeStream getOsrSynthesizedBytecodes() {
-    if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
-    return new VM_BytecodeStream(this, synthesizedBytecodes);
+    byte[] bytecodes;
+    synchronized(synthesizedBytecodes) {
+      bytecodes = synthesizedBytecodes.get(this);
+      if (VM.VerifyAssertions) VM._assert(bytecodes != null);
+    }
+    return new VM_BytecodeStream(this, bytecodes);
   }
 
   /*
