@@ -52,15 +52,17 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * A table mapping to values present in the method info tables of annotation
    * types. It represents the default result from an annotation method.
    */
-  private static final VM_HashMap<VM_Method, Object> annotationDefaults = new VM_HashMap<VM_Method, Object>();
+  private static final VM_HashMap<VM_Method, Object> annotationDefaults =
+    new VM_HashMap<VM_Method, Object>();
   /**
    * The offset of this virtual method in the jtoc if it's been placed
    * there by constant propagation, otherwise 0.
    */
   private Offset jtocOffset;
 
-  /** Cached array of declared parameter annotations. */
-  private Annotation[][] declaredParameterAnnotations;
+  /** Cache of arrays of declared parameter annotations. */
+  private static final VM_HashMap<VM_Method, Annotation[][]> declaredParameterAnnotations =
+    new VM_HashMap<VM_Method, Annotation[][]>();
 
   /**
    * Construct a read method
@@ -746,12 +748,14 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Returns the parameter annotations for this method.
    */
   public final Annotation[][] getDeclaredParameterAnnotations() {
-    if (declaredParameterAnnotations == null) {
-      declaredParameterAnnotations = new Annotation[parameterAnnotations.length][];
-      for (int a = 0; a < declaredParameterAnnotations.length; ++a)
-        declaredParameterAnnotations[a] = toAnnotations(parameterAnnotations[a]);
+    Annotation[][] result = declaredParameterAnnotations.get(this);
+    if (result == null) {
+      result = new Annotation[parameterAnnotations.length][];
+      for (int a = 0; a < result.length; ++a) {
+        result[a] = toAnnotations(parameterAnnotations[a]);
+      }
+      declaredParameterAnnotations.put(this, result);
     }
-    return declaredParameterAnnotations;
+    return result;
   }
-
 }
