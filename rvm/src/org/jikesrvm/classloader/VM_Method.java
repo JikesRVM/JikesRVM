@@ -23,6 +23,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.VM_HashMap;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -41,13 +42,15 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * exceptions this method might throw (null --> none)
    */
-  protected final VM_TypeReference[] exceptionTypes;
+  private static final VM_HashMap<VM_Method, VM_TypeReference[]> exceptionTypes =
+    new VM_HashMap<VM_Method, VM_TypeReference[]>();
   /**
    * Method parameter annotations from the class file that are
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  protected final VM_Annotation[][] parameterAnnotations;
+  private static final VM_HashMap<VM_Method, VM_Annotation[][]> parameterAnnotations =
+    new VM_HashMap<VM_Method, VM_Annotation[][]>();
   /**
    * A table mapping to values present in the method info tables of annotation
    * types. It represents the default result from an annotation method.
@@ -55,10 +58,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   private static final VM_HashMap<VM_Method, Object> annotationDefaults =
     new VM_HashMap<VM_Method, Object>();
   /**
-   * The offset of this virtual method in the jtoc if it's been placed
-   * there by constant propagation, otherwise 0.
+   * The offsets of virtual methods in the jtoc, if it's been placed
+   * there by constant propagation.
    */
-  private Offset jtocOffset;
+  private static final VM_HashMap<VM_Method, Integer> jtocOffsets =
+    new VM_HashMap<VM_Method, Integer>();
 
   /** Cache of arrays of declared parameter annotations. */
   private static final VM_HashMap<VM_Method, Annotation[][]> declaredParameterAnnotations =
@@ -80,19 +84,41 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
                       VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
                       VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
-    this.parameterAnnotations = parameterAnnotations;
-    this.exceptionTypes = exceptionTypes;
-    this.jtocOffset = Offset.fromIntSignExtend(-1);
+    if (parameterAnnotations != null) {
+      synchronized(this.parameterAnnotations) {
+        this.parameterAnnotations.put(this, parameterAnnotations);
+      }
+    }
+    if (exceptionTypes != null) {
+      synchronized(this.exceptionTypes) {
+        this.exceptionTypes.put(this, exceptionTypes);
+      }
+    }
     if (annotationDefault != null) {
-      annotationDefaults.put(this, annotationDefault);
+      synchronized(annotationDefaults) {
+        annotationDefaults.put(this, annotationDefault);
+      }
+    }
+  }
+
+  /**
+   * Get the paramemter annotations for this method
+   */
+  @Pure
+  private VM_Annotation[][] getParameterAnnotations() {
+    synchronized(parameterAnnotations) {
+      return parameterAnnotations.get(this);
     }
   }
 
   /**
    * Get the annotation default value for an annotation method
    */
+  @Pure
   Object getAnnotationDefault() {
-    return annotationDefaults.get(this);
+    synchronized(annotationDefaults) {
+      return annotationDefaults.get(this);
+    }
   }
 
   /**
@@ -498,9 +524,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  @Uninterruptible
+  @Pure
   public final VM_TypeReference[] getExceptionTypes() {
-    return exceptionTypes;
+    synchronized(exceptionTypes) {
+      return exceptionTypes.get(this);
+    }
   }
 
   /**
@@ -712,7 +740,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     getDeclaringClass().updateMethod(this);
 
     // Replace constant-ified virtual method in JTOC if necessary
-    if (jtocOffset.toInt() != -1) {
+    Offset jtocOffset = getJtocOffset();
+    if (jtocOffset.NE(Offset.zero())) {
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
     }
 
@@ -733,13 +762,34 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
+   * Get the offset used to hold a JTOC addressable version of the current entry
+   * code array
+   */
+  @Pure
+  private Offset getJtocOffset()  {
+    Integer offAsInt;
+    synchronized (jtocOffsets) {
+      offAsInt = jtocOffsets.get(this);
+    }
+    if (offAsInt == null) {
+      return Offset.zero();
+    } else {
+      return Offset.fromIntSignExtend(offAsInt.intValue());
+    }
+  }
+
+  /**
    * Find or create a jtoc offset for this method
    */
   public final synchronized Offset findOrCreateJtocOffset() {
     if (VM.VerifyAssertions) VM._assert(!isStatic() && !isObjectInitializer());
+    Offset jtocOffset = getJtocOffset();;
     if (jtocOffset.EQ(Offset.zero())) {
       jtocOffset = VM_Statics.allocateReferenceSlot(true);
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
+      synchronized(jtocOffsets) {
+        jtocOffsets.put(this, Integer.valueOf(jtocOffset.toInt()));
+      }
     }
     return jtocOffset;
   }
@@ -747,14 +797,21 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * Returns the parameter annotations for this method.
    */
+  @Pure
   public final Annotation[][] getDeclaredParameterAnnotations() {
-    Annotation[][] result = declaredParameterAnnotations.get(this);
+    Annotation[][] result;
+    synchronized(declaredParameterAnnotations) {
+      result = declaredParameterAnnotations.get(this);
+    }
     if (result == null) {
+      VM_Annotation[][] parameterAnnotations = getParameterAnnotations();
       result = new Annotation[parameterAnnotations.length][];
       for (int a = 0; a < result.length; ++a) {
         result[a] = toAnnotations(parameterAnnotations[a]);
       }
-      declaredParameterAnnotations.put(this, result);
+      synchronized(declaredParameterAnnotations) {
+        declaredParameterAnnotations.put(this, result);
+      }
     }
     return result;
   }
