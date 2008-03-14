@@ -49,6 +49,11 @@ public abstract class VM_MemberReference {
   private static int nextId = 1;
 
   /**
+   * Unique id for the member reference (ignored in .equals comparison)
+   */
+  protected final int id;
+
+  /**
    * The type reference
    */
   protected final VM_TypeReference type;
@@ -64,11 +69,6 @@ public abstract class VM_MemberReference {
   protected final VM_Atom descriptor;
 
   /**
-   * Unique id for the member reference
-   */
-  protected int id;
-
-  /**
    * Find or create the canonical VM_MemberReference instance for
    * the given tuple.
    * @param tRef the type reference
@@ -81,13 +81,13 @@ public abstract class VM_MemberReference {
       if (tRef.isArrayType() && !tRef.isUnboxedArrayType()) {
         tRef = VM_Type.JavaLangObjectType.getTypeRef();
       }
-      key = new VM_MethodReference(tRef, mn, md);
+      key = new VM_MethodReference(tRef, mn, md, nextId + 1);
     } else {
-      key = new VM_FieldReference(tRef, mn, md);
+      key = new VM_FieldReference(tRef, mn, md, nextId + 1);
     }
     VM_MemberReference val = dictionary.get(key);
     if (val != null) return val;
-    key.id = nextId++;
+    nextId++;
     VM_TableBasedDynamicLinker.ensureCapacity(key.id);
     if (key.id == members.length) {
       VM_MemberReference[] tmp = new VM_MemberReference[members.length * 2];
@@ -157,11 +157,14 @@ public abstract class VM_MemberReference {
    * @param tRef the type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
+   * @param id the new ID of the member were a new member required (ignored in
+   *            .equals test)
    */
-  protected VM_MemberReference(VM_TypeReference tRef, VM_Atom mn, VM_Atom d) {
+  protected VM_MemberReference(VM_TypeReference tRef, VM_Atom mn, VM_Atom d, int id) {
     type = tRef;
     name = mn;
     descriptor = d;
+    this.id = id;
   }
 
   /**

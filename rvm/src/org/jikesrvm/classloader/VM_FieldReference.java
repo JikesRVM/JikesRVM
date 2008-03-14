@@ -22,22 +22,23 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class VM_FieldReference extends VM_MemberReference implements VM_SizeConstants {
 
   /**
-   * The VM_Field that this field reference resolved to (null if not yet resolved).
-   */
-  private VM_Field resolvedMember;
-
-  /**
    * The field's type
    */
   private final VM_TypeReference fieldContentsType;
 
   /**
+   * The VM_Field that this field reference resolved to (null if not yet resolved).
+   */
+  private VM_Field resolvedMember;
+
+  /**
    * @param tr a type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
+   * @param id the new ID of the member were a new member required
    */
-  VM_FieldReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
-    super(tr, mn, d);
+  VM_FieldReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d, int id) {
+    super(tr, mn, d, id);
     fieldContentsType = VM_TypeReference.findOrCreate(tr.getClassLoader(), d);
   }
 
