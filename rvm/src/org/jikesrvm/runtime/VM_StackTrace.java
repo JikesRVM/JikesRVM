@@ -237,6 +237,19 @@ public class VM_StackTrace {
     }
   }
 
+  /**
+   * Get the compiled method at element
+   */
+  private VM_CompiledMethod getCompiledMethod(int element) {
+	 if ((element > 0) && (element < compiledMethods.length)) {
+		int mid = compiledMethods[element];
+		if (mid != INVISIBLE_METHOD_ID) {
+		  return VM_CompiledMethods.getCompiledMethod(element);
+		}
+	 }
+	 return null;
+  }
+
   /** Return the stack trace for use by the Throwable API */
   public Element[] getStackTrace(Throwable cause) {
     int first = firstRealMethod(cause);
@@ -245,13 +258,13 @@ public class VM_StackTrace {
     if (!VM.BuildForOptCompiler) {
       int element = 0;
       for (int i=first; i <= last; i++) {
-        elements[element] = new Element(VM_CompiledMethods.getCompiledMethod(compiledMethods[i]), instructionOffsets[i]);
+        elements[element] = new Element(getCompiledMethod(i), instructionOffsets[i]);
         element++;
       }
     } else {
       int element = 0;
       for (int i=first; i <= last; i++) {
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[i]);
+        VM_CompiledMethod compiledMethod = getCompiledMethod(i);
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
           // Invisible or non-opt compiled method
@@ -293,7 +306,7 @@ public class VM_StackTrace {
       numElements = last - first + 1;
     } else {
       for (int i=first; i <= last; i++) {
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[i]);
+        VM_CompiledMethod compiledMethod = getCompiledMethod(i);
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
           // Invisible or non-opt compiled method
@@ -316,6 +329,7 @@ public class VM_StackTrace {
     }
     return numElements;
   }
+
   /**
    * Find the first non-VM method/exception initializer method in the stack
    * trace. As we're working with the compiled methods we're assumig the
@@ -361,7 +375,8 @@ public class VM_StackTrace {
       return 0;
     } else {
       int element = 0;
-      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+      VM_CompiledMethod compiledMethod = getCompiledMethod(element);
+
       // Deal with OutOfMemoryError
       if (cause instanceof OutOfMemoryError) {
         // (1) search until VM_Runtime
@@ -369,14 +384,14 @@ public class VM_StackTrace {
             (compiledMethod != null) &&
              compiledMethod.getMethod().getDeclaringClass().getClassForType() != VM_Runtime.class) {
           element++;
-          compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+          compiledMethod = getCompiledMethod(element);
         }
         // (2) continue until not VM_Runtime
         while((element < compiledMethods.length) &&
               (compiledMethod != null) &&
               compiledMethod.getMethod().getDeclaringClass().getClassForType() == VM_Runtime.class) {
           element++;
-          compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+          compiledMethod = getCompiledMethod(element);
         }
         return element;
       }
@@ -386,21 +401,21 @@ public class VM_StackTrace {
             (compiledMethod != null) &&
             compiledMethod.getMethod().getDeclaringClass().getClassForType() == VM_StackTrace.class) {
         element++;
-        compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+        compiledMethod = getCompiledMethod(element);
       }
       // (2) remove any VMThrowable frames
       while((element < compiledMethods.length) &&
             (compiledMethod != null) &&
             compiledMethod.getMethod().getDeclaringClass().getClassForType() == java.lang.VMThrowable.class) {
         element++;
-        compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+        compiledMethod = getCompiledMethod(element);
       }
       // (3) remove any Throwable frames
       while((element < compiledMethods.length) &&
             (compiledMethod != null) &&
             compiledMethod.getMethod().getDeclaringClass().getClassForType() == java.lang.Throwable.class) {
         element++;
-        compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+        compiledMethod = getCompiledMethod(element);
       }
       // (4) remove frames belonging to exception constructors upto the causes constructor
       while((element < compiledMethods.length) &&
@@ -409,7 +424,7 @@ public class VM_StackTrace {
             compiledMethod.getMethod().isObjectInitializer() &&
             compiledMethod.getMethod().getDeclaringClass().isThrowable()) {
         element++;
-        compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+        compiledMethod = getCompiledMethod(element);
       }
       // (5) remove frames belonging to the causes constructor
       // NB This can be made to incorrectly elide frames if the cause
@@ -420,15 +435,14 @@ public class VM_StackTrace {
             (compiledMethod.getMethod().getDeclaringClass().getClassForType() == cause.getClass()) &&
             compiledMethod.getMethod().isObjectInitializer()) {
         element++;
-        compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element]);
+        compiledMethod = getCompiledMethod(element);
       }
       // (6) remove possible hardware exception deliverer frames
       if (element < compiledMethods.length - 2) {
-        compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element+1]);
+        compiledMethod = getCompiledMethod(element+1);
         if ((compiledMethod != null) &&
             compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
           element+=2;
-          compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[element+1]);
         }
       }
       return element;
@@ -466,7 +480,7 @@ public class VM_StackTrace {
             return max; // not sane => return max
           }
         }
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethods[i]);
+        VM_CompiledMethod compiledMethod = getCompiledMethod(i);
         if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
           // looks like we've gone too low
           return max;
