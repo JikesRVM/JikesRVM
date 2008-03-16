@@ -222,8 +222,8 @@ public class VM_Statics implements VM_Constants {
       Offset newOff = allocateReferenceSlot(false);
       setSlotContents(newOff, literal);
       synchronized(objectLiterals) {
-		  objectLiterals.put(literal, newOff.toInt());
-		}
+          objectLiterals.put(literal, newOff.toInt());
+        }
       return newOff.toInt();
     }
   }
@@ -235,9 +235,9 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findObjectLiteral(Object literal) {
     synchronized (objectLiterals) {
-		Integer result = objectLiterals.get(literal);
+      Integer result = objectLiterals.get(literal);
       return result == null ? 0 : result.intValue();
-	 }
+    }
   }
 
   /**
@@ -254,14 +254,14 @@ public class VM_Statics implements VM_Constants {
    * final
    */
   public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
-	 Object literal = getSlotContentsAsObject(fieldOffset);
-	 if (literal != null) {
-		if (findObjectLiteral(literal) == 0) {
-		  synchronized(objectLiterals) {
-			 objectLiterals.put(literal, fieldOffset.toInt());
-		  }
-		}
-	 }
+    Object literal = getSlotContentsAsObject(fieldOffset);
+    if (literal != null) {
+      if (findObjectLiteral(literal) == 0) {
+        synchronized(objectLiterals) {
+          objectLiterals.put(literal, fieldOffset.toInt());
+        }
+      }
+    }
   }
 
   /**
