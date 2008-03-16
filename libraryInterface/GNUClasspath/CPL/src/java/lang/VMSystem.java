@@ -37,27 +37,30 @@ public final class VMSystem {
   // NB opt compiler hack, we inline in the case that src is not a java.lang.Object
   // see org.jikesrvm.compilers.opt.inlining.InlineTools.hasInlinePragma
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
-    if (src == null || dst == null) {
-      VM_Runtime.raiseNullPointerException();
-    } else if ((src instanceof char[]) && (dst instanceof char[])) {
-      VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
-    } else if ((src instanceof Object[]) && (dst instanceof Object[])) {
-      VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
-    } else if ((src instanceof byte[]) && (dst instanceof byte[])) {
-      VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
-    } else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
-      VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
-    } else if ((src instanceof short[]) && (dst instanceof short[])) {
-      VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
-    } else if ((src instanceof int[]) && (dst instanceof int[])) {
-      VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
-    } else if ((src instanceof long[]) && (dst instanceof long[])) {
-      VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
-    } else if ((src instanceof float[]) && (dst instanceof float[])) {
-      VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
-    } else if ((src instanceof double[]) && (dst instanceof double[])) {
-      VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
-    } else {
+    try {
+      if (src == null || dst == null) {
+        VM_Runtime.raiseNullPointerException();
+      } else if (src instanceof char[]) {
+        VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
+      } else if (src instanceof Object[]) {
+        VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
+      } else if (src instanceof byte[]) {
+        VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
+      } else if (src instanceof boolean[]) {
+        VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
+      } else if (src instanceof short[]) {
+        VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
+      } else if (src instanceof int[]) {
+        VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
+      } else if (src instanceof long[]) {
+        VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
+      } else if (src instanceof float[]) {
+        VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(src instanceof double[]);
+        VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
+      }
+    } catch (ClassCastException e) {
       VM_Runtime.raiseArrayStoreException();
     }
   }
