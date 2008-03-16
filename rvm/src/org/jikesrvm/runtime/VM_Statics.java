@@ -20,6 +20,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -125,10 +126,9 @@ public class VM_Statics implements VM_Constants {
   private static final VM_BitVector numericFieldVector = new VM_BitVector(middleOfTable);
 
   /**
-   * Bit vector indicating whether a reference slot is a field (true) or a
-   * literal (false).
+   * Map of objects to their literal offsets
    */
-  private static final VM_BitVector referenceFieldVector = new VM_BitVector(middleOfTable);
+  private static final VM_HashMap<Object, Integer> objectLiterals = new VM_HashMap<Object, Integer>();
 
   static {
     // allocate a slot to be null - offset zero should map to null
@@ -221,6 +221,9 @@ public class VM_Statics implements VM_Constants {
     } else {
       Offset newOff = allocateReferenceSlot(false);
       setSlotContents(newOff, literal);
+      synchronized(objectLiterals) {
+		  objectLiterals.put(literal, newOff.toInt());
+		}
       return newOff.toInt();
     }
   }
@@ -231,16 +234,10 @@ public class VM_Statics implements VM_Constants {
    * @return offset containing literal or 0
    */
   public static int findObjectLiteral(Object literal) {
-    final int bottom = middleOfTable;
-    final int top = getHighestInUseSlot();
-    for (int i=bottom; i <= top; i += getReferenceSlotSize()) {
-      Offset off = slotAsOffset(i);
-      if ((getSlotContentsAsObject(off) == literal) &&
-          !referenceFieldVector.get(i-middleOfTable)) {
-        return slotAsOffset(i).toInt();
-      }
-    }
-    return 0;
+    synchronized (objectLiterals) {
+		Integer result = objectLiterals.get(literal);
+      return result == null ? 0 : result.intValue();
+	 }
   }
 
   /**
@@ -257,8 +254,14 @@ public class VM_Statics implements VM_Constants {
    * final
    */
   public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
-    int slot = offsetAsSlot(fieldOffset);
-    referenceFieldVector.clear(slot-middleOfTable);
+	 Object literal = getSlotContentsAsObject(fieldOffset);
+	 if (literal != null) {
+		if (findObjectLiteral(literal) == 0) {
+		  synchronized(objectLiterals) {
+			 objectLiterals.put(literal, fieldOffset.toInt());
+		  }
+		}
+	 }
   }
 
   /**
@@ -313,9 +316,6 @@ public class VM_Statics implements VM_Constants {
   public static synchronized Offset allocateReferenceSlot(boolean field) {
     int slot = nextReferenceSlot;
     nextReferenceSlot += getReferenceSlotSize();
-    if (field) {
-      referenceFieldVector.set(slot-middleOfTable);
-    }
     if (nextReferenceSlot >= slots.length) {
       enlargeTable();
     }
@@ -401,7 +401,7 @@ public class VM_Statics implements VM_Constants {
     if (!isReference(slot) || slot > getHighestInUseSlot()) {
       return false;
     } else {
-      return !referenceFieldVector.get(slot-middleOfTable);
+      return findObjectLiteral(getSlotContentsAsObject(slotAsOffset(slot))) == 0;
     }
   }
 
