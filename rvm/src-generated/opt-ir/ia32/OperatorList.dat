@@ -960,15 +960,15 @@ none
 IA32_POP
 MIR_Nullary
 none
-
-
+ESP
+ESP
 
 ####################
 IA32_PUSH
 MIR_UnaryNoRes
 none
-
-
+ESP
+ESP
 
 ####################
 IA32_RCL
@@ -1002,8 +1002,8 @@ CF_OF
 IA32_RET
 MIR_Return
 ret
-
-
+ESP
+ESP
 
 ####################
 IA32_SAL

@@ -25,21 +25,37 @@ import org.jikesrvm.compilers.opt.ir.Register;
 public abstract class PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
-  public static final int mask = 0x0000;  // empty mask
+  /** Default empty mask */
+  public static final int mask = 0x0000;
+  /** AF in the eflags is used/defined */
   public static final int maskAF = 0x0001;
+  /** CF in the eflags is used/defined */
   public static final int maskCF = 0x0002;
+  /** OF in the eflags is used/defined */
   public static final int maskOF = 0x0004;
+  /** PF in the eflags is used/defined */
   public static final int maskPF = 0x0008;
+  /** SF in the eflags is used/defined */
   public static final int maskSF = 0x0010;
+  /** ZF in the eflags is used/defined */
   public static final int maskZF = 0x0020;
+  /** C0 in the x87 FPU is used/defined */
   public static final int maskC0 = 0x0040;
+  /** C1 in the x87 FPU is used/defined */
   public static final int maskC1 = 0x0080;
+  /** C2 in the x87 FPU is used/defined */
   public static final int maskC2 = 0x0100;
+  /** C3 in the x87 FPU is used/defined */
   public static final int maskC3 = 0x0200;
+  /** The processor register is used/defined */
   public static final int maskPR = 0x0400;
-  // Meta mask for the enumeration.
-  private static final int maskHIGH = 0x0400;
-  private static final int maskALL = 0x07FF;
+  /** The ESP register is used/defined */
+  public static final int maskESP= 0x0800;
+  /* Meta mask for the enumeration. */
+  /** First mask bit */
+  private static final int maskHIGH = 0x0800;
+  /** Mask for all bits */
+  private static final int maskALL = 0x0FFF;
 
   public static final int maskCF_OF = maskCF | maskOF;
   public static final int maskCF_PF_ZF = maskCF | maskPF | maskZF;
@@ -47,11 +63,13 @@ public abstract class PhysicalDefUse {
   public static final int maskAF_OF_PF_SF_ZF = maskAF | maskOF | maskPF | maskSF | maskZF;
   public static final int maskAF_CF_OF_PF_SF_ZF = maskAF | maskCF | maskOF | maskPF | maskSF | maskZF;
   public static final int maskC0_C1_C2_C3 = maskC0 | maskC1 | maskC2 | maskC3;
-  public static final int maskcallDefs = maskAF_CF_OF_PF_SF_ZF;
-  public static final int maskcallUses = mask;
+  public static final int maskcallDefs = maskAF_CF_OF_PF_SF_ZF | maskESP;
+  public static final int maskcallUses = maskESP;
   public static final int maskIEEEMagicUses = mask;
-  public static final int maskTSPUses = mask;
-  public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskPR;
+  /** Uses mask used by dependence graph to show a yield point */
+  public static final int maskTSPUses = maskESP;
+  /** Definitions mask used by dependence graph to show a yield point */
+  public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskPR | maskESP;
 
   /**
    * @return whether or not an Operator uses the EFLAGS
@@ -67,6 +85,12 @@ public abstract class PhysicalDefUse {
     return (op.implicitDefs & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
 
+  /**
+   * @return whether or not an Operator implicitly uses or defines ESP
+   */
+  public static boolean usesOrDefinesESP(Operator op) {
+    return ((op.implicitUses & maskESP) != 0) || ((op.implicitDefs & maskESP) != 0);
+  }
   /**
    * @return a string representation of the physical registers encoded by
    * an integer
@@ -86,6 +110,7 @@ public abstract class PhysicalDefUse {
     if ((code & maskC2) != 0) s += " C2";
     if ((code & maskC3) != 0) s += " C3";
     if ((code & maskPR) != 0) s += " PR";
+    if ((code & maskESP) != 0) s += " ESP";
     return s;
   }
 
@@ -160,6 +185,8 @@ public abstract class PhysicalDefUse {
           return phys.getC3();
         case maskPR:
           return phys.getPR();
+        case maskESP:
+          return phys.getESP();
       }
       OptimizingCompilerException.UNREACHABLE();
       return null; // placate jikes.
