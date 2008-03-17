@@ -795,7 +795,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
   /**
    * Is the instruction a conditional intraprocedural branch?
    *
-   * @return <code>true</code> if the instruction is a conditoonal
+   * @return <code>true</code> if the instruction is a conditional
    *         intraprocedural branch or <code>false</code> if it is not.
    */
   public boolean isConditionalBranch() {
