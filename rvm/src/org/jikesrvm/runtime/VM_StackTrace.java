@@ -276,7 +276,7 @@ public class VM_StackTrace {
     /** Get class name */
     public String getClassName() {
       if (isInvisible || isTrap) {
-        return null;
+        return "";
       } else {
         return method.getDeclaringClass().toString();
       }
@@ -311,7 +311,7 @@ public class VM_StackTrace {
     if ((element > 0) && (element < compiledMethods.length)) {
       int mid = compiledMethods[element];
       if (mid != INVISIBLE_METHOD_ID) {
-        return VM_CompiledMethods.getCompiledMethod(element);
+        return VM_CompiledMethods.getCompiledMethod(mid);
       }
     }
     return null;

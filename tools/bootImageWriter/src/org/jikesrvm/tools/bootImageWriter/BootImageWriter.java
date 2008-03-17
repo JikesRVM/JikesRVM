@@ -2711,6 +2711,10 @@ public class BootImageWriter extends BootImageWriterMessages
         if (field != null) {
           category = "field        ";
           details  = field.toString();
+        } else if (obj instanceof VM_TIB) {
+          category = "tib          ";
+          VM_Type type = VM_Statics.findTypeOfTIBSlot(jtocOff);
+          details = (type == null) ? "?" : type.toString();
         } else {
           VM_CompiledMethod m = findMethodOfCode(obj);
           if (m != null) {
