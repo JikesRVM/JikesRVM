@@ -301,7 +301,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * clean up any pointers to allow GC to reclaim dead objects
    */
   public final void cleanupPointers() {
-    // primitive types aren't worth reinitialing because setUpIterator
+    // primitive types aren't worth reinitializing because setUpIterator
     //   will take care of this.
     map = null;
     compiledMethod = null;
@@ -425,7 +425,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * This method inspects spill locations between the parameters passed
    * to determine if they look like heap points
-   * If the first parameter is 0, it looks from the begining of the frame
+   * If the first parameter is 0, it looks from the beginning of the frame
    * until new.
    * @param ref1 the last spill found as a reference
    * @param ref2 the next spill found as a reference
