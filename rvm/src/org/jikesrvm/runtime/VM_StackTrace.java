@@ -28,6 +28,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -49,7 +50,8 @@ public class VM_StackTrace {
   private static int lastTraceIndex = 0;
 
   /**
-   * Create a trace of the current call stack
+   * Create a trace for the call stack of VM_Thread.getThreadForStackTrace
+   * (normally the current thread unless we're in GC)
    */
   public VM_StackTrace() {
     boolean isVerbose = false;
@@ -61,13 +63,24 @@ public class VM_StackTrace {
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
-    // (1) Count the number of frames comprising the stack.
-    int numFrames = countFrames();
-    // (2) Construct arrays to hold raw data
-    compiledMethods = new int[numFrames];
-    instructionOffsets = new int[numFrames];
-    // (3) Fill in arrays
-    recordFrames();
+    VM_Thread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
+    if (stackTraceThread != VM_Scheduler.getCurrentThread()) {
+      // (1) Count the number of frames comprising the stack.
+      int numFrames = countFramesNoGC(stackTraceThread);
+      // (2) Construct arrays to hold raw data
+      compiledMethods = new int[numFrames];
+      instructionOffsets = new int[numFrames];
+      // (3) Fill in arrays
+      recordFramesNoGC(stackTraceThread);
+    } else {
+      // (1) Count the number of frames comprising the stack.
+      int numFrames = countFramesUninterruptible(stackTraceThread);
+      // (2) Construct arrays to hold raw data
+      compiledMethods = new int[numFrames];
+      instructionOffsets = new int[numFrames];
+      // (3) Fill in arrays
+      recordFramesUninterruptible(stackTraceThread);
+    }
     // Debugging trick: print every nth stack trace created
     if (isVerbose) {
       VM.disableGC();
@@ -79,25 +92,18 @@ public class VM_StackTrace {
   }
 
   /**
-   * Walk the stack counting the number of stack frames encountered
+   * Walk the stack counting the number of stack frames encountered.
+   * The stack being walked isn't our stack so GC must be disabled.
    * @return number of stack frames encountered
    */
-  private int countFrames() {
+  private int countFramesNoGC(VM_Thread stackTraceThread) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
-    VM_Thread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
     Address fp;
     Address ip;
-    if (stackTraceThread != VM_Scheduler.getCurrentThread()) {
-      /* Stack trace for a sleeping thread */
-      fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
-      ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
-    } else {
-      /* Stack trace for the current thread */
-      fp = VM_Magic.getFramePointer();
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
-    }
+    /* Stack trace for a sleeping thread */
+    fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
+    ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
@@ -119,25 +125,17 @@ public class VM_StackTrace {
   }
 
   /**
-   * Walk the stack recording the stack frames encountered
-   * @return number of stack frames encountered
+   * Walk the stack recording the stack frames encountered.
+   * The stack being walked isn't our stack so GC must be disabled.
    */
-  private int recordFrames() {
+  private void recordFramesNoGC(VM_Thread stackTraceThread) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
-    VM_Thread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
     Address fp;
     Address ip;
-    if (stackTraceThread != VM_Scheduler.getCurrentThread()) {
-      /* Stack trace for a sleeping thread */
-      fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
-      ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
-    } else {
-      /* Stack trace for the current thread */
-      fp = VM_Magic.getFramePointer();
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
-    }
+    /* Stack trace for a sleeping thread */
+    fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
+    ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       compiledMethods[stackFrameCount] = compiledMethodId;
@@ -159,7 +157,76 @@ public class VM_StackTrace {
       fp = VM_Magic.getCallerFramePointer(fp);
     }
     VM.enableGC();
+  }
+
+  /**
+   * Walk the stack counting the number of stack frames encountered.
+   * The stack being walked is our stack, so code is Uninterrupible to stop the
+   * stack moving.
+   * @return number of stack frames encountered
+   */
+  @Uninterruptible
+  private int countFramesUninterruptible(VM_Thread stackTraceThread) {
+    int stackFrameCount = 0;
+    Address fp;
+    Address ip;
+    /* Stack trace for the current thread */
+    fp = VM_Magic.getFramePointer();
+    ip = VM_Magic.getReturnAddress(fp);
+    fp = VM_Magic.getCallerFramePointer(fp);
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+        VM_CompiledMethod compiledMethod =
+          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        if ((compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) &&
+            compiledMethod.hasBridgeFromNativeAnnotation()) {
+          // skip native frames, stopping at last native frame preceeding the
+          // Java To C transition frame
+          fp = VM_Runtime.unwindNativeStackFrame(fp);
+        }
+      }
+      stackFrameCount++;
+      ip = VM_Magic.getReturnAddress(fp);
+      fp = VM_Magic.getCallerFramePointer(fp);
+    }
     return stackFrameCount;
+  }
+
+  /**
+   * Walk the stack recording the stack frames encountered
+   * The stack being walked is our stack, so code is Uninterrupible to stop the
+   * stack moving.
+   */
+  @Uninterruptible
+  private void recordFramesUninterruptible(VM_Thread stackTraceThread) {
+    int stackFrameCount = 0;
+    Address fp;
+    Address ip;
+    /* Stack trace for the current thread */
+    fp = VM_Magic.getFramePointer();
+    ip = VM_Magic.getReturnAddress(fp);
+    fp = VM_Magic.getCallerFramePointer(fp);
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      compiledMethods[stackFrameCount] = compiledMethodId;
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+        VM_CompiledMethod compiledMethod =
+          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+          instructionOffsets[stackFrameCount] =
+            compiledMethod.getInstructionOffset(ip).toInt();
+          if (compiledMethod.hasBridgeFromNativeAnnotation()) {
+            // skip native frames, stopping at last native frame preceeding the
+            // Java To C transition frame
+            fp = VM_Runtime.unwindNativeStackFrame(fp);
+          }
+        }
+      }
+      stackFrameCount++;
+      ip = VM_Magic.getReturnAddress(fp);
+      fp = VM_Magic.getCallerFramePointer(fp);
+    }
   }
 
   /** Class to wrap up a stack frame element */
@@ -241,13 +308,13 @@ public class VM_StackTrace {
    * Get the compiled method at element
    */
   private VM_CompiledMethod getCompiledMethod(int element) {
-	 if ((element > 0) && (element < compiledMethods.length)) {
-		int mid = compiledMethods[element];
-		if (mid != INVISIBLE_METHOD_ID) {
-		  return VM_CompiledMethods.getCompiledMethod(element);
-		}
-	 }
-	 return null;
+    if ((element > 0) && (element < compiledMethods.length)) {
+      int mid = compiledMethods[element];
+      if (mid != INVISIBLE_METHOD_ID) {
+        return VM_CompiledMethods.getCompiledMethod(element);
+      }
+    }
+    return null;
   }
 
   /** Return the stack trace for use by the Throwable API */
