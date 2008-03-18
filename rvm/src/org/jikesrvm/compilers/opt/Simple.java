@@ -15,16 +15,20 @@ package org.jikesrvm.compilers.opt;
 import static org.jikesrvm.compilers.opt.driver.Constants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_UNRESOLVED;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
 import java.lang.reflect.Constructor;
+import java.util.Stack;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
@@ -33,11 +37,14 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
@@ -73,6 +80,10 @@ public final class Simple extends CompilerPhase {
    * Fold conditional branches with constant operands?
    */
   private final boolean foldBranches;
+  /**
+   * Eliminate set/get caught exception
+   */
+  private final boolean foldExceptions;
 
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
@@ -87,57 +98,6 @@ public final class Simple extends CompilerPhase {
   }
 
   /**
-   * By default, perform all optimizations at O1 and higher.
-   */
-  public Simple() {
-    this(1, true, true, true);
-  }
-
-  /**
-   * The constructor is used to specify what pieces of Simple will
-   * be enabled for this instance.  Some pieces are always enabled.
-   * Customizing can be useful because some of the optimizations are not
-   * valid/useful on LIR or even on "late stage" HIR.  With this
-   * constructor, branches will be folded.
-   *
-   * @param typeProp should type propagation be peformed
-   * @param foldChecks should we attempt to eliminate boundscheck
-   */
-  public Simple(boolean typeProp, boolean foldChecks) {
-    this(1, typeProp, foldChecks, false);
-  }
-
-  /**
-   * The constructor is used to specify what pieces of Simple will
-   * be enabled for this instance.  Some pieces are always enabled.
-   * Customizing can be useful because some of the optimizations are not
-   * valid/useful on LIR or even on "late stage" HIR.  With this
-   * constructor, branches will be folded.
-   *
-   * @param level at what optimization level should the phase be enabled?
-   * @param typeProp should type propagation be peformed
-   * @param foldChecks should we attempt to eliminate boundscheck
-   */
-  public Simple(int level, boolean typeProp, boolean foldChecks) {
-    this(level, typeProp, foldChecks, true);
-  }
-
-  /**
-   * The constructor is used to specify what pieces of Simple will
-   * be enabled for this instance.  Some pieces are always enabled.
-   * Customizing can be useful because some of the optimizations are not
-   * valid/useful on LIR or even on "late stage" HIR.
-   *
-   * @param typeProp should type propagation be peformed?
-   * @param foldChecks should we attempt to eliminate boundscheck?
-   * @param foldBranches should we attempt to constant fold conditional
-   * branches?
-   */
-  public Simple(boolean typeProp, boolean foldChecks, boolean foldBranches) {
-    this(1, typeProp, foldChecks, foldBranches);
-  }
-
-  /**
    * The constructor is used to specify what pieces of Simple will
    * be enabled for this instance.  Some pieces are always enabled.
    * Customizing can be useful because some of the optimizations are not
@@ -148,13 +108,16 @@ public final class Simple extends CompilerPhase {
    * @param foldChecks should we attempt to eliminate boundscheck?
    * @param foldBranches should we attempt to constant fold conditional
    * branches?
+   * @param foldExceptions should we attempt to elimate set/get exceptions
    */
-  public Simple(int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
-    super(new Object[]{level, typeProp, foldChecks, foldBranches});
+  public Simple(int level, boolean typeProp, boolean foldChecks,
+                boolean foldBranches, boolean foldExceptions) {
+    super(new Object[]{level, typeProp, foldChecks, foldBranches, foldExceptions});
     this.level = level;
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;
     this.foldBranches = foldBranches;
+    this.foldExceptions = foldExceptions;
   }
 
   /**
@@ -162,7 +125,7 @@ public final class Simple extends CompilerPhase {
    */
   private static final Constructor<CompilerPhase> constructor =
       getCompilerPhaseConstructor(Simple.class,
-                                  new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
+                                  new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
@@ -182,6 +145,12 @@ public final class Simple extends CompilerPhase {
     DefUse.computeDU(ir);
     // Recompute isSSA flags
     DefUse.recomputeSSA(ir);
+    // Simple removal of set/get caught exception
+    if (foldExceptions && ir.hasReachableExceptionHandlers()) {
+      exceptionFolding(ir);
+    }
+    // Compute defList, useList, useCount fields for each register.
+    DefUse.computeDU(ir);
     // Simple copy propagation.
     // This pass incrementally updates the register list.
     copyPropagation(ir);
@@ -612,5 +581,71 @@ public final class Simple extends CompilerPhase {
       DefUse.computeDU(ir);
       DefUse.recomputeSSA(ir);
     }
+  }
+
+  /**
+   * Visit basic blocks in an attempt to eliminate get/set caught excetions
+   *
+   * @param curBlock the current block to visit
+   * @param setInstr the current set caught exception instruction
+   * @param visitedBlocks a stack of blocks visited so far
+   */
+  private boolean processBlockForExceptionFolding(BasicBlock curBlock,
+                                                  Instruction setInstr,
+                                                  Stack<BasicBlock> visitedBlocks) {
+    // Only eliminate gets in blocks with a single predecessor
+    BasicBlockEnumeration ins = curBlock.getInNodes();
+    while (ins.hasMoreElements()) {
+      if (ins.nextElement() != visitedBlocks.peek()) {
+        return true;
+      }
+    }
+    // Find and process set/get instructions
+    Instruction curInstr = curBlock.firstRealInstruction();
+    boolean origSetInstrEscapes = true;
+    Instruction origSetInstr = setInstr;
+    while (curInstr != null && !Label.conforms(curInstr)) {
+      if (curInstr.operator == SET_CAUGHT_EXCEPTION) {
+        setInstr = curInstr;
+        origSetInstrEscapes = false;
+      } else if ((curInstr.operator == GET_CAUGHT_EXCEPTION) &&
+                 (setInstr != null)){
+        Move.mutate(curInstr, REF_MOVE, Nullary.getResult(curInstr).copyRO(),
+                    CacheOp.getRef(setInstr).copy());
+        origSetInstrEscapes = false;
+      } 
+      curInstr = curInstr.nextInstructionInCodeOrder();
+    }
+    // Recurse over blocks
+    visitedBlocks.push(curBlock);
+    BasicBlockEnumeration outs = curBlock.getOutNodes();
+    boolean eliminateSetInstr = (setInstr != null) && (setInstr != origSetInstr);
+    while (outs.hasMoreElements()) {
+      BasicBlock nextBlock = outs.nextElement();
+      if (nextBlock.isExit()) continue;
+      if (visitedBlocks.search(nextBlock) == -1) {
+        if(processBlockForExceptionFolding(nextBlock, setInstr, visitedBlocks)) {
+          // the set instruction escaped
+          eliminateSetInstr = false;
+        }
+      }
+    }
+    visitedBlocks.pop();
+    // Eliminate set instruction if possible
+    if (eliminateSetInstr) {
+      setInstr.remove();  
+    }
+    return origSetInstrEscapes;
+  }
+
+  /**
+   * Find set_caught_exception instructions that are followed by
+   * get_caught_exception instructions
+   *
+   * @param ir to optimize
+   */
+  private void exceptionFolding(IR ir) {
+    BasicBlock start = ir.cfg.entry();
+    processBlockForExceptionFolding(start, null, new Stack());
   }
 }

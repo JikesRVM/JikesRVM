@@ -31,6 +31,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
@@ -200,6 +201,7 @@ public final class ObjectReplacer implements AggregateReplacer {
           DefUse.removeInstructionAndUpdateDU(inst);
         }
         break;
+      case CALL_opcode:
       case NULL_CHECK_opcode:
         // (SJF) TODO: Why wasn't this caught by BC2IR for
         //      java.lang.Double.<init> (Ljava/lang/String;)V ?

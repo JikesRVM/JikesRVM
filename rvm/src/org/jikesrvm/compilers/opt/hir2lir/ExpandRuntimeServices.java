@@ -535,7 +535,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     didSomething = true;
   }
 
-  private final Simple _os = new Simple(false, false);
+  private final Simple _os = new Simple(1, false, false, false, false);
   private final BranchOptimizations branchOpts = new BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
 

@@ -234,7 +234,7 @@ public class OptimizationPlanner {
                       new Object[]{new BuildLST(), new YieldPoints(), new EstimateBlockFrequencies()});
 
     // Simple flow-insensitive optimizations
-    addComponent(p, new Simple(1, true, true));
+    addComponent(p, new Simple(1, true, true, false, true));
 
     // Simple escape analysis and related transformations
     addComponent(p, new EscapeTransformations());
@@ -329,7 +329,7 @@ public class OptimizationPlanner {
         new OptimizationPlanCompositeElement("Post SSA cleanup",
                                                  new Object[]{new LocalCopyProp(),
                                                               new LocalConstantProp(),
-                                                              new Simple(3, true, true),
+                                                              new Simple(3, true, true, false, false),
                                                               new EscapeTransformations(),
                                                               new BranchOptimizations(3, true, true)}) {
           public boolean shouldPerform(OptOptions options) {
@@ -379,7 +379,7 @@ public class OptimizationPlanner {
         new OptimizationPlanCompositeElement("Post SSA cleanup",
                                                  new Object[]{new LocalCopyProp(),
                                                               new LocalConstantProp(),
-                                                              new Simple(3, true, true),
+                                                              new Simple(3, true, true, false, false),
                                                               new BranchOptimizations(3, true, true)}) {
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
@@ -439,7 +439,7 @@ public class OptimizationPlanner {
     // Perform local common-subexpression elimination for a factored basic block.
     addComponent(p, new LocalCSE(false));
     // Simple flow-insensitive optimizations
-    addComponent(p, new Simple(0, false, false));
+    addComponent(p, new Simple(0, false, false, false, false));
 
     // Use the LST to estimate basic block frequency
     addComponent(p,

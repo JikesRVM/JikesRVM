@@ -479,6 +479,10 @@ class SimpleEscape extends CompilerPhase {
           // if we're not sure of the dynamic target, give up
           return true;
         }
+        // pure methods don't let object escape
+        if (mop.getTarget().isPure()) {
+          return false;
+        }
         // try to get a method summary for the called method
         MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
         if (summ == null) {
@@ -660,9 +664,18 @@ class SimpleEscape extends CompilerPhase {
       case RETURN_opcode:
         // a return instruction causes an object to escape this method.
         return true;
-      case CALL_opcode:
-        // a call instruction causes an object to escape this method.
+      case CALL_opcode: {
+        // A call instruction causes an object to escape this method
+        // except when the target is to Throwable.<init> (which we never inline)
+        MethodOperand mop = Call.getMethod(inst);
+        if (mop != null && mop.hasPreciseTarget()) {
+          VM_Method target = mop.getTarget();
+          if (target.isObjectInitializer() && target.getDeclaringClass().isThrowable()) {
+            return false;
+          }
+        }
         return true;
+      }
       case REF_MOVE_opcode: {
         if (visited == null) {
           visited = new HashSet<Register>();
@@ -798,7 +811,7 @@ class SimpleEscape extends CompilerPhase {
   private static OptimizationPlanElement initEscapePlan() {
     return OptimizationPlanCompositeElement.compose("Escape Analysis",
                                                         new Object[]{new ConvertBCtoHIR(),
-                                                                     new Simple(true, true),
+                                                                     new Simple(1, true, true, false, false),
                                                                      new SimpleEscape()});
   }
 
