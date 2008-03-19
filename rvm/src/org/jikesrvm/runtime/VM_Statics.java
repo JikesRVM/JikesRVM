@@ -20,7 +20,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.util.VM_BitVector;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_IdentityHashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -128,7 +128,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Map of objects to their literal offsets
    */
-  private static final VM_HashMap<Object, Integer> objectLiterals = new VM_HashMap<Object, Integer>();
+  private static final VM_IdentityHashMap<Object, Integer> objectLiterals =
+    new VM_IdentityHashMap<Object, Integer>();
 
   static {
     // allocate a slot to be null - offset zero should map to null
@@ -401,7 +402,7 @@ public class VM_Statics implements VM_Constants {
     if (!isReference(slot) || slot > getHighestInUseSlot()) {
       return false;
     } else {
-      return findObjectLiteral(getSlotContentsAsObject(slotAsOffset(slot))) == 0;
+      return findObjectLiteral(getSlotContentsAsObject(slotAsOffset(slot))) != 0;
     }
   }
 
