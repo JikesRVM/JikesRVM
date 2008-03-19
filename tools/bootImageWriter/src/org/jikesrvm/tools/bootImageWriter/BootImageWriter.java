@@ -2698,7 +2698,7 @@ public class BootImageWriter extends BootImageWriterMessages
         } else if (obj instanceof Class) {
           details = "class "+ obj;
         } else if (obj instanceof VM_TIB) {
-          category = "tib          ";
+          category = "literal tib  ";
           VM_Type type = VM_Statics.findTypeOfTIBSlot(jtocOff);
           details = (type == null) ? "?" : type.toString();
         } else {
@@ -2707,21 +2707,28 @@ public class BootImageWriter extends BootImageWriterMessages
         if (field != null) {
           details += " / " + field.toString();
         }
+      } else if (field != null) {
+        category = "field        ";
+        details  = field.toString();
+      } else if (obj instanceof VM_TIB) {
+        // TIBs confuse the statics as their backing is written into the boot image
+        category = "tib          ";
+        VM_Type type = VM_Statics.findTypeOfTIBSlot(jtocOff);
+        details = (type == null) ? "?" : type.toString();
       } else {
-        if (field != null) {
-          category = "field        ";
-          details  = field.toString();
-        } else if (obj instanceof VM_TIB) {
-          category = "tib          ";
-          VM_Type type = VM_Statics.findTypeOfTIBSlot(jtocOff);
-          details = (type == null) ? "?" : type.toString();
+        category = "unknown      ";
+        if (obj instanceof String) {
+          details = "\""+ obj + "\"";
+        } else if (obj instanceof Class) {
+          details = "class "+ obj;
         } else {
           VM_CompiledMethod m = findMethodOfCode(obj);
           if (m != null) {
             category = "code         ";
             details = m.getMethod().toString();
+          } else if (obj != null) {
+            details  = "<?> - unrecognized field or literal of type " + obj.getClass();
           } else {
-            category = "<?>          ";
             details  = "<?>";
           }
         }
