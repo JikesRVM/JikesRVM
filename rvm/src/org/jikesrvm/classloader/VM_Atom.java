@@ -233,8 +233,12 @@ public final class VM_Atom {
       String s = VM_UTF8Convert.fromUTF8(val);
       if (VM.runningVM) {
         s = InternedStrings.internUnfoundString(s);
+        unicodeStringOrJTOCoffset = s;
+      } else {
+        s = s.intern();
+        int offset = VM_Statics.findOrCreateObjectLiteral(s);
+        unicodeStringOrJTOCoffset = offset;
       }
-      unicodeStringOrJTOCoffset = s;
       return s;
     } else if (unicodeStringOrJTOCoffset instanceof String) {
       return (String)unicodeStringOrJTOCoffset;
@@ -278,6 +282,8 @@ public final class VM_Atom {
       String s = VM_UTF8Convert.fromUTF8(val);
       if (VM.runningVM) {
         s = InternedStrings.internUnfoundString(s);
+      } else {
+        s = s.intern();
       }
       int offset = VM_Statics.findOrCreateObjectLiteral(s);
       unicodeStringOrJTOCoffset = offset;
