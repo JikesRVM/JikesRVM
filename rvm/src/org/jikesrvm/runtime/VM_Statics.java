@@ -223,8 +223,8 @@ public class VM_Statics implements VM_Constants {
       Offset newOff = allocateReferenceSlot(false);
       setSlotContents(newOff, literal);
       synchronized(objectLiterals) {
-          objectLiterals.put(literal, newOff.toInt());
-        }
+        objectLiterals.put(literal, newOff.toInt());
+      }
       return newOff.toInt();
     }
   }
@@ -256,7 +256,11 @@ public class VM_Statics implements VM_Constants {
    */
   public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
     Object literal = getSlotContentsAsObject(fieldOffset);
-    if (literal != null) {
+    if (!VM.runningVM && literal instanceof VM_TIB) {
+      // VM_TIB is just a wrapper for the boot image, so don't place the wrapper
+      // in objectLiterals
+      return;
+    } else if (literal != null) {
       if (findObjectLiteral(literal) == 0) {
         synchronized(objectLiterals) {
           objectLiterals.put(literal, fieldOffset.toInt());
@@ -402,7 +406,8 @@ public class VM_Statics implements VM_Constants {
     if (!isReference(slot) || slot > getHighestInUseSlot()) {
       return false;
     } else {
-      return findObjectLiteral(getSlotContentsAsObject(slotAsOffset(slot))) != 0;
+      return (slotAsOffset(slot).toInt() == 0) ||
+        (findObjectLiteral(getSlotContentsAsObject(slotAsOffset(slot))) != 0);
     }
   }
 
