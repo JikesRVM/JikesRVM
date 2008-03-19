@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
-import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Options;
