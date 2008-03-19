@@ -73,12 +73,12 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         if (verbose) VM.sysWriteln("\tNO: pragmaNoInline\n");
         return InlineDecision.NO("pragmaNoInline");
       }
-      if (// are we calling a throwable constructor
+      if (// are we calling the throwable constructor
           staticCallee.isObjectInitializer() &&
-          staticCallee.getDeclaringClass().isThrowable() &&
+          (staticCallee.getDeclaringClass().getClassForType() == Throwable.class) &&
           // and not from a throwable constructor
           !(caller.isObjectInitializer() &&
-              caller.getDeclaringClass().isThrowable())) {
+           (caller.getDeclaringClass().getClassForType() == Throwable.class))) {
         // We need throwable constructors to have their own compiled method IDs
         // to correctly elide stack frames when generating stack traces (see
         // VM_StackTrace).

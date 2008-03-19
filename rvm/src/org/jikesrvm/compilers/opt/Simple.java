@@ -28,7 +28,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
 import java.lang.reflect.Constructor;
-import java.util.Stack;
+import java.util.ArrayList;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
@@ -80,10 +80,6 @@ public final class Simple extends CompilerPhase {
    * Fold conditional branches with constant operands?
    */
   private final boolean foldBranches;
-  /**
-   * Eliminate set/get caught exception
-   */
-  private final boolean foldExceptions;
 
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
@@ -108,16 +104,13 @@ public final class Simple extends CompilerPhase {
    * @param foldChecks should we attempt to eliminate boundscheck?
    * @param foldBranches should we attempt to constant fold conditional
    * branches?
-   * @param foldExceptions should we attempt to elimate set/get exceptions
    */
-  public Simple(int level, boolean typeProp, boolean foldChecks,
-                boolean foldBranches, boolean foldExceptions) {
-    super(new Object[]{level, typeProp, foldChecks, foldBranches, foldExceptions});
+  public Simple(int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
+    super(new Object[]{level, typeProp, foldChecks, foldBranches});
     this.level = level;
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;
     this.foldBranches = foldBranches;
-    this.foldExceptions = foldExceptions;
   }
 
   /**
@@ -125,7 +118,7 @@ public final class Simple extends CompilerPhase {
    */
   private static final Constructor<CompilerPhase> constructor =
       getCompilerPhaseConstructor(Simple.class,
-                                  new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
+                                  new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
@@ -145,12 +138,6 @@ public final class Simple extends CompilerPhase {
     DefUse.computeDU(ir);
     // Recompute isSSA flags
     DefUse.recomputeSSA(ir);
-    // Simple removal of set/get caught exception
-    if (foldExceptions && ir.hasReachableExceptionHandlers()) {
-      exceptionFolding(ir);
-    }
-    // Compute defList, useList, useCount fields for each register.
-    DefUse.computeDU(ir);
     // Simple copy propagation.
     // This pass incrementally updates the register list.
     copyPropagation(ir);
@@ -466,6 +453,8 @@ public final class Simple extends CompilerPhase {
    */
   public static void eliminateDeadInstructions(IR ir, boolean preserveImplicitSSA) {
     // (USE BACKWARDS PASS FOR INCREASED EFFECTIVENESS)
+    ArrayList<Instruction> setCaughtExceptionInstructions = null;
+    int getCaughtExceptionInstructions = 0;
     for (Instruction instr = ir.lastInstructionInCodeOrder(),
         prevInstr = null; instr != null; instr = prevInstr) {
       prevInstr = instr.prevInstructionInCodeOrder(); // cache because
@@ -476,6 +465,13 @@ public final class Simple extends CompilerPhase {
       }
       if (preserveImplicitSSA && (instr.isImplicitLoad() || instr.isAllocation() || instr.operator() == PHI)) {
         continue;
+      }
+
+      if (instr.operator() == SET_CAUGHT_EXCEPTION) {
+        if (setCaughtExceptionInstructions == null) {
+          setCaughtExceptionInstructions = new ArrayList<Instruction>();
+        }
+        setCaughtExceptionInstructions.add(instr);
       }
 
       // remove NOPs
@@ -503,6 +499,10 @@ public final class Simple extends CompilerPhase {
           }
         }
       }
+      if (instr.operator() == GET_CAUGHT_EXCEPTION) {
+        getCaughtExceptionInstructions++;
+      }
+
       // check that all defs are to dead registers and that
       // there is at least 1 def.
       boolean isDead = true;
@@ -530,9 +530,18 @@ public final class Simple extends CompilerPhase {
       if (!foundRegisterDef) {
         continue;
       }
+      if (instr.operator() == GET_CAUGHT_EXCEPTION) {
+        getCaughtExceptionInstructions--;
+      }
       // There are 1 or more register defs, but all of them are dead.
       // Remove instr.
       DefUse.removeInstructionAndUpdateDU(instr);
+    }
+    if ((getCaughtExceptionInstructions == 0)&&
+        (setCaughtExceptionInstructions != null)) {
+      for (Instruction instr : setCaughtExceptionInstructions) {
+        DefUse.removeInstructionAndUpdateDU(instr);
+      }
     }
   }
 
@@ -581,71 +590,5 @@ public final class Simple extends CompilerPhase {
       DefUse.computeDU(ir);
       DefUse.recomputeSSA(ir);
     }
-  }
-
-  /**
-   * Visit basic blocks in an attempt to eliminate get/set caught excetions
-   *
-   * @param curBlock the current block to visit
-   * @param setInstr the current set caught exception instruction
-   * @param visitedBlocks a stack of blocks visited so far
-   */
-  private boolean processBlockForExceptionFolding(BasicBlock curBlock,
-                                                  Instruction setInstr,
-                                                  Stack<BasicBlock> visitedBlocks) {
-    // Only eliminate gets in blocks with a single predecessor
-    BasicBlockEnumeration ins = curBlock.getInNodes();
-    while (ins.hasMoreElements()) {
-      if (ins.nextElement() != visitedBlocks.peek()) {
-        return true;
-      }
-    }
-    // Find and process set/get instructions
-    Instruction curInstr = curBlock.firstRealInstruction();
-    boolean origSetInstrEscapes = true;
-    Instruction origSetInstr = setInstr;
-    while (curInstr != null && !Label.conforms(curInstr)) {
-      if (curInstr.operator == SET_CAUGHT_EXCEPTION) {
-        setInstr = curInstr;
-        origSetInstrEscapes = false;
-      } else if ((curInstr.operator == GET_CAUGHT_EXCEPTION) &&
-                 (setInstr != null)){
-        Move.mutate(curInstr, REF_MOVE, Nullary.getResult(curInstr).copyRO(),
-                    CacheOp.getRef(setInstr).copy());
-        origSetInstrEscapes = false;
-      } 
-      curInstr = curInstr.nextInstructionInCodeOrder();
-    }
-    // Recurse over blocks
-    visitedBlocks.push(curBlock);
-    BasicBlockEnumeration outs = curBlock.getOutNodes();
-    boolean eliminateSetInstr = (setInstr != null) && (setInstr != origSetInstr);
-    while (outs.hasMoreElements()) {
-      BasicBlock nextBlock = outs.nextElement();
-      if (nextBlock.isExit()) continue;
-      if (visitedBlocks.search(nextBlock) == -1) {
-        if(processBlockForExceptionFolding(nextBlock, setInstr, visitedBlocks)) {
-          // the set instruction escaped
-          eliminateSetInstr = false;
-        }
-      }
-    }
-    visitedBlocks.pop();
-    // Eliminate set instruction if possible
-    if (eliminateSetInstr) {
-      setInstr.remove();  
-    }
-    return origSetInstrEscapes;
-  }
-
-  /**
-   * Find set_caught_exception instructions that are followed by
-   * get_caught_exception instructions
-   *
-   * @param ir to optimize
-   */
-  private void exceptionFolding(IR ir) {
-    BasicBlock start = ir.cfg.entry();
-    processBlockForExceptionFolding(start, null, new Stack());
   }
 }
