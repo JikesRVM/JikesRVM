@@ -2198,6 +2198,7 @@ public final class BC2IR
           if (definiteTarget != null) {
             appendInstruction(CacheOp.create(SET_CAUGHT_EXCEPTION, op0));
             s = Goto.create(GOTO, definiteTarget.makeJumpTarget());
+            definiteTarget.setExceptionHandlerWithNormalIn();
           } else {
             s = Athrow.create(ATHROW, op0);
           }

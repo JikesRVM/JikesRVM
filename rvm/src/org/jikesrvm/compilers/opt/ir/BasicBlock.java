@@ -42,6 +42,8 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.pragma.NoInline;
 
+import java.util.HashSet;
+
 /**
  * A basic block in the
  * {@link ControlFlowGraph Factored Control Flow Graph (FCFG)}.
@@ -90,21 +92,28 @@ import org.vmmagic.pragma.NoInline;
 public class BasicBlock extends SortedGraphNode {
 
   /** Bitfield used in flag encoding */
-  static final int CAN_THROW_EXCEPTIONS = 0x01;
+  static final short CAN_THROW_EXCEPTIONS = 0x01;
   /** Bitfield used in flag encoding */
-  static final int IMPLICIT_EXIT_EDGE = 0x02;
+  static final short IMPLICIT_EXIT_EDGE = 0x02;
   /** Bitfield used in flag encoding */
-  static final int EXCEPTION_HANDLER = 0x04;
+  static final short EXCEPTION_HANDLER = 0x04;
   /** Bitfield used in flag encoding */
-  static final int REACHABLE_FROM_EXCEPTION_HANDLER = 0x08;
+  static final short REACHABLE_FROM_EXCEPTION_HANDLER = 0x08;
   /** Bitfield used in flag encoding */
-  static final int UNSAFE_TO_SCHEDULE = 0x10;
+  static final short UNSAFE_TO_SCHEDULE = 0x10;
   /** Bitfield used in flag encoding */
-  static final int INFREQUENT = 0x20;
+  static final short INFREQUENT = 0x20;
   /** Bitfield used in flag encoding */
-  static final int SCRATCH = 0x40;
+  static final short SCRATCH = 0x40;
   /** Bitfield used in flag encoding */
-  static final int LANDING_PAD = 0x80;
+  static final short LANDING_PAD = 0x80;
+  /** Bitfield used in flag encoding */
+  static final short EXCEPTION_HANDLER_WITH_NORMAL_IN = 0x100;
+
+  /**
+   * Used to encode various properties of the block.
+   */
+  protected short flags;
 
   /**
    * Encodes exception handler info for this block.
@@ -122,11 +131,6 @@ public class BasicBlock extends SortedGraphNode {
    * Last instruction of the basic block (BBEND).
    */
   final Instruction end;
-
-  /**
-   * Used to encode various properties of the block.
-   */
-  protected int flags;
 
   /**
    * Relative execution frequency of this basic block.
@@ -608,6 +612,14 @@ public class BasicBlock extends SortedGraphNode {
     } else {
       clearInfrequent();
     }
+  }
+
+  public final void setExceptionHandlerWithNormalIn() {
+    flags |= EXCEPTION_HANDLER_WITH_NORMAL_IN;
+  }
+
+  private boolean isExceptionHandlerWithNormalIn() {
+    return (flags & EXCEPTION_HANDLER_WITH_NORMAL_IN) != 0;
   }
 
   /**
@@ -1582,7 +1594,8 @@ public class BasicBlock extends SortedGraphNode {
       for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
         BasicBlockEnumeration targets = e.next().getBranchTargets();
         while (targets.hasMoreElements()) {
-          VM._assert(targets.next() == succBB);
+          BasicBlock target = targets.next();
+          VM._assert (target == succBB);
         }
       }
     }
@@ -1822,13 +1835,34 @@ public class BasicBlock extends SortedGraphNode {
    */
   public final int getNumberOfNormalOut() {
     int count = 0;
+    boolean countValid = true;
     for (SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.getNextOut()) {
       BasicBlock bb = (BasicBlock) e.toNode();
       if (!bb.isExceptionHandlerBasicBlock()) {
         count++;
+      } else if (bb.isExceptionHandlerWithNormalIn()) {
+        countValid = false;
+        break;
       }
     }
-    return count;
+    if (countValid) {
+      return count;
+    } else {
+      HashSet<BasicBlock> setOfTargets = new HashSet<BasicBlock>();
+      for (SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.getNextOut()) {
+        BasicBlock bb = (BasicBlock) e.toNode();
+        if (!bb.isExceptionHandlerBasicBlock()) {
+          setOfTargets.add(bb);
+        }
+      }
+      for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
+        BasicBlockEnumeration targets = e.next().getBranchTargets();
+        while (targets.hasMoreElements()) {
+          setOfTargets.add(targets.nextElement());
+        }
+      }
+      return setOfTargets.size();
+    }
   }
 
   /**
@@ -1969,7 +2003,7 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   // Enumerate the non-handler blocks in the edge set
-  static final class NormalOutEdgeEnum extends BBEnum {
+  final class NormalOutEdgeEnum extends BBEnum {
     private SpaceEffGraphEdge _edge;
 
     NormalOutEdgeEnum(SpaceEffGraphNode n) {
@@ -1983,6 +2017,15 @@ public class BasicBlock extends SortedGraphNode {
         _edge = _edge.getNextOut();
         if (!cand.isExceptionHandlerBasicBlock()) {
           return cand;
+        } else if (cand.isExceptionHandlerWithNormalIn()) {
+          for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
+            BasicBlockEnumeration targets = e.next().getBranchTargets();
+            while (targets.hasMoreElements()) {
+              if (cand == targets.nextElement()) {
+                return cand;
+              }
+            }
+          }
         }
       }
       return null;
