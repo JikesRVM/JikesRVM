@@ -670,7 +670,7 @@ class SimpleEscape extends CompilerPhase {
         MethodOperand mop = Call.getMethod(inst);
         if (mop != null && mop.hasPreciseTarget()) {
           VM_Method target = mop.getTarget();
-          if (target.isObjectInitializer() && target.getDeclaringClass().isThrowable()) {
+          if (target.hasNoEscapesAnnotation()) {
             return false;
           }
         }

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.NoEscapes;
 
 /**
  * Add annotations to classes using the ASM framework.
@@ -149,6 +151,12 @@ public final class AnnotationAdder {
   /** Set up things to adapt */
   private static void setup() {
     try {
+      // java.lang.Throwable
+      for (Constructor c : Throwable.class.getConstructors()) {
+        addToAdapt(NoEscapes.class, c);
+      }
+      addToAdapt(NoEscapes.class, Throwable.class.getMethod("fillInStackTrace", new Class[0]));
+
       // gnu.java.nio.charset.ByteEncodeLoopHelper
       addToAdapt(Inline.class,
                  "gnu/java/nio/charset/ByteEncodeLoopHelper",
@@ -441,6 +449,13 @@ public final class AnnotationAdder {
           annotatedElements.add(m);
           return thingsToAnnotate.get(m);
         }
+      } else if (elem instanceof Constructor) {
+        Constructor m = (Constructor)elem;
+        if (m.getDeclaringClass().getName().equals(className) &&
+            Type.getConstructorDescriptor(m).equals(methodDesc)) {
+          annotatedElements.add(m);
+          return thingsToAnnotate.get(m);
+        }
       }
     }
     ElementTriple triple = new ElementTriple(className, methodName, methodDesc);
@@ -465,10 +480,14 @@ public final class AnnotationAdder {
     setup();
 
     for(AnnotatedElement elem: thingsToAnnotate.keySet()) {
-      Class<?> c = getClassForElement(elem);
-      if (!processedClasses.contains(c)) {
-        adaptClass(c.getName());
-        processedClasses.add(c);
+      try {
+        Class<?> c = getClassForElement(elem);
+        if (!processedClasses.contains(c)) {
+          adaptClass(c.getName());
+          processedClasses.add(c);
+        }
+      } catch (Exception e) {
+        throw new Error("Error processing "+elem, e);
       }
     }
 
@@ -509,6 +528,8 @@ public final class AnnotationAdder {
   private static Class<?> getClassForElement(AnnotatedElement elem) {
     if (elem instanceof Method) {
       return ((Method)elem).getDeclaringClass();
+    } else if (elem instanceof Constructor) {
+      return ((Constructor)elem).getDeclaringClass();
     }
     return null;
   }

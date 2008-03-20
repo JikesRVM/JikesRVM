@@ -346,4 +346,12 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   public final boolean hasNonMovingAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.NonMoving);
   }
+
+  /**
+   * Return true if this element has a NoEscapes annotation.
+   * @see org.vmmagic.pragma.NoEscapes
+   */
+  public final boolean hasNoEscapesAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NoEscapes);
+  }
 }
