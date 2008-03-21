@@ -27,6 +27,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
 
+import java.util.HashSet;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.Constants;
@@ -41,8 +43,6 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.pragma.NoInline;
-
-import java.util.HashSet;
 
 /**
  * A basic block in the
@@ -1595,7 +1595,7 @@ public class BasicBlock extends SortedGraphNode {
         BasicBlockEnumeration targets = e.next().getBranchTargets();
         while (targets.hasMoreElements()) {
           BasicBlock target = targets.next();
-          VM._assert (target == succBB);
+          VM._assert(target == succBB);
         }
       }
     }
