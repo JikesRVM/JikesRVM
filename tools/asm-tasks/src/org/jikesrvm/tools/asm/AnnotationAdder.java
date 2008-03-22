@@ -155,7 +155,6 @@ public final class AnnotationAdder {
       for (Constructor c : Throwable.class.getConstructors()) {
         addToAdapt(NoEscapes.class, c);
       }
-      addToAdapt(NoEscapes.class, Throwable.class.getMethod("fillInStackTrace", new Class[0]));
 
       // gnu.java.nio.charset.ByteEncodeLoopHelper
       addToAdapt(Inline.class,
