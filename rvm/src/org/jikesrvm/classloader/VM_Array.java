@@ -30,7 +30,6 @@ import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.classloader.VM_ClassLoaderConstants.*;
 
 /**
  * Description of a java "array" type. <p>
