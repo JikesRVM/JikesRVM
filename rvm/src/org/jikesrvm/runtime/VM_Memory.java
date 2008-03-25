@@ -12,6 +12,12 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM_SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_SHORT;
+
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -19,11 +25,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
-import static org.jikesrvm.VM_SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_SHORT;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_DOUBLE;
 
 /**
  * Low level memory management functions.
@@ -92,7 +93,6 @@ public class VM_Memory {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  @Inline
   public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (USE_NATIVE && len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos), VM_Magic.objectAsAddress(src).plus(srcPos), len);
@@ -190,7 +190,6 @@ public class VM_Memory {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  @Inline
   public static void arraycopy16Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
       memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT),
@@ -272,7 +271,6 @@ public class VM_Memory {
    * @param dstIdx  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  @Inline
   public static void arraycopy32Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) {
     Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_INT);
     Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_INT);
@@ -304,7 +302,6 @@ public class VM_Memory {
    * @param dstIdx  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  @Inline
   public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) {
     Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_DOUBLE);
     Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_DOUBLE);
@@ -331,7 +328,6 @@ public class VM_Memory {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  @Inline
   public static void aligned32Copy(Address dst, Address src, Offset numBytes) {
     if (USE_NATIVE && numBytes.sGT(Offset.fromIntSignExtend(NATIVE_THRESHOLD))) {
       memcopy(dst, src, numBytes.toWord().toExtent());
@@ -363,7 +359,6 @@ public class VM_Memory {
     }
   }
 
-  @Inline
   public static void aligned32Copy(Address dst, Address src, int numBytes) {
     aligned32Copy(dst, src, Offset.fromIntSignExtend(numBytes));
   }
@@ -376,7 +371,6 @@ public class VM_Memory {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  @Inline
   public static void alignedWordCopy(Address dst, Address src, int numBytes) {
     if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
@@ -392,7 +386,6 @@ public class VM_Memory {
    * @param src     The source addr
    * @param numBytes The number of bytes to copy
    */
-  @Inline
   private static void internalAlignedWordCopy(Address dst, Address src, int numBytes) {
     Address end = src.plus(numBytes);
     while (src.LT(end)) {
