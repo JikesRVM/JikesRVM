@@ -533,7 +533,8 @@ public final class Simple extends CompilerPhase {
       // Remove instr.
       DefUse.removeInstructionAndUpdateDU(instr);
     }
-    if ((getCaughtExceptionInstructions == 0)&&
+    if (false && // temporarily disabled - see RVM-410
+        (getCaughtExceptionInstructions == 0) &&
         (setCaughtExceptionInstructions != null)) {
       for (Instruction instr : setCaughtExceptionInstructions) {
         DefUse.removeInstructionAndUpdateDU(instr);
