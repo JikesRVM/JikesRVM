@@ -12,30 +12,29 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.Log;
-
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_Constants;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
-
-import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.VM_Constants;
-
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.ArchitectureSpecific;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.plan.TraceLocal;
+import org.mmtk.utility.Log;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -263,7 +262,14 @@ import org.vmmagic.pragma.*;
    * the stack being scanned is in this state, we need to scan those
    * registers for code pointers.  If the codeLocations deque is null,
    * then scanning for code pointers is not required, so we don't need
-   * to do anything. (SB: Why only code pointers?)
+   * to do anything. (SB: Why only code pointers?).
+   *
+   * Dave G:  The contents of the GPRs of the hardwareExceptionRegisters
+   * are handled during normal stack scanning
+   * (@see org.jikesrvm.runtime.compilers.common.VM_HardwareTrapCompiledMethod.
+   * It looks to me like the main goal of this method is to ensure that the
+   * method in which the trap happened isn't treated as dead code and collected
+   * (if it's been marked as obsolete, we are setting its activeOnStackFlag below).
    *
    */
   private void getHWExceptionRegisters() {
