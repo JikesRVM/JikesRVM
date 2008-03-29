@@ -195,7 +195,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
           /* Registers */
           trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadContextRegistersField.getOffset()), true);
 
-          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset()), true);
+          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadExceptionRegistersField.getOffset()), true);
 
           if (thread.getJNIEnv() != null) {
             // Right now, jniEnv are Java-visible objects (not C-visible)

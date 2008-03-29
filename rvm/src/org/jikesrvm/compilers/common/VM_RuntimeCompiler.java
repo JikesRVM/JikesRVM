@@ -671,7 +671,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
               // exception in progress. can't use opt compiler:
               // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
-              VM_Scheduler.getCurrentThread().getHardwareExceptionRegisters().inuse) {
+              VM_Scheduler.getCurrentThread().getExceptionRegisters().inuse) {
             // compile with baseline compiler
             cm = baselineCompile(method);
             VM_ControllerMemory.incrementNumBase();

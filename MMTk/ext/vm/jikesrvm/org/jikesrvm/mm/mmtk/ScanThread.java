@@ -157,7 +157,7 @@ import org.vmmagic.unboxed.Offset;
 
     /* Registers */
     trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadContextRegistersField.getOffset()));
-    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset()));
+    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadExceptionRegistersField.getOffset()));
 
     /* Scan the JNI Env field */
     if (thread.getJNIEnv() != null) {
@@ -264,7 +264,7 @@ import org.vmmagic.unboxed.Offset;
    * then scanning for code pointers is not required, so we don't need
    * to do anything. (SB: Why only code pointers?).
    *
-   * Dave G:  The contents of the GPRs of the hardwareExceptionRegisters
+   * Dave G:  The contents of the GPRs of the exceptionRegisters
    * are handled during normal stack scanning
    * (@see org.jikesrvm.runtime.compilers.common.VM_HardwareTrapCompiledMethod.
    * It looks to me like the main goal of this method is to ensure that the
@@ -273,9 +273,9 @@ import org.vmmagic.unboxed.Offset;
    *
    */
   private void getHWExceptionRegisters() {
-    ArchitectureSpecific.VM_Registers hwExReg = thread.getHardwareExceptionRegisters();
-    if (processCodeLocations && hwExReg.inuse) {
-      Address ip = hwExReg.ip;
+    ArchitectureSpecific.VM_Registers exReg = thread.getExceptionRegisters();
+    if (processCodeLocations && exReg.inuse) {
+      Address ip = exReg.ip;
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) {
         VM._assert(compiledMethod != null);
@@ -283,7 +283,7 @@ import org.vmmagic.unboxed.Offset;
       }
       compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
-      Address ipLoc = hwExReg.getIPLocation();
+      Address ipLoc = exReg.getIPLocation();
       if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
       processCodeLocation(code, ipLoc);
     }
@@ -568,8 +568,8 @@ import org.vmmagic.unboxed.Offset;
     VM._assert(thread.getJNIEnv() == null || thread.getJNIEnv().refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv().refsArray())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters().gprs)));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters().gprs)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters().gprs)));
   }
 
   /**

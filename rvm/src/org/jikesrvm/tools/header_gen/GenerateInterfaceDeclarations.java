@@ -538,8 +538,8 @@ public class GenerateInterfaceDeclarations {
     pln("VM_Thread_stack_offset = ", offset);
     offset = VM_Entrypoints.stackLimitField.getOffset();
     pln("VM_Thread_stackLimit_offset = ", offset);
-    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
-    pln("VM_Thread_hardwareExceptionRegisters_offset = ", offset);
+    offset = VM_Entrypoints.threadExceptionRegistersField.getOffset();
+    pln("VM_Thread_exceptionRegisters_offset = ", offset);
     offset = VM_Entrypoints.jniEnvField.getOffset();
     pln("VM_Thread_jniEnv_offset = ", offset);
 

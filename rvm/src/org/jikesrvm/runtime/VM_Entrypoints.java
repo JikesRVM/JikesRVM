@@ -244,9 +244,9 @@ public class VM_Entrypoints {
       getField(org.jikesrvm.scheduler.VM_Thread.class,
                "contextRegisters",
                org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
-  public static final VM_Field threadHardwareExceptionRegistersField =
+  public static final VM_Field threadExceptionRegistersField =
       getField(org.jikesrvm.scheduler.VM_Thread.class,
-               "hardwareExceptionRegisters",
+               "exceptionRegisters",
                org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
 
   public static final VM_Field tracePrevAddressField =

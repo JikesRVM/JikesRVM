@@ -258,12 +258,12 @@ public abstract class VM_Thread {
   public final VM_Registers contextRegisters;
 
   /**
-   * Place to save register state when C signal handler traps
-   * an exception while this thread is running.
+   * Place to save register state during hardware(C signal trap handler) or
+   * software (VM_Runtime.athrow) trap handling.
    */
   @Entrypoint
   @Untraced
-  private final VM_Registers hardwareExceptionRegisters;
+  private final VM_Registers exceptionRegisters;
 
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
   private int uncaughtExceptionCount = 0;
@@ -407,8 +407,8 @@ public abstract class VM_Thread {
     this.daemon = daemon;
     this.priority = priority;
 
-    contextRegisters           = new VM_Registers();
-    hardwareExceptionRegisters = new VM_Registers();
+    contextRegisters   = new VM_Registers();
+    exceptionRegisters = new VM_Registers();
 
     if(VM.VerifyAssertions) VM._assert(stack != null);
     // put self in list of threads known to scheduler and garbage collector
@@ -695,7 +695,7 @@ public abstract class VM_Thread {
     // if the thread terminated because of an exception, remove
     // the mark from the exception register object, or else the
     // garbage collector will attempt to relocate its ip field.
-    hardwareExceptionRegisters.inuse = false;
+    exceptionRegisters.inuse = false;
 
     VM_Scheduler.numActiveThreads -= 1;
     if (daemon) {
@@ -1263,9 +1263,9 @@ public abstract class VM_Thread {
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustRegisters(contextRegisters, delta);
     }
-    if ((hardwareExceptionRegisters.inuse) &&
-        (hardwareExceptionRegisters.getInnermostFramePointer().NE(Address.zero()))) {
-      adjustRegisters(hardwareExceptionRegisters, delta);
+    if ((exceptionRegisters.inuse) &&
+        (exceptionRegisters.getInnermostFramePointer().NE(Address.zero()))) {
+      adjustRegisters(exceptionRegisters, delta);
     }
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustStack(stack, contextRegisters.getInnermostFramePointer(), delta);
@@ -1722,10 +1722,10 @@ public abstract class VM_Thread {
   }
 
   /**
-   * @return the hardware exception registers
+   * @return the thread's exception registers
    */
-  public final VM_Registers getHardwareExceptionRegisters() {
-    return hardwareExceptionRegisters;
+  public final VM_Registers getExceptionRegisters() {
+    return exceptionRegisters;
   }
 
   /**

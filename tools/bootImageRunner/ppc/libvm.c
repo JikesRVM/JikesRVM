@@ -742,7 +742,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
       *(VM_Address *)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +
                       VM_Processor_activeThread_offset);
     VM_Address *registers = *(VM_Address **)
-        ((char *)thread + VM_Thread_hardwareExceptionRegisters_offset);
+        ((char *)thread + VM_Thread_exceptionRegisters_offset);
 
     VM_Word *gprs
         = *(VM_Word **)((char *)registers + VM_Registers_gprs_offset);

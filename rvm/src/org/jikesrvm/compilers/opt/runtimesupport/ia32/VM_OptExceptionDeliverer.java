@@ -105,10 +105,8 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     // If this was a straight software trap (athrow) then setting
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
-    if (!myThread.getHardwareExceptionRegisters().inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
-      VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
-    }
+    myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
 
     // "branches" to catchBlockInstructionAddress
     VM_Magic.restoreHardwareExceptionState(registers);

@@ -675,11 +675,12 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   @NoInline
   @Entrypoint
   public static void athrow(Throwable exceptionObject) {
-    VM_Registers registers = new VM_Registers();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
-    VM_Magic.saveThreadState(registers);
-    registers.inuse = true;
-    deliverException(exceptionObject, registers);
+    VM_Magic.saveThreadState(exceptionRegisters);
+    exceptionRegisters.inuse = true;
+    deliverException(exceptionObject, exceptionRegisters);
   }
 
   /**
@@ -696,7 +697,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * <p> Note:     Control reaches here by the actions of an
    *           external "C" signal handler
    *           which saves the register state of the trap site into the
-   *           "hardwareExceptionRegisters" field of the current
+   *           "exceptionRegisters" field of the current
    *           VM_Thread object.
    *           The signal handler also inserts a <hardware trap> frame
    *           onto the stack immediately above this frame, for use by
@@ -706,7 +707,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
     VM_Thread myThread = VM_Scheduler.getCurrentThread();
-    VM_Registers exceptionRegisters = myThread.getHardwareExceptionRegisters();
+    VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&

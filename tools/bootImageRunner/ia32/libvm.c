@@ -658,7 +658,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* then get its hardware exception registers */
     unsigned int registers =
         *(unsigned int *) (threadObjectAddress +
-                           VM_Thread_hardwareExceptionRegisters_offset);
+                           VM_Thread_exceptionRegisters_offset);
 
     /* get the addresses of the gps and other fields in the VM_Registers object */
     unsigned *vmr_gprs  = *(unsigned **) ((char *) registers + VM_Registers_gprs_offset);
