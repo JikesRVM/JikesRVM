@@ -1729,7 +1729,8 @@ public abstract class VM_Thread {
   }
 
   /**
-   * @return the hardware exception registers
+   * @return the thread's context registers (saved registers when thread is suspended
+   *         by green-thread scheduler).
    */
   public final VM_Registers getContextRegisters() {
     return contextRegisters;
