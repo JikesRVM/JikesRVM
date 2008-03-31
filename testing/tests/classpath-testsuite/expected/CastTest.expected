@@ -1,0 +1,8 @@
+PASSED: double -> double 4.2 == 4.2
+PASSED: long -> double -> long 1023 == 1023 (double)1023.0
+PASSED: double -> long -> double 123.0 == 123.0 (long)123
+PASSED: float -> double -> float 123.0 == 123.0 (double)123.0
+PASSED: double -> float -> double 123.0 == 123.0 (float)123.0
+PASSED: int -> float -> int 123 == 123 (float)123.0
+PASSED: long -> float -> long 123 == 123 (float)123.0
+PASSED: float -> long -> float 123.0 == 123.0 (long)123

@@ -1,0 +1,17 @@
+PASSED: Boolean(true)
+PASSED: Boolean(false)
+PASSED: Boolean(String)
+PASSED: Boolean(String)
+PASSED: Boolean(String)
+PASSED: Boolean.booleanValue()
+PASSED: Boolean.equals(Object)
+PASSED: Boolean.getBoolean(String)
+PASSED: Boolean.hashCode()
+PASSED: Boolean.toString()
+PASSED: Boolean.toString()
+PASSED: Boolean.valueOf(String)
+PASSED: Boolean.valueOf(null)
+PASSED: Boolean.valueOf(String)
+PASSED: Boolean.TRUE
+PASSED: Boolean.FALSE
+PASSED: Boolean.TYPE.getName() is boolean

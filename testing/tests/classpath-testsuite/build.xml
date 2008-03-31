@@ -1,0 +1,90 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="classpath-testsuite" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="1000" else="400">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+
+  <property name="test.max.heapsize" value="150"/>
+
+  <import file="../../../build/tests.xml"/>
+  <import file="../../../build/components/classpath.xml"/>
+
+  <property name="main.java" location="${basedir}/expected"/>
+
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${classpath.dir}/gnu/test" destdir="${build.classes}" debug="true" />
+    <javac srcdir="${classpath.dir}/testsuite/java.io/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
+    <javac srcdir="${classpath.dir}/testsuite/java.lang/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
+    <javac srcdir="${classpath.dir}/testsuite/java.net/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
+    <javac srcdir="${classpath.dir}/testsuite/java.text/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
+    <javac srcdir="${classpath.dir}/testsuite/java.util/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+    <!-- Tests from java.io -->
+    <runCompareTest tag="RandomAccessFileTest" class="RandomAccessFileTest"/>
+
+    <!-- Tests from java.lang -->
+    <runCompareTest tag="ArrayTest" class="ArrayTest"/>
+    <runCompareTest tag="BooleanTest" class="BooleanTest"/>
+    <runCompareTest tag="CastTest" class="CastTest"/>
+    <runCompareTest tag="ClassForNameTest" class="ClassForNameTest"/>
+    <runCompareTest tag="ExceptionTest" class="ExceptionTest"/>
+    <runCompareTest tag="FloatingDecimalTest" class="FloatingDecimalTest"/>
+    <runCompareTest tag="JoinTest" class="JoinTest"/>
+    <runCompareTest tag="LongFieldTest" class="JoinTest"/>
+    <runCompareTest tag="NewInstanceTest" class="NewInstanceTest"/>
+    <runCompareTest tag="NullcastTest" class="NullcastTest"/>
+    <runCompareTest tag="OutOfMemoryErrorTest" class="OutOfMemoryErrorTest"/>
+    <runCompareTest tag="StringTest" class="StringTest"/>
+    <runCompareTest tag="SyncronizedTest" class="SyncronizedTest"/>
+    <runCompareTest tag="ThreadTest" class="ThreadTest"/>
+
+    <!-- Tests from java.net -->
+    <runCompareTest tag="DatagramSocketTest" class="DatagramSocketTest"/>
+    <runCompareTest tag="SocketSendReceiveTest" class="SocketSendReceiveTest"/>
+    <runCompareTest tag="SocketTest" class="SocketTest"/>
+    <runCompareTest tag="URLTest" class="URLTest"/>
+
+    <!-- Tests from java.text -->
+    <runCompareTest tag="SimpleDateFormatTest" class="SimpleDateFormatTest"/>
+    <runCompareTest tag="MessageFormatTest" class="MessageFormatTest"/>
+
+    <!-- Tests from java.util -->
+    <runCompareTest tag="SimpleTimeZoneTest" class="SimpleTimeZoneTest"/>
+
+    <finishResults/>
+  </target>
+
+</project>
