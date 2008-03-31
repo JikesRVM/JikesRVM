@@ -92,20 +92,12 @@ public abstract class VM_Configuration {
    // build with Base boot image compiler
    public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
 
-  // Interface method invocation.
-  // We have five mechanisms:
-  //   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber).
-  //    - embedded directly in the TIB
-  //    - indirectly accessed off the TIB
-  //   ITable-based
-  //    - directly indexed (by interface id) iTables.
-  //    - searched (at dispatch time);
-  //   Naive, class object is searched for matching method on every dispatch.
+  // Interface method dispatch strategy.
+  // We either use IMT's (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA 2001)
+  // or searched ITables. See also the research archive for the variants on these
+  // two schemes that were evaluated in the OOPSLA 2001 paper.
   public static final boolean BuildForIMTInterfaceInvocation = true;
-  public static final boolean BuildForIndirectIMT = BuildForIMTInterfaceInvocation;
-  public static final boolean BuildForEmbeddedIMT = !BuildForIndirectIMT && BuildForIMTInterfaceInvocation;
   public static final boolean BuildForITableInterfaceInvocation = !BuildForIMTInterfaceInvocation;
-  public static final boolean DirectlyIndexedITables = false;
 
   /** Epilogue yieldpoints increase sampling accuracy for adaptive
       recompilation.  In particular, they are key for large, leaf, loop-free
