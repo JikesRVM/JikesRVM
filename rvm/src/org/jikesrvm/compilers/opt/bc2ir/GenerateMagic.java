@@ -200,7 +200,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         throw MagicNotImplementedException.UNEXPECTED(msg);
       }
     } else if (methodName == VM_MagicNames.addressArrayCreate) {
-      Instruction s = bc2ir.generateAnewarray(meth.getType().getArrayElementType());
+      Instruction s = bc2ir.generateAnewarray(null, meth.getType().getArrayElementType());
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.addressArrayLength) {
       Operand op1 = bc2ir.pop();

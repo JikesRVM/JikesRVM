@@ -386,29 +386,38 @@ public final class BC2IR
 
   // pops the length off the stack
   //
-  public Instruction generateAnewarray(VM_TypeReference elementTypeRef) {
-    VM_TypeReference array = elementTypeRef.getArrayTypeForElementType();
-    RegisterOperand t = gc.temps.makeTemp(array);
+  public Instruction generateAnewarray(VM_TypeReference arrayTypeRef, VM_TypeReference elementTypeRef) {
+    if (arrayTypeRef == null) {
+      if (VM.VerifyAssertions) VM._assert(elementTypeRef != null);
+      arrayTypeRef = elementTypeRef.getArrayTypeForElementType();
+    }
+    if (elementTypeRef == null) {
+      elementTypeRef = arrayTypeRef.getArrayElementType();
+    }
+
+    RegisterOperand t = gc.temps.makeTemp(arrayTypeRef);
     t.setPreciseType();
     markGuardlessNonNull(t);
     // We can do early resolution of the array type if the element type
     // is already initialized.
-    VM_Type arrayType = array.peekType();
-    Operator op = NEWARRAY_UNRESOLVED;
-    TypeOperand arrayOp = makeTypeOperand(array);
-    if (arrayType != null) {
-      if (!(arrayType.isInitialized() || arrayType.isInBootImage()) && VM_Type.JavaLangObjectType.isInstantiated()) {
-        VM_Type elementType = elementTypeRef.peekType();
-        if (elementType != null) {
-          if (elementType.isInitialized() || elementType.isInBootImage()) {
-            arrayType.resolve();
-            arrayType.instantiate();
-          }
-        }
-      }
-      if (arrayType.isInitialized() || arrayType.isInBootImage()) {
+    VM_Type arrayType = arrayTypeRef.peekType();
+    Operator op;
+    TypeOperand arrayOp;
+
+    if ((arrayType != null) && (arrayType.isInitialized() || arrayType.isInBootImage())) {
+      op = NEWARRAY;
+      arrayOp = makeTypeOperand(arrayType);
+    } else {
+      VM_Type elementType = elementTypeRef.peekType();
+      if ((elementType != null) && (elementType.isInitialized() || elementType.isInBootImage())) {
+        arrayType = arrayTypeRef.resolve();
+        arrayType.resolve();
+        arrayType.instantiate();
         op = NEWARRAY;
         arrayOp = makeTypeOperand(arrayType);
+      } else {
+        op = NEWARRAY_UNRESOLVED;
+        arrayOp = makeTypeOperand(arrayTypeRef);
       }
     }
     Instruction s = NewArray.create(op, t, arrayOp, popInt());
@@ -2161,7 +2170,7 @@ public final class BC2IR
 
         case JBC_anewarray: {
           VM_TypeReference elementTypeRef = bcodes.getTypeReference();
-          s = generateAnewarray(elementTypeRef);
+          s = generateAnewarray(null, elementTypeRef);
         }
         break;
 
@@ -2389,33 +2398,37 @@ public final class BC2IR
 
         case JBC_multianewarray: {
           VM_TypeReference arrayType = bcodes.getTypeReference();
-          TypeOperand typeOp = makeTypeOperand(arrayType);
           int dimensions = bcodes.getArrayDimension();
 
-          // Step 1: Create an int array to hold the dimensions.
-          TypeOperand dimArrayType = makeTypeOperand(VM_Array.IntArray);
-          RegisterOperand dimArray = gc.temps.makeTemp(VM_TypeReference.IntArray);
-          markGuardlessNonNull(dimArray);
-          dimArray.setPreciseType();
-          appendInstruction(NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions)));
-          // Step 2: Assign the dimension values to dimArray
-          for (int i = dimensions; i > 0; i--) {
-            LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
-            appendInstruction(AStore.create(INT_ASTORE,
-                                            popInt(),
-                                            dimArray.copyD2U(),
-                                            new IntConstantOperand(i - 1),
-                                            loc,
-                                            new TrueGuardOperand()));
+          if (dimensions == 1) {
+            s = generateAnewarray(arrayType, null);
+          } else {
+            TypeOperand typeOp = makeTypeOperand(arrayType);
+            // Step 1: Create an int array to hold the dimensions.
+            TypeOperand dimArrayType = makeTypeOperand(VM_Array.IntArray);
+            RegisterOperand dimArray = gc.temps.makeTemp(VM_TypeReference.IntArray);
+            markGuardlessNonNull(dimArray);
+            dimArray.setPreciseType();
+            appendInstruction(NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions)));
+            // Step 2: Assign the dimension values to dimArray
+            for (int i = dimensions; i > 0; i--) {
+              LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
+              appendInstruction(AStore.create(INT_ASTORE,
+                                              popInt(),
+                                              dimArray.copyD2U(),
+                                              new IntConstantOperand(i - 1),
+                                              loc,
+                                              new TrueGuardOperand()));
+            }
+            // Step 3: Actually create the multiD array
+            RegisterOperand result = gc.temps.makeTemp(arrayType);
+            markGuardlessNonNull(result);
+            result.setPreciseType();
+            appendInstruction(NewArray.create(NEWOBJMULTIARRAY, result, typeOp, dimArray.copyD2U()));
+            push(result.copyD2U());
+            rectifyStateWithErrorHandler();
+            rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
           }
-          // Step 3: Actually create the multiD array
-          RegisterOperand result = gc.temps.makeTemp(arrayType);
-          markGuardlessNonNull(result);
-          result.setPreciseType();
-          appendInstruction(NewArray.create(NEWOBJMULTIARRAY, result, typeOp, dimArray.copyD2U()));
-          push(result.copyD2U());
-          rectifyStateWithErrorHandler();
-          rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
         }
         break;
 
@@ -2893,6 +2906,7 @@ public final class BC2IR
    * @param type desired type
    */
   private TypeOperand makeTypeOperand(VM_TypeReference type) {
+    if (VM.VerifyAssertions) VM._assert(type != null);
     return new TypeOperand(type);
   }
 
@@ -2902,6 +2916,7 @@ public final class BC2IR
    * @param type desired type
    */
   private TypeOperand makeTypeOperand(VM_Type type) {
+    if (VM.VerifyAssertions) VM._assert(type != null);
     return new TypeOperand(type);
   }
 
