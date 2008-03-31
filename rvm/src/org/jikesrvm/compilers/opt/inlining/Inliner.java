@@ -248,7 +248,7 @@ public class Inliner {
       MethodOperand mo = Call.getMethod(callSite);
       boolean isInterface = mo.isInterface();
       if (isInterface) {
-        if (VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+        if (VM.BuildForIMTInterfaceInvocation) {
           VM_Type interfaceType = mo.getTarget().getDeclaringClass();
           VM_TypeReference recTypeRef = receiver.getType();
           VM_Class recType = (VM_Class) recTypeRef.peekType();

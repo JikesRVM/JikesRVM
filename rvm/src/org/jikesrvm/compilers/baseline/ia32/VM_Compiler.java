@@ -2815,7 +2815,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     resolvedMethod = methodRef.peekInterfaceMethod();
 
     // (1) Emit dynamic type checking sequence if required to do so inline.
-    if (VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+    if (VM.BuildForIMTInterfaceInvocation) {
       if (methodRef.isMiranda()) {
         // TODO: It's not entirely clear that we can just assume that
         //       the class actually implements the interface.
@@ -2864,25 +2864,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitMOV_Reg_RegDisp(T1, SP,
           Offset.fromIntZeroExtend((count - 1) << 2));
       baselineEmitLoadTIB(asm, S0, T1);
-      if (VM.BuildForIndirectIMT) {
-        // Load the IMT Base into S0
-        asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_IMT_TIB_INDEX << 2));
-      }
+      // Load the IMT Base into S0
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_INTERFACE_DISPATCH_TABLE_INDEX << 2));
+
       genParameterRegisterLoad(methodRef, true);
       asm.emitCALL_RegDisp(S0, sig.getIMTOffset());                                             // the interface call
-    } else if (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables && resolvedMethod != null) {
-      VM_Class I = resolvedMethod.getDeclaringClass();
-      // T1 = "this" object
-      asm.emitMOV_Reg_RegDisp(T1, SP,
-          Offset.fromIntZeroExtend((count - 1) << 2));
-      baselineEmitLoadTIB(asm, S0, T1);
-      // S0 = iTables
-      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << 2));
-      // S0 = iTable
-      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(I.getInterfaceId() << 2));
-      genParameterRegisterLoad(methodRef, true);
-      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
-      asm.emitCALL_RegDisp(S0, Offset.fromIntZeroExtend(idx << 2)); // the interface call
     } else {
       int itableIndex = -1;
       if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {

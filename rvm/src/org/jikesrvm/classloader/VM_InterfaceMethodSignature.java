@@ -118,9 +118,6 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   public Offset getIMTOffset() {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int slot = id % IMT_METHOD_SLOTS;
-    if (VM.BuildForEmbeddedIMT) {
-      slot += TIB_FIRST_INTERFACE_METHOD_INDEX;
-    }
     return Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_ADDRESS);
   }
 }

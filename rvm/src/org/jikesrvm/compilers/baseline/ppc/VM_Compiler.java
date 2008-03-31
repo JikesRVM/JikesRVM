@@ -2857,7 +2857,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
     // (1) Emit dynamic type checking sequence if required to
     // do so inline.
-    if (VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+    if (VM.BuildForIMTInterfaceInvocation) {
       if (methodRef.isMiranda()) {
         // TODO: It's not entirely clear that we can just assume that
         //       the class actually implements the interface.
@@ -2892,23 +2892,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methodRef);
       genMoveParametersToRegisters(true, methodRef); // T0 is "this"
       VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
-      if (VM.BuildForIndirectIMT) {
-        // Load the IMT base into S0
-        asm.emitLAddr(S0, TIB_IMT_TIB_INDEX << LOG_BYTES_IN_ADDRESS, S0);
-      }
+      asm.emitLAddr(S0, TIB_INTERFACE_DISPATCH_TABLE_INDEX << LOG_BYTES_IN_ADDRESS, S0); // Load the IMT base into S0
       asm.emitLAddrOffset(S0, S0, sig.getIMTOffset());                  // the method address
       asm.emitMTCTR(S0);
       asm.emitLVAL(S1, sig.getId());      // pass "hidden" parameter in S1 scratch  register
-      asm.emitBCCTRL();
-    } else if (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables && resolvedMethod != null) {
-      VM_Class I = resolvedMethod.getDeclaringClass();
-      genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
-      VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
-      asm.emitLAddr(S0, TIB_ITABLES_TIB_INDEX << LOG_BYTES_IN_ADDRESS, S0); // iTables
-      asm.emitLAddr(S0, I.getInterfaceId() << LOG_BYTES_IN_ADDRESS, S0);  // iTable
-      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
-      asm.emitLAddr(S0, idx << LOG_BYTES_IN_ADDRESS, S0); // the method to call
-      asm.emitMTCTR(S0);
       asm.emitBCCTRL();
     } else {
       int itableIndex = -1;

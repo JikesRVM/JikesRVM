@@ -87,8 +87,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_IMT_TIB_INDEX;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_ITABLES_TIB_INDEX;
+import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
@@ -880,52 +879,15 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methOp.getMemberRef());
         Offset offset = sig.getIMTOffset();
         RegisterOperand address = null;
-        if (VM.BuildForEmbeddedIMT) {
-          address = InsertLoadOffset(v, ir, REF_LOAD, VM_TypeReference.CodeArray, RHStib.copy(), offset);
-        } else {
-          RegisterOperand IMT =
-              InsertLoadOffset(v,
-                               ir,
-                               REF_LOAD,
-                               VM_TypeReference.IMT,
-                               RHStib.copy(),
-                               Offset.fromIntZeroExtend(TIB_IMT_TIB_INDEX << LOG_BYTES_IN_ADDRESS));
-          address = InsertLoadOffset(v, ir, REF_LOAD, VM_TypeReference.CodeArray, IMT.copyD2U(), offset);
+        RegisterOperand IMT =
+          InsertLoadOffset(v,
+                           ir,
+                           REF_LOAD,
+                           VM_TypeReference.IMT,
+                           RHStib.copy(),
+                           Offset.fromIntZeroExtend(TIB_INTERFACE_DISPATCH_TABLE_INDEX << LOG_BYTES_IN_ADDRESS));
+        address = InsertLoadOffset(v, ir, REF_LOAD, VM_TypeReference.CodeArray, IMT.copyD2U(), offset);
 
-        }
-        Call.setAddress(v, address);
-      } else if (VM
-          .BuildForITableInterfaceInvocation &&
-                                             VM
-                                                 .DirectlyIndexedITables &&
-                                                                         methOp.hasTarget() &&
-                                                                         methOp.getTarget().getDeclaringClass().isResolved()) {
-        VM_Class I = methOp.getTarget().getDeclaringClass();
-        Operand RHStib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
-        RegisterOperand iTables =
-            InsertLoadOffset(v,
-                             ir,
-                             REF_LOAD,
-                             VM_TypeReference.ITableArray,
-                             RHStib.copy(),
-                             Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << LOG_BYTES_IN_ADDRESS));
-        RegisterOperand iTable =
-            InsertLoadOffset(v,
-                             ir,
-                             REF_LOAD,
-                             VM_TypeReference.ITable,
-                             iTables.copyD2U(),
-                             Offset.fromIntZeroExtend(I.getInterfaceId() << LOG_BYTES_IN_ADDRESS));
-        RegisterOperand address =
-            InsertLoadOffset(v,
-                             ir,
-                             REF_LOAD,
-                             VM_TypeReference.CodeArray,
-                             iTable.copyD2U(),
-                             Offset.fromIntZeroExtend(VM_InterfaceInvocation.getITableIndex(I,
-                                                                                            methOp.getMemberRef().getName(),
-                                                                                            methOp.getMemberRef().getDescriptor()) <<
-                                                                                                                                   LOG_BYTES_IN_ADDRESS));
         Call.setAddress(v, address);
       } else {
         int itableIndex = -1;

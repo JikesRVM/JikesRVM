@@ -56,7 +56,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    */
   @NoInline
   public static int computeSize(int numVirtualMethods) {
-    return TIB_FIRST_INTERFACE_METHOD_INDEX + numVirtualMethods + lazyMethodInvokerTrampolineWords();
+    return TIB_FIRST_VIRTUAL_METHOD_INDEX + numVirtualMethods + lazyMethodInvokerTrampolineWords();
   }
 
   /**
@@ -190,7 +190,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
   @Interruptible
   public VM_ITableArray getITableArray() {
     if (VM.VerifyAssertions) VM._assert(getType().isClassType());
-    return (VM_ITableArray)get(TIB_ITABLES_TIB_INDEX);
+    return (VM_ITableArray)get(TIB_INTERFACE_DISPATCH_TABLE_INDEX);
   }
 
   /**
@@ -198,7 +198,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    */
   public void setITableArray(VM_ITableArray iTableArray) {
     if (VM.VerifyAssertions) VM._assert(getType().isClassType());
-    set(TIB_ITABLES_TIB_INDEX, iTableArray);
+    set(TIB_INTERFACE_DISPATCH_TABLE_INDEX, iTableArray);
   }
 
   /**
@@ -222,7 +222,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
   @Interruptible
   public VM_IMT getImt() {
     if (VM.VerifyAssertions) VM._assert(getType().isClassType());
-    return (VM_IMT)get(TIB_IMT_TIB_INDEX);
+    return (VM_IMT)get(TIB_INTERFACE_DISPATCH_TABLE_INDEX);
   }
 
   /**
@@ -231,7 +231,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
   public void setImt(VM_IMT imt) {
     if (VM.VerifyAssertions) VM._assert(imt.length() == IMT_METHOD_SLOTS);
     if (VM.VerifyAssertions) VM._assert(getType().isClassType());
-    set(TIB_IMT_TIB_INDEX, imt);
+    set(TIB_INTERFACE_DISPATCH_TABLE_INDEX, imt);
   }
 
   /**
@@ -342,13 +342,6 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
   public void setSpecializedMethod(int specializedMethodIndex, VM_CodeArray code) {
     if (VM.VerifyAssertions) VM._assert(specializedMethodIndex >= 0);
     set(TIB_FIRST_SPECIALIZED_METHOD_INDEX + specializedMethodIndex, code);
-  }
-
-  /**
-   * Set an IMT entry in this TIB.
-   */
-  public void setImtEntry(int imtEntryIndex, VM_CodeArray code) {
-    set(TIB_FIRST_INTERFACE_METHOD_INDEX + imtEntryIndex, code);
   }
 
   /**

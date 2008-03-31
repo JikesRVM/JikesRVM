@@ -2001,8 +2001,7 @@ public final class BC2IR
           }
           Call.setGuard(s, getCurrentGuard());
 
-          boolean requiresImplementsTest =
-              VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables);
+          boolean requiresImplementsTest = VM.BuildForIMTInterfaceInvocation;
 
           // Invokeinterface requires a dynamic type check
           // to ensure that the receiver object actually
