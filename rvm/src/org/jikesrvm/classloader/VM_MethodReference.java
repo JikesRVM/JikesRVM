@@ -210,14 +210,17 @@ public final class VM_MethodReference extends VM_MemberReference {
       declaringClass.resolve();
     }
 
-    // See if method is in any superclasses
+    // See if method is explicitly declared in any superclass
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
 
       if (c.findDeclaredMethod(name, descriptor) != null) {
-        // Method in superclass => not interface method
+        // Method declared in superclass => not interface method
         return false;
       }
+    }
 
+    // Not declared in any superclass; now check to see if it is coming from an interface somewhere
+    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
       // See if method is in any interfaces of c
       for (VM_Class intf : c.getDeclaredInterfaces()) {
         if (searchInterfaceMethods(intf) != null) {
