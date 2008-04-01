@@ -163,7 +163,7 @@ memAsLoad | memAsStore | release | tsp | immedPEI
 # allocate a multi-dimensional array
 # could raise number of exceptions during class loading or IllegalAccess or NegativeArraySize
 NEWOBJMULTIARRAY
-NewArray
+Multianewarray
 alloc | immedPEI | dynLink
 
 

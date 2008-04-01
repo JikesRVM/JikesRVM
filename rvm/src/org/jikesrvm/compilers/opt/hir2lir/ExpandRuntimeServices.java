@@ -17,9 +17,11 @@ import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWOBJMULTIARRAY_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEW_UNRESOLVED_opcode;
@@ -56,6 +58,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.Multianewarray;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
@@ -245,16 +248,34 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case NEWOBJMULTIARRAY_opcode: {
-          int typeRefId = NewArray.getType(inst).getTypeRef().getId();
+          int dimensions = Multianewarray.getNumberOfDimensions(inst);
+          // Step 1: Create an int array to hold the dimensions.
+          TypeOperand dimArrayType = new TypeOperand(VM_Array.IntArray);
+          RegisterOperand dimArray = ir.regpool.makeTemp(VM_TypeReference.IntArray);
+          dimArray.setPreciseType();
+          next =  NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions));
+          inst.insertBefore(next);
+          // Step 2: Assign the dimension values to dimArray
+          for (int i = 0; i < dimensions; i++) {
+            LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
+            inst.insertBefore(AStore.create(INT_ASTORE,
+                              Multianewarray.getClearDimension(inst, i),
+                              dimArray.copyD2U(),
+                              IRTools.IC(i),
+                              loc,
+                              IRTools.TG()));
+          }
+          // Step 3. Plant call to VM_OptLinker.newArrayArray
+          int typeRefId = Multianewarray.getType(inst).getTypeRef().getId();
           VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
           VM_Method callSite = inst.position.getMethod();
           Call.mutate3(inst,
                        CALL,
-                       NewArray.getClearResult(inst),
+                       Multianewarray.getClearResult(inst),
                        IRTools.AC(target.getOffset()),
                        MethodOperand.STATIC(target),
                        IRTools.IC(callSite.getId()),
-                       NewArray.getClearSize(inst),
+                       dimArray.copyD2U(),
                        IRTools.IC(typeRefId));
         }
         break;

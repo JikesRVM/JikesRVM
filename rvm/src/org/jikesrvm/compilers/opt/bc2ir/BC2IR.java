@@ -71,6 +71,7 @@ import org.jikesrvm.compilers.opt.ir.InstanceOf;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LookupSwitch;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
+import org.jikesrvm.compilers.opt.ir.Multianewarray;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
@@ -2404,27 +2405,13 @@ public final class BC2IR
             s = generateAnewarray(arrayType, null);
           } else {
             TypeOperand typeOp = makeTypeOperand(arrayType);
-            // Step 1: Create an int array to hold the dimensions.
-            TypeOperand dimArrayType = makeTypeOperand(VM_Array.IntArray);
-            RegisterOperand dimArray = gc.temps.makeTemp(VM_TypeReference.IntArray);
-            markGuardlessNonNull(dimArray);
-            dimArray.setPreciseType();
-            appendInstruction(NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions)));
-            // Step 2: Assign the dimension values to dimArray
-            for (int i = dimensions; i > 0; i--) {
-              LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
-              appendInstruction(AStore.create(INT_ASTORE,
-                                              popInt(),
-                                              dimArray.copyD2U(),
-                                              new IntConstantOperand(i - 1),
-                                              loc,
-                                              new TrueGuardOperand()));
-            }
-            // Step 3: Actually create the multiD array
             RegisterOperand result = gc.temps.makeTemp(arrayType);
             markGuardlessNonNull(result);
             result.setPreciseType();
-            appendInstruction(NewArray.create(NEWOBJMULTIARRAY, result, typeOp, dimArray.copyD2U()));
+            s = Multianewarray.create(NEWOBJMULTIARRAY, result, typeOp, dimensions);
+            for (int i = 0; i < dimensions; i++) {
+              Multianewarray.setDimension(s, dimensions - i - 1, popInt());
+            }
             push(result.copyD2U());
             rectifyStateWithErrorHandler();
             rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
