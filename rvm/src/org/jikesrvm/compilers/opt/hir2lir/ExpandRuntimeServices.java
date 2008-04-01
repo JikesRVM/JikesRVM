@@ -249,34 +249,47 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
         case NEWOBJMULTIARRAY_opcode: {
           int dimensions = Multianewarray.getNumberOfDimensions(inst);
-          // Step 1: Create an int array to hold the dimensions.
-          TypeOperand dimArrayType = new TypeOperand(VM_Array.IntArray);
-          RegisterOperand dimArray = ir.regpool.makeTemp(VM_TypeReference.IntArray);
-          dimArray.setPreciseType();
-          next =  NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions));
-          inst.insertBefore(next);
-          // Step 2: Assign the dimension values to dimArray
-          for (int i = 0; i < dimensions; i++) {
-            LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
-            inst.insertBefore(AStore.create(INT_ASTORE,
-                              Multianewarray.getClearDimension(inst, i),
-                              dimArray.copyD2U(),
-                              IRTools.IC(i),
-                              loc,
-                              IRTools.TG()));
-          }
-          // Step 3. Plant call to VM_OptLinker.newArrayArray
-          int typeRefId = Multianewarray.getType(inst).getTypeRef().getId();
-          VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
           VM_Method callSite = inst.position.getMethod();
-          Call.mutate3(inst,
-                       CALL,
-                       Multianewarray.getClearResult(inst),
-                       IRTools.AC(target.getOffset()),
-                       MethodOperand.STATIC(target),
-                       IRTools.IC(callSite.getId()),
-                       dimArray.copyD2U(),
-                       IRTools.IC(typeRefId));
+          int typeRefId = Multianewarray.getType(inst).getTypeRef().getId();
+          if (dimensions == 2) {
+            VM_Method target = VM_Entrypoints.optNew2DArrayMethod;
+            Call.mutate4(inst,
+                         CALL,
+                         Multianewarray.getClearResult(inst),
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         IRTools.IC(callSite.getId()),
+                         Multianewarray.getClearDimension(inst, 0),
+                         Multianewarray.getClearDimension(inst, 1),
+                         IRTools.IC(typeRefId));
+          } else {
+            // Step 1: Create an int array to hold the dimensions.
+            TypeOperand dimArrayType = new TypeOperand(VM_Array.IntArray);
+            RegisterOperand dimArray = ir.regpool.makeTemp(VM_TypeReference.IntArray);
+            dimArray.setPreciseType();
+            next =  NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions));
+            inst.insertBefore(next);
+            // Step 2: Assign the dimension values to dimArray
+            for (int i = 0; i < dimensions; i++) {
+              LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
+              inst.insertBefore(AStore.create(INT_ASTORE,
+                                Multianewarray.getClearDimension(inst, i),
+                                dimArray.copyD2U(),
+                                IRTools.IC(i),
+                                loc,
+                                IRTools.TG()));
+            }
+            // Step 3. Plant call to VM_OptLinker.newArrayArray
+            VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
+            Call.mutate3(inst,
+                         CALL,
+                         Multianewarray.getClearResult(inst),
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         IRTools.IC(callSite.getId()),
+                         dimArray.copyD2U(),
+                         IRTools.IC(typeRefId));
+          }
         }
         break;
 

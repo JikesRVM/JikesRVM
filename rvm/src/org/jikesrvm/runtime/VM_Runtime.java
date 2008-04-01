@@ -937,6 +937,37 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   /**
+   * Build a two-dimensional array.
+   * @param methodId  Apparently unused (!)
+   * @param numElements number of elements to allocate for each dimension
+   * @param arrayType type of array that will result
+   * @return array object
+   */
+  public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, VM_Array arrayType) {
+    VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    if (VM.VerifyAssertions) VM._assert(method != null);
+
+    if (!arrayType.isInstantiated()) {
+      arrayType.resolve();
+      arrayType.instantiate();
+    }
+
+    Object[] newArray = (Object[])resolvedNewArray(dim0, arrayType);
+
+    VM_Array innerArrayType = arrayType.getElementType().asArray();
+    if (!innerArrayType.isInstantiated()) {
+      innerArrayType.resolve();
+      innerArrayType.instantiate();
+    }
+
+    for (int i=0; i<dim0; i++) {
+      newArray[i] = resolvedNewArray(dim1, innerArrayType);
+    }
+
+    return newArray;
+  }
+
+  /**
    * @param method Apparently unused (!)
    * @param numElements Number of elements to allocate for each dimension
    * @param dimIndex Current dimension to build

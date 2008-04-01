@@ -86,4 +86,15 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     VM_Array aType = (VM_Array) VM_TypeReference.getTypeRef(typeId).resolve();
     return VM_Runtime.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
+
+  public static Object new2DArray(int methodId, int dim0, int dim1, int typeId)
+      throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
+    // validate arguments
+    if ((dim0 < 0)||(dim1 < 0)) throw new NegativeArraySizeException();
+
+    // create array
+    //
+    VM_Array aType = (VM_Array) VM_TypeReference.getTypeRef(typeId).resolve();
+    return VM_Runtime.buildTwoDimensionalArray(methodId, dim0, dim1, aType);
+  }
 }

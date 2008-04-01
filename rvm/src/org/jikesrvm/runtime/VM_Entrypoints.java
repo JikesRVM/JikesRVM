@@ -377,6 +377,7 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod;
   public static final VM_NormalMethod optResolveMethod;
   public static final VM_NormalMethod optNewArrayArrayMethod;
+  public static final VM_NormalMethod optNew2DArrayMethod;
   public static final VM_NormalMethod sysArrayCopy;
 
   static {
@@ -402,6 +403,8 @@ public class VM_Entrypoints {
 
       optNewArrayArrayMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
+      optNew2DArrayMethod =
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptLinker.class, "new2DArray", "(IIII)Ljava/lang/Object;");
 
       sysArrayCopy = getMethod(java.lang.VMSystem.class, "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);
@@ -416,6 +419,7 @@ public class VM_Entrypoints {
       yieldpointFromNativeEpilogueMethod = null;
       optResolveMethod = null;
       optNewArrayArrayMethod = null;
+      optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
   }
