@@ -922,7 +922,14 @@ public abstract class VM_Thread {
   public static void sleep(long millis, int ns) throws InterruptedException {
     VM_Thread myThread = VM_Scheduler.getCurrentThread();
     myThread.changeThreadState(State.RUNNABLE, State.SLEEPING);
-    myThread.sleepInternal(millis, ns);
+    try {
+      myThread.sleepInternal(millis, ns);
+    } catch (InterruptedException ie) {
+      if (myThread.state != State.RUNNABLE)
+	myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
+      myThread.clearInterrupted();
+      throw(ie);
+    }
     myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
   }
 
