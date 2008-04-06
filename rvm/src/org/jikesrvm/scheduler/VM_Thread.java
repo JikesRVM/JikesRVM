@@ -926,7 +926,7 @@ public abstract class VM_Thread {
       myThread.sleepInternal(millis, ns);
     } catch (InterruptedException ie) {
       if (myThread.state != State.RUNNABLE)
-	myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
+        myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
       myThread.clearInterrupted();
       throw(ie);
     }

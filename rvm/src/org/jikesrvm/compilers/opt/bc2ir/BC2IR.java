@@ -21,7 +21,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.RegisterPool;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
 import org.jikesrvm.classloader.VM_Class;

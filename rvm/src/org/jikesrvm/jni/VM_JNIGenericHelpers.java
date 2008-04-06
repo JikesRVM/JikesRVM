@@ -14,11 +14,9 @@ package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
-import org.jikesrvm.classloader.VM_UTF8Convert;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.util.VM_StringUtilities;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;

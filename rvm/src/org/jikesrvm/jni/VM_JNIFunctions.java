@@ -38,7 +38,6 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_SysCall;
 import org.jikesrvm.util.VM_AddressInputStream;
 
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
@@ -46,7 +45,6 @@ import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class implements the 232 JNI functions.
