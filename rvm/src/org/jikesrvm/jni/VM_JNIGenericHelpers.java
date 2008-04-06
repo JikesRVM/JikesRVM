@@ -183,32 +183,18 @@ public abstract class VM_JNIGenericHelpers {
   /**
    * Convert a String into a a malloced region
    */
-  public static Address createUTFForCFromString(String str) {
-    // Get length of C string
-    int len = VM_UTF8Convert.utfLength(str) + 1; // for terminating zero
+  public static void createUTFForCFromString(String str, Address copyBuffer, int len) {
+    ByteBuffer bbuf =
+      java.nio.JikesRVMSupport.newDirectByteBuffer(copyBuffer, len);
 
-    // alloc non moving buffer in C heap for string
-    Address copyBuffer = sysCall.sysMalloc(len);
-    if (copyBuffer.isZero()) {
-      return Address.zero();
-    }
-
-    try {
-      ByteBuffer bbuf =
-        java.nio.JikesRVMSupport.newDirectByteBuffer(copyBuffer, len);
-
-      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
-      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
-      int strLen = java.lang.JikesRVMSupport.getStringLength(str);
-      CharBuffer cbuf = CharBuffer.wrap(strChars, strOffset, strLen);
-      CharsetEncoder cse = Charset.forName("UTF8").newEncoder();
-      cse.encode(cbuf, bbuf, true);
-      copyBuffer.store((byte)0, Offset.fromIntZeroExtend(len-1));
-      return copyBuffer;
-    } catch (Throwable unexpected) {
-      sysCall.sysFree(copyBuffer);
-      return Address.zero();
-    }
+    char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
+    int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
+    int strLen = java.lang.JikesRVMSupport.getStringLength(str);
+    CharBuffer cbuf = CharBuffer.wrap(strChars, strOffset, strLen);
+    CharsetEncoder cse = Charset.forName("UTF8").newEncoder();
+    cse.encode(cbuf, bbuf, true);
+    // store terminating zero
+    copyBuffer.store((byte)0, Offset.fromIntZeroExtend(len-1));
   }
 
   /**

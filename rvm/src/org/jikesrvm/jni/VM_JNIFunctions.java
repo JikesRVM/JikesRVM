@@ -3980,18 +3980,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
+    String str = (String) env.getJNIRef(strJREF);
+
+    // Get length of C string
+    int len = VM_UTF8Convert.utfLength(str) + 1; // for terminating zero
+
+    // alloc non moving buffer in C heap for string
+    Address copyBuffer = sysCall.sysMalloc(len);
+    if (copyBuffer.isZero()) {
+      env.recordException(new OutOfMemoryError());
+      return Address.zero();
+    }
     try {
-      String str = (String) env.getJNIRef(strJREF);
-      Address buffer = VM_JNIHelpers.createUTFForCFromString(str);
-
-      if (buffer.EQ(Address.zero())) {
-        env.recordException(new OutOfMemoryError());
-        return buffer;
-      }
-
+      VM_JNIHelpers.createUTFForCFromString(str, copyBuffer, len);
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-
-      return buffer;
+      return copyBuffer;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5821,17 +5824,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       String str = (String) env.getJNIRef(strJREF);
-
-      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
-      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
-      int strLen = java.lang.JikesRVMSupport.getStringLength(str);
-      if (strLen < start + len) {
-        env.recordException(new StringIndexOutOfBoundsException());
-        return;
-      }
-      String region = java.lang.JikesRVMSupport.newStringWithoutCopy(strChars, strOffset + start, len);
-      byte[] utfcontents = VM_UTF8Convert.toUTF8(region);
-      VM_Memory.memcopy(buf, VM_Magic.objectAsAddress(utfcontents), utfcontents.length);
+      String region = str.substring(start, start+len);
+      // Get length of C string
+      int utflen = VM_UTF8Convert.utfLength(region) + 1; // for terminating zero
+      VM_JNIHelpers.createUTFForCFromString(region, buf, utflen);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
