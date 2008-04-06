@@ -3938,8 +3938,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     VM_Runtime.checkJNICountDownToGC();
 
     try {
-      byte[] utf8array = VM_JNIHelpers.createByteArrayFromC(utf8bytes);
-      String returnString = VM_UTF8Convert.fromUTF8(utf8array);
+      String returnString = VM_JNIHelpers.createUTFStringFromC(utf8bytes);
       return env.pushJNIRef(returnString);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);

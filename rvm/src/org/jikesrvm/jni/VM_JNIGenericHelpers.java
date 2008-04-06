@@ -21,6 +21,13 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
 /**
  * Platform independent utility functions called from VM_JNIFunctions
  * (cannot be placed in VM_JNIFunctions because methods
@@ -97,6 +104,27 @@ public abstract class VM_JNIGenericHelpers {
   }
 
   /**
+   * Create a string from the given charset decoder and bytebuffer
+   */
+  private static String createString(CharsetDecoder csd, ByteBuffer bbuf) throws CharacterCodingException {
+    char[] v;
+    int o;
+    int c;
+    CharBuffer cbuf = csd.decode(bbuf);
+    if(cbuf.hasArray()) {
+      v = cbuf.array();
+      o = cbuf.position();
+      c = cbuf.remaining();
+    } else {
+      // Doubt this will happen. But just in case.
+      v = new char[cbuf.remaining()];
+      cbuf.get(v);
+      o = 0;
+      c = v.length;
+    }
+    return java.lang.JikesRVMSupport.newStringWithoutCopy(v, o, c);
+  }
+  /**
    * Given an address in C that points to a null-terminated string,
    * create a new Java String with a copy of the string.
    *
@@ -104,17 +132,52 @@ public abstract class VM_JNIGenericHelpers {
    * @return a new Java String
    */
   public static String createStringFromC(Address stringAddress) {
-    byte[] tmp = createByteArrayFromC(stringAddress);
     if (VM.fullyBooted) {
-      return new String(tmp);
-    } else {
-      // Can't do real Char encoding until VM is fully booted.
-      // All Strings encountered during booting must be ascii
-      return VM_StringUtilities.asciiBytesToString(tmp);
+      try {
+        String encoding = System.getProperty("file.encoding");
+        CharsetDecoder csd = Charset.forName(encoding).newDecoder();
+        csd.onMalformedInput(CodingErrorAction.REPLACE);
+        csd.onUnmappableCharacter(CodingErrorAction.REPLACE);
+        ByteBuffer bbuf =
+          java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
+                                                       strlen(stringAddress));
+        return createString(csd, bbuf);
+      } catch(Exception ex){
+        // Any problems fall through to default encoding
+      }
     }
+    // Can't do real Char encoding until VM is fully booted.
+    // All Strings encountered during booting must be ascii
+    byte[] tmp = createByteArrayFromC(stringAddress);
+    return VM_StringUtilities.asciiBytesToString(tmp);
+  }
+  /**
+   * Given an address in C that points to a null-terminated string,
+   * create a new UTF encoded Java String with a copy of the string.
+   *
+   * @param stringAddress an address in C space for a string
+   * @return a new Java String
+   */
+  public static String createUTFStringFromC(Address stringAddress) {
+    if (VM.fullyBooted) {
+      try {
+        CharsetDecoder csd = Charset.forName("UTF_8").newDecoder();
+        ByteBuffer bbuf =
+          java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
+                                                       strlen(stringAddress));
+        return createString(csd, bbuf);
+      } catch(Exception ex){
+        // Any problems fall through to default encoding
+      }
+    }
+    // Can't do real Char encoding until VM is fully booted.
+    // All Strings encountered during booting must be ascii
+    byte[] tmp = createByteArrayFromC(stringAddress);
+    return VM_StringUtilities.asciiBytesToString(tmp);
   }
 
-  /**  A JNI helper function, to set the value pointed to by a C pointer
+  /**
+   *  A JNI helper function, to set the value pointed to by a C pointer
    * of type (jboolean *).
    * @param boolPtr Native pointer to a jboolean variable to be set.   May be
    *            the NULL pointer, in which case we do nothing.

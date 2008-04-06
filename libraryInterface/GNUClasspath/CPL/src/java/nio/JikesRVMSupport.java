@@ -26,7 +26,7 @@ public class JikesRVMSupport {
       return gnu.classpath.JikesRVMSupport.getAddressFromPointer(buffer.address);
   }
 
-  public static Buffer newDirectByteBuffer(Address address, long capacity) {
+  public static ByteBuffer newDirectByteBuffer(Address address, long capacity) {
     Pointer pointer = gnu.classpath.JikesRVMSupport.getPointerFromAddress(address);
     return new DirectByteBufferImpl.ReadWrite(null, pointer, (int)capacity, (int)capacity, 0);
   }
