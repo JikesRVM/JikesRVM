@@ -39,6 +39,7 @@ import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_SysCall;
+import org.jikesrvm.util.VM_AddressInputStream;
 
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.NativeBridge;
@@ -152,11 +153,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
       }
+      VM_AddressInputStream reader = new VM_AddressInputStream(data, Offset.fromIntZeroExtend(dataLen));
 
-      byte[] bytecode = new byte[dataLen];
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
-
-      final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, bytecode, 0, dataLen, cl);
+      final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, reader, cl);
       return env.pushJNIRef(vmType.getClassForType());
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
