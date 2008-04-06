@@ -46,7 +46,7 @@ final class VMInstrumentationImpl {
     VM_Type vmType = java.lang.JikesRVMSupport.getTypeForClass(cl);
     if (cl.isArray()) {
       VM_Array vmArray = (VM_Array)vmType;
-      int nelements = ((Object[])objectToSize).length;
+      int nelements = java.lang.reflect.Array.getLength(objectToSize);
       return vmArray.getInstanceSize(nelements);
     } else {
       VM_Class vmClass = (VM_Class)vmType;
