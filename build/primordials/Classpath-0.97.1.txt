@@ -332,6 +332,7 @@ Ljava/nio/ByteBuffer;
 Ljava/nio/ByteBufferImpl;
 Ljava/nio/CharBuffer;
 Ljava/nio/CharBufferImpl;
+Ljava/nio/DirectByteBufferImpl$ReadWrite;
 Lgnu/java/nio/charset/Provider;
 Lgnu/java/nio/charset/Provider$1;
 Lgnu/java/nio/charset/ByteCharset;

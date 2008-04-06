@@ -3878,19 +3878,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
+    String str = (String) env.getJNIRef(strJREF);
+    char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
+    int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
+    int len = java.lang.JikesRVMSupport.getStringLength(str);
+
+    // alloc non moving buffer in C heap for a copy of string contents
+    Address copyBuffer = sysCall.sysMalloc(len * 2);
+    if (copyBuffer.isZero()) {
+      env.recordException(new OutOfMemoryError());
+      return Address.zero();
+    }
     try {
-      String str = (String) env.getJNIRef(strJREF);
-      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
-      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
-      int len = java.lang.JikesRVMSupport.getStringLength(str);
-
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = sysCall.sysMalloc(len * 2);
-      if (copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
-
       Address strBase = VM_Magic.objectAsAddress(strChars);
       Address srcBase = strBase.plus(strOffset * 2);
       VM_Memory.memcopy(copyBuffer, srcBase, len * 2);
@@ -3903,6 +3902,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
+      sysCall.sysFree(copyBuffer);
       return Address.zero();
     }
   }
@@ -3980,58 +3980,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
-    // briefly disable alignment checking
-    if (VM.AlignmentChecking) {
-      VM_SysCall.sysCall.sysDisableAlignmentChecking();
-    }
-
     try {
       String str = (String) env.getJNIRef(strJREF);
-      byte[] utfcontents = VM_UTF8Convert.toUTF8(str);
+      Address buffer = VM_JNIHelpers.createUTFForCFromString(str);
 
-      int len = utfcontents.length;
-      int copyBufferLen =
-          VM_Memory.alignDown(len + BYTES_IN_ADDRESS,
-                              BYTES_IN_ADDRESS); // need extra at end for storing terminator and end at word boundary
-
-      // alloc non moving buffer in C heap for string contents as utf8 array
-      // alloc extra byte for C null terminator
-      Address copyBuffer = sysCall.sysMalloc(copyBufferLen);
-
-      if (copyBuffer.isZero()) {
-
-        // re-enable alignment checking
-        if (VM.AlignmentChecking) {
-          VM_SysCall.sysCall.sysEnableAlignmentChecking();
-        }
-
+      if (buffer.EQ(Address.zero())) {
         env.recordException(new OutOfMemoryError());
-        return Address.zero();
+        return buffer;
       }
 
-      // store word of 0 at end, before the copy, to set C null terminator
-      copyBuffer.plus(copyBufferLen - BYTES_IN_ADDRESS).store(Word.zero());
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(utfcontents), len);
-
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
-         address */
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
-      // re-enable alignment checking
-      if (VM.AlignmentChecking) {
-        VM_SysCall.sysCall.sysEnableAlignmentChecking();
-      }
-
-      return copyBuffer;
+      return buffer;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-
-      // re-enable alignment checking
-      if (VM.AlignmentChecking) {
-        VM_SysCall.sysCall.sysEnableAlignmentChecking();
-      }
-
       return Address.zero();
     }
   }

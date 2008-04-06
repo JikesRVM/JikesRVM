@@ -14,9 +14,11 @@ package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
+import org.jikesrvm.classloader.VM_UTF8Convert;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.util.VM_StringUtilities;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -24,6 +26,7 @@ import org.vmmagic.unboxed.Word;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -161,7 +164,7 @@ public abstract class VM_JNIGenericHelpers {
   public static String createUTFStringFromC(Address stringAddress) {
     if (VM.fullyBooted) {
       try {
-        CharsetDecoder csd = Charset.forName("UTF_8").newDecoder();
+        CharsetDecoder csd = Charset.forName("UTF8").newDecoder();
         ByteBuffer bbuf =
           java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
                                                        strlen(stringAddress));
@@ -174,6 +177,38 @@ public abstract class VM_JNIGenericHelpers {
     // All Strings encountered during booting must be ascii
     byte[] tmp = createByteArrayFromC(stringAddress);
     return VM_StringUtilities.asciiBytesToString(tmp);
+  }
+
+
+  /**
+   * Convert a String into a a malloced region
+   */
+  public static Address createUTFForCFromString(String str) {
+    // Get length of C string
+    int len = VM_UTF8Convert.utfLength(str) + 1; // for terminating zero
+
+    // alloc non moving buffer in C heap for string
+    Address copyBuffer = sysCall.sysMalloc(len);
+    if (copyBuffer.isZero()) {
+      return Address.zero();
+    }
+
+    try {
+      ByteBuffer bbuf =
+        java.nio.JikesRVMSupport.newDirectByteBuffer(copyBuffer, len);
+
+      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
+      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
+      int strLen = java.lang.JikesRVMSupport.getStringLength(str);
+      CharBuffer cbuf = CharBuffer.wrap(strChars, strOffset, strLen);
+      CharsetEncoder cse = Charset.forName("UTF8").newEncoder();
+      cse.encode(cbuf, bbuf, true);
+      copyBuffer.store((byte)0, Offset.fromIntZeroExtend(len-1));
+      return copyBuffer;
+    } catch (Throwable unexpected) {
+      sysCall.sysFree(copyBuffer);
+      return Address.zero();
+    }
   }
 
   /**
