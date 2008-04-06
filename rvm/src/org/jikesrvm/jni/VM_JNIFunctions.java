@@ -3875,14 +3875,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *         and *isCopy is set to 1 (TRUE)
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static Address GetStringChars(VM_JNIEnvironment env, int objJREF, Address isCopyAddress) {
+  private static Address GetStringChars(VM_JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
     try {
-      String str = (String) env.getJNIRef(objJREF);
-      int len = str.length();
-      char[] contents = str.toCharArray();
+      String str = (String) env.getJNIRef(strJREF);
+      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
+      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
+      int len = java.lang.JikesRVMSupport.getStringLength(str);
 
       // alloc non moving buffer in C heap for a copy of string contents
       Address copyBuffer = sysCall.sysMalloc(len * 2);
@@ -3890,7 +3891,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         env.recordException(new OutOfMemoryError());
         return Address.zero();
       }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(contents), len * 2);
+
+      Address strBase = VM_Magic.objectAsAddress(strChars);
+      Address srcBase = strBase.plus(strOffset * 2);
+      VM_Memory.memcopy(copyBuffer, srcBase, len * 2);
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
