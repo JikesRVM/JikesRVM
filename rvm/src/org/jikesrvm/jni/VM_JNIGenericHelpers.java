@@ -14,6 +14,7 @@ package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
+import org.jikesrvm.classloader.VM_UTF8Convert;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.util.VM_StringUtilities;
@@ -160,13 +161,18 @@ public abstract class VM_JNIGenericHelpers {
    * @return a new Java String
    */
   public static String createUTFStringFromC(Address stringAddress) {
+    final boolean USE_LIBRARY_CODEC = false;
     if (VM.fullyBooted) {
       try {
-        CharsetDecoder csd = Charset.forName("UTF8").newDecoder();
         ByteBuffer bbuf =
           java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
                                                        strlen(stringAddress));
-        return createString(csd, bbuf);
+        if (USE_LIBRARY_CODEC) {
+          CharsetDecoder csd = Charset.forName("UTF8").newDecoder();
+          return createString(csd, bbuf);
+        } else {
+          return VM_UTF8Convert.fromUTF8(bbuf);
+        }
       } catch(Exception ex){
         // Any problems fall through to default encoding
       }
@@ -185,12 +191,17 @@ public abstract class VM_JNIGenericHelpers {
     ByteBuffer bbuf =
       java.nio.JikesRVMSupport.newDirectByteBuffer(copyBuffer, len);
 
-    char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
-    int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
-    int strLen = java.lang.JikesRVMSupport.getStringLength(str);
-    CharBuffer cbuf = CharBuffer.wrap(strChars, strOffset, strLen);
-    CharsetEncoder cse = Charset.forName("UTF8").newEncoder();
-    cse.encode(cbuf, bbuf, true);
+    final boolean USE_LIBRARY_CODEC = false;
+    if (USE_LIBRARY_CODEC) {
+      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
+      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
+      int strLen = java.lang.JikesRVMSupport.getStringLength(str);
+      CharBuffer cbuf = CharBuffer.wrap(strChars, strOffset, strLen);
+      CharsetEncoder cse = Charset.forName("UTF8").newEncoder();
+      cse.encode(cbuf, bbuf, true);
+    } else {
+      VM_UTF8Convert.toUTF8(str, bbuf);
+    }
     // store terminating zero
     copyBuffer.store((byte)0, Offset.fromIntZeroExtend(len-1));
   }

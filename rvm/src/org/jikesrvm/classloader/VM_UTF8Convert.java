@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import java.io.UTFDataFormatException;
+import java.nio.ByteBuffer;
 import org.vmmagic.pragma.Pure;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
@@ -61,11 +62,34 @@ public abstract class VM_UTF8Convert {
   /**
    * Visitor that builds up a char[] as characters are decoded
    */
-  private static final class StringEncoderVisitor extends UTF8CharacterVisitor {
+  private static final class ByteArrayStringEncoderVisitor extends UTF8CharacterVisitor {
     final char[] result;
     int index;
-    StringEncoderVisitor(byte[] utf8) {
-      result = new char[utf8.length];
+    ByteArrayStringEncoderVisitor(int length) {
+      result = new char[length];
+      index = 0;
+    }
+    void visit_char(char c) {
+      result[index] = c;
+      index++;
+    }
+    public String toString() {
+      if (VM.runningVM) {
+        return java.lang.JikesRVMSupport.newStringWithoutCopy(result, 0, index);
+      } else {
+        return new String(result, 0, index);
+      }
+    }
+  }
+
+  /**
+   * Visitor that builds up a char[] as characters are decoded
+   */
+  private static final class ByteBufferStringEncoderVisitor extends UTF8CharacterVisitor {
+    final char[] result;
+    int index;
+    ByteBufferStringEncoderVisitor(int length) {
+      result = new char[length];
       index = 0;
     }
     void visit_char(char c) {
@@ -107,7 +131,25 @@ public abstract class VM_UTF8Convert {
    * @return unicode string
    */
   public static String fromUTF8(byte[] utf8) throws UTFDataFormatException {
-    StringEncoderVisitor visitor = new StringEncoderVisitor(utf8);
+    UTF8CharacterVisitor visitor = new ByteArrayStringEncoderVisitor(utf8.length);
+    visitUTF8(utf8, visitor);
+    return visitor.toString();
+  }
+
+  /**
+   * Convert the given sequence of (pseudo-)utf8 formatted bytes
+   * into a String.
+   *
+   * The acceptable input formats are controlled by the
+   * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
+   * flags.
+   *
+   * @param utf8 (pseudo-)utf8 byte array
+   * @throws UTFDataFormatException if the (pseudo-)utf8 byte array is not valid (pseudo-)utf8
+   * @return unicode string
+   */
+  public static String fromUTF8(ByteBuffer utf8) throws UTFDataFormatException {
+    UTF8CharacterVisitor visitor = new ByteBufferStringEncoderVisitor(utf8.remaining());
     visitUTF8(utf8, visitor);
     return visitor.toString();
   }
@@ -199,6 +241,73 @@ public abstract class VM_UTF8Convert {
   }
 
   /**
+   * Visit all bytes of the given utf8 string calling the visitor when a
+   * character is decoded.
+   *
+   * The acceptable input formats are controlled by the
+   * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
+   * flags.
+   *
+   * @param utf8 (pseudo-)utf8 byte array
+   * @param visitor called when characters are decoded
+   * @throws UTFDataFormatException if the (pseudo-)utf8 byte array is not valid (pseudo-)utf8
+   */
+  @Inline
+  private static void visitUTF8(ByteBuffer utf8, UTF8CharacterVisitor visitor) throws UTFDataFormatException {
+    while (utf8.hasRemaining()) {
+      byte b = utf8.get();
+      if (STRICTLY_CHECK_FORMAT && !ALLOW_NORMAL_UTF8) {
+        if (b == 0) {
+          throw new UTFDataFormatException("0 byte encountered at location " + (utf8.position() - 1));
+        }
+      }
+      if (b >= 0) {  // < 0x80 unsigned
+        // in the range '\001' to '\177'
+        visitor.visit_char((char) b);
+        continue;
+      }
+      try {
+        byte nb = utf8.get();
+        if (b < -32) {  // < 0xe0 unsigned
+          // '\000' or in the range '\200' to '\u07FF'
+          char c = (char) (((b & 0x1f) << 6) | (nb & 0x3f));
+          visitor.visit_char(c);
+          if (STRICTLY_CHECK_FORMAT) {
+            if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
+              throw new UTFDataFormatException("invalid marker bits for double byte char at location " + (utf8.position() - 2));
+            }
+            if (c < '\200') {
+              if (!ALLOW_PSEUDO_UTF8 || (c != '\000')) {
+                throw new UTFDataFormatException(
+                    "encountered double byte char that should have been single byte at location " + (utf8.position() - 2));
+              }
+            } else if (c > '\u07FF') {
+              throw new UTFDataFormatException(
+                  "encountered double byte char that should have been triple byte at location " + (utf8.position() - 2));
+            }
+          }
+        } else {
+          byte nnb = utf8.get();
+          // in the range '\u0800' to '\uFFFF'
+          char c = (char) (((b & 0x0f) << 12) | ((nb & 0x3f) << 6) | (nnb & 0x3f));
+          visitor.visit_char(c);
+          if (STRICTLY_CHECK_FORMAT) {
+            if (((b & 0xf0) != 0xe0) || ((nb & 0xc0) != 0x80) || ((nnb & 0xc0) != 0x80)) {
+              throw new UTFDataFormatException("invalid marker bits for triple byte char at location " + (utf8.position() - 3));
+            }
+            if (c < '\u0800') {
+              throw new UTFDataFormatException(
+                  "encountered triple byte char that should have been fewer bytes at location " + (utf8.position() - 3));
+            }
+          }
+        }
+      } catch (ArrayIndexOutOfBoundsException e) {
+        throw new UTFDataFormatException("unexpected end at location " + utf8.position());
+      }
+    }
+  }
+
+  /**
    * Convert the given String into a sequence of (pseudo-)utf8
    * formatted bytes.
    *
@@ -226,6 +335,34 @@ public abstract class VM_UTF8Convert {
       }
     }
     return result;
+  }
+
+  /**
+   * Convert the given String into a sequence of (pseudo-)utf8
+   * formatted bytes.
+   *
+   * The output format is controlled by the WRITE_PSEUDO_UTF8 flag.
+   *
+   * @param s String to convert
+   * @param b Byte buffer to hold result
+   */
+  public static void toUTF8(String s, ByteBuffer b) {
+    int result_index = 0;
+    for (int i = 0, n = s.length(); i < n; ++i) {
+      char c = s.charAt(i);
+      // in all shifts below, c is an (unsigned) char,
+      // so either >>> or >> is ok
+      if (((!WRITE_PSEUDO_UTF8) || (c >= 0x0001)) && (c <= 0x007F)) {
+        b.put((byte) c);
+      } else if (c > 0x07FF) {
+        b.put((byte) (0xe0 | (byte) (c >> 12)));
+        b.put((byte) (0x80 | ((c & 0xfc0) >> 6)));
+        b.put((byte) (0x80 | (c & 0x3f)));
+      } else {
+        b.put((byte) (0xc0 | (byte) (c >> 6)));
+        b.put((byte) (0x80 | (c & 0x3f)));
+      }
+    }
   }
 
   /**
