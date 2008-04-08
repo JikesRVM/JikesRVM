@@ -162,11 +162,12 @@ public abstract class VM_JNIGenericHelpers {
    */
   public static String createUTFStringFromC(Address stringAddress) {
     final boolean USE_LIBRARY_CODEC = false;
+    byte[] tmp;
+    ByteBuffer bbuf;
     if (VM.fullyBooted) {
       try {
-        ByteBuffer bbuf =
-          java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
-                                                       strlen(stringAddress));
+        bbuf = java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
+                                                            strlen(stringAddress));
         if (USE_LIBRARY_CODEC) {
           CharsetDecoder csd = Charset.forName("UTF8").newDecoder();
           return createString(csd, bbuf);
@@ -179,7 +180,7 @@ public abstract class VM_JNIGenericHelpers {
     }
     // Can't do real Char encoding until VM is fully booted.
     // All Strings encountered during booting must be ascii
-    byte[] tmp = createByteArrayFromC(stringAddress);
+    tmp = createByteArrayFromC(stringAddress);
     return VM_StringUtilities.asciiBytesToString(tmp);
   }
 
