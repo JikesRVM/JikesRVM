@@ -402,6 +402,7 @@ Ljava/util/zip/Deflater;
 Ljava/util/zip/DeflaterOutputStream;
 Ljava/util/zip/ZipException;
 Ljava/util/zip/Adler32;
+Ljava/util/zip/CRC32;
 Ljava/util/zip/StreamManipulator;
 Ljava/util/zip/OutputWindow;
 Ljava/util/zip/InflaterHuffmanTree;

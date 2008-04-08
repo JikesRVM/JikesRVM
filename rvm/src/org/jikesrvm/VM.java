@@ -287,6 +287,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.ResourceBundle");
+    runClassInitializer("java.util.zip.CRC32");
     runClassInitializer("java.util.zip.Inflater");
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
