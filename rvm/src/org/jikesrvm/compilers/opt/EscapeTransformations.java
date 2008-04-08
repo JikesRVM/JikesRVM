@@ -109,7 +109,7 @@ public class EscapeTransformations extends CompilerPhase {
             s = getAggregateReplacer(def, ir);
           }
           if (s != null) {
-            org.jikesrvm.VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
+            // org.jikesrvm.VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
             s.transform();
             removedAggregate = true;
           }
@@ -130,7 +130,7 @@ public class EscapeTransformations extends CompilerPhase {
       }
       if (removedAggregate) {
         // do quick clean up of IR
-        org.jikesrvm.VM.sysWrite("Cleaning up IR in "+ir.method+"\n");
+        // org.jikesrvm.VM.sysWrite("Cleaning up IR in "+ir.method+"\n");
         escapeCleanUp.perform(ir);
       }
     } while (removedAggregate);
