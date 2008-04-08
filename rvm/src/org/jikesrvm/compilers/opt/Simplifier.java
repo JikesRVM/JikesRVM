@@ -782,6 +782,10 @@ public abstract class Simplifier extends IRTools {
     } else {
       Operand ref = StoreCheck.getRef(s);
       VM_TypeReference arrayTypeRef = ref.getType();
+      if (!arrayTypeRef.isArrayType()) {
+        // Caused by inlining new and type propogation
+        return DefUseEffect.UNCHANGED;
+      }
       VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
       if (typeOfIMElem != null) {
         VM_Type typeOfVal = val.getType().peekType();
@@ -821,6 +825,10 @@ public abstract class Simplifier extends IRTools {
     Operand val = StoreCheck.getVal(s);
     Operand ref = StoreCheck.getRef(s);
     VM_TypeReference arrayTypeRef = ref.getType();
+    if (!arrayTypeRef.isArrayType()) {
+      // Caused by inlining new and type propogation
+      return DefUseEffect.UNCHANGED;
+    }
     VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
     if (typeOfIMElem != null) {
       VM_Type typeOfVal = val.getType().peekType();
