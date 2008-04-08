@@ -156,6 +156,12 @@ public final class AnnotationAdder {
         addToAdapt(NoEscapes.class, c);
       }
 
+      // java.nio.Buffer
+      addToAdapt(Inline.class,
+                 "java/nio/Buffer",
+                 "<init>",
+                 "(IIIILgnu/classpath/Pointer;)V");
+
       // gnu.java.nio.charset.ByteEncodeLoopHelper
       addToAdapt(Inline.class,
                  "gnu/java/nio/charset/ByteEncodeLoopHelper",
