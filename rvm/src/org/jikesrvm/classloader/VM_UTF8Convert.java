@@ -17,6 +17,7 @@ import java.nio.ByteBuffer;
 import org.vmmagic.pragma.Pure;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
 
 /**
  * VM_UTF8Convert
@@ -172,6 +173,13 @@ public abstract class VM_UTF8Convert {
     return visitor.getResult();
   }
 
+  /**
+   * Generate exception messages without bloating code
+   */
+  @NoInline
+  private static void throwDataFormatException(String message, int location) throws UTFDataFormatException {
+    throw new UTFDataFormatException(message + " at location " + location);
+  }
 
   /**
    * Visit all bytes of the given utf8 string calling the visitor when a
@@ -191,7 +199,7 @@ public abstract class VM_UTF8Convert {
       byte b = utf8[i++];
       if (STRICTLY_CHECK_FORMAT && !ALLOW_NORMAL_UTF8) {
         if (b == 0) {
-          throw new UTFDataFormatException("0 byte encountered at location " + (i - 1));
+          throwDataFormatException("0 byte encountered", i-1);
         }
       }
       if (b >= 0) {  // < 0x80 unsigned
@@ -207,16 +215,14 @@ public abstract class VM_UTF8Convert {
           visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
-              throw new UTFDataFormatException("invalid marker bits for double byte char at location " + (i - 2));
+              throwDataFormatException("invalid marker bits for double byte char" , i-2);
             }
             if (c < '\200') {
               if (!ALLOW_PSEUDO_UTF8 || (c != '\000')) {
-                throw new UTFDataFormatException(
-                    "encountered double byte char that should have been single byte at location " + (i - 2));
+                throwDataFormatException("encountered double byte char that should have been single byte", i-2);
               }
             } else if (c > '\u07FF') {
-              throw new UTFDataFormatException(
-                  "encountered double byte char that should have been triple byte at location " + (i - 2));
+              throwDataFormatException("encountered double byte char that should have been single byte", i-2);
             }
           }
         } else {
@@ -226,16 +232,15 @@ public abstract class VM_UTF8Convert {
           visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xf0) != 0xe0) || ((nb & 0xc0) != 0x80) || ((nnb & 0xc0) != 0x80)) {
-              throw new UTFDataFormatException("invalid marker bits for triple byte char at location " + (i - 3));
+              throwDataFormatException("invalid marker bits for triple byte char", i - 3);
             }
             if (c < '\u0800') {
-              throw new UTFDataFormatException(
-                  "encountered triple byte char that should have been fewer bytes at location " + (i - 3));
+              throwDataFormatException("encountered triple byte char that should have been fewer bytes", i - 3);
             }
           }
         }
       } catch (ArrayIndexOutOfBoundsException e) {
-        throw new UTFDataFormatException("unexpected end at location " + i);
+        throwDataFormatException("unexpected end", i);
       }
     }
   }
@@ -258,7 +263,7 @@ public abstract class VM_UTF8Convert {
       byte b = utf8.get();
       if (STRICTLY_CHECK_FORMAT && !ALLOW_NORMAL_UTF8) {
         if (b == 0) {
-          throw new UTFDataFormatException("0 byte encountered at location " + (utf8.position() - 1));
+          throwDataFormatException("0 byte encountered", utf8.position() - 1);
         }
       }
       if (b >= 0) {  // < 0x80 unsigned
@@ -274,16 +279,14 @@ public abstract class VM_UTF8Convert {
           visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
-              throw new UTFDataFormatException("invalid marker bits for double byte char at location " + (utf8.position() - 2));
+              throwDataFormatException("invalid marker bits for double byte char", utf8.position() - 2);
             }
             if (c < '\200') {
               if (!ALLOW_PSEUDO_UTF8 || (c != '\000')) {
-                throw new UTFDataFormatException(
-                    "encountered double byte char that should have been single byte at location " + (utf8.position() - 2));
+                throwDataFormatException("encountered double byte char that should have been single byte", utf8.position() - 2);
               }
             } else if (c > '\u07FF') {
-              throw new UTFDataFormatException(
-                  "encountered double byte char that should have been triple byte at location " + (utf8.position() - 2));
+              throwDataFormatException("encountered double byte char that should have been single byte", utf8.position() - 2);
             }
           }
         } else {
@@ -293,16 +296,15 @@ public abstract class VM_UTF8Convert {
           visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xf0) != 0xe0) || ((nb & 0xc0) != 0x80) || ((nnb & 0xc0) != 0x80)) {
-              throw new UTFDataFormatException("invalid marker bits for triple byte char at location " + (utf8.position() - 3));
+              throwDataFormatException("invalid marker bits for triple byte char", utf8.position() - 3);
             }
             if (c < '\u0800') {
-              throw new UTFDataFormatException(
-                  "encountered triple byte char that should have been fewer bytes at location " + (utf8.position() - 3));
+              throwDataFormatException("encountered triple byte char that should have been fewer bytes", utf8.position() - 3);
             }
           }
         }
       } catch (ArrayIndexOutOfBoundsException e) {
-        throw new UTFDataFormatException("unexpected end at location " + utf8.position());
+        throwDataFormatException("unexpected end", utf8.position());
       }
     }
   }
