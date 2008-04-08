@@ -224,6 +224,13 @@ public final class DefUse {
     } else {
       // just copy the register
       origRegOp.setRegister(newRegOp.getRegister());
+      if (!newRegOp.getType().isUnboxedType() && !origRegOp.isPreciseType()) {
+        // copy type information from new to orig unless its an unboxed type
+        // (we don't want to copy type information for unboxed types as it is
+        // likely the result of inlining new) or the type of the original is
+        // precise
+        origRegOp.copyType(newRegOp);
+      }
       recordUse(origRegOp);
     }
     if (DEBUG) {
