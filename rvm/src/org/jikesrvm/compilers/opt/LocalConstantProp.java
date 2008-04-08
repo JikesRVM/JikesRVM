@@ -101,7 +101,14 @@ public class LocalConstantProp extends CompilerPhase {
           for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
             Operand def = e.next();
             if (def != null) {
-              info.remove(((RegisterOperand) def).getRegister());
+              // we have a definition, check to see if it kills a local move of a constant
+              Register defReg = ((RegisterOperand) def).getRegister();
+              ConstantOperand cOp = info.get(defReg);
+              if (cOp != null) {
+                // move was overwritten, remove move instruction and copy information
+                cOp.instruction.remove();
+                info.remove(defReg);
+              }
             }
           }
         }
