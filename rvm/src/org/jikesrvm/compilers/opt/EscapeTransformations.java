@@ -19,6 +19,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NEW_opcode;
 
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -37,6 +39,15 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * </ul>
  */
 public class EscapeTransformations extends CompilerPhase {
+
+  /**
+   * Transforms to clean the IR prior to another round of escape transformations
+   */
+  private static final OptimizationPlanElement escapeCleanUp =
+    OptimizationPlanCompositeElement.compose("Clean up escape transformations",
+                                             new Object[]{new LocalCopyProp(),
+                                                          new LocalConstantProp(),
+                                                          new Simple(0, true, false, false)});
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -70,48 +81,59 @@ public class EscapeTransformations extends CompilerPhase {
     DefUse.computeDU(ir);
     DefUse.recomputeSSA(ir);
     SimpleEscape analyzer = new SimpleEscape();
-    FI_EscapeSummary summary = analyzer.simpleEscapeAnalysis(ir);
-    // pass through registers. look for registers that point
-    // to objects that do not escape. When found,
-    // perform the transformations
-    for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
-      // check if register is SSA
-      if (!reg.isSSA()) {
-        continue;
-      }
-      // The following can occur for guards. Why?
-      if (reg.defList == null) {
-        continue;
-      }
-      // *********************************************************
-      // check if def is allocation. If so, try scalar replacement
-      // of aggregates
-      // *********************************************************
-      Instruction def = reg.defList.instruction;
-      if (ir.options.SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
-        AggregateReplacer s = null;
-        if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
-          s = getAggregateReplacer(def, ir);
+    // do multiple passes to catch chains of objects that can be removed
+    boolean removedAggregate;
+    do {
+      removedAggregate = false;
+      FI_EscapeSummary summary = analyzer.simpleEscapeAnalysis(ir);
+      // pass through registers. look for registers that point
+      // to objects that do not escape. When found,
+      // perform the transformations
+      for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
+        // check if register is SSA
+        if (!reg.isSSA()) {
+          continue;
         }
-        if (s != null) {
-          // VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
-          s.transform();
+        // The following can occur for guards. Why?
+        if (reg.defList == null) {
+          continue;
+        }
+        // *********************************************************
+        // check if def is allocation. If so, try scalar replacement
+        // of aggregates
+        // *********************************************************
+        Instruction def = reg.defList.instruction;
+        if (ir.options.SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
+          AggregateReplacer s = null;
+          if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
+            s = getAggregateReplacer(def, ir);
+          }
+          if (s != null) {
+            org.jikesrvm.VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
+            s.transform();
+            removedAggregate = true;
+          }
+        }
+        // *********************************************************
+        // Now remove synchronizations
+        // *********************************************************
+        if (ir.options.MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
+          UnsyncReplacer unsync = null;
+          if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
+            unsync = getUnsyncReplacer(reg, def, ir);
+          }
+          if (unsync != null) {
+            // VM.sysWrite("Removing synchronization on "+def+" in "+ir.method+"\n");
+            unsync.transform();
+          }
         }
       }
-      // *********************************************************
-      // Now remove synchronizations
-      // *********************************************************
-      if (ir.options.MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
-        UnsyncReplacer unsync = null;
-        if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
-          unsync = getUnsyncReplacer(reg, def, ir);
-        }
-        if (unsync != null) {
-          // VM.sysWrite("Removing synchronization on "+def+" in "+ir.method+"\n");
-          unsync.transform();
-        }
+      if (removedAggregate) {
+        // do quick clean up of IR
+        org.jikesrvm.VM.sysWrite("Cleaning up IR in "+ir.method+"\n");
+        escapeCleanUp.perform(ir);
       }
-    }
+    } while (removedAggregate);
   }
 
   /**
