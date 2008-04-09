@@ -348,6 +348,7 @@ public abstract class VM_UTF8Convert {
    * @param s String to convert
    * @param b Byte buffer to hold result
    */
+  @Inline
   public static void toUTF8(String s, ByteBuffer b) {
     int result_index = 0;
     for (int i = 0, n = s.length(); i < n; ++i) {
