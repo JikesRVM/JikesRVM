@@ -399,6 +399,7 @@ Ljava/util/zip/ZipEntry;
 Ljava/util/zip/Inflater;
 Ljava/util/zip/InflaterInputStream;
 Ljava/util/zip/Deflater;
+Ljava/util/zip/DeflaterEngine;
 Ljava/util/zip/DeflaterOutputStream;
 Ljava/util/zip/ZipException;
 Ljava/util/zip/Adler32;
