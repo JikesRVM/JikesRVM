@@ -22,7 +22,7 @@
 #
 
 $shortusage = 
-"Usage: buildit [-dhgqz] [-r root] [-s suffix] [-j java-home]
+"Usage: buildit [-dhgqpz] [-r root] [-s suffix] [-j java-home]
        [--test-run xxx] build-host [-c target-host] [ Configs... ]
 ";
 $usage = $shortusage."Building:
@@ -85,6 +85,8 @@ Building Options:
  -p, --profile        Perform a profiled build (including creation of a profile)	
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
+     --ssh            Change ssh command (must be executable; no extra
+                        arguments allowed)
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -92,7 +94,7 @@ Testing Options:
      --test-run       The test run to use for each configuration on the target
      --test-arg       Specify additional arguments(s) for the test
      --run-arg        Specify an additional argument for the test execution
-     --email-report   Send a result summary email when done
+ -e  --email-report   Send a result summary email when done
      --ext-lib-dir    Specify the benchmarks directory for testing.
      --processors     Specify the number of processors to use.
  -z, --skip-build     Run tests without building
@@ -162,7 +164,8 @@ GetOptions(
   "ext-lib-dir=s" => \$extlibdir,
   "comp-cache-dir=s" => \$compcachedir,
   "clear-cc" => \$clearcc,
-  "e|email-report" => \$email_report) or bad_usage();
+  "e|email-report" => \$email_report,
+  "ssh=s" => \$ssh) or bad_usage();
 
 if ($with_acheck) {
   $x87 = $with_acheck;
@@ -180,8 +183,7 @@ $run_args = join(" ", @run_array);
 $test_args = join(" ", @test_arg_array);
 $bc_args = join(" ", @bcarg_array);
   
-$start = `date`;
-chomp($start);
+$start = flex_chomp(`date`);
 $host = shift(@ARGV);
 $compiler = shift(@ARGV);
 @gcs = @ARGV;
@@ -191,6 +193,9 @@ if ($target eq "") {
 }
 if ($results_name eq "") {
   $results_name = "latest";
+}
+if ($ssh eq "") {
+  $ssh = "ssh";
 }
 
 $testsid = getid();
@@ -241,8 +246,7 @@ if ($cmd_targetUser ne "") {
 $sshHost = $hostUser."@".$host;
 $sshTarget = $targetUser."@".$target;
 
-$local = `hostname`;
-chomp($local);
+$local = flex_chomp(`hostname`);
 
 if ($config{"$local.home"} ne "") {
   $localHome = $config{"$local.home"};
@@ -253,15 +257,13 @@ if ($config{"$local.home"} ne "") {
 if ($config{"$host.home"} ne "") {
   $hostHome = $config{"$host.home"};
 } else {
-  $hostHome = `ssh $sshHost pwd`;
-  chomp($hostHome);
+  $hostHome = flex_chomp(`$ssh $sshHost pwd`);
 }
 
 if ($config{"$target.home"} ne "") {
   $targetHome = $config{"$target.home"};
 } else {
-  $targetHome = `ssh $sshTarget pwd`;
-  chomp($targetHome);
+  $targetHome = flex_chomp(`$ssh $sshTarget pwd`);
 }
 
 if ($compcachedir ne "") {
@@ -300,16 +302,14 @@ if (! -e $localRoot . "/rvm") {
 if ($config{"$host.host-type"} ne "") {
   $hostConfig = $config{"$host.host-type"};
 } else {
-  @host_info = split(" ", `ssh $sshHost uname -mo`);
-  chomp(@host_info);
+  @host_info = flex_chomp(split(" ", `$ssh $sshHost uname -mo`));
   $hostConfig = $config{"global.arch.".$host_info[0]}."-".$config{"global.os.".$host_info[1]};
 }
 
 if ($config{"$target.host-type"} ne "") {
   $targetConfig = $config{"$target.host-type"};
 } else {
-  @target_info = split(" ", `ssh $sshTarget uname -mo`);
-  chomp(@target_info);
+  @target_info = flex_chomp(split(" ", `$ssh $sshTarget uname -mo`));
   $targetConfig = $config{"global.arch.".$target_info[0]}."-".$config{"global.os.".$target_info[1]};
 }
 
@@ -392,23 +392,20 @@ if ($test_list ne "") {
 # Configuration 
 #
 if ($test_set && !$checkstyle) {
-  $checkstyle = `grep require.checkstyle $localRoot/build/test-runs/$test_set.properties`;
-  chomp($checkstyle);
+  $checkstyle = flex_chomp(`grep require.checkstyle $localRoot/build/test-runs/$test_set.properties`);
   if ($checkstyle ne "") {
     $checkstyle = 1;
   }
 }
 $implicitconfigs = ($#gcs == -1 && $compiler eq "");
 if ($#gcs == -1 && $test_set && $compiler eq "") {
-  my $rawconfigs = `grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`;
-  chomp($rawconfigs);
+  my $rawconfigs = flex_chomp(`grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`);
   $rawconfigs =~ s/^test.configs=//;
   $compiler="";
   $baseconfigs = " ";
   foreach $config (split(" ", $rawconfigs)) {
     my $search = "test.config.$config.configuration=";
-    my $baseconfig = `grep \"^$search.*$\" $localRoot/build/test-runs/$test_set.properties`;
-    chomp($baseconfig);
+    my $baseconfig = flex_chomp(`grep \"^$search.*$\" $localRoot/build/test-runs/$test_set.properties`);
     if ($baseconfig eq "") {
       $baseconfig = $config;
     } else {
@@ -450,8 +447,7 @@ if ($email_report) {
     $report_email = $config{"global.report-email"};
   } else {
     print "Please enter the email address for reporting...\nreport_email : ";
-    $report_email = <STDIN>;
-    chomp($report_email);
+    $report_email = flex_chomp(<STDIN>);
     confirm("Is $report_email correct?");
     $report_email =~ s/\@/\\\@/;
     cache_data("global.report-email", $report_email);
@@ -487,25 +483,25 @@ foreach $dir (@dirs) {
 #
 if ($config{"$host.tested"} eq "") {
   print "Testing build-host connectivity... ";
-  if (!system("ssh $sshHost echo OK")) {
+  if (!system("$ssh $sshHost echo OK")) {
     cache_data("$host.tested", "OK");
   }
 }
 if ($config{"$target.tested"} eq "") {
   print "Testing target-host connectivity... ";
-  if (!system("ssh $sshTarget echo OK")) {
+  if (!system("$ssh $sshTarget echo OK")) {
     cache_data("$target.tested", "OK");
   }
 }
 if ($host ne $target && $config{"$host-$target.tested"} eq "") {
   print "Testing build-host -> target-host connectivity... ";
-  if (!system("ssh -t $sshHost ssh $sshTarget echo OK")) {
+  if (!system("$ssh -t $sshHost ssh $sshTarget echo OK")) {
     cache_data("$host-$target.tested", "OK");
   }
 }
 if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
   print "Testing target-host -> upload-host connectivity... ";
-  if (!system("ssh -t $sshTarget ssh -t $upload_host echo OK")) {
+  if (!system("$ssh -t $sshTarget ssh -t $upload_host echo OK")) {
     cache_data("$target-$upload_host.tested", "OK");
   }
 }
@@ -514,9 +510,9 @@ if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
 # Clean up first ?
 #
 if ($nuke) {
-  $nukecmd = "ssh -t $sshHost rm -rf $hostRoot;\n"; 
+  $nukecmd = "$ssh -t $sshHost rm -rf $hostRoot;\n"; 
   if ($host ne $target) {
-    $nukecmd = "ssh -t $sshTarget rm -rf $targetRoot;\n"; 
+    $nukecmd = "$ssh -t $sshTarget rm -rf $targetRoot;\n"; 
   }
   print "$nukecmd\n\n";
   if (! $dry_run) {
@@ -545,18 +541,18 @@ my $ok = ($mkccRet == 0);
 
 if ($ok) {
   if ($host ne "localhost") {
-    $rsync .= "ssh -t $sshHost mkdir -p $hostRoot;\n";
+    $rsync .= "$ssh -t $sshHost mkdir -p $hostRoot;\n";
     if ($compcachedir ne "") {
-      $rsync .= "ssh -t $sshHost mkdir -p $hostCompCache;\n";
-      $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshHost:$hostCompCache/;\n";
+      $rsync .= "$ssh -t $sshHost mkdir -p $hostCompCache;\n";
+      $rsync .= "rsync -azvLe $ssh --delete $localCompCache/ $sshHost:$hostCompCache/;\n";
     }
-    $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
+    $rsync .= "rsync -azvLe $ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
     if ($host ne $target) {
-      $rsync .= ";\nssh -t $sshTarget mkdir -p $targetRoot";
-      $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
+      $rsync .= ";\n$ssh -t $sshTarget mkdir -p $targetRoot";
+      $rsync .= ";\nrsync -azvLe $ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
       if ($compcachedir ne "") {
-        $rsync .= ";\nssh -t $sshTarget mkdir -p $targetCompCache;\n";
-        $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
+        $rsync .= ";\n$ssh -t $sshTarget mkdir -p $targetCompCache;\n";
+        $rsync .= "rsync -azvLe $ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
       }
     }
     print "$rsync\n\n";
@@ -576,8 +572,7 @@ if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
-$rvm_revision=`svnversion`;
-chomp($rvm_revision);
+$rvm_revision=flex_chomp(`svnversion`);
 
 if ($ok) {
   foreach $g (@gcs) {
@@ -640,7 +635,7 @@ if ($ok) {
     if ($skip_build) {
       $build .= "echo Skipping build ";
     } else {
-      $build .= "ssh -t $sshHost '/bin/bash -c \" ".
+      $build .= "$ssh -t $sshHost '/bin/bash -c \" ".
                "  cd $hostRoot &&".
                "  export JAVA_HOME=$javaHome{$host} && ";
 
@@ -666,7 +661,7 @@ if ($ok) {
       }
       $build .= "\"' ";
       if ($compcachedir ne "") {
-        $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostCompCache/ $localCompCache/ ";
+        $build .= "&& rsync -azvLe $ssh --delete $sshHost:$hostCompCache/ $localCompCache/ ";
       }
     }
 
@@ -675,36 +670,36 @@ if ($ok) {
     #
     if ($host ne $target) {
       if ($compcachedir ne "") {
-        $build .= "&& rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache/ ";
+        $build .= "&& rsync -azvLe $ssh --delete $localCompCache/ $sshTarget:$targetCompCache/ ";
       }
       $build .= "&& ".
-                "ssh -t $sshTarget 'mkdir -p $targetRoot/dist && ".
+                "$ssh -t $sshTarget 'mkdir -p $targetRoot/dist && ".
                 "mkdir -p $targetRoot/target' &&";
       if ($hostConfig eq $targetConfig) {
         #
         # Same architecture: just copy the dist directory
         #
-        $build .= "ssh -t $sshHost rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ";
+        $build .= "$ssh -t $sshHost rsync -avze $ssh --delete $hostRoot/dist/$targetDir/ ";
         $build .= " $sshTarget:$targetRoot/dist/$targetDir/ ";
       } else {
         # Copy the compiled classes and boot image
-        $build .= "ssh -t $sshHost '".
-                  "  rsync -avze ssh --delete $hostRoot/target/$targetDir/ ".
+        $build .= "$ssh -t $sshHost '".
+                  "  rsync -avze $ssh --delete $hostRoot/target/$targetDir/ ".
                   " $sshTarget:$targetRoot/target/$targetDir/ &&".
-                  " rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ".
+                  " rsync -avze $ssh --delete $hostRoot/dist/$targetDir/ ".
                   " $sshTarget:$targetRoot/dist/$targetDir/ &&";
         $copydirs = "";
         foreach $d (@ccdirs) {
           $copydirs .= " $hostRoot/$d";
         }
-        $build .= "  rsync -avze ssh --delete $copydirs $sshTarget:$targetRoot/' &&";
+        $build .= "  rsync -avze $ssh --delete $copydirs $sshTarget:$targetRoot/' &&";
 
         #
         # post-processing for cross-compile
         #
 
         # For the classpath build, the host is now the target ;)
-        $build .= "ssh -t $sshTarget '/bin/bash -c \"".
+        $build .= "$ssh -t $sshTarget '/bin/bash -c \"".
 	          "  cd $targetRoot && ".
                   "  export JAVA_HOME=$javaHome{$target} && ";
 
@@ -719,7 +714,7 @@ if ($ok) {
         $build .= "  ant cross-compile-target $targetdefs \"'";
       }
       if ($compcachedir ne "") {
-        $build .= " && rsync -azvLe ssh --delete $sshTarget:$targetCompCache/ $localCompCache/ ";
+        $build .= " && rsync -azvLe $ssh --delete $sshTarget:$targetCompCache/ $localCompCache/ ";
       }
     }
     print "---> Config: $compiler$g\n";
@@ -728,8 +723,7 @@ if ($ok) {
       $retval{$g} = system($build);
       $ok = $ok && ($retval{$g} == 0);
     }
-    $date{$g} = `date`;
-    chomp($date{$g});
+    $date{$g} = flex_chomp(`date`);
     print $date{$g}."\n";
   }
 }
@@ -745,7 +739,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   }
   $configs =~ s/^ //;
 
-  $test = "ssh -t $sshTarget '/bin/bash -c \" ".
+  $test = "$ssh -t $sshTarget '/bin/bash -c \" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
           "  export JAVA_HOME=$javaHome{$target} && ".
@@ -780,7 +774,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
       $test .= "-Dupload.location=$upload_host:$uploaddir ";
     }
 
-    $make_upload = "ssh -t $upload_host mkdir -p $uploaddir ";
+    $make_upload = "$ssh -t $upload_host mkdir -p $uploaddir ";
     print($make_upload."\n");
     if (! $dry_run) {
       system($make_upload);
@@ -823,7 +817,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   $rsync = "mkdir -p $localRoot/$resultdir && ".
            "rm -f $localRoot/results/buildit/$results_name && ".
            "ln -s $localRoot/$resultdir $localRoot/results/buildit/$results_name && ".
-           "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
+           "rsync -azvLe $ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
 
   print "$rsync\n";
   if(! $dry_run) {
@@ -831,8 +825,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   }
 }
 
-$end = `date`;
-chomp($end);
+$end = flex_chomp(`date`);
 
 print "===================== Summary =====================\n";
 print "Local   : ".$localRoot."\n";
@@ -863,6 +856,31 @@ if ($test_set) {
 }
 print "===================================================\n";
 
+
+# This routine is needed in settings where both \r\n and \n may coexist
+# as end-of-line sequences.  Perl's regular chomp() doesn't handle that
+# so well.
+sub flex_chomp {
+  @result=@_;
+  for ($i=0;$i<@result;$i++) {
+    if ($result[$i] =~ /\n$/) {
+      $result[$i] = $`;
+    }
+    if ($result[$i] =~ /\r$/) {
+      $result[$i] = $`;
+    }
+  }
+  # this Just Works because Perl is weird
+  # (basically it makes flex_chomp(scalar) return a scalar, but
+  # flex_chomp(array) returns an array; and if the array is unary
+  # then even though it returns a scalar, @array = scalar will
+  # coerce the scalar into a unary array.  yuck!
+  if (@result==1) {
+    $result[0];
+  } else {
+    @result;
+  }
+}
 
 sub msg_warn {
   print(shift()."\n");
