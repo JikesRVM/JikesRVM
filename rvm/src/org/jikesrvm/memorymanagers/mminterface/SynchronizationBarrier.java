@@ -14,6 +14,7 @@ package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -38,6 +39,9 @@ public final class SynchronizationBarrier {
   private int numRealProcessors;
 
   final Barrier barrier = new Barrier();
+
+  final SynchronizedCounter initReached = new SynchronizedCounter();
+  boolean initGoAhead = false;
 
   /**
    * Constructor
@@ -84,38 +88,60 @@ public final class SynchronizationBarrier {
                     myNumber);
     }
 
-    if (myNumber > 1) {   // non-designated guys just wait for designated guy to finish
-      barrier.arrive(8888); // wait for designated guy to do his job
-      VM_Magic.isync();     // so subsequent instructions won't see stale values
+    if (myNumber > 1) {
+      initReached.increment();
+      if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  has incremented for ", myNumber);
+      VM_Magic.sync();
+      while (!initGoAhead) waitABit(5);
+      VM_Magic.sync();
+      if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  ack received by ", myNumber);
+      barrier.arrive(8888);
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
-      return;               // leave barrier
+      return;
     }
 
-    // Thread with gcOrdinal==1 must detect processors whose active threads are
-    // stuck in Native C, block them there, and make them non-participants
-    //
-    waitABit(5);          // give missing threads a chance to show up
-    int numParticipating = 0;
-    for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
-      if (VM_GreenScheduler.getProcessor(i).lockInCIfInC()) { // can't be true for self
-        if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
-        removeProcessor(i);
-      } else {
-        numParticipating++;
+    // wait for threads to show up while also ensuring that none of them
+    // disappear.
+
+    initReached.increment();
+    int numParticipating=VM_GreenScheduler.numProcessors;
+    while (initReached.peek()<VM_GreenScheduler.numProcessors) {
+      waitABit(5);
+      for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
+        if (VM_GreenScheduler.getProcessor(i).lockInCIfInC()) { // can't be true for self
+          if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
+          removeProcessor(i);
+          initReached.increment();
+          numParticipating--;
+        }
       }
     }
 
-    if (verbose > 0) {
-      VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
-    }
+    if (verbose > 0) VM.sysWriteln("GC Message: everyone has arrived");
+
+    // we blocked out some threads that got stuck in C, and all other threads
+    // are now waiting for me to give them the go-ahead.
+
+    VM_Magic.sync();
+    initGoAhead=true;
+    VM_Magic.sync();
+
+    // now we set the target for the Barrier and perform an 'arrive', as a
+    // silly hack to make it easy to reset our counters.
+
+    if (verbose > 0) VM.sysWriteln("GC Message: waiting for barrier arrival to allow reset");
+
     barrier.setTarget(numParticipating);
-    barrier.arrive(8888);    // all setup now complete and we can proceed
+    barrier.arrive(8888);
+
+    initReached.reset();
+    initGoAhead=false;
+
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
     if (verbose > 0) {
       VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
     }
-
   }  // startupRendezvous
 
   /**
@@ -164,14 +190,29 @@ public final class SynchronizationBarrier {
 
     VM_GreenProcessor vp = VM_GreenScheduler.getProcessor(id);
 
-    // get processors collector thread off its transfer queue
-    vp.collectorThreadMutex.lock("removing a processor from gc");
-    VM_GreenThread ct = vp.collectorThread;
-    vp.collectorThread = null;
-    vp.collectorThreadMutex.unlock();
-    if (VM.VerifyAssertions) {
-      VM._assert(ct != null && ct.isGCThread());
+    VM_GreenThread ct=null;
+
+    // get processor's collector thread off its transfer queue, waiting if
+    // necessary for it to show up
+    int spinCnt=0;
+    for (;;) {
+      boolean done=false;
+      vp.collectorThreadMutex.lock("removing a processor from gc");
+      ct = vp.collectorThread;
+      if (ct!=null) {
+        if (verbose>0) VM.sysWriteln("setting collectorThread to null in SB.removeProcessor for ",id);
+        vp.collectorThread = null;
+        done=true;
+      } else {
+        if (spinCnt++==100) {
+          if (verbose>0) VM.sysWriteln("it's taking a while in SB.removeProcessor for ",id);
+        }
+      }
+      vp.collectorThreadMutex.unlock();
+      if (done) break;
+      waitABit(5);
     }
+
     // put it back on the global collector thread queue
     VM_GreenScheduler.collectorMutex.lock("collector mutex for processor removal");
     VM_GreenScheduler.collectorQueue.enqueue(ct);

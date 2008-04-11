@@ -36,6 +36,9 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 @NonMoving
 public final class VM_GreenProcessor extends VM_Processor {
+
+  private static final int verbose = 0;
+
   /**
    * thread previously running on this processor
    */
@@ -353,6 +356,7 @@ public final class VM_GreenProcessor extends VM_Processor {
       if (VM.TraceThreadScheduling > 1) {
         VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", ct.getIndex());
       }
+      if (verbose>0) VM.sysWriteln("setting collectorThread to null in GP.getRunnableThread for ",id,", returning thread ",ct.getIndex());
       collectorThread = null;
       collectorThreadMutex.unlock();
       return ct;
@@ -467,6 +471,7 @@ public final class VM_GreenProcessor extends VM_Processor {
   private void transferThread(VM_GreenThread t) {
     if (t.isGCThread()) {
       collectorThreadMutex.lock("gc thread transfer");
+      if (verbose>0) VM.sysWriteln("setting collectorThread to ",t.getIndex()," in GP.transferThread for ",id);
       collectorThread = t;
       /* Implied by transferring a gc thread */
       requestYieldToGC();
@@ -554,7 +559,8 @@ public final class VM_GreenProcessor extends VM_Processor {
 
   /**
    * sets the VP status to BLOCKED_IN_NATIVE if it is currently IN_NATIVE (ie C)
-   * returns true if BLOCKED_IN_NATIVE
+   * returns true if BLOCKED_IN_NATIVE by us, false if it was either already
+   * BLOCKED_IN_NATIVE, or if it was IN_JAVA.
    */
   @Override
   public boolean lockInCIfInC() {
@@ -562,9 +568,7 @@ public final class VM_GreenProcessor extends VM_Processor {
     Offset offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
       oldState = VM_Magic.prepareInt(this, offset);
-      if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE);
       if (oldState != IN_NATIVE) {
-        if (VM.VerifyAssertions) VM._assert(oldState == IN_JAVA);
         return false;
       }
     } while (!(VM_Magic.attemptInt(this, offset, oldState, BLOCKED_IN_NATIVE)));
