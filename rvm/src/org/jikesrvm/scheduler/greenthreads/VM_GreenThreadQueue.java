@@ -30,7 +30,7 @@ public class VM_GreenThreadQueue extends VM_AbstractThreadQueue {
    * debug messages.  If it is non-null, then print debug messages with
    * this string attached.
    */
-  protected String debugName;
+  protected final String debugName;
 
   /**
    * First thread on list.
@@ -45,7 +45,9 @@ public class VM_GreenThreadQueue extends VM_AbstractThreadQueue {
   /**
    * Initialize the queue without debugging.
    */
-  public VM_GreenThreadQueue() {}
+  public VM_GreenThreadQueue() {
+    this.debugName = null;
+  }
 
   /**
    * Initialize the queue with debugging turned on, using the given
