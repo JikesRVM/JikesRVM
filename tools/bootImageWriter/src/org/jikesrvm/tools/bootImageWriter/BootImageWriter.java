@@ -2003,7 +2003,7 @@ public class BootImageWriter extends BootImageWriterMessages
     } else if (jdkType.equals(java.lang.Byte.class)) {
       if (rvmFieldName.equals("byteCache") && rvmFieldType.isArrayType()) {
         Byte[] java_lang_Byte_byteCache = new Byte[256];
-        // Populate table, although unnecessary
+        // Populate table
         for(int i=-128; i < 128; i++) {
           Byte value = (byte) i;
           BootImageMap.findOrCreateEntry(value);
@@ -2024,14 +2024,26 @@ public class BootImageWriter extends BootImageWriterMessages
         throw new Error("Unknown field in java.lang.Byte " + rvmFieldName + " " + rvmFieldType);
       }
     } else if (jdkType.equals(java.lang.Double.class)) {
-        if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
-          VM_Statics.setSlotContents(rvmFieldOffset, 64); // NB not present in Java 1.4
-          return true;
-        } else {
-          throw new Error("Unknown field in java.lang.Double " + rvmFieldName + " " + rvmFieldType);
-        }
+      if (rvmFieldName.equals("ZERO")) {
+        VM_Statics.setSlotContents(rvmFieldOffset, Double.valueOf(0.0));
+        return true;
+      } else if (rvmFieldName.equals("ONE")) {
+        VM_Statics.setSlotContents(rvmFieldOffset, Double.valueOf(1.0));
+        return true;
+      } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+        VM_Statics.setSlotContents(rvmFieldOffset, 64); // NB not present in Java 1.4
+        return true;
+      } else {
+        throw new Error("Unknown field in java.lang.Double " + rvmFieldName + " " + rvmFieldType);
+      }
     } else if (jdkType.equals(java.lang.Float.class)) {
-      if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+      if (rvmFieldName.equals("ZERO")) {
+        VM_Statics.setSlotContents(rvmFieldOffset, Float.valueOf(0.0f));
+        return true;
+      } else if (rvmFieldName.equals("ONE")) {
+        VM_Statics.setSlotContents(rvmFieldOffset, Float.valueOf(1.0f));
+        return true;
+      } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
         VM_Statics.setSlotContents(rvmFieldOffset, 32); // NB not present in Java 1.4
         return true;
       } else {
@@ -2040,7 +2052,7 @@ public class BootImageWriter extends BootImageWriterMessages
     } else if (jdkType.equals(java.lang.Integer.class)) {
       if (rvmFieldName.equals("intCache") && rvmFieldType.isArrayType()) {
         Integer[] java_lang_Integer_intCache = new Integer[256];
-        // Populate table, although unnecessary
+        // Populate table
         for(int i=-128; i < 128; i++) {
           Integer value = i;
           java_lang_Integer_intCache[128+i] = value;
@@ -2060,7 +2072,23 @@ public class BootImageWriter extends BootImageWriterMessages
         throw new Error("Unknown field in java.lang.Integer " + rvmFieldName + " " + rvmFieldType);
       }
     } else if (jdkType.equals(java.lang.Long.class)) {
-      if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+      if (rvmFieldName.equals("longCache") && rvmFieldType.isArrayType()) {
+        Long[] java_lang_Long_longCache = new Long[256];
+        // Populate table
+        for(int i=-128; i < 128; i++) {
+          Long value = (long)i;
+          BootImageMap.findOrCreateEntry(value);
+          java_lang_Long_longCache[128+i] = value;
+        }
+        VM_Statics.setSlotContents(rvmFieldOffset, java_lang_Long_longCache);
+        return true;
+      } else if (rvmFieldName.equals("MIN_CACHE") && rvmFieldType.isIntType()) {
+        VM_Statics.setSlotContents(rvmFieldOffset, -128);
+        return true;
+      } else if (rvmFieldName.equals("MAX_CACHE") && rvmFieldType.isIntType()) {
+        VM_Statics.setSlotContents(rvmFieldOffset, 127);
+        return true;
+      } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
         VM_Statics.setSlotContents(rvmFieldOffset, 64); // NB not present in Java 1.4
         return true;
       } else {
@@ -2069,7 +2097,7 @@ public class BootImageWriter extends BootImageWriterMessages
     } else if (jdkType.equals(java.lang.Short.class)) {
       if (rvmFieldName.equals("shortCache") && rvmFieldType.isArrayType()) {
         Short[] java_lang_Short_shortCache = new Short[256];
-        // Populate table, although unnecessary
+        // Populate table
         for(short i=-128; i < 128; i++) {
           Short value = i;
           BootImageMap.findOrCreateEntry(value);

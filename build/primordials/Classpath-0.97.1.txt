@@ -489,6 +489,7 @@ Ljava/lang/Enum;
 [Ljava/lang/Character;
 [Ljava/lang/Character$UnicodeBlock$NameType;
 [Ljava/lang/Integer;
+[Ljava/lang/Long;
 [Ljava/lang/Short;
 [Ljava/lang/reflect/Field;
 [Ljava/lang/reflect/Method;
