@@ -15,6 +15,7 @@ package org.jikesrvm.mm.mmtk;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.runtime.VM_Magic;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -202,6 +203,27 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
   @Override
   public final void setArrayUninterruptible(Object [] dst, int index, Object value) {
     VM_Services.setArrayUninterruptible(dst, index, value);
+  }
+
+  /**
+   * Sets an element of an object array without invoking any write
+   * barrier.  This method is called by the Map class to ensure
+   * potentially-allocation-triggering write barriers do not occur in
+   * allocation slow path code.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  @UninterruptibleNoWarn
+  public final void setArrayNoBarrier(Object [] dst, int index, Object value) {
+    if (org.jikesrvm.VM.runningVM) {
+      Address base = ObjectReference.fromObject(dst).toAddress();
+      Address slot = base.plus(Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS));
+      VM.activePlan.collector().storeObjectReference(slot, ObjectReference.fromObject(value));
+    } else {
+      dst[index] = value;
+    }
   }
 
   /**

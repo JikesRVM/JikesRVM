@@ -29,6 +29,18 @@ import org.vmmagic.unboxed.*;
   public abstract void setArrayNoBarrier(char [] dst, int index, char value);
 
   /**
+   * Sets an element of an object array without invoking any write
+   * barrier.  This method is called by the Map class to ensure
+   * potentially-allocation-triggering write barriers do not occur in
+   * allocation slow path code.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  public abstract void setArrayNoBarrier(Object [] dst, int index, Object value);
+
+  /**
    * Sets an element of an object array without it being possible to lose
    * control.
    *

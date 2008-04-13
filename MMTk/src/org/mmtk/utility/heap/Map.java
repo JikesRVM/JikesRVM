@@ -97,7 +97,7 @@ public class Map {
         VM.assertions.fail("exiting");
       }
       descriptorMap[index] = descriptor;
-      VM.barriers.setArrayUninterruptible(spaceMap, index, space);
+      VM.barriers.setArrayNoBarrier(spaceMap, index, space);
       e = e.plus(Space.BYTES_IN_CHUNK);
     }
   }
@@ -208,7 +208,7 @@ public class Map {
     totalAvailableDiscontiguousChunks += chunks;
     for (int offset = 0; offset < chunks; offset++) {
       descriptorMap[chunk + offset] = 0;
-      VM.barriers.setArrayUninterruptible(spaceMap, chunk + offset, null);
+      VM.barriers.setArrayNoBarrier(spaceMap, chunk + offset, null);
       linkageMap[chunk + offset] = 0;
     }
     return chunks;
@@ -239,7 +239,7 @@ public class Map {
     /* set up the global page map and place chunks on free list */
     int firstPage = 0;
     for (int chunk = start; chunk < end; chunk++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunk] == null);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.barriers.getArrayNoBarrier(spaceMap, chunk) == null);
       totalAvailableDiscontiguousChunks++;
       regionMap.free(chunk);  // put this chunk on the free list
       globalPageMap.setUncoalescable(firstPage);
