@@ -448,11 +448,37 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
 
   /**
+   * Clear all block marks for this space.  This method is important when
+   * it is desirable to do partial collections, which man mean that block
+   * marks need to be explicitly cleared when necessary.
+   */
+  protected final void clearAllBlockMarks() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!maintainSideBitmap());
+    for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
+      Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      /* Flushed blocks */
+      Address block = flushedBlockHead.get(sizeClass);
+      while (!block.isZero()) {
+        Address next = BlockAllocator.getNext(block);
+        clearBlockMark(block, blockSize);
+        block = next;
+      }
+      /* Available blocks */
+      block = consumedBlockHead.get(sizeClass);
+      while (!block.isZero()) {
+        Address next = BlockAllocator.getNext(block);
+        clearBlockMark(block, blockSize);
+        block = next;
+      }
+    }
+  }
+
+  /**
    * Sweep all blocks for free objects.
    *
-   * @param clearBlockMarks should we clear block mark bits as we process.
+   * @param clearMarks should we clear block mark bits as we process.
    */
-  protected final void sweepConsumedBlocks() {
+  protected final void sweepConsumedBlocks(boolean clearMarks) {
     for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
       Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
       Address availableHead = Address.zero();
@@ -461,7 +487,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       flushedBlockHead.set(sizeClass, Address.zero());
       while (!block.isZero()) {
         Address next = BlockAllocator.getNext(block);
-        availableHead = sweepBlock(block, sizeClass, blockSize, availableHead);
+        availableHead = sweepBlock(block, sizeClass, blockSize, availableHead, clearMarks);
         block = next;
       }
       /* Available blocks */
@@ -469,7 +495,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       consumedBlockHead.set(sizeClass, Address.zero());
       while (!block.isZero()) {
         Address next = BlockAllocator.getNext(block);
-        availableHead = sweepBlock(block, sizeClass, blockSize, availableHead);
+        availableHead = sweepBlock(block, sizeClass, blockSize, availableHead, clearMarks);
         block = next;
       }
       /* Make blocks available */
@@ -481,10 +507,10 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * Sweep a block, freeing it and adding to the list given by availableHead
    * if it contains no free objects.
    *
-   * @param clearBlockMarks should we clear block mark bits as we process.
+   * @param clearMarks should we clear block mark bits as we process.
    */
-  protected final Address sweepBlock(Address block, int sizeClass, Extent blockSize, Address availableHead) {
-    boolean liveBlock = containsLiveCell(block, blockSize);
+  protected final Address sweepBlock(Address block, int sizeClass, Extent blockSize, Address availableHead, boolean clearMarks) {
+    boolean liveBlock = containsLiveCell(block, blockSize, clearMarks);
     if (!liveBlock) {
       BlockAllocator.setNext(block, Address.zero());
       BlockAllocator.free(this, block);
@@ -522,10 +548,11 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    *
    * @param block The block
    * @param blockSize The size of the block
+   * @param clearMarks should we clear block mark bits as we process.
    * @return True if any cells in the block are live
    */
   @Inline
-  protected boolean containsLiveCell(Address block, Extent blockSize) {
+  protected boolean containsLiveCell(Address block, Extent blockSize, boolean clearMarks) {
     if (maintainSideBitmap()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(alignToLiveStride(block).EQ(block));
       Address cursor = getLiveWordAddress(block);
@@ -543,10 +570,28 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       Address cursor = block;
       while(cursor.LT(block.plus(blockSize))) {
         live |= BlockAllocator.checkBlockMeta(cursor);
-        BlockAllocator.clearBlockMeta(cursor);
+        if (clearMarks)
+          BlockAllocator.clearBlockMeta(cursor);
         cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
       }
       return live;
+    }
+  }
+
+
+  /**
+   * Clear block marks for a block
+   *
+   * @param block The block
+   * @param blockSize The size of the block
+   */
+  @Inline
+  protected void clearBlockMark(Address block, Extent blockSize) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!maintainSideBitmap());
+    Address cursor = block;
+    while(cursor.LT(block.plus(blockSize))) {
+      BlockAllocator.clearBlockMeta(cursor);
+      cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
     }
   }
 

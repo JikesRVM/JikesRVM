@@ -43,7 +43,8 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldMutator
  * @see MutatorContext
  */
-@Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
+@Uninterruptible
+public abstract class MSMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields

@@ -71,12 +71,12 @@ public class MS extends StopTheWorld {
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(short phaseId) {
+  public void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       msTrace.prepare();
-      msSpace.prepare();
+      msSpace.prepare(true);
       return;
     }
 

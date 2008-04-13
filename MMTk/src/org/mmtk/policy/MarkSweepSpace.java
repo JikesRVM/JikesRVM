@@ -59,6 +59,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   private static final Word MARK_COUNT_MASK = Word.one().lsh(MAX_MARKCOUNT_BITS).minus(Word.one()).lsh(COUNT_BASE);
   private static final Word MARK_BITS_MASK = Word.one().lsh(MAX_BITS).minus(Word.one());
 
+  private static final boolean EAGER_MARK_CLEAR = Plan.NEEDS_LOG_BIT_IN_HEADER;
+
   /* header requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = MAX_BITS;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
@@ -164,16 +166,22 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
+   *
+   * @param gcWholeMS True if we are going to collect the whole marksweep space
    */
-  public void prepare() {
+  public void prepare(boolean gcWholeMS) {
     if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
       consumeBlocks();
     } else {
       flushAvailableBlocks();
     }
     if (HEADER_MARK_BITS) {
-      allocState = markState;
-      markState = deltaMarkState(true);
+      if (gcWholeMS) {
+        allocState = markState;
+        markState = deltaMarkState(true);
+        if (EAGER_MARK_CLEAR)
+          clearAllBlockMarks();
+      }
     } else {
       zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     }
@@ -185,7 +193,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * collector this means we can perform the sweep phase.
  */
   public void release() {
-    sweepConsumedBlocks();
+    sweepConsumedBlocks(!EAGER_MARK_CLEAR);
     inMSCollection = false;
   }
 

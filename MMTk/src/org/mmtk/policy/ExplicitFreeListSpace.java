@@ -116,7 +116,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * A new collection increment has completed.
    */
   public void release() {
-    sweepConsumedBlocks();
+    sweepConsumedBlocks(true);
   }
 
   /**
