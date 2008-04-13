@@ -12,6 +12,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
@@ -52,7 +53,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   /* mark bits */
   private static final int COUNT_BASE = 0;
   public static final int DEFAULT_MARKCOUNT_BITS = 2;
-  public static final int MAX_MARKCOUNT_BITS = MAX_BITS;
+  public static final int MAX_MARKCOUNT_BITS = Plan.NEEDS_LOG_BIT_IN_HEADER ? MAX_BITS - 1 : MAX_BITS;
+  public static final Word UNLOGGED_BIT = Word.one().lsh(MAX_BITS - 1).lsh(COUNT_BASE);
   private static final Word MARK_COUNT_INCREMENT = Word.one().lsh(COUNT_BASE);
   private static final Word MARK_COUNT_MASK = Word.one().lsh(MAX_MARKCOUNT_BITS).minus(Word.one()).lsh(COUNT_BASE);
   private static final Word MARK_BITS_MASK = Word.one().lsh(MAX_BITS).minus(Word.one());
@@ -234,7 +236,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (HEADER_MARK_BITS) {
-      if (testAndMark(object, markState)) {
+      Word markValue = Plan.NEEDS_LOG_BIT_IN_HEADER ? markState.or(Plan.UNLOGGED_BIT) : markState;
+      if (testAndMark(object, markValue)) {
         markBlock(object);
         trace.processNode(object);
       }

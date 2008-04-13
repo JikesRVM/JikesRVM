@@ -106,6 +106,12 @@ public abstract class Plan implements Constants {
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
 
+/* Do we support a log bit in the object header?  Some write barries may use it */
+  public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
+  public static final Word LOG_SET_MASK = VM.activePlan.constraints().unloggedBit();
+  private static final Word LOG_CLEAR_MASK = LOG_SET_MASK.not();
+  public static final Word UNLOGGED_BIT = VM.activePlan.constraints().unloggedBit();
+
   /****************************************************************************
    * Class variables
    */
@@ -263,6 +269,9 @@ public abstract class Plan implements Constants {
   @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
                                 int size, Word status) {
+    if (NEEDS_LOG_BIT_IN_HEADER)
+      return status.or(UNLOGGED_BIT);
+    else
     return status; // nothing to do (no bytes of GC header)
   }
 
@@ -976,6 +985,46 @@ public abstract class Plan implements Constants {
      */
     return false;
   }
+
+   /****************************************************************************
+    * Support for logging bits (this is cross-cutting).
+    */
+
+   /**
+    * Return true if the specified object needs to be logged.
+    *
+    * @param src The object in question
+    * @return True if the object in question needs to be logged (remembered).
+    */
+   public static final boolean logRequired(ObjectReference src) {
+     int value = VM.objectModel.readAvailableByte(src);
+     return !((value & LOG_SET_MASK.toInt()) == 0);
+   }
+
+   /**
+    * Mark an object as logged.  Since duplicate logging does
+    * not raise any correctness issues, we do <i>not</i> worry
+    * about synchronization and allow threads to race to log the
+    * object, potentially including it twice (unlike reference
+    * counting where duplicates would lead to incorrect reference
+    * counts).
+    *
+    * @param src The object to be marked as logged
+    */
+   public static final void markAsLogged(ObjectReference object) {
+     int value = VM.objectModel.readAvailableByte(object);
+     VM.objectModel.writeAvailableByte(object, (byte) (value & LOG_CLEAR_MASK.toInt()));
+   }
+
+   /**
+    * Mark an object as unlogged.
+    *
+    * @param src The object to be marked as unlogged
+    */
+   public static final void markAsUnlogged(ObjectReference object) {
+     int value = VM.objectModel.readAvailableByte(object);
+     VM.objectModel.writeAvailableByte(object, (byte) (value | UNLOGGED_BIT.toInt()));
+   }
 
   /****************************************************************************
    * Specialized Scanning

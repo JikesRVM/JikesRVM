@@ -12,6 +12,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListPageResource;
@@ -211,6 +212,7 @@ import org.vmmagic.unboxed.*;
   public void initializeHeader(ObjectReference object, boolean isPLOSObject) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT);
+    if (Plan.NEEDS_LOG_BIT_IN_HEADER) newValue = newValue.or(Plan.UNLOGGED_BIT);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
