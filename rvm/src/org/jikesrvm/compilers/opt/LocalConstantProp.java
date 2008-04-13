@@ -75,9 +75,9 @@ public class LocalConstantProp extends CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // iterate over all instructions in the basic block
-      for (Instruction s = bb.firstRealInstruction(),
-          sentinel = bb.lastInstruction(); s != sentinel; s = s.nextInstructionInCodeOrder()) {
-
+      for (Instruction s = bb.firstRealInstruction(), next,
+          sentinel = bb.lastInstruction(); s != sentinel; s = next) {
+        next = s.nextInstructionInCodeOrder();
         if (!info.isEmpty()) {
           // PROPAGATE CONSTANTS
           int numUses = s.getNumberOfUses();
@@ -105,15 +105,26 @@ public class LocalConstantProp extends CompilerPhase {
               Register defReg = ((RegisterOperand) def).getRegister();
               ConstantOperand cOp = info.get(defReg);
               if (cOp != null) {
-                // move was overwritten, remove move instruction and copy information
-                cOp.instruction.remove();
-                info.remove(defReg);
+                // move was overwritten
+                if (Move.conforms(s) && Move.getVal(s).isConstant()) {
+                  ConstantOperand cOp2 = (ConstantOperand) Move.getVal(s);
+                  if (cOp2.similar(cOp)) {
+                    // Redundant move of same value, remove instruction and do nothing
+                    s.remove();
+                  } else {
+                    // Overwriting move
+                    info.put(defReg, cOp2);
+                  }
+                } else {
+                  // Overwritten by non-move
+                  info.remove(defReg);
+                }
               }
             }
           }
         }
         // GEN
-        if (Move.conforms(s) && Move.getVal(s).isConstant()) {
+        else if (Move.conforms(s) && Move.getVal(s).isConstant()) {
           info.put(Move.getResult(s).getRegister(), (ConstantOperand) Move.getVal(s));
         }
       }
