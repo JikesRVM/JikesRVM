@@ -16,3 +16,4 @@
 [Lorg/jikesrvm/ia32/VM_RegisterConstants$FPR;
 [Lorg/jikesrvm/ia32/VM_RegisterConstants$XMM;
 [Lorg/jikesrvm/ia32/VM_RegisterConstants$MM;
+[Lorg/jikesrvm/compilers/common/assembler/ia32/VM_Lister$Prefix;

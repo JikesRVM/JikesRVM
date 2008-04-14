@@ -786,7 +786,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   @Inline
   public final void emitBranchLikelyNextInstruction() {
     setMachineCodes(mi++, (byte) 0x3E);
-    if (lister != null) lister.lockPrefix();
+    if (lister != null) lister.branchLikelyPrefix();
   }
 
   /**
@@ -795,7 +795,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   @Inline
   public final void emitBranchUnlikelyNextInstruction() {
     setMachineCodes(mi++, (byte) 0x2E);
-    if (lister != null) lister.lockPrefix();
+    if (lister != null) lister.branchUnlikelyPrefix();
   }
 
   /**
