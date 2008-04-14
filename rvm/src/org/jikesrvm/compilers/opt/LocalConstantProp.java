@@ -122,9 +122,8 @@ public class LocalConstantProp extends CompilerPhase {
               }
             }
           }
-        }
-        // GEN
-        else if (Move.conforms(s) && Move.getVal(s).isConstant()) {
+        } else if (Move.conforms(s) && Move.getVal(s).isConstant()) {
+          // GEN
           info.put(Move.getResult(s).getRegister(), (ConstantOperand) Move.getVal(s));
         }
       }
