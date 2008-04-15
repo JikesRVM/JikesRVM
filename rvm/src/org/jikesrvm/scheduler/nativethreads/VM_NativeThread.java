@@ -118,6 +118,16 @@ public class VM_NativeThread extends VM_Thread {
   }
 
   @Override
+  public void osrPark() {
+    // TODO
+  }
+
+  @Override
+  public void osrUnpark() {
+    // TODO
+  }
+
+  @Override
   protected Throwable waitInternal(Object o, long millis) {
     // TODO Auto-generated method stub
     return null;

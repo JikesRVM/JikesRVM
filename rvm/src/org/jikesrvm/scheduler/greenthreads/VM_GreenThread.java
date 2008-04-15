@@ -43,8 +43,17 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 @NonMoving
 public class VM_GreenThread extends VM_Thread {
-  /** Lock controlling the suspending of a thread */
+  /** Offset of the lock field controlling the suspending of a thread */
   private static final Offset suspendPendingOffset = VM_Entrypoints.suspendPendingField.getOffset();
+
+  /** Lock used for handling parking and unparking for OSR.  This lock is
+   * global, since OSR is serialized anyway. */
+  private static final VM_ProcessorLock osrParkLock = new VM_ProcessorLock();
+
+  /**
+   * Parking permit for OSR.
+   */
+  private boolean osrParkingPermit;
 
   /**
    * Should this thread be suspended the next time it is considered
@@ -398,6 +407,20 @@ public class VM_GreenThread extends VM_Thread {
       changeThreadState(State.RUNNABLE, State.BLOCKED);
     beingDispatched = true;
     q.enqueue(this);
+    l.unlock();
+    morph(false);
+  }
+
+  /**
+   * Suspend execution of current thread, change its state, and release
+   * a lock.
+   * @param l lock guarding the decision to suspend
+   * @param s state to change to
+   */
+  @NoInline
+  public final void yield(VM_ProcessorLock l, State newState) {
+    changeThreadState(State.RUNNABLE, newState);
+    beingDispatched = true;
     l.unlock();
     morph(false);
   }
@@ -764,6 +787,40 @@ public class VM_GreenThread extends VM_Thread {
     }
     return false;
   }
+
+  /**
+   * Park the thread for OSR.
+   */
+  @Override
+  public void osrPark() {
+    osrParkLock.lock("locking in osrPark");
+    if (osrParkingPermit) {
+      osrParkingPermit=false;
+      osrParkLock.unlock();
+    } else {
+      yield(osrParkLock, State.OSR_PARKED);
+    }
+  }
+
+  /**
+   * Unpark the thread from OSR.
+   */
+  @Override
+  public void osrUnpark() {
+    boolean schedule=false;
+    osrParkLock.lock("locking in osrUnpark");
+    if (state == State.OSR_PARKED) {
+      changeThreadState(State.OSR_PARKED, State.RUNNABLE);
+      schedule=true;
+    } else {
+      osrParkingPermit=true;
+    }
+    osrParkLock.unlock();
+    if (schedule) {
+      VM_GreenProcessor.getCurrentProcessor().scheduleThread(this);
+    }
+  }
+
   /**
    * Put this thread on ready queue for subsequent execution on a future
    * timeslice.

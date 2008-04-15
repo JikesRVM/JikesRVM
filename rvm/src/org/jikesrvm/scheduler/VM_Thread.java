@@ -126,10 +126,10 @@ public abstract class VM_Thread {
      */
     SUSPENDED,
     /**
-     * The thread is suspended awaiting a resume. This state maps to
+     * The thread is parked for OSR awaiting an OSR unpark. This state maps to
      * {@link Thread.State#WAITING}
      */
-    OSR_SUSPENDED,
+    OSR_PARKED,
     /**
      * The thread is awaiting this thread to become RUNNABLE. This state maps to
      * {@link Thread.State#WAITING} matching JDK 1.5 convention
@@ -884,24 +884,12 @@ public abstract class VM_Thread {
    * OSR support
    */
 
-  /**
-   * Suspends the thread waiting for OSR (rescheduled by recompilation
-   * thread when OSR is done).
-   */
-  public final void osrSuspend() {
-    changeThreadState(State.RUNNABLE, State.OSR_SUSPENDED);
-    suspendInternal();
-  }
-
-  /**
-   * Suspends the thread waiting for OSR (rescheduled by recompilation
-   * thread when OSR is done).
-   */
-  public final void osrResume() {
-    changeThreadState(State.OSR_SUSPENDED, State.RUNNABLE);
-    if (trace) VM_Scheduler.trace("VM_Thread", "osrResume() scheduleThread ", getIndex());
-    resumeInternal();
-  }
+  /** Suspend the thread pending completion of OSR, unless OSR has already
+   * completed. */
+  public abstract void osrPark();
+  /** Signal completion of OSR activity on this thread.  Resume it if it was
+   * already parked, or prevent it from parking if it is about to park. */
+  public abstract void osrUnpark();
 
   /*
    * Sleep support
@@ -1654,7 +1642,7 @@ public abstract class VM_Thread {
       return Thread.State.BLOCKED;
     case WAITING:
     case SUSPENDED:
-    case OSR_SUSPENDED:
+    case OSR_PARKED:
     case JOINING:
     case PARKED:
     case IO_WAITING:

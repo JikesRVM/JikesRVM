@@ -18,6 +18,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -47,8 +48,16 @@ public class OSR_OnStackReplacementTrigger {
     event.tsFromFPoff = tsFromFPoff;
     event.ypTakenFPoff = ypTakenFPoff;
 
+    // make sure that the above stores don't get ordered after the flagging
+    // this thread is requesting OSR.
+    VM_Magic.sync();
+
     // consumer:
     thread.requesting_osr = true;
+
+    // make sure that the flag is set to activate the OSR organizer after
+    // this thread has flagged its request for OSR.
+    VM_Magic.sync();
 
     // osr organizer must be initialized already
     if (!VM_Controller.osrOrganizer.osr_flag) {
@@ -56,6 +65,6 @@ public class OSR_OnStackReplacementTrigger {
       VM_Controller.osrOrganizer.activate();
     }
 
-    thread.osrSuspend();
+    thread.osrPark();
   }
 }

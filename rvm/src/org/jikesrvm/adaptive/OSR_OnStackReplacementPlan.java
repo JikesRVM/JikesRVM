@@ -132,6 +132,6 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       }
     }
 
-    suspendedThread.osrResume();
+    suspendedThread.osrUnpark();
   }
 }
