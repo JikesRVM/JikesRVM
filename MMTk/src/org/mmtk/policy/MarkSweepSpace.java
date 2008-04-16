@@ -74,6 +74,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   private Word markState = Word.one();
   private Word allocState = Word.zero();
   private boolean inMSCollection;
+  private static final boolean usingStickyMarkBits = VM.activePlan.constraints().needsLogBitInHeader(); /* are sticky mark bits in use? */
+  private boolean isAgeSegregated = false; /* is this space a nursery space? */
 
   /****************************************************************************
    *
@@ -97,6 +99,18 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    */
   public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
     super(name, pageBudget, 0, vmRequest);
+    if (usingStickyMarkBits) allocState = allocState.or(UNLOGGED_BIT);
+  }
+
+  /**
+   * This instance will be age-segregated using the sticky mark bits
+   * algorithm. Perform appropriate initialization
+   */
+  public void isAgeSegregatedSpace() {
+    /* we must be using sticky mark bits */
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(usingStickyMarkBits);
+    allocState = allocState.and(UNLOGGED_BIT.not()); /* clear the unlogged bit for nursery allocs */
+    isAgeSegregated = true;
   }
 
   /**
@@ -178,6 +192,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
     if (HEADER_MARK_BITS) {
       if (gcWholeMS) {
         allocState = markState;
+        if (usingStickyMarkBits && !isAgeSegregated) /* if true, we allocate as "mature", not nursery */
+          allocState = allocState.or(UNLOGGED_BIT);
         markState = deltaMarkState(true);
         if (EAGER_MARK_CLEAR)
           clearAllBlockMarks();

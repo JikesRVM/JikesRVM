@@ -10,13 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.plan.marksweep;
+package org.mmtk.plan.stickyms;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -26,18 +27,19 @@ import org.vmmagic.unboxed.*;
  * closure over a mark-sweep space.
  */
 @Uninterruptible
-public final class MSTraceLocal extends TraceLocal {
-  /****************************************************************************
-   *
-   * Instance fields
-   */
-  private final ObjectReferenceDeque modBuffer;
+public final class StickyMSNurseryTraceLocal extends TraceLocal {
 
- /**
+  /****************************************************************************
+  *
+  * Instance fields.
+  */
+ private final ObjectReferenceDeque modBuffer;
+
+  /**
    * Constructor
    */
-  public MSTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
-    super(MS.SCAN_MARK, trace);
+  public StickyMSNurseryTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
+    super(StickyMS.SCAN_NURSERY, trace);
     this.modBuffer = modBuffer;
   }
 
@@ -54,10 +56,12 @@ public final class MSTraceLocal extends TraceLocal {
    */
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
-    if (Space.isInSpace(MS.MARK_SWEEP, object)) {
-      return MS.msSpace.isLive(object);
-    }
-    return super.isLive(object);
+    if (Space.isInSpace(StickyMS.MARK_SWEEP, object))
+      return StickyMS.msSpace.isLive(object);
+    else if (StickyMS.NURSERY_COLLECT_PLOS && Space.isInSpace(StickyMS.PLOS, object))
+      return StickyMS.ploSpace.isLive(object);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
+    return true;
   }
 
   /**
@@ -77,23 +81,25 @@ public final class MSTraceLocal extends TraceLocal {
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
-    if (Space.isInSpace(MS.MARK_SWEEP, object))
-      return MS.msSpace.traceObject(this, object);
-    return super.traceObject(object);
+    if (Space.isInSpace(StickyMS.MARK_SWEEP, object))
+      return StickyMS.msSpace.traceObject(this, object);
+    else if (StickyMS.NURSERY_COLLECT_PLOS && Space.isInSpace(StickyMS.PLOS, object))
+      return StickyMS.ploSpace.traceObject(this, object);
+    else
+      return object;
   }
 
   /**
    * Process any remembered set entries.  This means enumerating the
    * mod buffer and for each entry, marking the object as unlogged
-   * (we don't enqueue for scanning since we're doing a full heap GC).
+   * and enqueing it for scanning.
    */
   protected void processRememberedSets() {
-    if (modBuffer != null) {
-      logMessage(5, "clearing modBuffer");
-      while (!modBuffer.isEmpty()) {
-        ObjectReference src = modBuffer.pop();
-        Plan.markAsUnlogged(src);
-      }
+    logMessage(2, "processing modBuffer");
+    while (!modBuffer.isEmpty()) {
+      ObjectReference src = modBuffer.pop();
+      Plan.markAsUnlogged(src);
+      processNode(src);
     }
   }
 }

@@ -57,7 +57,7 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public MSCollector() {
-    fullTrace = new MSTraceLocal(global().msTrace);
+    fullTrace = new MSTraceLocal(global().msTrace, null);
     currentTrace = fullTrace;
     ms = new MarkSweepLocal(MS.msSpace);
   }
