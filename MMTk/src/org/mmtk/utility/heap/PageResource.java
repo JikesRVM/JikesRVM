@@ -166,6 +166,43 @@ public abstract class PageResource implements Constants {
     unlock();
   }
 
+  /**
+   * Reserve pages unconditionally.<p>
+   *
+   * An example of where this is useful is in cases where it is
+   * desirable to put some space aside as head-room.  By
+   * unconditionally reserving the pages, the pages are counted
+   * against the collectors budget.  When the space is actually
+   * needed, the pages can be unconditionally released, freeing
+   * the pages for other purposes.
+   *
+   * @param pages The number of pages to be unconditionally
+   * reserved.
+   */
+  public final void unconditionallyReservePages(int pages) {
+    lock();
+    committed += pages;
+    reserved += pages;
+    unlock();
+  }
+
+  /**
+   * Release pages unconditionally.<p>
+   *
+   * This call allows pages to be unconditionally removed from
+   * the collectors page budget.
+   *
+   * @see unconditionallyReservePages
+   * @param pages The number of pages to be unconditionally
+   * released.
+   */
+  public final void unconditionallyReleasePages(int pages) {
+    lock();
+    committed -= pages;
+    reserved -= pages;
+    unlock();
+  }
+
   abstract Address allocPages(int pages);
 
   /**
@@ -181,7 +218,7 @@ public abstract class PageResource implements Constants {
   /**
    * Allocate pages in virtual memory, returning zero on failure.<p>
    *
-   * If the request cannot be satisified, zero is returned and it
+   * If the request cannot be satisfied, zero is returned and it
    * falls to the caller to trigger the GC.
    *
    * Call <code>allocPages</code> (subclass) to find the pages in
