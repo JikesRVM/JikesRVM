@@ -154,7 +154,7 @@ import org.vmmagic.pragma.*;
   public final void printCurrent() {
     printValue(totalCount);
   }
-  
+
   /**
    * Print the current total for this counter
    */

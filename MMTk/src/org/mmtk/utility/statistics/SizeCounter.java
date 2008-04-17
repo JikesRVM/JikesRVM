@@ -121,7 +121,7 @@ import org.vmmagic.pragma.*;
   public void printCurrentVolume() {
     volume.printCurrent();
   }
-  
+
   /**
    * Print units
    */
