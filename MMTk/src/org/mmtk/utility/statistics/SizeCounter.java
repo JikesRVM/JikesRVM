@@ -109,6 +109,20 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Print current (mid-phase) units
+   */
+  public void printCurrentUnits() {
+    units.printCurrent();
+  }
+
+  /**
+   * Print (mid-phase) volume
+   */
+  public void printCurrentVolume() {
+    volume.printCurrent();
+  }
+  
+  /**
    * Print units
    */
   public void printUnits() {
