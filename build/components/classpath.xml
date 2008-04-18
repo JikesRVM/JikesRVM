@@ -113,8 +113,6 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-392.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-433.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
   <!-- Patches against the current stable version -->
