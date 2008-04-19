@@ -729,7 +729,7 @@ public abstract class Simplifier extends IRTools {
     if (ref.isNullConstant()) {
       Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
       return DefUseEffect.MOVE_FOLDED;
-    } else if (ref.isConstant()) {
+    } else if (ref.isConstant() || (ref.isRegister() && ref.asRegister().isExtant())) {
       s.operator = INSTANCEOF_NOTNULL;
       return instanceOfNotNull(s);
     } else {
@@ -3176,7 +3176,7 @@ public abstract class Simplifier extends IRTools {
         VM_TypeReference[] paramTypes = method.getParameterTypes();
         Object[] otherArgs;
         Object result = null;
-        if (methOp.isVirtual()) {
+        if (!methOp.isStatic()) {
           thisArg = boxConstantOperand((ConstantOperand)Call.getParam(s,0), method.getDeclaringClass().getTypeRef());
           n--;
           otherArgs = new Object[n];
