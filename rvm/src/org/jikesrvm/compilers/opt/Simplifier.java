@@ -729,7 +729,7 @@ public abstract class Simplifier extends IRTools {
     if (ref.isNullConstant()) {
       Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
       return DefUseEffect.MOVE_FOLDED;
-    } else if (ref.isConstant() || (ref.isRegister() && ref.asRegister().isExtant())) {
+    } else if (ref.isConstant() || (false && ref.isRegister() && ref.asRegister().isExtant())) {
       s.operator = INSTANCEOF_NOTNULL;
       return instanceOfNotNull(s);
     } else {
