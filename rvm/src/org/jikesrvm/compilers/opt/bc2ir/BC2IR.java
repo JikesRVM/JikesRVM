@@ -397,6 +397,7 @@ public final class BC2IR
 
     RegisterOperand t = gc.temps.makeTemp(arrayTypeRef);
     t.setPreciseType();
+    t.setExtant();
     markGuardlessNonNull(t);
     // We can do early resolution of the array type if the element type
     // is already initialized.
@@ -2139,6 +2140,7 @@ public final class BC2IR
           VM_TypeReference klass = bcodes.getTypeReference();
           RegisterOperand t = gc.temps.makeTemp(klass);
           t.setPreciseType();
+          t.setExtant();
           markGuardlessNonNull(t);
           Operator operator;
           TypeOperand klassOp;
@@ -2161,6 +2163,7 @@ public final class BC2IR
           TypeOperand arrayOp = makeTypeOperand(array);
           RegisterOperand t = gc.temps.makeTemp(array.getTypeRef());
           t.setPreciseType();
+          t.setExtant();
           markGuardlessNonNull(t);
           s = NewArray.create(NEWARRAY, t, arrayOp, popInt());
           push(t.copyD2U());
@@ -2407,6 +2410,7 @@ public final class BC2IR
             RegisterOperand result = gc.temps.makeTemp(arrayType);
             markGuardlessNonNull(result);
             result.setPreciseType();
+            result.setExtant();
             s = Multianewarray.create(NEWOBJMULTIARRAY, result, typeOp, dimensions);
             for (int i = 0; i < dimensions; i++) {
               Multianewarray.setDimension(s, dimensions - i - 1, popInt());
