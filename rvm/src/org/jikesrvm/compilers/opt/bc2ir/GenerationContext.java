@@ -257,6 +257,9 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
+      if (method.getDeclaringClass().isFinal()) {
+        thisOp.setPreciseType();
+      }
       arguments[0] = thisOp;
       Prologue.setFormal(prologueInstr, 0, thisOp.copyU2D());
       argIdx++;
