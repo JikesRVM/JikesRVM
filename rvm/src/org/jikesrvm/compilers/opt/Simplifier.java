@@ -3167,7 +3167,8 @@ public abstract class Simplifier extends IRTools {
         VM_Method method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);
         for(int i=0; i < n; i++) {
-          if (!Call.getParam(s,i).isConstant()) {
+          Operand param = Call.getParam(s,i);
+          if (!param.isConstant() || param.isNullConstant()) {
             return DefUseEffect.UNCHANGED;
           }
         }
@@ -3248,7 +3249,9 @@ public abstract class Simplifier extends IRTools {
     } else if (t.isShortType()) {
       return (short)op.asIntConstant().value;
     } else {
-      throw new OptimizingCompilerException("Trying to box an VM magic unboxed type for a pure method call is not possible");
+      throw new OptimizingCompilerException("Trying to box an VM magic unboxed type ("+op+
+                                            ")for a pure method call is not possible:\n"+op.instruction+
+                                            "\n at "+op.instruction.position);
     }
   }
   /**
