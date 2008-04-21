@@ -13,7 +13,8 @@
 package org.jikesrvm.compilers.opt.inlining;
 
 import java.util.Stack;
-import org.jikesrvm.classloader.VM_Atom;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -24,17 +25,12 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
 
 /**
  * This class provides some utilities that are useful for inlining.
  */
 public abstract class InlineTools implements Constants {
-
-  private static final VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom("arraycopy");
-  private static final VM_Atom objectArrayCopyDescriptor =
-      VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Does class <code>A</code> directly implement the interface <code>B</code>?
