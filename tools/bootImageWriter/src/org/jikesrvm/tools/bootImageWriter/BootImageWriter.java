@@ -1827,9 +1827,11 @@ public class BootImageWriter extends BootImageWriterMessages
                     jdkFieldAcc.getName());
                 Address imageAddress = copyToBootImage(value, allocOnly, Address.max(), jdkObject, false);
                 if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
-                  // object not part of bootimage: install null reference
-                  if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-                  bootImage.setNullAddressWord(rvmFieldAddress, !untracedField, !untracedField, false);
+                  if (!copyKnownClasspathInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress)) {
+                    // object not part of bootimage: install null reference
+                    if (verbose >= 2) traceContext.traceObjectNotInBootImage();
+                    bootImage.setNullAddressWord(rvmFieldAddress, !untracedField, !untracedField, false);
+                  }
                 } else
                   bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), !untracedField, !(untracedField || rvmField.isFinal()));
                 if (verbose >= 2) traceContext.pop();
@@ -2251,6 +2253,22 @@ public class BootImageWriter extends BootImageWriterMessages
       } else {
         // Unknown Constructor field
         return false;
+      }
+    } else if (jdkObject instanceof java.lang.ref.ReferenceQueue) {
+       if(rvmFieldName.equals("lock")) {
+        // cause reference queues in the boot image to lock upon themselves
+        Address imageAddress = BootImageMap.findOrCreateEntry(jdkObject).imageAddress;
+        if (imageAddress.EQ(OBJECT_NOT_PRESENT) || imageAddress.EQ(OBJECT_NOT_ALLOCATED) || imageAddress.EQ(Address.zero())) {
+          throw new Error("Trying to copy known field into unavailable object!");
+        } else {
+          if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+          bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, false);
+        }
+        return true;
+      } else if (rvmFieldName.equals("first")){
+        return false;
+      } else {
+        throw new Error("Unknown field "+rvmFieldName+" in java.lang.ref.ReferenceQueue");
       }
     } else if (jdkObject instanceof java.util.BitSet) {
       BitSet bs = (BitSet)jdkObject;
