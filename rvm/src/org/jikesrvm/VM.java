@@ -225,6 +225,8 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("gnu.classpath.SystemProperties");
 
+    runClassInitializer("java.lang.Throwable$StaticData");
+
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("sun.misc.Unsafe");
@@ -292,7 +294,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    runClassInitializer("java.lang.Throwable$StaticData");
     if (VM.BuildWithAllClasses) {
       runClassInitializer("java.util.jar.Attributes$Name");
     }
