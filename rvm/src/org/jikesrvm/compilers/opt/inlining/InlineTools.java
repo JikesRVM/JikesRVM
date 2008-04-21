@@ -124,24 +124,23 @@ public abstract class InlineTools implements Constants {
       if (op instanceof RegisterOperand) {
         RegisterOperand rop = (RegisterOperand) op;
         if (rop.isExtant()) {
-          reductionFactor -= 0.05;      //  5% credit for being extant.
+          reductionFactor -= 0.025;      // 2.5% credit for being extant: guardless inlining via pre-existence.
         }
         if (rop.isPreciseType()) {
-          reductionFactor -= 0.15;      // 15% credit for being a precise type.
+          reductionFactor -= 0.10;      // 10% credit for being a precise type: inlining & checkcast/instanceof
         }
-        if (rop.isDeclaredType()) {
-          reductionFactor -= 0.01;      //  1% credit for being a declared type.
+        if (rop.isDeclaredType() && rop.getType().isArrayType() && rop.getType().getArrayElementType().isReferenceType()) {
+          reductionFactor -= 0.025;      //  2.5% credit for being a declared type where we can simplify arraystore checks
         }
       } else if (op.isIntConstant()) {
-        reductionFactor -= 0.10;        // 10% credit for being an int constant
+        reductionFactor -= 0.05;        // 5% credit for being an int constant; mainly in the hopes of control flow simplications
       } else if (op.isNullConstant()) {
-        reductionFactor -= 0.15;        // 15% credit for being 'null'
+        reductionFactor -= 0.10;        // 10% credit for being 'null' as this enables a number of simplifications
       } else if (op.isStringConstant()) {
-        reductionFactor -= 0.10;      // 10% credit for being a string constant
+        reductionFactor -= 0.10;        // 10% credit for being a string constant: inlining & constant folding opportunities
       }
     }
-    reductionFactor = Math.max(reductionFactor, 0.40); // bound credits at 60%
-    // off.
+    reductionFactor = Math.max(reductionFactor, 0.70); // bound credits at 30% off; we don't want to be too optimistic about code space reductions.
     return (int) (sizeEstimate * reductionFactor);
   }
 
