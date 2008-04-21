@@ -397,7 +397,6 @@ public final class BC2IR
 
     RegisterOperand t = gc.temps.makeTemp(arrayTypeRef);
     t.setPreciseType();
-    t.setExtant();
     markGuardlessNonNull(t);
     // We can do early resolution of the array type if the element type
     // is already initialized.
@@ -408,6 +407,7 @@ public final class BC2IR
     if ((arrayType != null) && (arrayType.isInitialized() || arrayType.isInBootImage())) {
       op = NEWARRAY;
       arrayOp = makeTypeOperand(arrayType);
+      t.setExtant();
     } else {
       VM_Type elementType = elementTypeRef.peekType();
       if ((elementType != null) && (elementType.isInitialized() || elementType.isInBootImage())) {
@@ -416,6 +416,7 @@ public final class BC2IR
         arrayType.instantiate();
         op = NEWARRAY;
         arrayOp = makeTypeOperand(arrayType);
+        t.setExtant();
       } else {
         op = NEWARRAY_UNRESOLVED;
         arrayOp = makeTypeOperand(arrayTypeRef);
@@ -2140,7 +2141,6 @@ public final class BC2IR
           VM_TypeReference klass = bcodes.getTypeReference();
           RegisterOperand t = gc.temps.makeTemp(klass);
           t.setPreciseType();
-          t.setExtant();
           markGuardlessNonNull(t);
           Operator operator;
           TypeOperand klassOp;
@@ -2148,6 +2148,7 @@ public final class BC2IR
           if (klassType != null && (klassType.isInitialized() || klassType.isInBootImage())) {
             klassOp = makeTypeOperand(klassType);
             operator = NEW;
+            t.setExtant();
           } else {
             operator = NEW_UNRESOLVED;
             klassOp = makeTypeOperand(klass);
@@ -2410,7 +2411,11 @@ public final class BC2IR
             RegisterOperand result = gc.temps.makeTemp(arrayType);
             markGuardlessNonNull(result);
             result.setPreciseType();
-            result.setExtant();
+            VM_TypeReference innermostElementTypeRef = arrayType.getInnermostElementType();
+            VM_Type innermostElementType = innermostElementTypeRef.peekType();
+            if (innermostElementType != null && (innermostElementType.isInitialized() || innermostElementType.isInBootImage())) {
+              result.setExtant();
+            }
             s = Multianewarray.create(NEWOBJMULTIARRAY, result, typeOp, dimensions);
             for (int i = 0; i < dimensions; i++) {
               Multianewarray.setDimension(s, dimensions - i - 1, popInt());

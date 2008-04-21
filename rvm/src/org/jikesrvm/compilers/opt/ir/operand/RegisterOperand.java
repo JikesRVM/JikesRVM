@@ -335,13 +335,22 @@ public final class RegisterOperand extends Operand {
   /** Set this register as being volatile */
   public void clearNonVolatile() { flags &= ~NON_VOLATILE; }
 
-  /** Is this register known to contain an object? */
+  /**
+   * Is this register known to contain either NULL or an object whose class was fully loaded
+   * before the current method was called?
+   * This fact is used to determine whether we can optimize away inline guards
+   * based on pre-existence based inlining.*/
   public boolean isExtant() { return (flags & EXTANT) != 0; }
 
-  /** Set this register as holding a known to exist object */
+  /**
+   * Set this register as holding an extant object (or NULL)
+   * (ie, an object whose class was fully loaded before the current method was called).
+   * This fact is used to determine whether we can optimize away inline guards based on pre-existence
+   * based inlining.
+   */
   public void setExtant() { flags |= EXTANT; }
 
-  /** Clear this register from holding a known to exist object */
+  /** Clear this register from holding an extant value */
   public void clearExtant() { flags &= ~EXTANT; }
 
   /** Does this register have a declared type? */
