@@ -114,33 +114,42 @@ public abstract class InlineTools implements Constants {
    */
   public static int inlinedSizeEstimate(VM_NormalMethod callee, CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
-    // Adjust size estimate downward to account for optimizations enabled
-    // by constant parameters.
+    // Adjust size estimate downward to account for optimizations
+    // that are typically enabled by constant parameters.
     Instruction callInstr = state.getCallInstruction();
     int numArgs = Call.getNumberOfParams(callInstr);
     double reductionFactor = 1.0;               // no reduction.
     for (int i = 0; i < numArgs; i++) {
       Operand op = Call.getParam(callInstr, i);
       if (op instanceof RegisterOperand) {
-        RegisterOperand rop = (RegisterOperand) op;
-        if (rop.isExtant()) {
-          reductionFactor -= 0.025;      // 2.5% credit for being extant: guardless inlining via pre-existence.
-        }
-        if (rop.isPreciseType()) {
-          reductionFactor -= 0.10;      // 10% credit for being a precise type: inlining & checkcast/instanceof
-        }
-        if (rop.isDeclaredType() && rop.getType().isArrayType() && rop.getType().getArrayElementType().isReferenceType()) {
-          reductionFactor -= 0.025;      //  2.5% credit for being a declared type where we can simplify arraystore checks
+        RegisterOperand rop = (RegisterOperand)op;
+        VM_TypeReference type = rop.getType();
+        if (type.isReferenceType()) {
+          if (type.isArrayType()) {
+            // Reductions only come from optimization of dynamic type checks; all virtual methods on arrays are defined on Object.
+            if (rop.isPreciseType()) {
+              reductionFactor -= 0.05;
+            } else if (rop.isDeclaredType() && callee.hasArrayWrite() && type.getArrayElementType().isReferenceType()) {
+              reductionFactor -= 0.02; // potential to optimize checkstore portion of aastore bytecode on parameter
+            }
+          } else {
+            // Reductions come from optimization of dynamic type checks and improved inlining of virtual/interface calls
+            if (rop.isPreciseType()) {
+              reductionFactor -= 0.15;
+            } else if (rop.isExtant()) {
+              reductionFactor -= 0.05;
+            }
+          }
         }
       } else if (op.isIntConstant()) {
         reductionFactor -= 0.05;        // 5% credit for being an int constant; mainly in the hopes of control flow simplications
       } else if (op.isNullConstant()) {
         reductionFactor -= 0.10;        // 10% credit for being 'null' as this enables a number of simplifications
       } else if (op.isStringConstant()) {
-        reductionFactor -= 0.10;        // 10% credit for being a string constant: inlining & constant folding opportunities
+        reductionFactor -= 0.10;        // 10% credit for being a string constant: inlining, constant folding, and Pure method opportunities
       }
     }
-    reductionFactor = Math.max(reductionFactor, 0.70); // bound credits at 30% off; we don't want to be too optimistic about code space reductions.
+    reductionFactor = Math.max(reductionFactor, 0.60); // bound credits at 40% off; we don't want to be too optimistic about code space reductions.
     return (int) (sizeEstimate * reductionFactor);
   }
 
