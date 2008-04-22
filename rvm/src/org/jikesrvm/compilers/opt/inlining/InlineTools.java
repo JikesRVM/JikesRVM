@@ -145,8 +145,8 @@ public abstract class InlineTools implements Constants {
         reductionFactor -= 0.05;        // 5% credit for being an int constant; mainly in the hopes of control flow simplications
       } else if (op.isNullConstant()) {
         reductionFactor -= 0.10;        // 10% credit for being 'null' as this enables a number of simplifications
-      } else if (op.isStringConstant()) {
-        reductionFactor -= 0.10;        // 10% credit for being a string constant: inlining, constant folding, and Pure method opportunities
+      } else if (op.isObjectConstant()) {
+        reductionFactor -= 0.10;        // 10% credit for being a string/class/object constant: inlining, constant folding, and Pure method opportunities
       }
     }
     reductionFactor = Math.max(reductionFactor, 0.60); // bound credits at 40% off; we don't want to be too optimistic about code space reductions.
