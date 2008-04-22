@@ -142,7 +142,7 @@ public abstract class InlineTools implements Constants {
           }
         }
       } else if (op.isIntConstant()) {
-        reductionFactor -= 0.05;        // 5% credit for being an int constant; mainly in the hopes of control flow simplications
+        reductionFactor -= 0.05;        // 5% credit for being an int constant; mainly in the hopes of control flow simplifications
       } else if (op.isNullConstant()) {
         reductionFactor -= 0.10;        // 10% credit for being 'null' as this enables a number of simplifications
       } else if (op.isObjectConstant()) {
