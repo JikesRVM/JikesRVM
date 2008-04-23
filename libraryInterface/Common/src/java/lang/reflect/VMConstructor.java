@@ -78,7 +78,7 @@ final class VMConstructor {
                 InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !cons.isAccessible()) {
-      VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
       JikesRVMSupport.checkAccess(constructor, accessingClass);
     }
 
