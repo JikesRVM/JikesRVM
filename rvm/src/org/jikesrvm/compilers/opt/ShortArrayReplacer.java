@@ -16,14 +16,18 @@ import java.util.HashSet;
 import java.util.Set;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.Trap;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
@@ -35,6 +39,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_NOTNULL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_UNRESOLVED_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_opcode;
@@ -52,11 +57,14 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 
 /**
  * Class that performs scalar replacement of short arrays
@@ -109,12 +117,12 @@ public final class ShortArrayReplacer implements AggregateReplacer {
     // first set up temporary scalars for the array elements
     // initialize them before the def.
     RegisterOperand[] scalars = new RegisterOperand[size];
-    VM_Type elementType = vmArray.getElementType();
+    VM_TypeReference elementType = vmArray.getElementType().getTypeRef();
     RegisterOperand def = reg.defList;
     Instruction defI = def.instruction;
-    Operand defaultValue = IRTools.getDefaultOperand(elementType.getTypeRef());
+    Operand defaultValue = IRTools.getDefaultOperand(elementType);
     for (int i = 0; i < size; i++) {
-      scalars[i] = IRTools.moveIntoRegister(ir.regpool, defI, defaultValue.copy());
+      scalars[i] = IRTools.moveIntoRegister(elementType, IRTools.getMoveOp(elementType), ir.regpool, defI, defaultValue.copy());
     }
     transform2(this.reg, defI, scalars);
   }
@@ -133,19 +141,19 @@ public final class ShortArrayReplacer implements AggregateReplacer {
   /**
    * number of elements in the array
    */
-  private int size;
+  private final int size;
   /**
    * type of the array
    */
-  private VM_Array vmArray;
+  private final VM_Array vmArray;
   /**
    * the register holding the array reference
    */
-  private Register reg;
+  private final Register reg;
   /**
    * the governing IR
    */
-  private IR ir;
+  private final IR ir;
 
   /**
    * @param r the register holding the array reference
@@ -181,11 +189,15 @@ public final class ShortArrayReplacer implements AggregateReplacer {
       case USHORT_ALOAD_opcode:
       case SHORT_ALOAD_opcode:
       case REF_ALOAD_opcode: {
+        // Create use of scalar or eliminate unreachable instruction because
+        // of a trap
         int index = ALoad.getIndex(inst).asIntConstant().value;
-        Instruction i = Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
-        inst.insertBefore(i);
-        DefUse.removeInstructionAndUpdateDU(inst);
-        DefUse.updateDUForNewInstruction(i);
+        if (index >= 0 && index < size) {
+          Instruction i2 = Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
+          DefUse.replaceInstructionAndUpdateDU(inst, i2);
+        } else {
+          DefUse.removeInstructionAndUpdateDU(inst);
+        }
       }
       break;
       case INT_ASTORE_opcode:
@@ -195,16 +207,35 @@ public final class ShortArrayReplacer implements AggregateReplacer {
       case BYTE_ASTORE_opcode:
       case SHORT_ASTORE_opcode:
       case REF_ASTORE_opcode: {
+        // Create move to scalar or eliminate unreachable instruction because
+        // of a trap
         int index = AStore.getIndex(inst).asIntConstant().value;
-        Instruction i2 = Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
-        inst.insertBefore(i2);
-        DefUse.removeInstructionAndUpdateDU(inst);
-        DefUse.updateDUForNewInstruction(i2);
+        if (index >= 0 && index < size) {
+          Instruction i2 = Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
+          DefUse.replaceInstructionAndUpdateDU(inst, i2);
+        } else {
+          DefUse.removeInstructionAndUpdateDU(inst);
+        }
       }
       break;
-      case BOUNDS_CHECK_opcode:
-        DefUse.removeInstructionAndUpdateDU(inst);
-        break;
+      case NULL_CHECK_opcode: {
+        // Null check on result of new array must succeed
+        Instruction i2 = Move.create(GUARD_MOVE, NullCheck.getClearGuardResult(inst), new TrueGuardOperand());
+        DefUse.replaceInstructionAndUpdateDU(inst, i2);
+      }
+      break;
+      case BOUNDS_CHECK_opcode: {
+        // Remove or create trap as appropriate
+        int index = BoundsCheck.getIndex(inst).asIntConstant().value;
+        Instruction i2;
+        if (index >= 0 && index < size) {
+          i2 = Move.create(GUARD_MOVE, BoundsCheck.getClearGuardResult(inst), new TrueGuardOperand());
+        } else {
+          i2 = Trap.create(TRAP, BoundsCheck.getClearGuardResult(inst), TrapCodeOperand.ArrayBounds());
+        }
+        DefUse.replaceInstructionAndUpdateDU(inst, i2);
+      }
+      break;
       case REF_MOVE_opcode:
         if (visited == null) {
           visited = new HashSet<Register>();
@@ -234,7 +265,6 @@ public final class ShortArrayReplacer implements AggregateReplacer {
         case OBJARRAY_STORE_CHECK_opcode:
         case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
         case GET_OBJ_TIB_opcode:
-        case NULL_CHECK_opcode:
         case INSTANCEOF_opcode:
         case INSTANCEOF_NOTNULL_opcode:
         case INSTANCEOF_UNRESOLVED_opcode:
@@ -252,11 +282,6 @@ public final class ShortArrayReplacer implements AggregateReplacer {
           if (!AStore.getIndex(use.instruction).isIntConstant()) {
             return true;
           }
-          int index = AStore.getIndex(use.instruction).asIntConstant().value;
-          // In the following case, we could instead unconditionally throw
-          // an array index out-of-bounds exception.
-          if (index >= size) return true;
-          if (index < 0) return true;
           break;
         }
         case INT_ALOAD_opcode:
@@ -271,11 +296,6 @@ public final class ShortArrayReplacer implements AggregateReplacer {
           if (!ALoad.getIndex(use.instruction).isIntConstant()) {
             return true;
           }
-          int index = ALoad.getIndex(use.instruction).asIntConstant().value;
-          // In the following case, we could instead unconditionally throw
-          // an array index out-of-bounds exception.
-          if (index >= size) return true;
-          if (index < 0) return true;
           break;
         }
         case REF_MOVE_opcode:
