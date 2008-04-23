@@ -190,6 +190,17 @@ public final class VM_ControllerThread extends ThreadModel {
     VM_ControllerMemory.incrementNumAwoken();
   }
 
+  /**
+   * If we're going to be gathering a dynamic call graph, then we don't
+   * want to let the opt compiler compile anything above O0 until we have
+   * some initial data in the call graph to work with.  The goal of this
+   * restriction is to avoid making early bad decisions that we don't get
+   * a chance to revisit because methods get to maxOptLevel too quickly.
+   */
+  public boolean earlyRestrictOptLevels() {
+    return dcgOrg != null && !dcgOrg.someDataAvailable();
+  }
+
   ///////////////////////
   // Initialization.
   //  Create AOS threads.

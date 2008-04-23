@@ -72,6 +72,15 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
   private int numberOfBufferTriples;
 
   /**
+   * Countdown of times we have to have called thresholdReached before
+   * we believe the call graph has enough samples that it is reasonable
+   * to use it to guide profile-directed inlining.  When this value reaches 0,
+   * we stop decrementing it and start letting other parts of the adaptive
+   * system use the profile data.
+   */
+  private int thresholdReachedCount;
+
+  /**
    * Constructor
    */
   public VM_DynamicCallGraphOrganizer(VM_EdgeListener edgeListener) {
@@ -97,6 +106,14 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
     buffer = new int[bufferSize];
 
     ((VM_EdgeListener) listener).setBuffer(buffer);
+
+    /* We're looking for a thresholdReachedCount such that when we reach the count,
+     * a single sample contributes less than the AI_HOT_CALLSITE_THRESHOLD. In other words, we
+     * want the inequality
+     *   thresholdReachedCount * samplesPerInvocationOfThresholdReached > 1 / AI_HOT_CALLSITE_THRESHOLD
+     * to be true.
+     */
+    thresholdReachedCount = (int)Math.ceil(1.0 /(numberOfBufferTriples * VM_Controller.options.AI_HOT_CALLSITE_THRESHOLD));;
 
     // Install the edge listener
     if (VM_Controller.options.cgTimer()) {
@@ -217,5 +234,12 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
       // increment the call graph edge, adding it if needed
       VM_Controller.dcg.incrementEdge(caller, bytecodeIndex, callee);
     }
+    if (thresholdReachedCount > 0) {
+      thresholdReachedCount--;
+    }
+  }
+
+  public boolean someDataAvailable() {
+    return thresholdReachedCount == 0;
   }
 }
