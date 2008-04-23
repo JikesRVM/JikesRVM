@@ -447,6 +447,17 @@ public abstract class Space implements Constants {
   }
 
   /**
+   * This hook is called by page resources each time a space grows.  The space may
+   * tap into the hook to monitor heap growth.  The call is made from within the
+   * page resources' critical region, immediately before yielding the lock.
+   *
+   * @param start The start of the newly allocated space
+   * @param bytes The size of the newly allocated space
+   * @param newChunk True if the new space encroached upon or started a new chunk or chunks.
+   */
+  public void growSpace(Address start, Extent bytes, boolean newChunk) {}
+
+  /**
    * Release one or more contiguous chunks associated with a discontiguous
    * space.
    *

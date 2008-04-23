@@ -40,6 +40,7 @@ public final class MonotonePageResource extends PageResource
   private Address cursor;
   private Address sentinel;
   private final int metaDataPagesPerRegion;
+  private Address currentChunk = Address.zero();
 
   /**
    * Constructor
@@ -129,8 +130,14 @@ public final class MonotonePageResource extends PageResource
   @Inline
   protected Address allocPages(int requestPages) {
     int pages = requestPages;
+    boolean newChunk = false;
     lock();
     Address rtn = cursor;
+    if (Space.chunkAlign(rtn, true).NE(currentChunk)) {
+      newChunk = true;
+      currentChunk = Space.chunkAlign(rtn, true);
+    }
+
     if (metaDataPagesPerRegion != 0) {
       /* adjust allocation for metadata */
       Address regionStart = getRegionStart(cursor.plus(Conversions.pagesToBytes(pages)));
@@ -152,6 +159,7 @@ public final class MonotonePageResource extends PageResource
       sentinel = cursor.plus(start.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
+      newChunk = true;
     }
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(rtn.GE(cursor) && rtn.LT(cursor.plus(bytes)));
@@ -162,6 +170,7 @@ public final class MonotonePageResource extends PageResource
       Address old = cursor;
       cursor = tmp;
       commitPages(requestPages, pages);
+      space.growSpace(old, bytes, newChunk);
       unlock();
       Mmapper.ensureMapped(old, pages);
       VM.memory.zero(old, bytes);
