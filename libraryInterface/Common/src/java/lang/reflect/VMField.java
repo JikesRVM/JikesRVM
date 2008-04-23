@@ -241,7 +241,7 @@ public final class VMField {
     }
 
     if (!field.isPublic() && !f.isAccessible()) {
-      VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(3);
       JikesRVMSupport.checkAccess(field, accessingClass);
     }
 
@@ -273,7 +273,7 @@ public final class VMField {
     }
 
     if (!field.isPublic() && !f.isAccessible()) {
-      VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(3);
       JikesRVMSupport.checkAccess(field, accessingClass);
     }
 
