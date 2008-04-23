@@ -105,7 +105,7 @@ final class VMMethod {
 
     // Accessibility checks
     if (!method.isPublic() && !m.isAccessible()) {
-      VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
       JikesRVMSupport.checkAccess(method, accessingClass);
     }
 
