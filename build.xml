@@ -1548,7 +1548,7 @@ target.jni-suffix=${target.jni-suffix}
     <arg value="-X:base:edge_counters=true"/>
 	  <arg value="-X:base:edge_counter_file=${build.profiles}/profile.ec"/>
 	  <arg value="-X:aos:final_report_level=2"/>
-	  <arg line="-jar ${dacapo.jar} -n 3 fop"/>
+	  <arg line="-jar ${dacapo.jar} -n 3 lusearch"/>
 	</exec>
   </target>
 
