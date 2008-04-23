@@ -27,6 +27,9 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ALOAD_opcode;
@@ -235,6 +238,9 @@ public final class ShortArrayReplacer implements AggregateReplacer {
         case INSTANCEOF_opcode:
         case INSTANCEOF_NOTNULL_opcode:
         case INSTANCEOF_UNRESOLVED_opcode:
+        case CHECKCAST_opcode:
+        case CHECKCAST_NOTNULL_opcode:
+        case CHECKCAST_UNRESOLVED_opcode:
           return true;
         case INT_ASTORE_opcode:
         case LONG_ASTORE_opcode:
