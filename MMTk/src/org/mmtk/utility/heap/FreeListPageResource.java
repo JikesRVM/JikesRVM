@@ -146,8 +146,10 @@ public final class FreeListPageResource extends PageResource implements Constant
     lock();
     boolean newChunk = false;
     int pageOffset = freeList.alloc(pages);
-    if (pageOffset == GenericFreeList.FAILURE && !contiguous)
+    if (pageOffset == GenericFreeList.FAILURE && !contiguous) {
       pageOffset = allocateContiguousChunks(pages);
+      newChunk = true;
+    }
     if (pageOffset == -1) {
       unlock();
       return Address.zero();
