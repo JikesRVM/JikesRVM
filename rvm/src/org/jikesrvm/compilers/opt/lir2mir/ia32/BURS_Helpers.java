@@ -60,6 +60,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMP;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMI;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMIP;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FFREE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FILD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FIST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FLD;
@@ -868,6 +869,7 @@ Operand value, boolean signExtend) {
     // The parameters to FPREM actually get ignored (implied ST0/ST1)
     EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_FPREM, st0.copy(), st0.copy())));
     EMIT(CPOS(s, MIR_Move.create(IA32_FSTP, sl.copy(), st0.copy())));
+    EMIT(CPOS(s, MIR_Nullary.create(IA32_FFREE, st0.copy())));
     EMIT(MIR_Move.mutate(s, SSE2_MOVE(result), result, sl.copy()));
   }
 
