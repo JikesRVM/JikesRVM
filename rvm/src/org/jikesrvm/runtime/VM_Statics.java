@@ -245,9 +245,14 @@ public class VM_Statics implements VM_Constants {
    * Mark a slot that was previously a field as being a literal as its value is
    * final
    */
-  public static synchronized void markAsNumericLiteral(Offset fieldOffset) {
+  public static synchronized void markAsNumericLiteral(int size, Offset fieldOffset) {
     int slot = offsetAsSlot(fieldOffset);
-    numericFieldVector.clear(slot);
+    if (size == BYTES_IN_LONG) {
+      numericFieldVector.clear(slot);
+      numericFieldVector.clear(slot+1);
+    } else {
+      numericFieldVector.clear(slot);
+    }
   }
 
   /**
@@ -293,6 +298,10 @@ public class VM_Statics implements VM_Constants {
       // Remember the slot and adjust the next available slot
       slot = nextNumericSlot;
       nextNumericSlot--;
+      if (field) {
+        numericFieldVector.set(slot);
+        numericFieldVector.set(slot+1);
+      }
     } else {
       // 4byte quantity, try to reuse hole if one is available
       if (numericSlotHole != middleOfTable) {

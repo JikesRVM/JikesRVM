@@ -2084,7 +2084,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
         if (VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
           VM_Statics.markAsReferenceLiteral(fieldOffset);
         } else {
-          VM_Statics.markAsNumericLiteral(fieldOffset);
+          VM_Statics.markAsNumericLiteral(f.getSize(), fieldOffset);
         }
       }
     }
