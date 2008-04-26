@@ -1133,6 +1133,14 @@ sysVirtualProcessorBind(int UNUSED cpuId)
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif
+
+#ifdef RVM_FOR_LINUX
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpuId % numCpus, &cpuset);
+
+    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+#endif
 }
 
 /* These are unused in single virtual procesor mode: */
