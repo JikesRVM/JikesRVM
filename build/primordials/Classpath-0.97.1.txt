@@ -97,17 +97,38 @@ Ljava/lang/UnknownError;
 Ljava/lang/VirtualMachineError;
 
 # software runtime errors
-Ljava/lang/IncompatibleClassChangeError;
-Ljava/lang/ClassCastException;
-Ljava/lang/ArrayStoreException;
-Ljava/lang/NegativeArraySizeException;
+Ljava/io/UnsupportedEncodingException;
+Ljava/io/UTFDataFormatException;
 Ljava/lang/AbstractMethodError;
-Ljava/lang/StringIndexOutOfBoundsException;
-Ljava/lang/UnsatisfiedLinkError;
-Ljava/lang/InternalError;
-Ljava/lang/IllegalMonitorStateException;
+Ljava/lang/ArrayStoreException;
+Ljava/lang/ClassCastException;
+Ljava/lang/CloneNotSupportedException;
 Ljava/lang/ExceptionInInitializerError;
+Ljava/lang/IllegalArgumentException;
+Ljava/lang/IllegalAccessException;
+Ljava/lang/IllegalMonitorStateException;
+Ljava/lang/IllegalStateException;
+Ljava/lang/IncompatibleClassChangeError;
+Ljava/lang/InstantiationException;
+Ljava/lang/InternalError;
 Ljava/lang/InterruptedException;
+Ljava/lang/NegativeArraySizeException;
+Ljava/lang/NoSuchFieldError;
+Ljava/lang/NoSuchFieldException;
+Ljava/lang/NoSuchMethodException;
+Ljava/lang/NumberFormatException;
+Ljava/lang/StringIndexOutOfBoundsException;
+Ljava/lang/ThreadDeath;
+Ljava/lang/UnsatisfiedLinkError;
+Ljava/lang/UnsupportedOperationException;
+Ljava/lang/ExceptionInInitializerError;
+Ljava/net/MalformedURLException;
+Ljava/net/UnknownHostException;
+Ljava/nio/charset/UnsupportedCharsetException;
+Ljava/util/NoSuchElementException;
+Ljava/util/zip/DataFormatException;
+Ljava/security/GeneralSecurityException;
+Ljava/security/NoSuchAlgorithmException;
 
 # primitive wrapper types
 Ljava/lang/Boolean;
@@ -284,6 +305,7 @@ Ljava/net/URLClassLoader$1;
 Ljava/net/URLClassLoader$2;
 Ljava/net/URL;
 Ljava/net/URL$1;
+Ljava/net/InetAddress;
 
 ## These protocol handlers are necessary for Classpath 0.13 and later,
 ## since we are now initializing URLClassLoader before dynamic class
