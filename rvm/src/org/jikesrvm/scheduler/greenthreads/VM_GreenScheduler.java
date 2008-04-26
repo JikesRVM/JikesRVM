@@ -74,19 +74,11 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   public static final int LOG_MAX_THREADS = 14;
   public static final int MAX_THREADS = 1 << LOG_MAX_THREADS;
 
-  /** Flag for controlling virtual-to-physical processor binding. */
-  public static final int NO_CPU_AFFINITY = -1;
-
   /** Scheduling quantum in milliseconds: interruptQuantum * interruptQuantumMultiplier */
   public static int schedulingQuantum = 10;
 
   // Virtual cpu's.
   //
-  /**
-   * Physical cpu to which first virtual processor is bound (remainder are bound
-   * sequentially)
-   */
-  public static int cpuAffinity = NO_CPU_AFFINITY;
   /** Total number of virtual processors to be used */
   public static int numProcessors = 1;
   /** Array of all virtual processors (slot 0 always empty) */
