@@ -87,7 +87,7 @@ public abstract class Space implements Constants {
    */
   private final String name;
   private final int nameLength;
-  private final int descriptor;
+  protected final int descriptor;
   private final int index;
   private final VMRequest vmRequest;
 
