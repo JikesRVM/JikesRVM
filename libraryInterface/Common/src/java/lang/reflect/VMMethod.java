@@ -229,7 +229,7 @@ final class VMMethod {
       ExceptionInInitializerError ex = new ExceptionInInitializerError();
       ex.initCause(e);
       throw ex;
-    } 
+    }
   }
 
   @NoInline

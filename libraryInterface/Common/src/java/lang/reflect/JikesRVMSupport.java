@@ -62,10 +62,10 @@ public class JikesRVMSupport {
       } else if (arg instanceof java.lang.Float) {
         if (expectedType.isDoubleType()) return Double.valueOf((Float) arg);
       }
-    }    
+    }
     return arg;
   }
-  
+
   /**
    * Are the 2 arguments compatible? Throw IllegalArgumentException if they
    * can't be made compatible.
@@ -88,7 +88,7 @@ public class JikesRVMSupport {
       }
     }
   }
-  
+
   @NoInline
   private static void throwNewIllegalArgumentException() {
     throw new IllegalArgumentException();
