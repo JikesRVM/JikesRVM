@@ -372,10 +372,12 @@ public class BootImage extends BootImageWriterMessages
 
   /**
    * Fill in 4/8 bytes of bootimage, as object reference.
+   * @param address address of target
    * @param value value to write
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
-   * @param address address of target
+   * @param root Does this slot contain a possible reference into the heap?
+   * (objField must also be true)
    */
   public void setAddressWord(Address address, Word value, boolean objField, boolean root) {
     if (VM.VerifyAssertions) VM._assert(!root || objField);
