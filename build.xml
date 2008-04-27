@@ -1205,8 +1205,12 @@ Check to make sure all required properties are specified. This includes properti
   <!-- Generate JNI headers for booter -->
   <target name="gen-jni-headers" depends="gen-asm">
     <mkdir dir="${build.native}"/>
-    <javah destdir="${build.native}" classpath="${build.vm.jar}">
+    <javah outputFile="${build.native}/org_jikesrvm_runtime_VM_0005fDynamicLibrary.h" 
+           classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.VM_DynamicLibrary"/>
+    </javah>
+    <javah outputFile="${build.native}/org_jikesrvm_scheduler_greenthreads_VM_0005fProcess.h"
+           classpath="${build.vm.jar}">
       <class name="org.jikesrvm.scheduler.greenthreads.VM_Process"/>
     </javah>
   </target>
