@@ -402,7 +402,7 @@ public final class ClassLoaderProxy implements VM_Constants, Constants {
   public static ClassConstantOperand getClassFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
-      Class<?> val = klass.getClassForType();
+      Class<?> val = (Class<?>) VM_Statics.getSlotContentsAsObject(offset);
       return new ClassConstantOperand(val, offset);
     } catch (ClassCastException e) {
       throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);
