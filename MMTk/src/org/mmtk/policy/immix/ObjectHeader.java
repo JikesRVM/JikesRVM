@@ -13,7 +13,6 @@
 package org.mmtk.policy.immix;
 
 import org.mmtk.plan.Plan;
-//import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -33,11 +32,9 @@ public class ObjectHeader {
 
   /* stolen bits */
   static final Word NEW_OBJECT_MARK = Word.fromIntZeroExtend(0); // using zero means no need for explicit initialization on allocation
-  private static final Word MARKED          = Word.fromIntZeroExtend(1); // if low bit set, then object has been forwarded, word is the pointer
   private static final Word BEING_FORWARDED = Word.fromIntZeroExtend(2); // second bit indicates an object is in the process of being forwarded
   private static final Word FORWARDED       = Word.fromIntZeroExtend(3); // second bit indicates an object is in the process of being forwarded
   private static final Word FORWARDING_MASK = Word.fromIntZeroExtend(3);
-  private static final Word IS_MARKED_MASK  = Word.fromIntZeroExtend(1);
 
   private static final int UNLOGGED_BIT_NUMBER = 3;
   public static final Word UNLOGGED_BIT = Word.one().lsh(UNLOGGED_BIT_NUMBER);
@@ -102,6 +99,15 @@ public class ObjectHeader {
     }
   }
 
+  static void setMarkStateUnlogAndUnlock(ObjectReference object, Word originalForwardingWord, Word markState) {
+    Word markValue = Plan.NEEDS_LOG_BIT_IN_HEADER ? markState.or(ObjectHeader.UNLOGGED_BIT) : markState;
+    int oldValue = originalForwardingWord.toInt();
+    int newValue = (oldValue & (MARK_AND_LOG_BITS_MASK.or(FORWARDING_MASK)).not().toInt()) | markValue.toInt();
+    VM.objectModel.writeAvailableByte(object, (byte) newValue);
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert((oldValue & MARK_AND_LOG_BITS_MASK.toInt()) != markValue.toInt());
+  }
+
   /**
    * Return true if the mark count for an object has the given value.
    *
@@ -114,8 +120,13 @@ public class ObjectHeader {
     if (false && TMP_USE_BYTE_GRAIN_LOG_STORE) {
       return (VM.objectModel.readAvailableByte(object) & MARK_MASK.toInt()) == value.toInt();
     } else {
-      return VM.objectModel.readAvailableBitsWord(object).and(MARK_MASK).EQ(value);
+      return testMarkState(VM.objectModel.readAvailableBitsWord(object), value);
     }
+  }
+
+  static boolean testMarkState(Word forwardingWord, Word value) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(MARK_MASK).EQ(value));
+    return forwardingWord.and(MARK_MASK).EQ(value);
   }
 
   static boolean isNewObject(ObjectReference object) {
@@ -146,17 +157,17 @@ public class ObjectHeader {
   }
 
   @Inline
-  public static boolean isStraddleBitSet(Word header) {
+  private static boolean isStraddleBitSet(Word header) {
     return header.and(STRADDLE_BIT).EQ(STRADDLE_BIT);
   }
 
   @Inline
-  public static boolean isUnloggedObject(ObjectReference object) {
+  static boolean isUnloggedObject(ObjectReference object) {
     return isUnloggedBitSet(VM.objectModel.readAvailableBitsWord(object));
   }
 
   @Inline
-  public static boolean isUnloggedBitSet(Word header) {
+  static boolean isUnloggedBitSet(Word header) {
     return header.and(UNLOGGED_BIT).EQ(UNLOGGED_BIT);
   }
 
@@ -173,12 +184,12 @@ public class ObjectHeader {
   }
 
   @Inline
-  public static boolean isPinnedObject(ObjectReference object) {
+  static boolean isPinnedObject(ObjectReference object) {
     return isPinnedBitSet(VM.objectModel.readAvailableBitsWord(object));
   }
 
   @Inline
-  public static boolean isPinnedBitSet(Word header) {
+  private static boolean isPinnedBitSet(Word header) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixConstants.TMP_SUPPORT_PINNING);
     return header.and(PINNED_BIT).EQ(PINNED_BIT);
   }
@@ -217,7 +228,7 @@ public class ObjectHeader {
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      if (oldValue.and(IS_MARKED_MASK).EQ(MARKED))
+      if (oldValue.and(FORWARDING_MASK).EQ(FORWARDED))
         return oldValue;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue, oldValue.or(BEING_FORWARDED)));
     return oldValue;
@@ -230,19 +241,16 @@ public class ObjectHeader {
     return newObject;
   }
 
-  static void setForwardingWord(ObjectReference object, Word forwardingWord) {
+  static void setForwardingWordAndEnsureUnlogged(ObjectReference object, Word forwardingWord) {
+    if (Plan.NEEDS_LOG_BIT_IN_HEADER) forwardingWord = forwardingWord.or(UNLOGGED_BIT);
     VM.objectModel.writeAvailableBitsWord(object, forwardingWord);
   }
 
-  static void markObject(ObjectReference object, Word oldValue) {
-    VM.objectModel.writeAvailableBitsWord(object, oldValue.and(FORWARDING_MASK.not()).or(MARKED));
-  }
-
-  public static boolean isForwardedOrMarked(ObjectReference object) {
+  static boolean isForwardedOrBeingForwarded(ObjectReference object) {
     return isForwardedOrBeingForwarded(VM.objectModel.readAvailableBitsWord(object));
   }
 
-  public static boolean isForwardedOrBeingForwarded(Word forwardingWord) {
+  static boolean isForwardedOrBeingForwarded(Word forwardingWord) {
     return !forwardingWord.and(FORWARDING_MASK).isZero();
   }
 

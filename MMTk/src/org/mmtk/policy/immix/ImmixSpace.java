@@ -375,7 +375,7 @@ public final class ImmixSpace extends Space implements Constants {
     if (setStraddleBit)
       ObjectHeader.markAsStraddling(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ObjectHeader.isNewObject(object));
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrMarked(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
   }
 
  /**
@@ -392,7 +392,7 @@ public final class ImmixSpace extends Space implements Constants {
     ObjectHeader.writeMarkState(object, markState, setStraddleBit);
     if (!MARK_LINE_AT_SCAN_TIME && majorGC)
       markLines(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrMarked(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
     if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(object));
   }
 
@@ -499,7 +499,7 @@ public final class ImmixSpace extends Space implements Constants {
         ImmixSpace.markLines(object);
       trace.processNode(object);
     }
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrMarked(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
     if (VM.VERIFY_ASSERTIONS  && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(object));
   }
 
@@ -518,30 +518,36 @@ public final class ImmixSpace extends Space implements Constants {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nurseryCollection || (defrag.determined(true) && isDefragSource(object)));
 
     /* now race to be the (potential) forwarder */
-    Word forwardingWord = ObjectHeader.attemptToBeForwarder(object);
-    if (ObjectHeader.isForwardedOrBeingForwarded(forwardingWord)) { // already forwarded; return the forwarded address
-      ObjectReference rtn = ObjectHeader.spinAndGetForwardedObject(object, forwardingWord);
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(((rtn == object) && ((nurseryCollection && ObjectHeader.testMarkState(object, markState)) || defrag.spaceExhausted() || ObjectHeader.isPinnedObject(object))) ||
-                                                       (rtn != object) && (nurseryCollection || !isDefragSource(rtn)));
+    Word priorForwardingWord = ObjectHeader.attemptToBeForwarder(object);
+    if (ObjectHeader.isForwardedOrBeingForwarded(priorForwardingWord)) {
+      /* We lost the race; the object is either forwarded or being forwarded by another thread. */
+      /* Note that the concurrent attempt to forward the object may fail, so the object may remain in-place */
+      ObjectReference rtn = ObjectHeader.spinAndGetForwardedObject(object, priorForwardingWord);
+      if (VM.VERIFY_ASSERTIONS && rtn == object) VM.assertions._assert((nurseryCollection && ObjectHeader.testMarkState(object, markState)) || defrag.spaceExhausted() || ObjectHeader.isPinnedObject(object));
+      if (VM.VERIFY_ASSERTIONS && rtn != object) VM.assertions._assert(nurseryCollection || !isDefragSource(rtn));
       if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(rtn));
       return rtn;
-    } else { // not forwarded yet
-      if (ObjectHeader.testMarkState(object, markState)) { // unforwarded, but already marked
+    } else {
+      /* the object is unforwarded, either because this is the first thread to reach it, or because the object can't be forwarded */
+      if (ObjectHeader.testMarkState(priorForwardingWord, markState)) {
+        /* the object has not been forwarded, but has the correct mark state; unlock and return unmoved object */
+        /* Note that in a sticky mark bits collector, the mark state does not change at each GC, so correct mark state does not imply another thread got there first */
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nurseryCollection || defrag.spaceExhausted() || ObjectHeader.isPinnedObject(object));
-        ObjectHeader.setForwardingWord(object, forwardingWord.or(ObjectHeader.UNLOGGED_BIT)); // return to uncontested state
+        ObjectHeader.setForwardingWordAndEnsureUnlogged(object, priorForwardingWord); // return to uncontested state
         if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(object));
         return object;
-      } else { // we're the first to visit this object
+      } else {
+        /* we are the first to reach the object; either mark in place or forward it */
         ObjectReference newObject;
-        if (ObjectHeader.isPinnedObject(object) || (!TMP_DEFRAG_TO_IMMORTAL && defrag.spaceExhausted())) { // mark but don't forward
-          Word markValue = Plan.NEEDS_LOG_BIT_IN_HEADER ? markState.or(ObjectHeader.UNLOGGED_BIT) : markState;
-          Word oldMarkState = ObjectHeader.testAndMark(object, markValue);
-          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(oldMarkState != markValue);
+        if (ObjectHeader.isPinnedObject(object) || (!TMP_DEFRAG_TO_IMMORTAL && defrag.spaceExhausted())) {
+          /* mark in place */
+          ObjectHeader.setMarkStateUnlogAndUnlock(object, priorForwardingWord, markState);
           newObject = object;
           if (TMP_VERBOSE_DEFRAG_STATS)
             Defrag.defragBytesSkipped.inc(VM.objectModel.getCurrentSize(newObject));
           if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(newObject));
-        } else { // forward
+        } else {
+          /* forward */
           newObject = ObjectHeader.forwardObject(object, allocator);
           if (TMP_VERBOSE_DEFRAG_STATS)
             Defrag.defragBytesCopied.inc(VM.objectModel.getCurrentSize(newObject));
@@ -678,7 +684,7 @@ public final class ImmixSpace extends Space implements Constants {
   @Inline
   public boolean isLive(ObjectReference object) {
     if (TMP_SUPPORT_DEFRAG && defrag.inDefrag() && isDefragSource(object))
-      return ObjectHeader.isForwardedOrMarked(object) || ObjectHeader.testMarkState(object, markState);
+      return ObjectHeader.isForwardedOrBeingForwarded(object) || ObjectHeader.testMarkState(object, markState);
     else
       return ObjectHeader.testMarkState(object, markState);
   }
@@ -691,7 +697,7 @@ public final class ImmixSpace extends Space implements Constants {
    */
   @Inline
   public boolean copyNurseryIsLive(ObjectReference object) {
-    return ObjectHeader.isForwardedOrMarked(object) || ObjectHeader.testMarkState(object, markState);
+    return ObjectHeader.isForwardedOrBeingForwarded(object) || ObjectHeader.testMarkState(object, markState);
   }
 
   /**
