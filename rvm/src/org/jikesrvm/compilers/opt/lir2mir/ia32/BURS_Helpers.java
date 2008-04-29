@@ -1016,9 +1016,9 @@ Operand value, boolean signExtend) {
   protected final void SSE2_FPCONSTANT(Instruction s) {
     RegisterOperand res = Binary.getResult(s);
     Operand val = Binary.getVal2(s); // float or double value
-    if (val.isFloatConstant() && val.asFloatConstant().value == 0.0F) {
+    if (val.isFloatConstant() && Float.floatToRawIntBits(val.asFloatConstant().value) == 0) {
       EMIT(MIR_BinaryAcc.mutate(s, IA32_XORPS, res, res.copyRO()));
-    } else if (val.isDoubleConstant() && val.asDoubleConstant().value == 0.0D) {
+    } else if (val.isDoubleConstant() && Double.doubleToRawLongBits(val.asDoubleConstant().value) == 0L) {
       EMIT(MIR_BinaryAcc.mutate(s, IA32_XORPD, res, res.copyRO()));
     }else {
       EMIT(MIR_Move.mutate(s, SSE2_MOVE(res), res, MO_MC(s)));
