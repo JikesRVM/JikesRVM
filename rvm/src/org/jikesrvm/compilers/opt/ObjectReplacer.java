@@ -73,7 +73,7 @@ public final class ObjectReplacer implements AggregateReplacer {
   public static ObjectReplacer getReplacer(Instruction inst, IR ir) {
     Register r = New.getResult(inst).getRegister();
     // TODO :handle these cases
-    if (containsUnsupportedUse(ir, r)) {
+    if (containsUnsupportedUse(ir, r, null)) {
       return null;
     }
     VM_Class klass = New.getType(inst).getVMType().asClass();
@@ -230,7 +230,7 @@ public final class ObjectReplacer implements AggregateReplacer {
   /**
    * Some cases we don't handle yet. TODO: handle them.
    */
-  private static boolean containsUnsupportedUse(IR ir, Register reg) {
+  private static boolean containsUnsupportedUse(IR ir, Register reg, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case CHECKCAST_opcode:
@@ -246,6 +246,18 @@ public final class ObjectReplacer implements AggregateReplacer {
         case BOOLEAN_CMP_ADDR_opcode:
         case LONG_STORE_opcode:
           return true;
+        case REF_MOVE_opcode:
+          if (visited == null) {
+            visited = new HashSet<Register>();
+          }
+          Register copy = Move.getResult(use.instruction).getRegister();
+          if(!visited.contains(copy)) {
+            visited.add(copy);
+            if(containsUnsupportedUse(ir, copy, visited)) {
+              return true;
+            }
+          }
+          break;
       }
     }
     return false;
