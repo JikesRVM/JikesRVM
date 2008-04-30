@@ -71,7 +71,6 @@ extern "C" int sched_yield(void);
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/ioctl.h>
-#include <httpd/os.h>
 #include <mach-o/dyld.h>
 #include <mach/host_priv.h>
 #include <mach/mach_init.h>
@@ -82,7 +81,6 @@ extern "C" int sched_yield(void);
 #include <mach/thread_act.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
-extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
 /* As of 10.4, dlopen comes with the OS */
 #include <dlfcn.h>
 #define MAP_ANONYMOUS MAP_ANON
