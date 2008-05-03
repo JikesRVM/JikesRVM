@@ -172,7 +172,7 @@ public class Defrag  implements Constants {
     int availableLines;
     if (TMP_VERBOSE_DEFRAG_STATS || !TMP_USE_NAIVE_SPILL_DEFRAG_THRESHOLD) {
       availableLines = space.getAvailableLines(spillAvailHistogram);
-      if (TMP_VERBOSE_DEFRAG_STATS) {
+      if (TMP_VERBOSE_DEFRAG_STATS && Options.verbose.getValue() >= 1) {
         Log.write("[");
         Log.write(availableLines); Log.write(" ");
         Log.write(availableLines<<LOG_BYTES_IN_LINE); Log.writeln("]");

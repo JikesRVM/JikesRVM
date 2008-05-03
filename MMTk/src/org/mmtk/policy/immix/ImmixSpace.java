@@ -139,7 +139,7 @@ public final class ImmixSpace extends Space implements Constants {
     defrag.prepare(chunkMap, this);
     inCollection = true;
 
-    if (TMP_CHECK_REUSE_EFFICIENCY) {
+    if (TMP_CHECK_REUSE_EFFICIENCY && Options.verbose.getValue() >= 1) {
       float ratio = (TMPreusableLineCount > 0) ? ((float)TMPreusedLineCount/(float) TMPreusableLineCount) : (float) 1.0;
       Log.write("<"); Log.write(TMPreusedLineCount); Log.write("/"); Log.write(TMPreusableLineCount); Log.write(" "); Log.write(ratio);
       ratio = (TMPreusableBlockCount > 0) ? ((float)TMPreusedBlockCount/(float) TMPreusableBlockCount) : (float) 1.0;
