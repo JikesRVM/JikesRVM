@@ -10,3 +10,180 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+package org.mmtk.plan.immix;
+
+import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
+
+import org.mmtk.plan.*;
+import org.mmtk.policy.ImmortalLocal;
+import org.mmtk.policy.immix.CollectorLocal;
+import org.mmtk.policy.immix.ImmixConstants;
+import org.mmtk.utility.alloc.BumpPointer;
+import org.mmtk.utility.alloc.ImmixAllocator;
+import org.mmtk.vm.VM;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+
+/**
+ * This class implements <i>per-collector thread</i> behavior
+ * and state for the <i>Immix</i> plan, which implements a full-heap
+ * immix collector.<p>
+ *
+ * Specifically, this class defines <i>Immix</i> collection behavior
+ * (through <code>fastTrace</code> and the <code>collectionPhase</code>
+ * method).<p>
+ *
+ * @see Immix for an overview of the immix algorithm.<p>
+ *
+ * FIXME The SegregatedFreeList class (and its decendents such as
+ * MarkSweepLocal) does not properly separate mutator and collector
+ * behaviors, so the immix field below should really not exist in
+ * this class as there is no collection-time allocation in this
+ * collector.
+ *
+ * @see Immix
+ * @see MutatorLocal
+ * @see StopTheWorldCollector
+ * @see CollectorContext
+ * @see SimplePhase#delegatePhase
+ */
+@Uninterruptible public abstract class ImmixCollector extends StopTheWorldCollector {
+
+  /****************************************************************************
+   * Instance fields
+   */
+   protected ImmixTraceLocal fastTrace;
+   protected ImmixDefragTraceLocal defragTrace;
+   protected CollectorLocal immix;
+   protected final ImmixAllocator copy;
+   protected final BumpPointer immortal;
+   protected TraceLocal currentTrace;
+
+  /****************************************************************************
+   * Initialization
+   */
+
+  /**
+   * Constructor
+   */
+  public ImmixCollector() {
+    fastTrace = new ImmixTraceLocal(global().immixTrace, null);
+    defragTrace = new ImmixDefragTraceLocal(global().immixTrace, null);
+    immix = new CollectorLocal(Immix.immixSpace);
+    copy = new ImmixAllocator(Immix.immixSpace, true, true);
+    immortal = new ImmortalLocal(Plan.immortalSpace);
+  }
+
+ /****************************************************************************
+  *
+  * Collection-time allocation
+  */
+
+ /**
+  * Allocate space for copying an object (this method <i>does not</i>
+  * copy the object, it only allocates space)
+  *
+  * @param original A reference to the original object
+  * @param bytes The size of the space to be allocated (in bytes)
+  * @param align The requested alignment.
+  * @param offset The alignment offset.
+  * @return The address of the first byte of the allocated region
+  */
+  @Inline
+  public Address allocCopy(ObjectReference original, int bytes,
+      int align, int offset, int allocator) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert((!TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_DEFAULT) || (TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_IMMORTAL));
+    }
+    if (TMP_DEFRAG_TO_IMMORTAL)
+      return immortal.alloc(bytes, align, offset);
+    else
+      return copy.alloc(bytes, align, offset);
+  }
+
+ /**
+  * Perform any post-copy actions.
+  *
+  * @param object The newly allocated object
+  * @param typeRef the type reference for the instance being created
+  * @param bytes The size of the space to be allocated (in bytes)
+  */
+  @Inline
+  public void postCopy(ObjectReference object, ObjectReference typeRef,
+      int bytes, int allocator) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert((!TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_DEFAULT) || (TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_IMMORTAL));
+    }
+
+    if (TMP_DEFRAG_TO_IMMORTAL)
+      Immix.immortalSpace.initializeHeader(object);
+    else
+      Immix.immixSpace.postCopy(object, bytes, true, ImmixConstants.TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK ? copy.getLastAllocLineStraddle() : false);
+
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(getCurrentTrace().isLive(object));
+      VM.assertions._assert(getCurrentTrace().willNotMoveInCurrentCollection(object));
+    }
+  }
+
+  /****************************************************************************
+   *
+   * Collection
+   */
+
+  /**
+   * Perform a per-collector collection phase.
+   *
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
+   */
+  @Inline
+  public void collectionPhase(short phaseId, boolean primary) {
+
+    if (phaseId == Immix.PREPARE) {
+      super.collectionPhase(phaseId, primary);
+      currentTrace = Immix.immixSpace.inImmixDefragCollection() ? defragTrace : fastTrace;
+      immix.prepare(true);
+      currentTrace.prepare();
+      if (TMP_DEFRAG_TO_IMMORTAL)
+        immortal.reset();
+      else
+        copy.reset();
+      return;
+    }
+
+    if (phaseId == Immix.CLOSURE) {
+      currentTrace.completeTrace();
+      return;
+    }
+
+    if (phaseId == Immix.RELEASE) {
+      currentTrace.release();
+      immix.release(true);
+      super.collectionPhase(phaseId, primary);
+      return;
+    }
+
+    super.collectionPhase(phaseId, primary);
+  }
+
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
+
+  /** @return The active global plan as an <code>Immix</code> instance. */
+  @Inline
+  private static Immix global() {
+    return (Immix) VM.activePlan.global();
+  }
+
+  /** @return The current fastTrace instance. */
+  @Inline
+  public final TraceLocal getCurrentTrace() {
+    return currentTrace;
+  }
+}

@@ -10,3 +10,46 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+package org.mmtk.plan.stickyimmix;
+
+import org.mmtk.policy.Space;
+
+import org.mmtk.utility.sanitychecker.SanityChecker;
+import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
+import org.mmtk.vm.VM;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
+/**
+ * This class performs sanity checks for sticky-immix collectors.
+ */
+@Uninterruptible
+public class StickyImmixSanityCheckerLocal extends SanityCheckerLocal {
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
+   */
+  @Override
+  protected int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+
+    // Immortal spaces
+    if (space == StickyImmix.immortalSpace || space == StickyImmix.vmSpace) {
+      return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+    }
+
+    // Mature space (nursery collection)
+    if (VM.activePlan.global().isCurrentGCNursery() && space != StickyImmix.immixSpace) {
+      return SanityChecker.UNSURE;
+    }
+
+    return super.sanityExpectedRC(object, sanityRootRC);
+  }
+
+}

@@ -144,9 +144,12 @@ public final class FreeListPageResource extends PageResource implements Constant
   protected Address allocPages(int pages) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || pages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
     lock();
+    boolean newChunk = false;
     int pageOffset = freeList.alloc(pages);
-    if (pageOffset == GenericFreeList.FAILURE && !contiguous)
+    if (pageOffset == GenericFreeList.FAILURE && !contiguous) {
       pageOffset = allocateContiguousChunks(pages);
+      newChunk = true;
+    }
     if (pageOffset == -1) {
       unlock();
       return Address.zero();
@@ -158,14 +161,17 @@ public final class FreeListPageResource extends PageResource implements Constant
           int metapages = regions * metaDataPagesPerRegion;
           reserved += metapages;
           committed += metapages;
+          newChunk = true;
         }
         highWaterMark = pageOffset;
       }
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
-      Mmapper.ensureMapped(rtn, pages);
-      VM.memory.zero(rtn, Conversions.pagesToBytes(pages));
+      Extent bytes = Conversions.pagesToBytes(pages);
       commitPages(pages, pages);
+      space.growSpace(rtn, bytes, newChunk);
       unlock();
+      Mmapper.ensureMapped(rtn, pages);
+      VM.memory.zero(rtn, bytes);
       return rtn;
     }
   }

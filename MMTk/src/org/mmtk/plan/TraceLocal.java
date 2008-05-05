@@ -315,6 +315,8 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())
       return true;
+    if (Space.isInSpace(Plan.PLOS, object))
+      return true;
     if (Space.isInSpace(Plan.LOS, object))
       return true;
     if (Space.isInSpace(Plan.IMMORTAL, object))
