@@ -10,19 +10,3 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
-
-import static org.mmtk.policy.immix.ImmixConstants.DEFAULT_DEFRAG_HEADROOM;
-
-/**
- */
-public class DefragHeadroom extends PagesOption {
-  /**
-   * Create the option.
-   */
-  public DefragHeadroom() {
-    super("Defrag Headroom",
-          "Allow the defragmenter this amount of headroom during defrag.",
-          DEFAULT_DEFRAG_HEADROOM);
-  }
-}

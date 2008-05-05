@@ -10,21 +10,3 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.plan.generational.immix;
-
-import org.mmtk.plan.generational.GenConstraints;
-
-import org.vmmagic.pragma.*;
-
-/**
- * This class and its subclasses communicate to the host VM/Runtime
- * any features of the selected plan that it needs to know.  This is
- * separate from the main Plan/PlanLocal class in order to bypass any
- * issues with ordering of static initialization.
- *
- */
-@Uninterruptible
-public class GenImmixConstraints extends GenConstraints {
-  /** @return The specialized scan methods required */
-  public int numSpecializedScans() { return 3; }
-}
