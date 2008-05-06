@@ -400,22 +400,23 @@ public final class DepGraph extends SpaceEffGraph {
   private void computeForwardDependencesDef(Operand op, DepGraphNode destNode,
                                             DepGraphNode lastExceptionNode) {
     if (!(op instanceof RegisterOperand)) return;
-    RegisterOperand regOp = (RegisterOperand) op;
+    RegisterOperand regOp = (RegisterOperand)op;
     DepGraphNode sourceNode = regOp.getRegister().dNode();
 
     if (sourceNode != null) {
       // create output dependence edge from sourceNode to destNode.
       int type = regOp.getRegister().isValidation() ? GUARD_OUTPUT : REG_OUTPUT;
       sourceNode.insertOutEdge(destNode, type);
+    }
 
-      // pin the def below the previous exception node if the register
-      // being defined may be live in some reachable catch block
-      if (lastExceptionNode != null && regOp.getRegister().spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
-        if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.getRegister())) {
-          lastExceptionNode.insertOutEdge(destNode, EXCEPTION_R);
-        }
+    // pin the def below the previous exception node if the register
+    // being defined may be live in some reachable catch block
+    if (lastExceptionNode != null && regOp.getRegister().spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
+      if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.getRegister())) {
+        lastExceptionNode.insertOutEdge(destNode, EXCEPTION_R);
       }
     }
+
     // update depGraphNode information in register.
     regOp.getRegister().setdNode(destNode);
   }
