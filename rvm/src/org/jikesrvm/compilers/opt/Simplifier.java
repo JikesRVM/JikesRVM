@@ -312,6 +312,9 @@ public abstract class Simplifier extends IRTools {
       case REF_SHR_opcode:
         result = refShr(s);
         break;
+      case REF_NEG_opcode:
+        result = refNeg(s);
+        break;
       case REF_NOT_opcode:
         result = refNot(s);
         break;
@@ -1802,6 +1805,20 @@ public abstract class Simplifier extends IRTools {
           Move.mutate(s, REF_MOVE, Binary.getClearResult(s), op1);
           return DefUseEffect.MOVE_FOLDED;
         }
+      }
+    }
+    return DefUseEffect.UNCHANGED;
+  }
+
+  private static DefUseEffect refNeg(Instruction s) {
+    if (CF_ADDR) {
+      Operand op = Unary.getVal(s);
+      if (op.isConstant() && !op.isMovableObjectConstant()) {
+        // CONSTANT: FOLD
+        Word val = getAddressValue(op).toWord();
+        Word negVal = Word.zero().minus(val);
+        Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(negVal.toAddress()));
+        return DefUseEffect.MOVE_FOLDED;
       }
     }
     return DefUseEffect.UNCHANGED;
