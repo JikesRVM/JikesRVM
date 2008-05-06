@@ -653,10 +653,10 @@ public final class IR {
   }
 
   /**
-   * Signfies that liveness for handlers is available
+   * Record whether or not liveness information for handlers is available
    */
-  public void setHandlerLivenessComputed() {
-    handlerLivenessComputed = true;
+  public void setHandlerLivenessComputed(boolean value) {
+    handlerLivenessComputed = value;
   }
 
   /**

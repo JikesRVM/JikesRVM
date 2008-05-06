@@ -354,6 +354,8 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
     public void perform(IR ir) {
       if (ir.options.HANDLER_LIVENESS) {
         new LiveAnalysis(false, false, true).perform(ir);
+      } else {
+        ir.setHandlerLivenessComputed(false);
       }
     }
   }

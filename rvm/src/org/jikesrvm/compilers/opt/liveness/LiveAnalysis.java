@@ -278,11 +278,8 @@ public final class LiveAnalysis extends CompilerPhase {
       ir.MIRInfo.osrVarMap = osrMap;
     }
 
-    // inform the IR that handler liveness is now available
-    if (storeLiveAtHandlers) {
-      ir.setHandlerLivenessComputed();
-    }
-
+    // record whether or not we stored liveness information for handlers.
+    ir.setHandlerLivenessComputed(storeLiveAtHandlers);
   }
 
   /**
