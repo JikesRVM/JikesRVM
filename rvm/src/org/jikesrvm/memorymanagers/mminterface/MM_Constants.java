@@ -45,5 +45,8 @@ public class MM_Constants implements VM_SizeConstants {
   public static final boolean MOVES_OBJECTS = Selected.Constraints.get().movesObjects();
   /** True if the selected plan moves tib objects */
   public static final boolean MOVES_TIBS = false;
+  /** True if the selected plan moves code */
+  public static final boolean MOVES_CODE = false;
+
 }
 

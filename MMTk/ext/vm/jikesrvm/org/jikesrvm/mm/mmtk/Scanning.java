@@ -281,7 +281,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    * @param trace The trace to use for computing roots.
    */
   public void computeThreadRoots(TraceLocal trace) {
-    boolean processCodeLocations = MM_Constants.MOVES_OBJECTS;
+    boolean processCodeLocations = MM_Constants.MOVES_CODE;
 
     /* Set status flag */
     threadStacksScanned = true;
