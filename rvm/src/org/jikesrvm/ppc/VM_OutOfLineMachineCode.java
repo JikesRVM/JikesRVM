@@ -13,7 +13,6 @@
 package org.jikesrvm.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
@@ -21,7 +20,6 @@ import org.jikesrvm.jni.ppc.VM_JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -50,7 +48,6 @@ public abstract class VM_OutOfLineMachineCode
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
-    invokeNativeFunctionInstructions = generateInvokeNativeFunctionInstructions();
   }
 
   @SuppressWarnings("unused")
@@ -65,9 +62,6 @@ public abstract class VM_OutOfLineMachineCode
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
-  @SuppressWarnings("unused")
-  // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
 
   // Machine code for reflective method invocation.
   // See also: "VM_Compiler.generateMethodInvocation".
@@ -361,129 +355,6 @@ public abstract class VM_OutOfLineMachineCode
     // resume execution at IP
     //
     asm.emitBCCTR();
-
-    return asm.makeMachineCode().getInstructions();
-  }
-
-  /**
-   * Generate innermost transition from Java => C code used by native method.
-   * on entry:
-   *   JTOC = TOC for native call
-   *   S0 = threads JNIEnvironment, which contains saved PR reg
-   *   S1 = IP address of native function to branch to
-   *   Parameter regs R4-R10, FP1-FP6 loaded for call to native
-   *   (R3 will be set here before branching to the native function)
-   *
-   *   GPR3 (T0), PR regs are available for scratch regs on entry
-   *
-   * on exit:
-   *  RVM JTOC and PR restored
-   *  return values from native call stored in stackframe
-   */
-  private static ArchitectureSpecific.VM_CodeArray generateInvokeNativeFunctionInstructions() {
-    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-
-    // move native code address to CTR reg;
-    // do this early so that S1 will be available as a scratch.
-    asm.emitMTCTR(S1);
-
-    //
-    // store the return address to the Java to C glue prolog, which is now in LR
-    // into transition frame. If GC occurs, the JNIGCMapIterator will cause
-    // this ip address to be relocated if the generated glue code is moved.
-    //
-    asm.emitLAddr(S1, 0, FP);
-    asm.emitMFLR(T0);
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      // save return address of JNI method in mini frame (1)
-      asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      // save return address in stack frame
-      if (VM.BuildForPowerOpenABI) {
-        asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);
-      }
-    }
-
-    //
-    // Load required JNI function ptr into first parameter reg (GPR3/T0)
-    // This pointer is an interior pointer to the VM_JNIEnvironment which is
-    // currently in S0.
-    //
-    asm.emitADDI(T0, VM_Entrypoints.JNIExternalFunctionsField.getOffset(), S0);
-
-    //
-    // change the vpstatus of the VP to IN_NATIVE
-    //
-    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
-    asm.emitLVAL(S0, VM_Processor.IN_NATIVE);
-    asm.emitSTWoffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset());
-
-    //
-    // CALL NATIVE METHOD
-    //
-    asm.emitBCCTRL();
-
-    // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
-    // if we have to call sysVirtualProcessorYield because we are locked in native.
-    if (VM.BuildFor64Addr) {
-      asm.emitSTD(T0, NATIVE_FRAME_HEADER_SIZE, FP);
-    } else {
-      asm.emitSTW(T0, NATIVE_FRAME_HEADER_SIZE, FP);
-      asm.emitSTW(T1, NATIVE_FRAME_HEADER_SIZE + BYTES_IN_ADDRESS, FP);
-    }
-
-    //
-    // try to return virtual processor to vpStatus IN_JAVA
-    //
-    int label1 = asm.getMachineCodeIndex();
-    asm.emitLAddr(S0, 0, FP);                            // get previous frame
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      // mini frame (2) FP -> mini frame (1) FP -> java caller
-      asm.emitLAddr(S0, 0, S0);
-    }
-    asm.emitLAddr(PROCESSOR_REGISTER, -JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
-    asm.emitLAddrOffset(JTOC, PROCESSOR_REGISTER, VM_ArchEntrypoints.JNIEnvSavedJTOCField.getOffset());      // load JTOC
-    asm.emitLAddrOffset(PROCESSOR_REGISTER,
-                        PROCESSOR_REGISTER,
-                        VM_Entrypoints.JNIEnvSavedPRField.getOffset()); // load PR
-    asm.emitLVALAddr(S1, VM_Entrypoints.vpStatusField.getOffset());
-    asm.emitLWARX(S0, S1, PROCESSOR_REGISTER);                 // get status for processor
-    asm.emitCMPI(S0, VM_Processor.BLOCKED_IN_NATIVE);         // are we blocked in native code?
-    VM_ForwardReference fr = asm.emitForwardBC(NE);
-    //
-    // if blocked in native, call C routine to do pthread_yield
-    //
-    asm.emitLAddrOffset(T2, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T2 gets boot record address
-    asm.emitLAddrOffset(T1, T2, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
-    if (VM.BuildForPowerOpenABI) {
-      /* T1 points to the function descriptor, so we'll load TOC and IP from that */
-      asm.emitLAddrOffset(JTOC, T1, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
-      asm.emitLAddrOffset(T1, T1, Offset.zero());
-    }
-    asm.emitMTLR(T1);
-    asm.emitBCLRL();                                          // call sysVirtualProcessorYield in sys.C
-    asm.emitB(label1);                                    // retest the attempt to change status to IN_JAVAE
-    //
-    //  br to here -not blocked in native
-    //
-    fr.resolve(asm);
-    asm.emitLVAL(S0, VM_Processor.IN_JAVA);               // S0  <- new state value
-    asm.emitSTWCXr(S0, S1, PROCESSOR_REGISTER);             // attempt to change state to java
-    asm.emitBC(NE, label1);                              // br if failure -retry lwarx
-
-    //
-    // return to caller
-    //
-    asm.emitLAddr(S0, 0, FP);                                // get previous frame
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S0);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S0); // get return address from stack frame
-    }
-    asm.emitMTLR(S0);
-    asm.emitBCLR();
 
     return asm.makeMachineCode().getInstructions();
   }

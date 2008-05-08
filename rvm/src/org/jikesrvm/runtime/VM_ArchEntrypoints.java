@@ -36,10 +36,6 @@ public interface VM_ArchEntrypoints {
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
                "restoreHardwareExceptionStateInstructions",
                ArchCodeArrayName);
-  VM_Field invokeNativeFunctionInstructionsField =
-      VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "invokeNativeFunctionInstructions",
-               ArchCodeArrayName);
   VM_Field registersIPField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "ip", "Lorg/vmmagic/unboxed/Address;");
   VM_Field registersFPRsField = VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "fprs", "[D");

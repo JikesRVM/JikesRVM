@@ -139,7 +139,7 @@ public abstract class VM_JNICompiler
    *   | .......    |
    *   |------------|
    *   | fp         | <- Java to C glue frame (1)
-   *   | lr         |
+   *   |--not used- |
    *   | cmid       |
    *   | padding    |
    *   | GC flag    |
@@ -245,23 +245,79 @@ public abstract class VM_JNICompiler
     // On return, S0 still contains JNIEnv
     storeParameters(asm, frameSize, method, klass);
 
-    // Get address of out_of_line prolog into S1, before setting TOC reg.
-    asm.emitLAddrOffset(S1, JTOC, VM_ArchEntrypoints.invokeNativeFunctionInstructionsField.getOffset());
-    asm.emitMTCTR(S1);
-
     // set the TOC and IP for branch to out_of_line code
     asm.emitLVALAddr(JTOC, nativeTOC);
     asm.emitLVALAddr(S1, nativeIP);
+    // move native code address to CTR reg;
+    // do this early so that S1 will be available as a scratch.
+    asm.emitMTCTR(S1);
 
-    // go to VM_OutOfLineMachineCode.invokeNativeFunctionInstructions
-    // It will change the Processor status to "in_native" and transfer to the native code.
-    // On return it will change the state back to "in_java" (waiting if blocked).
     //
-    // The native address entrypoint is in register S1
-    // The native TOC has been loaded into the TOC register
-    // S0 still points to threads JNIEnvironment
+    // Load required JNI function ptr into first parameter reg (GPR3/T0)
+    // This pointer is an interior pointer to the VM_JNIEnvironment which is
+    // currently in S0.
+    //
+    asm.emitADDI(T0, VM_Entrypoints.JNIExternalFunctionsField.getOffset(), S0);
+
+    //
+    // change the vpstatus of the VP to IN_NATIVE
+    //
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+    asm.emitLVAL(S0, VM_Processor.IN_NATIVE);
+    asm.emitSTWoffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset());
+
+    //
+    // CALL NATIVE METHOD
     //
     asm.emitBCCTRL();
+
+    // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
+    // if we have to call sysVirtualProcessorYield because we are locked in native.
+    if (VM.BuildFor64Addr) {
+      asm.emitSTD(T0, NATIVE_FRAME_HEADER_SIZE, FP);
+    } else {
+      asm.emitSTW(T0, NATIVE_FRAME_HEADER_SIZE, FP);
+      asm.emitSTW(T1, NATIVE_FRAME_HEADER_SIZE + BYTES_IN_ADDRESS, FP);
+    }
+
+    //
+    // try to return virtual processor to vpStatus IN_JAVA
+    //
+    int label1 = asm.getMachineCodeIndex();
+    asm.emitLAddr(S0, 0, FP);                            // get previous frame
+    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+      // mini frame (2) FP -> mini frame (1) FP -> java caller
+      asm.emitLAddr(S0, 0, S0);
+    }
+    asm.emitLAddr(PROCESSOR_REGISTER, -JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
+    asm.emitLAddrOffset(JTOC, PROCESSOR_REGISTER, VM_ArchEntrypoints.JNIEnvSavedJTOCField.getOffset());      // load JTOC
+    asm.emitLAddrOffset(PROCESSOR_REGISTER,
+                        PROCESSOR_REGISTER,
+                        VM_Entrypoints.JNIEnvSavedPRField.getOffset()); // load PR
+    asm.emitLVALAddr(S1, VM_Entrypoints.vpStatusField.getOffset());
+    asm.emitLWARX(S0, S1, PROCESSOR_REGISTER);                 // get status for processor
+    asm.emitCMPI(S0, VM_Processor.BLOCKED_IN_NATIVE);         // are we blocked in native code?
+    VM_ForwardReference fr = asm.emitForwardBC(NE);
+    //
+    // if blocked in native, call C routine to do pthread_yield
+    //
+    asm.emitLAddrOffset(T2, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T2 gets boot record address
+    asm.emitLAddrOffset(T1, T2, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
+    if (VM.BuildForPowerOpenABI) {
+      /* T1 points to the function descriptor, so we'll load TOC and IP from that */
+      asm.emitLAddrOffset(JTOC, T1, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
+      asm.emitLAddrOffset(T1, T1, Offset.zero());
+    }
+    asm.emitMTLR(T1);
+    asm.emitBCLRL();                                          // call sysVirtualProcessorYield in sys.C
+    asm.emitB(label1);                                    // retest the attempt to change status to IN_JAVAE
+    //
+    //  br to here -not blocked in native
+    //
+    fr.resolve(asm);
+    asm.emitLVAL(S0, VM_Processor.IN_JAVA);               // S0  <- new state value
+    asm.emitSTWCXr(S0, S1, PROCESSOR_REGISTER);             // attempt to change state to java
+    asm.emitBC(NE, label1);                              // br if failure -retry lwarx
 
     // check if GC has occurred, If GC did not occur, then
     // VM NON_VOLATILE regs were restored by OS and are valid.  If GC did occur

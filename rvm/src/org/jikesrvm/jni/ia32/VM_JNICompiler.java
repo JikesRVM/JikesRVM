@@ -50,12 +50,11 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
   // offsets to saved regs and addresses in java to C glue frames
   // EDI (JTOC) and EBX are nonvolatile registers in RVM
   //
-  private static final int SAVED_GPRS = 5;
+  private static final int SAVED_GPRS = 4;
   public static final Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
   public static final Offset EBX_SAVE_OFFSET = EDI_SAVE_OFFSET.minus(WORDSIZE);
   public static final Offset EBP_SAVE_OFFSET = EBX_SAVE_OFFSET.minus(WORDSIZE);
-  public static final Offset JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET.minus(WORDSIZE);
-  public static final Offset JNI_ENV_OFFSET = JNI_RETURN_ADDRESS_OFFSET.minus(WORDSIZE);
+  public static final Offset JNI_ENV_OFFSET = EBP_SAVE_OFFSET.minus(WORDSIZE);
 
   // following used in prolog & epilog for JNIFunctions
   // offset of saved offset to preceeding java frame
@@ -96,15 +95,14 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // -8   |          |        |saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
     // -C   |          |        |saved EBX |
     // -10  |          |        |saved EBP |
-    // -14  |          |        |returnAddr|  (return from OutOfLine to generated epilog)
-    // -18  |          |        |saved ENV |  (VM_JNIEnvironment)
-    // -1C  |          |        |arg n-1   |  reordered args to native method
-    // -20  |          |        | ...      |  ...
-    // -24  |          |        |arg 1     |  ...
-    // -28  |          |        |arg 0     |  ...
-    // -2C  |          |        |class/obj |  required second arg to native method
-    // -30  |          |        |jniEnv    |  required first arg to native method
-    // -34  |          |        |          |
+    // -14  |          |        |saved ENV |  (VM_JNIEnvironment)
+    // -18  |          |        |arg n-1   |  reordered args to native method
+    // -1C  |          |        | ...      |  ...
+    // -20  |          |        |arg 1     |  ...
+    // -24  |          |        |arg 0     |  ...
+    // -28  |          |        |class/obj |  required second arg to native method
+    // -2C  |          |        |jniEnv    |  required first arg to native method
+    // -30  |          |        |          |
     //      |          |        |          |
     //      |          |        |          |
     //       low address         low address
@@ -118,11 +116,60 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // Process the arguments - specific to method being called
     storeParametersForLintel(asm, method);
 
+    // change processor status to IN_NATIVE
+    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), VM_Processor.IN_NATIVE);
+
     // load address of native code to invoke into S0
     asm.emitMOV_Reg_Imm(S0, nativeIP.toInt());
 
-    // branch to outofline code in bootimage
-    asm.emitCALL_RegDisp(JTOC, VM_ArchEntrypoints.invokeNativeFunctionInstructionsField.getOffset());
+    // make the call to native code
+    asm.emitCALL_Reg(S0);
+
+    // return from native code here...
+    // T0 contains single word return value from native
+    // T1 will contain the second word of a long return value
+
+    // push return values on stack
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(T1);
+
+    int retryLabel = asm.getMachineCodeIndex();     // backward branch label
+
+    // reload VM_JNIEnvironment from glue frame
+    asm.emitMOV_Reg_RegDisp(S0, EBP, VM_JNICompiler.JNI_ENV_OFFSET);
+
+    // reload processor register from JNIEnvironment
+    VM_ProcessorLocalState.emitLoadProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+
+    // reload JTOC from virtual processor
+    // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
+
+    // T0 gets PR.statusField
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());
+
+    asm.emitCMP_Reg_Imm(T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip over call to pthread yield
+
+    // blocked in native, do pthread yield
+    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
+    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
+    asm.emitJMP_Imm(retryLabel);                          // retry from beginning
+
+    fr1.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
+
+    // T0 (EAX) contains "old value" (required for CMPXCNG instruction)
+    asm.emitMOV_Reg_Imm(T1, VM_Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
+    VM_ProcessorLocalState.emitCompareAndExchangeField(asm,
+                                                       VM_Entrypoints.vpStatusField.getOffset(),
+                                                       T1); // atomic compare-and-exchange
+    asm.emitJCC_Cond_Imm(VM_Assembler.NE, retryLabel);
+
+    // status is now IN_JAVA (normal operation)
+
+    // pop return values off stack into expected regs before returning to caller
+    asm.emitPOP_Reg(T1);
+    asm.emitPOP_Reg(T0);
 
     // return here from VM_OutOfLineMachineCode upon return from native code
     // PR and RVM JTOC restored, T0,T1 contain return from native call

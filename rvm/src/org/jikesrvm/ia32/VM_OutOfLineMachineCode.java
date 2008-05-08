@@ -16,11 +16,9 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
-import org.jikesrvm.jni.ia32.VM_JNICompiler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -54,7 +52,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
-    invokeNativeFunctionInstructions = generateInvokeNativeFunctionInstructions();
   }
 
   //----------------//
@@ -73,9 +70,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
-  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
-  // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
 
   private static final Offset PARAMS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 2);
   private static final Offset FPRMETA_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 3);
@@ -417,79 +411,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(S0.value() << LG_WORDSIZE));
 
     // Return to registers.ip (popping stack)
-    asm.emitRET();
-    return asm.getMachineCodes();
-  }
-
-  // Out of line prolog/epilog called from generated prologues for user
-  // written native methods (see VM_JNICompiler).  Completes the call
-  // into native code from java and handles the return from native back
-  // to java.
-  //
-  // on entry assume:
-  //   S0  = address of native function to branch to
-  //
-  private static ArchitectureSpecific.VM_CodeArray generateInvokeNativeFunctionInstructions() {
-    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-
-    // save callers ret addr in glue frame
-    asm.emitPOP_RegDisp(EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
-
-    // change processor status to IN_NATIVE
-    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), VM_Processor.IN_NATIVE);
-
-    // make the call...
-    asm.emitCALL_Reg(S0);
-
-    // return from native code here...
-    // T0 contains single word return value from native
-    // T1 will contain the second word of a long return value
-
-    // push return values on stack
-    asm.emitPUSH_Reg(T0);
-    asm.emitPUSH_Reg(T1);
-
-    int retryLabel = asm.getMachineCodeIndex();     // backward branch label
-
-    // reload VM_JNIEnvironment from glue frame
-    asm.emitMOV_Reg_RegDisp(S0, EBP, VM_JNICompiler.JNI_ENV_OFFSET);
-
-    // reload processor register from JNIEnvironment
-    VM_ProcessorLocalState.emitLoadProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
-
-    // reload JTOC from vitual processor
-    // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
-
-    // T0 gets PR.statusField
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());
-
-    asm.emitCMP_Reg_Imm(T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
-    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip over call to pthread yield
-
-    // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
-    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
-    asm.emitJMP_Imm(retryLabel);                          // retry from beginning
-
-    fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
-
-    // T0 (EAX) contains "old value" (required for CMPXCNG instruction)
-    asm.emitMOV_Reg_Imm(T1, VM_Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
-    VM_ProcessorLocalState.emitCompareAndExchangeField(asm,
-                                                       VM_Entrypoints.vpStatusField.getOffset(),
-                                                       T1); // atomic compare-and-exchange
-    asm.emitJCC_Cond_Imm(VM_Assembler.NE, retryLabel);
-
-    // status is now IN_JAVA (normal operation)
-
-    // pop return values off stack into expected regs before returning to caller
-    asm.emitPOP_Reg(T1);
-    asm.emitPOP_Reg(T0);
-
-    // push callers return address onto stack, previously saved in glue frame
-    asm.emitPUSH_RegDisp(EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
-
     asm.emitRET();
     return asm.getMachineCodes();
   }
