@@ -1088,20 +1088,10 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
-      if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-        // for SVR4 convention, a Java-to-C frame has two mini frames,
-        // stop at mini frame (2) whose saved ip is in VM (out of line machine
-        // code), in the case of sentinel fp, it has to return the callee's fp
-        // because GC ScanThread uses it to get return address and so on.
-        if (MM_Interface.addressInVM(ip)) {
-          return fp;
-        } else {
-          return callee_fp;
-        }
-        // AIX and 64-bit Linux PPC use PowerOpen ABI
-      } else {
-        return callee_fp;
-      }
+      // We want to return fp, not callee_fp because we want the stack walkers
+      // to see the "mini-frame" which has the RVM information, not the "main frame"
+      // pointed to by callee_fp which is where the saved ip was actually stored.
+      return fp;
     } else {
       return callee_fp;
     }
@@ -1116,24 +1106,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @Uninterruptible
   public static Address unwindNativeStackFrameForGC(Address currfp) {
-    if (VM.BuildForMachOABI) {
-      // Unlike on AIX, there are two glue frames. The frame the
-      // VM_JNICompiler refers to as "glue frame 1" will contain saved
-      // volatile GPRs, so we must return that frame pointer and let a
-      // JNIGCMapIterator have a chance to examine it.
-      Address ip, callee_fp;
-      Address fp = VM_Magic.getCallerFramePointer(currfp);
-
-      do {
-        callee_fp = fp;
-        ip = VM_Magic.getReturnAddress(fp);
-        fp = VM_Magic.getCallerFramePointer(fp);
-      } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
-
-      return callee_fp;
-    } else {
-      return unwindNativeStackFrame(currfp);
-    }
+     return unwindNativeStackFrame(currfp);
   }
 
   /**

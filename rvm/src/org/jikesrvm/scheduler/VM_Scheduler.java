@@ -712,13 +712,19 @@ public abstract class VM_Scheduler {
         while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
 
           // if code is outside of RVM heap, assume it to be native code,
-          // skip to next frame
           if (!MM_Interface.addressInVM(ip)) {
-            showMethod("native frame", fp);
-            ip = VM_Magic.getReturnAddress(fp);
-            fp = VM_Magic.getCallerFramePointer(fp);
+            // Loop until either we fall off the stack or we find an instruction address
+            // in one of our heaps
+            do {
+              showMethod("native frame", fp);
+              ip = VM_Magic.getReturnAddress(fp);
+              fp = VM_Magic.getCallerFramePointer(fp);
+            } while (!MM_Interface.addressInVM(ip) && fp.NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP));
+            if (VM.BuildForPowerPC) {
+              // skip over main frame to mini-frame
+              fp = VM_Magic.getCallerFramePointer(fp);
+            }
           } else {
-
             int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
             if (compiledMethodId == ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
               showMethod("invisible method", fp);

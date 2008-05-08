@@ -43,9 +43,10 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants, V
       (LAST_OS_PARAMETER_GPR - (FIRST_OS_PARAMETER_GPR + 1) + 1) * BYTES_IN_ADDRESS +
       (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * BYTES_IN_DOUBLE;
 
-  // offset into the Java to Native glue frame, relative to the Java caller frame
-  // the definitions are chained to the first one, JNI_JTOC_OFFSET
-  // saved R17-R31 + JNIEnv + GCflag + affinity + saved JTOC
+  // offsets into the "non-OS" calling convention portion of the
+  // Java to Native glue frame, relative to the Java caller frame.
+  // The contents of this part of the stack frame are:
+  // saved RVM_NONVOLATILE_GPRs (for updating by GC) + JNIEnv + GCflag + standard RVM stackframe header
   int JNI_RVM_NONVOLATILE_OFFSET = BYTES_IN_ADDRESS;
   int JNI_ENV_OFFSET =
       JNI_RVM_NONVOLATILE_OFFSET + ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
@@ -53,12 +54,9 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants, V
 
   int JNI_GC_FLAG_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
 
-  // SRV4 and MachO save prologue address in lr slot of glue frame (1), see the picture in VM_JNICompiler
-  int JNI_MINI_FRAME_POINTER_OFFSET =
-      VM.BuildForPowerOpenABI ? -1 /* UNUSED */ : VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE,
-                                                                    STACKFRAME_ALIGNMENT);
+  int JNI_MINI_FRAME_POINTER_OFFSET = VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE, STACKFRAME_ALIGNMENT);
 
-  int JNI_SAVE_AREA_SIZE = VM.BuildForPowerOpenABI ? JNI_GC_FLAG_OFFSET : JNI_MINI_FRAME_POINTER_OFFSET;
+  int JNI_SAVE_AREA_SIZE = JNI_MINI_FRAME_POINTER_OFFSET;
 
   /////////////////////////////////////////////////////////
   // Native code to JNI Function (Java) glue frame
