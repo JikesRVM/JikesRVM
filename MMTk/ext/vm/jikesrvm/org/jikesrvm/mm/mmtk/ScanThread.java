@@ -176,7 +176,7 @@ import org.vmmagic.unboxed.Offset;
 
   /**
    * Initializes a ScanThread instance, and then scans a stack
-   * associated with a thread, and places refrences in deques (one for
+   * associated with a thread, and places references in deques (one for
    * object pointers, one for interior code pointers).  If the thread
    * scan fails, the thread is rescanned verbosely and a failure
    * occurs.<p>
@@ -452,7 +452,7 @@ import org.vmmagic.unboxed.Offset;
    * A stack frame represents an execution context, and thus has an
    * instruction pointer associated with it.  In the case of the top
    * frame, the instruction pointer is captured by the IP register,
-   * which is preseved in the thread data structure at thread switch
+   * which is preserved in the thread data structure at thread switch
    * time.  In the case of all non-top frames, the next instruction
    * pointer is stored as the return address for the <i>previous</i>
    * frame.<p>
