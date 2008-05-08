@@ -1018,4 +1018,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       });
   }
 
+  public <U> Class<? extends U> asSubclass(Class<U> klass) {
+    if (! klass.isAssignableFrom(this))
+      throw new ClassCastException();
+    return (Class<? extends U>) this;
+  }
 }
