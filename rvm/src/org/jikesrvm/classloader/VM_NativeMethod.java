@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_NativeMethod extends VM_Method {
 
   /**
-   * the IP of the native p rocedure
+   * the IP of the native procedure
    */
   private Address nativeIP;
 
