@@ -12,8 +12,8 @@
  -->
 <project name="JikesRVM" default="main" basedir=".">
 
-  <property name="rvm.version" value="2.9.2+svn"/>
-  <!-- <property name="svn.revision" value="XXX"/> -->
+  <property name="rvm.version" value="2.9.3"/>
+  <property name="svn.revision" value="14201"/>
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
