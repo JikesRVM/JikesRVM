@@ -19,7 +19,7 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 
 /**
  * An instance of this class describes a compilation decision made by
@@ -62,7 +62,7 @@ public final class VM_ControllerPlan {
   /**
    *  The associate compilation plan
    */
-  private OPT_CompilationPlan compPlan;
+  private CompilationPlan compPlan;
 
   /**
    *  The time we created this plan
@@ -124,7 +124,7 @@ public final class VM_ControllerPlan {
    * @param expectedCompilationTime     Expected recompilation cost
    * @param priority     How important is executing this plan?
    */
-  public VM_ControllerPlan(OPT_CompilationPlan compPlan, int timeCreated, int prevCMID, double expectedSpeedup,
+  public VM_ControllerPlan(CompilationPlan compPlan, int timeCreated, int prevCMID, double expectedSpeedup,
                            double expectedCompilationTime, double priority) {
     this.compPlan = compPlan;
     this.timeCreated = timeCreated;
@@ -166,7 +166,7 @@ public final class VM_ControllerPlan {
    *  3) updates the status of the controller plan
    */
   public VM_CompiledMethod doRecompile() {
-    OPT_CompilationPlan cp = getCompPlan();
+    CompilationPlan cp = getCompPlan();
 
     setTimeInitiated(VM_Controller.controllerClock);
     VM_AOSLogging.recompilationStarted(cp);
@@ -217,7 +217,7 @@ public final class VM_ControllerPlan {
   /**
    * The compilation plan
    */
-  public OPT_CompilationPlan getCompPlan() { return compPlan; }
+  public CompilationPlan getCompPlan() { return compPlan; }
 
   /**
    * The expected speedup <em>for this method </em> due to this recompilation

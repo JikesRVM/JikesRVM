@@ -13,6 +13,7 @@
 package org.mmtk.plan;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class and its subclasses communicate to the host VM/Runtime
@@ -64,12 +65,18 @@ import org.vmmagic.pragma.*;
   /** @return True if this plan contains GCTrace. */
   public boolean generateGCTrace() { return false; }
 
-  /** @return True if type information must be immortal */
-  public boolean needsImmortalTypeInfo() { return false; }
-
   /** @return The specialized scan methods required */
   public int numSpecializedScans() { return 0; }
 
   /** @return True if this plan requires concurrent worker threads */
   public boolean needsConcurrentWorkers() { return false; }
+
+  /** @return True if this Plan requires a header bit for object logging */
+  public boolean needsLogBitInHeader() { return false; }
+
+  /** @return A bit which represents that a header is unlogged */
+  public Word unloggedBit() {return Word.zero(); }
+
+  /** @return A bit which represents that a header is unlogged */
+  public Word logSetBitMask() {return Word.zero(); }
 }

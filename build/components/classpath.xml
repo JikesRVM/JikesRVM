@@ -17,9 +17,9 @@
 
   <!-- NOTE: when incrementing classpath version, check the patches -->
   <!-- in target patch-classpath-web                                -->
-  <property name="classpath.version" value="95"/>
+  <property name="classpath.version" value="97.1"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="3"/>
+  <property name="classpath.patchlevel" value="5"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -86,7 +86,7 @@
     <property name="classpath.web-archive" value="classpath-0.${classpath.version}${generics-extension}.tar.gz"/>
     <mkdir dir="${classpath.package.dir}"/>
     <cachedGet key="${classpath.web-archive}"
-         src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
+         src="ftp://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
          dest="${classpath.package.dir}/${classpath.web-archive}"/>
     <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
     <exec executable="${tar.exe}" failonerror="true" dir="${classpath.package.dir}">
@@ -111,32 +111,57 @@
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-392.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
   <!-- Patches against the current stable version -->
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
-    <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.R1728742.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-77.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-26.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-solaris.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/> 
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-51.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>  
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-01.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-02.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-03.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-04.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-05.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-06.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-07.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-08.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-09.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-10.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-01.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-02.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-03.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-04.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-392.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-422.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-433.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-437.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-451.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
 
   <!-- build classpath in classpath.dir -->
   <target name="build" depends="fetch,patch" description="Download Classpath and build.">
-    <test-file name="ecj.dir" location="${components.file}"/>
     <test-file name="make.exe" location="${host.file}"/>
 
     <condition property="cp.enable.gtk-peer" value=" --enable-gtk-peer" else=" --disable-gtk-peer">
@@ -146,6 +171,7 @@
             <equals arg1="${target.os}" arg2="Solaris"/> 
             <equals arg1="${target.os}" arg2="AIX"/>
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
+            <equals arg1="${target.name}" arg2="x86_64-linux"/>
           </or>
         </not>
         <or>
@@ -186,14 +212,15 @@
       </sequential>
     </if>
 
+    <property environment="env"/>
     <exec executable="${classpath.dir}/configure" failonerror="true" dir="${classpath.dir}">
       <!-- need to pass thru compiler settings so if we are building on
       64 bit system the libraries are created appropriately -->
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
+      <env key="JAVAC" value="${components.dir}/ecj/3.2/ecj-3.2/ecj" />
       <arg value="--enable-jni"/>
-      <arg value="--with-ecj=${ecj.dir}/ecj"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
       <arg line="${cp.enable.gtk-peer}${cp.enable.portable-native-sync}${cp.disable.alsa}${cp.cppflags}"/>

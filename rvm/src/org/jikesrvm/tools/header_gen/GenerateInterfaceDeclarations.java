@@ -525,10 +525,6 @@ public class GenerateInterfaceDeclarations {
     pln("VM_Processor_activeThreadStackLimit_offset = ", offset);
     offset = VM_Entrypoints.pthreadIDField.getOffset();
     pln("VM_Processor_pthread_id_offset = ", offset);
-    offset = VM_Entrypoints.timerTicksField.getOffset();
-    pln("VM_GreenProcessor_timerTicks_offset = ", offset);
-    offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
-    pln("VM_GreenProcessor_reportedTimerTicks_offset = ", offset);
     offset = VM_Entrypoints.activeThreadField.getOffset();
     pln("VM_Processor_activeThread_offset = ", offset);
     offset = VM_Entrypoints.vpStatusField.getOffset();
@@ -542,8 +538,8 @@ public class GenerateInterfaceDeclarations {
     pln("VM_Thread_stack_offset = ", offset);
     offset = VM_Entrypoints.stackLimitField.getOffset();
     pln("VM_Thread_stackLimit_offset = ", offset);
-    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
-    pln("VM_Thread_hardwareExceptionRegisters_offset = ", offset);
+    offset = VM_Entrypoints.threadExceptionRegistersField.getOffset();
+    pln("VM_Thread_exceptionRegisters_offset = ", offset);
     offset = VM_Entrypoints.jniEnvField.getOffset();
     pln("VM_Thread_jniEnv_offset = ", offset);
 
@@ -577,10 +573,6 @@ public class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.socketImplPortField.getOffset();
     pln("java_net_SocketImpl_port_offset = ", offset);
 
-    // fields in org.jikesrvm.memorymanagers.JMTk.BasePlan
-    offset = VM_Entrypoints.gcStatusField.getOffset();
-    pln("org_jikesrvm_memorymanagers_JMTk_BasePlan_gcStatusOffset = ", offset);
-
     arch.emitArchVirtualMachineDeclarations();
   }
 
@@ -591,17 +583,13 @@ public class GenerateInterfaceDeclarations {
     pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = " + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
     pln("const int EXIT_STATUS_MISC_TROUBLE                         = " + VM.EXIT_STATUS_MISC_TROUBLE + ";");
     pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = " +
-        VM
-            .EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR +
-                                                           ";");
+        VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
     pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = " + VM.EXIT_STATUS_SYSCALL_TROUBLE + ";");
     pln("const int EXIT_STATUS_TIMER_TROUBLE                        = " + VM.EXIT_STATUS_TIMER_TROUBLE + ";");
     pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = " + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
     pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = " + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
     pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = " +
-        VM
-            .EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION +
-                                                       ";");
+        VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
     pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = " + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
     pln("const int EXIT_STATUS_JNI_TROUBLE                          = " + VM.EXIT_STATUS_JNI_TROUBLE + ";");
     pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = " + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");

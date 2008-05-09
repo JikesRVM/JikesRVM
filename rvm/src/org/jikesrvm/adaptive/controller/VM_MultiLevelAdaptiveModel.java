@@ -38,6 +38,16 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
   protected VM_RecompilationChoice[][] viableChoices;
 
   /**
+   * Normally, we will be profiling call edges to build a dynamic call graph.
+   * When this is enabled in the system, we want to block the adaptive system
+   * from choosing to compile at a level higher than O0 (only does trivial inlining)
+   * until the system has built up at least a little knowledge of the call graph.
+   * This the cached early-in-the-run viableChoices to be used until the call graph
+   * is ready and we can enable all the opt compiler optimization levels.
+   */
+  protected VM_RecompilationChoice[] earlyViableChoices = { new VM_RecompileOptChoice(0) };
+
+  /**
    * Initialize the set of "optimization choices" that the
    * cost-benefit model will consider.
    *
@@ -69,12 +79,15 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * considered by the cost-benefit model.
    *
    * @param prevCompiler The compiler compiler that was used to
-   *                     comile cmpMethod
+   *                     compile cmpMethod
    * @param cmpMethod The compiled method being considered
    */
   VM_RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, VM_CompiledMethod cmpMethod) {
-    // Return the precomputed set of choices given the previous compiler
-    return viableChoices[prevCompiler];
+    if (VM_Controller.controllerThread.earlyRestrictOptLevels()) {
+      return earlyViableChoices;
+    } else {
+      return viableChoices[prevCompiler];
+    }
   }
 
   /**

@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>$webwork.htmlEncode($page.space.name) : External Test Resources</title>
+        <title>RVM : External Test Resources</title>
 	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
         <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
     </head>
@@ -11,7 +11,7 @@
 			    <td valign="top" class="pagebody">
 				    <div class="pageheader">
 					    <span class="pagetitle">
-                            $webwork.htmlEncode($page.space.name) : External Test Resources
+                            RVM : External Test Resources
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
@@ -22,7 +22,7 @@
 
 <p>The first step is selecting the base directory where all the external code is to be located. The property <tt>external.lib.dir</tt> needs to be set to this location. i.e.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; echo "external.lib.dir=/home/peter/Research/External" &gt;&gt; .ant.properties<br/>
 &gt; mkdir -p /home/peter/Research/External</p>
 </div></div>
@@ -41,7 +41,7 @@
 
 <p>The release needs to be downloaded and placed in the $BENCHMARK_ROOT/dacapo/ directory. i.e.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir -p $BENCHMARK_ROOT/dacapo/<br/>
 &gt; cd $BENCHMARK_ROOT/dacapo/<br/>
 &gt; wget <a href="http://optusnet.dl.sourceforge.net/sourceforge/dacapobench/dacapo-2006-10.jar">http://optusnet.dl.sourceforge.net/sourceforge/dacapobench/dacapo-2006-10.jar</a></p>
@@ -51,7 +51,7 @@
 
 <p>jBYTEmark was a benchmark developed by <a href="http://www.byte.com/art/9805/sec5/art4.htm">Byte.com</a> a long time ago.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/jBYTEmark&#45;0.9<br/>
 &gt; cd $BENCHMARK_ROOT/jBYTEmark-0.9<br/>
 &gt; wget <a href="http://img.byte.com/byte/bmark/jbyte.zip">http://img.byte.com/byte/bmark/jbyte.zip</a><br/>
@@ -67,7 +67,7 @@
 
 <p><a href="http://www.benchmarkhq.ru/cm30/info.html">CaffeineMark</a> describes itself as "The CaffeineMark is a series of tests that measure the speed of Java programs running in various hardware and software configurations. CaffeineMark scores roughly correlate with the number of Java instructions executed per second, and do not depend significantly on the the amount of memory in the system or on the speed of a computers disk drives or internet connection."</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/CaffeineMark-3.0 <br/>
 &gt; cd $BENCHMARK_ROOT/CaffeineMark&#45;3.0 <br/>
 &gt; wget <a href="http://www.benchmarkhq.ru/cm30/cmkit.zip">http://www.benchmarkhq.ru/cm30/cmkit.zip</a><br/>
@@ -78,7 +78,7 @@
 
 <p>Process some large documents using xerces XML parser.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; cd $BENCHMARK_ROOT<br/>
 &gt; wget <a href="http://archive.apache.org/dist/xml/xerces-j/Xerces-J-bin.2.8.1.tar.gz">http://archive.apache.org/dist/xml/xerces-j/Xerces-J-bin.2.8.1.tar.gz</a><br/>
 &gt; tar xzf Xerces&#45;J-bin.2.8.1.tar.gz<br/>
@@ -92,7 +92,7 @@
 
 <p><a href="http://www.sable.mcgill.ca/soot/">Soot</a> describes itself as "Soot is a Java bytecode analysis and transformation framework. It provides a Java API for building intermediate representations (IRs), analyses and transformations; also it supports class file annotation."</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/soot&#45;2.2.3<br/>
 &gt; cd $BENCHMARK_ROOT/soot&#45;2.2.3<br/>
 &gt; wget <a href="http://www.sable.mcgill.ca/software/sootclasses-2.2.3.jar">http://www.sable.mcgill.ca/software/sootclasses-2.2.3.jar</a><br/>
@@ -103,7 +103,7 @@
 
 <p><a href="http://www.epcc.ed.ac.uk/javagrande/sequential.html">Java Grande Forum Sequential Benchmarks</a> is a benchmark suite designed for single processor execution.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/JavaGrandeForum<br/>
 &gt; cd $BENCHMARK_ROOT/JavaGrandeForum<br/>
 &gt; wget <a href="http://www2.epcc.ed.ac.uk/javagrande/seq/jgf_v2.tar.gz">http://www2.epcc.ed.ac.uk/javagrande/seq/jgf_v2.tar.gz</a><br/>
@@ -114,7 +114,7 @@
 
 <p><a href="http://www.epcc.ed.ac.uk/javagrande/threads.html">Java Grande Forum Multi-threaded Benchmarks</a> is a benchmark suite designed for parallel execution on shared memory multiprocessors.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/JavaGrandeForum<br/>
 &gt; cd $BENCHMARK_ROOT/JavaGrandeForum<br/>
 &gt; wget <a href="http://www2.epcc.ed.ac.uk/javagrande/threads/jgf_threadv1.0.tar.gz">http://www2.epcc.ed.ac.uk/javagrande/threads/jgf_threadv1.0.tar.gz</a><br/>
@@ -125,7 +125,7 @@
 
 <p><a href="http://www.cs.princeton.edu/~appel/modern/java/JLex/">JLex</a> is a lexical analyzer generator, written for Java, in Java.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/JLex-1.2.6/classes/JLex<br/>
 &gt; cd $BENCHMARK_ROOT/JLex-1.2.6/classes/JLex<br/>
 &gt; wget <a href="http://www.cs.princeton.edu/~appel/modern/java/JLex/Archive/1.2.6/Main.java">http://www.cs.princeton.edu/~appel/modern/java/JLex/Archive/1.2.6/Main.java</a><br/>
@@ -143,12 +143,12 @@
 
 <p>SPECjbb2005 can be run on command line via;</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>$RVM_ROOT/rvm &#45;X:processors=1 &#45;Xms400m &#45;Xmx600m &#45;classpath jbb.jar:check.jar spec.jbb.JBBmain &#45;propfile SPECjbb.props</p>
 </div></div>
 
 <p>SPECjbb2005 may also be run as part regression tests.</p>
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/SPECjbb2005<br/>
 &gt; cd $BENCHMARK_ROOT/SPECjbb2005<br/>
 &gt; ...Extract package here???...</p>
@@ -158,7 +158,7 @@
 
 <p><a href="http://www.spec.org/jbb2000/">SPECjbb2000</a> describes itself as "SPECjbb2000 (Java Business Benchmark) is SPEC's first benchmark for evaluating the performance of server-side Java. Joining the client-side SPECjvm98, SPECjbb2000 continues the SPEC tradition of giving Java users the most objective and representative benchmark for measuring a system's ability to run Java applications." SPECjbb2000 requires a license to download and use. Benchmarks should no longer be performed using SPECjbb2000 as the benchmarks have very <a href="http://sourceforge.net/mailarchive/forum.php?thread_id=8789099&amp;forum_id=43937">different characteristics</a>.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/SPECjbb2000<br/>
 &gt; cd $BENCHMARK_ROOT/SPECjbb2000<br/>
 &gt; ...Extract package here???...</p>
@@ -168,7 +168,7 @@
 
 <p><a href="http://www.spec.org/jvm98/">JVM98</a> features: "Measures performance of Java Virtual Machines. Applicable to networked and standalone Java client computers, either with disk (e.g., PC, workstation) or without disk (e.g., network computer) executing programs in an ordinary Java platform environment.  Requires Java Virtual Machine compatible with JDK 1.1 API, or later." SPEC JVM98 Benchmarks require a license to download and use.</p>
 
-<div class="panel"><div class="panelContent">
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
 <p>&gt; mkdir &#45;p $BENCHMARK_ROOT/SPECjvm98<br/>
 &gt; cd $BENCHMARK_ROOT/SPECjvm98<br/>
 &gt; ...Extract package here???...</p>
@@ -180,10 +180,10 @@
 	    </table>
 	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
 			<tr>
-				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
+				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Oct 19, 2007 15:08</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on May 09, 2008 10:43</font></td>
 		    </tr>
 	    </table>
     </body>

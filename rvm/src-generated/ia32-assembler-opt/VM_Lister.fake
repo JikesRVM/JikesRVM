@@ -13,170 +13,188 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.vmmagic.unboxed.Offset;
+import org.jikesrvm.ia32.VM_RegisterConstants.MachineRegister;
 
-class VM_Lister {
+
+final class VM_Lister {
 
   VM_Lister (VM_Assembler asm) {
 
   }
 
-  final void lockPrefix() {
+  void lockPrefix() {
 
   }
 
-  final void OP (int i, String op) {
+  void branchLikelyPrefix() {
 
   }
 
-  final void I (int i, String op, int n) {
+  void branchUnlikelyPrefix() {
 
   }
 
-  final void R (int i, String op, byte R0) {
+  void OP (int i, String op) {
 
   }
 
-  final void RD (int i, String op, byte R0, Offset d) {
+  void I (int i, String op, int n) {
 
   }
 
-  final void RI (int i, String op, byte R0, int n) {
+  void R (int i, String op, MachineRegister R0) {
 
   }
 
-  final void RDI (int i, String op, byte R0, Offset d, int n) {
+  void RD (int i, String op, MachineRegister R0, Offset d) {
 
   }
 
-  final void RNI (int i, String op, byte R0, int n) {
+  void RI (int i, String op, MachineRegister R0, int n) {
 
   }
 
-  final void RR (int i, String op, byte R0, byte R1) {
+  void RDI (int i, String op, MachineRegister R0, Offset d, int n) {
 
   }
 
-  final void RDR (int i, String op, byte R0, Offset d, byte R1) {
+  void RNI (int i, String op, MachineRegister R0, int n) {
 
   }
 
-  final void RDRI (int i, String op, byte R0, Offset d, byte R1, int imm) {
+  void RR (int i, String op, MachineRegister R0, MachineRegister R1) {
 
   }
 
-  final void RRD (int i, String op, byte R0, byte R1, Offset d) {
+  void RDR (int i, String op, MachineRegister R0, Offset d, MachineRegister R1) {
 
   }
 
-  final void RNR (int i, String op, byte R0, byte R1) {
+  void RDRI (int i, String op, MachineRegister R0, Offset d, MachineRegister R1, int imm) {
 
   }
 
-  final void RN (int i, String op, byte R0) {
+  public void RDRR(int i, String op, MachineRegister R0, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RRN (int i, String op, byte R0, byte R1) {
+  void RRD (int i, String op, MachineRegister R0, MachineRegister R1, Offset d) {
 
   }
 
-  final void RA (int i, String op, Offset d) {
+  void RNR (int i, String op, MachineRegister R0, MachineRegister R1) {
 
   }
 
-  final void RFD (int i, String op, byte X, short s, Offset d) {
+  void RN (int i, String op, MachineRegister R0) {
 
   }
 
-  final void RXD (int i, String op, byte R0, byte X, short s, Offset d) {
+  void RRN (int i, String op, MachineRegister R0, MachineRegister R1) {
 
   }
 
-  final void RXDI (int i, String op, byte R0, byte X, short s, Offset d, int n) {
+  void RA (int i, String op, Offset d) {
 
   }
 
-  final void RFDI (int i, String op, byte X, short s, Offset d, int n) {
+  void RFD (int i, String op, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RAI (int i, String op, Offset d, int n) {
+  void RXD (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RRR (int i, String op, byte R0, byte R1, byte R2) {
+  void RXDI (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, int n) {
 
   }
 
-  final void RNRI (int i, String op, byte R0, byte R1, int imm) {
+  void RFDI (int i, String op, MachineRegister X, short s, Offset d, int n) {
 
   }
 
-  final void RRI (int i, String op, byte R0, byte R1, int imm) {
+  void RAI (int i, String op, Offset d, int n) {
 
   }
 
-  final void RRXD (int i, String op, byte R0, byte R1, byte X, short s, Offset d) {
+  void RRR (int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RRFD (int i, String op, byte R0, byte X, short s, Offset d) {
+  void RNRI (int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
 
   }
 
-  final void RRA (int i, String op, byte R0, Offset d) {
+  public void RNRR(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RXDR (int i, String op, byte R0, byte X, short s, Offset d, byte R1) {
+  void RRI (int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
 
   }
 
-  final void RXDRI (int i, String op, byte R0, byte X, short s, Offset d, byte R1, int imm) {
+  void RRXD (int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RXDRR (int i, String op, byte R0, byte X, short s, Offset d, byte R1, byte R2) {
+  void RRFD (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
 
   }
 
-  final void RFDR (int i, String op, byte X, short s, Offset d, byte R0) {
+  void RRA (int i, String op, MachineRegister R0, Offset d) {
 
   }
 
-  final void RFDRI (int i, String op, byte X, short s, Offset d, byte R0, int imm) {
+  void RXDR (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1) {
 
   }
 
-  final void RFDRR (int i, String op, byte X, short s, Offset d, byte R1, byte R2) {
+  void RXDRI (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, int imm) {
 
   }
 
-  final void RAR (int i, String op, Offset d, byte R0) {
+  void RXDRR (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void RARI (int i, String op, Offset d, byte R0, int imm) {
+  void RFDR (int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0) {
 
   }
 
-  final void RARR (int i, String op, Offset d, byte R1, byte R2) {
+  void RFDRI (int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0, int imm) {
 
   }
 
-  final void noteBytecode(int num, String str) {
+  void RFDRR (int i, String op, MachineRegister X, short s, Offset d, MachineRegister R1, MachineRegister R2) {
 
   }
 
-  final void comment(int num, String comment) {
+  void RAR (int i, String op, Offset d, MachineRegister R0) {
 
   }
 
-  final void comefrom(int num, int to) {
+  void RARI (int i, String op, Offset d, MachineRegister R0, int imm) {
 
   }
 
-  final static String hex (byte b) {
+  void RARR (int i, String op, Offset d, MachineRegister R1, MachineRegister R2) {
+
+  }
+
+  void noteBytecode(int num, String str) {
+
+  }
+
+  void comment(int num, String comment) {
+
+  }
+
+  void comefrom(int num, int to) {
+
+  }
+
+  static String hex (byte b) {
       return null;
   }
 }

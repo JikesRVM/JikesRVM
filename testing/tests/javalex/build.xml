@@ -52,6 +52,7 @@
     <copy file="${qbjc.dir}/qb1.lex" tofile="${build.tests.dir}/qb1.lex"/>
     <rvm tag="JLex.Main" class="JLex.Main" args="${build.tests.dir}/qb1.lex"/>
     <diffCompareFiles tag="JLex.Main"
+    				  execution=""
                       expected="qb1.lex.ref.classpath"
                       actual="${build.tests.dir}/qb1.lex.java"/>
     <outputResults tag="JLex.Main"/>

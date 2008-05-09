@@ -1,12 +1,18 @@
 testHardwareException
 caught class java.lang.ArithmeticException
+Found our class in the stack trace
 testSoftwareException
 caught class java.lang.NumberFormatException
+Found our class in the stack trace
 testUserException
 caught class java.io.IOException
+Found our class in the stack trace
 testRethrownException
 caught class java.lang.Exception
+Found our class in the stack trace
 testNullException
 caught class java.lang.NullPointerException
+Found our class in the stack trace
 testReThrownThruSynchronizedSection
 caught class java.lang.RuntimeException
+Found our class in the stack trace

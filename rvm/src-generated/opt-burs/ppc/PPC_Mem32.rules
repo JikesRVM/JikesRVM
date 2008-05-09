@@ -91,5 +91,5 @@ EMIT(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
 r:      ATTEMPT_ADDR(r, r)
 11
 EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 

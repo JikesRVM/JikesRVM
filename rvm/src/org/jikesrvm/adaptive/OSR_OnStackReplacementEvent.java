@@ -21,9 +21,9 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
 
@@ -62,23 +62,23 @@ public final class OSR_OnStackReplacementEvent implements VM_ControllerInputEven
     VM_NormalMethod todoMethod = (VM_NormalMethod) compiledMethod.getMethod();
 
     double priority;
-    OPT_Options options;
-    OPT_OptimizationPlanElement[] optimizationPlan;
+    OptOptions options;
+    OptimizationPlanElement[] optimizationPlan;
 
     VM_ControllerPlan oldPlan = VM_ControllerMemory.findLatestPlan(todoMethod);
 
     if (oldPlan != null) {
-      OPT_CompilationPlan oldCompPlan = oldPlan.getCompPlan();
+      CompilationPlan oldCompPlan = oldPlan.getCompPlan();
       priority = oldPlan.getPriority();
       options = oldCompPlan.options;
       optimizationPlan = oldCompPlan.optimizationPlan;
     } else {
       priority = 5.0;
-      options = (OPT_Options) VM_RuntimeCompiler.options;
-      optimizationPlan = (OPT_OptimizationPlanElement[]) VM_RuntimeCompiler.optimizationPlan;
+      options = (OptOptions) VM_RuntimeCompiler.options;
+      optimizationPlan = (OptimizationPlanElement[]) VM_RuntimeCompiler.optimizationPlan;
     }
 
-    OPT_CompilationPlan compPlan = new OPT_CompilationPlan(todoMethod, optimizationPlan, null, options);
+    CompilationPlan compPlan = new CompilationPlan(todoMethod, optimizationPlan, null, options);
 
     OSR_OnStackReplacementPlan plan =
         new OSR_OnStackReplacementPlan(this.suspendedThread,

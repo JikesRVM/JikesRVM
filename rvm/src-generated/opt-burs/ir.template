@@ -49,14 +49,14 @@ $$$$ END FOREACH
 $$$$ FOREACH RULE THE_RULE_FILE
 $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
   $$$$ LET CASE RULE.INDEX+1
-void codeCASE(OPT_BURS_TreeNode p) {
+void codeCASE(BURS_TreeNode p) {
     RULE.TEMPLATE
 }
   $$$$ END LET
 $$$$ END IF
 $$$$ END FOREACH
 
-public void code(OPT_BURS_TreeNode p, int  n, int ruleno) {
+public void code(BURS_TreeNode p, int  n, int ruleno) {
   switch(ruleno) {
 $$$$ FOREACH RULE THE_RULE_FILE
 $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
@@ -66,7 +66,7 @@ $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
 $$$$ END IF
 $$$$ END FOREACH
   default:
-    throw new OPT_OptimizingCompilerException("BURS","rule without emit code:",OPT_BURS_Debug.string[ruleno]);
+    throw new OptimizingCompilerException("BURS","rule without emit code:",BURS_Debug.string[ruleno]);
   }
 }
 }

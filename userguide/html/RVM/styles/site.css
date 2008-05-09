@@ -1,10 +1,13 @@
+/* Confluence default stylesheet */
+
 body, p, td, table, tr, .bodytext, .stepfield {
-	font-family: Verdana, arial, sans-serif;
-	font-size: 11px;
-	line-height: 16px;
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 10pt;
+	line-height: 13pt;
 	color: #000000;
 	font-weight: normal;
 }
+
 #PageContent {
 	text-align: left;
 	background-color: #fff;
@@ -12,6 +15,7 @@ body, p, td, table, tr, .bodytext, .stepfield {
 	margin: 0px;
     padding-bottom:20px;
 }
+
 body {
 	margin: 0px;
 	padding: 0px;
@@ -28,11 +32,582 @@ body {
 }
 
 .monospaceInput {
-    font:12px monospace
+    font: 10pt monospace;
 }
 
-.wiki-content p, .commentblock p {
-    margin: 16px 0px 16px 0px;
+
+
+
+
+.wiki-content, .wiki-content p, .wiki-content table, .wiki-content tr, .wiki-content td, .wiki-content th, .wiki-content ol, .wiki-content ul, .wiki-content li {
+    font-size: 10pt;
+    line-height: 13pt;
+}
+
+.wiki-content p {
+    margin: 10px 0;
+    padding: 0;
+}
+
+.wiki-content li {
+    padding: 0;
+    margin: 0;
+}
+
+.wiki-content ul p {
+    margin: 0;
+    padding: 0;
+}
+
+.wiki-content ul {
+    list-style-type: disc;
+    color: #000000;
+    margin: 10px 0;
+    padding-left: 22px;
+}
+
+.wiki-content ul ul {
+    margin: 0;
+}
+
+.wiki-content ol p {
+    margin: 0;
+    padding: 0;
+}
+
+.wiki-content ol {
+    list-style-type: decimal;
+    padding: 0;
+    padding-left: 22px;
+    margin: 10px 0;
+}
+
+.wiki-content ol ol {
+    list-style-type: lower-alpha;
+    margin: 0;
+}
+
+.wiki-content ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.wiki-content ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.wiki-content ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.wiki-content ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.wiki-content ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.wiki-content ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.wiki-content ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.wiki-content ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.wiki-content ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.wiki-content ol ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.wiki-content h1 {
+
+    font-size: 18pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+    border-bottom: 1px solid #cccccc;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 32px;
+    margin-bottom: 0px;
+}
+
+.wiki-content h2 {
+
+    font-size: 16pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 24px;
+    margin-bottom: 0px;
+}
+
+.wiki-content h3 {
+
+    font-size: 14pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 20px;
+    margin-bottom: 0px;
+}
+
+.wiki-content h4 {
+
+    font-size: 12pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 14px;
+    margin-bottom: 0px;
+}
+
+.wiki-content h5 {
+
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 12px;
+    margin-bottom: 0px;
+}
+
+.wiki-content h6 {
+
+    font-size: 10pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 8px;
+    margin-bottom: 0px;
+}
+
+.wiki-content .confluenceTable, .grid {
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0px;
+}
+
+.wiki-content td.confluenceTd {
+    margin: 0px;
+    padding: 0px;
+    padding-right: 10px;
+}
+
+.wiki-content th.confluenceTh {
+    margin: 0px;
+    padding: 0px;
+}
+
+.mceContentBody {
+    padding: 12px;
+}
+
+.mceContentBody, .mceContentBody p, .mceContentBody table, .mceContentBody tr, .mceContentBody td, .mceContentBody th, .mceContentBody ol, .mceContentBody ul, .mceContentBody li {
+    font-size: 10pt;
+    line-height: 13pt;
+}
+
+.mceContentBody p {
+    margin: 10px 0;
+    padding: 0;
+}
+
+.mceContentBody li {
+    padding: 0;
+    margin: 0;
+}
+
+.mceContentBody ul p {
+    margin: 0;
+    padding: 0;
+}
+
+.mceContentBody ul {
+    list-style-type: disc;
+    color: #000000;
+    margin: 10px 0;
+    padding-left: 22px;
+}
+
+.mceContentBody ul ul {
+    margin: 0;
+}
+
+.mceContentBody ol p {
+    margin: 0;
+    padding: 0;
+}
+
+.mceContentBody ol {
+    list-style-type: decimal;
+    padding: 0;
+    padding-left: 22px;
+    margin: 10px 0;
+}
+
+.mceContentBody ol ol {
+    list-style-type: lower-alpha;
+    margin: 0;
+}
+
+.mceContentBody ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.mceContentBody ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.mceContentBody ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.mceContentBody ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.mceContentBody ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.mceContentBody ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.mceContentBody ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.mceContentBody ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.mceContentBody ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.mceContentBody ol ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.mceContentBody h1 {
+
+    font-size: 18pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+    border-bottom: 1px solid #cccccc;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 32px;
+    margin-bottom: 0px;
+}
+
+.mceContentBody h2 {
+
+    font-size: 16pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 24px;
+    margin-bottom: 0px;
+}
+
+.mceContentBody h3 {
+
+    font-size: 14pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 20px;
+    margin-bottom: 0px;
+}
+
+.mceContentBody h4 {
+
+    font-size: 12pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 14px;
+    margin-bottom: 0px;
+}
+
+.mceContentBody h5 {
+
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 12px;
+    margin-bottom: 0px;
+}
+
+.mceContentBody h6 {
+
+    font-size: 10pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 8px;
+    margin-bottom: 0px;
+}
+
+.mceContentBody .confluenceTable, .grid {
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0px;
+}
+
+.mceContentBody td.confluenceTd {
+    margin: 0px;
+    padding: 0px;
+    padding-right: 10px;
+}
+
+.mceContentBody th.confluenceTh {
+    margin: 0px;
+    padding: 0px;
+}
+
+
+#preview, #preview p, #preview table, #preview tr, #preview td, #preview th, #preview ol, #preview ul, #preview li {
+    font-size: 10pt;
+    line-height: 13pt;
+}
+
+#preview p {
+    margin: 10px 0;
+    padding: 0;
+}
+
+#preview li {
+    padding: 0;
+    margin: 0;
+}
+
+#preview ul p {
+    margin: 0;
+    padding: 0;
+}
+
+#preview ul {
+    list-style-type: disc;
+    color: #000000;
+    margin: 10px 0;
+    padding-left: 22px;
+}
+
+#preview ul ul {
+    margin: 0;
+}
+
+#preview ol p {
+    margin: 0;
+    padding: 0;
+}
+
+#preview ol {
+    list-style-type: decimal;
+    padding: 0;
+    padding-left: 22px;
+    margin: 10px 0;
+}
+
+#preview ol ol {
+    list-style-type: lower-alpha;
+    margin: 0;
+}
+
+#preview ol ol ol {
+    list-style-type: lower-roman;
+}
+
+#preview ol ol ol ol {
+    list-style-type: decimal;
+}
+
+#preview ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+#preview ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+#preview ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+#preview ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+#preview ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+#preview ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+#preview ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+#preview ol ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+#preview h1 {
+
+    font-size: 18pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+    border-bottom: 1px solid #cccccc;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 32px;
+    margin-bottom: 0px;
+}
+
+#preview h2 {
+
+    font-size: 16pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 24px;
+    margin-bottom: 0px;
+}
+
+#preview h3 {
+
+    font-size: 14pt;
+    font-weight: bold;
+    line-height: normal;
+    color: #003366;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 20px;
+    margin-bottom: 0px;
+}
+
+#preview h4 {
+
+    font-size: 12pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 14px;
+    margin-bottom: 0px;
+}
+
+#preview h5 {
+
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 12px;
+    margin-bottom: 0px;
+}
+
+#preview h6 {
+
+    font-size: 10pt;
+    font-weight: bold;
+    line-height: normal;
+    color: black;
+
+
+    padding: 0px;
+    margin: 0px;
+    margin-top: 8px;
+    margin-bottom: 0px;
+}
+
+#preview .confluenceTable, .grid {
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0px;
+}
+
+#preview td.confluenceTd {
+    margin: 0px;
+    padding: 0px;
+    padding-right: 10px;
+}
+
+#preview th.confluenceTh {
+    margin: 0px;
     padding: 0px;
 }
 
@@ -42,19 +617,9 @@ body {
     border-right: 1px solid #3c78b5;
 }
 
-ul, ol {
-    margin-top: 2px;
-    margin-bottom: 2px;
-    padding-top: 0px;
-    padding-bottom: 0px;
-}
-
 pre {
     padding: 0px;
-    margin-top: 5px;
-    margin-left: 15px;
-    margin-bottom: 5px;
-    margin-right: 5px;
+    margin: 10px 0;
     text-align: left;
     overflow: auto;
 }
@@ -63,8 +628,8 @@ pre {
     font-weight: bold;
     background-color: #D0D9BD;
         border-bottom: 1px solid #3c78b5;
-        padding: 4px 4px 4px 4px;
-        margin: 0px;
+        padding: 4px;
+        margin: 0;
         margin-top: 10px;
 }
 .helpcontent {
@@ -72,75 +637,372 @@ pre {
     background-color: #f5f7f1;
 }
 
-.code {
- 	border: 1px dashed #3c78b5;
-    font-size: 11px;
-	font-family: Courier;
-    margin: 10px;
-	line-height: 13px;
+#commentsHide {
+    color: #666666;
+    font-weight: normal;
+}
+
+#showingComments {
+
+    border: none;
+    font-size: 10pt;
+}
+
+.pageSection {
+    margin-top: 20px;
+    clear: both;
+}
+
+.pageSectionTitle {
+    font-size: 12pt;
+    font-weight: bold;
+    color: black; 
+}
+
+a.pageSectionTitle:link, a.pageSectionTitle:active, a.pageSectionTitle:hover, a.pageSectionTitle:visited {
+    color: black;
+}
+
+.pageSectionHeader {
+    margin-bottom: 5px;
+    padding: 2px 0;
+    border-bottom: 1px solid #3c78b5;
+}
+
+.pageSectionHeader.summary {
+    border-bottom: none;
+}
+
+.pageSectionBody {
+    margin-top: 4px;
+}
+
+a.grey:link { color: #666666; }
+a.grey:visited { color: #666666; }
+a.grey:active { color: #666666; }
+a.grey:hover { color: #666666; }
+
+.more-comments {
+
+font-size: 10pt;
+color: #dde2e6;
+
+}
+
+.more-comments a {
+
+color: #003366;
+
+}
+
+.commentBox  {
+    padding: 0;
+    margin: 0;
+    margin: 10px 0;
     overflow: auto;
 }
 
-.focusedComment {
-    background: #ffffce;
+.commentBox table.comment {
+	border: 0;
+	border-bottom: #f0f0f0 1px solid;
+	border-top: #f0f0f0 1px solid;
+	margin: 0;
+	padding: 0;
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.commentBox, .focusedComment {
+.commentBox .commentinfo {
+    background-color: #f0f0f0;
+    vertical-align: top;
+    padding: 12px;
+}
+
+.commentBox .commentinfo .smalltext {
+    line-height: 11pt;
+}
+
+.commentBox .commentphoto {
+    background-color: #f0f0f0;
+    text-align: right;
+    vertical-align:top;
+    padding: 12px;
+}
+
+.commentBox .commentphoto img {
+    border: none;
+}
+
+.commentBox .commentname a:hover {
+    text-decoration: underline;
+}
+
+.commentdate {
+    margin-top: 3px;
+}
+
+.commentBox .commentdate, .commentdate a {
+    color: #000000;
+    text-decoration: none;
+    font-size: 9pt;
+}
+
+.commentdate a:hover {
+    text-decoration: underline
+}
+
+.commentBox .smalltext {
+    line-height: 10pt;
+}
+
+.commentBox .smalltext a {
+    text-decoration: none;
+}
+
+.commentBox .smalltext a:hover {
+    text-decoration: underline;
+}
+
+.commentBox td.commentdetails {
+    vertical-align: top;
+    padding: 0 10px;
+}
+
+.commentBox td.commentActions {
+    padding: 0 10px 10px 10px;
+    vertical-align: bottom;
+}
+
+.commentThread {
+    clear: both; /* clear both in case there are floats or aligned images in the content that sits above the comment thread */
+}
+
+#replying .commentdetails {
+    padding: 15px 0 15px 25px
+}
+
+#replying .commentinfo {
+
+    background-color: #a0a0a0;
+    color: #f0f0f0;
+
+}
+
+#replying .commentdate, #replying .commentdate a {
+    color: #f0f0f0;
+}
+
+#replying .commentname a {
+
+    color: #f0f0f0;
+
+}
+
+#replying .commentphoto {
+
+    background-color: #a0a0a0;
+
+}
+
+#replying table.comment {
+    border-bottom-color: #a0a0a0;
+	border-top-color: #a0a0a0;
+}
+
+#replying .noteMacro {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #F0C000;
+    background-color: #FFFFCE;
+    text-align:left;
+
     padding: 10px;
-    margin: 5px 0 5px 0;
-    border: 1px #bbb solid;
+    width: 100%;
+    margin: 20px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+#replying .noteMacro td {
+    font-size: 10pt;
+    padding: 2px;
+    padding-right: 15px;
+}
+
+#replying .noteMacro p {
+    font-size: 10pt;
+}
+
+#replying .noteMacro b {
+    font-size: 10pt;
+}
+
+#replying table.noteMacro td {
+
+    border: none;
+
+}
+
+#addition .commentdetails {
+    padding-top: 15px;
+    padding-bottom: 10px;
+    padding-left: 30px;
+    padding-right: 30px;
+
+}
+
+#addition .commentinfo {
+
+    background-color: #a0a0a0;
+    color: #f0f0f0;
+
+}
+
+#addition .commentname a {
+
+    color: #f0f0f0;
+
+}
+
+#addition .commentdate, #addition .commentdate a {
+    color: #f0f0f0;
+}
+
+#addition .commentphoto {
+
+    background-color: #a0a0a0;
+
+}
+
+#addition table.comment {
+    border-bottom-color: #a0a0a0;
+	border-top-color: #a0a0a0;
+}
+
+#addition .noteMacro {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #F0C000;
+    background-color: #FFFFCE;
+    text-align:left;
+
+    padding: 10px;
+    width: 100%;
+    margin: 20px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+#addition .noteMacro td {
+    font-size: 10pt;
+    padding: 2px;
+    padding-right: 15px;
+}
+
+#addition .noteMacro p {
+    font-size: 10pt;
+}
+
+#addition .noteMacro b {
+    font-size: 10pt;
+}
+
+#addition table.noteMacro td {
+
+    border: none;
+
+}
+
+#focusedComment .commentBox td.commentdetails, #focusedComment td.commentActions {
+    background: #ffffd7;
+}
+
+.sectionMacro {
+    font-size: 10pt;
+}
+
+.sectionMacro p {
+    font-size: 10pt;
+}
+
+.sectionMacro ul {
+    font-size: 10pt;
+}
+
+.sectionMacro ol {
+    font-size: 10pt;
+}
+
+.panel {
+    border: 1px solid #3c78b5;
+    color: black;
+    padding: 0;
+    margin: 10px 20px;
+    background-color: #f0f0f0;
+}
+
+.code {
+    border: 1px dashed #3c78b5;
+    background-color: white;
     overflow: auto;
+}
+
+.preformatted {
+    border: 1px solid #3c78b5;
+    background-color: white;
+}
+
+.panelHeader {
+    border-bottom: 1px solid #3c78b5;
+    padding: 0 12px;
+    line-height: 20pt; /* this should be twice the size of the font used in this header. This will give us vertical alignment of this title */
+    text-align: center;
+    background-color: #f0f0f0;
 }
 
 .codeHeader {
     background-color: #f0f0f0;
  	border-bottom: 1px dashed #3c78b5;
-    padding: 3px;
-	text-align: center;
-}
-
-.codeContent {
-    text-align: left;
-    background-color: #f0f0f0;
-    padding: 3px;
-}
-
-.preformatted {
- 	border: 1px dashed #3c78b5;
-    font-size: 11px;
-	font-family: Courier;
-    margin: 10px;
-	line-height: 13px;
 }
 
 .preformattedHeader {
-    background-color: #f0f0f0;
- 	border-bottom: 1px dashed #3c78b5;
-    padding: 3px;
-	text-align: center;
-}
-
-.preformattedContent {
-    background-color: #f0f0f0;
-    padding: 3px;
-}
-
-.panel {
- 	border: 1px dashed #3c78b5;
-    margin: 10px;
-    margin-top: 0px;
-}
-
-.panelHeader {
-    background-color: #f0f0f0;
- 	border-bottom: 1px dashed #3c78b5;
-    padding: 3px;
-	text-align: center;
+    background-color: white;
+    border-bottom: 1px solid #3c78b5;
 }
 
 .panelContent {
+    color: #000;
+    margin: 0;
+    padding: 0 12px;
     background-color: #f0f0f0;
-    padding: 5px;
+    text-align: left;
+}
+
+.codeContent {
+    background-color: white;
+}
+
+.preformattedContent {
+    background-color: white;
+}
+
+.panelContent,
+.panelContent p, .panelContent th,
+.panelContent td, .panelContent li {
+    text-align: left;
+    font-size: 10pt;
+}
+
+.code pre { /* needs 'pre' to override TinyMCE style */
+    font-size: 10pt;
+    font-family:"Courier New", Courier, monospace;
+    line-height: 13pt;
+}
+
+.preformatted pre { /* needs 'pre' to override TinyMCE style */
+    font-size: 10pt;
+    font-family:"Courier New", Courier, monospace;
+    line-height: 13pt;
 }
 
 .anonymousAlert {
@@ -161,7 +1023,6 @@ pre {
     margin: 4px;
 	line-height: 13px;
 }
-
 
 .code-keyword {
   color: #000091;
@@ -257,8 +1118,8 @@ pre {
 
 #profileSummary h3 {
     font-weight: bold;
-    font-size: 8pt;
-    margin: 1em 0 .5em 0;
+    font-size: 10pt;
+    margin: 12px 0 4px;
     padding: 0;
 }
 #profileSummary ul {
@@ -276,9 +1137,9 @@ pre {
 }
 
 .pagetitle {
-	font-size: 22px;
-	font-weight: bold;
-	font-family: Arial, sans-serif;
+    font-size: 18pt;
+    line-height: normal;
+    font-weight: bold;
 	color: #003366;
 }
 
@@ -289,7 +1150,6 @@ pre {
 .steptitle {
 	font-size: 18px;
 	font-weight: bold;
-	font-family: Arial, sans-serif;
 	color: #003366;
 	margin-bottom: 7px;
 }
@@ -297,16 +1157,14 @@ pre {
 .substeptitle {
     font-size: 12px;
     font-weight: bold;
-    font-family: Arial, sans-serif;
     color: #003366;
     margin: 2px 4px 4px 4px;
     padding: 2px 4px 1px 4px;
 }
 
 .stepdesc {
-    font-family: Verdana, arial, sans-serif;
-	font-size: 11px;
-	line-height: 16px;
+	font-size: 10pt;
+	line-height: 13pt;
 	font-weight: normal;
     color: #666666;
     margin-top: 7px;
@@ -335,7 +1193,6 @@ pre {
 .formtitle {
 	font-size: 12px;
 	font-weight: bold;
-	font-family: Arial, sans-serif;
 	color: #003366;
 }
 
@@ -348,14 +1205,28 @@ pre {
 }
 
 .tabletitle {
-	font-size: 14px;
-	font-weight: bold;
-	font-family: Arial, sans-serif;
+	font-size: 10pt;
+    font-weight: bold;
     padding: 3px 0px 2px 0px;
     margin: 8px 4px 2px 0px;
 	color: #003366;
 	border-bottom: 2px solid #3c78b5;
 }
+
+.tabletitleops {
+    float: right;
+}
+.tabletitleops, .tabletitleops a, .tabletitleops img {
+    vertical-align: middle;
+}
+.tabletitleops img {
+    border: none;
+}
+
+.fullWidth {
+    width: 100%;
+}
+
 .pagesubheading {
     color: #666666;
     font-size: 10px;
@@ -375,27 +1246,20 @@ h1 A:link, h1 A:visited, h1 A:active {
 	text-decoration: none;
 }
 
-h1 A:hover {
-    border-bottom: 1px dotted #003366;
-}
-
-.wiki-content > :first-child, .commentblock > :first-child {
-    margin-top: 3px;
-}
 
 .logocell {
     padding: 10px;
 }
 
 input {
-	font-family: verdana, geneva, arial, sans-serif;
-	font-size: 11px;
-	color: #000000;
+    font-family: Helvetica, Arial, sans-serif;
+	font-size: 10pt;
+    color: #000000;
 }
 
 textarea, textarea.editor {
-	font-family: verdana, geneva, arial, sans-serif;
-	font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
 	color: #333333;
 }
 
@@ -446,17 +1310,12 @@ textarea, textarea.editor {
 	margin: 1px 1px 10px 1px;
 }
 
-.blogHeading {
-    font-size: 20px;
+a.blogHeading {
+    font-size: 20pt;
     line-height: normal;
     font-weight: bold;
-    padding: 0px;
-    margin: 0px;
-}
-
-.blogHeading a {
-   text-decoration: none;
-   color: black;
+    color: #003366;
+    text-decoration: none;
 }
 
 .blogHeading a:hover {
@@ -478,9 +1337,6 @@ h1 {
 	font-size: 24px;
 	line-height: normal;
 	font-weight: bold;
-	background-color: #f0f0f0;
-	color: #003366;
- 	border-bottom: 1px solid #3c78b5;
 	padding: 2px;
 	margin: 36px 0px 4px 0px;
 }
@@ -489,8 +1345,6 @@ h2 {
 	font-size: 18px;
 	line-height: normal;
 	font-weight: bold;
-	background-color: #f0f0f0;
- 	border-bottom: 1px solid #3c78b5;
 	padding: 2px;
 	margin: 27px 0px 4px 0px;
 }
@@ -499,7 +1353,6 @@ h3 {
 	font-size: 14px;
 	line-height: normal;
 	font-weight: bold;
-	background-color: #f0f0f0;
 	padding: 2px;
 	margin: 21px 0px 4px 0px;
 }
@@ -508,17 +1361,7 @@ h4 {
 	font-size: 12px;
 	line-height: normal;
 	font-weight: bold;
-	background-color: #f0f0f0;
 	padding: 2px;
-	margin: 18px 0px 4px 0px;
-}
-
-h4.search {
-	font-size: 12px;
-	line-height: normal;
-	font-weight: normal;
-	background-color: #f0f0f0;
-	padding: 4px;
 	margin: 18px 0px 4px 0px;
 }
 
@@ -526,7 +1369,6 @@ h5 {
 	font-size: 10px;
 	line-height: normal;
 	font-weight: bold;
-	background-color: #f0f0f0;
 	padding: 2px;
 	margin: 14px 0px 4px 0px;
 }
@@ -535,7 +1377,6 @@ h6 {
 	font-size: 8px;
 	line-height: normal;
 	font-weight: bold;
-	background-color: #f0f0f0;
 	padding: 2px;
 	margin: 14px 0px 4px 0px;
 }
@@ -552,7 +1393,7 @@ h6 {
 }
 .smalltext {
     color: #666666;
-    font-size: 10px;
+    font-size: 12px;
 }
 .smalltext a {
     color: #666666;
@@ -563,7 +1404,7 @@ h6 {
 }
 .smalltext-blue {
     color: #3c78b5;
-    font-size: 10px;
+    font-size: 8pt;
 }
 .surtitle {
     margin-left: 1px;
@@ -650,8 +1491,7 @@ label {
 	background-color: #fcc;
     border: 1px solid #c00;
     padding: 5px;
-    margin-top:5px;
-    margin-bottom:5px;
+    margin: 5px;
 }
 
 .errorMessage {
@@ -671,11 +1511,25 @@ label {
 }
 
 blockquote {
-	padding-left: 10px;
-	padding-right: 10px;
-	margin-left: 5px;
-	margin-right: 0px;
-	border-left: 1px solid #3c78b5;
+    font-style: italic;
+    font-size: 10pt;
+
+    border-left: 1px solid #3c78b5;
+
+    padding: 0px;
+    margin: 20px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+blockquote p {
+    font-size: 10pt;
+}
+
+blockquote em {
+    font-style: normal;
 }
 
 table.confluenceTable, table.admin
@@ -689,7 +1543,7 @@ td.confluenceTd, table.confluenceTable td.confluenceTd, table.admin td
     border-width: 1px;
     border-style: solid;
     border-color: #ccc;
-    padding: 3px 4px 3px 4px;
+    padding: 5px;
     vertical-align: top;
 }
 
@@ -698,10 +1552,11 @@ th.confluenceTh, table.confluenceTable th.confluenceTh, table.admin th
     border-width: 1px;
     border-style: solid;
     border-color: #ccc;
-    padding: 3px 4px 3px 4px;
+    padding: 5px;
     background-color: #f0f0f0;
-    text-align: center;
+    text-align: left;
     vertical-align: top;
+    color: #003366;
 }
 
 table.admin
@@ -827,7 +1682,6 @@ a.createlink {
     padding: 5px 5px 5px 5px;
     font-size: 22px;
 	font-weight: bold;
-	font-family: Arial, sans-serif;
 	color: white;
     background: #3c78b5;
     text-decoration: none;
@@ -936,18 +1790,13 @@ td.noformatting {
 	padding: 0px;
 }
 
-.commentblock {
-    margin: 12px 0 12px 0;
-}
-
 /*
  * Divs displaying the license information, if necessary.
  */
 .license {
     border-top: 1px solid #bbbbbb;
     text-align: center;
-    font-size: 10px;
-    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 10pt;
     background-color: lightyellow;
 }
 
@@ -957,10 +1806,6 @@ td.noformatting {
 
 .license-eval b, .license-none b {
     color: #990000;
-}
-
-.license-nonprofit {
-    background-color: #ffffff;
 }
 
 /*
@@ -1017,60 +1862,134 @@ td.noformatting {
     display: inline;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 /* list page navigational tabs */
-#foldertab {
-padding: 3px 0px 3px 8px;
-margin-left: 0;
-border-bottom: 1px solid #3c78b5;
-font: bold 11px Verdana, sans-serif;
+.tabnav, .comment .tabnav {
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #3c78b5;
+    float: left;
+    display: inline;
+    list-style-position: outside;
+    width: 100%;
+    font-weight: bold;
+    font-size: 10pt;
 }
 
-#foldertab li {
-list-style: none;
-margin: 0;
-display: inline;
+.after-tabnav {
+    clear: both;
 }
 
-#foldertab li a {
-padding: 3px 0.5em;
-margin-left: 3px;
-border: 1px solid #3c78b5;
-border-bottom: none;
-background: #3c78b5;
-text-decoration: none;
+.tabnav li.tabs {
+    list-style: none;
+    margin: 0 0 -1px 10px;
+    float: left;
+    display: block;
 }
 
-#foldertab li a:link { color: #ffffff; }
-#foldertab li a:visited { color: #ffffff; }
-
-#foldertab li a:hover {
-color: #ffffff;
-background: #003366;
-border-color: #003366;
+/* folder tab link styles */
+.tabnav .tabs a {
+    padding: 5px 5px 4px;
+    margin: 5px 0 0 3px;
+    border: 1px solid #3c78b5;
+    border-bottom: none;
+    background: #3c78b5;
+    text-decoration: none;
+    display: block;
+    float: left;
+}
+.tabnav .tabs a:link, .tabnav .tabs a:visited {
+    color: #ffffff;
+}
+.tabnav .tabs a:hover {
+    color: #ffffff;
+    background: #003366;
+    border-color: #003366;
 }
 
-#foldertab li a.current {
-background: white;
-border-bottom: 1px solid white;
-color: black;
+.tabnav .tabs a.current {
+    background: white;
+    border-bottom: 1px solid white;
+    color: black;
+}
+.tabnav .tabs a.current:link, .tabnav .tabs a.current:visited {
+    color: black;
+}
+.tabnav .tabs a.current:hover {
+    background: white;
+    border-bottom: 1px solid white;
+    color: black;
 }
 
-#foldertab li a.current:link { color: black; }
-#foldertab li a.current:visited { color: black; }
-#foldertab li a.current:hover {
-background: white;
-border-bottom: 1px solid white;
-color: black;
+/* space action links */
+.tabnav .spaceActionLinks {
+    float: right;
+    margin: 0;
+    display: block;
 }
 
-.foldertab-box { border-left: 1px solid #3c78b5; border-right: 1px solid #3c78b5; border-bottom: 1px solid #3c78b5; padding: 8px }
+
+.tabnav .spaceActionLinks a {
+    float: left; /* since spaceActionLinks is a floated container, all elements inside must also be floated */
+    padding: 8px 5px 3px;
+    margin: 1px 3px;
+    border: 0;
+    display: inline;
+    white-space: nowrap;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.tabnav .spaceActionLinks a span { text-decoration: underline;}
+.tabnav .spaceActionLinks a:link { color: #003366; }
+.tabnav .spaceActionLinks a:visited { color: #003366; }
+.tabnav .spaceActionLinks a.current {
+    color: black;
+}
+.tabnav .spaceActionLinks a.current span {
+    text-decoration: none;
+}
+.tabnav .spaceActionLinks a.current:link { color: black; }
+.tabnav .spaceActionLinks a.current:visited { color: black; }
+
+/* non tabs */
+.tabnav .nontabs {
+    padding: 0;
+    margin: 5px 0 0 3px;
+    display: block;
+    float: left;
+}
+
+/* editor tab customizations of the tabnav */
+#markupTab, #wysiwygTab, #previewTab {
+    font-size: 9pt;
+    padding: 3px 5px 2px; /* tab padding */
+    margin: 8px 0 0 3px; /* margin-top is used to 'push' the tab down to fill in any gaps */
+    font-weight: normal;
+}
+
+/* dashboard customization */
+#spacesLabel {
+    padding: 4px 6px;
+    float: left;
+    margin-top: 5px;
+}
+
+.tabnav-box {
+    border-left: 1px solid #3c78b5;
+    border-right: 1px solid #3c78b5;
+    border-bottom: 1px solid #3c78b5;
+    padding: 8px;
+}
 
 /* alphabet list */
-ul#squaretab {
+#squaretab {
 margin-left: 0;
 padding-left: 0;
 white-space: nowrap;
-font: bold 8px Verdana, sans-serif;
 }
 
 #squaretab li {
@@ -1079,8 +1998,8 @@ list-style-type: none;
 }
 
 #squaretab a {
-padding: 2px 6px;
-border: 1px solid #3c78b5;
+    padding: 5px 7px 3px 7px;
+    border: 1px solid #3c78b5;
 }
 
 #squaretab a:link, #squaretab a:visited {
@@ -1096,13 +2015,12 @@ border-color: #003366;
 text-decoration: none;
 }
 
-#squaretab li a#current {
+#current {
 background: white;
 color: black;
 }
 
 .blogcalendar * {
-    font-family:verdana, arial, sans-serif;
     font-size:x-small;
     font-weight:normal;
     line-height:140%;
@@ -1172,12 +2090,6 @@ table.blogcalendar {
 .optionSelected { background-color: #ffffcc; padding: 2px; border: 1px solid #ddd; margin: -1px; }
 .optionSelected a { font-weight: bold; text-decoration: none; color: black; }
 
-/* information macros */
-.noteMacro { border-style: solid; border-width: 1px; border-color: #F0C000; background-color: #FFFFCE; text-align:left; margin-top: 5px; margin-bottom: 5px}
-.warningMacro { border-style: solid; border-width: 1px; border-color: #c00; background-color: #fcc; text-align:left; margin-top: 5px; margin-bottom: 5px}
-.infoMacro { border-style: solid; border-width: 1px; border-color: #3c78b5; background-color: #D8E4F1; text-align:left; margin-top: 5px; margin-bottom: 5px}
-.tipMacro { border-style: solid; border-width: 1px; border-color: #090; background-color: #dfd; text-align:left; margin-top: 5px; margin-bottom: 5px}
-.informationMacroPadding { padding: 5px 0 0 5px; }
 
 
 /* Global Message styles */
@@ -1187,9 +2099,9 @@ table.blogcalendar {
 .tipMessage { border-style: solid; border-width: 1px; border-color: #090; background-color: #dfd; text-align:center; padding:5px;}
 
 
-table.infoMacro td, table.warningMacro td, table.tipMacro td, table.noteMacro td, table.sectionMacro td {
-    border: none;
-}
+
+
+
 
 table.sectionMacroWithBorder td.columnMacro { border-style: dashed; border-width: 1px; border-color: #cccccc;}
 
@@ -1218,11 +2130,13 @@ table.sectionMacroWithBorder td.columnMacro { border-style: dashed; border-width
 .greyLinks a:hover {color: #666666; text-decoration:underline;}
 .greyLinks {color: #666666; display:block; padding: 10px}
 
-.logoSpaceLink {color: #999999; text-decoration: none}
-.logoSpaceLink a:link {color: #999999; text-decoration: none}
-.logoSpaceLink a:visited {color: #999999; text-decoration: none}
-.logoSpaceLink a:active {color: #999999; text-decoration: none}
-.logoSpaceLink a:hover {color: #003366; text-decoration: none}
+/* removed logospacelink
+.logoSpaceLink a {color: white; text-decoration: none}
+.logoSpaceLink a:link {color: white; text-decoration: none}
+.logoSpaceLink a:visited {color: white; text-decoration: none}
+.logoSpaceLink a:active {color: white; text-decoration: none}
+.logoSpaceLink a:hover {color: white; text-decoration: none}
+*/
 
 /* basic panel (basicpanel.vmd) style */
 .basicPanelContainer {border: 1px solid #3c78b5; margin-top: 2px; margin-bottom: 8px; width: 100%}
@@ -1233,7 +2147,7 @@ table.sectionMacroWithBorder td.columnMacro { border-style: dashed; border-width
 .separatorLinks a:visited {color: white}
 .separatorLinks a:active {color: white}
 
-.greynavbar {background-color: #f0f0f0; border-top: 1px solid #3c78b5; margin-top: 2px}
+.greynavbar {background-color: #f0f0f0; border-top: 1px solid #3c78b5}
 
 div.headerField {
     float: left;
@@ -1327,47 +2241,55 @@ div.license-personal a {
 }
 
 .minitab {
-padding: 3px 0px 3px 8px;
-margin-left: 0;
-margin-top: 1px;
-margin-bottom: 0px;
-border-bottom: 1px solid #3c78b5;
-font: bold 9px Verdana, sans-serif;
-text-decoration: none;
-float:none;
-}
-.selectedminitab {
-padding: 3px 0.5em;
-margin-left: 3px;
-margin-top: 1px;
-border: 1px solid #3c78b5;
-background: white;
-border-bottom: 1px solid white;
-color: #000000;
-text-decoration: none;
-}
-.unselectedminitab {
-padding: 3px 0.5em;
-margin-left: 3px;
-margin-top: 1px;
-border: 1px solid #3c78b5;
-border-bottom: none;
-background: #3c78b5;
-color: #ffffff;
-text-decoration: none;
+    padding: 5px;
+    margin: 1px 0 0 0;
+    border-bottom: 1px solid #3c78b5;
+    text-decoration: none;
+    float:none;
 }
 
-
-a.unselectedminitab:hover {
-color: #ffffff;
-background: #003366;
-border-color: #003366;
+.minitab a {
+    padding: 5px 5px;
+    margin-left: 3px;
+    margin-top: 1px;
+    border-top: 1px solid #3c78b5;
+    border-right: 1px solid #3c78b5;
+    border-left: 1px solid #3c78b5;
 }
-a.unselectedminitab:link { color: white; }
-a.unselectedminitab:visited { color: white; }
 
-a.selectedminitab:link { color: black; }
-a.selectedminitab:visited { color: black; }
+#makeRichTextDefault, #makeMarkupDefault {
+    border: 0;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.minitab .selected {
+    background: white;
+    border-bottom: 1px solid white;
+    color: #000000;
+    text-decoration: none;
+}
+.minitab .unselected {
+    border-bottom: 1px solid #3c78b5;
+    background: #3c78b5;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.minitab a.unselected:hover {
+    color: #ffffff;
+    background: #003366;
+    border-color: #003366;
+}
+.minitab a.unselected:link { color: white; }
+.minitab a.unselected:visited { color: white; }
+.minitab a.selected:link { color: black; }
+.minitab a.selected:visited { color: black; }
+
+.minitabFont {
+    font-size: 9pt;
+    line-height: 9pt;
+}
 
 .linkerror { background-color: #fcc;}
 
@@ -1383,16 +2305,6 @@ a.newLabel:hover {background-color: #ddffdd}
 
 ul.square {list-style-type: square}
 
-.inline-control-link {
-    background: #ffc;
-    font-size: 9px;
-    color: #666;
-    padding: 2px;
-    text-transform: uppercase;
-    text-decoration: none;
-}
-
-
 .inline-control-link a:link {text-decoration: none}
 .inline-control-link a:active {text-decoration: none}
 .inline-control-link a:visited {text-decoration: none}
@@ -1400,7 +2312,6 @@ ul.square {list-style-type: square}
 
 .inline-control-link {
     background: #ffc;
-    font-size: 9px;
     color: #666;
     padding: 2px;
     text-transform: uppercase;
@@ -1498,14 +2409,14 @@ div.auto_complete ul strong.highlight {
 .form-element-large {
     font-size: 16px;
     font-weight: bold;
-    font-family: Arial, sans-serif;
+
     color: #003366;
 }
 
 .form-element-small {
     font-size: 12px;
     font-weight: bold;
-    font-family: Arial, sans-serif;
+
     color: #003366;
 }
 
@@ -1619,18 +2530,42 @@ div.auto_complete ul strong.highlight {
 {
     padding: 5px;
 }
+
+.searchMacro
+{
+    font-size: 10pt;
+    margin: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
 .searchMacro .result
 {
-    margin-bottom: 3px;
+    margin-top: 3px;
     padding: 0 5px 5px 5px;
     border-bottom: 1px solid #ddd;
 }
 
+.searchMacro .resultSummary {
+
+    margin-bottom: 7px;
+
+}
+
+.rssMacro
+{
+    font-size: 10pt;
+}
+
 .rssMacro table
 {
+    margin: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     width: 100%;
     border-collapse: collapse;
 }
+
 .rssMacro table th  {
     border: 1px solid #ccc;
     padding: 4px;
@@ -1698,32 +2633,486 @@ div.leftFloatMargined {
     margin-right: 2px
 }
 
-table#entitySearchResults {
+#entitySearchResults {
     border-collapse: collapse;
     background-color: #fafafa;
     text-align: left;
     width: 100%;
 }
 
-table#entitySearchResults td {
+#entitySearchResults td {
     border-top: 1px solid #cccccc;
     padding: 3px;
     background-color: white;
     vertical-align: top;
 }
 
-table#entitySearchResults th {
+#entitySearchResults th {
     color: #666666;
     padding: 3px;
     white-space:nowrap;
 }
 
-table#entitySearchResults .firstColumn {
+#entitySearchResults .firstColumn {
     width: 2%;
     text-align: right;
 }
 
-table#entitySearchResults .secondColumn {
+#entitySearchResults .secondColumn {
     width: 1px;
     text-align: right;
+}
+
+table.infoMacro td, table.warningMacro td, table.tipMacro td, table.noteMacro td, table.sectionMacro td {
+
+    border: none;
+
+}
+
+.informationMacroPadding { padding: 5px 0 0 5px; }
+
+.panelMacro {
+    margin: 10px 20px;
+}
+
+.panelMacro table {
+    text-align: left;
+    padding: 0px;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.panelMacro td, .panelMacro p {
+    font-size: 13px;
+    padding: 14px 0;
+}
+
+.noteMacro {
+    background-color: #FFFFCE;
+}
+
+.tipMacro {
+    background-color: #DDFFDD;
+}
+
+.warningMacro {
+    background-color: #FFCCCC;
+}
+
+.infoMacro {
+    background-color: #D8E4F1;
+}
+
+a.paddedGreyDisabled {background-color: #f0f0f0; padding: 4px; text-decoration: none; color: #666666}
+a.grey {color: #666666}
+div.topBottomMargin {margin: 10px 0 10px 0}
+div.bottomMargin {margin-bottom: 10px}
+
+.recentlyUpdatedItem {
+	border-bottom: #f0f0f0 1px solid;
+	border-top: #f0f0f0 1px solid;
+	margin: 10px 0 0 0;
+	padding: 0px;
+	border-spacing: 0px;
+	width: 100%;
+    text-decoration: none;
+    border-collapse: collapse;
+}
+
+.recentlyUpdatedItem td {
+    padding: 10px 0 10px 10px;
+    border-bottom: #f0f0f0 1px solid;
+    vertical-align: top;
+}
+
+.recentlyUpdatedItem .authorAndDate {
+	background-color: #f0f0f0;
+}
+
+.recentlyUpdatedItem .authorAndDate .date {
+    margin-top: 4px;
+}
+
+.recentlyUpdatedItem .profilePic {
+    background-color: #f0f0f0;
+    padding-right: 10px;
+}
+
+.recentlyUpdatedItem .twixie {
+    padding: 10px 0 0 4px;
+}
+
+.recentlyUpdatedItem .icon {
+    padding: 8px 0 0 1px;
+}
+
+.recentlyUpdatedItem .details {
+    padding-left: 7px;
+}
+
+.recentlyUpdatedItem .summary, .recentlyUpdatedItem .thumbnail {
+    margin-top: 3px;
+    color: #666666;    
+}
+
+.moreRecentlyUpdatedItems {
+    text-align: right;
+    margin-top: 10px;
+    font-size: 10pt;
+}
+
+table.spaceList {
+    border-collapse: collapse;
+}
+
+tr.spaceList td {
+    padding: 5px 0 5px 5px;
+    border-bottom: 1px solid #cccccc;
+    vertical-align: top;
+}
+
+.spaceList .spaceDescription {
+    margin-top: 3px;
+    color: #666666;
+}
+
+tr.spaceList .operations {
+    vertical-align: top;
+    padding-right: 5px;
+}
+
+.fontSizeBigger {
+    font-size: 11pt;
+    line-height: 14pt;
+}
+
+.fontSizeDefault {
+    font-size: 10pt;
+    line-height: 13pt;
+}
+
+.fontSizeSmaller {
+    font-size: 10pt;
+    line-height: 13pt;
+}
+
+/* Helvetica is ugly below 9pt, so we use Verdana */
+.fontSizeTiny {
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+    font-size: 8pt;
+    line-height: 11pt;
+}
+
+.addCommentLink {
+    margin: 20px 0;
+}
+
+table.dashboard td.left {
+    padding-right: 16px;
+}
+
+.clearBoth {
+    clear: both;
+}
+
+#labelInputSpan {
+    margin-top: 1px;
+}
+
+form#quickSearch {
+    margin: 2px;
+    padding: 0;
+}
+
+form#quickSearch input {
+    font-size: 10pt;
+    vertical-align: middle;
+}
+
+/* add some additional padding to produce a left indent when viewing content */
+div.viewContentIndent {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+table.fullWidthBorderless
+{
+    width: 100%;
+    border: 0;
+    border-collapse: collapse;
+}
+
+
+#pageMenusMenuBar {
+   padding: 4px;
+}
+
+#notificationFormat {
+    padding: 0px;
+    margin: -9px 15px;
+}
+
+#notificationFormat h4 {
+    font-weight: normal;
+}
+
+#notificationFormat h2 {
+    font-weight: normal;
+}
+
+#rssFormat {
+    padding: 0px;
+    margin: 6px 15px;
+}
+
+.notificationGreySide {
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    margin: 0px 0px 5px 0px;
+    padding: 3px 17px 3px 17px;
+}
+
+.notificationDigest {
+    padding: 0 17px;
+}
+
+.darkBlue {
+    color: #003366;
+}
+
+.grey {
+    color: #666666;
+}
+
+/* End Confluence default stylesheet */
+/* The main calendar widget.  DIV containing a table. */
+
+div.calendar { position: relative; }
+
+.calendar, .calendar table {
+  border: 1px solid #bdb2bf;
+  font-size: 11px;
+  color: #000;
+  cursor: default;
+  background: url("/includes/js/calendar/skins/aqua/normal-bg.gif");
+  font-family: "trebuchet ms",verdana,tahoma,sans-serif;
+}
+
+.calendar {
+  border-color: #797979;
+}
+
+/* Header part -- contains navigation buttons and day names. */
+
+.calendar .button { /* "<<", "<", ">", ">>" buttons have this class */
+  text-align: center;    /* They are the navigation buttons */
+  padding: 2px;          /* Make the buttons seem like they're pressing */
+  background: url("/includes/js/calendar/skins/aqua/title-bg.gif") repeat-x 0 100%; color: #000;
+  font-weight: bold;
+}
+
+.calendar .nav {
+  font-family: verdana,tahoma,sans-serif;
+}
+
+.calendar .nav div {
+  background: transparent url("/includes/js/calendar/skins/aqua/menuarrow.gif") no-repeat 100% 100%;
+}
+
+.calendar thead tr { background: url("/includes/js/calendar/skins/aqua/title-bg.gif") repeat-x 0 100%; color: #000; }
+
+.calendar thead .title { /* This holds the current "month, year" */
+  font-weight: bold;      /* Pressing it will take you to the current date */
+  text-align: center;
+  padding: 2px;
+  background: url("/includes/js/calendar/skins/aqua/title-bg.gif") repeat-x 0 100%; color: #000;
+}
+
+.calendar thead .headrow { /* Row <TR> containing navigation buttons */
+}
+
+.calendar thead .name { /* Cells <TD> containing the day names */
+  border-bottom: 1px solid #797979;
+  padding: 2px;
+  text-align: center;
+  color: #000;
+}
+
+.calendar thead .weekend { /* How a weekend day name shows in header */
+  color: #c44;
+}
+
+.calendar thead .hilite { /* How do the buttons in header appear when hover */
+  background: url("/includes/js/calendar/skins/aqua/hover-bg.gif");
+  border-bottom: 1px solid #797979;
+  padding: 2px 2px 1px 2px;
+}
+
+.calendar thead .active { /* Active (pressed) buttons in header */
+  background: url("/includes/js/calendar/skins/aqua/active-bg.gif"); color: #fff;
+  padding: 3px 1px 0px 3px;
+  border-bottom: 1px solid #797979;
+}
+
+.calendar thead .daynames { /* Row <TR> containing the day names */
+  background: url("/includes/js/calendar/skins/aqua/dark-bg.gif");
+}
+
+/* The body part -- contains all the days in month. */
+
+.calendar tbody .day { /* Cells <TD> containing month days dates */
+  font-family: verdana,tahoma,sans-serif;
+  width: 2em;
+  color: #000;
+  text-align: right;
+  padding: 2px 4px 2px 2px;
+}
+.calendar tbody .day.othermonth {
+  font-size: 80%;
+  color: #999;
+}
+.calendar tbody .day.othermonth.oweekend {
+  color: #f99;
+}
+
+.calendar table .wn {
+  padding: 2px 3px 2px 2px;
+  border-right: 1px solid #797979;
+  background: url("/includes/js/calendar/skins/aqua/dark-bg.gif");
+}
+
+.calendar tbody .rowhilite td,
+.calendar tbody .rowhilite td.wn {
+  background: url("/includes/js/calendar/skins/aqua/rowhover-bg.gif");
+}
+
+.calendar tbody td.today { font-weight: bold; /* background: url("/includes/js/calendar/skins/aqua/today-bg.gif") no-repeat 70% 50%; */ }
+
+.calendar tbody td.hilite { /* Hovered cells <TD> */
+  background: url("/includes/js/calendar/skins/aqua/hover-bg.gif");
+  padding: 1px 3px 1px 1px;
+  border: 1px solid #bbb;
+}
+
+.calendar tbody td.active { /* Active (pressed) cells <TD> */
+  padding: 2px 2px 0px 2px;
+}
+
+.calendar tbody td.weekend { /* Cells showing weekend days */
+  color: #c44;
+}
+
+.calendar tbody td.selected { /* Cell showing selected date */
+  font-weight: bold;
+  border: 1px solid #797979;
+  padding: 1px 3px 1px 1px;
+  background: url("/includes/js/calendar/skins/aqua/active-bg.gif"); color: #fff;
+}
+
+.calendar tbody .disabled { color: #999; }
+
+.calendar tbody .emptycell { /* Empty cells (the best is to hide them) */
+  visibility: hidden;
+}
+
+.calendar tbody .emptyrow { /* Empty row (some months need less than 6 rows) */
+  display: none;
+}
+
+/* The footer part -- status bar and "Close" button */
+
+.calendar tfoot .footrow { /* The <TR> in footer (only one right now) */
+  text-align: center;
+  background: #565;
+  color: #fff;
+}
+
+.calendar tfoot .ttip { /* Tooltip (status bar) cell <TD> */
+  padding: 2px;
+  background: url("/includes/js/calendar/skins/aqua/status-bg.gif") repeat-x 0 0; color: #000;
+}
+
+.calendar tfoot .hilite { /* Hover style for buttons in footer */
+  background: #afa;
+  border: 1px solid #084;
+  color: #000;
+  padding: 1px;
+}
+
+.calendar tfoot .active { /* Active (pressed) style for buttons in footer */
+  background: #7c7;
+  padding: 2px 0px 0px 2px;
+}
+
+/* Combo boxes (menus that display months/years for direct selection) */
+
+.calendar .combo {
+  position: absolute;
+  display: none;
+  top: 0px;
+  left: 0px;
+  width: 4em;
+  cursor: default;
+  border-width: 0 1px 1px 1px;
+  border-style: solid;
+  border-color: #797979;
+  background: url("/includes/js/calendar/skins/aqua/normal-bg.gif"); color: #000;
+  z-index: 100;
+  font-size: 90%;
+}
+
+.calendar .combo .label,
+.calendar .combo .label-IEfix {
+  text-align: center;
+  padding: 1px;
+}
+
+.calendar .combo .label-IEfix {
+  width: 4em;
+}
+
+.calendar .combo .hilite {
+  background: url("/includes/js/calendar/skins/aqua/hover-bg.gif"); color: #000;
+}
+
+.calendar .combo .active {
+  background: url("/includes/js/calendar/skins/aqua/active-bg.gif"); color: #fff;
+  font-weight: bold;
+}
+
+.calendar td.time {
+  border-top: 1px solid #797979;
+  padding: 1px 0px;
+  text-align: center;
+  background: url("/includes/js/calendar/skins/aqua/dark-bg.gif");
+}
+
+.calendar td.time .hour,
+.calendar td.time .minute,
+.calendar td.time .ampm {
+  padding: 0px 5px 0px 6px;
+  font-weight: bold;
+  background: url("/includes/js/calendar/skins/aqua/normal-bg.gif"); color: #000;
+}
+
+.calendar td.time .hour,
+.calendar td.time .minute {
+  font-family: monospace;
+}
+
+.calendar td.time .ampm {
+  text-align: center;
+}
+
+.calendar td.time .colon {
+  padding: 0px 2px 0px 3px;
+  font-weight: bold;
+}
+
+.calendar td.time span.hilite {
+  background: url("/includes/js/calendar/skins/aqua/hover-bg.gif"); color: #000;
+}
+
+.calendar td.time span.active {
+  background: url("/includes/js/calendar/skins/aqua/active-bg.gif"); color: #fff;
 }

@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.runtime.VM_EntrypointHelper.getField;
+import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import static org.jikesrvm.runtime.VM_EntrypointHelper.getField;
-import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
 
 /**
  * Fields and methods of the virtual machine that are needed by
@@ -31,6 +32,10 @@ public class VM_Entrypoints {
 
   public static final VM_NormalMethod bootMethod = VM_EntrypointHelper.getMethod(org.jikesrvm.VM.class, "boot", "()V");
 
+  public static final VM_Method java_lang_Class_forName =
+    getMethod(java.lang.Class.class, "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+  public static final VM_Method java_lang_Class_forName_withLoader =
+    getMethod(java.lang.Class.class, "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
   public static final VM_Method java_lang_reflect_Method_invokeMethod =
       getMethod(java.lang.reflect.Method.class, "invoke",
           "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
@@ -66,7 +71,7 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod resolvedNewScalarMethod =
       getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "resolvedNewScalar",
-                "(I[Ljava/lang/Object;ZIIII)Ljava/lang/Object;");
+                "(ILorg/jikesrvm/objectmodel/VM_TIB;ZIIII)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewScalarMethod =
       getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unresolvedNewScalar", "(II)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewArrayMethod =
@@ -74,7 +79,7 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod resolvedNewArrayMethod =
       getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "resolvedNewArray",
-                "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
+                "(IIILorg/jikesrvm/objectmodel/VM_TIB;IIII)Ljava/lang/Object;");
   public static final VM_Field gcLockField = getField(java.lang.VMRuntime.class, "gcLock", int.class);
 
   public static final VM_Field sysWriteLockField = getField(org.jikesrvm.VM.class, "sysWriteLock", int.class);
@@ -107,15 +112,15 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod findItableMethod =
       getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "findITable",
-                "([Ljava/lang/Object;I)[Ljava/lang/Object;");
+                "(Lorg/jikesrvm/objectmodel/VM_TIB;I)Lorg/jikesrvm/objectmodel/VM_ITable;");
   public static final VM_NormalMethod invokeinterfaceImplementsTestMethod =
       getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "invokeinterfaceImplementsTest",
-                "(Lorg/jikesrvm/classloader/VM_Class;[Ljava/lang/Object;)V");
+                "(Lorg/jikesrvm/classloader/VM_Class;Lorg/jikesrvm/objectmodel/VM_TIB;)V");
   public static final VM_NormalMethod unresolvedInvokeinterfaceImplementsTestMethod =
       getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "unresolvedInvokeinterfaceImplementsTest",
-                "(I[Ljava/lang/Object;)V");
+                "(ILorg/jikesrvm/objectmodel/VM_TIB;)V");
 
   public static final VM_NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.VM_ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
@@ -239,9 +244,9 @@ public class VM_Entrypoints {
       getField(org.jikesrvm.scheduler.VM_Thread.class,
                "contextRegisters",
                org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
-  public static final VM_Field threadHardwareExceptionRegistersField =
+  public static final VM_Field threadExceptionRegistersField =
       getField(org.jikesrvm.scheduler.VM_Thread.class,
-               "hardwareExceptionRegisters",
+               "exceptionRegisters",
                org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
 
   public static final VM_Field tracePrevAddressField =
@@ -264,27 +269,29 @@ public class VM_Entrypoints {
   public static final VM_Field SQBEField = getField(org.mmtk.utility.deque.SharedDeque.class, "bufsenqueued", int.class);
   public static final VM_Field synchronizedCounterField =
       getField(org.jikesrvm.mm.mmtk.SynchronizedCounter.class, "count", int.class);
+
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
-                "arrayStoreWriteBarrier",
-                "(Ljava/lang/Object;ILjava/lang/Object;)V");
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_NormalMethod putfieldWriteBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
-                "putfieldWriteBarrier",
-                "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
   public static final VM_NormalMethod putstaticWriteBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
-                "putstaticWriteBarrier",
-                "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+
+  public static final VM_NormalMethod arrayLoadReadBarrierMethod =
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "arrayLoadReadBarrier", "(Ljava/lang/Object;I)Ljava/lang/Object;");
+  public static final VM_NormalMethod getfieldReadBarrierMethod =
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "getfieldReadBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+  public static final VM_NormalMethod getstaticReadBarrierMethod =
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "getstaticReadBarrier", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+
   public static final VM_NormalMethod modifyCheckMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
-          "modifyCheck", "(Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "modifyCheck", "(Ljava/lang/Object;)V");
 
   public static final VM_Field outputLockField = getField(org.jikesrvm.scheduler.VM_Scheduler.class, "outputLock", int.class);
 
   // used in boot image writer
   public static final VM_Field greenProcessorsField =
-      getField(org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler.class, "processors", org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor[].class);
+      getField(org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler.class, "processors", org.jikesrvm.scheduler.VM_ProcessorTable.class);
   public static final VM_Field debugRequestedField =
       getField(org.jikesrvm.scheduler.VM_Scheduler.class, "debugRequested", boolean.class);
   public static final VM_NormalMethod dumpStackAndDieMethod =
@@ -293,14 +300,12 @@ public class VM_Entrypoints {
   public static final VM_Field latestContenderField =
       getField(org.jikesrvm.scheduler.VM_ProcessorLock.class, "latestContender", org.jikesrvm.scheduler.VM_Processor.class);
 
-  public static final VM_Field classForTypeField =
-      getField(org.jikesrvm.classloader.VM_Type.class, "classForType", java.lang.Class.class);
   public static final VM_Field depthField = getField(org.jikesrvm.classloader.VM_Type.class, "depth", int.class);
   public static final VM_Field idField = getField(org.jikesrvm.classloader.VM_Type.class, "id", int.class);
   public static final VM_Field dimensionField = getField(org.jikesrvm.classloader.VM_Type.class, "dimension", int.class);
 
-  public static final VM_Field innermostElementTypeField =
-      getField(org.jikesrvm.classloader.VM_Array.class, "innermostElementType", org.jikesrvm.classloader.VM_Type.class);
+  public static final VM_Field innermostElementTypeDimensionField =
+      getField(org.jikesrvm.classloader.VM_Array.class, "innermostElementTypeDimension", int.class);
 
   public static final VM_Field JNIEnvSavedPRField =
       getField(org.jikesrvm.jni.VM_JNIEnvironment.class, "savedPRreg", org.jikesrvm.scheduler.VM_Processor.class);
@@ -372,31 +377,34 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod;
   public static final VM_NormalMethod optResolveMethod;
   public static final VM_NormalMethod optNewArrayArrayMethod;
+  public static final VM_NormalMethod optNew2DArrayMethod;
   public static final VM_NormalMethod sysArrayCopy;
 
   static {
     if (VM.BuildForOptCompiler) {
       specializedMethodsField =
-          getField(org.jikesrvm.compilers.opt.OPT_SpecializedMethodPool.class,
+          getField(org.jikesrvm.compilers.opt.SpecializedMethodPool.class,
                    "specializedMethods",
                    org.jikesrvm.ArchitectureSpecific.VM_CodeArray[].class);
       osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSR_OrganizerThread.class, "queueLock", int.class);
       optThreadSwitchFromOsrOptMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromOsrOpt", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromOsrOpt", "()V");
       optThreadSwitchFromPrologueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromPrologue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromPrologue", "()V");
       optThreadSwitchFromBackedgeMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromBackedge", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromBackedge", "()V");
       optThreadSwitchFromEpilogueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromEpilogue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromEpilogue", "()V");
       yieldpointFromNativePrologueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromNativePrologue", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromNativePrologue", "()V");
       yieldpointFromNativeEpilogueMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_yieldpointFromNativeEpilogue", "()V");
-      optResolveMethod = getMethod(org.jikesrvm.compilers.opt.VM_OptSaveVolatile.class, "OPT_resolve", "()V");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "yieldpointFromNativeEpilogue", "()V");
+      optResolveMethod = getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile.class, "resolve", "()V");
 
       optNewArrayArrayMethod =
-          getMethod(org.jikesrvm.compilers.opt.VM_OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
+      optNew2DArrayMethod =
+          getMethod(org.jikesrvm.compilers.opt.runtimesupport.VM_OptLinker.class, "new2DArray", "(IIII)Ljava/lang/Object;");
 
       sysArrayCopy = getMethod(java.lang.VMSystem.class, "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);
@@ -411,6 +419,7 @@ public class VM_Entrypoints {
       yieldpointFromNativeEpilogueMethod = null;
       optResolveMethod = null;
       optNewArrayArrayMethod = null;
+      optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
   }

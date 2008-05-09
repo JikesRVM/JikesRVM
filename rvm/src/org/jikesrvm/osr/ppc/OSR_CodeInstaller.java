@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;

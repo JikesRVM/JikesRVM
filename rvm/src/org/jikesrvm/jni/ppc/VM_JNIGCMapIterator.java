@@ -71,7 +71,6 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   private AddressArray jniRefs;
   private int jniNextRef;
   private int jniFramePtr;
-  private Address jniSavedReturnAddr;
 
   public VM_JNIGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations;
@@ -96,20 +95,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
 
   public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
-    // processor reg (R16) was saved in reg save area at offset -72
-    // from callers frameptr, and after GC will be used to set
-    // processor reg upon return to java.  it must be reported
-    // so it will be relocated, if necessary
-    //
     Address callers_fp = this.framePtr.loadAddress();
-    if (VM.BuildForPowerOpenABI) {
-      jniSavedReturnAddr = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI || VM.BuildForMachOABI);
-      // ScanThread calls getReturnAddressLocation() to get this stack frame
-      // it is already processed
-      jniSavedReturnAddr = Address.zero();
-    }
 
     // set the GC flag in the Java to C frame to indicate GC occurred
     // this forces saved non volatile regs to be restored from save area
@@ -155,15 +141,6 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
 
   public Address getNextReturnAddressAddress() {
-    if (!jniSavedReturnAddr.isZero()) {
-      Address ref_address = jniSavedReturnAddr;
-      jniSavedReturnAddr = Address.zero();
-      if (verbose > 0) {
-        VM.sysWriteln("JNI getNextReturnAddressAddress returning ", ref_address);
-      }
-      return ref_address;
-    }
-
     return Address.zero();
   }
 

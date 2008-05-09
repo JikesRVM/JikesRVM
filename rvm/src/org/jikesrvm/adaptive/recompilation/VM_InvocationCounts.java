@@ -21,10 +21,10 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
-import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.runtime.VM_Magic;
 
 /**
@@ -70,7 +70,7 @@ public final class VM_InvocationCounts {
     if (cm == null) return;
     if (VM.VerifyAssertions) VM._assert(cm.getCompilerType() == VM_CompiledMethod.BASELINE);
     VM_NormalMethod m = (VM_NormalMethod) cm.getMethod();
-    OPT_CompilationPlan compPlan = new OPT_CompilationPlan(m, _optPlan, null, _options);
+    CompilationPlan compPlan = new CompilationPlan(m, _optPlan, null, _options);
     VM_ControllerPlan cp =
         new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, id, 2.0, 2.0, 2.0); // 2.0 is a bogus number....
     cp.execute();
@@ -80,12 +80,12 @@ public final class VM_InvocationCounts {
    * Create the compilation plan according to the default set
    * of <optimization plan, options> pairs
    */
-  public static OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method) {
-    return new OPT_CompilationPlan(method, _optPlan, null, _options);
+  public static CompilationPlan createCompilationPlan(VM_NormalMethod method) {
+    return new CompilationPlan(method, _optPlan, null, _options);
   }
 
-  public static OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, VM_AOSInstrumentationPlan instPlan) {
-    return new OPT_CompilationPlan(method, _optPlan, instPlan, _options);
+  public static CompilationPlan createCompilationPlan(VM_NormalMethod method, VM_AOSInstrumentationPlan instPlan) {
+    return new CompilationPlan(method, _optPlan, instPlan, _options);
   }
 
   /**
@@ -100,21 +100,21 @@ public final class VM_InvocationCounts {
     VM_BaselineCompiler.options.INVOCATION_COUNTERS = true;
   }
 
-  private static OPT_OptimizationPlanElement[] _optPlan;
-  private static OPT_Options _options;
+  private static OptimizationPlanElement[] _optPlan;
+  private static OptOptions _options;
 
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
   static void createOptimizationPlan() {
-    _options = new OPT_Options();
+    _options = new OptOptions();
 
     int optLevel = VM_Controller.options.INVOCATION_COUNT_OPT_LEVEL;
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
     _options.setOptLevel(optLevel);
     VM_RecompilationStrategy.processCommandLineOptions(_options, optLevel, optLevel, optCompilerOptions);
-    _optPlan = OPT_OptimizationPlanner.createOptimizationPlan(_options);
+    _optPlan = OptimizationPlanner.createOptimizationPlan(_options);
   }
 
 }

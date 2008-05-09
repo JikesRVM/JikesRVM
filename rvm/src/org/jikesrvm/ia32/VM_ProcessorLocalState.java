@@ -17,6 +17,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
+import org.jikesrvm.ia32.VM_RegisterConstants.GPR;
 
 /**
  * This class provides a layer of abstraction that the rest of the VM must
@@ -26,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class VM_ProcessorLocalState {
 
-  protected static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
+  protected static final GPR PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
   /**
    * The C bootstrap program has placed a pointer to the initial
@@ -62,7 +63,7 @@ public abstract class VM_ProcessorLocalState {
    * @param offset of field in the <code>VM_Processor</code> object
    * @param reg number of the register supplying the new value
    */
-  public static void emitMoveRegToField(VM_Assembler asm, Offset offset, byte reg) {
+  public static void emitMoveRegToField(VM_Assembler asm, Offset offset, GPR reg) {
     asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER, offset, reg);
   }
 
@@ -86,7 +87,7 @@ public abstract class VM_ProcessorLocalState {
    * @param dest number of destination register
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  public static void emitMoveFieldToReg(VM_Assembler asm, byte dest, Offset offset) {
+  public static void emitMoveFieldToReg(VM_Assembler asm, GPR dest, Offset offset) {
     asm.emitMOV_Reg_RegDisp(dest, PROCESSOR_REGISTER, offset);
   }
 
@@ -110,7 +111,7 @@ public abstract class VM_ProcessorLocalState {
    * @param offset of field in the <code>VM_Processor</code> object
    * @param srcReg register containing value to exchange
    */
-  public static void emitCompareAndExchangeField(VM_Assembler asm, Offset offset, byte srcReg) {
+  public static void emitCompareAndExchangeField(VM_Assembler asm, Offset offset, GPR srcReg) {
     asm.emitLockNextInstruction();
     asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
   }
@@ -176,7 +177,7 @@ public abstract class VM_ProcessorLocalState {
    * @param base number of base register
    * @param offset offset
    */
-  public static void emitStoreProcessor(VM_Assembler asm, byte base, Offset offset) {
+  public static void emitStoreProcessor(VM_Assembler asm, GPR base, Offset offset) {
     asm.emitMOV_RegDisp_Reg(base, offset, PROCESSOR_REGISTER);
   }
 
@@ -188,7 +189,7 @@ public abstract class VM_ProcessorLocalState {
    * @param base number of base register
    * @param offset offset
    */
-  public static void emitLoadProcessor(VM_Assembler asm, byte base, Offset offset) {
+  public static void emitLoadProcessor(VM_Assembler asm, GPR base, Offset offset) {
     asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
   }
 }

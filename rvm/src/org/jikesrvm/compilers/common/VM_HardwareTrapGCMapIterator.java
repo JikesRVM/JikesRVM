@@ -39,9 +39,9 @@ public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator impleme
 
   public Address getNextReferenceAddress() {
     // update register locations, noting that the trap handler represented by this stackframe
-    // saved all registers into the thread's "hardwareExceptionRegisters" object
+    // saved all registers into the thread's "exceptionRegisters" object
     //
-    Address registerLocation = VM_Magic.objectAsAddress(thread.getHardwareExceptionRegisters().gprs);
+    Address registerLocation = VM_Magic.objectAsAddress(thread.getExceptionRegisters().gprs);
     for (int i = 0; i < ArchitectureSpecific.VM_ArchConstants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);

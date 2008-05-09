@@ -22,11 +22,6 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class VM_MethodReference extends VM_MemberReference {
 
   /**
-   * The VM_Method that this method reference resolved to (null if not yet resolved).
-   */
-  private VM_Method resolvedMember;
-
-  /**
    * type of return value
    */
   private final VM_TypeReference returnType;
@@ -37,13 +32,19 @@ public final class VM_MethodReference extends VM_MemberReference {
   private final VM_TypeReference[] parameterTypes;
 
   /**
+   * The VM_Method that this method reference resolved to (null if not yet resolved).
+   */
+  private VM_Method resolvedMember;
+
+  /**
    * @param tr a type reference to the defining class in which this method
    * appears. (e.g., "Ljava/lang/String;")
    * @param mn the name of this method (e.g., "equals")
    * @param d the method descriptor (e.g., "(Ljava/lang/Object;)Z")
+   * @param id the new ID of the member were a new member required
    */
-  VM_MethodReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
-    super(tr, mn, d);
+  VM_MethodReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d, int id) {
+    super(tr, mn, d, id);
     ClassLoader cl = tr.getClassLoader();
     returnType = d.parseForReturnType(cl);
     parameterTypes = d.parseForParameterTypes(cl);
@@ -209,14 +210,17 @@ public final class VM_MethodReference extends VM_MemberReference {
       declaringClass.resolve();
     }
 
-    // See if method is in any superclasses
+    // See if method is explicitly declared in any superclass
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
 
       if (c.findDeclaredMethod(name, descriptor) != null) {
-        // Method in superclass => not interface method
+        // Method declared in superclass => not interface method
         return false;
       }
+    }
 
+    // Not declared in any superclass; now check to see if it is coming from an interface somewhere
+    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
       // See if method is in any interfaces of c
       for (VM_Class intf : c.getDeclaredInterfaces()) {
         if (searchInterfaceMethods(intf) != null) {

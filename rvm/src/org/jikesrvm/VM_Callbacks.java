@@ -86,7 +86,7 @@ public final class VM_Callbacks {
    * Class loading callback list.
    */
   private static CallbackList classLoadedCallbacks = null;
-  private static Object classLoadedLock = new Object();
+  private static final Object classLoadedLock = new Object();
   private static boolean classLoadedEnabled = true;
 
   /**

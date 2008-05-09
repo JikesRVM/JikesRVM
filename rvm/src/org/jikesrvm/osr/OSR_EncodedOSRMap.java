@@ -12,11 +12,14 @@
  */
 package org.jikesrvm.osr;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.ir.OPT_CallSiteTree;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
@@ -28,29 +31,27 @@ import org.vmmagic.unboxed.Offset;
  * all OSR map info for that method.
  */
 
-public class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OSR_Constants {
+public final class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OSR_Constants {
 
-  /* osr info entries */
-  private long[] mapEntries;
+  /** osr info entries */
+  private final long[] mapEntries;
 
-  /* the last entry index. */
-  private int lastEntry;
+  /** the last entry index. */
+  private final int lastEntry;
 
-  /* the OSR map */
-  private int[] osrMaps;
-  private int mapSize = 16;
-  private int lastIndex = 0;
+  /** the OSR map */
+  private final int[] osrMaps;
 
-  private static final boolean DEBUG = false;
+  /** map used when there are no OSR instructions */
+  private static final OSR_EncodedOSRMap emptyMap = new OSR_EncodedOSRMap();
 
   @Inline
   public static boolean registerIsSet(int map, int regnum) {
-
     int bitpos = getRegBitPosition(regnum);
     return (map & (NEXT_BIT >>> bitpos)) > 0;
   }
 
-  /*
+  /**
    * mark a register as reference type
    */
   private static int setRegister(int map, int regnum) {
@@ -59,42 +60,59 @@ public class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OSR_Cons
     return map;
   }
 
-  /*
+  /**
    * get register bit position
    */
   @Inline
   private static int getRegBitPosition(int regnum) {
-
     return regnum - FIRST_GCMAP_REG + 1;
   }
 
-  /*
- */
-  public OSR_EncodedOSRMap(OSR_VariableMap varMap) {
+  /** Constructor to build empty map */
+  private OSR_EncodedOSRMap() {
+    this.mapEntries = null;
+    this.osrMaps = null;
+    this.lastEntry = -1;
+  }
+
+  /** Constructor that builds EncodedOSRMap from variable map */
+  private OSR_EncodedOSRMap(OSR_VariableMap varMap) {
     int entries = varMap.getNumberOfElements();
 
     this.lastEntry = entries - 1;
 
-    if (entries > 0) {
-      this.mapEntries = new long[entries];
-      this.osrMaps = new int[mapSize];
-      translateMap(varMap.list);
-      resizeOsrMaps();
+    if (VM.VerifyAssertions) VM._assert(entries > 0);
+    this.mapEntries = new long[entries];
+    ArrayList<Integer> tempOsrMaps = new ArrayList<Integer>();
+    translateMap(tempOsrMaps, varMap.list);
+    this.osrMaps = new int[tempOsrMaps.size()];
+    for (int i=0; i < tempOsrMaps.size(); i++) {
+      this.osrMaps[i] = tempOsrMaps.get(i);
     }
 
-    /*
-if (VM.TraceOnStackReplacement) {
-  printMap();
-}
-    */
+    //if (VM.TraceOnStackReplacement) {
+    //  printMap();
+    //}
   }
 
-  /*
-   * translates a list of OSR_MapElement to encoding,
+  /**
+   * Encode the given variable map returning the canonical empty map if the map
+   * is empty
+   */
+  public static OSR_EncodedOSRMap makeMap(OSR_VariableMap varMap) {
+    if (varMap.getNumberOfElements() > 0) {
+      return new OSR_EncodedOSRMap(varMap);
+    } else {
+      return emptyMap;
+    }
+  }
+
+  /**
+   * Translates a list of OSR_MapElement to encoding,
    * we can not trust the osrlist is in the increasing order of
    * machine code offset. Sort it first.
    */
-  private void translateMap(LinkedList<OSR_VariableMapElement> osrlist) {
+  private void translateMap(ArrayList<Integer> tempOsrMaps, LinkedList<OSR_VariableMapElement> osrlist) {
 
     /* sort the list, use the mc offset of the index instruction
      * as the key.
@@ -112,12 +130,17 @@ if (VM.TraceOnStackReplacement) {
      *
      * TODO: figure out why LiveAnalysis does not give correct order?
      */
-    quickSort(osrarray, 0, n - 1);
-
-    // make inline encoding, OSR maps,
-    OPT_CallSiteTree inliningTree = new OPT_CallSiteTree();
+    if (n > 1) {
+      Arrays.sort(osrarray,
+        new Comparator<OSR_VariableMapElement>() {
+          public int compare(OSR_VariableMapElement a, OSR_VariableMapElement b) {
+            return a.osr.getmcOffset() - b.osr.getmcOffset();
+          }
+        });
+    }
+    CallSiteTree inliningTree = new CallSiteTree();
     for (int i = 0; i < n; i++) {
-      OPT_Instruction instr = osrarray[i].osr;
+      Instruction instr = osrarray[i].osr;
       // add lining element, move sanity later
       if (instr.position != null) {
         inliningTree.addLocation(instr.position);
@@ -127,14 +150,14 @@ if (VM.TraceOnStackReplacement) {
     for (int i = 0; i < n; i++) {
 
       OSR_VariableMapElement elm = osrarray[i];
-      OPT_Instruction instr = elm.osr;
+      Instruction instr = elm.osr;
 
       int iei = inliningTree.find(instr.position).encodedOffset;
       setIEIndex(i, iei);
 
       // get osr map
       LinkedList<OSR_MethodVariables> mVarList = elm.mvars;
-      int osrMapIndex = generateOsrMaps(mVarList);
+      int osrMapIndex = generateOsrMaps(tempOsrMaps, mVarList);
 
       // use this offset, and adjust on extractState
       int mcOffset = instr.getmcOffset();
@@ -144,49 +167,15 @@ if (VM.TraceOnStackReplacement) {
     }
   }
 
-  // use the mc offset as key, correctly we should use the next
-  // instruction's mc offset as the key, but since there are
-  // in the order, we will use the current instruction's mc offset
-  // as the key.
-  private static void quickSort(OSR_VariableMapElement[] array, int start, int end) {
-    if (start < end) {
-      int pivot = partition(array, start, end);
-      quickSort(array, start, pivot);
-      quickSort(array, pivot + 1, end);
-    }
-  }
-
-  private static int partition(OSR_VariableMapElement[] array, int start, int end) {
-    int left = start;
-    int right = end;
-    int pivot = start;
-
-    OSR_VariableMapElement pivot_elm = array[pivot];
-    int pivot_offset = pivot_elm.osr.getmcOffset();
-    while (true) {
-      /* Move right while item > pivot */
-      while (array[right].osr.getmcOffset() > pivot_offset) right--;
-
-      /* Move left while item < pivot */
-      while (array[left].osr.getmcOffset() < pivot_offset) left++;
-
-      if (left < right) {
-        /* swap left and right */
-        OSR_VariableMapElement temp = array[left];
-        array[left] = array[right];
-        array[right] = temp;
-      } else {
-        return right;
-      }
-    }
-  }
-
-  /* generate value in the Osr map,
+  /**
+   * Generate value in the Osr map,
    * return the index of the first integer in the map.
    *
    * An OSR Map has following structure:
+   * <pre>
    * | regmap || mid, mpc, (n1, n2) ... ||
    *          || mid, mpc, (n1, n2) ... ||
+   * </pre>
    * Regmap indicates the value of which register is a reference,
    * the execution state extractor can convert the value to an
    * object to avoid confusing GC.
@@ -197,34 +186,39 @@ if (VM.TraceOnStackReplacement) {
    *
    * The MSB of mpc indicates if the next is a valid pair
    */
-  private int generateOsrMaps(LinkedList<OSR_MethodVariables> mVarList) {
+  private int generateOsrMaps(ArrayList<Integer> tempOsrMaps, LinkedList<OSR_MethodVariables> mVarList) {
 
     int regmap = (!mVarList.isEmpty()) ? NEXT_BIT : 0;
-    int mapIndex = addIntToOsrMap(regmap);
+    tempOsrMaps.add(regmap);
+    int mapIndex = tempOsrMaps.size()-1;
 
     // from inner to outer
     for (int i = 0, m = mVarList.size(); i < m; i++) {
       OSR_MethodVariables mVar = mVarList.get(i);
-      _generateMapForOneMethodVariable(mapIndex, mVar, (i == (m - 1)));
+      _generateMapForOneMethodVariable(tempOsrMaps, mapIndex, mVar, (i == (m - 1)));
     }
 
     return mapIndex;
   }
 
-  /* @param regMapIndex, used to patch the register map
-   * @param mVar, the method variables
+  /**
+   * Generate value in the Osr map
+   * @param tempOsrMaps the maps under construction
+   * @param regMapIndex used to patch the register map
+   * @param mVar the method variables
+   * @param lastMid
    */
-  private void _generateMapForOneMethodVariable(int regMapIndex, OSR_MethodVariables mVar, boolean lastMid) {
+  private void _generateMapForOneMethodVariable(ArrayList<Integer> tempOsrMaps, int regMapIndex, OSR_MethodVariables mVar, boolean lastMid) {
     // Is this the last method in the inlined chain?
     int mid = lastMid ? mVar.methId : (mVar.methId | NEXT_BIT);
-    addIntToOsrMap(mid);
+    tempOsrMaps.add(mid);
 
     LinkedList<OSR_LocalRegPair> tupleList = mVar.tupleList;
     int m = tupleList.size();
 
     // Is this method has variables?
     int bci = (m == 0) ? mVar.bcIndex : (mVar.bcIndex | NEXT_BIT);
-    addIntToOsrMap(bci);
+    tempOsrMaps.add(bci);
 
     // append each element
     for (int j = 0; j < m; j++) {
@@ -232,21 +226,21 @@ if (VM.TraceOnStackReplacement) {
 
       boolean isLast = (j == m - 1);
 
-      processTuple(tuple, isLast);
+      processTuple(tempOsrMaps, tuple, isLast);
       // mark the reg ref map
       if (((tuple.typeCode == ClassTypeCode) || (tuple.typeCode == ArrayTypeCode)) && (tuple.valueType == PHYREG)) {
-        osrMaps[regMapIndex] = setRegister(osrMaps[regMapIndex], tuple.value.toInt());
+        tempOsrMaps.set(regMapIndex, setRegister(tempOsrMaps.get(regMapIndex), tuple.value.toInt()));
       }
     }
   }
 
-  /*
-   * process on 32-bit tuple.
+  /**
+   * Process on 32-bit tuple.
    *
    * tuple, maps the local to register, spill
    * isLast, indicates to set NEXT_BIT
    */
-  private void processTuple(OSR_LocalRegPair tuple, boolean isLast) {
+  private void processTuple(ArrayList<Integer> tempOsrMaps, OSR_LocalRegPair tuple, boolean isLast) {
 
     int first = (tuple.num << NUM_SHIFT) & NUM_MASK;
 
@@ -274,24 +268,24 @@ if (VM.TraceOnStackReplacement) {
         break;
       case LongTypeCode:
         if (VM.BuildFor32Addr || (tuple.valueType == LCONST)) {
-          //split in two integer parts for OSR map
-          /* process the first half part,
-    * it is not the last. */
+          // split in two integer parts for OSR map
+          // process the first half part,
+          // it is not the last.
           first |= NEXT_BIT;
           first |= (HIGH_64BIT << TCODE_SHIFT);
 
           // add first word
-          addIntToOsrMap(first);
+          tempOsrMaps.add(first);
           // add the second word
 
           if (VM.BuildFor64Addr) {
-            addIntToOsrMap(tuple.value.rshl(32).toInt());
+            tempOsrMaps.add(tuple.value.rshl(32).toInt());
           } else {
-            addIntToOsrMap(tuple.value.toInt());
+            tempOsrMaps.add(tuple.value.toInt());
             tuple = tuple._otherHalf;
           }
-          /* process the second half part,
-* it may be the last, and it is not the first half.*/
+          // process the second half part,
+          // it may be the last, and it is not the first half.
           first = (tuple.num << NUM_SHIFT) & NUM_MASK;
 
           if (!isLast) first |= NEXT_BIT;
@@ -303,7 +297,7 @@ if (VM.TraceOnStackReplacement) {
         break;
       case ReturnAddressTypeCode:
 
-        if (DEBUG) {
+        if (false) {
           VM.sysWrite("returnaddress type for ");
           if (tuple.kind == LOCAL) {
             VM.sysWrite("L" + tuple.num);
@@ -318,18 +312,18 @@ if (VM.TraceOnStackReplacement) {
       case WordTypeCode:
         if (VM.BuildFor64Addr && (tuple.valueType == ICONST)) {//KV:TODO
           //split in two integer parts for OSR map
-          /* process the first half part,
-    * it is not the last. */
+          // process the first half part,
+          // it is not the last. */
           first |= NEXT_BIT;
           first |= (HIGH_64BIT << TCODE_SHIFT);
 
           // add first word
-          addIntToOsrMap(first);
+          tempOsrMaps.add(first);
           // add the second word
-          addIntToOsrMap(tuple.value.rshl(32).toInt());
+          tempOsrMaps.add(tuple.value.rshl(32).toInt());
 
-          /* process the second half part,
-* it may be the last, and it is not the first half.*/
+          // process the second half part,
+          // it may be the last, and it is not the first half.
           first = (tuple.num << NUM_SHIFT) & NUM_MASK;
           if (!isLast) first |= NEXT_BIT;
           first |= (tuple.kind ? 1 : 0) << KIND_SHIFT;
@@ -344,48 +338,18 @@ if (VM.TraceOnStackReplacement) {
     }
 
     // add first word
-    addIntToOsrMap(first);
+    tempOsrMaps.add(first);
     // add the second word
-    addIntToOsrMap(tuple.value.toInt());
-  }
-
-  /* add an int to osrMaps, expand the array if necessary.
-   * return the index of the word.
-   */
-  private int addIntToOsrMap(int value) {
-    if (lastIndex >= mapSize) {
-      // double the size
-      int oldSize = mapSize;
-      mapSize <<= 1;
-      int[] oldMaps = osrMaps;
-      osrMaps = new int[mapSize];
-
-      System.arraycopy(oldMaps, 0, osrMaps, 0, oldSize);
-    }
-
-    osrMaps[lastIndex++] = value;
-
-    return lastIndex - 1;
-  }
-
-  private void resizeOsrMaps() {
-    if (VM.VerifyAssertions) VM._assert(mapSize == osrMaps.length);
-
-    if (lastIndex < mapSize - 1) {
-      int[] newMaps = new int[lastIndex];
-      System.arraycopy(osrMaps, 0, newMaps, 0, lastIndex);
-      osrMaps = newMaps;
-      mapSize = lastIndex;
-    }
+    tempOsrMaps.add(tuple.value.toInt());
   }
 
   ////////////////////////////////////
   // INTERFACE
   ///////////////////////////////////
-  /*
-   * does the OSR map exist for a machine instruction offset
+  /**
+   * Does the OSR map exist for a machine instruction offset
    */
-  public final boolean hasOSRMap(Offset mcOffset) {
+  public boolean hasOSRMap(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     return (entry != NO_OSR_ENTRY);
   }
@@ -394,10 +358,10 @@ if (VM.TraceOnStackReplacement) {
    * It is the caller's reposibility to make sure there are OSR
    * entry exist for a machine instruction offset.
    */
-  /*
-   * get bytecode index for a given instruction offset in bytes.
+  /**
+   * Get bytecode index for a given instruction offset in bytes.
    */
-  public final int getBytecodeIndexForMCOffset(Offset mcOffset) {
+  public int getBytecodeIndexForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     return getBCIndex(entry);
   }
@@ -405,14 +369,14 @@ if (VM.TraceOnStackReplacement) {
   /* TODO!
    * get inline encoding index for the machine instruction offset
    */
-  public final int getInlineEncodingForMCOffset(Offset mcOffset) {
+  public int getInlineEncodingForMCOffset(Offset mcOffset) {
     return -1;
   }
 
-  /*
+  /**
    * get register's reference map for the machine instruction offset
    */
-  public final int getRegisterMapForMCOffset(Offset mcOffset) {
+  public int getRegisterMapForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     int mapIndex = getOSRMapIndex(entry);
     return osrMaps[mapIndex];
@@ -424,7 +388,7 @@ if (VM.TraceOnStackReplacement) {
    * NOTE: the map index is gotten from 'findOSRMapIndex'.
    * This has to be changed....
    */
-  public final OSR_MapIterator getOsrMapIteratorForMCOffset(Offset mcOffset) {
+  public OSR_MapIterator getOsrMapIteratorForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     int mapIndex = getOSRMapIndex(entry);
     return new OSR_MapIterator(osrMaps, mapIndex);
@@ -433,7 +397,7 @@ if (VM.TraceOnStackReplacement) {
   /////////////////////////////////
   // private functions
   ////////////////////////////////
-  /*
+  /**
    * Do a binary search, find the entry for the machine code offset.
    * Return -1 if no entry was found.
    */
@@ -499,7 +463,7 @@ if (VM.TraceOnStackReplacement) {
     mapEntries[entry] = (mapEntries[entry] & ~IEI_MASK) | (((long) index) << IEI_SHIFT);
   }
 
-  /*
+  /**
    * print the encoded map for debugging.
    */
   public void printMap() {

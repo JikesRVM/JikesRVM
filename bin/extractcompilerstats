@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
+# The input file
+$infile = shift(@ARGV);
+
+# The output file to append to
+$outfile = shift(@ARGV);
+
+# The pattern for the output. @VALUE@ and @STATISTIC@ are replaced
+$outpattern = "<statistic key=\"\@STATISTIC\@\" value=\"\@VALUE\@\"/>";
+
+# The keys to extract
+@queryKeys = @ARGV;
+
+exit 0 if !@queryKeys || $#queryKeys == -1;
+
+open ($LOG, "$infile") or die "error opening $infile for input";
+open ($OUT, ">>$outfile") or die "error opening $outfile for output";
+
+while (<$LOG>) {
+  if (/Compilation Subsystem Report/) {
+    $headerline = (<$LOG>);
+    $i = 0;
+    while(<$LOG>) {
+      $datalines[$i] = $_;
+      $i++;
+    }
+  }
+}
+close($LOG);
+
+$headerline =~ /^Comp/ or die "could not find headers";
+@keys = split("\t", $headerline);
+foreach $dataline (@datalines) {
+  @values = split("\t", $dataline);
+
+  $#keys == $#values or die "headers and values do not match"; 
+
+  $compiler = $values[0];
+  foreach $q (@queryKeys) {
+	 ($queryCompiler, $queryKey) = split('\.', $q);
+	 if ($queryCompiler eq $compiler) {
+      $keyid = 0;
+      foreach $k (@keys) {
+        chomp($k);
+        if ($k ne "") {
+          if ($k eq $queryKey) {
+            $result{$q} = 1;
+            $output = $outpattern;
+            $output =~ s/\@STATISTIC\@/$q/;
+            $output =~ s/\@VALUE\@/$values[$keyid]/;
+            print $OUT $output;
+          }
+        }
+        $keyid++;
+      }
+      $result{$q} or die "could not extract $q";
+    }
+  }
+}
+close($OUT);

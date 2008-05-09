@@ -59,7 +59,7 @@ public class CMS extends Concurrent {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       msTrace.prepareNonBlocking();
-      msSpace.prepare();
+      msSpace.prepare(true);
       return;
     }
 

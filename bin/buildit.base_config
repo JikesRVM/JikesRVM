@@ -50,11 +50,13 @@ global.components.cache.dir=.buildit_components_cache
 
 # Default JAVA_HOME values
 global.javahome.ppc32-linux=/opt/ibm-java2-ppc-50
+global.javahome.ppc64-linux=/opt/ibm-java2-ppc-50
 global.javahome.ia32-linux=/opt/jdk1.5.0
+global.javahome.x86_64-linux=/opt/jdk1.5.0
 
 # Architecture mappings
 global.arch.i686=ia32
-global.arch.x86_64=ia32
+global.arch.x86_64=x86_64
 global.arch.ppc=ppc32
 global.arch.ppc64=ppc32
 

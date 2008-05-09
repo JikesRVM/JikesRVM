@@ -18,7 +18,7 @@ import java.io.PrintStream;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 
 /**
  * This class provides advice file used by compile replay experiments
@@ -73,9 +73,9 @@ public class VM_AOSGenerator {
   /**
    * This method logs the successful completion of an adaptively
    * selected recompilation
-   * @param plan the OPT_Compilation plan being executed.
+   * @param plan the Compilation plan being executed.
    */
-  public static void reCompilationWithOpt(OPT_CompilationPlan plan) {
+  public static void reCompilationWithOpt(CompilationPlan plan) {
     if (!booted) return;
     synchronized (log) {
       log.println(plan.method.getDeclaringClass().getDescriptor() +
@@ -84,7 +84,7 @@ public class VM_AOSGenerator {
                   " " +
                   plan.method.getDescriptor() +
                   " 3 " +
-                  /*it's always OPT_compiler*/
+                  /*it's always compiler*/
                   plan.options.getOptLevel());
     }
   }

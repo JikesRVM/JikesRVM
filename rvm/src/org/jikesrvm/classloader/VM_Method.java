@@ -14,13 +14,16 @@ package org.jikesrvm.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
+import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.util.VM_HashMap;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -39,23 +42,31 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * exceptions this method might throw (null --> none)
    */
-  protected final VM_TypeReference[] exceptionTypes;
+  private static final VM_HashMap<VM_Method, VM_TypeReference[]> exceptionTypes =
+    new VM_HashMap<VM_Method, VM_TypeReference[]>();
   /**
-   * Method paramter annotations from the class file that are
+   * Method parameter annotations from the class file that are
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  protected final VM_Annotation[] parameterAnnotations;
+  private static final VM_HashMap<VM_Method, VM_Annotation[][]> parameterAnnotations =
+    new VM_HashMap<VM_Method, VM_Annotation[][]>();
   /**
-   * A value present in the method info tables of annotation types. It
-   * represents the default result from an annotation method.
+   * A table mapping to values present in the method info tables of annotation
+   * types. It represents the default result from an annotation method.
    */
-  protected final Object annotationDefault;
+  private static final VM_HashMap<VM_Method, Object> annotationDefaults =
+    new VM_HashMap<VM_Method, Object>();
   /**
-   * The offset of this virtual method in the jtoc if it's been placed
-   * there by constant propagation, otherwise 0.
+   * The offsets of virtual methods in the jtoc, if it's been placed
+   * there by constant propagation.
    */
-  private Offset jtocOffset;
+  private static final VM_HashMap<VM_Method, Integer> jtocOffsets =
+    new VM_HashMap<VM_Method, Integer>();
+
+  /** Cache of arrays of declared parameter annotations. */
+  private static final VM_HashMap<VM_Method, Annotation[][]> declaredParameterAnnotations =
+    new VM_HashMap<VM_Method, Annotation[][]>();
 
   /**
    * Construct a read method
@@ -71,12 +82,43 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
                       VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
-                      VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+                      VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
-    this.parameterAnnotations = parameterAnnotations;
-    this.annotationDefault = annotationDefault;
-    this.exceptionTypes = exceptionTypes;
-    this.jtocOffset = Offset.fromIntSignExtend(-1);
+    if (parameterAnnotations != null) {
+      synchronized(this.parameterAnnotations) {
+        this.parameterAnnotations.put(this, parameterAnnotations);
+      }
+    }
+    if (exceptionTypes != null) {
+      synchronized(this.exceptionTypes) {
+        this.exceptionTypes.put(this, exceptionTypes);
+      }
+    }
+    if (annotationDefault != null) {
+      synchronized(annotationDefaults) {
+        annotationDefaults.put(this, annotationDefault);
+      }
+    }
+  }
+
+  /**
+   * Get the paramemter annotations for this method
+   */
+  @Pure
+  private VM_Annotation[][] getParameterAnnotations() {
+    synchronized(parameterAnnotations) {
+      return parameterAnnotations.get(this);
+    }
+  }
+
+  /**
+   * Get the annotation default value for an annotation method
+   */
+  @Pure
+  Object getAnnotationDefault() {
+    synchronized(annotationDefaults) {
+      return annotationDefaults.get(this);
+    }
   }
 
   /**
@@ -99,7 +141,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     int[] tmp_lineNumberMap = null;
     VM_Atom tmp_signature = null;
     VM_Annotation[] annotations = null;
-    VM_Annotation[] parameterAnnotations = null;
+    VM_Annotation[][] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
 
     // Read the attributes
@@ -148,13 +190,16 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
-        parameterAnnotations =
-            VM_AnnotatedElement.readAnnotations(constantPool, input, 1, declaringClass.getClassLoader());
+        int numParameters = input.readByte() & 0xFF;
+        parameterAnnotations = new VM_Annotation[numParameters][];
+        for (int a = 0; a < numParameters; ++a) {
+          parameterAnnotations[a] = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
+        }
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
-          tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
+          tmp_annotationDefault = VM_Annotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
         } catch (ClassNotFoundException e) {
           throw new Error(e);
         }
@@ -266,9 +311,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     bytecode[3] = (byte) (objectInitIndex >>> 8);
     bytecode[4] = (byte) objectInitIndex;
     for (int i = 0, j = 0; i < aMethods.length; i++) {
-      if (aMethods[i].annotationDefault != null) {
+      Object value = aMethods[i].getAnnotationDefault();
+      if (value != null) {
         bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
-        if (VM_Class.getLiteralSize(constantPool, defaultConstants[j]) == BYTES_IN_INT) {
+        byte literalType = VM_Class.getLiteralDescription(constantPool, defaultConstants[j]);
+        if (literalType != VM_Class.CP_LONG && literalType != VM_Class.CP_DOUBLE) {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc_w; // stack[1] = value
         } else {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc2_w;// stack[1&2] = value
@@ -458,13 +505,30 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
+   * Is this method a bridge method? Bridge methods are generated in some cases
+   * of generics and inheritance.
+   */
+  public boolean isBridge() {
+    return (modifiers & BRIDGE) != 0;
+  }
+
+  /**
+   * Is this a varargs method taking a variable number of arguments?
+   */
+  public boolean isVarArgs() {
+    return (modifiers & VARARGS) != 0;
+  }
+
+  /**
    * Exceptions thrown by this method -
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  @Uninterruptible
+  @Pure
   public final VM_TypeReference[] getExceptionTypes() {
-    return exceptionTypes;
+    synchronized(exceptionTypes) {
+      return exceptionTypes.get(this);
+    }
   }
 
   /**
@@ -536,8 +600,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @return whether the method has a pure annotation
    */
   public final boolean isPure() {
-   return hasPureAnnotation();
+    return hasPureAnnotation();
   }
+
   /**
    * Has this method been marked as forbidden to inline?
    * ie., it is marked with the <CODE>NoInline</CODE> annotation or
@@ -563,6 +628,21 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     return false; // only VM_NormalMethods can be runtime service impls in Jikes RVM and they override this method
   }
 
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
+    T ann;
+    try {
+      ann = getDeclaringClass().getClassForType().
+      getMethod(getName().toString(), getDescriptor().parseForParameterClasses(getDeclaringClass().getClassLoader())).getAnnotation(annotationClass);
+    } catch (NoSuchMethodException e) {
+      throw new BootImageMemberLookupError(this, null, annotationClass, e);
+    }
+    return ann;
+  }
+
   //------------------------------------------------------------------//
   //                        Section 2.                                //
   // The following are available after the declaring class has been   //
@@ -585,9 +665,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
           // The root method of a virtual method family can use the lazy method invoker directly.
           return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentEntryCodeArray();
         } else {
-          // All other virtual methods in the family must generate unique stubs to
+          // All other virtual methods in the family must use unique stubs to
           // ensure correct operation of the method test (guarded inlining of virtual calls).
-          return VM_LazyCompilationTrampolineGenerator.getTrampoline();
+          // It is VM_TIBs job to marshall between the actual trampoline and this marker.
+          return VM_LazyCompilationTrampoline.instructions;
         }
       } else {
         // We'll never do a method test against this method.
@@ -659,7 +740,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     getDeclaringClass().updateMethod(this);
 
     // Replace constant-ified virtual method in JTOC if necessary
-    if (jtocOffset.toInt() != -1) {
+    Offset jtocOffset = getJtocOffset();
+    if (jtocOffset.NE(Offset.zero())) {
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
     }
 
@@ -680,14 +762,57 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
+   * Get the offset used to hold a JTOC addressable version of the current entry
+   * code array
+   */
+  @Pure
+  private Offset getJtocOffset()  {
+    Integer offAsInt;
+    synchronized (jtocOffsets) {
+      offAsInt = jtocOffsets.get(this);
+    }
+    if (offAsInt == null) {
+      return Offset.zero();
+    } else {
+      return Offset.fromIntSignExtend(offAsInt.intValue());
+    }
+  }
+
+  /**
    * Find or create a jtoc offset for this method
    */
   public final synchronized Offset findOrCreateJtocOffset() {
     if (VM.VerifyAssertions) VM._assert(!isStatic() && !isObjectInitializer());
+    Offset jtocOffset = getJtocOffset();;
     if (jtocOffset.EQ(Offset.zero())) {
-      jtocOffset = VM_Statics.allocateReferenceSlot();
+      jtocOffset = VM_Statics.allocateReferenceSlot(true);
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
+      synchronized(jtocOffsets) {
+        jtocOffsets.put(this, Integer.valueOf(jtocOffset.toInt()));
+      }
     }
     return jtocOffset;
+  }
+
+  /**
+   * Returns the parameter annotations for this method.
+   */
+  @Pure
+  public final Annotation[][] getDeclaredParameterAnnotations() {
+    Annotation[][] result;
+    synchronized(declaredParameterAnnotations) {
+      result = declaredParameterAnnotations.get(this);
+    }
+    if (result == null) {
+      VM_Annotation[][] parameterAnnotations = getParameterAnnotations();
+      result = new Annotation[parameterAnnotations.length][];
+      for (int a = 0; a < result.length; ++a) {
+        result[a] = toAnnotations(parameterAnnotations[a]);
+      }
+      synchronized(declaredParameterAnnotations) {
+        declaredParameterAnnotations.put(this, result);
+      }
+    }
+    return result;
   }
 }

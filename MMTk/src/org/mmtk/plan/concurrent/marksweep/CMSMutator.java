@@ -98,10 +98,17 @@ public abstract class CMSMutator extends ConcurrentMutator {
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
-    if (allocator == CMS.ALLOC_DEFAULT)
-      CMS.msSpace.initializeHeader(ref, false);
-    else
-      super.postAlloc(ref, typeRef, bytes, allocator);
+    switch (allocator) {
+      case CMS.ALLOC_DEFAULT:
+        CMS.msSpace.initializeHeader(ref, false);
+        break;
+      case CMS.ALLOC_CODE:
+        CMS.smallCodeSpace.initializeHeader(ref, false);
+        break;
+      default:
+        super.postAlloc(ref, typeRef, bytes, allocator);
+        break;
+    }
   }
 
   /**
@@ -187,6 +194,9 @@ public abstract class CMSMutator extends ConcurrentMutator {
         else if (Space.isInSpace(CMS.IMMORTAL,   ref)) CMS.immortalSpace.traceObject(remset, ref);
         else if (Space.isInSpace(CMS.PLOS,       ref)) CMS.ploSpace.traceObject(remset, ref);
         else if (Space.isInSpace(CMS.LOS,        ref)) CMS.loSpace.traceObject(remset, ref);
+        else if (Space.isInSpace(CMS.NON_MOVING, ref)) CMS.nonMovingSpace.traceObject(remset, ref);
+        else if (Space.isInSpace(CMS.SMALL_CODE, ref)) CMS.smallCodeSpace.traceObject(remset, ref);
+        else if (Space.isInSpace(CMS.LARGE_CODE, ref)) CMS.largeCodeSpace.traceObject(remset, ref);
       }
     }
     if (VM.VERIFY_ASSERTIONS) {
@@ -194,6 +204,9 @@ public abstract class CMSMutator extends ConcurrentMutator {
         if      (Space.isInSpace(CMS.MARK_SWEEP, ref)) VM.assertions._assert(CMS.msSpace.isLive(ref));
         else if (Space.isInSpace(CMS.PLOS,       ref)) VM.assertions._assert(CMS.ploSpace.isLive(ref));
         else if (Space.isInSpace(CMS.LOS,        ref)) VM.assertions._assert(CMS.loSpace.isLive(ref));
+        else if (Space.isInSpace(CMS.NON_MOVING, ref)) VM.assertions._assert(CMS.nonMovingSpace.isLive(ref));
+        else if (Space.isInSpace(CMS.SMALL_CODE, ref)) VM.assertions._assert(CMS.smallCodeSpace.isLive(ref));
+        else if (Space.isInSpace(CMS.LARGE_CODE, ref)) VM.assertions._assert(CMS.largeCodeSpace.isLive(ref));
       }
     }
   }

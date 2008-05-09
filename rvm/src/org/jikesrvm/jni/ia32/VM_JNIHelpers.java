@@ -305,53 +305,48 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
+    VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
 
     Address addr = argAddress;
     for (int i = 0; i < argCount; i++) {
-      int loword = addr.loadInt();
-      addr = addr.plus(4);
-
       // convert and wrap the argument according to the expected type
-      if (argTypes[i].isFloatType()) {
-        // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
-        // so we have to extract it as a double and convert it back to a float
-        int hiword = addr.loadInt();
+      if (argTypes[i].isReferenceType()) {
+        // for object, the arg is a JREF index, dereference to get the real object
+        argObjectArray[i] = env.getJNIRef(addr.loadInt());
         addr = addr.plus(4);
-        long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-        argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
-      } else if (argTypes[i].isDoubleType()) {
-        int hiword = addr.loadInt();
+      } else if (argTypes[i].isIntType()) {
+        argObjectArray[i] = addr.loadInt();
         addr = addr.plus(4);
-        long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-        argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) {
-        int hiword = addr.loadInt();
-        addr = addr.plus(4);
-        long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-        argObjectArray[i] = VM_Reflection.wrapLong(longValue);
+        argObjectArray[i] = addr.loadLong();
+        addr = addr.plus(8);
       } else if (argTypes[i].isBooleanType()) {
         // the 0/1 bit is stored in the high byte
-        argObjectArray[i] = VM_Reflection.wrapBoolean(loword);
+        argObjectArray[i] = addr.loadByte() != 0;
+        addr = addr.plus(4);
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
-        argObjectArray[i] = VM_Reflection.wrapByte((byte) loword);
+        argObjectArray[i] = addr.loadByte();
+        addr = addr.plus(4);
       } else if (argTypes[i].isCharType()) {
         // char is stored in the high 2 bytes
-        argObjectArray[i] = VM_Reflection.wrapChar((char) loword);
+        argObjectArray[i] = addr.loadChar();
+        addr = addr.plus(4);
       } else if (argTypes[i].isShortType()) {
         // short is stored in the high 2 bytes
-        argObjectArray[i] = VM_Reflection.wrapShort((short) loword);
-      } else if (argTypes[i].isReferenceType()) {
-        // for object, the arg is a JREF index, dereference to get the real object
-        VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
-        argObjectArray[i] = env.getJNIRef(loword);
-      } else if (argTypes[i].isIntType()) {
-        argObjectArray[i] = VM_Reflection.wrapInt(loword);
+        argObjectArray[i] = addr.loadShort();
+        addr = addr.plus(4);
+      } else if (argTypes[i].isFloatType()) {
+        // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
+        // so we have to extract it as a double and convert it back to a float
+        argObjectArray[i] = (float) addr.loadDouble();
+        addr = addr.plus(8);
       } else {
-        return null;
+        if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
+        argObjectArray[i] = addr.loadDouble();
+        addr = addr.plus(8);
       }
     }
-
     return argObjectArray;
   }
 
@@ -373,41 +368,33 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
 
     Address addr = argAddress;
     for (int i = 0; i < argCount; i++, addr = addr.plus(8)) {
-      int loword = addr.loadInt();
-      int hiword;
       // convert and wrap the argument according to the expected type
-      if (argTypes[i].isFloatType()) {
-        argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
-      } else if (argTypes[i].isDoubleType()) {
-        hiword = addr.plus(4).loadInt();
-        long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-        argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
+      if (argTypes[i].isReferenceType()) {
+        // for object, the arg is a JREF index, dereference to get the real object
+        argObjectArray[i] = env.getJNIRef(addr.loadInt());
+      } else if (argTypes[i].isIntType()) {
+        argObjectArray[i] = addr.loadInt();
       } else if (argTypes[i].isLongType()) {
-        hiword = addr.plus(4).loadInt();
-        long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-        argObjectArray[i] = VM_Reflection.wrapLong(longValue);
+        argObjectArray[i] = addr.loadLong();
       } else if (argTypes[i].isBooleanType()) {
         // the 0/1 bit is stored in the high byte
-        argObjectArray[i] = VM_Reflection.wrapBoolean(loword & 0x000000FF);
+        argObjectArray[i] = addr.loadByte() != 0;
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
-        argObjectArray[i] = VM_Reflection.wrapByte((byte) (loword & 0x000000FF));
+        argObjectArray[i] = addr.loadByte();
       } else if (argTypes[i].isCharType()) {
         // char is stored in the high 2 bytes
-        argObjectArray[i] = VM_Reflection.wrapChar((char) (loword & 0x0000FFFF));
+        argObjectArray[i] = addr.loadChar();
       } else if (argTypes[i].isShortType()) {
         // short is stored in the high 2 bytes
-        argObjectArray[i] = VM_Reflection.wrapShort((short) (loword & 0x0000FFFF));
-      } else if (argTypes[i].isReferenceType()) {
-        // for object, the arg is a JREF index, dereference to get the real object
-        argObjectArray[i] = env.getJNIRef(loword);
-      } else if (argTypes[i].isIntType()) {
-        argObjectArray[i] = VM_Reflection.wrapInt(loword);
+        argObjectArray[i] = addr.loadShort();
+      } else if (argTypes[i].isFloatType()) {
+        argObjectArray[i] = addr.loadFloat();
       } else {
-        return null;
+        if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
+        argObjectArray[i] = addr.loadDouble();
       }
     }
-
     return argObjectArray;
   }
 

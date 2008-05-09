@@ -130,8 +130,8 @@ public final class Unsafe {
     }
   }
 
-  public void unpark(Thread thread) {
-    VM_Thread vmthread = java.lang.JikesRVMSupport.getThread(thread);
+  public void unpark(Object thread) {
+    VM_Thread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
     if (vmthread != null) {
       vmthread.unpark();
     }

@@ -23,8 +23,8 @@ import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 
 /**
  * Maintain statistic information about on stack replacement events
@@ -98,7 +98,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
     // the compilation plan.
     boolean recmplsucc = false;
     if (VM_Controller.enabled) {
-      OPT_CompilationPlan cmplplan = null;
+      CompilationPlan cmplplan = null;
       if ((VM_Controller.options.ENABLE_REPLAY_COMPILE || VM_Controller.options.ENABLE_PRECOMPILE) &&
           VM_CompilerAdviceAttribute.hasAdvice()) {
         VM_CompilerAdviceAttribute attr = VM_CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
@@ -123,7 +123,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
         if (VM.VerifyAssertions) {VM._assert(cmplplan.getMethod() == state.meth);}
 
         // for invalidated method, we donot perform OSR guarded inlining anymore.
-        // the OPT_Options object may be shared by several methods,
+        // the Options object may be shared by several methods,
         // we have to reset it back
         boolean savedOsr = cmplplan.options.OSR_GUARDED_INLINING;
         cmplplan.options.OSR_GUARDED_INLINING = false;

@@ -36,7 +36,7 @@ class JikesRVMHelpers {
     return p.getSuperclassType();
   }
 
-  static TypeVariable<?>[] getTypeParameters(Class<?> clazz, VM_Atom sig) {
+  static <T> TypeVariable<Class<T>>[] getTypeParameters(Class<T> clazz, VM_Atom sig) {
     ClassSignatureParser p = new ClassSignatureParser(clazz, sig.toString());
     return p.getTypeParameters();
   }

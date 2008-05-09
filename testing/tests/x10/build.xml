@@ -1,0 +1,727 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="x10" default="test" basedir=".">
+
+  <import file="../../../build/tests.xml"/>
+  <ant antfile="../../../build/components/x10.xml" target="ensure" inheritall="false" inheritrefs="false"/>
+  <property file="${components.file}"/>
+
+  <property name="test.class.path"
+            value="${x10.dir}/x10.common/lib/x10.jar:${x10.dir}/x10.common/lib/x10c.jar:${x10.dir}/x10.common/lib/polyglot2.jar:${x10.dir}/x10.common/lib/lpg.jar"/>
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                   How to build and run an x10 test                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="x10c">
+    <attribute name="directory"/>
+    <attribute name="name"/>
+    <sequential>
+      <mkdir dir="${build.tests.dir}/@{directory}"/>
+      <copy todir="${build.tests.dir}/@{directory}">
+        <fileset dir="${x10.dir}/x10.common/examples/@{directory}"/>
+      </copy>
+      <!-- Currently the RVM can't execute x10c as java.util.Scanner is unimplemented.
+           See JIRA RVM-318
+      <rvm tag="@{name}"
+           dir="${build.tests.dir}/@{directory}"
+           class="polyglot.main.Main"
+           args="-ext x10 -noserial -sourcepath .:${x10.dir}/x10.common/examples/x10lib @{name}.x10"/>
+      -->
+      <java fork="true" dir="${build.tests.dir}/@{directory}"
+           classpath="${test.class.path}"
+           classname="polyglot.main.Main">
+        <arg value="-ext"/>
+        <arg value="x10"/>
+        <arg value="-noserial"/>
+        <arg value="-sourcepath"/>
+        <arg value=".:${x10.dir}/x10.common/examples/x10lib"/>
+        <arg value="@{name}.x10"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="x10">
+    <attribute name="directory"/>
+    <attribute name="name"/>
+    <attribute name="suffix"/>
+    <sequential>
+      <rvm tag="@{name}@{suffix}"
+           classpath="${test.class.path}:${build.tests.dir}/@{directory}"
+           dir="${build.tests.dir}/@{directory}"
+           class="x10.lang.Runtime"
+           args="@{name}"/>
+      <outputSingleStatisticResults tag="@{name}@{suffix}" key="passed" pattern="Test succeeded."/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="x10-test">
+    <attribute name="directory"/>
+    <attribute name="name"/>
+    <attribute name="suffix" default=""/>
+    <sequential>
+      <x10c directory="@{directory}" name="@{name}" />
+      <x10 directory="@{directory}" name="@{name}" suffix="@{suffix}" />
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <startResults/>
+
+    <x10-test directory="Constructs/Exceptions" name="Exceptions_BadPlace" />
+    <x10-test directory="Constructs/Exceptions" name="Exceptions3_MustFailTimeout" />
+    <x10-test directory="Constructs/Exceptions" name="Exceptions" />
+    <x10-test directory="Constructs/Exceptions" name="ExceptionBug_MustFailRun" />
+    <x10-test directory="Constructs/Exceptions" name="Exceptions2" />
+    <x10-test directory="Constructs/ForEach" name="Foreach1" />
+    <x10-test directory="Constructs/ForEach" name="Foreach2" />
+    <x10-test directory="Constructs/Unsafe" name="Unsafe" />
+    <x10-test directory="Constructs/Import/ImportTestPackage1/SubPackage" name="T3" />
+    <x10-test directory="Constructs/Import" name="ClassPathTest" />
+    <x10-test directory="Constructs/Import" name="ImportTest" />
+    <x10-test directory="Constructs/Future" name="FutureNullable1Boxed" />
+    <x10-test directory="Constructs/Future" name="Future5" />
+    <!-- <x10-test directory="Constructs/Future" name="FutureDeadlock_MustFailTimeout" /> -->
+    <x10-test directory="Constructs/Future" name="FutureTest2" />
+    <x10-test directory="Constructs/Future" name="FutureNullable0" />
+    <x10-test directory="Constructs/Future" name="Future4" />
+    <x10-test directory="Constructs/Future" name="FutureTest5" />
+    <x10-test directory="Constructs/Future" name="Future2Boxed" />
+    <x10-test directory="Constructs/Future" name="Future3Boxed" />
+    <x10-test directory="Constructs/Future" name="Future4Boxed" />
+    <x10-test directory="Constructs/Future" name="FutureForce" />
+    <x10-test directory="Constructs/Future" name="FutureTest4_MustFailCompile" />
+    <x10-test directory="Constructs/Future" name="Future1" />
+    <x10-test directory="Constructs/Future" name="Future1Boxed" />
+    <x10-test directory="Constructs/Future" name="FutureTest3" />
+    <x10-test directory="Constructs/Future" name="Future3" />
+    <x10-test directory="Constructs/Future" name="Future0" />
+    <x10-test directory="Constructs/Value" name="ValueClass6" />
+    <x10-test directory="Constructs/Value" name="ValueClass2_MustFailCompile" />
+    <x10-test directory="Constructs/Value" name="ValueClass3_MustFailCompile" />
+    <x10-test directory="Constructs/Value" name="ValueClass5_MustFailCompile" />
+    <x10-test directory="Constructs/Value" name="ValueClass" />
+    <x10-test directory="Constructs/Value" name="ValueClass4" />
+    <x10-test directory="Constructs/Value" name="ValueEquality" />
+    <x10-test directory="Constructs/Extern" name="JacobiExtern" />
+    <x10-test directory="Constructs/Extern" name="IntArrayExternUnsafe" />
+    <x10-test directory="Constructs/Extern" name="AllArrayExternUnsafe" />
+    <x10-test directory="Constructs/Extern" name="RandomAccess_longExtern" />
+    <x10-test directory="Constructs/Extern" name="BasicExternTest1" />
+    <x10-test directory="Constructs/DepType" name="SuperExtendsRule_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="Extends" />
+    <x10-test directory="Constructs/DepType" name="PropertyNotInvoked2_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="CondAnd" />
+    <x10-test directory="Constructs/DepType" name="MethodArgDepTypes" />
+    <x10-test directory="Constructs/DepType" name="VarBeingDefinedInType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="CharLitDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="MethodInvocation" />
+    <x10-test directory="Constructs/DepType" name="ConstructorInvocation_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="NonFinalField_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepTypeConsistency_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ValueProp1" />
+    <x10-test directory="Constructs/DepType" name="MethodArgDepTypes2" />
+    <x10-test directory="Constructs/DepType" name="ThisInConstructorReturn" />
+    <x10-test directory="Constructs/DepType" name="FieldPropFromThis" />
+    <x10-test directory="Constructs/DepType/TypeElaboration" name="CircularField" />
+    <x10-test directory="Constructs/DepType/TypeElaboration" name="CircularLV" />
+    <x10-test directory="Constructs/DepType" name="DepTypeThisClause" />
+    <x10-test directory="Constructs/DepType" name="CheckEqualTypes" />
+    <x10-test directory="Constructs/DepType" name="EquivClause_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="EntailsPositiveInner_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="StringLitDepType" />
+    <x10-test directory="Constructs/DepType" name="Transitivity" />
+    <x10-test directory="Constructs/DepType" name="EntailsPositiveInnerMustPass" />
+    <x10-test directory="Constructs/DepType" name="InheritedClause_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="RefToSameFieldInDepClause" />
+    <x10-test directory="Constructs/DepType" name="CharLitDepType" />
+    <x10-test directory="Constructs/DepType" name="UninitializedProperty_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="SelfFieldsMustBeProperties1_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="MethodInvocation_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ThisRestrictionsConstructorContext_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodArgDependsOnArg" />
+    <x10-test directory="Constructs/DepType" name="GuardedFieldAccess_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="IntDepType" />
+    <x10-test directory="Constructs/DepType" name="FieldsMustBeFinalInDepClause" />
+    <x10-test directory="Constructs/DepType" name="DepTypeVariableVisibility_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="FloatLitDepType" />
+    <x10-test directory="Constructs/DepType" name="InnerClass" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodArg_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="SameNameGuardedFieldAccess_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ClassDepClause" />
+    <x10-test directory="Constructs/DepType" name="CastChecking_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="EqualityInteger" />
+    <x10-test directory="Constructs/DepType" name="NonBooleanConstraint_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="NonFinalVariable_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="LongLitDepType" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodRet" />
+    <x10-test directory="Constructs/DepType" name="ThisPropogatedToReturnType" />
+    <x10-test directory="Constructs/DepType" name="InconsistentInterfaceInvariants_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DoubleLitDepType" />
+    <x10-test directory="Constructs/DepType" name="EntailsPositive_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="Prop1" />
+    <x10-test directory="Constructs/DepType" name="DepClauseForNullableType" />
+    <x10-test directory="Constructs/DepType" name="SameSignatureMethod_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodRet_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ValueProp" />
+    <x10-test directory="Constructs/DepType" name="GuardedMethodAccess" />
+    <x10-test directory="Constructs/DepType" name="DepTypeConsistency1_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="GuardedFieldAccess" />
+    <x10-test directory="Constructs/DepType" name="FloatLitDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepType1" />
+    <x10-test directory="Constructs/DepType" name="StringLitDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodRet1" />
+    <x10-test directory="Constructs/DepType" name="IntDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="CastChecking1_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="SamePropertyAncestor_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="CallLaterMethod" />
+    <x10-test directory="Constructs/DepType" name="StaticReturn" />
+    <x10-test directory="Constructs/DepType" name="EqualityBoolean" />
+    <x10-test directory="Constructs/DepType" name="DoubleLitDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepTypeRef" />
+    <x10-test directory="Constructs/DepType" name="InheritedClause" />
+    <x10-test directory="Constructs/DepType" name="IntLitDepType" />
+    <x10-test directory="Constructs/DepType" name="FieldDepType" />
+    <x10-test directory="Constructs/DepType" name="CheckDescendEntails_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="PropertyNotInvoked_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="NoDepClause" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodArg" />
+    <x10-test directory="Constructs/DepType" name="SelfFieldLocalVarShadow_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="SelfFieldsMustBeProperties_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ConstructorInvocation" />
+    <x10-test directory="Constructs/DepType" name="ReferenceConsistencyCheck" />
+    <x10-test directory="Constructs/DepType" name="LongLitDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DepType" />
+    <x10-test directory="Constructs/DepType" name="InterfaceProp_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ConsistentInterfaceInvariants" />
+    <x10-test directory="Constructs/DepType" name="ThisRestrictionsStaticContext_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="InnerDepType" />
+    <x10-test directory="Constructs/DepType" name="Transitive" />
+    <x10-test directory="Constructs/DepType" name="InterfaceTypeInvariant" />
+    <x10-test directory="Constructs/DepType" name="VariableMustBeFinalInDepClause" />
+    <x10-test directory="Constructs/DepType" name="IntLitDepType_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="DoubleLit" />
+    <x10-test directory="Constructs/DepType" name="Prop" />
+    <x10-test directory="Constructs/DepType" name="InterfaceTypeInvariant_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="CheckDescendEntails" />
+    <x10-test directory="Constructs/DepType" name="GuardedMethodAccess_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="ConstructorInvocation2" />
+    <x10-test directory="Constructs/DepType" name="DepTypeInMethodRet1_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="InterfaceProp" />
+    <x10-test directory="Constructs/DepType" name="PropertyMustBeAssignedInConsBody_MustFailCompile" />
+    <x10-test directory="Constructs/DepType" name="NegIntLitDepType" />
+    <x10-test directory="Constructs/DepType" name="VarBeingDefinedInType" />
+    <x10-test directory="Constructs/Annotations" name="DimTest" />
+    <x10-test directory="Constructs/Annotations" name="DimTest3_MustFailCompile" />
+    <x10-test directory="Constructs/Annotations" name="BitsTest" />
+    <x10-test directory="Constructs/Annotations" name="DimTest2" />
+    <x10-test directory="Constructs/Annotations" name="DimTest3" />
+    <x10-test directory="Constructs/Clock" name="ClockTest9" />
+    <x10-test directory="Constructs/Clock" name="ClockTest5" />
+    <x10-test directory="Constructs/Clock" name="ClockTest1" />
+    <x10-test directory="Constructs/Clock" name="ClockTest15WithResume" />
+    <x10-test directory="Constructs/Clock" name="ClockTest13" />
+    <x10-test directory="Constructs/Clock" name="ClockTest4" />
+    <x10-test directory="Constructs/Clock" name="ClockTest10" />
+    <x10-test directory="Constructs/Clock" name="ClockTest2" />
+    <x10-test directory="Constructs/Clock" name="ClockTest18_MustFailRun" />
+    <x10-test directory="Constructs/Clock" name="ClockTest11" />
+    <x10-test directory="Constructs/Clock" name="ClockTest6" />
+    <x10-test directory="Constructs/Clock" name="ClockTest12" />
+    <x10-test directory="Constructs/Clock" name="ClockTest3a" />
+    <x10-test directory="Constructs/Clock" name="ClockPascal2" />
+    <x10-test directory="Constructs/Clock" name="ClockTest3b" />
+    <x10-test directory="Constructs/Clock" name="ClockTest" />
+    <x10-test directory="Constructs/Clock" name="ClockTest3" />
+    <x10-test directory="Constructs/Clock" name="ClockTest7_MustFailRun" />
+    <x10-test directory="Constructs/Clock" name="ClockTest10a" />
+    <x10-test directory="Constructs/Clock" name="ClockTest16a_MustFailRun" />
+    <x10-test directory="Constructs/Clock" name="ClockPascal" />
+    <x10-test directory="Constructs/Clock" name="ClockTest14" />
+    <x10-test directory="Constructs/Clock" name="ClockTest16" />
+    <x10-test directory="Constructs/Clock" name="ClockTest8_MustFailRun" />
+    <x10-test directory="Constructs/Clock" name="ClockTest17_MustFailRun" />
+    <x10-test directory="Constructs/Clock" name="ClockFuture" />
+    <x10-test directory="Constructs/Clock" name="ClockTest15" />
+    <x10-test directory="Constructs/Final" name="ImplicitFinal2" />
+    <x10-test directory="Constructs/Final" name="ImplicitFinal" />
+    <x10-test directory="Constructs/MethodDecl" name="AbsractMustBeImplemented_MustFailCompile" />
+    <x10-test directory="Constructs/Instanceof" name="NullToNullableConstrainedType" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToPrimitiveConstrained1" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToPrimitiveConstrained_MustFailCompile" />
+    <x10-test directory="Constructs/Instanceof" name="NotInstanceof2_Method" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToPrimitiveConstrained2" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToNullablePrimitive" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToNullablePrimitiveConstrained1" />
+    <x10-test directory="Constructs/Instanceof" name="NullToNullablePrimitive" />
+    <x10-test directory="Constructs/Instanceof" name="NullToRegularType_MustFailCompile" />
+    <x10-test directory="Constructs/Instanceof" name="InstanceofDownCast1" />
+    <x10-test directory="Constructs/Instanceof" name="NullObjectToNullableConstrained" />
+    <x10-test directory="Constructs/Instanceof" name="NullableObjectToConstrainedType2" />
+    <x10-test directory="Constructs/Instanceof" name="NullToNullableType" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToPrimitive" />
+    <x10-test directory="Constructs/Instanceof" name="NullToConstrainedType_MustFailCompile" />
+    <x10-test directory="Constructs/Instanceof" name="InstanceofDownCast2" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToNullablePrimitiveConstrained1" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToNullablePrimitiveConstrained2" />
+    <x10-test directory="Constructs/Instanceof" name="NullableObjectToNullableConstrainedType" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToNullablePrimitive1" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToNullablePrimitiveConstrained3" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToNullablePrimitiveConstrained4" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToPrimitiveConstrained1" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToPrimitiveConstrained2" />
+    <x10-test directory="Constructs/Instanceof" name="NullableObjectToConstrainedType1" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToNullablePrimitiveConstrained2_MustFailCompile" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToPrimitive" />
+    <x10-test directory="Constructs/Instanceof" name="NotInstanceof1_Inline" />
+    <x10-test directory="Constructs/Instanceof" name="InstanceofDownCast" />
+    <x10-test directory="Constructs/Instanceof" name="ObjectToPrimitive2" />
+    <x10-test directory="Constructs/Instanceof" name="NullObjectToNullable" />
+    <x10-test directory="Constructs/Instanceof" name="PrimitiveToObject" />
+    <x10-test directory="Constructs/Instanceof" name="ReferenceToReference" />
+    <x10-test directory="Constructs/Instanceof" name="NullToPrimitive_MustFailCompile" />
+    <x10-test directory="Constructs/Instanceof" name="NullToNullablePrimitiveConstrained" />
+    <x10-test directory="Constructs/Async" name="AsyncTest" />
+    <x10-test directory="Constructs/Async" name="AsyncNext" />
+    <x10-test directory="Constructs/Async" name="AsyncTest2" />
+    <x10-test directory="Constructs/Async" name="AsyncTest1" />
+    <x10-test directory="Constructs/Async" name="AsyncFieldAccess" />
+    <x10-test directory="Constructs/Async" name="AsyncReturn" />
+    <x10-test directory="Constructs/Async" name="ClockAsyncTest2" />
+    <x10-test directory="Constructs/Async" name="AsyncTest5" />
+    <x10-test directory="Constructs/Async" name="AsyncTest3" />
+    <x10-test directory="Constructs/Async" name="ClockAsyncTest" />
+    <x10-test directory="Constructs/Async" name="AsyncTest4_MustFailCompile" />
+    <x10-test directory="Constructs/Nullable" name="DoubleToNullableDoubleCastTest" />
+    <x10-test directory="Constructs/Nullable" name="NullableFuture2" />
+    <x10-test directory="Constructs/Nullable" name="NullableIntArray" />
+    <x10-test directory="Constructs/Nullable" name="Nullable0Ref" />
+    <x10-test directory="Constructs/Nullable" name="NullableOverriding" />
+    <x10-test directory="Constructs/Nullable" name="NullableArray2" />
+    <x10-test directory="Constructs/Nullable" name="NullableArray3" />
+    <x10-test directory="Constructs/Nullable" name="NullableObject2" />
+    <x10-test directory="Constructs/Nullable" name="NullableFuture1" />
+    <x10-test directory="Constructs/Nullable" name="NullableArray" />
+    <x10-test directory="Constructs/Nullable" name="NullableArray3_MustFailCompile" />
+    <x10-test directory="Constructs/Nullable" name="Nullable1" />
+    <x10-test directory="Constructs/Nullable" name="DoubleToNullableDoubleTest" />
+    <x10-test directory="Constructs/Nullable" name="NullableObjectArray" />
+    <x10-test directory="Constructs/Nullable" name="Nullable5" />
+    <x10-test directory="Constructs/Nullable" name="NullableInt" />
+    <x10-test directory="Constructs/Nullable" name="NullableFuture0" />
+    <x10-test directory="Constructs/Nullable" name="NullableArray5" />
+    <x10-test directory="Constructs/Nullable" name="NullableObject3" />
+    <x10-test directory="Constructs/Nullable" name="Nullable2" />
+    <x10-test directory="Constructs/Nullable" name="NullableObject" />
+    <x10-test directory="Constructs/Atomic" name="AtomicReturn" />
+    <x10-test directory="Constructs/Atomic" name="AtomicTest" />
+    <x10-test directory="Constructs/Atomic" name="NoAwaitInAtomic_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="ConditionalAtomicQueue" />
+    <x10-test directory="Constructs/Atomic" name="AtomicNonLocal_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="NoForEachInAtomic_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="Atomic2" />
+    <x10-test directory="Constructs/Atomic" name="Atomic1" />
+    <x10-test directory="Constructs/Atomic" name="AwaitTest2" />
+    <x10-test directory="Constructs/Atomic" name="AtomicOrdered" />
+    <x10-test directory="Constructs/Atomic" name="WhenReturn" />
+    <x10-test directory="Constructs/Atomic" name="NoAtEachInAtomic_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="AtomicMethodTest" />
+    <x10-test directory="Constructs/Atomic" name="ConditionalAtomicTest" />
+    <x10-test directory="Constructs/Atomic" name="NoWhenInAtomic_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="NoNextInAtomic_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="NoAsyncInAtomic_MustFailCompile" />
+    <x10-test directory="Constructs/Atomic" name="WhenReturnAll" />
+    <x10-test directory="Constructs/Atomic" name="AwaitTest" />
+    <x10-test directory="Constructs/Atomic" name="AtomicContainingWhen_MustFailCompile" />
+    <x10-test directory="Constructs/Distribution" name="ConstDist" />
+    <x10-test directory="Constructs/Distribution" name="BlockDistWithPlaceSet" />
+    <x10-test directory="Constructs/Distribution" name="DistributionTest1" />
+    <x10-test directory="Constructs/Distribution" name="CyclicDistWithPlaceSet" />
+    <x10-test directory="Constructs/Distribution" name="DistBounds2D" />
+    <x10-test directory="Constructs/Distribution" name="DistAlgebra2" />
+    <x10-test directory="Constructs/Distribution" name="BlockCyclicDist" />
+    <x10-test directory="Constructs/Distribution" name="DistBounds3D" />
+    <x10-test directory="Constructs/Distribution" name="DistributionTest" />
+    <x10-test directory="Constructs/Distribution" name="BlockDist" />
+    <x10-test directory="Constructs/Distribution" name="DistBounds1D" />
+    <x10-test directory="Constructs/Distribution" name="DistAlgebra3_MustFailRun" />
+    <x10-test directory="Constructs/Distribution" name="BlockCyclicDistWithPlaceSet" />
+    <x10-test directory="Constructs/Distribution" name="DistAlgebra" />
+    <x10-test directory="Constructs/Distribution" name="ArrayToDist" />
+    <x10-test directory="Constructs/Distribution" name="CyclicDist" />
+    <x10-test directory="Constructs/Distribution" name="Restrict" />
+    <x10-test directory="Constructs/Init" name="InitNonNullable_MustFailCompile" />
+    <x10-test directory="Constructs/Boxing" name="Boxing0" />
+    <x10-test directory="Constructs/Boxing" name="Boxing2" />
+    <x10-test directory="Constructs/Boxing" name="Boxing1" />
+    <x10-test directory="Constructs/PlaceCast" name="PlaceCast" />
+    <x10-test directory="Constructs/PlaceCast" name="ClassCast1" />
+    <x10-test directory="Constructs/PlaceCast" name="PlaceCheck1" />
+    <x10-test directory="Constructs/PlaceCast" name="PlaceCast2" />
+    <x10-test directory="Constructs/Modifiers" name="SafeClass" />
+    <x10-test directory="Constructs/Modifiers" name="SafeOverride1_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="AtomicNonblocking" />
+    <x10-test directory="Constructs/Modifiers" name="Sequential" />
+    <x10-test directory="Constructs/Modifiers" name="SequentialOverride_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="Local" />
+    <x10-test directory="Constructs/Modifiers" name="Safe" />
+    <x10-test directory="Constructs/Modifiers" name="SafeStatic" />
+    <x10-test directory="Constructs/Modifiers" name="WierdModifier_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="NonBlocking" />
+    <x10-test directory="Constructs/Modifiers" name="SafeClass_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="AtomicAtomic" />
+    <x10-test directory="Constructs/Modifiers" name="SafeOverride2_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="SafeOverride_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="ManyModifiers" />
+    <x10-test directory="Constructs/Modifiers" name="NonBlockingOverride_MustFailCompile" />
+    <x10-test directory="Constructs/Modifiers" name="LocalOverride_MustFailCompile" />
+    <x10-test directory="Constructs/NoStaticMutable" name="NoStaticMutable1_MustFailCompile" />
+    <x10-test directory="Constructs/Constructor" name="PropertyAssign" />
+    <x10-test directory="Constructs/Cast" name="FloatLit" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="X10DepTypeClassTwo" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastConstraintOnThis" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastConstrainedNullableToConstrainedNonNullable" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastNegativeConstraint" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastNullNullableToConstrained" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastNullToConstrainedNullable" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastNullableToNonNullable" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCastInterface1_Object" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastNullNullableToNonNullable" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCastUpCastHeritage" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastConstrainedToConstrainedNullable_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="ClassDepTypeCastWideningClause" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="X10DepTypeClassOne" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCastDownCastHeritage" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="StaticCastWithHeritage" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="AssignmentNullToConstrainedNullable_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="ClassDepTypeCastWideningClause_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCast1" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCast3_Object" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="CastNullNullableToNullable" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCast4_MethodReturn" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCast6_DepTypeVariables" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCast2" />
+    <x10-test directory="Constructs/Cast/ReferenceDependentTypeCast" name="DynamicCast5_MethodReturn" />
+    <x10-test directory="Constructs/Cast" name="IntToInt1" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToPrimitiveConstrained1" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentIntLitteralToConstrainedInt_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxNullablePrimitiveConstrained1_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveLitteralToPrimitiveConstrained_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="PrimitiveDepTypeAssignmentOverflow" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Short_ConstraintDeclaredAsShort" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxNullablePrimitiveConstrained2_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Long_ConstraintDeclaredAsLong" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveLitteralToPrimitiveConstrained1" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentPrimitiveConstrainedToPrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Long_ConstrainedDeclaredAsIntegerOverflow_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxPrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Short_ConstraintDeclaredAsInteger" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentLitteralPrimitiveToPrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentPrimitiveConstrainedToPrimitiveConstrained_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentIntLitteralToConstrainedInt" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToNullablePrimitiveConstrained" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="NumericExpressionToPrimitiveDepType_2" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveToPrimitiveConstrained1" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="PrimitiveDepTypeCast_Overflow1" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="NumericExpressionToPrimitiveDepType_3" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="NumericExpressionToPrimitiveDepType_1" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentPrimitiveConstrainedIdentity" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveConstrainedToPrimitiveConstrained" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentLitteralPrimitiveToPrimitiveConstrained_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="NumericExpressionToPrimitiveDepType_8" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Long_ConstraintDeclaredAsInteger" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentIntegerLitteralToConstrainedShort_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastNullablePrimitiveToPrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxPrimitiveConstrained2_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Float_ConstraintDeclaredAsDouble_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastNullToNullableReference" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Long_ConstrainedDeclaredAsIntegerOverflow2_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToPrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToPrimitiveConstrained2" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveToObject" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxPrimitiveConstrained1_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToPrimitive2" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Integer_ConstraintWithVariable" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastNullToNullablePrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="NumericExpressionToPrimitiveDepType_5" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveConstrainedToPrimitiveConstrained_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToNullablePrimitiveConstrained2" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastPrimitiveToPrimitiveConstrained2" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="PrimitiveAssignment" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="AssignmentPrimitiveToPrimitiveConstrained_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxNullablePrimitiveConstrained" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxNullablePrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="Float_ConstraintDeclaredAsFloat" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="NumericExpressionToPrimitiveDepType_4" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastBoxedToNullablePrimitive" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastNullToReference_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastNullToNullablePrimitiveConstrained" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="UnboxPrimitiveConstrained" />
+    <x10-test directory="Constructs/Cast/PrimitiveDependentTypeCast" name="CastLitteralToPrimitive" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="ArrayIdentityCast" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="ArrayDynamicCastFromMethod2" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="RegionIdentityCast" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="RegionDynamicCast1" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="DistributionDynamicCast1" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="ArrayDynamicCastFromObject" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="DistributionIdentityCast" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="ArrayCast1_MustFailCompile" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="ArrayDynamicCastFromMethod" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="ArrayDynamicCast" />
+    <x10-test directory="Constructs/Cast/ArrayDependentTypeCast" name="RegionCastWideningClause" />
+    <x10-test directory="Constructs/Cast" name="Int1ToInt" />
+    <x10-test directory="Constructs/Cast" name="Int1ToInt0_MustFailCompile" />
+    <x10-test directory="Constructs/Await" name="ArgMustBeBoolean_MustFailCompile" />
+    <x10-test directory="Constructs/Lit" name="IntLitOct" />
+    <x10-test directory="Constructs/Lit" name="IntLitOctOutOfRange_MustFailCompile" />
+    <x10-test directory="Constructs/Lit" name="IntLitHexBad_MustFailCompile" />
+    <x10-test directory="Constructs/Lit" name="IntLitHex" />
+    <x10-test directory="Constructs/Lit" name="IntLitOctBad_MustFailCompile" />
+    <x10-test directory="Constructs/Lit" name="IntLitOutOfRange_MustFailCompile" />
+    <x10-test directory="Constructs/Lit" name="IntLitHexOutOfRange_MustFailCompile" />
+    <x10-test directory="Constructs/StorageClass" name="StorageClassesTest" />
+    <x10-test directory="Constructs/Point" name="UninitializedPointBinding_MustFailCompile" />
+    <x10-test directory="Constructs/Point" name="PointIndex" />
+    <x10-test directory="Constructs/Point" name="PointArithmetic" />
+    <x10-test directory="Constructs/Point" name="PointRebinding" />
+    <x10-test directory="Constructs/Point" name="ArrayPointBinding_MustFailCompile" />
+    <x10-test directory="Constructs/Point" name="PointBinding" />
+    <x10-test directory="Constructs/Point" name="PointArray" />
+    <x10-test directory="Constructs/Types" name="NullableObjectEqualsPrimitive" />
+    <x10-test directory="Constructs/Types" name="ObjectEqualsPrimitive" />
+    <x10-test directory="Constructs/Types" name="PrimitiveLiteralHasLocation" />
+    <x10-test directory="Constructs/Types" name="PrimitiveHasLocation" />
+    <x10-test directory="Constructs/Types" name="PrimitiveLiteralIsAnObject" />
+    <x10-test directory="Constructs/AtEach" name="AtEach2" />
+    <x10-test directory="Constructs/AtEach" name="AtEachLoopOnArray" />
+    <x10-test directory="Constructs/AtEach" name="AtEach" />
+    <x10-test directory="Constructs/For" name="ForLoop4" />
+    <x10-test directory="Constructs/For" name="ForLoop2" />
+    <x10-test directory="Constructs/For" name="ForLoopOnArray" />
+    <x10-test directory="Constructs/For" name="ForLoop3" />
+    <x10-test directory="Constructs/For" name="ForLoop" />
+    <x10-test directory="Constructs/Array" name="Force" />
+    <x10-test directory="Constructs/Array" name="Array1" />
+    <x10-test directory="Constructs/Array" name="DimCheckN_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="ArrayBounds2D" />
+    <x10-test directory="Constructs/Array" name="ObjectArrayInitializerShorthand" />
+    <x10-test directory="Constructs/Array" name="FlattenVarInit" />
+    <x10-test directory="Constructs/Array" name="DimCheck" />
+    <x10-test directory="Constructs/Array" name="ArrayInitializerShorthand" />
+    <x10-test directory="Constructs/Array" name="Array1Exploded" />
+    <x10-test directory="Constructs/Array" name="StencilForeach2D_Dep" />
+    <x10-test directory="Constructs/Array" name="CheckTwice" />
+    <x10-test directory="Constructs/Array" name="JavaArrayNotInitialized_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="IntValueArrayInitializerShorthand" />
+    <x10-test directory="Constructs/Array" name="UserArrayBounds3D" />
+    <x10-test directory="Constructs/Array" name="Array3" />
+    <x10-test directory="Constructs/Array" name="BlockDistedArray1D_Dep" />
+    <x10-test directory="Constructs/Array" name="ArrayTypeCheck" />
+    <x10-test directory="Constructs/Array" name="IntArrayInitializerShorthand" />
+    <x10-test directory="Constructs/Array" name="Array1DCodeGen" />
+    <x10-test directory="Constructs/Array" name="ConstructDist2D" />
+    <x10-test directory="Constructs/Array" name="ArrayOpAssign" />
+    <x10-test directory="Constructs/Array" name="Array31" />
+    <x10-test directory="Constructs/Array" name="Array1b" />
+    <x10-test directory="Constructs/Array" name="ArraySubtypeCheck_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="ArrayTypeCheck2_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="ArrayFutureFlatten" />
+    <x10-test directory="Constructs/Array" name="ArrayAlgebra" />
+    <x10-test directory="Constructs/Array" name="StencilFor2D" />
+    <x10-test directory="Constructs/Array" name="TestSimpleArrayMult" />
+    <x10-test directory="Constructs/Array" name="BlockDistedArray2D" />
+    <x10-test directory="Constructs/Array" name="UserArrayBounds1D" />
+    <x10-test directory="Constructs/Array" name="Array3Double" />
+    <x10-test directory="Constructs/Array" name="Array5" />
+    <x10-test directory="Constructs/Array" name="FlattenArray4" />
+    <x10-test directory="Constructs/Array" name="ArrayDecl" />
+    <x10-test directory="Constructs/Array" name="ArrayFuture" />
+    <x10-test directory="Constructs/Array" name="FlattenInitFor" />
+    <x10-test directory="Constructs/Array" name="StencilFor2D_Dep" />
+    <x10-test directory="Constructs/Array" name="JavaArrayWithInitializer" />
+    <x10-test directory="Constructs/Array" name="FlattenArray3" />
+    <x10-test directory="Constructs/Array" name="ArrayOverRegion" />
+    <x10-test directory="Constructs/Array" name="FlattenArray" />
+    <x10-test directory="Constructs/Array" name="Array3Char" />
+    <x10-test directory="Constructs/Array" name="IntArrayMaxAbs" />
+    <x10-test directory="Constructs/Array" name="ArrayAlgebra2" />
+    <x10-test directory="Constructs/Array" name="MiscTest1" />
+    <x10-test directory="Constructs/Array" name="EncapsulatedArray2D_Dep" />
+    <x10-test directory="Constructs/Array" name="FlattenInVoid" />
+    <x10-test directory="Constructs/Array" name="FlattenPlaceCast" />
+    <x10-test directory="Constructs/Array" name="BlockDistedArray2D_Dep" />
+    <x10-test directory="Constructs/Array" name="FlattenAsyncExpr2" />
+    <x10-test directory="Constructs/Array" name="EncapsulatedArray1D_Dep" />
+    <x10-test directory="Constructs/Array" name="NullableArrayAssign" />
+    <x10-test directory="Constructs/Array" name="ArrayOpAssign2" />
+    <x10-test directory="Constructs/Array" name="ArrayBounds3D" />
+    <x10-test directory="Constructs/Array" name="UserArrayBounds2D" />
+    <x10-test directory="Constructs/Array" name="ArrayArrayInitializerShorthand" />
+    <x10-test directory="Constructs/Array" name="Array2v" />
+    <x10-test directory="Constructs/Array" name="MultiDimensionalJavaArray" />
+    <x10-test directory="Constructs/Array" name="ArrayCopy1" />
+    <x10-test directory="Constructs/Array" name="Array3Short" />
+    <x10-test directory="Constructs/Array" name="ArrayCopy3" />
+    <x10-test directory="Constructs/Array" name="Array4" />
+    <x10-test directory="Constructs/Array" name="ArrayCopy2" />
+    <x10-test directory="Constructs/Array" name="ArrayBounds1D" />
+    <x10-test directory="Constructs/Array" name="DimCheckN2_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="FlattenFutureCall" />
+    <x10-test directory="Constructs/Array" name="FlattenConditional3" />
+    <x10-test directory="Constructs/Array" name="FlattenCast" />
+    <x10-test directory="Constructs/Array" name="FlattenValForce" />
+    <x10-test directory="Constructs/Array" name="StencilForeach2D" />
+    <x10-test directory="Constructs/Array" name="FlattenCondOr" />
+    <x10-test directory="Constructs/Array" name="FlattenCondAnd" />
+    <x10-test directory="Constructs/Array" name="DimCheck_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="Array3Boolean" />
+    <x10-test directory="Constructs/Array" name="FlattenArray2" />
+    <x10-test directory="Constructs/Array" name="EncapsulatedArray1D" />
+    <x10-test directory="Constructs/Array" name="Array1c" />
+    <x10-test directory="Constructs/Array" name="Array3Byte" />
+    <x10-test directory="Constructs/Array" name="ArrayInitializer" />
+    <x10-test directory="Constructs/Array" name="Array3Float" />
+    <x10-test directory="Constructs/Array" name="UserDefinedArray" />
+    <x10-test directory="Constructs/Array" name="FlattenConditional" />
+    <x10-test directory="Constructs/Array" name="EncapsulatedArray2D" />
+    <x10-test directory="Constructs/Array" name="JavaArrayInitializer" />
+    <x10-test directory="Constructs/Array" name="BlockDistedArray1D" />
+    <x10-test directory="Constructs/Array" name="Array3Long" />
+    <x10-test directory="Constructs/Array" name="ArrayTypeCheck_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="FlattenConditional2" />
+    <x10-test directory="Constructs/Array" name="DimCheckN4_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="ArrayTypeCheck2" />
+    <x10-test directory="Constructs/Array" name="DimCheckN3_MustFailCompile" />
+    <x10-test directory="Constructs/Array" name="FlattenAsyncExpr" />
+    <x10-test directory="Constructs/Array" name="FlattenCondAndAnd" />
+    <x10-test directory="Constructs/Region" name="RegionConvexHull" />
+    <x10-test directory="Constructs/Region" name="RegionTriangular" />
+    <x10-test directory="Constructs/Region" name="RegionTestIterator" />
+    <x10-test directory="Constructs/Region" name="RegionTest1" />
+    <x10-test directory="Constructs/Region" name="ArrayOfRegions" />
+    <x10-test directory="Constructs/Region" name="RegionTest2" />
+    <x10-test directory="Constructs/Region" name="RegionWithHoles2" />
+    <x10-test directory="Constructs/Region" name="RegionAlgebra" />
+    <x10-test directory="Constructs/Region" name="RegionWithHoles" />
+    <x10-test directory="Constructs/Region" name="RegionDifference" />
+    <x10-test directory="Constructs/Region" name="RegionEquality" />
+    <x10-test directory="Constructs/Region" name="RegionBanded" />
+    <x10-test directory="Constructs/Finish" name="FinishTest1" />
+    <x10-test directory="Constructs/Finish" name="FinishTest2" />
+    
+    <x10-test directory="Misc" name="RefA" />
+    <x10-test directory="Misc" name="FieldAccessTest_MustFailCompile" />
+    <x10-test directory="Misc" name="NonX10Constructs_MustFailCompile" />
+    <x10-test directory="Misc" name="Unreachable" />
+    <x10-test directory="Misc" name="StringTest" />
+    <x10-test directory="Misc" name="BreakInForTest" />
+    <x10-test directory="Misc" name="AssignIntToChar" />
+    <x10-test directory="Misc" name="HereParentheses" />
+    <x10-test directory="Misc" name="NopTest" />
+    <x10-test directory="Misc" name="ExpressionParentheses" />
+    <x10-test directory="Misc" name="ObjectEquality" />
+    <x10-test directory="Misc" name="LiteralTest" />
+    <x10-test directory="Misc" name="CommentTest" />
+    <x10-test directory="Misc" name="TabsInStrings" />
+    <x10-test directory="Misc" name="SevereError" />
+    <x10-test directory="Misc" name="FinalInitializationTest" />
+    <x10-test directory="Misc" name="IfElseFinishBug" />
+    <x10-test directory="Misc" name="NullableComparison" />
+    <x10-test directory="Misc" name="InfiniteLoopTest_MustFailTimeout" />
+    <x10-test directory="Misc" name="MissingReturn_MustFailCompile" />
+    <x10-test directory="Misc" name="TypeElaborationAcrossCompilationUnits" />
+    <x10-test directory="Misc" name="RemoteAccessCheck" />
+    <x10-test directory="Misc" name="Unreachable3_MustFailTimeout" />
+    <x10-test directory="Misc" name="VariableScope" />
+    <x10-test directory="Misc" name="ListTest" />
+    <x10-test directory="Timings" name="ArrayIndexing" />
+    <x10-test directory="Timings" name="Initialization" />
+    <x10-test directory="Timings" name="IntArrayIndexing" />
+    <!-- <x10-test directory="x10lib" name="TestHarness" /> -->
+      
+    <x10-test directory="Applications/NewJavaGrande/lufact/serial" name="JGFLUFactBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/lufact/distributed" name="JGFLUFactBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/raytracer/parallel" name="JGFRayTracerBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/raytracer/serial" name="JGFRayTracerBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/raytracer/distributed" name="JGFRayTracerBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/moldyn/parallel" name="JGFMolDynBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/moldyn/serial" name="JGFMolDynBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/moldyn/distributed" name="JGFMolDynBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/sor/parallel" name="JGFSORBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/sor/serial" name="JGFSORBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/sor/distributed" name="JGFSORBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/crypt/parallel" name="JGFCryptBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/crypt/serial" name="JGFCryptBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/crypt/distributed" name="JGFCryptBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/montecarlo/parallel" name="JGFMonteCarloBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/montecarlo/serial" name="JGFMonteCarloBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/montecarlo/distributed" name="JGFMonteCarloBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/sparsematmult/parallel" name="JGFSparseMatmultBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/sparsematmult/serial" name="JGFSparseMatmultBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/sparsematmult/distributed" name="JGFSparseMatmultBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/NewJavaGrande/series/parallel" name="JGFSeriesBenchSizeA" suffix="-parallel"/>
+    <x10-test directory="Applications/NewJavaGrande/series/serial" name="JGFSeriesBenchSizeA" suffix="-serial"/>
+    <x10-test directory="Applications/NewJavaGrande/series/distributed" name="JGFSeriesBenchSizeA" suffix="-distributed"/>
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel8" />
+    <x10-test directory="Applications/OtherApps" name="GameOfLife" />
+    <x10-test directory="Applications/OtherApps" name="RandomAccess_long" />
+    <x10-test directory="Applications/OtherApps" name="LU_Overlap1" />
+    <x10-test directory="Applications/OtherApps" name="LU" />
+    <x10-test directory="Applications/OtherApps" name="MpiExample" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Sequential3" />
+    <x10-test directory="Applications/OtherApps" name="JacobiSmall" />
+    <x10-test directory="Applications/OtherApps" name="QueensList" />
+    <x10-test directory="Applications/OtherApps" name="Jacobi" />
+    <x10-test directory="Applications/OtherApps" name="Tree" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel4b" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel7" />
+    <x10-test directory="Applications/OtherApps" name="AllReductionBarrier" />
+    <x10-test directory="Applications/OtherApps" name="MpiExample2" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel4" />
+    <x10-test directory="Applications/OtherApps" name="LU_Overlap" />
+    <x10-test directory="Applications/OtherApps" name="AllReductionP2P" />
+    <x10-test directory="Applications/OtherApps" name="RandomAccess_int" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel9" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel5" />
+    <x10-test directory="Applications/OtherApps" name="AllReductionBarrier_Dep" />
+    <x10-test directory="Applications/OtherApps" name="LU_Overlap0" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel2" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel3" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel11" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Sequential2" />
+    <x10-test directory="Applications/OtherApps" name="Jacobi_skewed" />
+    <x10-test directory="Applications/OtherApps" name="AllReductionP2P_Dep" />
+    <x10-test directory="Applications/OtherApps" name="RandomAccess" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Sequential1" />
+    <x10-test directory="Applications/OtherApps" name="QueensList3" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel1" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel6" />
+    <x10-test directory="Applications/OtherApps" name="RandomAccess_skewed" />
+    <x10-test directory="Applications/OtherApps" name="LU_Dep" />
+    <x10-test directory="Applications/OtherApps" name="Edmiston_Parallel10" />
+    <x10-test directory="Applications/sparsematmult" name="SparseMatmultAllValues" />
+    <x10-test directory="Applications/sparsematmult" name="SparseMatmultAllValuesClean" />
+    <x10-test directory="Applications/NPB3_0" name="mg" />
+    <x10-test directory="Applications/NPB3_0" name="cg" />
+
+    <finishResults/>
+  </target>
+
+</project>

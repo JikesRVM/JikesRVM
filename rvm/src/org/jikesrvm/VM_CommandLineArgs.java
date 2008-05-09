@@ -32,77 +32,87 @@ import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 public class VM_CommandLineArgs {
   private static final boolean DEBUG = false;
 
+  /**
+   * Argument types
+   */
+  private enum PrefixType {
+    /**
+     * Invalid argument type
+     */
+    INVALID_ARG, // default
+    /**
+     * Application argument
+     */
+    APPLICATION_ARG,
+
+    // -----------------------------------------------//
+    // The following arguments are standard java.     //
+    // -----------------------------------------------//
+    CLASSPATH_ARG,
+    ENVIRONMENT_ARG,
+    VERBOSE_JNI_ARG,
+    VERBOSE_CLS_ARG,
+    JAR_ARG,
+    JAVAAGENT_ARG,
+    ENABLE_ASSERTION_ARG,
+    DISABLE_ASSERTION_ARG,
+
+    // -----------------------------------------------//
+    // The following arguments are RVM-specific.      //
+    // -----------------------------------------------//
+    VM_HELP_ARG,
+    VM_ARG,
+    IRC_HELP_ARG,
+    IRC_ARG,
+    RECOMP_HELP_ARG,
+    RECOMP_ARG,
+    AOS_HELP_ARG,
+    AOS_ARG,
+    BASE_HELP_ARG,
+    BASE_ARG,
+    OPT_ARG,
+    OPT_HELP_ARG,
+    /* Silently ignored */
+    VERIFY_ARG,
+    GC_HELP_ARG,
+    GC_ARG,
+    BOOTSTRAP_CLASSES_ARG,
+    CPUAFFINITY_ARG,
+    PROCESSORS_ARG
+  }
+
   /** Represent a single command line prefix */
   private static final class Prefix implements Comparable<Prefix> {
     /** The command line string e.g. "-X:irc:" */
     public final String value;
     /** A number that describes the type of the argument */
-    public final int type;
+    public final PrefixType type;
     /** Number of arguments of this type seen */
     public int count = 0;
 
     /** Construct a prefix with the given argument string and type */
-    public Prefix(String v, int t) {
+    public Prefix(String v, PrefixType t) {
       value = v;
       type = t;
+      if (t == null) {
+        throw new Error("Type of prefix should never be null");
+      }
     }
 
     /** Sorting method for Comparable. Sort by string value */
     public int compareTo(Prefix o) {
       return -value.compareTo(o.value);
     }
+    /** Command line string representation of the prefix */
+    public String toString() {
+      return value;
+    }
   }
-
-  // ---------------//
-  // Argument types //
-  // ---------------//
-
-  /**
-   * Invalid argument type
-   */
-  public static final int INVALID_ARG = 0; // default
-  /**
-   * Application argument
-   */
-  public static final int APPLICATION_ARG = 1;
-
-  // -----------------------------------------------//
-  // The following arguments are standard java.     //
-  // -----------------------------------------------//
-  public static final int CLASSPATH_ARG = 2;
-  public static final int ENVIRONMENT_ARG = 3;
-  public static final int VERBOSE_JNI_ARG = 5;
-  public static final int VERBOSE_CLS_ARG = 6;
-  public static final int JAR_ARG = 7;
-  public static final int JAVAAGENT_ARG = 8;
-  public static final int ASSERTION_ARG = 9;
-
-  // -----------------------------------------------//
-  // The following arguments are RVM-specific.      //
-  // -----------------------------------------------//
-  public static final int VM_HELP_ARG = 10;
-  public static final int VM_ARG = 11;
-  public static final int IRC_HELP_ARG = 12;
-  public static final int IRC_ARG = 13;
-  public static final int RECOMP_HELP_ARG = 14;
-  public static final int RECOMP_ARG = 15;
-  public static final int AOS_HELP_ARG = 16;
-  public static final int AOS_ARG = 17;
-  public static final int BASE_HELP_ARG = 18;
-  public static final int BASE_ARG = 19;
-  public static final int OPT_ARG = 20;
-  public static final int OPT_HELP_ARG = 21;
-  public static final int VERIFY_ARG = 22; /* Silently ignored */
-  public static final int GC_HELP_ARG = 23;
-  public static final int GC_ARG = 24;
-  public static final int BOOTSTRAP_CLASSES_ARG = 27;
-  public static final int CPUAFFINITY_ARG = 28;
-  public static final int PROCESSORS_ARG = 29;
 
   /**
    * A catch-all prefix to find application name.
    */
-  private static final Prefix app_prefix = new Prefix("", APPLICATION_ARG);
+  private static final Prefix app_prefix = new Prefix("", PrefixType.APPLICATION_ARG);
 
   /**
    * A list of possible prefixes for command line arguments.
@@ -120,46 +130,52 @@ public class VM_CommandLineArgs {
    * The type will be used to classify the prefix.  Multiple entries CAN
    * have the same type.
    */
-  private static final Prefix[] prefixes = {new Prefix("-classpath ", CLASSPATH_ARG),
+  private static final Prefix[] prefixes = {new Prefix("-classpath ", PrefixType.CLASSPATH_ARG),
                                             // Note: space is significant
-                                            new Prefix("-cp ", CLASSPATH_ARG),
+                                            new Prefix("-cp ", PrefixType.CLASSPATH_ARG),
                                             // Note: space is significant
-                                            new Prefix("-jar ", JAR_ARG),
+                                            new Prefix("-jar ", PrefixType.JAR_ARG),
                                             // Note: space is significant
-                                            new Prefix("-javaagent:", JAVAAGENT_ARG),
-                                            new Prefix("-D", ENVIRONMENT_ARG),
-                                            new Prefix("-verbose:class$", VERBOSE_CLS_ARG),
-                                            new Prefix("-verbose:jni$", VERBOSE_JNI_ARG),
-                                            new Prefix("-verbose$", VERBOSE_CLS_ARG),
-                                            new Prefix("-enableassertions$", ASSERTION_ARG),
-                                            new Prefix("-ea$", ASSERTION_ARG),
-                                            new Prefix("-X:vmClasses=", BOOTSTRAP_CLASSES_ARG),
-                                            new Prefix("-X:cpuAffinity=", CPUAFFINITY_ARG),
-                                            new Prefix("-X:processors=", PROCESSORS_ARG),
-                                            new Prefix("-X:irc:help$", IRC_HELP_ARG),
-                                            new Prefix("-X:irc$", IRC_HELP_ARG),
-                                            new Prefix("-X:irc:", IRC_ARG),
-                                            new Prefix("-X:recomp:help$", RECOMP_HELP_ARG),
-                                            new Prefix("-X:recomp$", RECOMP_HELP_ARG),
-                                            new Prefix("-X:recomp", RECOMP_ARG),
-                                            new Prefix("-X:aos:help$", AOS_HELP_ARG),
-                                            new Prefix("-X:aos$", AOS_HELP_ARG),
-                                            new Prefix("-X:aos:", AOS_ARG),
-                                            new Prefix("-X:gc:help$", GC_HELP_ARG),
-                                            new Prefix("-X:gc$", GC_HELP_ARG),
-                                            new Prefix("-X:gc:", GC_ARG),
-                                            new Prefix("-X:base:help$", BASE_HELP_ARG),
-                                            new Prefix("-X:base$", BASE_HELP_ARG),
-                                            new Prefix("-X:base:", BASE_ARG),
-                                            new Prefix("-X:opt:help$", OPT_HELP_ARG),
-                                            new Prefix("-X:opt$", OPT_HELP_ARG),
-                                            new Prefix("-X:opt:", OPT_ARG),
-                                            new Prefix("-X:vm:help$", VM_HELP_ARG),
-                                            new Prefix("-X:vm$", VM_HELP_ARG),
-                                            new Prefix("-X:vm:", VM_ARG),
+                                            new Prefix("-javaagent:", PrefixType.JAVAAGENT_ARG),
+                                            new Prefix("-D", PrefixType.ENVIRONMENT_ARG),
+                                            new Prefix("-verbose:class$", PrefixType.VERBOSE_CLS_ARG),
+                                            new Prefix("-verbose:jni$", PrefixType.VERBOSE_JNI_ARG),
+                                            new Prefix("-verbose$", PrefixType.VERBOSE_CLS_ARG),
+                                            new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-ea:", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-ea", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-disableassertions:", PrefixType.DISABLE_ASSERTION_ARG),
+                                            new Prefix("-da:", PrefixType.DISABLE_ASSERTION_ARG),
+                                            new Prefix("-disableassertions", PrefixType.DISABLE_ASSERTION_ARG),
+                                            new Prefix("-da", PrefixType.DISABLE_ASSERTION_ARG),
+                                            new Prefix("-X:vmClasses=", PrefixType.BOOTSTRAP_CLASSES_ARG),
+                                            new Prefix("-X:cpuAffinity=", PrefixType.CPUAFFINITY_ARG),
+                                            new Prefix("-X:processors=", PrefixType.PROCESSORS_ARG),
+                                            new Prefix("-X:irc:help$", PrefixType.IRC_HELP_ARG),
+                                            new Prefix("-X:irc$", PrefixType.IRC_HELP_ARG),
+                                            new Prefix("-X:irc:", PrefixType.IRC_ARG),
+                                            new Prefix("-X:recomp:help$", PrefixType.RECOMP_HELP_ARG),
+                                            new Prefix("-X:recomp$", PrefixType.RECOMP_HELP_ARG),
+                                            new Prefix("-X:recomp", PrefixType.RECOMP_ARG),
+                                            new Prefix("-X:aos:help$", PrefixType.AOS_HELP_ARG),
+                                            new Prefix("-X:aos$", PrefixType.AOS_HELP_ARG),
+                                            new Prefix("-X:aos:", PrefixType.AOS_ARG),
+                                            new Prefix("-X:gc:help$", PrefixType.GC_HELP_ARG),
+                                            new Prefix("-X:gc$", PrefixType.GC_HELP_ARG),
+                                            new Prefix("-X:gc:", PrefixType.GC_ARG),
+                                            new Prefix("-X:base:help$", PrefixType.BASE_HELP_ARG),
+                                            new Prefix("-X:base$", PrefixType.BASE_HELP_ARG),
+                                            new Prefix("-X:base:", PrefixType.BASE_ARG),
+                                            new Prefix("-X:opt:help$", PrefixType.OPT_HELP_ARG),
+                                            new Prefix("-X:opt$", PrefixType.OPT_HELP_ARG),
+                                            new Prefix("-X:opt:", PrefixType.OPT_ARG),
+                                            new Prefix("-X:vm:help$", PrefixType.VM_HELP_ARG),
+                                            new Prefix("-X:vm$", PrefixType.VM_HELP_ARG),
+                                            new Prefix("-X:vm:", PrefixType.VM_ARG),
 
                                             /* Silently ignored */
-                                            new Prefix("-Xverify", VERIFY_ARG),
+                                            new Prefix("-Xverify", PrefixType.VERIFY_ARG),
 
                                             app_prefix};
 
@@ -180,7 +196,7 @@ public class VM_CommandLineArgs {
   /**
    * The types of each command line argument.
    */
-  private static int[] arg_types;
+  private static PrefixType[] arg_types;
   /**
    * The position of application class name.
    */
@@ -198,7 +214,7 @@ public class VM_CommandLineArgs {
 
     int numArgs = argRdr.numArgs();
     args = new String[numArgs];
-    arg_types = new int[numArgs];
+    arg_types = new PrefixType[numArgs];
 
     for (int i = 0; i < numArgs; ++i) {
       String arg = argRdr.getArg(i);
@@ -207,7 +223,7 @@ public class VM_CommandLineArgs {
         /* We're already into the application arguments.  Here's another
          * one. */
         args[i] = arg;
-        arg_types[i] = APPLICATION_ARG;
+        arg_types[i] = PrefixType.APPLICATION_ARG;
         app_prefix.count++;
         continue;
       }
@@ -295,7 +311,7 @@ public class VM_CommandLineArgs {
   /**
    * Find a Prefix object of a given type.
    */
-  private static Prefix findPrefix(int type) {
+  private static Prefix findPrefix(PrefixType type) {
     for (Prefix prefix : prefixes) if (prefix.type == type) return prefix;
     return null;
   }
@@ -307,7 +323,7 @@ public class VM_CommandLineArgs {
    * @param prefix type of arguments to extract
    * @return array of arguments or null if type is invalid
    */
-  public static String[] getArgs(int prefix) {
+  public static String[] getArgs(PrefixType prefix) {
     String[] retarg = null;
     Prefix p = findPrefix(prefix);
     if (p != null) {
@@ -322,13 +338,21 @@ public class VM_CommandLineArgs {
   }
 
   /**
+   * Extract command line arguments for the Java agent
+   * @return Java agent arguments
+   */
+  public static String[] getJavaAgentArgs() {
+    return VM_CommandLineArgs.getArgs(VM_CommandLineArgs.PrefixType.JAVAAGENT_ARG);
+  }
+
+  /**
    * Extract the first -D... command line argument that matches a given
    * variable, and return it.
    * @return the environment arg, or null if there is none.
    */
   public static String getEnvironmentArg(String variable) {
     if (!VM.runningVM) throw new IllegalAccessError("Environment variables can't be read in a non-running VM");
-    String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
+    String[] allEnvArgs = getArgs(PrefixType.ENVIRONMENT_ARG);
     String prefix = variable + "=";
     if (allEnvArgs != null) {
       for (String allEnvArg : allEnvArgs) {
@@ -389,7 +413,7 @@ public class VM_CommandLineArgs {
    * @return null if no such command line argument is given.
    */
   static String getBootstrapClasses() {
-    String[] vmClassesAll = getArgs(BOOTSTRAP_CLASSES_ARG);
+    String[] vmClassesAll = getArgs(PrefixType.BOOTSTRAP_CLASSES_ARG);
     String vmClasses = null;
     // could be specified multiple times, use last specification
     if (vmClassesAll.length > 0) {
@@ -407,10 +431,10 @@ public class VM_CommandLineArgs {
   static void earlyProcessCommandLineArguments() {
     for (int i = 0; i < app_name_pos; i++) {
       String arg = args[i];
-      int type = arg_types[i];
-      if (type == INVALID_ARG) continue;
+      PrefixType type = arg_types[i];
+      if (type == PrefixType.INVALID_ARG) continue;
       Prefix p = findPrefix(type);
-      if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.earlyProcessCLA(" + p.value + arg + ")\n");
+      if (DEBUG) VM.sysWriteln(" VM_CommandLineArgs.earlyProcessCLA(" + p + arg + " - " + type + ")");
       switch (type) {
 
         case CLASSPATH_ARG:
@@ -419,11 +443,23 @@ public class VM_CommandLineArgs {
           // Application class loader complete for when
           // ClassLoader$StaticData's initializer is run.
           VM_ClassLoader.stashApplicationRepositories(arg);
+          i++; // skip second argument to classpath
           break;
 
         case JAR_ARG:
           // maybe also load classes on the classpath list in the manifest
           VM_ClassLoader.stashApplicationRepositories(arg);
+          i++; // skip second argument to jar
+          break;
+
+        case ENABLE_ASSERTION_ARG:
+          // arguments of the form "-ea[:<packagename>...|:<classname>]"
+          VM_ClassLoader.stashEnableAssertionArg(arg);
+          break;
+
+        case DISABLE_ASSERTION_ARG:
+          // arguments of the form "-da[:<packagename>...|:<classname>]"
+          VM_ClassLoader.stashDisableAssertionArg(arg);
           break;
 
         case VERBOSE_CLS_ARG:
@@ -591,10 +627,10 @@ public class VM_CommandLineArgs {
   static String[] lateProcessCommandLineArguments() {
     for (int i = 0; i < app_name_pos; i++) {
       String arg = args[i];
-      int type = arg_types[i];
-      if (type == INVALID_ARG) continue;
+      PrefixType type = arg_types[i];
+      if (type == PrefixType.INVALID_ARG) continue;
       Prefix p = findPrefix(type);
-      if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.processCLA(" + p.value + arg + ")\n");
+      if (DEBUG) VM.sysWriteln(" VM_CommandLineArgs.processCLA(" + p + arg + " - " + type + ")");
       switch (type) {
         case ENVIRONMENT_ARG: // arguments of the form "-Dx=y"
         {
@@ -612,6 +648,7 @@ public class VM_CommandLineArgs {
         case CLASSPATH_ARG:   // This is run in duplicate.
           // arguments of the form "-classpath a:b:c" or "-cp a:b:c"
           VM_ClassLoader.setApplicationRepositories(arg);
+          i++; // skip second argument to classpath
           break;
 
         case JAR_ARG:             // XXX This WILL BECOME  the second half of
@@ -638,8 +675,9 @@ public class VM_CommandLineArgs {
           VM_ClassLoader.setApplicationRepositories(arg);
 
           args[i] = s;
-          arg_types[i] = APPLICATION_ARG;
+          arg_types[i] = PrefixType.APPLICATION_ARG;
           app_prefix.count++;
+          i++; // skip second argument to classpath
           break;
         case JAVAAGENT_ARG:
           /* Extract jar file from the -javaagent:<jar>[=options] form */
@@ -657,7 +695,7 @@ public class VM_CommandLineArgs {
     }
 
     // get application directives
-    String[] arglist = getArgs(APPLICATION_ARG);
+    String[] arglist = getArgs(PrefixType.APPLICATION_ARG);
 
     // Debugging: write out application arguments
     if (DEBUG) {
@@ -750,24 +788,24 @@ public class VM_CommandLineArgs {
         buf = new byte[buflen];
       }
       if (VM.VerifyAssertions) VM._assert(cnt != -1);
-      /* Implementation note: Do NOT use the line below, which uses the
-three-argument constructor for String, the one that respects the
-native encoding (the platform's "default character set").
-
-Instead, we use the four-argument constructor, the one that takes a
-HIBYTE parameter.
-
-1) It is safe to do this; we *know* that all of the
-legal command-line args use only characters within the ASCII
-character set.
-
-2) The "default character set" version below will break.  That is
-  because GNU Classpath's implementation of the
-  three-argument-constructor will fail if
-  EncodingManager.getDecoder() returns a null pointer.  And
-  EncodingManager.getDecoder() returns a null pointer if it's
-  called early on in the boot process (which the
-  default-character-set version below does). */
+      /*
+       * Implementation note: Do NOT use the line below, which uses the
+       * three-argument constructor for String, the one that respects the native
+       * encoding (the platform's "default character set").
+       *
+       * Instead, we use the four-argument constructor, the one that takes a
+       * HIBYTE parameter.
+       *
+       * 1) It is safe to do this; we *know* that all of the legal command-line
+       * args use only characters within the ASCII character set.
+       *
+       * 2) The "default character set" version below will break. That is
+       * because GNU Classpath's implementation of the
+       * three-argument-constructor will fail if EncodingManager.getDecoder()
+       * returns a null pointer. And EncodingManager.getDecoder() returns a null
+       * pointer if it's called early on in the boot process (which the
+       * default-character-set version below does).
+       */
       //      return new String(buf, 0, cnt);
       return new String(buf, 0, 0, cnt);
     }

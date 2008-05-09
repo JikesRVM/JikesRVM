@@ -14,6 +14,9 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.objectmodel.VM_TIB;
+import org.vmmagic.pragma.NonMoving;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -36,6 +39,7 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Class
  * @see VM_Array
  */
+@NonMoving
 @SynchronizedObject
 public final class VM_Primitive extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
   /**
@@ -60,6 +64,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * Name - something like "int".
    */
+  @Override
+  @Pure
   public String toString() {
     return name.toString();
   }
@@ -173,6 +179,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * get number of superclasses to Object
    * @return 0
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getTypeDepth() {
     return 0;
@@ -183,6 +191,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * another object inherently acyclic (without cycles) ?
    * @return true
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isAcyclicReference() {
     return true;
@@ -193,6 +203,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * classes
    * @return -1;
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getDimensionality() {
     return -1;
@@ -202,6 +214,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Resolution status.
    * @return true
    */
+  @Override
   @Uninterruptible
   public boolean isResolved() {
     return true;
@@ -211,6 +224,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Instantiation status.
    * @return true
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isInstantiated() {
     return true;
@@ -220,6 +235,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Initialization status.
    * @return true
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isInitialized() {
     return true;
@@ -228,11 +245,14 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * Only intended to be used by the BootImageWriter
    */
+  @Override
   public void markAsBootImageClass() {}
 
   /**
    * Is this class part of the virtual machine's boot image?
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isInBootImage() {
     return true;
@@ -244,6 +264,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * words.
    * @return Offset.max();
    */
+  @Override
+  @Pure
   @Uninterruptible
   public Offset getThinLockOffset() {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -254,6 +276,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Whether or not this is an instance of VM_Class?
    * @return false
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isClassType() {
     return false;
@@ -263,6 +287,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Whether or not this is an instance of VM_Array?
    * @return false
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isArrayType() {
     return false;
@@ -272,6 +298,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Whether or not this is a primitive type
    * @return true
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isPrimitiveType() {
     return true;
@@ -280,6 +308,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean isReferenceType() {
     return false;
@@ -288,6 +318,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * Stack space requirement in words.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getStackWords() {
     return stackWords;
@@ -296,6 +328,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * Space required in memory in bytes.
    */
+  @Override
+  @Pure
   @Uninterruptible
   public int getMemoryBytes() {
     return memoryBytes;
@@ -304,23 +338,32 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * Cause resolution to take place.
    */
+  @Override
+  @Pure
   public void resolve() {}
 
+  @Override
   public void allBootImageTypesResolved() { }
 
   /**
    * Cause instantiation to take place.
    */
+  @Override
+  @Pure
   public void instantiate() {}
 
   /**
    * Cause initialization to take place.
    */
+  @Override
+  @Pure
   public void initialize() {}
 
   /**
    * Does this type override java.lang.Object.finalize()?
    */
+  @Override
+  @Pure
   @Uninterruptible
   public boolean hasFinalizer() {
     return false;
@@ -337,6 +380,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Static fields of this class/array type.
    * @return zero length array
    */
+  @Override
+  @Pure
   public VM_Field[] getStaticFields() {
     return emptyVMField;
   }
@@ -346,6 +391,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * (composed with supertypes, if any).
    * @return zero length array
    */
+  @Override
+  @Pure
   public VM_Field[] getInstanceFields() {
     return emptyVMField;
   }
@@ -354,6 +401,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * Statically dispatched methods of this class/array type.
    * @return zero length array
    */
+  @Override
+  @Pure
   public VM_Method[] getStaticMethods() {
     return emptyVMMethod;
   }
@@ -363,6 +412,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    * (composed with supertypes, if any).
    * @return zero length array
    */
+  @Override
+  @Pure
   public VM_Method[] getVirtualMethods() {
     return emptyVMMethod;
   }
@@ -370,25 +421,10 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   /**
    * Runtime type information for this class/array type.
    */
+  @Override
   @Uninterruptible
-  public Object[] getTypeInformationBlock() {
+  public VM_TIB getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
-  }
-
-  /**
-   * Does this slot in the TIB hold a TIB entry?
-   */
-  public boolean isTIBSlotTIB(int slot) {
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Does this slot in the TIB hold code?
-   */
-  public boolean isTIBSlotCode(int slot) {
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-    return false;
   }
 }

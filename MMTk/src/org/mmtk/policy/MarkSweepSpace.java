@@ -12,6 +12,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
@@ -52,10 +53,13 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   /* mark bits */
   private static final int COUNT_BASE = 0;
   public static final int DEFAULT_MARKCOUNT_BITS = 2;
-  public static final int MAX_MARKCOUNT_BITS = MAX_BITS;
+  public static final int MAX_MARKCOUNT_BITS = Plan.NEEDS_LOG_BIT_IN_HEADER ? MAX_BITS - 1 : MAX_BITS;
+  public static final Word UNLOGGED_BIT = Word.one().lsh(MAX_BITS - 1).lsh(COUNT_BASE);
   private static final Word MARK_COUNT_INCREMENT = Word.one().lsh(COUNT_BASE);
   private static final Word MARK_COUNT_MASK = Word.one().lsh(MAX_MARKCOUNT_BITS).minus(Word.one()).lsh(COUNT_BASE);
   private static final Word MARK_BITS_MASK = Word.one().lsh(MAX_BITS).minus(Word.one());
+
+  private static final boolean EAGER_MARK_CLEAR = Plan.NEEDS_LOG_BIT_IN_HEADER;
 
   /* header requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = MAX_BITS;
@@ -70,6 +74,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   private Word markState = Word.one();
   private Word allocState = Word.zero();
   private boolean inMSCollection;
+  private static final boolean usingStickyMarkBits = VM.activePlan.constraints().needsLogBitInHeader(); /* are sticky mark bits in use? */
+  private boolean isAgeSegregated = false; /* is this space a nursery space? */
 
   /****************************************************************************
    *
@@ -93,6 +99,18 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    */
   public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
     super(name, pageBudget, 0, vmRequest);
+    if (usingStickyMarkBits) allocState = allocState.or(UNLOGGED_BIT);
+  }
+
+  /**
+   * This instance will be age-segregated using the sticky mark bits
+   * algorithm. Perform appropriate initialization
+   */
+  public void isAgeSegregatedSpace() {
+    /* we must be using sticky mark bits */
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(usingStickyMarkBits);
+    allocState = allocState.and(UNLOGGED_BIT.not()); /* clear the unlogged bit for nursery allocs */
+    isAgeSegregated = true;
   }
 
   /**
@@ -162,16 +180,24 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
+   *
+   * @param gcWholeMS True if we are going to collect the whole marksweep space
    */
-  public void prepare() {
+  public void prepare(boolean gcWholeMS) {
     if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
       consumeBlocks();
     } else {
       flushAvailableBlocks();
     }
     if (HEADER_MARK_BITS) {
-      allocState = markState;
-      markState = deltaMarkState(true);
+      if (gcWholeMS) {
+        allocState = markState;
+        if (usingStickyMarkBits && !isAgeSegregated) /* if true, we allocate as "mature", not nursery */
+          allocState = allocState.or(UNLOGGED_BIT);
+        markState = deltaMarkState(true);
+        if (EAGER_MARK_CLEAR)
+          clearAllBlockMarks();
+      }
     } else {
       zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     }
@@ -183,7 +209,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * collector this means we can perform the sweep phase.
  */
   public void release() {
-    sweepConsumedBlocks();
+    sweepConsumedBlocks(!EAGER_MARK_CLEAR);
     inMSCollection = false;
   }
 
@@ -234,7 +260,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (HEADER_MARK_BITS) {
-      if (testAndMark(object, markState)) {
+      Word markValue = Plan.NEEDS_LOG_BIT_IN_HEADER ? markState.or(Plan.UNLOGGED_BIT) : markState;
+      if (testAndMark(object, markValue)) {
         markBlock(object);
         trace.processNode(object);
       }

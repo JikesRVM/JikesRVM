@@ -149,6 +149,13 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Print the current value for this counter (mid-phase)
+   */
+  public final void printCurrent() {
+    printValue(totalCount);
+  }
+
+  /**
    * Print the current total for this counter
    */
   public final void printTotal() {

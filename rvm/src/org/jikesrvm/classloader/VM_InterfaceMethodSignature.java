@@ -27,7 +27,7 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   /**
    * Used to canonicalize VM_InterfaceMethodSignatures
    */
-  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary = new VM_HashSet<VM_InterfaceMethodSignature>();
+  private static final VM_HashSet<VM_InterfaceMethodSignature> dictionary = new VM_HashSet<VM_InterfaceMethodSignature>();
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
@@ -45,13 +45,14 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   private final VM_Atom descriptor;
 
   /**
-   * Id of this interface method signature.
+   * Id of this interface method signature (not used in hashCode or equals).
    */
-  private int id;
+  private final int id;
 
-  private VM_InterfaceMethodSignature(VM_Atom name, VM_Atom descriptor) {
+  private VM_InterfaceMethodSignature(VM_Atom name, VM_Atom descriptor, int id) {
     this.name = name;
     this.descriptor = descriptor;
+    this.id = id;
   }
 
   /**
@@ -61,10 +62,10 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * @return the interface method signature
    */
   public static synchronized VM_InterfaceMethodSignature findOrCreate(VM_MemberReference ref) {
-    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
+    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor(), nextId+1);
     VM_InterfaceMethodSignature val = dictionary.get(key);
     if (val != null) return val;
-    key.id = nextId++;
+    nextId++;
     dictionary.add(key);
     return key;
   }
@@ -117,9 +118,6 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   public Offset getIMTOffset() {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int slot = id % IMT_METHOD_SLOTS;
-    if (VM.BuildForEmbeddedIMT) {
-      slot += TIB_FIRST_INTERFACE_METHOD_INDEX;
-    }
     return Offset.fromIntZeroExtend(slot << LOG_BYTES_IN_ADDRESS);
   }
 }

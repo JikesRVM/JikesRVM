@@ -24,63 +24,63 @@ VARSIG
 # backend support for tableswitch
 MIR_LowTableSwitch
 0 1 0 2 U -1
-"DU Index OPT_RegisterOperand"
-"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
+"DU Index RegisterOperand"
+"Target BranchOperand" "BranchProfile BranchProfileOperand"
 
 #
 # IA32 MIR instruction formats
 # Move
 MIR_Move
 1 0 1
-"D Result OPT_Operand" "U Value OPT_Operand"
+"D Result Operand" "U Value Operand"
 
 
 # Conditional Move
 MIR_CondMove
 0 1 2
-"DU Result OPT_Operand" "U Value OPT_Operand" "U Cond OPT_IA32ConditionOperand"
+"DU Result Operand" "U Value Operand" "U Cond IA32ConditionOperand"
 
 
 # Move
 MIR_Lea
 1 0 1
-"D Result OPT_RegisterOperand" "U Value OPT_MemoryOperand"
+"D Result RegisterOperand" "U Value MemoryOperand"
 
 
 # Accumulating Binary: result = result op value
 MIR_BinaryAcc
 0 1 1
-"DU Result OPT_Operand" "U Value OPT_Operand"
+"DU Result Operand" "U Value Operand"
 
 
 # IA32 divide/rem is somewhat funky
 MIR_Divide
 0 2 2
-"DU Result1 OPT_Operand" "DU Result2 OPT_Operand" "U Value OPT_Operand" "U Guard OPT_Operand"
+"DU Result1 Operand" "DU Result2 Operand" "U Value Operand" "U Guard Operand"
 
 
 # the IA32 "mul" format used by IA32_MUL and IA32_IMUL1
 MIR_Multiply
 1 1 1
-"D Result1 OPT_Operand" "DU Result2 OPT_Operand" "U Value OPT_Operand"
+"D Result1 Operand" "DU Result2 Operand" "U Value Operand"
 
 
 # The format used by the Intel CDQ instruction
 MIR_ConvertDW2QW
 1 1 0
-"D Result1 OPT_Operand" "DU Result2 OPT_Operand"
+"D Result1 Operand" "DU Result2 Operand"
 
 
 # Accumulating Unary: result = op result
 MIR_UnaryAcc
 0 1 0
-"DU Result OPT_Operand"
+"DU Result Operand"
 
 
 # Compare two values and set flags
 MIR_Compare
 0 0 2
-"U Val1 OPT_Operand" "U Val2 OPT_Operand"
+"U Val1 Operand" "U Val2 Operand"
 
 
 # Compare OldValue to [MemAddr] and set flags.
@@ -89,7 +89,7 @@ MIR_Compare
 # OldValue should always be held in EAX
 MIR_CompareExchange
 0 2 1
-"DU OldValue OPT_RegisterOperand" "DU MemAddr OPT_MemoryOperand" "U NewValue OPT_RegisterOperand"
+"DU OldValue RegisterOperand" "DU MemAddr MemoryOperand" "U NewValue RegisterOperand"
 
 
 # Compare OldValue to [MemAddr] and set flags.  
@@ -98,13 +98,13 @@ MIR_CompareExchange
 # OldValue should always be held in EDX:EAX, NewValue in ECX:EBX
 MIR_CompareExchange8B
 0 3 2
-"DU OldValueHigh OPT_RegisterOperand" "DU OldValueLow OPT_RegisterOperand" "DU MemAddr OPT_MemoryOperand" "U NewValueHigh OPT_RegisterOperand" "U NewValueLow OPT_RegisterOperand"
+"DU OldValueHigh RegisterOperand" "DU OldValueLow RegisterOperand" "DU MemAddr MemoryOperand" "U NewValueHigh RegisterOperand" "U NewValueLow RegisterOperand"
 
 
 # Trap
 MIR_Trap
 1 0 1
-"D GuardResult OPT_RegisterOperand" "U TrapCode OPT_TrapCodeOperand"
+"D GuardResult RegisterOperand" "U TrapCode TrapCodeOperand"
 
 
 # TrapIf
@@ -112,27 +112,27 @@ MIR_Trap
 # a compare and conditional branch to an INT instruction)
 MIR_TrapIf
 1 0 4
-"D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
-"U Cond OPT_IA32ConditionOperand" "U TrapCode OPT_TrapCodeOperand"
+"D GuardResult RegisterOperand" "U Val1 Operand" "U Val2 Operand" \
+"U Cond IA32ConditionOperand" "U TrapCode TrapCodeOperand"
 
 
 # Unconditional Branch
 MIR_Branch
 0 0 1
-"U Target OPT_BranchOperand"
+"U Target BranchOperand"
 
 
 # Conditional Branch
 MIR_CondBranch
 0 0 3
-"U Cond OPT_IA32ConditionOperand" "U Target OPT_BranchOperand opt" "U BranchProfile OPT_BranchProfileOperand"
+"U Cond IA32ConditionOperand" "U Target BranchOperand opt" "U BranchProfile BranchProfileOperand"
 
 
 # Conditional Branch
 MIR_CondBranch2
 0 0 6
-"U Cond1 OPT_IA32ConditionOperand" "U Target1 OPT_BranchOperand opt" "U BranchProfile1 OPT_BranchProfileOperand" \
-"U Cond2 OPT_IA32ConditionOperand" "U Target2 OPT_BranchOperand opt" "U BranchProfile2 OPT_BranchProfileOperand"
+"U Cond1 IA32ConditionOperand" "U Target1 BranchOperand opt" "U BranchProfile1 BranchProfileOperand" \
+"U Cond2 IA32ConditionOperand" "U Target2 BranchOperand opt" "U BranchProfile2 BranchProfileOperand"
 
 
 # Call (branch and link)
@@ -143,9 +143,9 @@ MIR_CondBranch2
 # actually used. Figure out which and update comment! --dave
 MIR_Call
 2 0 2 1 U 1
-"D Result OPT_RegisterOperand" "D Result2 OPT_RegisterOperand" \
-"U Target OPT_Operand opt" "U Method OPT_MethodOperand opt"
-"Param OPT_Operand"
+"D Result RegisterOperand" "D Result2 RegisterOperand" \
+"U Target Operand opt" "U Method MethodOperand opt"
+"Param Operand"
 
 # Instruction with no operands.
 MIR_Empty
@@ -156,61 +156,61 @@ MIR_Empty
 # Return
 MIR_Return
 0 0 3
-"U PopBytes OPT_IntConstantOperand" "U Val OPT_Operand" "U Val2 OPT_Operand"
+"U PopBytes IntConstantOperand" "U Val Operand" "U Val2 Operand"
 
 
 MIR_Set
 1 0 1
-"D Result OPT_Operand" "U Cond OPT_IA32ConditionOperand"
+"D Result Operand" "U Cond IA32ConditionOperand"
 
 
 MIR_Test
 0 0 2
-"U Val1 OPT_Operand" "U Val2 OPT_Operand"
+"U Val1 Operand" "U Val2 Operand"
 
 
 MIR_Nullary
 1 0 0
-"D Result OPT_Operand"
+"D Result Operand"
 
 
 MIR_UnaryNoRes
 0 0 1
-"U Val OPT_Operand"
+"U Val Operand"
 
 
 MIR_Unary
 1 0 1
-"D Result OPT_Operand" "U Val OPT_Operand"
+"D Result Operand" "U Val Operand"
 
 
 MIR_XChng
 0 2 0
-"DU Val1 OPT_Operand" "DU Val2 OPT_Operand"
+"DU Val1 Operand" "DU Val2 Operand"
 
 
 MIR_DoubleShift
 0 1 2
-"DU Result OPT_Operand" "U Source OPT_RegisterOperand" "U BitsToShift OPT_Operand"
+"DU Result Operand" "U Source RegisterOperand" "U BitsToShift Operand"
 
 
 MIR_CaseLabel
 0 0 2
-"U Index OPT_IntConstantOperand" "U Target OPT_Operand"
+"U Index IntConstantOperand" "U Target Operand"
 
 
 MIR_FSave
 0 0 1
-"U Destination OPT_Operand"
+"U Destination Operand"
 
 
 MIR_RDTSC
 2 0 0
-"D Dest1 OPT_RegisterOperand" "D Dest2 OPT_RegisterOperand"
+"D Dest1 RegisterOperand" "D Dest2 RegisterOperand"
 
 
 MIR_CacheOp
 0 0 1
-"U Address OPT_Operand"
+"U Address Operand"
 
 

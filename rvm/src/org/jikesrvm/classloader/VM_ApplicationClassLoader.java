@@ -46,8 +46,8 @@ public class VM_ApplicationClassLoader extends URLClassLoader {
    *  and can give one a sense of confidence when debugging Jikes RVM's
    *  classloaders.
    *  */
-  boolean createdAtBootImageWritingTime;
-  boolean createdWithRunningVM;
+  private final boolean createdAtBootImageWritingTime;
+  private final boolean createdWithRunningVM;
 
   public VM_ApplicationClassLoader(String specifiedClasspath) {
     super(new URL[0]);

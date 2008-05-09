@@ -28,12 +28,14 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -146,7 +148,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
-    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
     return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
   }
 
@@ -212,7 +214,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (object == null) return; // null can be cast to any type
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
-    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
     }
@@ -290,6 +292,8 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * (exact type match)
    *             so we need not repeat it here
    */
+  @Pure
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
     if (!lhs.isResolved()) {
       lhs.resolve();
@@ -371,7 +375,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * See also: bytecode 0xbb ("new")
    */
   @Entrypoint
-  public static Object resolvedNewScalar(int size, Object[] tib, boolean hasFinalizer, int allocator, int align,
+  public static Object resolvedNewScalar(int size, VM_TIB tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
@@ -450,7 +454,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Entrypoint
-  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, Object[] tib,
+  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, VM_TIB tib,
                                         int allocator, int align, int offset, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
 
@@ -475,59 +479,117 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * we avoid having to add special case code to deal with write barriers,
    * and other such things.
    *
+   * This method calls specific cloning routines based on type to help
+   * guide the inliner (which won't inline a single large method).
+   *
    * @param obj the object to clone
    * @return the cloned object
    */
   public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
     if (type.isArrayType()) {
-      VM_Array ary = type.asArray();
-      int nelts = VM_ObjectModel.getArrayLength(obj);
-      Object newObj = resolvedNewArray(nelts, ary);
-      System.arraycopy(obj, 0, newObj, 0, nelts);
-      return newObj;
+      return cloneArray(obj, type);
     } else {
-      if (!(obj instanceof Cloneable)) {
-        throw new CloneNotSupportedException();
-      }
-      VM_Class cls = type.asClass();
-      Object newObj = resolvedNewScalar(cls);
-      for (VM_Field f : cls.getInstanceFields()) {
-        VM_TypeReference ft = f.getType();
-        if (ft.isReferenceType()) {
-          // Do via slower "VM-internal reflection" to enable
-          // collectors to do the right thing wrt reference counting
-          // and write barriers.
-          f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-        } else {
-          Offset offset = f.getOffset();
-          switch (ft.getMemoryBytes()) {
-            case BYTES_IN_BYTE: {
-              byte bits = VM_Magic.getByteAtOffset(obj, offset);
-              VM_Magic.setByteAtOffset(newObj, offset, bits);
-              break;
-            }
-            case BYTES_IN_CHAR: {
-              char bits = VM_Magic.getCharAtOffset(obj, offset);
-              VM_Magic.setCharAtOffset(newObj, offset, bits);
-              break;
-            }
-            case BYTES_IN_LONG: {
-              long bits = VM_Magic.getLongAtOffset(obj, offset);
-              VM_Magic.setLongAtOffset(newObj, offset, bits);
-              break;
-            }
-            default: {
-              if (VM.VerifyAssertions) VM._assert(ft.getMemoryBytes() == BYTES_IN_INT);
-              int bits = VM_Magic.getIntAtOffset(obj, offset);
-              VM_Magic.setIntAtOffset(newObj, offset, bits);
-              break;
-            }
+      return cloneClass(obj, type);
+    }
+  }
+
+  /**
+   * Clone an array
+   *
+   * @param obj the array to clone
+   * @param type the type information for the array
+   * @return the cloned object
+   */
+  private static Object cloneArray(Object obj, VM_Type type) throws OutOfMemoryError {
+    VM_Array ary = type.asArray();
+    int nelts = VM_ObjectModel.getArrayLength(obj);
+    Object newObj = resolvedNewArray(nelts, ary);
+    System.arraycopy(obj, 0, newObj, 0, nelts);
+    return newObj;
+  }
+
+  /**
+   * Clone an object implementing a class - check that the class is cloneable
+   * (we make this a small method with just a test so that the inliner will
+   * inline it and hopefully eliminate the instanceof test).
+   *
+   * @param obj the object to clone
+   * @param type the type information for the class
+   * @return the cloned object
+   */
+  private static Object cloneClass(Object obj, VM_Type type) throws OutOfMemoryError, CloneNotSupportedException {
+    if (!(obj instanceof Cloneable)) {
+      throw new CloneNotSupportedException();
+    } else {
+      return cloneClass2(obj, type);
+    }
+  }
+
+  /**
+   * Clone an object implementing a class - the actual clone
+   *
+   * @param obj the object to clone
+   * @param type the type information for the class
+   * @return the cloned object
+   */
+  private static Object cloneClass2(Object obj, VM_Type type) throws OutOfMemoryError {
+    VM_Class cls = type.asClass();
+    Object newObj = resolvedNewScalar(cls);
+    for (VM_Field f : cls.getInstanceFields()) {
+      int size = f.getSize();
+      if (VM.BuildFor32Addr) {
+        if (size == BYTES_IN_INT) {
+          if (f.isReferenceType()) {
+            // Do via slower "VM-internal reflection" to enable
+            // collectors to do the right thing wrt reference counting
+            // and write barriers.
+            f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
+          } else {
+            Offset offset = f.getOffset();
+            int bits = VM_Magic.getIntAtOffset(obj, offset);
+            VM_Magic.setIntAtOffset(newObj, offset, bits);
           }
+          continue;
+        } else if (size == BYTES_IN_LONG) {
+          Offset offset = f.getOffset();
+          long bits = VM_Magic.getLongAtOffset(obj, offset);
+          VM_Magic.setLongAtOffset(newObj, offset, bits);
+          continue;
+        }
+      } else {
+        // BuildFor64Addr
+        if (size == BYTES_IN_LONG) {
+          if (f.isReferenceType()) {
+            // Do via slower "VM-internal reflection" to enable
+            // collectors to do the right thing wrt reference counting
+            // and write barriers.
+            f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
+          } else {
+            Offset offset = f.getOffset();
+            long bits = VM_Magic.getLongAtOffset(obj, offset);
+            VM_Magic.setLongAtOffset(newObj, offset, bits);
+          }
+          continue;
+        } else if (size == BYTES_IN_INT) {
+          Offset offset = f.getOffset();
+          int bits = VM_Magic.getIntAtOffset(obj, offset);
+          VM_Magic.setIntAtOffset(newObj, offset, bits);
+          continue;
         }
       }
-      return newObj;
+      if (size == BYTES_IN_CHAR) {
+        Offset offset = f.getOffset();
+        char bits = VM_Magic.getCharAtOffset(obj, offset);
+        VM_Magic.setCharAtOffset(newObj, offset, bits);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(size == BYTES_IN_BYTE);
+        Offset offset = f.getOffset();
+        byte bits = VM_Magic.getByteAtOffset(obj, offset);
+        VM_Magic.setByteAtOffset(newObj, offset, bits);
+      }
     }
+    return newObj;
   }
 
   /**
@@ -613,11 +675,12 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   @NoInline
   @Entrypoint
   public static void athrow(Throwable exceptionObject) {
-    VM_Registers registers = new VM_Registers();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
-    VM_Magic.saveThreadState(registers);
-    registers.inuse = true;
-    deliverException(exceptionObject, registers);
+    VM_Magic.saveThreadState(exceptionRegisters);
+    exceptionRegisters.inuse = true;
+    deliverException(exceptionObject, exceptionRegisters);
   }
 
   /**
@@ -634,7 +697,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * <p> Note:     Control reaches here by the actions of an
    *           external "C" signal handler
    *           which saves the register state of the trap site into the
-   *           "hardwareExceptionRegisters" field of the current
+   *           "exceptionRegisters" field of the current
    *           VM_Thread object.
    *           The signal handler also inserts a <hardware trap> frame
    *           onto the stack immediately above this frame, for use by
@@ -644,7 +707,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
     VM_Thread myThread = VM_Scheduler.getCurrentThread();
-    VM_Registers exceptionRegisters = myThread.getHardwareExceptionRegisters();
+    VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
@@ -874,6 +937,37 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   /**
+   * Build a two-dimensional array.
+   * @param methodId  Apparently unused (!)
+   * @param numElements number of elements to allocate for each dimension
+   * @param arrayType type of array that will result
+   * @return array object
+   */
+  public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, VM_Array arrayType) {
+    VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    if (VM.VerifyAssertions) VM._assert(method != null);
+
+    if (!arrayType.isInstantiated()) {
+      arrayType.resolve();
+      arrayType.instantiate();
+    }
+
+    Object[] newArray = (Object[])resolvedNewArray(dim0, arrayType);
+
+    VM_Array innerArrayType = arrayType.getElementType().asArray();
+    if (!innerArrayType.isInstantiated()) {
+      innerArrayType.resolve();
+      innerArrayType.instantiate();
+    }
+
+    for (int i=0; i<dim0; i++) {
+      newArray[i] = resolvedNewArray(dim1, innerArrayType);
+    }
+
+    return newArray;
+  }
+
+  /**
    * @param method Apparently unused (!)
    * @param numElements Number of elements to allocate for each dimension
    * @param dimIndex Current dimension to build
@@ -994,20 +1088,10 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
-      if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-        // for SVR4 convention, a Java-to-C frame has two mini frames,
-        // stop at mini frame (2) whose saved ip is in VM (out of line machine
-        // code), in the case of sentinel fp, it has to return the callee's fp
-        // because GC ScanThread uses it to get return address and so on.
-        if (MM_Interface.addressInVM(ip)) {
-          return fp;
-        } else {
-          return callee_fp;
-        }
-        // AIX and 64-bit Linux PPC use PowerOpen ABI
-      } else {
-        return callee_fp;
-      }
+      // We want to return fp, not callee_fp because we want the stack walkers
+      // to see the "mini-frame" which has the RVM information, not the "main frame"
+      // pointed to by callee_fp which is where the saved ip was actually stored.
+      return fp;
     } else {
       return callee_fp;
     }
@@ -1022,24 +1106,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @Uninterruptible
   public static Address unwindNativeStackFrameForGC(Address currfp) {
-    if (VM.BuildForMachOABI) {
-      // Unlike on AIX, there are two glue frames. The frame the
-      // VM_JNICompiler refers to as "glue frame 1" will contain saved
-      // volatile GPRs, so we must return that frame pointer and let a
-      // JNIGCMapIterator have a chance to examine it.
-      Address ip, callee_fp;
-      Address fp = VM_Magic.getCallerFramePointer(currfp);
-
-      do {
-        callee_fp = fp;
-        ip = VM_Magic.getReturnAddress(fp);
-        fp = VM_Magic.getCallerFramePointer(fp);
-      } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
-
-      return callee_fp;
-    } else {
-      return unwindNativeStackFrame(currfp);
-    }
+     return unwindNativeStackFrame(currfp);
   }
 
   /**

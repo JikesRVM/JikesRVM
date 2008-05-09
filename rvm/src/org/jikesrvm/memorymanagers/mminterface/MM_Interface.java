@@ -30,11 +30,17 @@ import org.jikesrvm.mm.mmtk.Options;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
+import org.jikesrvm.objectmodel.VM_IMT;
+import org.jikesrvm.objectmodel.VM_ITable;
+import org.jikesrvm.objectmodel.VM_ITableArray;
 import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_TIB;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.scheduler.VM_ProcessorTable;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -54,6 +60,7 @@ import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -93,6 +100,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void init() {
+    if (VM.VerifyAssertions) VM._assert(!Selected.Constraints.get().needsStaticReadBarrier());
     VM_CollectorThread.init();
     VM_ConcurrentCollectorThread.init();
     org.jikesrvm.mm.mmtk.Collection.init();
@@ -267,6 +275,63 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   *
   * Read barriers
   */
+
+  /**
+   * Read barrier for getfield operations.
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static Object getfieldReadBarrier(Object ref, Offset offset, int locationMetadata) {
+    ObjectReference src = ObjectReference.fromObject(ref);
+    return Selected.Mutator.get().readBarrier(src,
+                                              src.toAddress().plus(offset),
+                                              offset,
+                                              locationMetadata,
+                                              GETFIELD_READ_BARRIER).toObject();
+  }
+
+  /**
+   * Take appropriate read barrier actions for loading a reference
+   * from an array.
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static Object arrayLoadReadBarrier(Object ref, int index) {
+    ObjectReference array = ObjectReference.fromObject(ref);
+    Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
+    return Selected.Mutator.get().readBarrier(array,
+                                              array.toAddress().plus(offset),
+                                              offset,
+                                              0, // don't know metadata
+                                              AALOAD_READ_BARRIER).toObject();
+  }
+
+  /**
+   * Read barrier for getstatic operations.
+   *
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being read
+   * @return the value read from the field
+   */
+  @Inline
+  @Entrypoint
+  public static Object getstaticReadBarrier(Offset offset, int locationMetadata) {
+    ObjectReference src = ObjectReference.fromObject(VM_Magic.getJTOC());
+    return Selected.Mutator.get().readBarrier(src,
+                                              src.toAddress().plus(offset),
+                                              offset,
+                                              locationMetadata,
+                                              GETSTATIC_READ_BARRIER).toObject();
+  }
 
   /**
    * A reference type is being read.
@@ -525,6 +590,9 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     if (type.isArrayType() && type.asArray().getElementType().isPrimitiveType()) {
       allocator = Plan.ALLOC_NON_REFERENCE;
     }
+    if(type.isNonMoving()) {
+      allocator = Plan.ALLOC_NON_MOVING;
+    }
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (Selected.Constraints.get().withGCspy()) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/", typeBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) {
@@ -537,11 +605,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
         isPrefix("Lorg/jikesrvm/scheduler/VM_Processor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/VM_JNIEnvironment;", typeBA)) {
-      allocator = Plan.ALLOC_IMMORTAL;
-    }
-    if (Selected.Constraints.get().needsImmortalTypeInfo() &&
-        (isPrefix("Lorg/jikesrvm/classloader/VM_Class", typeBA) ||
-         isPrefix("Lorg/jikesrvm/classloader/VM_Array", typeBA))) {
       allocator = Plan.ALLOC_IMMORTAL;
     }
     return allocator;
@@ -567,7 +630,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return the initialized Object
    */
   @Inline
-  public static Object allocateScalar(int size, Object[] tib, int allocator, int align, int offset, int site) {
+  public static Object allocateScalar(int size, VM_TIB tib, int allocator, int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
@@ -594,7 +657,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static Object allocateArray(int numElements, int logElementSize, int headerSize, Object[] tib, int allocator,
+  public static Object allocateArray(int numElements, int logElementSize, int headerSize, VM_TIB tib, int allocator,
                                      int align, int offset, int site) {
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
@@ -632,7 +695,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Inline
-  private static Object allocateArrayInternal(int numElements, int size, Object[] tib, int allocator,
+  private static Object allocateArrayInternal(int numElements, int size, VM_TIB tib, int allocator,
                                               int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
@@ -730,7 +793,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     int align = VM_ObjectModel.getAlignment(type);
     int offset = VM_ObjectModel.getOffsetForAlignment(type);
     int width = type.getLogElementSize();
-    Object[] tib = type.getTypeInformationBlock();
+    VM_TIB tib = type.getTypeInformationBlock();
     int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
 
     return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
@@ -753,7 +816,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       int align = VM_ObjectModel.getAlignment(stackType);
       int offset = VM_ObjectModel.getOffsetForAlignment(stackType);
       int width = stackType.getLogElementSize();
-      Object[] stackTib = stackType.getTypeInformationBlock();
+      VM_TIB stackTib = stackType.getTypeInformationBlock();
 
       return (byte[]) allocateArray(bytes,
                                     width,
@@ -767,13 +830,73 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a reference offset array
+   * Allocate a non moving word array
    *
    * @param size The size of the array
    */
   @Inline
   @Interruptible
-  public static int[] newReferenceOffsetArray(int size) {
+  public static WordArray newNonMovingWordArray(int size) {
+    if (!VM.runningVM) {
+      return WordArray.create(size);
+    }
+
+    VM_Array arrayType = VM_Type.WordArrayType;
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = VM_ObjectModel.getAlignment(arrayType);
+    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int width = arrayType.getLogElementSize();
+    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+
+    return (WordArray) allocateArray(size,
+                                 width,
+                                 headerSize,
+                                 arrayTib,
+                                 Plan.ALLOC_NON_MOVING,
+                                 align,
+                                 offset,
+                                 Plan.DEFAULT_SITE);
+
+  }
+
+  /**
+   * Allocate a non moving double array
+   *
+   * @param size The size of the array
+   */
+  @Inline
+  @Interruptible
+  public static double[] newNonMovingDoubleArray(int size) {
+    if (!VM.runningVM) {
+      return new double[size];
+    }
+
+    VM_Array arrayType = VM_Array.DoubleArray;
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = VM_ObjectModel.getAlignment(arrayType);
+    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int width = arrayType.getLogElementSize();
+    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+
+    return (double[]) allocateArray(size,
+                                 width,
+                                 headerSize,
+                                 arrayTib,
+                                 Plan.ALLOC_NON_MOVING,
+                                 align,
+                                 offset,
+                                 Plan.DEFAULT_SITE);
+
+  }
+
+  /**
+   * Allocate a non moving int array
+   *
+   * @param size The size of the array
+   */
+  @Inline
+  @Interruptible
+  public static int[] newNonMovingIntArray(int size) {
     if (!VM.runningVM) {
       return new int[size];
     }
@@ -783,13 +906,43 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     int align = VM_ObjectModel.getAlignment(arrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
     int width = arrayType.getLogElementSize();
-    Object[] arrayTib = arrayType.getTypeInformationBlock();
+    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (int[]) allocateArray(size,
                                  width,
                                  headerSize,
                                  arrayTib,
-                                 (Selected.Constraints.get().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
+                                 Plan.ALLOC_NON_MOVING,
+                                 align,
+                                 offset,
+                                 Plan.DEFAULT_SITE);
+
+  }
+
+  /**
+   * Allocate a non moving int array
+   *
+   * @param size The size of the array
+   */
+  @Inline
+  @Interruptible
+  public static short[] newNonMovingShortArray(int size) {
+    if (!VM.runningVM) {
+      return new short[size];
+    }
+
+    VM_Array arrayType = VM_Array.ShortArray;
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = VM_ObjectModel.getAlignment(arrayType);
+    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int width = arrayType.getLogElementSize();
+    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+
+    return (short[]) allocateArray(size,
+                                 width,
+                                 headerSize,
+                                 arrayTib,
+                                 Plan.ALLOC_NON_MOVING,
                                  align,
                                  offset,
                                  Plan.DEFAULT_SITE);
@@ -799,33 +952,117 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   /**
    * Allocate a new type information block (TIB).
    *
-   * @param n the number of slots in the TIB to be allocated
+   * @param numVirtualMethods the number of virtual method slots in the TIB
    * @return the new TIB
    */
   @Inline
   @Interruptible
-  public static Object[] newTIB(int n) {
+  public static VM_TIB newTIB(int numVirtualMethods) {
+    int size = VM_TIB.computeSize(numVirtualMethods);
 
     if (!VM.runningVM) {
-      return new Object[n];
+      return VM_TIB.allocate(size);
     }
 
-    VM_Array objectArrayType = VM_Type.JavaLangObjectArrayType;
-    Object[] objectArrayTib = objectArrayType.getTypeInformationBlock();
-    int align = VM_ObjectModel.getAlignment(objectArrayType);
-    int offset = VM_ObjectModel.getOffsetForAlignment(objectArrayType);
-    Object result =
-        allocateArray(n,
-                      objectArrayType.getLogElementSize(),
-                      VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
-                      objectArrayTib,
-                      Plan.ALLOC_IMMORTAL,
-                      align,
-                      offset,
-                      Plan.DEFAULT_SITE);
-    return (Object[]) result;
+    return (VM_TIB)newRuntimeTable(size, VM_Type.TIBType);
   }
 
+  /**
+   * Allocate a new processors table
+   *
+   * @param size The size of the table.
+   * @return the new processors table
+   */
+  @Inline
+  @Interruptible
+  public static VM_ProcessorTable newProcessorTable(int size) {
+    if (!VM.runningVM) {
+      return VM_ProcessorTable.allocate(size);
+    }
+
+    return (VM_ProcessorTable)newRuntimeTable(size, VM_Type.ProcessorTableType);
+  }
+
+  /**
+   * Allocate a new interface method table (IMT).
+   *
+   * @return the new IMT
+   */
+  @Inline
+  @Interruptible
+  public static VM_IMT newIMT() {
+    if (!VM.runningVM) {
+      return VM_IMT.allocate();
+    }
+
+    return (VM_IMT)newRuntimeTable(VM_TIBLayoutConstants.IMT_METHOD_SLOTS, VM_Type.IMTType);
+  }
+
+  /**
+   * Allocate a new ITable
+   *
+   * @param size the number of slots in the ITable
+   * @return the new ITable
+   */
+  @Inline
+  @Interruptible
+  public static VM_ITable newITable(int size) {
+    if (!VM.runningVM) {
+      return VM_ITable.allocate(size);
+    }
+
+    return (VM_ITable)newRuntimeTable(size, VM_Type.ITableType);
+  }
+
+  /**
+   * Allocate a new ITableArray
+   *
+   * @param size the number of slots in the ITableArray
+   * @return the new ITableArray
+   */
+  @Inline
+  @Interruptible
+  public static VM_ITableArray newITableArray(int size) {
+    if (!VM.runningVM) {
+      return VM_ITableArray.allocate(size);
+    }
+
+    return (VM_ITableArray)newRuntimeTable(size, VM_Type.ITableArrayType);
+  }
+
+  /**
+   * Allocate a new runtime table (at runtime)
+   *
+   * @param size The size of the table.
+   * @return the newly allocated table
+   */
+  @Inline
+  @Interruptible
+  public static Object newRuntimeTable(int size, VM_Type type) {
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+
+    VM_TIB realTib = type.getTypeInformationBlock();
+    VM_Array fakeType = VM_Type.WordArrayType;
+    VM_TIB fakeTib = fakeType.getTypeInformationBlock();
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(fakeType);
+    int align = VM_ObjectModel.getAlignment(fakeType);
+    int offset = VM_ObjectModel.getOffsetForAlignment(fakeType);
+    int width = fakeType.getLogElementSize();
+
+    /* Allocate a word array */
+    Object array = allocateArray(size,
+                                 width,
+                                 headerSize,
+                                 fakeTib,
+                                 type.getMMAllocator(),
+                                 align,
+                                 offset,
+                                 Plan.DEFAULT_SITE);
+
+    /* Now we replace the TIB */
+    VM_ObjectModel.setTIB(array, realTib);
+    return array;
+  }
   /**
    * Allocate a contiguous VM_CompiledMethod array
    * @param n The number of objects
@@ -1016,11 +1253,19 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * BootImageInterface type.
    */
   @Interruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref, Object[] tib, int size,
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, VM_TIB tib, int size,
                                       boolean isScalar) {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
     Word status = Selected.Plan.get().setBootTimeGCBits(ref, ObjectReference.fromObject(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
+  }
+
+  /**
+   * Install a reference into the boot image.
+   */
+  @Interruptible
+  public static Word bootTimeWriteBarrier(Word value) {
+    return Selected.Plan.get().bootTimeWriteBarrier(value);
   }
 
   /***********************************************************************

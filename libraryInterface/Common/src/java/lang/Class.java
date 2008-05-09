@@ -87,7 +87,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   Object[] signers;
 
   public boolean desiredAssertionStatus() {
-    return true; // TODO: assertion status support isn't yet present
+    return type.getDesiredAssertionStatus();
   }
 
   public static Class<?> forName(String typeName) throws ClassNotFoundException {
@@ -160,7 +160,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return type.isArrayType() ? type.asArray().getElementType().getClassForType(): null;
   }
 
-  public Constructor<?> getConstructor(Class<?>[] parameterTypes)
+  public Constructor<T> getConstructor(Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException {
 
     checkMemberAccess(Member.PUBLIC);
@@ -225,7 +225,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return result;
   }
 
-  public Constructor<?> getDeclaredConstructor(Class<?>[] parameterTypes)
+  public Constructor<T> getDeclaredConstructor(Class<?>[] parameterTypes)
     throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchMethodException();
@@ -528,17 +528,22 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Class<?> getSuperclass() {
+  @SuppressWarnings("unchecked")
+  public Class<? super T> getSuperclass() {
     if (type.isArrayType()) {
-      return VM_Type.JavaLangObjectType.getClassForType();
+      return Object.class;
     } else if (type.isClassType()) {
       VM_Class myClass = type.asClass();
       if (myClass.isInterface()) return null;
       VM_Type supe = myClass.getSuperClass();
-      return supe == null ? null : supe.getClassForType();
+      return supe == null ? null : (Class<? super T>) supe.getClassForType();
     } else {
       return null;
     }
+  }
+
+  public boolean isAnnotation() {
+    return type.isClassType() && type.asClass().isAnnotation();
   }
 
   public boolean isArray() {
@@ -561,6 +566,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public boolean isPrimitive() {
     return type.isPrimitiveType();
+  }
+
+  public boolean isSynthetic() {
+    return type.isClassType() && type.asClass().isSynthetic();
   }
 
   public T newInstance() throws IllegalAccessException,
@@ -904,7 +913,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public TypeVariable<?>[] getTypeParameters() {
+  public TypeVariable<Class<T>>[] getTypeParameters() {
     if (!type.isClassType()) {
       return new TypeVariable[0];
     } else {
@@ -956,7 +965,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-  public Constructor<? super T> getEnclosingConstructor() {
+  public Constructor<?> getEnclosingConstructor() {
     throw new VM_UnimplementedError();
   }
 
@@ -964,18 +973,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     throw new VM_UnimplementedError();
   }
 
-  public Object cast(Object obj) {
+  public T cast(Object obj) {
     if (obj != null && ! isInstance(obj))
       throw new ClassCastException();
-    return obj;
+    return (T)obj;
   }
 
   // Enumeration support
 
-  public Object[] getEnumConstants() {
+  public T[] getEnumConstants() {
     if (isEnum()) {
       try {
-        return (Object[])getMethod("values", new Class[0]).invoke(null, new Object[0]);
+        return (T[])getMethod("values", new Class[0]).invoke(null, new Object[0]);
       } catch (NoSuchMethodException exception) {
         throw new Error("Enum lacks values() method");
       } catch (IllegalAccessException exception) {
@@ -1009,4 +1018,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       });
   }
 
+  public <U> Class<? extends U> asSubclass(Class<U> klass) {
+    if (! klass.isAssignableFrom(this))
+      throw new ClassCastException();
+    return (Class<? extends U>) this;
+  }
 }

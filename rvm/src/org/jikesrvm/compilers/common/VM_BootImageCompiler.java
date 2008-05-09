@@ -28,7 +28,7 @@ import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
 public abstract class VM_BootImageCompiler {
 
   private static VM_BootImageCompiler compiler =
-      VM.BuildWithBaseBootImageCompiler ? new VM_BaselineBootImageCompiler() : new org.jikesrvm.compilers.opt.VM_OptimizingBootImageCompiler();
+      VM.BuildWithBaseBootImageCompiler ? new VM_BaselineBootImageCompiler() : new org.jikesrvm.compilers.opt.driver.VM_OptimizingBootImageCompiler();
 
   /**
    * Initialize boot image compiler.

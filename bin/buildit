@@ -22,7 +22,7 @@
 #
 
 $shortusage = 
-"Usage: buildit [-dhgqz] [-r root] [-s suffix] [-j java-home]
+"Usage: buildit [-dhgqpz] [-r root] [-s suffix] [-j java-home]
        [--test-run xxx] build-host [-c target-host] [ Configs... ]
 ";
 $usage = $shortusage."Building:
@@ -67,7 +67,7 @@ Options:
 Building Options:
      --x87            Use x87 Compatibility mode.
  -c, --cross-to       Crossbuild to target host (or copy post build).
- -p, --with-perfctr   Build with perfctr support
+     --with-perfctr   Build with perfctr support
  -a, --with-acheck    Build with align checks, implies --x87 --processors 1
  -g, --gdb-symbols    Build with gdb symbols
  -q, --quick          Quick build (not 100% safe - doesn't regenerate source)
@@ -82,7 +82,7 @@ Building Options:
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
      --checkstyle     Perform source code style checks.
-     --profile        Perform a profiled build (including creation of a profile)	
+ -p, --profile        Perform a profiled build (including creation of a profile)	
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
 
@@ -135,7 +135,7 @@ GetOptions(
   "nuke" => \$nuke,
   "c|cross-to=s" => \$target,
   "checkstyle" => \$checkstyle,
-  "profile" => \$profile,
+  "p|profile" => \$profile,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
   "target-user=s" => \$cmd_targetUser,
@@ -153,7 +153,7 @@ GetOptions(
   "r|root=s" => \$root,
   "q|quick" => \$quick,
   "processors=s" => \$procs,
-  "p|with-perfctr" => \$with_perfctr,
+  "with-perfctr" => \$with_perfctr,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
   "h|help" => \$help,

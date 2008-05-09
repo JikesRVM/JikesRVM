@@ -42,27 +42,40 @@ public abstract class VM_MultianewarrayHelper {
    */
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
-    // fetch number of elements to be allocated for each array dimension
-    //
-    int[] numElements = new int[numDimensions];
-    VM.disableGC();
-    Address argp = VM_Magic.getFramePointer().plus(argOffset);
-    for (int i = 0; i < numDimensions; ++i) {
+    if (numDimensions == 2) {
+      int dim0, dim1;
+      // fetch number of elements to be allocated for each array dimension
+      VM.disableGC();
+      Address argp = VM_Magic.getFramePointer().plus(argOffset);
       argp = argp.minus(4);
-      numElements[i] = argp.loadInt();
+      dim0 = argp.loadInt();
+      argp = argp.minus(4);
+      dim1 = argp.loadInt();
+      VM.enableGC();
+      // validate arguments
+      if ((dim0 < 0) || (dim1 < 0)) throw new NegativeArraySizeException();
+      // create array
+      VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
+      VM_Array array = tRef.resolve().asArray();
+      return VM_Runtime.buildTwoDimensionalArray(methodId, dim0, dim1, array);
+    } else {
+      // fetch number of elements to be allocated for each array dimension
+      int[] numElements = new int[numDimensions];
+      VM.disableGC();
+      Address argp = VM_Magic.getFramePointer().plus(argOffset);
+      for (int i = 0; i < numDimensions; ++i) {
+        argp = argp.minus(4);
+        numElements[i] = argp.loadInt();
+      }
+      VM.enableGC();
+      // validate arguments
+      for (int elements : numElements) {
+        if (elements < 0) throw new NegativeArraySizeException();
+      }
+      // create array
+      VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
+      VM_Array array = tRef.resolve().asArray();
+      return VM_Runtime.buildMultiDimensionalArray(methodId, numElements, array);
     }
-    VM.enableGC();
-
-    // validate arguments
-    //
-    for (int i = 0; i < numDimensions; ++i) {
-      if (numElements[i] < 0) throw new NegativeArraySizeException();
-    }
-
-    // create array
-    //
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
-    VM_Array array = tRef.resolve().asArray();
-    return VM_Runtime.buildMultiDimensionalArray(methodId, numElements, array);
   }
 }

@@ -40,30 +40,43 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
    *                      be allocated for each dimension.
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
-  static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
-      throws NegativeArraySizeException, OutOfMemoryError {
-    // fetch number of elements to be allocated for each array dimension
-    //
-    int[] numElements = new int[numDimensions];
-    VM.disableGC();
-    Address argp = VM_Magic.getFramePointer().loadAddress().plus(argOffset);
-    for (int i = 0; i < numDimensions; ++i) {
-      int offset = (VM_StackframeLayoutConstants.BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
-      numElements[i] = argp.minus(offset).loadInt();
+  static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
+      throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
+    if (numDimensions == 2) {
+      int dim0, dim1;
+      // fetch number of elements to be allocated for each array dimension
+      VM.disableGC();
+      Address argp = VM_Magic.getFramePointer().loadAddress().plus(argOffset);
+      int offset = (VM_StackframeLayoutConstants.BYTES_IN_STACKSLOT * 0) + BYTES_IN_INT;
+      dim0 = argp.minus(offset).loadInt();
+      offset = (VM_StackframeLayoutConstants.BYTES_IN_STACKSLOT * 1) + BYTES_IN_INT;
+      dim1 = argp.minus(offset).loadInt();
+      VM.enableGC();
+      // validate arguments
+      if ((dim0 < 0) || (dim1 < 0)) throw new NegativeArraySizeException();
+      // create array
+      VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
+      VM_Array array = tRef.resolve().asArray();
+      return VM_Runtime.buildTwoDimensionalArray(methodId, dim0, dim1, array);
+    } else {
+      // fetch number of elements to be allocated for each array dimension
+      int[] numElements = new int[numDimensions];
+      VM.disableGC();
+      Address argp = VM_Magic.getFramePointer().loadAddress().plus(argOffset);
+      for (int i = 0; i < numDimensions; ++i) {
+        int offset = (VM_StackframeLayoutConstants.BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
+        numElements[i] = argp.minus(offset).loadInt();
+      }
+      VM.enableGC();
+      // validate arguments
+      for (int elements : numElements) {
+        if (elements < 0) throw new NegativeArraySizeException();
+      }
+      // create array
+      VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
+      VM_Array array = tRef.resolve().asArray();
+      return VM_Runtime.buildMultiDimensionalArray(methodId, numElements, array);
     }
-    VM.enableGC();
-
-    // validate arguments
-    //
-    for (int i = 0; i < numDimensions; ++i) {
-      if (numElements[i] < 0) throw new NegativeArraySizeException();
-    }
-
-    // create array
-    //
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Array array = tRef.resolve().asArray();
-    return VM_Runtime.buildMultiDimensionalArray(methodId, numElements, array);
   }
 }
 

@@ -45,8 +45,9 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Instance fields
    */
-  private MSTraceLocal trace;
-  private MarkSweepLocal ms; // see FIXME at top of this class
+  protected MSTraceLocal fullTrace;
+  protected TraceLocal currentTrace;
+  protected MarkSweepLocal ms; // see FIXME at top of this class
 
   /****************************************************************************
    * Initialization
@@ -56,7 +57,8 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public MSCollector() {
-    trace = new MSTraceLocal(global().msTrace);
+    fullTrace = new MSTraceLocal(global().msTrace, null);
+    currentTrace = fullTrace;
     ms = new MarkSweepLocal(MS.msSpace);
   }
 
@@ -72,21 +74,21 @@ import org.vmmagic.pragma.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(short phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();
-      trace.prepare();
+      fullTrace.prepare();
       return;
     }
 
     if (phaseId == MS.CLOSURE) {
-      trace.completeTrace();
+      fullTrace.completeTrace();
       return;
     }
 
     if (phaseId == MS.RELEASE) {
-      trace.release();
+      fullTrace.release();
       super.collectionPhase(phaseId, primary);
       return;
     }
@@ -107,6 +109,6 @@ import org.vmmagic.pragma.*;
 
   /** @return The current trace instance. */
   public final TraceLocal getCurrentTrace() {
-    return trace;
+    return currentTrace;
   }
 }

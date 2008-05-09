@@ -43,13 +43,14 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldMutator
  * @see MutatorContext
  */
-@Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
+@Uninterruptible
+public abstract class MSMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields
    */
 
-  private MarkSweepLocal ms;
+  protected MarkSweepLocal ms;
 
   /****************************************************************************
    *
@@ -148,7 +149,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(short phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();

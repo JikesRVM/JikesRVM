@@ -36,4 +36,11 @@ public interface VM_ObjectAddressRemapper {
    * @return corresponding object
    */
   Object addressAsObject(Address address);
+
+  /**
+   * Avoid duplicates of certain objects
+   * @param object to intern
+   * @return interned object
+   */
+  <T> T intern(T object);
 }

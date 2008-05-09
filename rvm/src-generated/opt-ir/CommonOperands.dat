@@ -16,8 +16,8 @@
 # structure of SIG: { "NAME TYPE" }
 SIG
 
-"Result OPT_RegisterOperand"
-"GuardResult OPT_RegisterOperand"
-"Location OPT_LocationOperand"
-"Guard OPT_Operand"
-"BranchProfile OPT_BranchProfileOperand"
+"Result RegisterOperand"
+"GuardResult RegisterOperand"
+"Location LocationOperand"
+"Guard Operand"
+"BranchProfile BranchProfileOperand"

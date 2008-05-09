@@ -30,6 +30,7 @@
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
   <property name="timedrun.exe" location="${jikesrvm.dir}/bin/timedrun"/>
   <property name="extractmmtkstats.exe" location="${jikesrvm.dir}/bin/extractmmtkstats"/>
+  <property name="extractcompilerstats.exe" location="${jikesrvm.dir}/bin/extractcompilerstats"/>
 
   <!-- Default values -->
   <property name="test.mode" value=""/>
@@ -117,6 +118,7 @@
 <parameter key='max.heapsize' value='${test.@{tag}.max.heapsize}'/>
 <parameter key='time.limit' value='${test.@{tag}.time.limit}'/>
 <parameter key='extra.args' value='${test.@{tag}.extra.args}'/>
+<parameter key='extra.rvm.args' value='${test.@{tag}.extra.rvm.args}'/>
 <parameter key='processors' value='${test.@{tag}.processors}'/>
 <parameter key='max.opt.level' value='${test.@{tag}.max.opt.level}'/>
 </parameters>
@@ -194,6 +196,28 @@
         </not>
       </condition>
       <explainResult tag="@{tag}" execution="@{execution}" message="Could not extract MMTk statistics."/>
+    </sequential>
+  </macrodef>
+
+  <!--
+      Macro to extract compiler statistics from a log file. The statistics to extract is a space delimited string.
+  -->
+  <macrodef name="extractCompilerStatistics">
+    <attribute name="tag"/>
+    <attribute name="execution" default="default"/>
+    <attribute name="statistics"/>
+    <sequential>
+      <exec executable="${extractcompilerstats.exe}" failonerror="false" resultproperty="test.@{tag}.@{execution}.compilerstats.exit.code">
+        <arg value="${test.@{tag}.@{execution}.sanitized.output.file}"/>
+        <arg value="${results.file}"/>
+        <arg line="@{statistics}"/>
+      </exec>
+      <condition property="test.@{tag}.@{execution}.result" value="FAILURE">
+        <not>
+          <equals arg1="${test.@{tag}.@{execution}.compilerstats.exit.code}" arg2="0"/>
+        </not>
+      </condition>
+      <explainResult tag="@{tag}" execution="@{execution}" message="Could not extract compiler statistics."/>
     </sequential>
   </macrodef>
 
@@ -448,6 +472,7 @@
       </condition>
 
       <setTestProperty tag="@{tag}" key="extra.args" default="@{rvmArgs}"/>
+      <setTestProperty tag="@{tag}" key="extra.rvm.args" default=""/>
       <setTestProperty tag="@{tag}" key="class.path" default="${default.test.@{tag}.classpath}"/>
       <setTestProperty tag="@{tag}" key="time.limit" default="${default.test.@{tag}.timeLimit}"/>
       <setTestProperty tag="@{tag}" key="initial.heapsize" default="${default.test.@{tag}.initialHeapSize}"/>
@@ -462,7 +487,7 @@
       </condition>
 
       <property name="test.@{tag}.rvm.args"
-                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.maxOptLevel-arg}"/>
+                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.extra.rvm.args} ${test.@{tag}.maxOptLevel-arg}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
@@ -566,6 +591,7 @@
   <!-- test the results of test run against an expected value in file named  @{class}@{name}.expected -->
   <macrodef name="diffCompareFiles">
     <attribute name="tag"/>
+    <attribute name="execution"/>
     <attribute name="expected"/>
     <attribute name="actual"/>
     <sequential>
@@ -588,6 +614,7 @@
     <attribute name="class"/>
     <attribute name="classpath" default=""/>
     <attribute name="args" default=""/>
+    <attribute name="execution" default="default"/>
     <attribute name="initialHeapSize" default=""/>
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
@@ -607,7 +634,8 @@
       <loadfile property="test.@{tag}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
 
       <diffCompareFiles tag="@{tag}"
-                        expected="${main.java}/${test.@{tag}.expected.output.file}.expected"
+   	   					execution="@{execution}"
+                       	expected="${main.java}/${test.@{tag}.expected.output.file}.expected"
                         actual="${test.@{tag}.default.sanitized.output.file}"/>
 
       <outputResults tag="@{tag}"/>

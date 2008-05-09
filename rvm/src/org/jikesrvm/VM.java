@@ -131,6 +131,13 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
+    // Register the offsets of static fields that would be potentially
+    // erroneously calculated during interface declaration
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up static fields");
+    VM_SysCall.sysCall.sysRegisterStaticFieldOffsets(VM_Entrypoints.gcStatusField.getOffset().toInt(),
+        VM_Entrypoints.timerTicksField.getOffset().toInt(),
+        VM_Entrypoints.reportedTimerTicksField.getOffset().toInt());
+
     // Set up the current VM_Processor object.  The bootstrap program
     // has placed a pointer to the current VM_Processor in a special
     // register.
@@ -218,12 +225,18 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("gnu.classpath.SystemProperties");
 
+    runClassInitializer("java.lang.Throwable$StaticData");
+
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("sun.misc.Unsafe");
 
     runClassInitializer("java.lang.Character");
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
+    runClassInitializer("org.jikesrvm.classloader.VM_Atom$InternedStrings");
+    runClassInitializer("org.jikesrvm.classloader.VM_TypeReferenceVector");
+    runClassInitializer("org.jikesrvm.classloader.VM_MethodVector");
+    runClassInitializer("org.jikesrvm.classloader.VM_FieldVector");
     // Turn off security checks; about to hit EncodingManager.
     // Commented out because we haven't incorporated this into the CVS head
     // yet.
@@ -253,7 +266,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
     runClassInitializer("java.lang.String");
-    runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
     /* Needed for VM_ApplicationClassLoader, which in turn is needed by
@@ -275,17 +287,13 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    runClassInitializer("java.util.SimpleTimeZone");
     runClassInitializer("java.util.Locale");
-    runClassInitializer("java.util.Calendar");
-    runClassInitializer("java.util.GregorianCalendar");
     runClassInitializer("java.util.ResourceBundle");
+    runClassInitializer("java.util.zip.CRC32");
     runClassInitializer("java.util.zip.Inflater");
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    runClassInitializer("java.util.Date");
-    runClassInitializer("java.lang.Throwable$StaticData");
     if (VM.BuildWithAllClasses) {
       runClassInitializer("java.util.jar.Attributes$Name");
     }
@@ -318,11 +326,15 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
+    runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
 
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("org.jikesrvm.scheduler.greenthreads.VM_Process");
     runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
+    runClassInitializer("java.lang.annotation.RetentionPolicy");
+    runClassInitializer("java.lang.annotation.ElementType");
+    runClassInitializer("java.lang.Thread$State");
     runClassInitializer("java.lang.VMClassLoader");
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
@@ -338,6 +350,11 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM.fullyBooted = true;
     MM_Interface.fullyBootedVM();
     VM_BaselineCompiler.fullyBootedVM();
+
+    runClassInitializer("java.util.logging.Level");
+    runClassInitializer("java.io.FilePermission");
+    runClassInitializer("gnu.java.nio.charset.EncodingHelper");
+    runClassInitializer("java.util.logging.Logger");
 
     // Initialize compiler that compiles dynamically loaded classes.
     //

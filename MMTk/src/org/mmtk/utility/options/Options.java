@@ -30,6 +30,12 @@ public final class Options {
   public static CycleTriggerThreshold cycleTriggerThreshold;
   public static DebugAddress debugAddress;
   public static DummyEnum dummyEnum;
+  public static DefragHeadroom defragHeadroom;
+  public static DefragHeadroomFraction defragHeadroomFraction;
+  public static DefragFreeHeadroom defragFreeHeadroom;
+  public static DefragFreeHeadroomFraction defragFreeHeadroomFraction;
+  public static DefragLineReuseRatio defragLineReuseRatio;
+  public static DefragSimpleSpillThreshold defragSimpleSpillThreshold;
   public static EagerCompleteSweep eagerCompleteSweep;
   public static EagerMmapSpaces eagerMmapSpaces;
   public static FixedNursery fixedNursery;
@@ -42,6 +48,7 @@ public final class Options {
   public static GenCycleDetection genCycleDetection;
   public static HarnessAll harnessAll;
   public static IgnoreSystemGC ignoreSystemGC;
+  public static LineReuseRatio lineReuseRatio;
   public static MarkSweepMarkBits markSweepMarkBits;
   public static MetaDataLimit metaDataLimit;
   public static NoFinalizer noFinalizer;

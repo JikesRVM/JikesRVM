@@ -17,6 +17,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -34,9 +35,9 @@ import org.vmmagic.unboxed.ObjectReference;
 @Uninterruptible
 public class DebugUtil implements VM_Constants, Constants {
 
-  private static Object[] tibForArrayType;
-  private static Object[] tibForClassType;
-  private static Object[] tibForPrimitiveType;
+  private static VM_TIB tibForArrayType;
+  private static VM_TIB tibForClassType;
+  private static VM_TIB tibForPrimitiveType;
 
   @Interruptible
   static void boot(VM_BootRecord theBootRecord) {
@@ -60,7 +61,7 @@ public class DebugUtil implements VM_Constants, Constants {
     }
 
     // check if types tib is one of three possible values
-    Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
+    VM_TIB typeTib = VM_ObjectModel.getTIB(typeAddress);
     return ((typeTib == tibForClassType) || (typeTib == tibForArrayType) || (typeTib == tibForPrimitiveType));
   }
 
@@ -103,7 +104,7 @@ public class DebugUtil implements VM_Constants, Constants {
       */
     }
 
-    Object[] tib = VM_ObjectModel.getTIB(ref);
+    VM_TIB tib = VM_ObjectModel.getTIB(ref);
     Address tibAddr = VM_Magic.objectAsAddress(tib);
     if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
       VM.sysWrite("validRef: TIB outside heap, ref = ");
@@ -119,7 +120,7 @@ public class DebugUtil implements VM_Constants, Constants {
       VM.sysWrite("\n");
       return false;
     }
-    if (tib.length == 0) {
+    if (tib.length() == 0) {
       VM.sysWrite("validRef: TIB length zero, ref = ");
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
@@ -128,7 +129,7 @@ public class DebugUtil implements VM_Constants, Constants {
       return false;
     }
 
-    ObjectReference type = ObjectReference.fromObject(tib[0]);
+    ObjectReference type = ObjectReference.fromObject(tib.getType());
     if (!validType(type)) {
       VM.sysWrite("validRef: invalid TYPE, ref = ");
       VM.sysWrite(ref);

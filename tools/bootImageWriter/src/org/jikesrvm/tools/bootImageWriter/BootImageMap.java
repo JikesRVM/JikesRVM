@@ -82,7 +82,7 @@ public class BootImageMap extends BootImageWriterMessages
      * Returns a hash code value for the key.
      * @return a hash code value for this key
      */
-    public int hashCode() { return System.identityHashCode(jdkObject); }
+    public int hashCode() { return jdkObject.hashCode(); }
 
     /**
      * Indicates whether some other key is "equal to" this one.
@@ -90,8 +90,18 @@ public class BootImageMap extends BootImageWriterMessages
      * @return true if this key is the same as the that argument;
      *         false otherwise
      */
-    public boolean equals(Object that) {
-      return (that instanceof Key) && jdkObject == ((Key)that).jdkObject;
+    public boolean equals(Object obj) {
+      if (obj instanceof Key) {
+        Key that = (Key)obj;
+        if (jdkObject == that.jdkObject) {
+          return true;
+        } else if (jdkObject instanceof String && that.jdkObject instanceof String) {
+          return jdkObject.equals(that.jdkObject);
+        } else if (jdkObject instanceof Integer && that.jdkObject instanceof Integer) {
+          return jdkObject.equals(that.jdkObject);
+        }
+      }
+      return false;
     }
   }
 
@@ -137,6 +147,9 @@ public class BootImageMap extends BootImageWriterMessages
     if (jdkObject == null)
       return nullEntry;
 
+    // Avoid duplicates of some known "safe" classes
+    jdkObject = BootImageObjectAddressRemapper.getInstance().intern(jdkObject);
+
     synchronized (BootImageMap.class) {
       Key key   = new Key(jdkObject);
       Entry entry = keyToEntry.get(key);
@@ -178,7 +191,7 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * @return enumeration of all the entries
    */
-  public static Enumeration elements() {
+  public static Enumeration<BootImageMap.Entry> elements() {
     return keyToEntry.elements();
   }
 }

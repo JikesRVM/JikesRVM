@@ -22,5 +22,6 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  */
-@Uninterruptible public class GenMSConstraints extends GenConstraints {
+@Uninterruptible
+public class GenMSConstraints extends GenConstraints {
 }

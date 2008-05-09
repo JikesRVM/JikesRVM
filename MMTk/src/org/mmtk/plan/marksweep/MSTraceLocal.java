@@ -12,23 +12,33 @@
  */
 package org.mmtk.plan.marksweep;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.deque.ObjectReferenceDeque;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the thread-local functionality for a transitive
+ * This abstract class implements the thread-local functionality for a transitive
  * closure over a mark-sweep space.
  */
-@Uninterruptible public final class MSTraceLocal extends TraceLocal {
-  /**
+@Uninterruptible
+public final class MSTraceLocal extends TraceLocal {
+  /****************************************************************************
+   *
+   * Instance fields
+   */
+  private final ObjectReferenceDeque modBuffer;
+
+ /**
    * Constructor
    */
-  public MSTraceLocal(Trace trace) {
+  public MSTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
     super(MS.SCAN_MARK, trace);
+    this.modBuffer = modBuffer;
   }
 
   /****************************************************************************
@@ -70,5 +80,20 @@ import org.vmmagic.unboxed.*;
     if (Space.isInSpace(MS.MARK_SWEEP, object))
       return MS.msSpace.traceObject(this, object);
     return super.traceObject(object);
+  }
+
+  /**
+   * Process any remembered set entries.  This means enumerating the
+   * mod buffer and for each entry, marking the object as unlogged
+   * (we don't enqueue for scanning since we're doing a full heap GC).
+   */
+  protected void processRememberedSets() {
+    if (modBuffer != null) {
+      logMessage(5, "clearing modBuffer");
+      while (!modBuffer.isEmpty()) {
+        ObjectReference src = modBuffer.pop();
+        Plan.markAsUnlogged(src);
+      }
+    }
   }
 }

@@ -91,7 +91,7 @@ public class CopyMS extends StopTheWorld {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       trace.prepare();
-      msSpace.prepare();
+      msSpace.prepare(true);
       nurserySpace.prepare(true);
       return;
     }

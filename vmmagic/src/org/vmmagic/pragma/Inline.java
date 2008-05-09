@@ -25,4 +25,31 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Pragma
-public @interface Inline { }
+public @interface Inline {
+  /**
+   * Enumeration defining when to inline
+   */
+  public enum When {
+    /**
+     * Always inline, regardless of arguments
+     */
+    Always,
+    /**
+     * Inline when all the arguments are constants
+     */
+    AllArgumentsAreConstant,
+    /**
+     * Inline when the specified arguments are constants
+     */
+    ArgumentsAreConstant
+  }
+  /**
+   * When to inline, default When.Always
+   */
+  When value() default When.Always;
+  /**
+   * Arguments that must be constant to cause inlining. NB for static methods 0
+   * is the first argument whilst for virtual methods 0 is this
+   */
+  int[] arguments() default {};
+}

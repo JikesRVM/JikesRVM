@@ -202,7 +202,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
     if (!finishedWithRegularMap) {
       if (counterArrayBase) {
         counterArrayBase = false;
-        return registerLocations.get(EBX).toAddress();
+        return registerLocations.get(EBX.value()).toAddress();
       }
       if (mapId < 0) {
         mapIndex = maps.getNextJSRRefIndex(mapIndex);
@@ -256,10 +256,10 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET).toWord());
-        registerLocations.set(T0, framePtr.plus(T0_SAVE_OFFSET).toWord());
-        registerLocations.set(T1, framePtr.plus(T1_SAVE_OFFSET).toWord());
-        registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET).toWord());
+        registerLocations.set(JTOC.value(), framePtr.plus(JTOC_SAVE_OFFSET).toWord());
+        registerLocations.set(T0.value(), framePtr.plus(T0_SAVE_OFFSET).toWord());
+        registerLocations.set(T1.value(), framePtr.plus(T1_SAVE_OFFSET).toWord());
+        registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET).toWord());
 
         bridgeRegistersLocationUpdated = true;
       }
@@ -328,8 +328,8 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
     } else {
       // point registerLocations[] to our callers stackframe
       //
-      registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET).toWord());
-      registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET).toWord());
+      registerLocations.set(JTOC.value(), framePtr.plus(JTOC_SAVE_OFFSET).toWord());
+      registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET).toWord());
     }
 
     return Address.zero();

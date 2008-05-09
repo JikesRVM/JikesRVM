@@ -27,7 +27,7 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
-import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
+import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
@@ -477,10 +477,10 @@ public class VM_AOSLogging {
   /**
    * This method logs the scheduling of a recompilation,
    * i.e., it being inserted in the compilation queue.
-   * @param plan the OPT_Compilation plan being executed.
+   * @param plan the Compilation plan being executed.
    * @param priority a number from 0.0 to 1.0 encoding the plan's priority.
    */
-  public static void recompilationScheduled(OPT_CompilationPlan plan, double priority) {
+  public static void recompilationScheduled(CompilationPlan plan, double priority) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
         log.println(getTime() + " Scheduling level " + plan.options.getOptLevel() + " recompilation of " + plan
@@ -491,9 +491,9 @@ public class VM_AOSLogging {
 
   /**
    * This method logs the beginning of an adaptively selected recompilation
-   * @param plan the OPT_Compilation plan being executed.
+   * @param plan the Compilation plan being executed.
    */
-  public static void recompilationStarted(OPT_CompilationPlan plan) {
+  public static void recompilationStarted(CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
         log.println(getTime() + " Recompiling (at level " + plan.options.getOptLevel() + ") " + plan.method);
@@ -504,9 +504,9 @@ public class VM_AOSLogging {
   /**
    * This method logs the successful completion of an adaptively
    * selected recompilation
-   * @param plan the OPT_Compilation plan being executed.
+   * @param plan the Compilation plan being executed.
    */
-  public static void recompilationCompleted(OPT_CompilationPlan plan) {
+  public static void recompilationCompleted(CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
         //        log.println(getTime() +"  Recompiled (at level "+
@@ -518,9 +518,9 @@ public class VM_AOSLogging {
 
   /**
    * This method logs the abortion of an adaptively selected recompilation
-   * @param plan the OPT_Compilation plan being executed.
+   * @param plan the Compilation plan being executed.
    */
-  public static void recompilationAborted(OPT_CompilationPlan plan) {
+  public static void recompilationAborted(CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
         log.println(getTime() + " Failed recompiling (at level " + plan.options.getOptLevel() + " " + plan.method);
@@ -766,10 +766,10 @@ public class VM_AOSLogging {
   /**
    * This method logs the successful completion of an adaptively
    * selected recompilation
-   * @param plan the OPT_Compilation plan being executed.
+   * @param plan the Compilation plan being executed.
    */
   public static void recordOSRRecompilationDecision(VM_ControllerPlan plan) {
-    OPT_CompilationPlan cplan = plan.getCompPlan();
+    CompilationPlan cplan = plan.getCompPlan();
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
         log.println(getTime() + " recompile with OSR " + "( at level " + cplan.options.getOptLevel() + " ) " + cplan
@@ -778,7 +778,7 @@ public class VM_AOSLogging {
     }
   }
 
-  public static void onStackReplacementStarted(OPT_CompilationPlan plan) {
+  public static void onStackReplacementStarted(CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
         log.println(getTime() + " OSR starts " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
@@ -786,7 +786,7 @@ public class VM_AOSLogging {
     }
   }
 
-  public static void onStackReplacementCompleted(OPT_CompilationPlan plan) {
+  public static void onStackReplacementCompleted(CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
         log.println(getTime() + " OSR ends " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
@@ -794,7 +794,7 @@ public class VM_AOSLogging {
     }
   }
 
-  public static void onStackReplacementAborted(OPT_CompilationPlan plan) {
+  public static void onStackReplacementAborted(CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
         log.println(getTime() + " OSR failed " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
@@ -842,19 +842,19 @@ public class VM_AOSLogging {
     }
   }
 
-  public static void onstackreplacementStarted(OPT_CompilationPlan plan) {
+  public static void onstackreplacementStarted(CompilationPlan plan) {
     synchronized (log) {
       log.println(getTime() + " OSR starts " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
     }
   }
 
-  public static void onstackreplacementCompleted(OPT_CompilationPlan plan) {
+  public static void onstackreplacementCompleted(CompilationPlan plan) {
     synchronized (log) {
       log.println(getTime() + " OSR ends " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
     }
   }
 
-  public static void onstackreplacementAborted(OPT_CompilationPlan plan) {
+  public static void onstackreplacementAborted(CompilationPlan plan) {
     synchronized (log) {
       log.println(getTime() + " OSR failed " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
     }

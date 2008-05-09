@@ -25,6 +25,7 @@ import org.jikesrvm.scheduler.VM_ProcessorLock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -33,7 +34,11 @@ import org.vmmagic.unboxed.Offset;
  * number of o/s kernel threads.
  */
 @Uninterruptible
+@NonMoving
 public final class VM_GreenProcessor extends VM_Processor {
+
+  private static final int verbose = 0;
+
   /**
    * thread previously running on this processor
    */
@@ -63,19 +68,19 @@ public final class VM_GreenProcessor extends VM_Processor {
   /**
    * threads to be added to ready queue
    */
-  public VM_GlobalGreenThreadQueue transferQueue;
+  public final VM_GlobalGreenThreadQueue transferQueue;
   /** guard for transferQueue */
   public final VM_ProcessorLock transferMutex;
 
   /**
    * threads waiting for a timeslice in which to run
    */
-  VM_GreenThreadQueue readyQueue;
+  final VM_GreenThreadQueue readyQueue;
 
   /**
    * Threads waiting for a subprocess to exit.
    */
-  VM_ThreadProcessWaitQueue processWaitQueue;
+  final VM_ThreadProcessWaitQueue processWaitQueue;
 
   /** guard for collectorThread */
   public final VM_ProcessorLock collectorThreadMutex;
@@ -90,17 +95,17 @@ public final class VM_GreenProcessor extends VM_Processor {
    * a waitpid.  (This is because of Linux's weird pthread model,
    * in which pthreads are essentially processes.)
    */
-  VM_ProcessorLock processWaitQueueLock;
+  final VM_ProcessorLock processWaitQueueLock;
 
   /**
    * threads waiting for i/o
    */
-  VM_ThreadIOQueue ioQueue;
+  final VM_ThreadIOQueue ioQueue;
 
   /**
    * thread to run when nothing else to do
    */
-  VM_GreenThreadQueue idleQueue;
+  final VM_GreenThreadQueue idleQueue;
 
   /**
    * Is the processor doing a select with a wait option
@@ -304,19 +309,19 @@ public final class VM_GreenProcessor extends VM_Processor {
 
     // If one of the threads has an active timerInteval, then we need to
     // update the timing information.
-    if (previousThread.hasActiveTimedInterval() || newThread.hasActiveTimedInterval()) {
+    if (previousThread.hasActiveTimedInterval() || activeThread.hasActiveTimedInterval()) {
       long now = VM_Time.nanoTime();
       if (previousThread.hasActiveTimedInterval()) {
         previousThread.suspendInterval(now);
       }
-      if (newThread.hasActiveTimedInterval()) {
-        newThread.resumeInterval(now);
+      if (activeThread.hasActiveTimedInterval()) {
+        activeThread.resumeInterval(now);
       }
     }
 
-    threadId = newThread.getLockingId();
-    activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
-    VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
+    threadId = activeThread.getLockingId();
+    activeThreadStackLimit = activeThread.stackLimit; // Delay this to last possible moment so we can sysWrite
+    VM_Magic.threadSwitch(previousThread, activeThread.contextRegisters);
   }
 
   /**
@@ -351,6 +356,7 @@ public final class VM_GreenProcessor extends VM_Processor {
       if (VM.TraceThreadScheduling > 1) {
         VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", ct.getIndex());
       }
+      if (verbose>0) VM.sysWriteln("setting collectorThread to null in GP.getRunnableThread for ",id,", returning thread ",ct.getIndex());
       collectorThread = null;
       collectorThreadMutex.unlock();
       return ct;
@@ -465,6 +471,7 @@ public final class VM_GreenProcessor extends VM_Processor {
   private void transferThread(VM_GreenThread t) {
     if (t.isGCThread()) {
       collectorThreadMutex.lock("gc thread transfer");
+      if (verbose>0) VM.sysWriteln("setting collectorThread to ",t.getIndex()," in GP.transferThread for ",id);
       collectorThread = t;
       /* Implied by transferring a gc thread */
       requestYieldToGC();
@@ -527,7 +534,7 @@ public final class VM_GreenProcessor extends VM_Processor {
    */
   private VM_GreenProcessor chooseNextProcessor(VM_GreenThread t) {
     t.chosenProcessorId = (t.chosenProcessorId % VM_GreenScheduler.numProcessors) + 1;
-    return VM_GreenScheduler.processors[t.chosenProcessorId];
+    return VM_GreenScheduler.getProcessor(t.chosenProcessorId);
   }
 
   //---------------------//
@@ -552,7 +559,8 @@ public final class VM_GreenProcessor extends VM_Processor {
 
   /**
    * sets the VP status to BLOCKED_IN_NATIVE if it is currently IN_NATIVE (ie C)
-   * returns true if BLOCKED_IN_NATIVE
+   * returns true if BLOCKED_IN_NATIVE by us, false if it was either already
+   * BLOCKED_IN_NATIVE, or if it was IN_JAVA.
    */
   @Override
   public boolean lockInCIfInC() {
@@ -560,9 +568,7 @@ public final class VM_GreenProcessor extends VM_Processor {
     Offset offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
       oldState = VM_Magic.prepareInt(this, offset);
-      if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE);
       if (oldState != IN_NATIVE) {
-        if (VM.VerifyAssertions) VM._assert(oldState == IN_JAVA);
         return false;
       }
     } while (!(VM_Magic.attemptInt(this, offset, oldState, BLOCKED_IN_NATIVE)));

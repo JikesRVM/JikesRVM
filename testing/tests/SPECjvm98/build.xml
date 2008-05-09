@@ -24,9 +24,14 @@
   <condition property="spec.args" value="-m20 -M20 -s100">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-  <condition property="spec.args" value="-m1 -M1 -s10">
+  <condition property="spec.args" value="-m1 -M1 -s100">
     <equals arg1="${test.mode}" arg2="measure-compilation"/>
   </condition>
+
+  <condition property="compiler.stats" value="Base.bcb/ms Opt.bcb/ms" else="">
+    <equals arg1="${test.mode}" arg2="measure-compilation"/>
+  </condition>
+    
   <property name="spec.args" value="-d3000 -m2 -M4 -s10"/>
 
   <property name="spec.tests"
@@ -98,7 +103,10 @@
   <target name="test" depends="prepare-dirs">
     <if>
       <conditions>
-        <equals arg1="${test.mode}" arg2="performance"/>
+        <or>
+          <equals arg1="${test.mode}" arg2="performance"/>
+          <equals arg1="${test.mode}" arg2="measure-compilation"/>
+        </or>
       </conditions>
       <sequential>
         <antcall target="performance-test"/>
@@ -107,7 +115,10 @@
     <if>
       <conditions>
         <not>
-          <equals arg1="${test.mode}" arg2="performance"/>
+          <or>
+            <equals arg1="${test.mode}" arg2="performance"/>
+            <equals arg1="${test.mode}" arg2="measure-compilation"/>
+          </or>
         </not>
       </conditions>
       <sequential>
@@ -177,7 +188,7 @@
                       key="aggregate.first.score"
                       pattern="First Run Result:\s*(\S*)"
                       file="${build.tests.dir}/derived_results.txt"/>
-
+    <extractCompilerStatistics tag="SPECjvm98" statistics="${compiler.stats}"/>
     <outputStatisticEnd/>
     <outputTestResults tag="SPECjvm98"/>
     <outputTestEnd/>

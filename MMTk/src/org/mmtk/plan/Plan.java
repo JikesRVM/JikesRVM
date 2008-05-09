@@ -82,17 +82,18 @@ public abstract class Plan implements Constants {
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
   public static final int ALLOC_NON_REFERENCE = 1;
-  public static final int ALLOC_IMMORTAL = 2;
-  public static final int ALLOC_LOS = 3;
-  public static final int ALLOC_PRIMITIVE_LOS = 4;
-  public static final int ALLOC_GCSPY = 5;
-  public static final int ALLOC_CODE = 6;
-  public static final int ALLOC_LARGE_CODE = 7;
+  public static final int ALLOC_NON_MOVING = 2;
+  public static final int ALLOC_IMMORTAL = 3;
+  public static final int ALLOC_LOS = 4;
+  public static final int ALLOC_PRIMITIVE_LOS = 5;
+  public static final int ALLOC_GCSPY = 6;
+  public static final int ALLOC_CODE = 7;
+  public static final int ALLOC_LARGE_CODE = 8;
   public static final int ALLOC_HOT_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_STACK = ALLOC_LOS;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
-  public static final int ALLOCATORS = 8;
+  public static final int ALLOCATORS = 9;
   public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
@@ -104,6 +105,12 @@ public abstract class Plan implements Constants {
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
+
+/* Do we support a log bit in the object header?  Some write barries may use it */
+  public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
+  public static final Word LOG_SET_MASK = VM.activePlan.constraints().unloggedBit();
+  private static final Word LOG_CLEAR_MASK = LOG_SET_MASK.not();
+  public static final Word UNLOGGED_BIT = VM.activePlan.constraints().unloggedBit();
 
   /****************************************************************************
    * Class variables
@@ -128,6 +135,9 @@ public abstract class Plan implements Constants {
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
   public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create());
 
+  /** Space used to allocate objects that cannot be moved. we do not need a large space as the LOS is non-moving. */
+  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+
   public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
   public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
 
@@ -138,6 +148,7 @@ public abstract class Plan implements Constants {
   public static final int LOS = loSpace.getDescriptor();
   public static final int PLOS = ploSpace.getDescriptor();
   public static final int SANITY = sanitySpace.getDescriptor();
+  public static final int NON_MOVING = nonMovingSpace.getDescriptor();
   public static final int SMALL_CODE = USE_CODE_SPACE ? smallCodeSpace.getDescriptor() : 0;
   public static final int LARGE_CODE = USE_CODE_SPACE ? largeCodeSpace.getDescriptor() : 0;
 
@@ -258,7 +269,21 @@ public abstract class Plan implements Constants {
   @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
                                 int size, Word status) {
+    if (NEEDS_LOG_BIT_IN_HEADER)
+      return status.or(UNLOGGED_BIT);
+    else
     return status; // nothing to do (no bytes of GC header)
+  }
+
+  /**
+   * Perform any required write barrier action when installing an object reference
+   * a boot time.
+   *
+   * @param reference the reference value that is to be stored
+   * @return The raw value to be
+   */
+  public Word bootTimeWriteBarrier(Word reference) {
+    return reference;
   }
 
   /****************************************************************************
@@ -486,6 +511,9 @@ public abstract class Plan implements Constants {
         Log.write("                     ");
         Space.printUsagePages();
       }
+      if (Options.verbose.getValue() >= 5) {
+        Space.printVMMap();
+      }
     }
   }
 
@@ -513,6 +541,9 @@ public abstract class Plan implements Constants {
       if (Options.verbose.getValue() >= 4) {
         Log.write("                     ");
         Space.printUsagePages();
+      }
+      if (Options.verbose.getValue() >= 5) {
+        Space.printVMMap();
       }
       Log.write("                     ");
       printUsedPages();
@@ -752,7 +783,8 @@ public abstract class Plan implements Constants {
    */
   public int getPagesUsed() {
     return loSpace.reservedPages() + ploSpace.reservedPages() +
-           immortalSpace.reservedPages() + metaDataSpace.reservedPages();
+           immortalSpace.reservedPages() + metaDataSpace.reservedPages() +
+           nonMovingSpace.reservedPages();
   }
 
   /**
@@ -764,7 +796,8 @@ public abstract class Plan implements Constants {
    */
   public int getPagesRequired() {
     return loSpace.requiredPages() + ploSpace.requiredPages() +
-      metaDataSpace.requiredPages() + immortalSpace.requiredPages();
+      metaDataSpace.requiredPages() + immortalSpace.requiredPages() +
+      nonMovingSpace.requiredPages();
   }
 
   /**
@@ -940,17 +973,58 @@ public abstract class Plan implements Constants {
       return true;
     if (Space.isInSpace(VM_SPACE, object))
       return true;
+    if (Space.isInSpace(NON_MOVING, object))
+      return true;
     if (USE_CODE_SPACE && Space.isInSpace(SMALL_CODE, object))
       return true;
     if (USE_CODE_SPACE && Space.isInSpace(LARGE_CODE, object))
       return true;
-
     /*
      * Default to false- this preserves correctness over efficiency.
      * Individual plans should override for non-moving spaces they define.
      */
     return false;
   }
+
+   /****************************************************************************
+    * Support for logging bits (this is cross-cutting).
+    */
+
+   /**
+    * Return true if the specified object needs to be logged.
+    *
+    * @param src The object in question
+    * @return True if the object in question needs to be logged (remembered).
+    */
+   public static final boolean logRequired(ObjectReference src) {
+     int value = VM.objectModel.readAvailableByte(src);
+     return !((value & LOG_SET_MASK.toInt()) == 0);
+   }
+
+   /**
+    * Mark an object as logged.  Since duplicate logging does
+    * not raise any correctness issues, we do <i>not</i> worry
+    * about synchronization and allow threads to race to log the
+    * object, potentially including it twice (unlike reference
+    * counting where duplicates would lead to incorrect reference
+    * counts).
+    *
+    * @param src The object to be marked as logged
+    */
+   public static final void markAsLogged(ObjectReference object) {
+     int value = VM.objectModel.readAvailableByte(object);
+     VM.objectModel.writeAvailableByte(object, (byte) (value & LOG_CLEAR_MASK.toInt()));
+   }
+
+   /**
+    * Mark an object as unlogged.
+    *
+    * @param src The object to be marked as unlogged
+    */
+   public static final void markAsUnlogged(ObjectReference object) {
+     int value = VM.objectModel.readAvailableByte(object);
+     VM.objectModel.writeAvailableByte(object, (byte) (value | UNLOGGED_BIT.toInt()));
+   }
 
   /****************************************************************************
    * Specialized Scanning

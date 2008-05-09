@@ -215,6 +215,9 @@ public class VM_BootRecord {
   public Address sysConsoleWriteLongIP;
   public Address sysConsoleWriteDoubleIP;
 
+  // fix up C offsets for statics
+  public Address sysRegisterStaticFieldOffsetsIP;
+
   // startup/shutdown
   public Address sysExitIP;
   public Address sysArgIP;

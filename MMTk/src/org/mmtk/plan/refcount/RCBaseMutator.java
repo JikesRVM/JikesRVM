@@ -107,6 +107,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch(allocator) {
+      case RCBase.ALLOC_NON_MOVING:
       case RCBase.ALLOC_RC:
         return rc.alloc(bytes, align, offset);
       case RCBase.ALLOC_LOS:
@@ -114,9 +115,9 @@ import org.vmmagic.unboxed.*;
           return los.alloc(bytes, align, offset);
       case RCBase.ALLOC_IMMORTAL:
         return immortal.alloc(bytes, align, offset);
-      case Plan.ALLOC_CODE:
+      case RCBase.ALLOC_CODE:
         return smcode.alloc(bytes, align, offset);
-      case Plan.ALLOC_LARGE_CODE:
+      case RCBase.ALLOC_LARGE_CODE:
         return lgcode.alloc(bytes, align, offset);
       default:
         VM.assertions.fail("RC not aware of allocator");
@@ -138,20 +139,21 @@ import org.vmmagic.unboxed.*;
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
     switch(allocator) {
-    case RCBase.ALLOC_RC:
-    case Plan.ALLOC_CODE:
-      ExplicitFreeListSpace.unsyncSetLiveBit(ref);
-    case RCBase.ALLOC_LOS:
-    case Plan.ALLOC_LARGE_CODE:
-    case RCBase.ALLOC_IMMORTAL:
-      if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
-    case RCBase.ALLOC_PRIMITIVE_LOS:
-      RCHeader.initializeHeader(ref, typeRef, true);
-      decBuffer.push(ref);
-      break;
-  default:
-      VM.assertions.fail("RC not aware of allocator");
-      break;
+      case RCBase.ALLOC_NON_MOVING:
+      case RCBase.ALLOC_RC:
+      case RCBase.ALLOC_CODE:
+        ExplicitFreeListSpace.unsyncSetLiveBit(ref);
+      case RCBase.ALLOC_LOS:
+      case RCBase.ALLOC_LARGE_CODE:
+      case RCBase.ALLOC_IMMORTAL:
+        if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+      case RCBase.ALLOC_PRIMITIVE_LOS:
+        RCHeader.initializeHeader(ref, typeRef, true);
+        decBuffer.push(ref);
+        break;
+      default:
+        VM.assertions.fail("RC not aware of allocator");
+        break;
     }
   }
 

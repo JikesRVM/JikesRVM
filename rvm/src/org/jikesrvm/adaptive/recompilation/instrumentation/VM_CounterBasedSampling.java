@@ -21,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  *  Contains necessary infrastructure to perform counter-based
  *  sampling used with the instrumentation sampling code (PLDI'01)
- *  (see OPT_InstrumentationSamplingFramework)
+ *  (see InstrumentationSamplingFramework)
  *
  * */
 @Uninterruptible

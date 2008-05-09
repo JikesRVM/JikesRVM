@@ -1,0 +1,382 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+package org.mmtk.utility.alloc;
+
+import org.mmtk.policy.Space;
+import org.mmtk.policy.immix.Block;
+import org.mmtk.policy.immix.Chunk;
+import org.mmtk.policy.immix.Line;
+import org.mmtk.policy.immix.ImmixSpace;
+import static org.mmtk.policy.immix.ImmixConstants.*;
+
+import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
+import org.mmtk.vm.VM;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
+/**
+ *
+ */
+@Uninterruptible
+public class ImmixAllocator extends Allocator implements Constants {
+
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  protected final ImmixSpace space;    /* space this allocator is associated with */
+  private final boolean hot;
+  private final boolean copy;
+
+  private Address cursor;               /* bump pointer */
+  private Address limit;                /* limit for bump pointer */
+  private Address largeCursor;          /* bump pointer for large objects */
+  private Address largeLimit;           /* limit for bump pointer for large objects */
+  private boolean requestForLarge;      /* is the current request for large or small? */
+  private boolean straddle;             /* did the last allocation straddle a line? */
+  private int lineUseCount;             /* approximation to bytes allocated (measured at 99% accurate)  07/10/30 */
+  private Address markTable;
+  private Address recyclableBlock;
+  private int line;
+  private boolean recyclableExhausted;
+  private int allocTableIndex; // only needed if TMP_USE_ALLOC_TABLE is true
+  private int blockState; // only needed for TMP_VERBOSE_ALLOC_STATS
+
+  private static final int BLOCK_STATE_CLEAN = -1;
+  private static final int BLOCK_STATE_0 = 0;
+  private static final int BLOCK_STATE_1 = 1;
+  private static final int BLOCK_STATE_2 = 2;
+  private static final int BLOCK_STATE_3 = 3;
+  /**
+   * Constructor.
+   *
+   * @param space The space to bump point into.
+   * @param hot TODO
+   * @param copy TODO
+   */
+  public ImmixAllocator(ImmixSpace space, boolean hot, boolean copy) {
+    this.space = space;
+    this.hot = hot;
+    this.copy = copy;
+    reset();
+  }
+
+  /**
+   * Reset the allocator. Note that this does not reset the space.
+   */
+  public void reset() {
+    cursor = Address.zero();
+    limit = Address.zero();
+    largeCursor = Address.zero();
+    largeLimit = Address.zero();
+    markTable = Address.zero();
+    recyclableBlock = Address.zero();
+    requestForLarge = false;
+    recyclableExhausted = false;
+    line = LINES_IN_BLOCK;
+    allocTableIndex = 0;
+    lineUseCount = 0;
+  }
+
+  /*****************************************************************************
+   *
+   * Public interface
+   */
+
+  /**
+   * Allocate space for a new object.  This is frequently executed code and
+   * the coding is deliberaetly sensitive to the optimizing compiler.
+   * After changing this, always check the IR/MC that is generated.
+   *
+   * @param bytes The number of bytes allocated
+   * @param align The requested alignment
+   * @param offset The offset from the alignment
+   * @param inGC Is the allocation request occuring during GC.
+   * @return The address of the first byte of the allocated region
+   */
+  @Inline
+  public final Address alloc(int bytes, int align, int offset) {
+    /* establish how much we need */
+    Address start = alignAllocationNoFill(cursor, align, offset);
+    Address end = start.plus(bytes);
+
+    /* check whether we've exceeded the limit */
+    if (end.GT(limit)) {
+      if (TMP_USE_OVERFLOW_FOR_BIG_OBJECTS && bytes > BYTES_IN_LINE)
+        return overflowAlloc(bytes, align, offset);
+      else
+        return allocSlowHot(bytes, align, offset);
+    }
+    if (TMP_VERBOSE_ALLOC_STATS) {
+      ImmixSpace.bytesAlloc.inc(bytes);
+      ImmixSpace.bytesAllocAlign.inc(start.diff(cursor).toInt());
+    }
+
+    /* sufficient memory is available, so we can finish performing the allocation */
+    fillAlignmentGap(cursor, start);
+    cursor = end;
+    if (TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK)
+      straddle = (bytes > BYTES_IN_LINE) || (start.toWord().xor(end.minus(1).toWord()).toInt() >= BYTES_IN_LINE);
+
+    if (TMP_VERBOSE_ALLOC_STATS) {
+      if (blockState == BLOCK_STATE_CLEAN)
+        ImmixSpace.bytesAllocClean.inc(bytes);
+      else if (blockState == BLOCK_STATE_0)
+        ImmixSpace.bytesAllocDirty0.inc(bytes);
+      else if (blockState == BLOCK_STATE_1)
+        ImmixSpace.bytesAllocDirty1.inc(bytes);
+      else if (blockState == BLOCK_STATE_2)
+        ImmixSpace.bytesAllocDirty2.inc(bytes);
+      else
+        ImmixSpace.bytesAllocDirty3.inc(bytes);
+    }
+    return start;
+  }
+
+  /**
+   * Allocate space for a new object.  This is frequently executed code and
+   * the coding is deliberaetly sensitive to the optimizing compiler.
+   * After changing this, always check the IR/MC that is generated.
+   *
+   * @param bytes The number of bytes allocated
+   * @param align The requested alignment
+   * @param offset The offset from the alignment
+   * @param inGC Is the allocation request occuring during GC.
+   * @return The address of the first byte of the allocated region
+   */
+  public final Address overflowAlloc(int bytes, int align, int offset) {
+    /* establish how much we need */
+    Address start = alignAllocationNoFill(largeCursor, align, offset);
+    Address end = start.plus(bytes);
+
+    /* check whether we've exceeded the limit */
+    if (end.GT(largeLimit)) {
+      requestForLarge = true;
+      Address rtn =  allocSlowInline(bytes, align, offset);
+      requestForLarge = false;
+      return rtn;
+    }
+    if (TMP_VERBOSE_ALLOC_STATS) {
+      ImmixSpace.bytesAlloc.inc(bytes);
+      ImmixSpace.bytesAllocAlign.inc(start.diff(largeCursor).toInt());
+      ImmixSpace.bytesAllocOverflow.inc(bytes);
+    }
+
+    /* sufficient memory is available, so we can finish performing the allocation */
+    fillAlignmentGap(largeCursor, start);
+    largeCursor = end;
+    if (TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK)
+      straddle = (bytes > BYTES_IN_LINE) || (start.toWord().xor(end.minus(1).toWord()).toInt() >= BYTES_IN_LINE);
+
+    return start;
+  }
+
+  @Inline
+  public final boolean getLastAllocLineStraddle() {
+    return straddle;
+  }
+
+  /**
+   * External allocation slow path (called by superclass when slow path is
+   * actually taken.  This is necessary (rather than a direct call
+   * from the fast path) because of the possibility of a thread switch
+   * and corresponding re-association of bump pointers to kernel
+   * threads.
+   *
+   * @param bytes The number of bytes allocated
+   * @param align The requested alignment
+   * @param offset The offset from the alignment
+   * @param inGC Was the request made from within GC?
+   * @return The address of the first byte of the allocated region or
+   * zero on failure
+   */
+  protected final Address allocSlowOnce(int bytes, int align, int offset) {
+    boolean success = false;
+    while (!success) {
+      Address ptr = space.getSpace(hot, copy, lineUseCount);
+
+      if (ptr.isZero()) {
+        lineUseCount = 0;
+        return ptr; // failed allocation --- we will need to GC
+      }
+
+      /* we have been given a clean block */
+      success = true;
+      lineUseCount = LINES_IN_BLOCK;
+      if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(Block.isAligned(ptr));
+      zeroBlock(ptr);
+      if (requestForLarge) {
+        largeCursor = ptr;
+        largeLimit = ptr.plus(BYTES_IN_BLOCK);
+      } else {
+        cursor = ptr;
+        limit = ptr.plus(BYTES_IN_BLOCK);
+        blockState = BLOCK_STATE_CLEAN;
+      }
+      if (TMP_VERBOSE_ALLOC_STATS) {
+        ImmixSpace.bytesLine.inc(BYTES_IN_BLOCK);
+        ImmixSpace.bytesLineApprox.inc(BYTES_IN_BLOCK);
+      }
+    }
+    return alloc(bytes, align, offset);
+  }
+
+  /****************************************************************************
+   *
+   * Bump allocation
+   */
+
+  /**
+   * Internal allocation slow path.  This is called whenever the bump
+   * pointer reaches the internal limit.  The code is forced out of
+   * line.  If required we perform an external slow path take, which
+   * we inline into this method since this is already out of line.
+   *
+   * @param start The start address for the pending allocation
+   * @param end The end address for the pending allocation
+   * @param align The requested alignment
+   * @param offset The offset from the alignment
+   * @param inGC Is the allocation request occuring during GC.
+   * @param bpCaller True if this was called by bump pointer
+   * @return The address of the first byte of the allocated region
+   * @throws NoInlinePragma
+   */
+  @NoInline
+  private Address allocSlowHot(int bytes, int align, int offset) {
+    if (acquireRecyclableLines(bytes, align, offset))
+      return alloc(bytes, align, offset);
+    else
+      return allocSlowInline(bytes, align, offset);
+  }
+
+  private boolean acquireRecyclableLines(int bytes, int align, int offset) {
+    while (line < LINES_IN_BLOCK || acquireRecyclableBlock()) {
+      line = Line.getNextUnused(markTable, line);
+      if (line < LINES_IN_BLOCK) {
+        int endLine = Line.getNextUsed(markTable, line);
+        cursor = recyclableBlock.plus(Extent.fromIntSignExtend(line<<LOG_BYTES_IN_LINE));
+        limit = recyclableBlock.plus(Extent.fromIntSignExtend(endLine<<LOG_BYTES_IN_LINE));
+        if (SANITY_CHECK_LINE_MARKS) {
+          Address tmp = cursor;
+          while (tmp.LT(limit)) {
+            if (tmp.loadByte() != (byte) 0) {
+              Log.write("cursor: "); Log.writeln(cursor);
+              Log.write(" limit: "); Log.writeln(limit);
+              Log.write("current: "); Log.write(tmp);
+              Log.write("  value: "); Log.write(tmp.loadByte());
+              Log.write("   line: "); Log.write(line);
+              Log.write("endline: "); Log.write(endLine);
+              Log.write("  chunk: "); Log.write(Chunk.align(cursor));
+              Log.write("     hw: "); Log.write(Chunk.getHighWater(Chunk.align(cursor)));
+              Log.writeln(" values: ");
+              Address tmp2 = cursor;
+              while(tmp2.LT(limit)) { Log.write(tmp2.loadByte()); Log.write(" ");}
+              Log.writeln();
+            }
+            VM.assertions._assert(tmp.loadByte() == (byte) 0);
+            tmp = tmp.plus(1);
+          }
+        }
+        if (VM.VERIFY_ASSERTIONS && bytes <= BYTES_IN_LINE) {
+          Address start = alignAllocationNoFill(cursor, align, offset);
+          Address end = start.plus(bytes);
+          VM.assertions._assert(end.LE(limit));
+        }
+        VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
+        if (TMP_VERBOSE_ALLOC_STATS) {
+          ImmixSpace.bytesLine.inc(limit.diff(cursor).toInt());
+        }
+        if (TMP_CHECK_REUSE_EFFICIENCY) ImmixSpace.TMPreusedLineCount += (endLine - line);
+        line = endLine;
+        if (VM.VERIFY_ASSERTIONS && copy) VM.assertions._assert(!Block.isDefragSource(cursor));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean acquireRecyclableBlock() {
+    boolean rtn;
+    rtn = acquireRecyclableBlockAddressOrder();
+    if (rtn) {
+      markTable = Line.getBlockMarkTable(recyclableBlock);
+      line = 0;
+    }
+    return rtn;
+  }
+
+  @Inline
+  private boolean acquireRecyclableBlockAddressOrder() {
+    if (recyclableExhausted || (TMP_DEFRAG_ONLY_TO_NEW_BLOCKS && copy)) return false;
+    int markState = 0;
+    boolean usable = false;
+    while (!usable) {
+      Address next = recyclableBlock.plus(BYTES_IN_BLOCK);
+      if (recyclableBlock.isZero() || ImmixSpace.isRecycleAllocChunkAligned(next)) {
+        recyclableBlock = space.acquireReusableBlocks();
+        if (recyclableBlock.isZero()) {
+          recyclableExhausted = true;
+          line = LINES_IN_BLOCK;
+          return false;
+        }
+      } else {
+        recyclableBlock = next;
+      }
+      markState = Block.getBlockMarkState(recyclableBlock);
+      usable = (markState > 0 && markState <= ImmixSpace.getReusuableMarkStateThreshold(copy));
+      if (TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS && copy && Block.isDefragSource(recyclableBlock))
+        usable = false;
+    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(recyclableBlock));
+    if (TMP_MUTATOR_MARK_BLOCKS_ASREUSED)
+      Block.setBlockAsReused(recyclableBlock);
+    if (TMP_CHECK_REUSE_EFFICIENCY) ImmixSpace.TMPreusedBlockCount++;
+    if (VM.VERIFY_ASSERTIONS && copy && Options.verbose.getValue() > 2) {
+      Log.write("arb["); Log.write(recyclableBlock); Log.write(" ");
+      Log.write(markState);Log.write(" ");
+      Log.write(Block.getBlockMarkState(recyclableBlock)); Log.write(" ");
+      Log.write(space.isDefragSource(recyclableBlock)); Log.write(" ");
+      Log.write(ImmixSpace.getReusuableMarkStateThreshold(copy)); Log.writeln("]");
+      VM.assertions._assert(space.willNotMoveThisGC(recyclableBlock.plus(100)));
+    }
+    lineUseCount += (LINES_IN_BLOCK-markState);
+    if (TMP_VERBOSE_ALLOC_STATS) {
+      blockState = (markState*4)/LINES_IN_BLOCK;
+      if (blockState > 3) blockState = 3;
+      ImmixSpace.bytesLineApprox.inc((LINES_IN_BLOCK-markState)*BYTES_IN_LINE);
+    }
+    return true; // found something good
+  }
+
+  private void zeroBlock(Address block) {
+    // FIXME: efficiency check here!
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block.toWord().and(Word.fromIntSignExtend(BYTES_IN_BLOCK-1)).isZero());
+    VM.memory.zeroPages(block, BYTES_IN_BLOCK);
+   }
+
+  /** @return the space associated with this squish allocator */
+  public final Space getSpace() { return space; }
+
+  /**
+   * Print out the status of the allocator (for debugging)
+   */
+  public final void show() {
+    Log.write("cursor = "); Log.write(cursor);
+    Log.write(" limit = "); Log.writeln(limit);
+  }
+}

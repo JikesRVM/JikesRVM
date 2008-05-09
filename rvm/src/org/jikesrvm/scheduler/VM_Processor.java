@@ -20,7 +20,9 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -30,6 +32,7 @@ import org.vmmagic.unboxed.Offset;
  * native threads the mapping is one-to-one.
  */
 @Uninterruptible
+@NonMoving
 public abstract class VM_Processor extends MM_ProcessorContext implements VM_Constants {
   /*
    * definitions for VP status for implementation of jni
@@ -73,6 +76,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
    * field could be final
    */
   @Entrypoint
+  @Untraced
   public VM_Thread activeThread;
 
   /**

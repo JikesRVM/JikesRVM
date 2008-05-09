@@ -14,12 +14,12 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.VM_Reportable;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 
 /**
  * An instance of this class is used to store method counters.  It is
  * initialized at startup, and instrumentation phase
- * OPT_InsertMethodInvocationCounter.java inserts instrumentation that
+ * InsertMethodInvocationCounter.java inserts instrumentation that
  * writes into this data.
  */
 public final class VM_MethodInvocationCounterData extends VM_ManagedCounterData implements VM_Reportable {
@@ -27,7 +27,7 @@ public final class VM_MethodInvocationCounterData extends VM_ManagedCounterData 
   /**
    * @param manager The manager that will provide the counter space
    */
-  VM_MethodInvocationCounterData(OPT_InstrumentedEventCounterManager manager) {
+  VM_MethodInvocationCounterData(InstrumentedEventCounterManager manager) {
     super(manager);
   }
 

@@ -41,7 +41,9 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -55,6 +57,7 @@ import org.vmmagic.unboxed.Offset;
  * @see org.jikesrvm.adaptive.measurements.organizers.VM_Organizer
  */
 @Uninterruptible
+@NonMoving
 public abstract class VM_Thread {
   /*
    *  debug and statistics
@@ -123,10 +126,10 @@ public abstract class VM_Thread {
      */
     SUSPENDED,
     /**
-     * The thread is suspended awaiting a resume. This state maps to
+     * The thread is parked for OSR awaiting an OSR unpark. This state maps to
      * {@link Thread.State#WAITING}
      */
-    OSR_SUSPENDED,
+    OSR_PARKED,
     /**
      * The thread is awaiting this thread to become RUNNABLE. This state maps to
      * {@link Thread.State#WAITING} matching JDK 1.5 convention
@@ -251,14 +254,16 @@ public abstract class VM_Thread {
    * Place to save register state when this thread is not actually running.
    */
   @Entrypoint
+  @Untraced
   public final VM_Registers contextRegisters;
 
   /**
-   * Place to save register state when C signal handler traps
-   * an exception while this thread is running.
+   * Place to save register state during hardware(C signal trap handler) or
+   * software (VM_Runtime.athrow) trap handling.
    */
   @Entrypoint
-  private final VM_Registers hardwareExceptionRegisters;
+  @Untraced
+  private final VM_Registers exceptionRegisters;
 
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
   private int uncaughtExceptionCount = 0;
@@ -309,6 +314,7 @@ public abstract class VM_Thread {
    * Cached JNI environment for this thread
    */
   @Entrypoint
+  @Untraced
   public VM_JNIEnvironment jniEnv;
 
   /*
@@ -401,8 +407,8 @@ public abstract class VM_Thread {
     this.daemon = daemon;
     this.priority = priority;
 
-    contextRegisters           = new VM_Registers();
-    hardwareExceptionRegisters = new VM_Registers();
+    contextRegisters   = new VM_Registers();
+    exceptionRegisters = new VM_Registers();
 
     if(VM.VerifyAssertions) VM._assert(stack != null);
     // put self in list of threads known to scheduler and garbage collector
@@ -689,7 +695,7 @@ public abstract class VM_Thread {
     // if the thread terminated because of an exception, remove
     // the mark from the exception register object, or else the
     // garbage collector will attempt to relocate its ip field.
-    hardwareExceptionRegisters.inuse = false;
+    exceptionRegisters.inuse = false;
 
     VM_Scheduler.numActiveThreads -= 1;
     if (daemon) {
@@ -878,24 +884,12 @@ public abstract class VM_Thread {
    * OSR support
    */
 
-  /**
-   * Suspends the thread waiting for OSR (rescheduled by recompilation
-   * thread when OSR is done).
-   */
-  public final void osrSuspend() {
-    changeThreadState(State.RUNNABLE, State.OSR_SUSPENDED);
-    suspendInternal();
-  }
-
-  /**
-   * Suspends the thread waiting for OSR (rescheduled by recompilation
-   * thread when OSR is done).
-   */
-  public final void osrResume() {
-    changeThreadState(State.OSR_SUSPENDED, State.RUNNABLE);
-    if (trace) VM_Scheduler.trace("VM_Thread", "osrResume() scheduleThread ", getIndex());
-    resumeInternal();
-  }
+  /** Suspend the thread pending completion of OSR, unless OSR has already
+   * completed. */
+  public abstract void osrPark();
+  /** Signal completion of OSR activity on this thread.  Resume it if it was
+   * already parked, or prevent it from parking if it is about to park. */
+  public abstract void osrUnpark();
 
   /*
    * Sleep support
@@ -916,7 +910,14 @@ public abstract class VM_Thread {
   public static void sleep(long millis, int ns) throws InterruptedException {
     VM_Thread myThread = VM_Scheduler.getCurrentThread();
     myThread.changeThreadState(State.RUNNABLE, State.SLEEPING);
-    myThread.sleepInternal(millis, ns);
+    try {
+      myThread.sleepInternal(millis, ns);
+    } catch (InterruptedException ie) {
+      if (myThread.state != State.RUNNABLE)
+        myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
+      myThread.clearInterrupted();
+      throw(ie);
+    }
     myThread.changeThreadState(State.SLEEPING, State.RUNNABLE);
   }
 
@@ -1257,9 +1258,9 @@ public abstract class VM_Thread {
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustRegisters(contextRegisters, delta);
     }
-    if ((hardwareExceptionRegisters.inuse) &&
-        (hardwareExceptionRegisters.getInnermostFramePointer().NE(Address.zero()))) {
-      adjustRegisters(hardwareExceptionRegisters, delta);
+    if ((exceptionRegisters.inuse) &&
+        (exceptionRegisters.getInnermostFramePointer().NE(Address.zero()))) {
+      adjustRegisters(exceptionRegisters, delta);
     }
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustStack(stack, contextRegisters.getInnermostFramePointer(), delta);
@@ -1641,7 +1642,7 @@ public abstract class VM_Thread {
       return Thread.State.BLOCKED;
     case WAITING:
     case SUSPENDED:
-    case OSR_SUSPENDED:
+    case OSR_PARKED:
     case JOINING:
     case PARKED:
     case IO_WAITING:
@@ -1716,14 +1717,15 @@ public abstract class VM_Thread {
   }
 
   /**
-   * @return the hardware exception registers
+   * @return the thread's exception registers
    */
-  public final VM_Registers getHardwareExceptionRegisters() {
-    return hardwareExceptionRegisters;
+  public final VM_Registers getExceptionRegisters() {
+    return exceptionRegisters;
   }
 
   /**
-   * @return the hardware exception registers
+   * @return the thread's context registers (saved registers when thread is suspended
+   *         by green-thread scheduler).
    */
   public final VM_Registers getContextRegisters() {
     return contextRegisters;

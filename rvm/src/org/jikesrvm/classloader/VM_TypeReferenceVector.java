@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.classloader;
 
+import java.util.WeakHashMap;
+
 /**
  *  Lightweight implementation of a vector of VM_Fields.
  */
@@ -63,8 +65,36 @@ final class VM_TypeReferenceVector {
   // Get array, trimmed to size.
   //
   public VM_TypeReference[] finish() {
-    adjustLength(cnt);
-    return array;
+    VM_TypeReference[] result = popularTRVs.get(this);
+    if (result != null) {
+      array = result;
+      return result;
+    } else {
+      adjustLength(cnt);
+      popularTRVs.put(this, array);
+      return array;
+    }
+  }
+
+  public int hashCode() {
+    int val=0;
+    for(int i=0; i<cnt; i++) {
+      val ^= array[i].hashCode();
+    }
+    return val;
+  }
+
+  public boolean equals(Object obj) {
+    if (obj instanceof VM_TypeReferenceVector) {
+      VM_TypeReferenceVector that = (VM_TypeReferenceVector)obj;
+      if (cnt != that.cnt) return false;
+      for(int i=0; i<cnt; i++) {
+        if (array[i] != that.array[i]) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   //----------------//
@@ -75,6 +105,8 @@ final class VM_TypeReferenceVector {
   private int cnt;
 
   private static final VM_TypeReference[] empty = new VM_TypeReference[0];
+  private static final WeakHashMap<VM_TypeReferenceVector,VM_TypeReference[]>
+    popularTRVs = new WeakHashMap<VM_TypeReferenceVector,VM_TypeReference[]>();
 
   private void adjustLength(int newLength) {
     if (newLength == 0) {

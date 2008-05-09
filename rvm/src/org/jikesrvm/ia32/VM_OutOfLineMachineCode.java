@@ -16,11 +16,9 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
-import org.jikesrvm.jni.ia32.VM_JNICompiler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -54,7 +52,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
-    invokeNativeFunctionInstructions = generateInvokeNativeFunctionInstructions();
   }
 
   //----------------//
@@ -73,9 +70,6 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
-  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
-  // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
 
   private static final Offset PARAMS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 2);
   private static final Offset FPRMETA_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 3);
@@ -136,7 +130,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      */
     int gprs;
     Offset fpOffset = VM_ArchEntrypoints.framePointerField.getOffset();
-    byte T = T0;
+    GPR T = T0;
     gprs = NUM_PARAMETER_GPRS;
     Offset offset = Offset.fromIntZeroExtend(5 << LG_WORDSIZE);              // we have exactly 5 paramaters
     if (gprs > 0) {
@@ -305,10 +299,10 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
     asm.emitADD_Reg_Imm(SP, 4);                   // throw away space for registers parameter (in T0)
     asm.emitMOV_Reg_RegDisp(S0, T0, gprsOffset);      // S0 := registers.gprs[]
-    asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP << LG_WORDSIZE), SP); // registers.gprs[#SP] := SP
+    asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE), SP); // registers.gprs[#SP] := SP
     for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
       asm.emitMOV_RegDisp_Reg(S0,
-                              Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i] << LG_WORDSIZE),
+                              Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i].value() << LG_WORDSIZE),
                               NONVOLATILE_GPRS[i]); // registers.gprs[i] := i'th register
     }
     asm.emitJMP_Reg(T1);                      // return to return address
@@ -348,10 +342,10 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitPOP_RegDisp(S0, fpOffset);            // T0.contextRegisters.fp = pushed framepointer
     asm.emitADD_Reg_Imm(SP, 8);                   // discard 2 words of parameters (T0, T1)
     asm.emitMOV_Reg_RegDisp(S0, S0, gprsOffset);      // S0 = T0.contextRegisters.gprs;
-    asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP << LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
+    asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
     for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
       asm.emitMOV_RegDisp_Reg(S0,
-                              Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i] << LG_WORDSIZE),
+                              Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i].value() << LG_WORDSIZE),
                               NONVOLATILE_GPRS[i]); // T0.contextRegisters.gprs[i] := i'th register
     }
 
@@ -366,11 +360,11 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
                                               VM_ArchEntrypoints.framePointerField.getOffset(),
                                               S0); // PR.framePointer = restoreRegs.fp
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := restoreRegs.gprs[]
-    asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP << LG_WORDSIZE)); // SP := restoreRegs.gprs[#SP]
+    asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE)); // SP := restoreRegs.gprs[#SP]
     for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
       asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i],
                               S0,
-                              Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i] <<
+                              Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i].value() <<
                                                        LG_WORDSIZE)); // i'th register := restoreRegs.gprs[i]
     }
     asm.emitJMP_RegDisp(T1, ipOffset);            // return to (save) return address
@@ -399,7 +393,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // Restore SP
     asm.emitMOV_Reg_RegDisp(S0, T0, VM_ArchEntrypoints.registersGPRsField.getOffset());
-    asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP << LG_WORDSIZE));
+    asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE));
 
     // Push registers.ip to stack (now that SP has been restored)
     asm.emitPUSH_RegDisp(T0, VM_ArchEntrypoints.registersIPField.getOffset());
@@ -408,88 +402,15 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // (restored above and then modified by pushing registers.ip!)
     Offset off = Offset.zero();
     for (byte i = 0; i < NUM_GPRS; i++, off = off.plus(WORDSIZE)) {
-      if (i != S0 && i != ESI && i != SP) {
-        asm.emitMOV_Reg_RegDisp(i, S0, off);
+      if (i != S0.value() && i != ESI.value() && i != SP.value()) {
+        asm.emitMOV_Reg_RegDisp(GPR.lookup(i), S0, off);
       }
     }
 
     // Restore S0
-    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(S0 << LG_WORDSIZE));
+    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(S0.value() << LG_WORDSIZE));
 
     // Return to registers.ip (popping stack)
-    asm.emitRET();
-    return asm.getMachineCodes();
-  }
-
-  // Out of line prolog/epilog called from generated prologues for user
-  // written native methods (see VM_JNICompiler).  Completes the call
-  // into native code from java and handles the return from native back
-  // to java.
-  //
-  // on entry assume:
-  //   S0  = address of native function to branch to
-  //
-  private static ArchitectureSpecific.VM_CodeArray generateInvokeNativeFunctionInstructions() {
-    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-
-    // save callers ret addr in glue frame
-    asm.emitPOP_RegDisp(EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
-
-    // change processor status to IN_NATIVE
-    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), VM_Processor.IN_NATIVE);
-
-    // make the call...
-    asm.emitCALL_Reg(S0);
-
-    // return from native code here...
-    // T0 contains single word return value from native
-    // T1 will contain the second word of a long return value
-
-    // push return values on stack
-    asm.emitPUSH_Reg(T0);
-    asm.emitPUSH_Reg(T1);
-
-    int retryLabel = asm.getMachineCodeIndex();     // backward branch label
-
-    // reload VM_JNIEnvironment from glue frame
-    asm.emitMOV_Reg_RegDisp(S0, EBP, VM_JNICompiler.JNI_ENV_OFFSET);
-
-    // reload processor register from JNIEnvironment
-    VM_ProcessorLocalState.emitLoadProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
-
-    // reload JTOC from vitual processor
-    // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
-
-    // T0 gets PR.statusField
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());
-
-    asm.emitCMP_Reg_Imm(T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
-    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip over call to pthread yield
-
-    // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
-    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
-    asm.emitJMP_Imm(retryLabel);                          // retry from beginning
-
-    fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
-
-    // T0 (EAX) contains "old value" (required for CMPXCNG instruction)
-    asm.emitMOV_Reg_Imm(T1, VM_Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
-    VM_ProcessorLocalState.emitCompareAndExchangeField(asm,
-                                                       VM_Entrypoints.vpStatusField.getOffset(),
-                                                       T1); // atomic compare-and-exchange
-    asm.emitJCC_Cond_Imm(VM_Assembler.NE, retryLabel);
-
-    // status is now IN_JAVA (normal operation)
-
-    // pop return values off stack into expected regs before returning to caller
-    asm.emitPOP_Reg(T1);
-    asm.emitPOP_Reg(T0);
-
-    // push callers return address onto stack, previously saved in glue frame
-    asm.emitPUSH_RegDisp(EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
-
     asm.emitRET();
     return asm.getMachineCodes();
   }

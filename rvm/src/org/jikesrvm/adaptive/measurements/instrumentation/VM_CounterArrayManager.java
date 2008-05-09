@@ -15,33 +15,33 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.OPT_Constants;
-import org.jikesrvm.compilers.opt.OPT_ConvertToLowLevelIR;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
-import org.jikesrvm.compilers.opt.ir.OPT_DoubleConstantOperand;
-import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.OPT_Operand;
-import org.jikesrvm.compilers.opt.ir.OPT_Operator;
-import org.jikesrvm.compilers.opt.ir.OPT_Operators;
-import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * An implementation of a OPT_InstrumentedEventCounterManager .  It
+ * An implementation of a InstrumentedEventCounterManager .  It
  * uses an unsynchronized two dimensional array of doubles to allocate
- * its counters. (see OPT_InstrumentedEventCounterManager.java for a
+ * its counters. (see InstrumentedEventCounterManager.java for a
  * description of a counter manager)
  *
  * NOTE: Much of this class was stolen from VM_CounterArray.java, which
  * is now gone.
  */
-public final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager implements OPT_Operators, OPT_Constants {
+public final class VM_CounterArrayManager extends InstrumentedEventCounterManager implements Operators, Constants {
 
   static final boolean DEBUG = false;
 
@@ -121,13 +121,13 @@ public final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterMa
    * @param incrementValue The value to add to the counter
    * @return The counter instruction
    **/
-  public OPT_Instruction createEventCounterInstruction(int handle, int index, double incrementValue) {
+  public Instruction createEventCounterInstruction(int handle, int index, double incrementValue) {
     // Now create the instruction to be returned.
-    OPT_Instruction c =
+    Instruction c =
         InstrumentedCounter.create(INSTRUMENTED_EVENT_COUNTER,
-                                   new OPT_IntConstantOperand(handle),
-                                   new OPT_IntConstantOperand(index),
-                                   new OPT_DoubleConstantOperand(incrementValue, Offset.zero()));
+                                   new IntConstantOperand(handle),
+                                   new IntConstantOperand(index),
+                                   new DoubleConstantOperand(incrementValue, Offset.zero()));
     c.bcIndex = INSTRUMENTATION_BCI;
 
     return c;
@@ -142,36 +142,36 @@ public final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterMa
    * @param counterInst   The counter instruction to mutate
    * @param ir            The governing IR
    **/
-  public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, OPT_IR ir) {
+  public void mutateOptEventCounterInstruction(Instruction counterInst, IR ir) {
     if (VM.VerifyAssertions) {
       VM._assert(InstrumentedCounter.conforms(counterInst));
     }
 
-    OPT_IntConstantOperand intOp = InstrumentedCounter.getData(counterInst);
+    IntConstantOperand intOp = InstrumentedCounter.getData(counterInst);
     int handle = intOp.value;
     intOp = InstrumentedCounter.getIndex(counterInst);
     int index = intOp.value;
 
     // Get the base of array
-    OPT_RegisterOperand counterArray = OPT_ConvertToLowLevelIR.
+    RegisterOperand counterArray = ConvertToLowLevelIR.
         getStatic(counterInst, ir, VM_AosEntrypoints.counterArrayManagerCounterArraysField);
 
     // load counterArrays[handle]
-    OPT_RegisterOperand array2 =
+    RegisterOperand array2 =
         InsertALoadOffset(counterInst, ir, REF_ALOAD, VM_TypeReference.JavaLangObject, counterArray, handle);
-    OPT_ConvertToLowLevelIR.
+    ConvertToLowLevelIR.
         doArrayLoad(counterInst.prevInstructionInCodeOrder(), ir, INT_LOAD, 2);
 
     // load counterArrays[handle][index]
-    OPT_RegisterOperand origVal =
+    RegisterOperand origVal =
         InsertALoadOffset(counterInst, ir, DOUBLE_ALOAD, VM_TypeReference.Double, array2, index);
-    OPT_ConvertToLowLevelIR.
+    ConvertToLowLevelIR.
         doArrayLoad(counterInst.prevInstructionInCodeOrder(), ir, DOUBLE_LOAD, 3);
 
-    OPT_Operand incOperand = InstrumentedCounter.getIncrement(counterInst);
+    Operand incOperand = InstrumentedCounter.getIncrement(counterInst);
     // Insert increment instruction
-    OPT_RegisterOperand newValue =
-        OPT_ConvertToLowLevelIR.InsertBinary(counterInst,
+    RegisterOperand newValue =
+        ConvertToLowLevelIR.InsertBinary(counterInst,
                                              ir,
                                              DOUBLE_ADD,
                                              VM_TypeReference.Double,
@@ -179,9 +179,9 @@ public final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterMa
                                              incOperand.copy());
 
     // Store it
-    OPT_Instruction store =
-        AStore.mutate(counterInst, DOUBLE_ASTORE, newValue, array2.copyU2D(), OPT_IRTools.IC(index), null, null);
-    OPT_ConvertToLowLevelIR.doArrayStore(store, ir, DOUBLE_STORE, 3);
+    Instruction store =
+        AStore.mutate(counterInst, DOUBLE_ASTORE, newValue, array2.copyU2D(), IRTools.IC(index), null, null);
+    ConvertToLowLevelIR.doArrayStore(store, ir, DOUBLE_STORE, 3);
 
   }
 
@@ -195,10 +195,10 @@ public final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterMa
    * @param offset the offset to load at
    * @return the result operand of the inserted instruction
    */
-  static OPT_RegisterOperand InsertALoadOffset(OPT_Instruction s, OPT_IR ir, OPT_Operator operator,
-                                               VM_TypeReference type, OPT_Operand reg2, int offset) {
-    OPT_RegisterOperand regTarget = ir.regpool.makeTemp(type);
-    OPT_Instruction s2 = ALoad.create(operator, regTarget, reg2, OPT_IRTools.IC(offset), null, null);
+  static RegisterOperand InsertALoadOffset(Instruction s, IR ir, Operator operator,
+                                               VM_TypeReference type, Operand reg2, int offset) {
+    RegisterOperand regTarget = ir.regpool.makeTemp(type);
+    Instruction s2 = ALoad.create(operator, regTarget, reg2, IRTools.IC(offset), null, null);
     s.insertBefore(s2);
     return regTarget.copyD2U();
   }

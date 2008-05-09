@@ -12,7 +12,7 @@
 #
 # BURS rules for IA32 SSE2 Mode
 #
-# The format of PRODUCTION is 'non-terminal:	rule'
+# The format of PRODUCTION is 'non-terminal: rule'
 PRODUCTION
 # COST is a Java expression that evaluates to an integer.
 # The following conventions are more or less followed:
@@ -25,149 +25,262 @@ PRODUCTION
 # Basic Floating-Point ALU operations
 ##################################
 #####
-# ADD/SUB/MUL/DIV
+# ADD
 #####
 r: FLOAT_ADD(r, r)
-p.child1.isREGISTERNode() ? 20 : 30
+p.child1.isREGISTERNode() ? 11 : 13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 r: FLOAT_ADD(r, r)
-p.child2.isREGISTERNode() ? 20 : 30
+p.child2.isREGISTERNode() ? 11 : 13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
-r: FLOAT_SUB(r, r)
-20
+r: FLOAT_ADD(r, float_load)
+15
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_SUBSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
 
-r: FLOAT_MUL(r, r)
-p.child1.isREGISTERNode() ? 20 : 30
+r: FLOAT_ADD(float_load,r)
+15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-r: FLOAT_MUL(r, r)
-p.child2.isREGISTERNode() ? 20 : 30
-EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
-
-r: FLOAT_DIV(r, r)
-20
-EMIT_INSTRUCTION
-SSE2_NCOP(IA32_DIVSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-r: FLOAT_NEG(r)
-20
-EMIT_INSTRUCTION
-SSE2_NEG(IA32_XORPS, IA32_SUBSS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 r: DOUBLE_ADD(r, r)
-p.child1.isREGISTERNode() ? 20 : 30
+p.child1.isREGISTERNode() ? 11 : 13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 r: DOUBLE_ADD(r, r)
-p.child2.isREGISTERNode() ? 20 : 30
+p.child2.isREGISTERNode() ? 11 : 13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
+r: DOUBLE_ADD(r, double_load)
+15
+EMIT_INSTRUCTION
+SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r: DOUBLE_ADD(double_load,r)
+15
+EMIT_INSTRUCTION
+SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+#####
+# SUB
+#####
+r: FLOAT_SUB(r, r)
+13
+EMIT_INSTRUCTION
+SSE2_NCOP(IA32_SUBSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: FLOAT_SUB(r, float_load)
+15
+EMIT_INSTRUCTION
+SSE2_NCOP(IA32_SUBSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
 r: DOUBLE_SUB(r, r)
-20
+13
 EMIT_INSTRUCTION
 SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
+r: DOUBLE_SUB(r, double_load)
+15
+EMIT_INSTRUCTION
+SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+#####
+# MUL
+#####
+r: FLOAT_MUL(r, r)
+p.child1.isREGISTERNode() ? 11 : 13
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: FLOAT_MUL(r, r)
+p.child2.isREGISTERNode() ? 11 : 13
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+r: FLOAT_MUL(r, float_load)
+15
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r: FLOAT_MUL(float_load, r)
+15
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
 r: DOUBLE_MUL(r, r)
-p.child1.isREGISTERNode() ? 20 : 30
+p.child1.isREGISTERNode() ? 11 : 13
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: DOUBLE_MUL(r, r)
+p.child2.isREGISTERNode() ? 11 : 13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
+r: DOUBLE_MUL(r, double_load)
+15
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r: DOUBLE_MUL(double_load, r)
+15
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+#####
+# DIV
+#####
+r: FLOAT_DIV(r, r)
+13
+EMIT_INSTRUCTION
+SSE2_NCOP(IA32_DIVSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: FLOAT_DIV(r, float_load)
+15
+EMIT_INSTRUCTION
+SSE2_NCOP(IA32_DIVSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
 r: DOUBLE_DIV(r, r)
-20
+13
 EMIT_INSTRUCTION
 SSE2_NCOP(IA32_DIVSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
+r: DOUBLE_DIV(r, double_load)
+15
+EMIT_INSTRUCTION
+SSE2_NCOP(IA32_DIVSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+#####
+# NEG
+#####
+r: FLOAT_NEG(r)
+26
+EMIT_INSTRUCTION
+SSE2_NEG(IA32_XORPS, IA32_SUBSS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+
 r: DOUBLE_NEG(r)
-20
+26
 EMIT_INSTRUCTION
 SSE2_NEG(IA32_XORPD, IA32_SUBSD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+
+#####
+# SQRT
+#####
+r: FLOAT_SQRT(r)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSS, Unary.getResult(P(p)), Unary.getVal(P(p))));
+
+r: DOUBLE_SQRT(r)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSD, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # OPERATIONS USING X87
 #####
 r: FLOAT_REM(r, r)
-20
+13
 EMIT_INSTRUCTION
 SSE2_X87_REM(P(p));
 
 r: DOUBLE_REM(r, r)
-20
+13
 EMIT_INSTRUCTION
 SSE2_X87_REM(P(p));
 
 r: LONG_2FLOAT(r)
-20
+13
 EMIT_INSTRUCTION
 SSE2_X87_FROMLONG(P(p));
-    
+
 r: LONG_2DOUBLE(r)
-20
+13
 EMIT_INSTRUCTION
 SSE2_X87_FROMLONG(P(p));
 
 #####
 # MOVES
 #####
-r:	FLOAT_MOVE(r)
-20
+r: FLOAT_MOVE(r)
+13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, Move.getResult(P(p)), Move.getVal(P(p))));
 
-r:	DOUBLE_MOVE(r)
-20
+r: DOUBLE_MOVE(r)
+13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, Move.getResult(P(p)), Move.getVal(P(p))));
 
 #####
-# LOADS/STORES
+# LOADS
 #####
-r:	DOUBLE_LOAD(riv, riv)
-20
+r: DOUBLE_LOAD(riv, riv)
+15
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, Load.getResult(P(p)), MO_L(P(p), QW)));
+EMIT(MIR_Move.mutate(P(p), IA32_MOVLPD, Load.getResult(P(p)), MO_L(P(p), QW)));
 
-r:	DOUBLE_ALOAD(riv, riv)
-20
+double_load: DOUBLE_LOAD(riv, riv)
+0
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
+pushMO(MO_L(P(p), QW));
 
-r:	FLOAT_LOAD(riv, riv)
-20
+r: DOUBLE_ALOAD(riv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOVLPD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
+
+double_load: DOUBLE_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), QW_S, QW));
+
+r: FLOAT_LOAD(riv, riv)
+15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, Load.getResult(P(p)), MO_L(P(p), DW)));
 
-r:	FLOAT_ALOAD(riv, riv)
-20
+float_load: FLOAT_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), DW));
+
+r: FLOAT_ALOAD(riv, riv)
+15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));
 
-stm:	DOUBLE_STORE(r, OTHER_OPERAND(riv, riv))
-20
+float_load: FLOAT_ALOAD(riv, riv)
+0
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_S(P(p), QW), Store.getValue(P(p))));
+pushMO(MO_AL(P(p), DW_S, DW));
 
-stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(riv, riv))
-20
+#####
+# STORES
+#####
+stm: DOUBLE_STORE(r, OTHER_OPERAND(riv, riv))
+17
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
+EMIT(MIR_Move.mutate(P(p), IA32_MOVLPD, MO_S(P(p), QW), Store.getValue(P(p))));
 
-stm:	FLOAT_STORE(r, OTHER_OPERAND(riv, riv))
-20
+stm: DOUBLE_ASTORE(r, OTHER_OPERAND(riv, riv))
+17
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOVLPD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
+
+stm: FLOAT_STORE(r, OTHER_OPERAND(riv, riv))
+17
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_S(P(p), DW), Store.getValue(P(p))));
 
-stm:	FLOAT_ASTORE(r, OTHER_OPERAND(riv, riv))
-20
+stm: FLOAT_ASTORE(r, OTHER_OPERAND(riv, riv))
+17
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));
 
@@ -175,86 +288,136 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(
 # CONVERSIONS
 #####
 r: INT_2FLOAT(riv)
-20
+13
 EMIT_INSTRUCTION
 SSE2_CONV(IA32_CVTSI2SS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
+r: INT_2FLOAT(load32)
+15
+EMIT_INSTRUCTION
+SSE2_CONV(IA32_CVTSI2SS, P(p), Unary.getResult(P(p)), consumeMO());
+
 r: INT_2DOUBLE(riv)
-20
+13
 EMIT_INSTRUCTION
 SSE2_CONV(IA32_CVTSI2SD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
-r:	FLOAT_2DOUBLE(r)
-20
+r: INT_2DOUBLE(load32)
+15
+EMIT_INSTRUCTION
+SSE2_CONV(IA32_CVTSI2SD, P(p), Unary.getResult(P(p)), consumeMO());
+
+r: FLOAT_2DOUBLE(r)
+13
 EMIT_INSTRUCTION
 SSE2_CONV(IA32_CVTSS2SD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
-r:	DOUBLE_2FLOAT(r)
-20
+r: FLOAT_2DOUBLE(float_load)
+15
+EMIT_INSTRUCTION
+SSE2_CONV(IA32_CVTSS2SD, P(p), Unary.getResult(P(p)), consumeMO());
+
+r: DOUBLE_2FLOAT(r)
+13
 EMIT_INSTRUCTION
 SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
+r: DOUBLE_2FLOAT(double_load)
+15
+EMIT_INSTRUCTION
+SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getResult(P(p)), consumeMO());
+
 r: FLOAT_2INT(r)
-20
+13
 EMIT_INSTRUCTION
 EMIT(P(p)); /* leave for complex operators */
 
 r: FLOAT_2LONG(r)
-20
+13
 EMIT_INSTRUCTION
 EMIT(P(p)); /* leave for complex operators */
 
 r: DOUBLE_2INT(r)
-20
+13
 EMIT_INSTRUCTION
 EMIT(P(p)); /* leave for complex operators */
 
 r: DOUBLE_2LONG(r)
-20
+13
 EMIT_INSTRUCTION
 EMIT(P(p)); /* leave for complex operators */
 
 #####
 # FLOAT_AS_INT_BITS
 #####
-r:	FLOAT_AS_INT_BITS(r)
-20
+r: FLOAT_AS_INT_BITS(r)
+13
 EMIT_INSTRUCTION
 SSE2_FPR2GPR_32(P(p));
+
+load32: FLOAT_AS_INT_BITS(float_load)
+0
+NOFLAGS
+// No code emitted
 
 #####
 # DOUBLE_AS_LONG_BITS
 #####
-r:	DOUBLE_AS_LONG_BITS(r)
-20
+r: DOUBLE_AS_LONG_BITS(r)
+13
 EMIT_INSTRUCTION
 SSE2_FPR2GPR_64(P(p));
+
+load64: DOUBLE_AS_LONG_BITS(double_load)
+0
+NOFLAGS
+// No code emitted
 
 #####
 # INT_BITS_AS_FLOAT
 #####
-r:	INT_BITS_AS_FLOAT(riv)
-20
+r: INT_BITS_AS_FLOAT(riv)
+13
 EMIT_INSTRUCTION
 SSE2_GPR2FPR_32(P(p));
+
+float_load: INT_BITS_AS_FLOAT(load32)
+0
+NOFLAGS
+// No code emitted
 
 #####
 # LONG_BITS_AS_DOUBLE
 #####
-r:	LONG_BITS_AS_DOUBLE(rlv)
-20
+r: LONG_BITS_AS_DOUBLE(rlv)
+13
 EMIT_INSTRUCTION
 SSE2_GPR2FPR_64(P(p));
+
+double_load: LONG_BITS_AS_DOUBLE(load64)
+0
+NOFLAGS
+// No code emitted
 
 #####
 # OTHER
 #####
-r:	MATERIALIZE_FP_CONSTANT(INT_CONSTANT)
-20
+r: MATERIALIZE_FP_CONSTANT(INT_CONSTANT)
+15
 EMIT_INSTRUCTION
 SSE2_FPCONSTANT(P(p));
 
-stm:      CLEAR_FLOATING_POINT_STATE
+float_load: MATERIALIZE_FP_CONSTANT(INT_CONSTANT)
+Binary.getResult(P(p)).isFloat() ? 0 : INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_MC(P(p)));
+
+double_load: MATERIALIZE_FP_CONSTANT(INT_CONSTANT)
+Binary.getResult(P(p)).isDouble() ? 0 : INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_MC(P(p)));
+
+stm: CLEAR_FLOATING_POINT_STATE
 0
 EMIT_INSTRUCTION
 EMIT(MIR_Empty.mutate(P(p), IA32_FNINIT));
@@ -262,12 +425,51 @@ EMIT(MIR_Empty.mutate(P(p), IA32_FNINIT));
 ######
 # COMPARISONS
 #####
-stm:   FLOAT_IFCMP(r,r)
-20
+stm: FLOAT_IFCMP(r,r)
+13
 EMIT_INSTRUCTION
 SSE2_IFCMP(IA32_UCOMISS, P(p), IfCmp.getClearVal1(P(p)), IfCmp.getClearVal2(P(p)));
 
-stm:   DOUBLE_IFCMP(r,r)
-20
+stm: FLOAT_IFCMP(r,float_load)
+15
+EMIT_INSTRUCTION
+SSE2_IFCMP(IA32_UCOMISS, P(p), IfCmp.getClearVal1(P(p)), consumeMO());
+
+stm: FLOAT_IFCMP(float_load,r)
+15
+EMIT_INSTRUCTION
+IfCmp.getCond(P(p)).flipOperands(); \
+SSE2_IFCMP(IA32_UCOMISS, P(p), IfCmp.getClearVal2(P(p)), consumeMO());
+
+stm: DOUBLE_IFCMP(r,r)
+13
 EMIT_INSTRUCTION
 SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal1(P(p)), IfCmp.getClearVal2(P(p)));
+
+stm: DOUBLE_IFCMP(r,double_load)
+15
+EMIT_INSTRUCTION
+SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal1(P(p)), consumeMO());
+
+stm: DOUBLE_IFCMP(double_load,r)
+15
+EMIT_INSTRUCTION
+IfCmp.getCond(P(p)).flipOperands(); \
+SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal2(P(p)), consumeMO());
+
+######
+# Long operations that can use wider registers
+#####
+stm: LONG_ASTORE(load64, OTHER_OPERAND(riv, riv))
+32
+EMIT_INSTRUCTION
+RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, consumeMO())); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_AS(P(p), QW_S, QW), temp.copyRO()));
+
+stm: LONG_STORE(load64, OTHER_OPERAND(riv, riv))
+32
+EMIT_INSTRUCTION
+RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, consumeMO())); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_S(P(p), QW), temp.copyRO()));

@@ -30,6 +30,7 @@ import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -52,8 +53,8 @@ public abstract class VM_JNICompiler
    * <pre>
    * The stub performs the following tasks in the prologue:
    *   -Allocate the glue frame
-   *   -Save the PR register in the JNI Environment for reentering Java later
-   *   -Shuffle the parameters in the registers to conform to the AIX convention
+   *   -Save the PR and JTOC registers in the JNI Environment for reentering Java later
+   *   -Shuffle the parameters in the registers to conform to the OS calling convention
    *   -Save the nonvolatile registers in a known space in the frame to be used
    *    for the GC stack map
    *   -Push a new JREF frame on the JNIRefs stack
@@ -62,17 +63,17 @@ public abstract class VM_JNICompiler
    *   -Setup the TOC (AIX only) and IP to the corresponding native code
    *
    * The stub performs the following tasks in the epilogue:
-   *   -PR register is AIX nonvolatile, so it should be restored already
+   *   -Restore PR and JTOC registers saved in JNI Environment
    *   -Restore the nonvolatile registers if GC has occurred
    *   -Pop the JREF frame off the JNIRefs stack
    *   -Check for pending exception and deliver to Java caller if present
    *   -Process the return value from native:  push onto caller's Java stack
    *
-   * The stack frame created by this stub conforms to the AIX convention:
-   *   -6-word frame header
-   *   -parameter save/spill area
-   *   -one word flag to indicate whether GC has occurred during the native execution
-   *   -16-word save area for nonvolatile registers
+   * Within the stackframe, we have two frames.
+   * The "main" frame exactly follows the OS native ABI and is therefore
+   * different for PowerOpenABI, SVR4ABI, and MachOABI.
+   * The "mini-frame" is identical on all platforms and is stores RVM-specific fields.
+   * The picture below shows the frames for PowerOpenABI.
    *
    *   | fp       | <- native frame
    *   | cr       |
@@ -82,10 +83,10 @@ public abstract class VM_JNICompiler
    *   + toc      +
    *   |          |
    *   |          |
-   *   |----------|
-   *   | fp       | <- Java to C glue frame
-   *   | cr/mid   |
-   *   | lr       |
+   *   |----------| <- Java to C glue frame using native calling conventions
+   *   | fp       | saved fp of mini-frame
+   *   | cr       |
+   *   | lr       | native caller saves return address of native method here
    *   | resv     |
    *   | resv     |
    *   + toc      +
@@ -98,18 +99,15 @@ public abstract class VM_JNICompiler
    *   |   6      |
    *   |   7      |
    *   |  ...     |
-   *   |          |
-   *   |GC flag   | offset = JNI_SAVE_AREA_OFFSET           <- JNI_GC_FLAG_OFFSET
-   *   |vol fpr1  | saved AIX volatile fpr during becomeNativeThread
-   *   | ...      |
-   *   |vol fpr6  | saved AIX volatile fpr during becomeNativeThread
-   *   |vol r4    | saved AIX volatile regs during Yield (to be removed when code moved to Java)
-   *   | ...      |
-   *   |vol r10   | saved AIX volatile regs during Yield    <- JNI_OS_PARAMETER_REGISTER_OFFSET
+   *   |----------| <- mini-frame for use by RVM stackwalkers
+   *   |  fp      | saved fp of Java caller                 <- JNI_SAVE_AREA_OFFSET
+   *   | mid      | cmid of native method
+   *   | xxx (lr) | lr slot not used in mini frame
+   *   |GC flag   | did GC happen while thread in native?   <- JNI_GC_FLAG_OFFSET
    *   |ENV       | VM_JNIEnvironment                       <- JNI_ENV_OFFSET
-   *   |nonvol 17 | save 15 nonvolatile GPRs for GC stack mapper
+   *   |RVM nonvol| save RVM nonvolatile GPRs for updating by GC stack mapper
    *   | ...      |
-   *   |nonvol 31 |                                         <- JNI_RVM_NONVOLATILE_OFFSET
+   *   |RVM nonvol|                                         <- JNI_RVM_NONVOLATILE_OFFSET
    *   |----------|
    *   |  fp      | <- Java caller frame
    *   | mid      |
@@ -121,45 +119,11 @@ public abstract class VM_JNICompiler
    *   |          |
    * </pre>
    *
-   * Linux (and OSX) uses different transition scheme: the Java-to-Native transition
-   * stackframe consists of two mini frames: frame 1 has RVM's stack header with
-   * compiled method ID, and frame 2 has C (SVR4)'s stackframe layout.
-   * Comparing to AIX transition frame,
-   * Linux version inserts a RVM frame header right above JNI_SAVE_AREA. <p>
-   *
-   * <pre>
-   *   |            | <- Native callee frame   (lower addresses)
-   *   | ......     |
-   *   |------------|
-   *   | fp         | <- Java to C glue frame (2)
-   *   | lr         |
-   *   | 0          | <- spill area, see getFrameSize
-   *   | 1          |
-   *   | .......    |
-   *   |------------|
-   *   | fp         | <- Java to C glue frame (1)
-   *   | lr         |
-   *   | cmid       |
-   *   | padding    |
-   *   | GC flag    |
-   *   | Affinity   |
-   *   | .......    |
-   *   |------------|
-   *   | fp         | <- Java caller frame
-   *   | lr         |
-   *   | cmid       |                        (higher addresses)
-   *   | .......    |
-   * </pre>
-   *
-   * VM_Runtime.unwindNativeStackFrame will return a pointer to glue frame (2).
-   * The lr slot of frame (2) holds the address of out-of-line machine code
-   * which should be in bootimage, and GC shouldn't move this code.
-   * The VM_JNIGCIterator returns the lr of frame (2) as the result of
-   * getReturnAddressAddress.
+   * VM_Runtime.unwindNativeStackFrame will return a pointer to the mini-frame
+   * because none of our stack walkers need to do anything with the main frame.
    */
   public static synchronized VM_CompiledMethod compile(VM_NativeMethod method) {
-    VM_JNICompiledMethod cm =
-        (VM_JNICompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
+    VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     int frameSize = getFrameSize(method);
@@ -178,28 +142,19 @@ public abstract class VM_JNICompiler
     // (currently, this is true when the JNIRefsTop index has been incremented from 0)
     asm.emitNativeStackOverflowCheck(frameSize + 14);   // add at least 14 for C frame (header + spill)
 
-    // FIXME Unused.  Delete ?? RJG
-    //int parameterAreaSize = method.getParameterWords() << LOG_BYTES_IN_STACKSLOT;   // number of bytes of arguments
-
     // save return address in caller frame
     asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
 
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      // buy mini frame (1)
-      asm.emitSTAddrU(FP, -JNI_SAVE_AREA_SIZE, FP);
-      asm.emitLVAL(S0, compiledMethodId);             // save jni method id at mini frame (1)
-      asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-      // buy mini frame (2), the total size equals to frameSize
-      asm.emitSTAddrU(FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
-      asm.emitLVAL(S0, INVISIBLE_METHOD_ID);             // mark the frame as invisible
-      asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);  // since we done't have a real CMID
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      asm.emitSTAddrU(FP, -frameSize, FP);             // get transition frame on stack
-      asm.emitLVAL(S0, compiledMethodId);                // save jni method id
-      asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    }
+    // buy mini frame
+    asm.emitSTAddrU(FP, -JNI_SAVE_AREA_SIZE, FP);
+
+    // store CMID for native method in mini-frame
+    asm.emitLVAL(S0, compiledMethodId);
+    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
+
+    // buy main frame, the total size equals to frameSize
+    asm.emitSTAddrU(FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
 
     // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure
     asm.emitLAddrOffset(S1, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());
@@ -212,22 +167,15 @@ public abstract class VM_JNICompiler
     // when we return from native code.
     asm.emitSTAddr(S0, frameSize - JNI_ENV_OFFSET, FP);  // save PR in frame
 
-    // save current frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
+    // save mini-frame frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
     // to start scanning this stack during GC, if top of stack is still executing in C
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      // for Linux, save mini (1) frame pointer, which has method id
-      asm.emitLAddr(PROCESSOR_REGISTER, 0, FP);
-      asm.emitSTAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNITopJavaFPField.getOffset());
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      asm.emitSTAddrOffset(FP, S0, VM_Entrypoints.JNITopJavaFPField.getOffset());
-    }
+    asm.emitLAddr(PROCESSOR_REGISTER, 0, FP);
+    asm.emitSTAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNITopJavaFPField.getOffset());
 
-    // save the RVM nonvolatile registers, to be scanned by GC stack mapper
-    // remember to skip past the saved JTOC  by starting with offset = JNI_RVM_NONVOLATILE_OFFSET
-    //
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET; i >= FIRST_NONVOLATILE_GPR; --i, offset +=
-        BYTES_IN_STACKSLOT) {
+    // save the RVM nonvolatile GPRs, to be scanned by GC stack mapper
+    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
+         i >= FIRST_NONVOLATILE_GPR;
+         --i, offset += BYTES_IN_STACKSLOT) {
       asm.emitSTAddr(i, frameSize - offset, FP);
     }
 
@@ -244,23 +192,79 @@ public abstract class VM_JNICompiler
     // On return, S0 still contains JNIEnv
     storeParameters(asm, frameSize, method, klass);
 
-    // Get address of out_of_line prolog into S1, before setting TOC reg.
-    asm.emitLAddrOffset(S1, JTOC, VM_ArchEntrypoints.invokeNativeFunctionInstructionsField.getOffset());
-    asm.emitMTCTR(S1);
-
     // set the TOC and IP for branch to out_of_line code
     asm.emitLVALAddr(JTOC, nativeTOC);
     asm.emitLVALAddr(S1, nativeIP);
+    // move native code address to CTR reg;
+    // do this early so that S1 will be available as a scratch.
+    asm.emitMTCTR(S1);
 
-    // go to VM_OutOfLineMachineCode.invokeNativeFunctionInstructions
-    // It will change the Processor status to "in_native" and transfer to the native code.
-    // On return it will change the state back to "in_java" (waiting if blocked).
     //
-    // The native address entrypoint is in register S1
-    // The native TOC has been loaded into the TOC register
-    // S0 still points to threads JNIEnvironment
+    // Load required JNI function ptr into first parameter reg (GPR3/T0)
+    // This pointer is an interior pointer to the VM_JNIEnvironment which is
+    // currently in S0.
+    //
+    asm.emitADDI(T0, VM_Entrypoints.JNIExternalFunctionsField.getOffset(), S0);
+
+    //
+    // change the vpstatus of the VP to IN_NATIVE
+    //
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+    asm.emitLVAL(S0, VM_Processor.IN_NATIVE);
+    asm.emitSTWoffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset());
+
+    //
+    // CALL NATIVE METHOD
     //
     asm.emitBCCTRL();
+
+    // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
+    // if we have to call sysVirtualProcessorYield because we are locked in native.
+    if (VM.BuildFor64Addr) {
+      asm.emitSTD(T0, NATIVE_FRAME_HEADER_SIZE, FP);
+    } else {
+      asm.emitSTW(T0, NATIVE_FRAME_HEADER_SIZE, FP);
+      asm.emitSTW(T1, NATIVE_FRAME_HEADER_SIZE + BYTES_IN_ADDRESS, FP);
+    }
+
+    //
+    // try to return virtual processor to vpStatus IN_JAVA
+    //
+    int label1 = asm.getMachineCodeIndex();
+
+    //TODO: we can do this directly from FP becasue we know framesize at compiletime
+    //      (the same way we stored the JNI Env above)
+    asm.emitLAddr(S0, 0, FP);           // get mini-frame
+    asm.emitLAddr(S0, 0, S0);           // get Java caller FP
+    asm.emitLAddr(PROCESSOR_REGISTER, -JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
+
+    // Restore JTOC and PR
+    asm.emitLAddrOffset(JTOC, PROCESSOR_REGISTER, VM_ArchEntrypoints.JNIEnvSavedJTOCField.getOffset());
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+    asm.emitLVALAddr(S1, VM_Entrypoints.vpStatusField.getOffset());
+    asm.emitLWARX(S0, S1, PROCESSOR_REGISTER);                 // get status for processor
+    asm.emitCMPI(S0, VM_Processor.BLOCKED_IN_NATIVE);         // are we blocked in native code?
+    VM_ForwardReference fr = asm.emitForwardBC(NE);
+    //
+    // if blocked in native, call C routine to do pthread_yield
+    //
+    asm.emitLAddrOffset(T2, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T2 gets boot record address
+    asm.emitLAddrOffset(T1, T2, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
+    if (VM.BuildForPowerOpenABI) {
+      /* T1 points to the function descriptor, so we'll load TOC and IP from that */
+      asm.emitLAddrOffset(JTOC, T1, Offset.fromIntSignExtend(BYTES_IN_ADDRESS));          // load TOC
+      asm.emitLAddrOffset(T1, T1, Offset.zero());
+    }
+    asm.emitMTLR(T1);
+    asm.emitBCLRL();                                      // call sysVirtualProcessorYield in sys.C
+    asm.emitB(label1);                                    // retest the attempt to change status to IN_JAVAE
+    //
+    //  br to here -not blocked in native
+    //
+    fr.resolve(asm);
+    asm.emitLVAL(S0, VM_Processor.IN_JAVA);               // S0  <- new state value
+    asm.emitSTWCXr(S0, S1, PROCESSOR_REGISTER);           // attempt to change state to java
+    asm.emitBC(NE, label1);                               // br if failure -retry lwarx
 
     // check if GC has occurred, If GC did not occur, then
     // VM NON_VOLATILE regs were restored by OS and are valid.  If GC did occur
@@ -272,11 +276,13 @@ public abstract class VM_JNICompiler
     asm.emitLWZ(T2, frameSize - JNI_GC_FLAG_OFFSET, FP);
     asm.emitCMPI(T2, 0);
     VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET; i >= FIRST_NONVOLATILE_GPR; --i, offset +=
-        BYTES_IN_STACKSLOT) {
+    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
+         i >= FIRST_NONVOLATILE_GPR;
+         --i, offset += BYTES_IN_STACKSLOT) {
       asm.emitLAddr(i, frameSize - offset, FP);
     }
     fr1.resolve(asm);
+
     asm.emitLAddrOffset(S0,
                         PROCESSOR_REGISTER,
                         VM_Entrypoints.activeThreadField.getOffset());  // S0 holds thread pointer
@@ -344,9 +350,8 @@ public abstract class VM_JNICompiler
       afterGlobalRef.resolve(asm);
     }
 
-    // pop the glue stack frame, restore the Java caller frame
-    // On PowerPC Linux, this pops both mini frames (1) and (2) at once
-    asm.emitADDI(FP, +frameSize, FP);              // remove linkage area
+    // pop the whole stack frame (main & mini), restore the Java caller frame
+    asm.emitADDI(FP, +frameSize, FP);
 
     // C return value is already where caller expected it (T0/T1 or F0)
     // So, just restore the return address to the link register.
@@ -373,7 +378,7 @@ public abstract class VM_JNICompiler
     // at the location of the call to the native method
     asm.emitLAddrToc(T3, VM_Entrypoints.athrowMethod.getOffset());
     asm.emitMTCTR(T3);                         // point LR to the exception delivery code
-    asm.emitMR(T0, T2);                       // copy the saved exception to T0
+    asm.emitMR(T0, T2);                        // copy the saved exception to T0
     asm.emitBCCTR();                           // then branch to the exception delivery code, does not return
 
     VM_MachineCode machineCode = asm.makeMachineCode();
@@ -506,10 +511,8 @@ public abstract class VM_JNICompiler
       // ASSMPTION: JTOC saved above in JNIEnv is still valid,
       // used by following emitLAddrToc
       asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klass.getTibOffset());  // r4 <= TIB
-      asm.emitLAddr(SECOND_OS_PARAMETER_GPR, TIB_TYPE_INDEX, SECOND_OS_PARAMETER_GPR); // r4 <= VM_Type
-      asm.emitLAddrOffset(SECOND_OS_PARAMETER_GPR,
-                          SECOND_OS_PARAMETER_GPR,
-                          VM_Entrypoints.classForTypeField.getOffset()); // r4 <- java.lang.Class
+      Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
+      asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klassOffset);
       asm.emitSTAddrU(SECOND_OS_PARAMETER_GPR,
                       BYTES_IN_ADDRESS,
                       KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array

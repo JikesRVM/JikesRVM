@@ -51,6 +51,86 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
   }
 
   /**
+   * Are Java 1.4 style assertions enabled?
+   */
+  private static boolean assertionsEnabled = false;
+  /**
+   * String describing packages and classes to enable assertions on (of the form ":<packagename>...|:<classname>")
+   */
+  private static String[] enabledAssertionStrings;
+  /**
+   * String describing packages and classes to disable assertions on (of the form ":<packagename>...|:<classname>")
+   */
+  private static String[] disabledAssertionStrings;
+
+  /**
+   * Remember the given enable assertions string
+   * @param arg String of the form ":<packagename>...|:<classname>"
+   */
+  public static void stashEnableAssertionArg(String arg) {
+    assertionsEnabled = true;
+    enabledAssertionStrings = arg.split(":");
+    if (enabledAssertionStrings != null) {
+      if ((enabledAssertionStrings.length == 0) ||
+          (enabledAssertionStrings.length == 1 && enabledAssertionStrings[0].equals(""))) {
+        // force enabled assertion strings to null when no arguments are passed with -ea
+        enabledAssertionStrings = null;
+      }
+    }
+  }
+
+  /**
+   * Remember the given disable assertions string
+   * @param arg String of the form ":<packagename>...|:<classname>"
+   */
+  public static void stashDisableAssertionArg(String arg) {
+    if (arg.equals("") || arg == null) {
+      assertionsEnabled = false;
+    } else {
+      disabledAssertionStrings = arg.split(":");
+    }
+  }
+
+  /**
+   * Calculate the desired assertion status for a freshly loaded class
+   * @param klass to check against command line argument
+   * @return whether assertions should be enabled on class
+   */
+  static boolean getDesiredAssertionStatus(VM_Class klass) {
+    if (!assertionsEnabled) {
+      // trivial - no assertions are enabled
+      return false;
+    } else {
+      if (enabledAssertionStrings == null && disabledAssertionStrings == null) {
+        // assertions enabled unconditionally
+        return true;
+      } else {
+        // search command line arguments to see if assertions are enabled
+        boolean result = false;
+        if(enabledAssertionStrings != null) {
+          for (String s : enabledAssertionStrings) {
+            if (s.equals(klass.getTypeRef().getName().classNameFromDescriptor().toString()) ||
+                klass.getPackageName().startsWith(s)) {
+              result = true;
+              break;
+            }
+          }
+        }
+        if (disabledAssertionStrings != null) {
+          for (String s : disabledAssertionStrings) {
+            if (s.equals(klass.getTypeRef().getName().classNameFromDescriptor().toString()) ||
+                klass.getPackageName().startsWith(s)) {
+              result = false;
+              break;
+            }
+          }
+        }
+        return result;
+      }
+    }
+  }
+
+  /**
    * Set list of places to be searched for application classes and resources.
    * @param classpath path specification in standard "classpath" format
    *

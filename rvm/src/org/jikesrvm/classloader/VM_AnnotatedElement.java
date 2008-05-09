@@ -16,8 +16,9 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import org.jikesrvm.VM;
+
 import org.vmmagic.pragma.Uninterruptible;
+import org.jikesrvm.VM;
 
 /**
  * A common abstract super class for all elements that can be
@@ -27,10 +28,14 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   /**
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
+   * This is either null, a VM_Annotation if a single annotation is
+   * present, or an array of VM_Annotation if there is &gt;1
    */
-  protected final VM_Annotation[] declaredAnnotationDatas;
+  protected final Object declaredAnnotationDatas;
   /** Cached array of declared annotations. */
   private Annotation[] declaredAnnotations;
+  /** Empty annotation array */
+  private static final Annotation[] emptyAnnotationArray = new Annotation[0];
 
   /**
    * Constructor used by all annotated elements
@@ -38,7 +43,19 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * @param annotations array of runtime visible annotations
    */
   protected VM_AnnotatedElement(VM_Annotation[] annotations) {
-    this.declaredAnnotationDatas = annotations;
+    if (annotations == null) {
+      declaredAnnotationDatas = null;
+      declaredAnnotations = emptyAnnotationArray;
+    } else if (annotations.length == 1) {
+      this.declaredAnnotationDatas = annotations[0];
+    } else {
+      this.declaredAnnotationDatas = annotations;
+    }
+    if (annotations != null) {
+      for (VM_Annotation ann : annotations) {
+        if (ann == null)  throw new Error("null annotation in " + toString());
+      }
+    }
   }
 
   /**
@@ -47,21 +64,12 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * that's being constructed
    * @param input the DataInputStream to read the method's attributes
    * from
-   * @param numAnnotationBytes how many bytes are there in the number
-   * of annotations field? Normally 2, but parameter annotations just
-   * have 1.
    * @return an array of read annotations
    */
-  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input, int numAnnotationBytes,
+  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input,
                                                    ClassLoader classLoader) throws IOException {
     try {
-      int numAnnotations;
-      if (numAnnotationBytes == 2) {
-        numAnnotations = input.readUnsignedShort();
-      } else {
-        if (VM.VerifyAssertions) VM._assert(numAnnotationBytes == 1);
-        numAnnotations = input.readByte() & 0xFF;
-      }
+      int numAnnotations = input.readUnsignedShort();
       final VM_Annotation[] annotations = new VM_Annotation[numAnnotations];
       for (int j = 0; j < numAnnotations; j++) {
         annotations[j] = VM_Annotation.readAnnotation(constantPool, input, classLoader);
@@ -91,6 +99,9 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   }
 
   final Annotation[] getDeclaredAnnotationsInternal() {
+    if (!VM.runningVM) {
+      return toAnnotations(declaredAnnotationDatas);
+    }
     if (null == declaredAnnotations) {
       declaredAnnotations = toAnnotations(declaredAnnotationDatas);
     }
@@ -101,9 +112,13 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Copy array of annotations so can be safely returned to user.
    */
   private Annotation[] cloneAnnotations(final Annotation[] internal) {
-    final Annotation[] annotations = new Annotation[internal.length];
-    System.arraycopy(internal, 0, annotations, 0, internal.length);
-    return annotations;
+    if (internal.length == 0) {
+      return emptyAnnotationArray;
+    } else {
+      final Annotation[] annotations = new Annotation[internal.length];
+      System.arraycopy(internal, 0, annotations, 0, internal.length);
+      return annotations;
+    }
   }
 
   /**
@@ -112,10 +127,15 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * @param annotations the annotations.
    * @return the annotation instances.
    */
-  final Annotation[] toAnnotations(final VM_Annotation[] annotations) {
-    if (null == annotations) {
-      return new Annotation[0];
+  final Annotation[] toAnnotations(final Object datas) {
+    if (null == datas) {
+      return emptyAnnotationArray;
+    } else if (datas instanceof VM_Annotation) {
+      final Annotation[] copy = new Annotation[1];
+      copy[0] = ((VM_Annotation)datas).getValue();
+      return copy;
     } else {
+      VM_Annotation[] annotations = (VM_Annotation[])datas;
       final Annotation[] copy = new Annotation[annotations.length];
       for (int i = 0; i < copy.length; i++) {
         copy[i] = annotations[i].getValue();
@@ -129,15 +149,25 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   @SuppressWarnings({"unchecked"})
   public final <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-    if (null == annotationClass) {
-      throw new NullPointerException("annotationClass");
+    if (true || VM.runningVM) {
+      if (null == annotationClass) {
+        throw new NullPointerException("annotationClass");
+      }
+      final Annotation[] annotations = getAnnotationsInternal();
+      for (final Annotation annotation : annotations) {
+        if (annotationClass.isInstance(annotation)) return (T) annotation;
+      }
+      return null;
+    } else {
+      return getBootImageWriteTimeAnnotation(annotationClass);
     }
-    final Annotation[] annotations = getAnnotationsInternal();
-    for (final Annotation annotation : annotations) {
-      if (annotationClass.isInstance(annotation)) return (T) annotation;
-    }
-    return null;
   }
+
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected abstract <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass);
 
   /**
    * Is there an annotation of this type implemented on this annotated
@@ -152,21 +182,33 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    *
    * This is provided as an alternative to isAnnotationPresent() as isAnnotationPresent()
    * may require classloading and instantiation of annotations. Classloading would mean
-   * that it would not be @Uninterruptible. Instantiation is not desirtable as checking
+   * that it would not be @Uninterruptible. Instantiation is not desirable as checking
    * of annotations occurs prior to the bootimage compiler being ready to instantiate
    * objects.
    */
   @Uninterruptible
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
-    if (null != declaredAnnotationDatas) {
-      for (VM_Annotation annotation : declaredAnnotationDatas) {
-        if (annotation.getType().equals(annotationTypeRef.getName()) &&
-            annotation.getClassLoader() == annotationTypeRef.getClassLoader()) {
+    if (declaredAnnotationDatas == null) {
+      return false;
+    } else if (declaredAnnotationDatas instanceof VM_Annotation) {
+      VM_Annotation annotation = (VM_Annotation)declaredAnnotationDatas;
+      return annotation.annotationType() == annotationTypeRef;
+    } else {
+      for (VM_Annotation annotation : (VM_Annotation[])declaredAnnotationDatas) {
+        if (annotation.annotationType() == annotationTypeRef) {
           return true;
         }
       }
+      return false;
     }
-    return false;
+  }
+
+  /**
+   * Does the element have any annotations?
+   */
+  @Uninterruptible
+  public final boolean hasAnnotations() {
+    return declaredAnnotationDatas != null;
   }
 
   /**
@@ -287,5 +329,29 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   public final boolean hasRuntimeFinalAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.RuntimeFinal);
+  }
+
+  /**
+   * Return true if this element has a Untraced annotation.
+   * @see org.vmmagic.pragma.Untraced
+   */
+  public final boolean hasUntracedAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Untraced);
+  }
+
+  /**
+   * Return true if this element has a NonMoving annotation.
+   * @see org.vmmagic.pragma.Untraced
+   */
+  public final boolean hasNonMovingAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NonMoving);
+  }
+
+  /**
+   * Return true if this element has a NoEscapes annotation.
+   * @see org.vmmagic.pragma.NoEscapes
+   */
+  public final boolean hasNoEscapesAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.NoEscapes);
   }
 }

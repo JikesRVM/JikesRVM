@@ -12,28 +12,31 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Type;
-
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-
+import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_TIB;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Class that supports scanning Objects or Arrays for references
@@ -140,7 +143,7 @@ import org.vmmagic.pragma.*;
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
   public Address skipOwnFramesAndDump(ObjectReference typeRef) {
-    Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
+    VM_TIB tib = VM_Magic.addressAsTIB(typeRef.toAddress());
     VM_Method m = null;
     int bci = -1;
     int compiledMethodID = 0;
@@ -213,7 +216,7 @@ import org.vmmagic.pragma.*;
       VM.sysWrite(':');
       VM.writeHex(bci);
       VM.sysWrite('\t');
-      VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+      VM_Type type = tib.getType();
       type.getDescriptor().sysWrite();
       VM.sysWrite('\n');
     }

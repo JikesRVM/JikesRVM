@@ -22,6 +22,7 @@
 [Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
 
 [Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
+[Lorg/jikesrvm/VM_CommandLineArgs$PrefixType;
 
 [Lorg/jikesrvm/classloader/VM_Class;
 [Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;
@@ -60,6 +61,7 @@
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
 
 [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
+[Lorg/mmtk/utility/heap/FreeListPageResource;
 
 [Lorg/mmtk/plan/Phase;
 [Lorg/mmtk/policy/Space;
@@ -68,5 +70,9 @@
 [Lorg/mmtk/utility/statistics/Counter;
 [Lorg/mmtk/utility/statistics/Timer;
 [Lorg/mmtk/utility/options/Option;
+[Lorg/mmtk/vm/ReferenceProcessor$Semantics;
 
+[Lorg/jikesrvm/scheduler/VM_Thread$State;
+
+[Lorg/vmmagic/pragma/Inline$When;
 Lsun/misc/Unsafe;

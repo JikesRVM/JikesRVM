@@ -83,7 +83,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
   // factor out to reduce code space in each call.
   //
   private static void insertStubPrologue(VM_Assembler asm) {
-    VM_ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.VM_Assembler) asm, ECX, EAX);
+    VM_ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.VM_Assembler) asm, ECX.value(), EAX.value());
   }
 
   // Generate a subtree covering from low to high inclusive.

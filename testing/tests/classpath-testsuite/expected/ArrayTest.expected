@@ -1,0 +1,6 @@
+PASSED: BooleanArrayInit() boolean[] x = {true}
+PASSED: ByteArrayInit() byte[] x = {42}
+PASSED: CharArrayInit() char[] x = {'X'}
+PASSED: ShortArrayInit() short[] x = {42}
+PASSED: IntArrayInit() int[] x = {42}
+PASSED: ArrayName() name=[Ljava.lang.String;

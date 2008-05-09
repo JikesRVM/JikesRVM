@@ -372,15 +372,17 @@ public class BootImage extends BootImageWriterMessages
 
   /**
    * Fill in 4/8 bytes of bootimage, as object reference.
-   *
    * @param address address of target
    * @param value value to write
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
+   * @param root Does this slot contain a possible reference into the heap?
+   * (objField must also be true)
    */
-  public void setAddressWord(Address address, Word value, boolean objField) {
-    if (objField)
-      markReferenceMap(address);
+  public void setAddressWord(Address address, Word value, boolean objField, boolean root) {
+    if (VM.VerifyAssertions) VM._assert(!root || objField);
+    if (objField) value = MM_Interface.bootTimeWriteBarrier(value);
+    if (root) markReferenceMap(address);
     if (VM.BuildFor32Addr)
       setFullWord(address, value.toInt());
     else
@@ -394,24 +396,25 @@ public class BootImage extends BootImageWriterMessages
    * @param address address of target
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
+   * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
    * @param genuineNull true if the value is a genuine null and
    * shouldn't be counted as a blanked field
    */
-  public void setNullAddressWord(Address address, boolean objField, boolean genuineNull) {
-    setAddressWord(address, Word.zero(), objField);
+  public void setNullAddressWord(Address address, boolean objField, boolean root, boolean genuineNull) {
+    setAddressWord(address, Word.zero(), objField, root);
     if (!genuineNull)
       numNulledReferences += 1;
   }
 
   /**
    * Fill in 4/8 bytes of bootimage, as null object reference.
-   *
    * @param address address of target
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
+   * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
    */
-  public void setNullAddressWord(Address address, boolean objField) {
-    setNullAddressWord(address, objField, true);
+  public void setNullAddressWord(Address address, boolean objField, boolean root) {
+    setNullAddressWord(address, objField, root, true);
   }
 
   /**

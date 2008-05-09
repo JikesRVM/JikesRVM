@@ -12,15 +12,18 @@
  */
 package org.jikesrvm.classloader;
 
+import java.lang.annotation.Annotation;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -56,6 +59,7 @@ import org.vmmagic.unboxed.Offset;
  * Their "resolution", "instantiation", and "initialization" phases
  * are no-ops.
  */
+@NonMoving
 public abstract class VM_Type extends VM_AnnotatedElement
     implements VM_ClassLoaderConstants, VM_SizeConstants, VM_Constants {
 
@@ -103,6 +107,12 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public static final VM_Array ExtentArrayType;
   public static final VM_Primitive CodeType;
   public static final VM_Array CodeArrayType;
+  public static final VM_Class TIBType;
+  public static final VM_Class ITableType;
+  public static final VM_Class ITableArrayType;
+  public static final VM_Class IMTType;
+  public static final VM_Class ProcessorTableType;
+  public static final VM_Class FunctionTableType;
 
   static {
     // Primitive types
@@ -131,6 +141,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
     ObjectReferenceArrayType = VM_TypeReference.ObjectReferenceArray.resolve().asArray();
     OffsetArrayType = VM_TypeReference.OffsetArray.resolve().asArray();
     ExtentArrayType = VM_TypeReference.ExtentArray.resolve().asArray();
+    // Runtime Tables
+    TIBType = VM_TypeReference.TIB.resolve().asClass();
+    ITableType = VM_TypeReference.ITable.resolve().asClass();
+    ITableArrayType = VM_TypeReference.ITableArray.resolve().asClass();
+    IMTType = VM_TypeReference.IMT.resolve().asClass();
+    ProcessorTableType = VM_TypeReference.ProcessorTable.resolve().asClass();
+    FunctionTableType = VM_TypeReference.FunctionTable.resolve().asClass();
     // Java clases
     JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve().asClass();
     JavaLangObjectArrayType = VM_TypeReference.JavaLangObjectArray.resolve().asArray();
@@ -160,13 +177,12 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * instance of java.lang.Class corresponding to this type
    */
-  @Entrypoint
   private final Class<?> classForType;
 
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
    * classes. NB this field must appear in all VM_Types for fast type
-   * checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
+   * checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
    */
   @Entrypoint
   protected final int dimension;
@@ -174,7 +190,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Number of superclasses to Object. Known immediately for
    * primitives and arrays, but only after resolving for classes. NB
    * this field must appear in all VM_Types for fast object array
-   * store checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
+   * store checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
    */
   @Entrypoint
   protected int depth;
@@ -183,6 +199,16 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * (null ->> not created yet).
    */
   private VM_Array cachedElementType;
+
+  /**
+   * The superclass ids for this type.
+   */
+  protected short[] superclassIds;
+
+  /**
+   * The interface implementation array for this type.
+   */
+  protected int[] doesImplement;
 
   /**
    * Create an instance of a {@link VM_Type}
@@ -194,17 +220,14 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected VM_Type(VM_TypeReference typeRef, Class<?> classForType, int dimension, VM_Annotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
-    this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
+    this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
     this.id = nextId(this);
     this.classForType = classForType;
     this.dimension = dimension;
 
-    // install partial type information block (no method dispatch table)
-    // for use in type checking.
-    //
-    if (VM.VerifyAssertions) VM._assert(VM_TIBLayoutConstants.TIB_TYPE_INDEX == 0);
-    Object[] tib = new Object[1];
-    tib[0] = this;
+    /* install partial type information block (no method dispatch table) for use in type checking. */
+    VM_TIB tib = MM_Interface.newTIB(0);
+    tib.setType(this);
     VM_Statics.setSlotContents(getTibOffset(), tib);
   }
 
@@ -217,17 +240,14 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected VM_Type(VM_TypeReference typeRef, int dimension, VM_Annotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
-    this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
+    this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
     this.id = nextId(this);
     this.classForType = createClassForType(this, typeRef);
     this.dimension = dimension;
 
-    // install partial type information block (no method dispatch table)
-    // for use in type checking.
-    //
-    if (VM.VerifyAssertions) VM._assert(VM_TIBLayoutConstants.TIB_TYPE_INDEX == 0);
-    Object[] tib = new Object[1];
-    tib[0] = this;
+    /* install partial type information block (no method dispatch table) for use in type checking. */
+    VM_TIB tib = MM_Interface.newTIB(0);
+    tib.setType(this);
     VM_Statics.setSlotContents(getTibOffset(), tib);
   }
 
@@ -252,12 +272,16 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * This is commonly used for reflection.
    */
   public final Class<?> getClassForType() {
-    // Resolve the class so that we don't need to resolve it
-    // in reflection code
-    if (!isResolved()) {
-      resolve();
+    if (VM.runningVM) {
+      // Resolve the class so that we don't need to resolve it
+      // in reflection code
+      if (!isResolved()) {
+        resolve();
+      }
+      return classForType;
+    } else {
+      return createClassForType(this, getTypeRef());
     }
-    return classForType;
   }
 
   /**
@@ -274,6 +298,14 @@ public abstract class VM_Type extends VM_AnnotatedElement
   @Uninterruptible
   public final ClassLoader getClassLoader() {
     return typeRef.getClassLoader();
+  }
+
+  /**
+   * Should assertions be enabled on this type?
+   * @return false
+   */
+  public boolean getDesiredAssertionStatus() {
+    return false;
   }
 
   /**
@@ -443,7 +475,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    */
   @Uninterruptible
   public final short[] getSuperclassIds() {
-    return VM_Magic.objectAsShortArray(getTypeInformationBlock()[VM.TIB_SUPERCLASS_IDS_INDEX]);
+    return superclassIds;
   }
 
   /**
@@ -451,7 +483,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    */
   @Uninterruptible
   public final int[] getDoesImplement() {
-    return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
+    return doesImplement;
   }
 
   /**
@@ -513,7 +545,28 @@ public abstract class VM_Type extends VM_AnnotatedElement
         } else if (className.isClassDescriptor()) {
           return Class.forName(className.classNameFromDescriptor(), false, VM_Type.class.getClassLoader());
         } else {
-          return Class.forName(className.toString().replace('/', '.'), false, VM_Type.class.getClassLoader());
+          String classNameString = className.toString();
+          if (classNameString.equals("V")) {
+            return void.class;
+          } else if(classNameString.equals("I")){
+            return int.class;
+          } else if(classNameString.equals("J")){
+            return long.class;
+          } else if(classNameString.equals("F")){
+            return float.class;
+          } else if(classNameString.equals("D")){
+            return double.class;
+          } else if(classNameString.equals("C")){
+            return char.class;
+          } else if(classNameString.equals("S")){
+            return short.class;
+          } else if(classNameString.equals("Z")){
+            return boolean.class;
+          } else if(classNameString.equals("B")){
+            return byte.class;
+          } else {
+            return Class.forName(classNameString.replace('/', '.'), false, VM_Type.class.getClassLoader());
+          }
         }
       } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
@@ -555,33 +608,20 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * @return the method at that slot
    */
   public final VM_Method getTIBMethodAtSlot(int slot) {
-    if (slot >= VM_TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX) {
-      VM_Method[] methods = getVirtualMethods();
-      int offset = slot << LOG_BYTES_IN_ADDRESS;
-      for (int i = 0, n = methods.length; i < n; i++) {
-        if (methods[i].getOffset().toInt() == offset) {
-          return methods[i];
-        }
-      }
-    }
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Is the given slot accessible in this type's TIB? Will fail an assertion if
-   * not.
-   * @param slot the slot to check
-   */
-  protected void checkTIBSlotIsAccessible(int slot) {
-    if (!isInstantiated()) {
-      VM._assert(false, toString() + "'s TIB is inaccessible as its not instantiated");
-    }
-    if ((slot < 0) || (slot >= getTypeInformationBlock().length)) {
-      VM._assert(false, toString() + " doesn't have a slot at " + slot);
-    }
+    int index = VM_TIB.getVirtualMethodIndex(slot);
+    VM_Method[] methods = getVirtualMethods();
+    if (VM.VerifyAssertions) VM._assert(methods[index].getOffset().toInt() == slot << LOG_BYTES_IN_ADDRESS);
+    return methods[index];
   }
   // Methods implemented in VM_Primitive, VM_Array or VM_Class
+
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
+    return getClassForType().getAnnotation(annotationClass);
+  }
 
   /**
    * Resolution status.
@@ -739,23 +779,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Runtime type information for this class/array type.
    */
   @Uninterruptible
-  public abstract Object[] getTypeInformationBlock();
-
-  /**
-   * Does this slot in the TIB hold a TIB entry?
-   */
-  public abstract boolean isTIBSlotTIB(int slot);
-
-  /**
-   * Does this slot in the TIB hold code?
-   */
-  public abstract boolean isTIBSlotCode(int slot);
+  public abstract VM_TIB getTypeInformationBlock();
 
   /**
    * Set the specialized method for a class or array.
    */
   public final void setSpecializedMethod(int id, VM_CodeArray code) {
-    getTypeInformationBlock()[TIB_FIRST_SPECIALIZED_METHOD_INDEX + id] = code;
+    getTypeInformationBlock().setSpecializedMethod(id, code);
   }
 
   /**
@@ -785,5 +815,12 @@ public abstract class VM_Type extends VM_AnnotatedElement
   @Inline
   public final int getMMAllocator() {
     return mmAllocator;
+  }
+
+  /**
+   * Is this field a type that must never move?
+   */
+  public boolean isNonMoving() {
+    return hasNonMovingAnnotation();
   }
 }

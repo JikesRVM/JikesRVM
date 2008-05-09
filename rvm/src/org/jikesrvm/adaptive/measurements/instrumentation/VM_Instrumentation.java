@@ -15,7 +15,7 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 
 /**
  * VM_Instrumentation.java
@@ -29,13 +29,13 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
 public final class VM_Instrumentation {
 
   /**
-   * A pointer to a OPT_InstrumentedEventCounterManager, (See
+   * A pointer to a InstrumentedEventCounterManager, (See
    * VM_InstrumentedEventCounterManager.java for the idea behind a
    * counter manager) There can be multiple managers in use at the
    * same time (for example, one per method)., but for now we just use
    * one for everything.
    **/
-  public static OPT_InstrumentedEventCounterManager eventCounterManager;
+  public static InstrumentedEventCounterManager eventCounterManager;
 
   /**
    * Called at boot time

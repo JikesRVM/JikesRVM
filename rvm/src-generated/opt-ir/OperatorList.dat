@@ -21,13 +21,6 @@ IMPLUSES
 ###################################################################
 # The first set of operators are HIR only.
 ###################################################################
-# Get the java.lang.Class object for a type
-GET_CLASS_OBJECT
-Unary
-none
-
-
-
 # Get the caught exception object from "magic land" to a normal register operand
 GET_CAUGHT_EXCEPTION
 Nullary
@@ -170,7 +163,7 @@ memAsLoad | memAsStore | release | tsp | immedPEI
 # allocate a multi-dimensional array
 # could raise number of exceptions during class loading or IllegalAccess or NegativeArraySize
 NEWOBJMULTIARRAY
-NewArray
+Multianewarray
 alloc | immedPEI | dynLink
 
 
@@ -511,7 +504,7 @@ none
 
 
 
-# a NOP (used by OPT_Simplifier)
+# a NOP (used by Simplifier)
 NOP
 Empty
 none
@@ -844,6 +837,22 @@ none
 # Unary negation for doubles. Take a (register/constant) operand and
 # negate it, putting the result in a register operand.
 DOUBLE_NEG
+Unary
+none
+
+
+
+# Unary negation for floats. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+FLOAT_SQRT
+Unary
+none
+
+
+
+# Unary negation for doubles. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+DOUBLE_SQRT
 Unary
 none
 

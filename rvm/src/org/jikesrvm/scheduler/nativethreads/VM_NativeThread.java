@@ -16,7 +16,9 @@ import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STA
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.NonMoving;
 
+@NonMoving
 public class VM_NativeThread extends VM_Thread {
 
   /**
@@ -113,6 +115,16 @@ public class VM_NativeThread extends VM_Thread {
   protected void suspendInternal() {
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  public void osrPark() {
+    // TODO
+  }
+
+  @Override
+  public void osrUnpark() {
+    // TODO
   }
 
   @Override

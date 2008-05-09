@@ -80,7 +80,7 @@ public class GenMS extends Gen {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
         matureTrace.prepare();
-        msSpace.prepare();
+        msSpace.prepare(true);
         return;
       }
 

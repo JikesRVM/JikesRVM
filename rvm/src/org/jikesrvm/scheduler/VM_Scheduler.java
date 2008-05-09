@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
@@ -21,13 +23,12 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
@@ -181,9 +182,10 @@ public abstract class VM_Scheduler {
           if (MM_Constants.NEEDS_WRITE_BARRIER) {
             MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
                 index, thread);
-          }
-          VM_Magic.setObjectAtOffset(threads,
+          } else {
+            VM_Magic.setObjectAtOffset(threads,
               Offset.fromIntZeroExtend(index << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), thread);
+          }
           VM_Scheduler.threadCreationMutex.unlock();
           return index;
         }
@@ -348,6 +350,42 @@ public abstract class VM_Scheduler {
    */
   public static int getNumberOfProcessors() {
     return getScheduler().getNumberOfProcessorsInternal();
+  }
+
+  /**
+   *  First VM_Processor
+   */
+  protected abstract int getFirstProcessorIdInternal();
+
+  /**
+   *  First VM_Processor
+   */
+  public static int getFirstProcessorId() {
+    return getScheduler().getFirstProcessorIdInternal();
+  }
+
+  /**
+   *  Last VM_Processor
+   */
+  protected abstract int getLastProcessorIdInternal();
+
+  /**
+   *  Last VM_Processor
+   */
+  public static int getLastProcessorId() {
+    return getScheduler().getLastProcessorIdInternal();
+  }
+
+  /**
+   * Get a VM_Processor
+   */
+  protected abstract VM_Processor getProcessorInternal(int id);
+
+  /**
+   * Get a VM_Processor
+   */
+  public static VM_Processor getProcessor(int id) {
+    return getScheduler().getProcessorInternal(id);
   }
 
   /**
@@ -674,13 +712,19 @@ public abstract class VM_Scheduler {
         while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
 
           // if code is outside of RVM heap, assume it to be native code,
-          // skip to next frame
           if (!MM_Interface.addressInVM(ip)) {
-            showMethod("native frame", fp);
-            ip = VM_Magic.getReturnAddress(fp);
-            fp = VM_Magic.getCallerFramePointer(fp);
+            // Loop until either we fall off the stack or we find an instruction address
+            // in one of our heaps
+            do {
+              showMethod("native frame", fp);
+              ip = VM_Magic.getReturnAddress(fp);
+              fp = VM_Magic.getCallerFramePointer(fp);
+            } while (!MM_Interface.addressInVM(ip) && fp.NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP));
+            if (VM.BuildForPowerPC) {
+              // skip over main frame to mini-frame
+              fp = VM_Magic.getCallerFramePointer(fp);
+            }
           } else {
-
             int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
             if (compiledMethodId == ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
               showMethod("invisible method", fp);
@@ -755,8 +799,11 @@ public abstract class VM_Scheduler {
    * @return true if the address could be a frame pointer, false otherwise.
    */
   private static boolean isAddressValidFramePointer(final Address address) {
-    return address.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
-           MM_Interface.mightBeFP(address);
+    if (address.EQ(Address.zero()))
+      return false; // Avoid hitting assertion failure in MMTk
+    else
+      return address.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
+             MM_Interface.mightBeFP(address);
   }
 
   private static void showPrologue(Address fp) {

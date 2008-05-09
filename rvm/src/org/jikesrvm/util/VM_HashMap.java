@@ -46,10 +46,14 @@ public class VM_HashMap<K, V> {
     return numElems;
   }
 
+  protected boolean same(K k1, K k2) {
+    return k1.equals(k2);
+  }
+
   public final V get(K key) {
     int bucketIdx = bucketIndex(key, buckets.length);
     Bucket<K, V> cur = buckets[bucketIdx];
-    while (cur != null && !cur.key.equals(key)) {
+    while (cur != null && !same(cur.key, key)) {
       cur = cur.next;
     }
     if (cur == null) {
@@ -66,7 +70,7 @@ public class VM_HashMap<K, V> {
 
     int bucketIdx = bucketIndex(key, buckets.length);
     Bucket<K, V> cur = buckets[bucketIdx];
-    while (cur != null && !cur.key.equals(key)) {
+    while (cur != null && !same(cur.key, key)) {
       cur = cur.next;
     }
     if (cur != null) {
@@ -101,7 +105,7 @@ public class VM_HashMap<K, V> {
     int bucketIdx = bucketIndex(key, buckets.length);
     Bucket<K, V> cur = buckets[bucketIdx];
     Bucket<K, V> prev = null;
-    while (cur != null && !cur.key.equals(key)) {
+    while (cur != null && !same(cur.key, key)) {
       prev = cur;
       cur = cur.next;
     }

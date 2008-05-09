@@ -162,7 +162,7 @@ public class Map {
    * @return The size of the region in question
    */
   public static Extent getContiguousRegionSize(Address start) {
-    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).rshl(Space.LOG_BYTES_IN_CHUNK).toExtent();
+    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).lsh(Space.LOG_BYTES_IN_CHUNK).toExtent();
   }
 
   /**
@@ -239,7 +239,7 @@ public class Map {
     /* set up the global page map and place chunks on free list */
     int firstPage = 0;
     for (int chunk = start; chunk < end; chunk++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunk] == null);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.barriers.getArrayNoBarrier(spaceMap, chunk) == null);
       totalAvailableDiscontiguousChunks++;
       regionMap.free(chunk);  // put this chunk on the free list
       globalPageMap.setUncoalescable(firstPage);

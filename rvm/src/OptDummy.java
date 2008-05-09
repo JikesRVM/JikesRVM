@@ -19,7 +19,7 @@
  * The minimal set has to be discovered by trial and error. Sorry. --Derek
  */
 class OptDummy {
-  static org.jikesrvm.compilers.opt.OPT_Compiler a;
-  static org.jikesrvm.compilers.opt.VM_OptSaveVolatile g;
-  static org.jikesrvm.compilers.opt.OPT_SpecializedMethodPool q;
+  static org.jikesrvm.compilers.opt.driver.OptimizingCompiler a;
+  static org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile g;
+  static org.jikesrvm.compilers.opt.SpecializedMethodPool q;
 }

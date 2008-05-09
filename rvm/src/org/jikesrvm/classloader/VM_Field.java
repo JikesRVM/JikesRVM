@@ -14,6 +14,8 @@ package org.jikesrvm.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -33,6 +35,16 @@ public final class VM_Field extends VM_Member {
   private final int constantValueIndex;
 
   /**
+   * The size of the field in bytes
+   */
+  private final byte size;
+
+  /**
+   * Does the field hold a reference value?
+   */
+  private final boolean reference;
+
+  /**
    * Create a field.
    *
    * @param declaringClass the VM_TypeReference object of the class
@@ -47,6 +59,12 @@ public final class VM_Field extends VM_Member {
                    int constantValueIndex, VM_Annotation[] annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
+    VM_TypeReference typeRef = memRef.asFieldReference().getFieldContentsType();
+    this.size = (byte)typeRef.getMemoryBytes();
+    this.reference = typeRef.isReferenceType();
+    if (isUntraced() && VM.runningVM) {
+      VM.sysFail("Untraced field " + toString() + " created at runtime!");
+    }
   }
 
   /**
@@ -76,7 +94,7 @@ public final class VM_Field extends VM_Member {
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else {
         // all other attributes are boring...
         input.skipBytes(attLength);
@@ -116,7 +134,14 @@ public final class VM_Field extends VM_Member {
    * How many bytes of memory words do value of this type take?
    */
   public int getSize() {
-    return getType().getMemoryBytes();
+    return size;
+  }
+
+  /**
+   * Does the field hold a reference?
+   */
+  public boolean isReferenceType() {
+    return reference;
   }
 
   /**
@@ -175,6 +200,13 @@ public final class VM_Field extends VM_Member {
   }
 
   /**
+   * Is this field invisible to the memory management system.
+   */
+  public boolean isUntraced() {
+    return hasUntracedAnnotation();
+  }
+
+  /**
    * Get the value from the runtime final field
    * @return whether the method has a pure annotation
    */
@@ -203,6 +235,22 @@ public final class VM_Field extends VM_Member {
     return constantValueIndex;
   }
 
+  /**
+   * Get the annotation implementing the specified class or null during boot
+   * image write time
+   */
+  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
+    T ann;
+    Field field = null;
+    try {
+      field = getDeclaringClass().getClassForType().getField(getName().toString());
+      ann = field.getAnnotation(annotationClass);
+    } catch (NoSuchFieldException e) {
+      throw new BootImageMemberLookupError(this, field, getDeclaringClass().getClassForType(), e);
+    }
+    return ann;
+  }
+
   //-------------------------------------------------------------------//
   // Low level support for various reflective operations               //
   // Because different clients have different error checking           //
@@ -216,10 +264,10 @@ public final class VM_Field extends VM_Member {
    * If the contents of this field is a primitive, get the value and wrap it in an object.
    */
   public Object getObjectUnchecked(Object obj) {
-    VM_TypeReference type = getType();
-    if (type.isReferenceType()) {
+    if (isReferenceType()) {
       return getObjectValueUnchecked(obj);
     } else {
+      VM_TypeReference type = getType();
       if (type.isCharType()) return getCharValueUnchecked(obj);
       if (type.isDoubleType()) return getDoubleValueUnchecked(obj);
       if (type.isFloatType()) return getFloatValueUnchecked(obj);
@@ -240,9 +288,17 @@ public final class VM_Field extends VM_Member {
    */
   public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsObject(getOffset());
+      if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !isUntraced()) {
+        return MM_Interface.getstaticReadBarrier(getOffset(), getId());
+      } else {
+        return VM_Statics.getSlotContentsAsObject(getOffset());
+      }
     } else {
-      return VM_Magic.getObjectAtOffset(obj, getOffset());
+      if (MM_Constants.NEEDS_READ_BARRIER && !isUntraced()) {
+        return MM_Interface.getfieldReadBarrier(obj, getOffset(), getId());
+      } else {
+        return VM_Magic.getObjectAtOffset(obj, getOffset());
+      }
     }
   }
 
@@ -327,13 +383,13 @@ public final class VM_Field extends VM_Member {
    */
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
         MM_Interface.putstaticWriteBarrier(getOffset(), ref, getId());
       } else {
         VM_Statics.setSlotContents(getOffset(), ref);
       }
     } else {
-      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      if (MM_Constants.NEEDS_WRITE_BARRIER && !isUntraced()) {
         MM_Interface.putfieldWriteBarrier(obj, getOffset(), ref, getId());
       } else {
         VM_Magic.setObjectAtOffset(obj, getOffset(), ref);

@@ -62,6 +62,11 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   private static final byte SAMPLES_RESET = 0x20;
   private static final byte SPECIAL_FOR_OSR = 0x40;
+  /** Has bridge from native annotation, NB this makes the flags byte negative */
+  private static final byte BRIDGE_FROM_NATIVE = (byte)0x80;
+  static {
+    if (VM.VerifyAssertions) VM._assert(BRIDGE_FROM_NATIVE < 0);
+  }
 
   /** Flags bit field */
   private byte flags;
@@ -106,7 +111,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public void setSpecialForOSR() {
     flags |= SPECIAL_FOR_OSR;
     // set jtoc
-    this.osrJTOCoffset = VM_Statics.allocateReferenceSlot().toInt();
+    this.osrJTOCoffset = VM_Statics.allocateReferenceSlot(false).toInt();
     VM_Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
 
@@ -125,6 +130,9 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public VM_CompiledMethod(int id, VM_Method m) {
     cmid = id;
     method = m;
+    if (m != null && m.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+      flags = BRIDGE_FROM_NATIVE;
+    }
   }
 
   /**
@@ -141,6 +149,15 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   @Uninterruptible
   public final VM_Method getMethod() {
     return method;
+  }
+
+  /**
+   * Does this method have a bridge from native annotation, important when
+   * walking the stack
+   */
+  @Uninterruptible
+  public final boolean hasBridgeFromNativeAnnotation() {
+    return flags < 0;
   }
 
   /**

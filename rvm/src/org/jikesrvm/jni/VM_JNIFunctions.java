@@ -38,14 +38,13 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_SysCall;
+import org.jikesrvm.util.VM_AddressInputStream;
 
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class implements the 232 JNI functions.
@@ -152,11 +151,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
       }
+      VM_AddressInputStream reader = new VM_AddressInputStream(data, Offset.fromIntZeroExtend(dataLen));
 
-      byte[] bytecode = new byte[dataLen];
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
-
-      final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, bytecode, 0, dataLen, cl);
+      final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, reader, cl);
       return env.pushJNIRef(vmType.getClassForType());
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3838,7 +3835,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       final char[] contents = new char[len];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len * 2);
-      return env.pushJNIRef(new String(contents));
+      return env.pushJNIRef(java.lang.JikesRVMSupport.newStringWithoutCopy(contents, 0, len));
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3875,22 +3872,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *         and *isCopy is set to 1 (TRUE)
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static Address GetStringChars(VM_JNIEnvironment env, int objJREF, Address isCopyAddress) {
+  private static Address GetStringChars(VM_JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
-    try {
-      String str = (String) env.getJNIRef(objJREF);
-      int len = str.length();
-      char[] contents = str.toCharArray();
+    String str = (String) env.getJNIRef(strJREF);
+    char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
+    int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
+    int len = java.lang.JikesRVMSupport.getStringLength(str);
 
-      // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = sysCall.sysMalloc(len * 2);
-      if (copyBuffer.isZero()) {
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(contents), len * 2);
+    // alloc non moving buffer in C heap for a copy of string contents
+    Address copyBuffer = sysCall.sysMalloc(len * 2);
+    if (copyBuffer.isZero()) {
+      env.recordException(new OutOfMemoryError());
+      return Address.zero();
+    }
+    try {
+      Address strBase = VM_Magic.objectAsAddress(strChars);
+      Address srcBase = strBase.plus(strOffset * 2);
+      VM_Memory.memcopy(copyBuffer, srcBase, len * 2);
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -3900,6 +3900,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
+      sysCall.sysFree(copyBuffer);
       return Address.zero();
     }
   }
@@ -3935,8 +3936,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     VM_Runtime.checkJNICountDownToGC();
 
     try {
-      byte[] utf8array = VM_JNIHelpers.createByteArrayFromC(utf8bytes);
-      String returnString = VM_UTF8Convert.fromUTF8(utf8array);
+      String returnString = VM_JNIHelpers.createUTFStringFromC(utf8bytes);
       return env.pushJNIRef(returnString);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3978,58 +3978,24 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
     VM_Runtime.checkJNICountDownToGC();
 
-    // briefly disable alignment checking
-    if (VM.AlignmentChecking) {
-      VM_SysCall.sysCall.sysDisableAlignmentChecking();
+    String str = (String) env.getJNIRef(strJREF);
+
+    // Get length of C string
+    int len = VM_UTF8Convert.utfLength(str) + 1; // for terminating zero
+
+    // alloc non moving buffer in C heap for string
+    Address copyBuffer = sysCall.sysMalloc(len);
+    if (copyBuffer.isZero()) {
+      env.recordException(new OutOfMemoryError());
+      return Address.zero();
     }
-
     try {
-      String str = (String) env.getJNIRef(strJREF);
-      byte[] utfcontents = VM_UTF8Convert.toUTF8(str);
-
-      int len = utfcontents.length;
-      int copyBufferLen =
-          VM_Memory.alignDown(len + BYTES_IN_ADDRESS,
-                              BYTES_IN_ADDRESS); // need extra at end for storing terminator and end at word boundary
-
-      // alloc non moving buffer in C heap for string contents as utf8 array
-      // alloc extra byte for C null terminator
-      Address copyBuffer = sysCall.sysMalloc(copyBufferLen);
-
-      if (copyBuffer.isZero()) {
-
-        // re-enable alignment checking
-        if (VM.AlignmentChecking) {
-          VM_SysCall.sysCall.sysEnableAlignmentChecking();
-        }
-
-        env.recordException(new OutOfMemoryError());
-        return Address.zero();
-      }
-
-      // store word of 0 at end, before the copy, to set C null terminator
-      copyBuffer.plus(copyBufferLen - BYTES_IN_ADDRESS).store(Word.zero());
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(utfcontents), len);
-
-      /* Set caller's isCopy boolean to true, if we got a valid (non-null)
-         address */
+      VM_JNIHelpers.createUTFForCFromString(str, copyBuffer, len);
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-
-      // re-enable alignment checking
-      if (VM.AlignmentChecking) {
-        VM_SysCall.sysCall.sysEnableAlignmentChecking();
-      }
-
       return copyBuffer;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-
-      // re-enable alignment checking
-      if (VM.AlignmentChecking) {
-        VM_SysCall.sysCall.sysEnableAlignmentChecking();
-      }
-
       return Address.zero();
     }
   }
@@ -5856,21 +5822,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       String str = (String) env.getJNIRef(strJREF);
-
-      char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
-      int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
-      int strLen = java.lang.JikesRVMSupport.getStringLength(str);
-      if (strLen < start + len) {
-        env.recordException(new StringIndexOutOfBoundsException());
-        return;
-      }
-      /* XXX TODO This is pretty inefficient.  We create another String,
-       * just to feed it to the UTF8 method, but I'm feeling lazy and
-       * don't want to go into writing another interface to
-       * VM_UTF8Convert.toUTF8() to handle ranges of char arrays. */
-      String region = new String(strChars, strOffset + start, len);
-      byte[] utfcontents = VM_UTF8Convert.toUTF8(region);
-      VM_Memory.memcopy(buf, VM_Magic.objectAsAddress(utfcontents), utfcontents.length);
+      String region = str.substring(start, start+len);
+      // Get length of C string
+      int utflen = VM_UTF8Convert.utfLength(region) + 1; // for terminating zero
+      VM_JNIHelpers.createUTFForCFromString(region, buf, utflen);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);

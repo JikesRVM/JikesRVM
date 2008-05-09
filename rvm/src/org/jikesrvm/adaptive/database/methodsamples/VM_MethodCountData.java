@@ -14,6 +14,7 @@ package org.jikesrvm.adaptive.database.methodsamples;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_HotMethodEvent;
@@ -23,7 +24,7 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 
 /**
  * A container for recording how often a method is executed.

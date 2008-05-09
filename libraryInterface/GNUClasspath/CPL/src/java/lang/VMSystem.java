@@ -16,7 +16,6 @@ import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.UTFDataFormatException;
 import java.util.List;
 
 import org.jikesrvm.VM;
@@ -27,9 +26,7 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_Time;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Library support interface of Jikes RVM
@@ -126,16 +123,6 @@ public final class VMSystem {
   static PrintStream makeStandardOutputStream() { return null; }
 
   static PrintStream makeStandardErrorStream() { return null; }
-
-  static String internString(String string) {
-    try {
-      return (String)
-        VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend(
-            VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom(string))));
-    } catch (UTFDataFormatException ex) {
-      throw new InternalError(ex.toString());
-    }
-  }
 
   /** Get the value of an environment variable.
    */

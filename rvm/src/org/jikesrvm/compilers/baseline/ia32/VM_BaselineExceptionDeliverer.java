@@ -51,7 +51,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     //
     sp = sp.minus(BYTES_IN_ADDRESS);
     sp.store(VM_Magic.objectAsAddress(exceptionObject));
-    registers.gprs.set(SP, sp.toWord());
+    registers.gprs.set(SP.value(), sp.toWord());
 
     // set address at which to resume executing frame
     registers.ip = catchBlockInstructionAddress;
@@ -68,10 +68,8 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     // If this was a straight software trap (athrow) then setting
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
-    if (!myThread.getHardwareExceptionRegisters().inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
-      VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
-    }
+    myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
 
     VM_Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -103,8 +101,8 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     }
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM._assert(SAVED_GPRS == 2);
-    registers.gprs.set(JTOC, fp.plus(JTOC_SAVE_OFFSET).loadWord());
-    registers.gprs.set(EBX, fp.plus(EBX_SAVE_OFFSET).loadWord());
+    registers.gprs.set(JTOC.value(), fp.plus(JTOC_SAVE_OFFSET).loadWord());
+    registers.gprs.set(EBX.value(), fp.plus(EBX_SAVE_OFFSET).loadWord());
 
     registers.unwindStackFrame();
   }

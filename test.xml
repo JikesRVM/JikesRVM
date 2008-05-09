@@ -56,10 +56,12 @@
     <sequential>
       <property name="test.config.@{tag}.configuration" value="@{tag}"/>
       <setBuildName property="test.config.@{tag}.build.name" config="${test.config.@{tag}.configuration}"/>
+      <property name="test.config.@{tag}.target" value="main"/>
       <property name="test.config.@{tag}.rvm.dir" location="${dist.dir}/${test.config.@{tag}.build.name}"/>
       <property name="test.config.@{tag}.tests" value="${test.tests}"/>
       <property name="test.config.@{tag}.name" value="default"/>
       <property name="test.config.@{tag}.mode" value="${test.mode}"/>
+      <property name="test.config.@{tag}.extra.rvm.args" value=""/>
     </sequential>
   </macrodef>
 
@@ -134,6 +136,7 @@
             <delete dir="${test.config.@{tag}.rvm.dir}"/>
             <timer property="${test.config.@{tag}.configuration}.build.time"/>
             <erant antfile="${jikesrvm.dir}/build.xml"
+                   target="${test.config.@{tag}.target}"
                    failonerror="false"
                    failonerrorProperty="${test.config.@{tag}.configuration}.build.error"
                    output="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt">
@@ -210,6 +213,7 @@
             <echo message="    Tests:          ${test.config.@{tag}.tests}"/>
             <echo message="    Run Name:       ${test.config.@{tag}.name}"/>
             <echo message="    Mode:           ${test.config.@{tag}.mode}"/>
+            <echo message="    Extra RVM Args: ${test.config.@{tag}.extra.rvm.args}"/>
             <forEach list="${test.config.@{tag}.tests}" property="test">
               <sequential>
                 <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
@@ -221,6 +225,7 @@
                   <property name="test.rvm.dir" location="${test.config.@{tag}.rvm.dir}"/>
                   <property name="test.mode" value="${test.config.@{tag}.mode}"/>
                   <property name="test.group.name" value="@{test}"/>
+                  <property name="test.config.${test.config.@{tag}.configuration}.extra.rvm.args" value="${test.config.@{tag}.extra.rvm.args}"/>
                   <propertyset>
                     <propertyref prefix="exclude."/>
                   </propertyset>

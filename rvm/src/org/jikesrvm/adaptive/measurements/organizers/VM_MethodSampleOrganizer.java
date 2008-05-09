@@ -20,7 +20,7 @@ import org.jikesrvm.adaptive.measurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 /**

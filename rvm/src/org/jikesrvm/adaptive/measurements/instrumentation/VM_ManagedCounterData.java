@@ -15,8 +15,8 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 import java.util.Enumeration;
 import java.util.Vector;
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
-import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
  * This class provides the basic functionality for instrumented data
@@ -29,7 +29,7 @@ public class VM_ManagedCounterData {
   /**
    * @param counterManager The counterManager that will provide the counter space
    */
-  VM_ManagedCounterData(OPT_InstrumentedEventCounterManager counterManager) {
+  VM_ManagedCounterData(InstrumentedEventCounterManager counterManager) {
     // Basic block instrumentation is performed using a common counter
     // allocation for the whole method.  It requests that space here.
     this.counterManager = counterManager;
@@ -156,7 +156,7 @@ public class VM_ManagedCounterData {
    *
    * @return the counter manager object
    */
-  public OPT_InstrumentedEventCounterManager getCounterManager() {
+  public InstrumentedEventCounterManager getCounterManager() {
     return counterManager;
   }
 
@@ -168,7 +168,7 @@ public class VM_ManagedCounterData {
    * @param counterNumber The number of the counter to increment
    * @return The instruction that will update the given counter
    */
-  public OPT_Instruction createEventCounterInstruction(int counterNumber) {
+  public Instruction createEventCounterInstruction(int counterNumber) {
     return createEventCounterInstruction(counterNumber, 1.0);
   }
 
@@ -180,7 +180,7 @@ public class VM_ManagedCounterData {
    * @param incrementValue The value to add to the given counter
    * @return The instruction that will update the given counter
    */
-  OPT_Instruction createEventCounterInstruction(int counterNumber, double incrementValue) {
+  Instruction createEventCounterInstruction(int counterNumber, double incrementValue) {
     // Confirm that counters have been initialized
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
@@ -277,7 +277,7 @@ public class VM_ManagedCounterData {
    * Basic block instrumentation stores its counters using an
    * abstracted counter allocation technique (a counterManager)
    **/
-  protected OPT_InstrumentedEventCounterManager counterManager = null;
+  protected InstrumentedEventCounterManager counterManager = null;
 
   protected boolean automaticallyGrowCounters = false;
 

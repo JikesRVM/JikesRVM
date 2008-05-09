@@ -14,16 +14,16 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.opt.OPT_InstrumentationPlan;
+import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
 
 /**
  * An instance of this class is created for each method that is
  * instrumented by the adaptive system.  It serves as a place to put
  * information that is needed by the instrumentation phases.  Is is
- * different from an OPT_InstrumentationPlan because it contains
+ * different from an InstrumentationPlan because it contains
  * information that the non-adaptive opt-compiler can't see.
  */
-public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
+public class VM_AOSInstrumentationPlan extends InstrumentationPlan {
   /**
    * Construct empty plan, must setup manually
    **/

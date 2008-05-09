@@ -78,20 +78,23 @@ class TestThrownException {
         System.out.println("Error: no exception thrown!");
       } catch (Exception e) {
         System.out.println("caught " + e.getClass());
-        //printTrace(e, 4);
+        checkTrace(e);
       }
     }
   }
 
-  // Jikes does not create stack elements yet
-  @SuppressWarnings({"UnusedDeclaration"})
-  private static void printTrace(final Throwable throwable, final int depth) {
+  private static void checkTrace(final Throwable throwable) {
     final StackTraceElement[] elements = throwable.getStackTrace();
-    final int count = Math.min(elements.length, depth);
-    for (int i = 0; i < count; i++) {
-      StackTraceElement element = elements[elements.length - 1 - i];
-      System.out.println(i + " " + element.getClassName() + "#" + element.getMethodName() +
-          " isNative=" + element.isNativeMethod());
+    boolean foundOurClass = false;
+    for (StackTraceElement element : elements) {
+      if (element.getClassName().indexOf("TestThrownException") >= 0) {
+        System.out.println("Found our class in the stack trace");
+        foundOurClass = true;
+        break;
+      }
+    }
+    if (!foundOurClass) {
+      System.out.println("Error, our class wasn't found in the stack trace");
     }
   }
 }
