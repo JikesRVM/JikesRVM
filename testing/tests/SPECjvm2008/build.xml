@@ -1,0 +1,92 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="specjvm" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="1800">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="test.time.limit" value="4000" else="900">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+
+  <import file="../../../build/tests.xml"/>
+  <ant antfile="../../../build/components/specjvm.xml" target="ensure" inheritall="false" inheritrefs="false"/>
+  <property file="${components.file}"/>
+
+  <property name="test.class.path" value="${specjvm.dir}/SPECjvm2008.jar:${specjvm.dir}/lib/ant.jar:${specjvm.dir}/lib/ant-launcher.jar:${specjvm.dir}/lib/check.jar:${specjvm.dir}/lib/derby.jar:${specjvm.dir}/lib/janino.jar:${specjvm.dir}/lib/javac.jar:${specjvm.dir}/lib/jcommon-1.0.9.jar:${specjvm.dir}/lib/jfreechart-1.0.5.jar:${specjvm.dir}/lib/jl1.0.jar:${specjvm.dir}/lib/sunflow.jar:${specjvm.dir}/lib/Tidy.jar:${specjvm.dir}/lib/xom-1.1.jar"/>
+
+  <property name="specjvm.args" value="-Dspecjvm.benchmark.startup.launcher=${rvm.exe} -ikv"/>
+
+  <macrodef name="specjvm">
+    <attribute name="name"/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="heapsize" default=""/>
+    <attribute name="requires-display" default="false"/>
+    <sequential>
+      <rvm tag="@{name}" class="spec.harness.Launch" requires-display="@{requires-display}" dir="${specjvm.dir}" args="${specjvm.args} @{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}"/>
+      <outputSingleStatisticResults tag="@{name}" key="time" pattern="Score on @{name}: (.*) ops/m"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <startResults/>
+
+    <specjvm name="startup.helloworld"/>
+    <specjvm name="startup.compiler.compiler"/>
+    <specjvm name="startup.compiler.sunflow"/>
+    <specjvm name="startup.compress"/>
+    <specjvm name="startup.crypto.aes"/>
+    <specjvm name="startup.crypto.rsa"/>
+    <specjvm name="startup.crypto.signverify"/>
+    <specjvm name="startup.mpegaudio"/>
+    <specjvm name="startup.scimark.fft"/>
+    <specjvm name="startup.scimark.lu"/>
+    <specjvm name="startup.scimark.monte_carlo"/>
+    <specjvm name="startup.scimark.sor"/>
+    <specjvm name="startup.scimark.sparse"/>
+    <specjvm name="startup.serial"/>
+    <specjvm name="startup.sunflow"/>
+    <specjvm name="startup.xml.transform"/>
+    <specjvm name="startup.xml.validation"/>
+    <specjvm name="compiler.compiler"/>
+    <specjvm name="compiler.sunflow"/>
+    <specjvm name="compress"/>
+    <specjvm name="crypto.aes"/>
+    <specjvm name="crypto.rsa"/>
+    <specjvm name="crypto.signverify"/>
+    <specjvm name="derby"/>
+    <specjvm name="mpegaudio"/>
+    <specjvm name="scimark.fft.large"/>
+    <specjvm name="scimark.lu.large"/>
+    <specjvm name="scimark.sor.large"/>
+    <specjvm name="scimark.sparse.large"/>
+    <specjvm name="scimark.fft.small"/>
+    <specjvm name="scimark.lu.small"/>
+    <specjvm name="scimark.sor.small"/>
+    <specjvm name="scimark.sparse.small"/>
+    <specjvm name="scimark.monte_carlo"/>
+    <specjvm name="serial"/>
+    <specjvm name="sunflow"/>
+    <specjvm name="xml.transform"/>
+    <specjvm name="xml.validation"/>
+
+    <finishResults/>
+  </target>
+
+</project>

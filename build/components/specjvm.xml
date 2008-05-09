@@ -1,0 +1,62 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="specjvm" default="build" basedir=".">
+
+  <import file="base.xml"/>
+
+  <property name="specjvm.version" value="1_00"/>
+  <property name="specjvm.description" value="SPEC jvm 2008 Benchmark Suite"/>
+
+  <property name="specjvm.dir" location="${components.dir}/SPECjvm2008/${specjvm.version}"/>
+
+  <property name="specjvm.setup-jar" value="SPECjvm2008_${specjvm.version}_setup.jar"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *          Downloading and installing SPEC jvm 2008 Benchmarks             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-specjvm-properties" depends="prepare-ant-tasks">
+    <condition property="specjvm.from-web" value="true">
+      <or>
+        <not>
+          <available file="${specjvm.dir}/SPECjvm2008.jar"/>
+        </not>
+        <isset property="specjvm.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-specjvm-properties" if="specjvm.from-web">
+    <mkdir dir="${specjvm.dir}"/>
+    <cachedGet key="${specjvm.setup-jar}"
+         src="ftp://spec.it.miami.edu/dist/osg/java/${specjvm.setup-jar}"
+         dest="${specjvm.dir}/${specjvm.setup-jar}"/>
+    <java jar="${specjvm.dir}/${specjvm.setup-jar}" fork="true">
+      <arg value="-DUSER_INSTALL_DIR=${specjvm.dir}"/>
+      <arg value="-i"/>
+      <arg value="silent"/>
+    </java>
+    <writeComponentConstants dir="${specjvm.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="specjvm.dir" value="${specjvm.dir}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="specjvm" dir="${specjvm.dir}"/>
+  </target>
+
+</project>
