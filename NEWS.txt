@@ -5,11 +5,94 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-* Jikes RVM 2.9.3  (or 3.0...TBD) (Future)
+*Jikes RVM 2.9.3 Release Notes (May 9, 2008)
 
-NOTE:  All future release notes will be generated directly from JIRA.
-If you want something mentioned in the release notes, make sure there is
-a JIRA item for it that has been marked as fixed for 2.9.3.
+** Sub-task
+    * [RVM-224] - Push OSR-specific fields in VM_NormalMethod to subclass/side data structure
+    * [RVM-450] - Prevent compilation at max opt level before some dynamic call graph information has been gathered
+    * [RVM-453] - Testing framework missing failures in basic tests that use diff for sanity.
+
+** Bug
+    * [RVM-196] - VM_Processor not assignable with VM_GreenScheduler
+    * [RVM-314] - Support for Java 1.4 assertions
+    * [RVM-315] - java.lang.Method.invoke changes the parameters
+    * [RVM-316] - A Null pointer for the UTF8CHARSET in java.util.zip.ZipFile$PartialInputStream
+    * [RVM-326] - Failing basic tests don't signal failure
+    * [RVM-330] - Thread.sleep() does not handle interrupts correctly
+    * [RVM-339] - Image bloat (code +25% & data +5%)
+    * [RVM-340] - Annotations don't handle arrays of primitive types correctly
+    * [RVM-342] - NPE with advice files
+    * [RVM-347] - PPC 64 regressions and Intel stress regressions since the introduction of read barriers
+    * [RVM-351] - Javac regression
+    * [RVM-352] - Running many iterations of _200_check fails floating point remainder test
+    * [RVM-353] - Production Opt 0 builds broken
+    * [RVM-355] - Complete SPEC JVM with 20 iterations dies in GC
+    * [RVM-357] - Fatal error when synchronising on null objects
+    * [RVM-365] - PPC (AIX) Stack Scanning Appears Broken
+    * [RVM-368] - Compiler confusion over equal but non-identical objects
+    * [RVM-374] - Static field allocation is non-deterministic
+    * [RVM-380] - We create a lot (15909) optimization plan atomic elements using 572724bytes in the boot image
+    * [RVM-383] - Branch likely and unlikely prefixes show up as LOCK prefixes in x86 disassembler output
+    * [RVM-394] - Tune inlining of arraycopy
+    * [RVM-412] - Latent branch optimization bug when maximizing blocks
+    * [RVM-424] - Multianewarray confusion in opt compiler
+    * [RVM-439] - OSR triggering code misuses suspend/resume
+    * [RVM-447] - Inline size estimation reduction factor calculation over rates precise information causing bloat and slow down
+    * [RVM-452] - Off-by-one error in "VMField.checkReadAccess" and "VM.checkWriteAccess"
+    * [RVM-456] - Clean build broken
+    * [RVM-464] - Opt compiler ldc_w for class literal broken
+    * [RVM-466] - Four tests in test run "tiny" fail when compiled with -X:aos:initial_compiler=opt -X:aos:enable_recompilation=false
+    * [RVM-467] - BURS performing illegal reordering to before PEI
+    * [RVM-468] - Instanceof test differs in opt compiler from baseline for instanceof/checkcast of magic[][]
+    * [RVM-478] - Redesign AIX native method Linkage conventions to protect CMID field from being smashed by native code saved CR
+
+** Improvement
+    * [RVM-81] - Annotations in java.lang classes
+    * [RVM-195] - Enable inlining of @Pure methods
+    * [RVM-274] - Remove OPT_ prefix from all opt compiler classes
+    * [RVM-276] - opt compiler package structure
+    * [RVM-304] - Improve performance of chacter encoder when encoding to and from arrays
+    * [RVM-305] - Add final annotations to java.io.OutputStreamWriter
+    * [RVM-308] - Greater use of StringBuilder rather than StringBuffer
+    * [RVM-309] - Greater use of "<Number>.valueOf" rather than "new <Number>"
+    * [RVM-310] - Class library fields that could be final aren't final
+    * [RVM-311] - String toUpperCase and toLowerCase perform a String.equals to see if the Locale is Turkey per invocation
+    * [RVM-322] - Intel assembler register naming improvement required
+    * [RVM-331] - Implement support for MMX registers
+    * [RVM-343] - Support for hardware SQRT instruction
+    * [RVM-344] - Simplifier rule for square root operator
+    * [RVM-378] - Avoid replicating field and method vectors
+    * [RVM-379] - Don't replicate OSR_EncodedOSRMaps
+    * [RVM-381] - Upgrade to Classpath 0.97
+    * [RVM-385] - Refactor reflection to use VM interface
+    * [RVM-387] - Baseline compiler emits RegDisp instructions when the Disp is 0
+    * [RVM-390] - VM_Statics/JTOC space saving has cost us single iteration fop performance
+    * [RVM-391] - Assign CPU # to each VM_Processor to have more predictable performance results. 
+    * [RVM-392] - Improvements to ZipEntry
+    * [RVM-395] - Local common sub-expression elimination of Pure method calls
+    * [RVM-408] - Simple elimination of stack traces
+    * [RVM-417] - Switch performance runs to using a profiled image
+    * [RVM-421] - Pre-allocate 1 set of exception registers for athrow
+    * [RVM-422] - Update to latest Classpath j.u.c.CopyOnWriteArrayList
+    * [RVM-431] - Fix processor JNI entry/collector rendezvous race
+    * [RVM-433] - Increase final fields in java.nio
+    * [RVM-435] - Don't allocate memory when converting C buffers to Strings or Classes
+    * [RVM-437] - Integer.toString doesn't keep cache of common values
+    * [RVM-451] - Structure of code in GNU Classpath java.util.Vector and java.util.Arraylist interacts poorly with inlining
+
+** New Feature
+    * [RVM-210] - Add Image sizes tracking to Regression report and mailout
+    * [RVM-319] - Create X10 test harness
+    * [RVM-406] - Add Immix garbage collector
+    * [RVM-441] - Sticky mark bits collector
+    * [RVM-457] - Immix Garbage Collectors
+
+** Task
+    * [RVM-425] - Implement 2d array helper for PPC baseline
+
+
+** Wish
+    * [RVM-266] - Provide preliminary support for a non-copying unsynchronised StringBuffer implementation
 
 
 *Jikes RVM 2.9.2 Release Notes (October 20, 2007)
