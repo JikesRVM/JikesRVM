@@ -69,12 +69,14 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    * Prevents this class from being instantiated, except by the
    * create method in this class.
    */
-  private Class() {}
+  private Class(VM_Type type) {
+    this.type = type;
+  }
 
   /**
    * This field holds the VM_Type object for this class.
    */
-  VM_Type type;
+  final VM_Type type;
 
   /**
    * This field holds the protection domain of this class.
@@ -650,8 +652,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    * Create a java.lang.Class corresponding to a given VM_Type
    */
   static <T> Class<T> create(VM_Type type) {
-    Class<T> c = new Class<T>();
-    c.type = type;
+    Class<T> c = new Class<T>(type);
     return c;
   }
 
