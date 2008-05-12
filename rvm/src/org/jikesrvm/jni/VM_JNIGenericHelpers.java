@@ -208,20 +208,14 @@ public abstract class VM_JNIGenericHelpers {
   }
 
   /**
-   *  A JNI helper function, to set the value pointed to by a C pointer
+   * A JNI helper function, to set the value pointed to by a C pointer
    * of type (jboolean *).
    * @param boolPtr Native pointer to a jboolean variable to be set.   May be
    *            the NULL pointer, in which case we do nothing.
    * @param val Value to set it to (usually TRUE)
    *
-   * XXX There was a strange bug where calling this would crash the VM.
-   * That's why it's ifdef'd.  So the dozen-odd places in VM_JNIFunctions
-   * where I would use it instead have this code inlined, guarded with an
-   * #if.  --Steve Augart
    */
-
   static void setBoolStar(Address boolPtr, boolean val) {
-    // VM.sysWriteln("Someone called setBoolStar");
     if (boolPtr.isZero()) {
       return;
     }
