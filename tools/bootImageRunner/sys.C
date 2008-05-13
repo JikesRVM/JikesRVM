@@ -26,9 +26,6 @@ extern "C" void sysExit(int) __attribute__((noreturn));
 #define BSD_COMP
 #endif
 
-// AIX needs this to get errno right. JTD
-#define _THREAD_SAFE_ERRNO
-
 // Work around AIX headerfile differences: AIX 4.3 vs earlier releases
 //
 #ifdef _AIX43
