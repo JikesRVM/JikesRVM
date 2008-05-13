@@ -681,7 +681,6 @@ public abstract class VM_Scheduler {
     Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
     dumpStack(ip, fp);
-
   }
 
   /**
@@ -703,7 +702,9 @@ public abstract class VM_Scheduler {
     }
 
     VM.sysWriteln();
-    if (!isAddressValidFramePointer(fp)) {
+    if (fp.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+      VM.sysWriteln("-- Empty Stack --");
+    } else if (!isAddressValidFramePointer(fp)) {
       VM.sysWrite("Bogus looking frame pointer: ", fp);
       VM.sysWriteln(" not dumping stack");
     } else {
