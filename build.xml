@@ -1329,7 +1329,10 @@ Check to make sure all required properties are specified. This includes properti
 
     <!-- rdynamic flag used to control the exporting of symbols into an ELF -->
     <condition property="c++.rdynamic" value="" else="-rdynamic">
-      <equals arg1="${target.os}" arg2="OSX"/>
+      <or>
+      	<equals arg1="${target.os}" arg2="OSX"/>
+      	<equals arg1="${target.os}" arg2="AIX" />
+      </or>
     </condition>
 
     <!-- is the real-time library necessary? -->
