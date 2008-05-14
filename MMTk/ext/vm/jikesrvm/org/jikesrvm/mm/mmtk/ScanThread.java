@@ -665,6 +665,8 @@ import org.vmmagic.unboxed.Offset;
         Log.write(codeBase);
         Log.write("     code offset = ");
         Log.writeln(ip.diff(codeBase.toAddress()));
+        Log.write("     line number = ");
+        Log.writeln(compiledMethod.findLineNumberForInstruction(ip.diff(codeBase.toAddress())));
     } else {
       Log.write("   Method is uncompiled - ip = ");
       Log.writeln(ip);
