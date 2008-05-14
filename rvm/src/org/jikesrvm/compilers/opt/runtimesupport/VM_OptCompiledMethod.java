@@ -32,6 +32,7 @@ import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -523,6 +524,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
       }
 
       if (VM.BuildForPowerPC) {
+        /* do icache/dcache dance */
+        VM_Memory.sync(VM_Magic.objectAsAddress(instructions),
+                       instructions.length() << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+
         /* we need synchronization on PPC to handle the weak memory model.
         * before the class loading finish, other processor should get
         * synchronized.
