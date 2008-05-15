@@ -957,7 +957,7 @@ abstract class AssemblerBase extends VM_Assembler
     } else if (isReg(MIR_Branch.getTarget(inst))) {
       emitJMP_Reg(getGPR_Reg(MIR_Branch.getTarget(inst)));
     } else if (isAbs(MIR_Branch.getTarget(inst))) {
-      emitJMP_Abs(getDisp(MIR_Branch.getTarget(inst)));
+      emitJMP_Abs(getDisp(MIR_Branch.getTarget(inst)).toWord().toAddress());
     } else if (isRegDisp(MIR_Branch.getTarget(inst))) {
       emitJMP_RegDisp(getBase(MIR_Branch.getTarget(inst)), getDisp(MIR_Branch.getTarget(inst)));
     } else if (isRegOff(MIR_Branch.getTarget(inst))) {
