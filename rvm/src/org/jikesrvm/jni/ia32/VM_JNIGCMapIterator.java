@@ -41,7 +41,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM
   //
   //  0         + saved FP   + <---- FP for Jave to Native C glue frame
   // -4         | methodID   |
-  // -8         | saved EDI  |  non-volatile GPR (JTOC for baseline callers or ? for opt callers)
+  // -8         | saved EDI  |  non-volatile GPR
   // -C         | saved EBX  |  non-volatile GPR
   // -10        | saved EBP  |  non-volatile GPR
   // -14        | returnAddr |  (for return from OutOfLineMachineCode)
@@ -117,7 +117,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM
     // the JNI transition frame at a fixed negative offset from the callers FP.
     // the save non-volatiles are EBX EBP and EDI.
     //
-    registerLocations.set(JTOC.value(), framePtr.plus(VM_JNICompiler.EDI_SAVE_OFFSET).toWord());
+    registerLocations.set(EDI.value(), framePtr.plus(VM_JNICompiler.EDI_SAVE_OFFSET).toWord());
     registerLocations.set(EBX.value(), framePtr.plus(VM_JNICompiler.EBX_SAVE_OFFSET).toWord());
     registerLocations.set(EBP.value(), framePtr.plus(VM_JNICompiler.EBP_SAVE_OFFSET).toWord());
 

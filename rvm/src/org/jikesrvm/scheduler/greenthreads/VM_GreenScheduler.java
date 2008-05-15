@@ -36,7 +36,6 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
-import org.vmmagic.unboxed.Address;
 
 /**
  * Global variables used to implement virtual machine thread scheduler.
@@ -171,10 +170,6 @@ public final class VM_GreenScheduler extends VM_Scheduler {
         processors.set(i, new VM_GreenProcessor(i));
       } else {
         processors.set(i, p);
-        if (VM.BuildForIA32) {
-          // TODO: the JTOC doesn't move so this field is redundant
-          p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
-        }
       }
     }
 
@@ -228,21 +223,14 @@ public final class VM_GreenScheduler extends VM_Scheduler {
       getProcessor(i).activeThreadStackLimit = target.stackLimit;
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
-        // NOTE: It is critical that we acquire the tocPointer explicitly
-        //       before we start the SysCall sequence. This prevents
-        //       the opt compiler from generating code that passes the AIX
-        //       sys toc instead of the RVM jtoc. --dave
-        Address toc = VM_Magic.getTocPointer();
-        sysCall.sysVirtualProcessorCreate(toc,
-                                          VM_Magic.objectAsAddress(getProcessor(i)),
+        sysCall.sysVirtualProcessorCreate(VM_Magic.objectAsAddress(getProcessor(i)),
                                           target.contextRegisters.ip,
                                           target.contextRegisters.getInnermostFramePointer());
         if (cpuAffinity != NO_CPU_AFFINITY) {
           sysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
         }
       } else if (VM.BuildForIA32) {
-        sysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                          VM_Magic.objectAsAddress(getProcessor(i)),
+        sysCall.sysVirtualProcessorCreate(VM_Magic.objectAsAddress(getProcessor(i)),
                                           target.contextRegisters.ip,
                                           target.contextRegisters.getInnermostFramePointer());
       } else if (VM.VerifyAssertions) {

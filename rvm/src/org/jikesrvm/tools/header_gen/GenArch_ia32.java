@@ -52,8 +52,6 @@ final class GenArch_ia32 extends GenArch {
 
     offset = VM_ArchEntrypoints.framePointerField.getOffset();
     pln("VM_Processor_framePointer_offset = ", offset);
-    offset = VM_ArchEntrypoints.jtocField.getOffset();
-    pln("VM_Processor_jtoc_offset = ", offset);
     offset = VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset();
     pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
 
@@ -61,7 +59,6 @@ final class GenArch_ia32 extends GenArch {
   }
 
   public void emitArchAssemblerDeclarations() {
-    p("#define JTOC %" + VM_BaselineConstants.JTOC + ";\n");
     p("#define PR %" + VM_BaselineConstants.ESI + ";\n");
   }
 }

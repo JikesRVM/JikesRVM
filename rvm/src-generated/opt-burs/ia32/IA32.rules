@@ -1772,15 +1772,6 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Nullary.getResult(P(p)), new RegisterOperand(getESI(), VM_TypeReference.Int)));
 
 #####
-# GET_JTOC
-#####
-r:	GET_JTOC(r)
-15
-EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), \\
-                     MO_BD(Unary.getVal(P(p)), VM_ArchEntrypoints.jtocField.getOffset(), DW, null, null)));
-
-#####
 # BYTE_LOAD
 #####
 r:	BYTE_LOAD(riv, riv)

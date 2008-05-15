@@ -86,7 +86,6 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
 
     sp = sp.minus(VM_SizeConstants.BYTES_IN_ADDRESS);                                 // allow for one local
     contextRegisters.gprs.set(ESP.value(), sp.toWord());
-    contextRegisters.gprs.set(VM_BaselineConstants.JTOC.value(), VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());
     contextRegisters.fp = fp;
     contextRegisters.ip = ip;
   }

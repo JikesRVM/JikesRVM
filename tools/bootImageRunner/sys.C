@@ -1021,7 +1021,7 @@ sysNumProcessors()
 // Returned: virtual processor's o/s handle
 //
 extern "C" VM_Address
-sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Address fp)
+sysVirtualProcessorCreate(VM_Address pr, VM_Address ip, VM_Address fp)
 {
 
     VM_Address    *sysVirtualProcessorArguments;
@@ -1031,11 +1031,10 @@ sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Addr
 
     // create arguments
     //
-    sysVirtualProcessorArguments = new VM_Address[4];
-    sysVirtualProcessorArguments[0] = jtoc;
-    sysVirtualProcessorArguments[1] = pr;
-    sysVirtualProcessorArguments[2] = ip;
-    sysVirtualProcessorArguments[3] = fp;
+    sysVirtualProcessorArguments = new VM_Address[3];
+    sysVirtualProcessorArguments[0] = pr;
+    sysVirtualProcessorArguments[1] = ip;
+    sysVirtualProcessorArguments[2] = fp;
 
     // create attributes
     //
@@ -1068,16 +1067,15 @@ sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Addr
 static void *
 sysVirtualProcessorStartup(void *args)
 {
-    VM_Address jtoc     = ((VM_Address *)args)[0];
-    VM_Address pr       = ((VM_Address *)args)[1];
-    VM_Address ip       = ((VM_Address *)args)[2];
-    VM_Address fp       = ((VM_Address *)args)[3];
+    VM_Address pr       = ((VM_Address *)args)[0];
+    VM_Address ip       = ((VM_Address *)args)[1];
+    VM_Address fp       = ((VM_Address *)args)[2];
 
     if (VERBOSE_PTHREAD)
 #ifndef RVM_FOR_32_ADDR
-        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ip, fp);
+        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, pr, ip, fp);
 #else
-        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ip, fp);
+        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, pr, ip, fp);
 #endif
     // branch to vm code
     //
@@ -1085,10 +1083,10 @@ sysVirtualProcessorStartup(void *args)
     {
         *(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
         VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
-        bootThread(ip, jtoc, pr, sp);
+        bootThread(ip, pr, sp);
     }
 #else
-    bootThread(jtoc, pr, ip, fp);
+    bootThread((int)(VM_Word)getJTOC(), pr, ip, fp);
 #endif
 
     // not reached

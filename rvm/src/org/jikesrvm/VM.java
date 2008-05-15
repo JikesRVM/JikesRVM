@@ -12,7 +12,6 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_CompilerAdvice;
@@ -2268,7 +2267,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     // initialize remaining subsystems needed for compilation
     //
-    VM_OutOfLineMachineCode.init();
     if (writingBootImage) {
       // initialize compiler that builds boot image
       VM_BootImageCompiler.init(bootCompilerArgs);

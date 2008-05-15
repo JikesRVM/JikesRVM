@@ -337,13 +337,6 @@ EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(get387_FPC(P(p)), myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
 
-# Use FLD1/FLDZ to avoid loading from the JTOC
-r:	MATERIALIZE_FP_CONSTANT(GET_JTOC(r))
-is387_FPC(P(p), 26)
-EMIT_INSTRUCTION
-EMIT(MIR_Nullary.create(get387_FPC(P(p)), myFP0())); \
-EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
-
 #####
 # BOOLEAN_CMP_FLOAT
 #####

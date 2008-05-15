@@ -98,11 +98,6 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
   // we don't have registers to burn on IA32, so we indirect
   // through the PR register to get them instead.
   /**
-   * Base pointer of JTOC (VM_Statics.slots)
-   * TODO: the JTOC doesn't move so this field is redundant
-   */
-  public Address jtoc;
-  /**
    * FP for current frame, saved in the prologue of every method
    */
   Address framePointer;
@@ -309,10 +304,6 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
    * this processor.
    */
   protected VM_Processor(int id) {
-    // presave JTOC register contents
-    // (so lintel compiler can us JTOC for scratch)
-    if (VM.BuildForIA32 && VM.runningVM) this.jtoc = VM_Magic.getJTOC();
-
     this.id = id;
     this.lastLockIndex = -1;
     this.vpStatus = IN_JAVA;

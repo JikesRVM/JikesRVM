@@ -101,7 +101,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     }
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM._assert(SAVED_GPRS == 2);
-    registers.gprs.set(JTOC.value(), fp.plus(JTOC_SAVE_OFFSET).loadWord());
+    registers.gprs.set(EDI.value(), fp.plus(EDI_SAVE_OFFSET).loadWord());
     registers.gprs.set(EBX.value(), fp.plus(EBX_SAVE_OFFSET).loadWord());
 
     registers.unwindStackFrame();

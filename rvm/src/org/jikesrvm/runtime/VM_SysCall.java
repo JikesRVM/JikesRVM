@@ -152,14 +152,13 @@ public abstract class VM_SysCall {
 
   /**
    * Create a virtual processor (aka "unix kernel thread", "pthread").
-   * @param jtoc  register values to use for thread startup
    * @param pr
    * @param ip
    * @param fp
    * @return virtual processor's o/s handle
    */
   @SysCallTemplate
-  public abstract int sysVirtualProcessorCreate(Address jtoc, Address pr, Address ip, Address fp);
+  public abstract int sysVirtualProcessorCreate(Address pr, Address ip, Address fp);
 
   /**
    * Bind execution of current virtual processor to specified physical cpu.

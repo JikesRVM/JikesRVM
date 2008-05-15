@@ -18,6 +18,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -95,9 +96,10 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
       // a leaf case; can simply invoke the method directly.
       VM_Method target = targets[middle];
       if (target.isStatic()) { // an error case...
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_ArchEntrypoints.jtocField.getOffset());
+        asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(target.getOffset()));
+      } else {
+        asm.emitJMP_RegDisp(ECX, target.getOffset());
       }
-      asm.emitJMP_RegDisp(ECX, target.getOffset());
     } else {
       Offset disp = VM_ArchEntrypoints.hiddenSignatureIdField.getOffset();
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
@@ -110,9 +112,10 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
       // invoke the method for middle.
       VM_Method target = targets[middle];
       if (target.isStatic()) { // an error case...
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_ArchEntrypoints.jtocField.getOffset());
+        asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(target.getOffset()));
+      } else {
+        asm.emitJMP_RegDisp(ECX, target.getOffset());
       }
-      asm.emitJMP_RegDisp(ECX, target.getOffset());
       // Recurse.
       if (low < middle) {
         insertStubCase(asm, sigIds, targets, bcIndices, low, middle - 1);

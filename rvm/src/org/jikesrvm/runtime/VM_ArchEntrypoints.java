@@ -52,10 +52,6 @@ public interface VM_ArchEntrypoints {
       (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
                                    "fp",
                                    "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field jtocField =
-      (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/scheduler/VM_Processor;",
-                                   "jtoc",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
   VM_Field framePointerField =
       (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/scheduler/VM_Processor;",
                                    "framePointer",

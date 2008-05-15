@@ -137,9 +137,9 @@ pageRoundUp(int size)
  * you can set a breakpoint here with gdb.
  */
 int
-boot (int ip, int jtoc, int pr, int sp)
+boot (int ip, int pr, int sp)
 {
-    return bootThread (ip, jtoc, pr, sp);
+    return bootThread (ip, pr, sp);
 }
 
 #include <disasm.h>
@@ -214,9 +214,9 @@ inRVMAddressSpace(VM_Address addr)
 }
 
 static int
-isVmSignal(unsigned int ip, unsigned int jtoc)
+isVmSignal(unsigned int ip, unsigned int vpAddress)
 {
-    return inRVMAddressSpace(ip) && inRVMAddressSpace(jtoc);
+    return inRVMAddressSpace(ip) && inRVMAddressSpace(vpAddress);
 }
 
 #if 0                           // this isn't needed right now, but may be in
@@ -1190,7 +1190,6 @@ createVM(int UNUSED vmInSeparateThread)
         *(unsigned int *) (pr + VM_Processor_threadId_offset)
             = VM_Scheduler_PRIMORDIAL_THREAD_INDEX
                 << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
-        *(unsigned int *) (pr + VM_Processor_jtoc_offset) = jtoc;
         *(unsigned int *) (pr + VM_Processor_framePointer_offset)
             = (int)sp - 8;
     }
@@ -1201,7 +1200,7 @@ createVM(int UNUSED vmInSeparateThread)
     *--sp = 0; /* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
 
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
-    int rc = boot (ip, jtoc, pr, (int) sp);
+    int rc = boot (ip, pr, (int) sp);
 
     fprintf(SysErrorFile, "%s: createVM(): boot() returned; failed to create a virtual machine.  rc=%d.  Bye.\n", Me, rc);
     return 1;

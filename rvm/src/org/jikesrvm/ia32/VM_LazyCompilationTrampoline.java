@@ -14,8 +14,8 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
@@ -33,10 +33,7 @@ public abstract class VM_LazyCompilationTrampoline implements VM_BaselineConstan
 
   static {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-    // get JTOC into ECX
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_ArchEntrypoints.jtocField.getOffset());
-    // jmp to real lazy mathod invoker
-    asm.emitJMP_RegDisp(ECX, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
+    asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.lazyMethodInvokerMethod.getOffset()));
     instructions = asm.getMachineCodes();
   }
 }

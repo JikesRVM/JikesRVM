@@ -16,6 +16,7 @@ import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -33,7 +34,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 4)
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset()));
   }
 
   static void compilePutfieldBarrier(VM_Assembler asm, GPR reg, int locationMetadata) {
@@ -47,7 +48,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 4);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.putfieldWriteBarrierMethod.getOffset()));
   }
 
   static void compilePutfieldBarrierImm(VM_Assembler asm, Offset fieldOffset, int locationMetadata) {
@@ -61,7 +62,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 4);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.putfieldWriteBarrierMethod.getOffset()));
   }
 
   static void compilePutstaticBarrier(VM_Assembler asm, GPR reg, int locationMetadata) {
@@ -72,7 +73,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, of4);
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.putstaticWriteBarrierMethod.getOffset()));
   }
 
   static void compilePutstaticBarrierImm(VM_Assembler asm, Offset fieldOffset, int locationMetadata) {
@@ -83,14 +84,14 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, of4);
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.putstaticWriteBarrierMethod.getOffset()));
   }
 
   static void compileArrayLoadBarrier(VM_Assembler asm, boolean pushResult) {
     // on entry java stack contains ...|target_array_ref|array_index|
     // SP -> index, SP+4 -> target_ref
     genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayLoadReadBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.arrayLoadReadBarrierMethod.getOffset()));
     if (pushResult) asm.emitPUSH_Reg(T0);
   }
 
@@ -101,7 +102,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getfieldReadBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.getfieldReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -110,7 +111,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getfieldReadBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.getfieldReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -118,7 +119,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getstaticReadBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.getstaticReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -126,7 +127,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.getstaticReadBarrierMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.getstaticReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -145,7 +146,7 @@ class VM_Barriers implements VM_BaselineConstants {
     // on exit: stack is the same
     asm.emitPUSH_RegDisp(SP, Offset.fromIntSignExtend(offset));   // dup
     genParameterRegisterLoad(asm, 1);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.modifyCheckMethod.getOffset());
+    asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.modifyCheckMethod.getOffset()));
   }
 
   /**

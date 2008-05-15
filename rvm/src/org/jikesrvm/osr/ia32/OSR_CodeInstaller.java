@@ -68,15 +68,10 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
 
-      // before restoring caller's JTOC (maybe from opt compiler), we need
-      // to use the true JTOC to get target address
-      // use scratch register S0 to hold the address
-      // ASSUMPTION: JTOC is really a JTOC, it is true for baseline compiler
-//        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-      asm.emitMOV_Reg_RegDisp(S0, JTOC, cm.getOsrJTOCoffset());
+      asm.emitMOV_Reg_Abs(S0, VM_Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
 
-      // restore the caller's JTOC
-      asm.emitMOV_Reg_RegDisp(JTOC, SP, JTOC_SAVE_OFFSET); // this is the caller's JTOC
+      // restore saved EDI
+      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
       // restore saved EBX
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
@@ -110,13 +105,8 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // restore frame pointer
       asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
 
-      // we need a scratch registers here, using scratch register here
-      // get JTOC content into S0 (ECX)
-      asm.emitMOV_Reg_RegDisp(S0, PR, VM_ArchEntrypoints.jtocField.getOffset());
-      // move the address to S0
-      asm.emitMOV_Reg_RegDisp(S0, S0, cm.getOsrJTOCoffset());
       // branch to the newly compiled instructions
-      asm.emitJMP_Reg(S0);
+      asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
     }
 
     if (VM.TraceOnStackReplacement) {

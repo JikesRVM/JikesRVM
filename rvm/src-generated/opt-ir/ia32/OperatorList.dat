@@ -77,14 +77,6 @@ none
 
 
 
-# Acquire the JTOC from the processor object.
-# Make unary operator to simplify CSE.
-GET_JTOC
-Unary
-none
-
-
-
 # Acquire a pointer to the current processor object.
 GET_CURRENT_PROCESSOR
 Nullary

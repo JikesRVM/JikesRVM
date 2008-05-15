@@ -25,7 +25,6 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
 
   // Dedicated registers.
   //
-  VM_RegisterConstants.GPR JTOC = EDI;
   VM_RegisterConstants.GPR SP = ESP;
   VM_RegisterConstants.GPR PR = PROCESSOR_REGISTER;
 
@@ -36,6 +35,7 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
 
   // scratch register
   VM_RegisterConstants.GPR S0 = ECX;
+  VM_RegisterConstants.GPR S1 = EDI;
 
   // Mnemonics corresponding to the above constants.
   // These are some alternate names that can be used in the debugger
@@ -54,8 +54,8 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   // bridge frames save 3 additional GPRs
   int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? XMM_STATE_SIZE : FPU_STATE_SIZE) + 8;
 
-  int SAVED_GPRS = 2; // EDI(JTOC) and EBX are nonvolatile registers used by baseline compiler
-  Offset JTOC_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET);
+  int SAVED_GPRS = 2; // EDI and EBX are nonvolatile registers used by baseline compiler
+  Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET);
   Offset EBX_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).minus(4);
   Offset T0_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET);
   Offset T1_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET).minus(4);

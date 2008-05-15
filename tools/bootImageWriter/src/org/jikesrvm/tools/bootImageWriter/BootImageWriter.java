@@ -51,6 +51,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
+import org.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import org.jikesrvm.jni.*;
 import org.jikesrvm.classloader.*;
 
@@ -1115,6 +1116,9 @@ public class BootImageWriter extends BootImageWriterMessages
                                                           VM_ObjectModel.getOffsetForAlignment(intArrayType));
       bootImage.resetAllocator();
       bootRecord.tocRegister = jtocAddress.plus(intArrayType.getInstanceSize(VM_Statics.middleOfTable));
+
+      // set up some stuff we need for compiling
+      VM_OutOfLineMachineCode.init();
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.

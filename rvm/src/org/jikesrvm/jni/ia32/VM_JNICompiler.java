@@ -30,6 +30,7 @@ import org.jikesrvm.jni.VM_JNIGlobalRefTable;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -48,7 +49,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
   // offsets to saved regs and addresses in java to C glue frames
-  // EDI (JTOC) and EBX are nonvolatile registers in RVM
+  // EDI and EBX are nonvolatile registers in RVM
   //
   private static final int SAVED_GPRS = 4;
   public static final Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
@@ -62,7 +63,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
   // following used in VM_Compiler to compute offset to first local:
   // includes 5 words:
-  //   SAVED_JAVA_FP,  VM_JNIEnvironment, S0 (ECX), EBX, and JTOC (EDI)
+  //   SAVED_JAVA_FP,  VM_JNIEnvironment, S0 (ECX), EBX, and EDI
   public static final int SAVED_GPRS_FOR_JNI = 5;
 
   /*****************************************************************
@@ -141,10 +142,6 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // reload processor register from JNIEnvironment
     VM_ProcessorLocalState.emitLoadProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
-    // reload JTOC from virtual processor
-    // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
-
     // T0 gets PR.statusField
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());
 
@@ -152,7 +149,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip over call to pthread yield
 
     // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
+    asm.emitMOV_Reg_Abs(T0, VM_Magic.getTocPointer().plus(VM_Entrypoints.the_boot_recordField.getOffset()));
     asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
     asm.emitJMP_Imm(retryLabel);                          // retry from beginning
 
@@ -170,9 +167,6 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // pop return values off stack into expected regs before returning to caller
     asm.emitPOP_Reg(T1);
     asm.emitPOP_Reg(T0);
-
-    // return here from VM_OutOfLineMachineCode upon return from native code
-    // PR and RVM JTOC restored, T0,T1 contain return from native call
 
     // If the return type is reference, look up the real value in the JNIref array
 
@@ -195,7 +189,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       globalRef.resolve(asm);
       asm.emitMOV_Reg_Reg(T1, T0);
       asm.emitTEST_Reg_Imm(T1, VM_JNIGlobalRefTable.STRONG_REF_BIT);
-      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.JNIGlobalRefsField.getOffset());
+      asm.emitMOV_Reg_Abs(T1, VM_Magic.getTocPointer().plus(VM_Entrypoints.JNIGlobalRefsField.getOffset()));
       VM_ForwardReference weakGlobalRef = asm.forwardJcc(VM_Assembler.EQ);
 
       // Strong global references
@@ -241,14 +235,12 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // if pending exception, discard the return value and current stack frame
     // then jump to athrow
     asm.emitMOV_Reg_Reg(T0, EBX);
-    asm.emitMOV_Reg_RegDisp(T1,
-                            JTOC,
-                            VM_Entrypoints.athrowMethod.getOffset()); // acquire jump addr before restoring nonvolatiles
+    asm.emitMOV_Reg_Abs(T1, VM_Magic.getTocPointer().plus(VM_Entrypoints.athrowMethod.getOffset())); // acquire jump addr before restoring nonvolatiles
 
-    asm.emitMOV_Reg_Reg(SP, EBP);                     // discard current stack frame
-    asm.emitMOV_Reg_RegDisp(JTOC, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI register
-    asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile EBX register
-    asm.emitMOV_Reg_RegDisp(EBP, SP, EBP_SAVE_OFFSET);    // restore nonvolatile EBP register
+    asm.emitMOV_Reg_Reg(SP, EBP);                        // discard current stack frame
+    asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI register
+    asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);   // restore nonvolatile EBX register
+    asm.emitMOV_Reg_RegDisp(EBP, SP, EBP_SAVE_OFFSET);   // restore nonvolatile EBP register
 
     asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
 
@@ -260,7 +252,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // no exception, proceed to return to caller
     asm.emitMOV_Reg_Reg(SP, EBP);                           // discard current stack frame
 
-    asm.emitMOV_Reg_RegDisp(JTOC, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI register
+    asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI register
     asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile EBX register
     asm.emitMOV_Reg_RegDisp(EBP, SP, EBP_SAVE_OFFSET);    // restore nonvolatile EBP register
 
@@ -304,7 +296,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *  +4   |returnAddr|         |returnAddr|
    *   0   +          +         +saved FP  + <---- FP for glue frame
    *  -4   |          |         |methodID  |
-   *  -8   |          |         |saved EDI |  (EDI == JTOC - for baseline methods)
+   *  -8   |          |         |saved EDI |
    *  -C   |          |         |saved EBX |
    *  -10  |          |         |          |
    *
@@ -322,14 +314,11 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_RegDisp_Imm(SP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET), compiledMethodId);
 
     // save nonvolatile registrs: EDI, EBX, EBP
-    asm.emitMOV_RegDisp_Reg(SP, EDI_SAVE_OFFSET, JTOC);
+    asm.emitMOV_RegDisp_Reg(SP, EDI_SAVE_OFFSET, EDI);
     asm.emitMOV_RegDisp_Reg(SP, EBX_SAVE_OFFSET, EBX);
     asm.emitMOV_RegDisp_Reg(SP, EBP_SAVE_OFFSET, EBP);
 
     asm.emitMOV_Reg_Reg(EBP, SP); // Establish EBP as the framepointer for use in the rest of the glue frame
-
-    // restore JTOC with the value saved in VM_Processor.jtoc for use in prolog
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
   }
 
   /**************************************************************
@@ -469,15 +458,12 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_RegDisp_Reg(EBP, emptyStackOffset, EBX);                  // store as 1st arg
 
     // Insert the JNI arg at the second entry: class or object as a jref index
-    // first reload JTOC,  baseline compiler assumes JTOC register -> jtoc
-    // TODO: DAVE: doesn't it already have the JTOC????
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
     if (method.isStatic()) {
       // For static method, push on arg stack the VM_Class object
       //    jtoc[tibOffset] -> class TIB ptr -> first TIB entry -> class object -> classForType
       Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
       // push java.lang.Class object for klass
-      asm.emitMOV_Reg_RegDisp(EBX, JTOC, klassOffset);
+      asm.emitMOV_Reg_Abs(EBX, VM_Magic.getTocPointer().plus(klassOffset));
     } else {
       // For nonstatic method, "this" pointer should be the first arg in the caller frame,
       // make it the 2nd arg in the glue frame
@@ -675,7 +661,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *
    * <pre>
    * Expect:
-   *  -JTOC, PR registers are valid
+   *  -PR register is valid
    *  -S0 contains a pointer to the VM_Thread.jniEnv
    *  -EBX and T1 are available as scratch registers
    * Perform these steps:
@@ -724,7 +710,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *            |            |           EBP ->  |saved FP    |
    *            |            |                   |methodID    | normal MethodID for JNI function
    *            |            |                   |saved JavaFP| offset to preceeding java frame
-   *            |            |                   |saved edi   | to be used for JTOC
+   *            |            |                   |saved edi   | to be used for nonvolatile
    *            |            |                   |  "   ebx   | to be used for nonvolatile
    *            |            |                   |  "   ecx   | to be used for scrach
    *            |            |                   |  "   esi   | to be used for PR
@@ -757,7 +743,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // save registers that will be used in RVM, to be restored on return to C
     // TODO: I don't think we need to do this: C has no nonvolatile registers on Linux/x86 --dave
     // TODO: DAVE
-    asm.emitPUSH_Reg(JTOC);
+    asm.emitPUSH_Reg(EDI);
     asm.emitPUSH_Reg(EBX);
     asm.emitPUSH_Reg(S0);
     VM_ProcessorLocalState.emitPushProcessor(asm);
@@ -795,17 +781,13 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(EBX, EBP, Offset.fromIntSignExtend(2 * WORDSIZE));   // pick up arg 0 (from callers frame)
     VM_ProcessorLocalState.emitLoadProcessor(asm, EBX, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
-    // reload JTOC from virtual processor
-    // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_ArchEntrypoints.jtocField.getOffset());
-
     // T0 gets PR.statusField
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());
     asm.emitCMP_Reg_Imm(T0, VM_Processor.IN_NATIVE);      // jmp if still IN_NATIVE
     VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip 3 instructions
 
     // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
+    asm.emitMOV_Reg_Abs(T0, VM_Magic.getTocPointer().plus(VM_Entrypoints.the_boot_recordField.getOffset()));  // T0<-bootrecord addr
     asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
     asm.emitJMP_Imm(retryLabel);                          // retry from beginning
 
@@ -823,7 +805,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     // status is now IN_JAVA. GC can not occur while we execute on a processor
     // in this state, so it is safe to access fields of objects.
-    // RVM JTOC and PR registers have been restored and EBX contains a pointer to
+    // RVM PR register has been restored and EBX contains a pointer to
     // the thread's VM_JNIEnvironment.
 
     // done saving, bump SP to reserve room for the local variables
@@ -842,7 +824,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // put framePointer in VP following Jikes RVM conventions.
     VM_ProcessorLocalState.emitMoveRegToField(asm, VM_ArchEntrypoints.framePointerField.getOffset(), EBP);
 
-    // at this point: JTOC and PR have been restored &
+    // at this point: PR has been restored &
     // processor status = IN_JAVA,
     // arguments for the call have been setup, space on the stack for locals
     // has been acquired.
@@ -855,8 +837,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
   public static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {
     // assume RVM PR regs still valid. potentially T1 & T0 contain return
     // values and should not be modified. we use regs saved in prolog and restored
-    // before return to do whatever needs to be done.  does not assume JTOC is valid,
-    // and may use it as scratch reg.
+    // before return to do whatever needs to be done.
 
     // if returning long, switch the order of the hi/lo word in T0 and T1
     if (method.getReturnType().isLongType()) {
@@ -883,9 +864,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, S0, VM_Entrypoints.jniEnvField.getOffset());
 
     // set jniEnv TopJavaFP using value saved in frame in prolog
-    asm.emitMOV_Reg_RegDisp(EDI, EBP, SAVED_JAVA_FP_OFFSET);      // JTOC<-saved TopJavaFP (offset)
+    asm.emitMOV_Reg_RegDisp(EDI, EBP, SAVED_JAVA_FP_OFFSET);      // EDI<-saved TopJavaFP (offset)
     asm.emitADD_Reg_Reg(EDI, EBP);                                // change offset from FP into address
-    asm.emitMOV_RegDisp_Reg(S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), EDI); // jniEnv.TopJavaFP <- JTOC
+    asm.emitMOV_RegDisp_Reg(S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), EDI); // jniEnv.TopJavaFP <- EDI
 
     // in case thread has migrated to different PR, reset saved PRs to current PR
     VM_ProcessorLocalState.emitStoreProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
@@ -899,7 +880,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     VM_ProcessorLocalState.emitPopProcessor(asm);
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(EBX);
-    asm.emitPOP_Reg(JTOC);
+    asm.emitPOP_Reg(EDI);
 
     // NOTE: C expects the framepointer to be restored to EBP, so
     //       the epilogue for the C to Java glue code must follow that
