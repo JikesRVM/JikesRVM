@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Address;
 import org.jikesrvm.ia32.VM_RegisterConstants.MachineRegister;
 
 
@@ -94,7 +95,7 @@ final class VM_Lister {
 
   }
 
-  void RA (int i, String op, Offset d) {
+  void RA (int i, String op, Address d) {
 
   }
 
@@ -114,7 +115,7 @@ final class VM_Lister {
 
   }
 
-  void RAI (int i, String op, Offset d, int n) {
+  void RAI (int i, String op, Address d, int n) {
 
   }
 
@@ -142,7 +143,7 @@ final class VM_Lister {
 
   }
 
-  void RRA (int i, String op, MachineRegister R0, Offset d) {
+  void RRA (int i, String op, MachineRegister R0, Address d) {
 
   }
 
@@ -170,15 +171,15 @@ final class VM_Lister {
 
   }
 
-  void RAR (int i, String op, Offset d, MachineRegister R0) {
+  void RAR (int i, String op, Address d, MachineRegister R0) {
 
   }
 
-  void RARI (int i, String op, Offset d, MachineRegister R0, int imm) {
+  void RARI (int i, String op, Address d, MachineRegister R0, int imm) {
 
   }
 
-  void RARR (int i, String op, Offset d, MachineRegister R1, MachineRegister R2) {
+  void RARR (int i, String op, Address d, MachineRegister R1, MachineRegister R2) {
 
   }
 

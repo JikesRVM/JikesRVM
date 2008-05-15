@@ -407,7 +407,33 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    */
   @Inline
   protected static boolean fits (Offset val, int bits) {
-    Word o = val.toWord().rsha(bits-1);
+    return fits(val.toWord(), bits);
+  }
+
+  /**
+   * Find out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return true if val can be encoded in bits.
+   */
+  @Inline
+  protected static boolean fits (Address val, int bits) {
+    return fits(val.toWord(), bits);
+  }
+
+  /**
+   * Find out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return true if val can be encoded in bits.
+   */
+  @Inline
+  protected static boolean fits (Word val, int bits) {
+    Word o = val.rsha(bits-1);
     return (o.isZero() || o.isMax());
   }
 
@@ -632,7 +658,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param reg2 the other operand or the extended opcode
    */
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  private void emitAbsRegOperands(Offset disp, MachineRegister reg2) {
+  private void emitAbsRegOperands(Address disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2));
     emitImm32(disp);
   }
@@ -674,6 +700,28 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    */
   @Inline(value=Inline.When.AllArgumentsAreConstant)
   private void emitImm32(Offset disp) {
+    emitImm32(disp.toWord());
+  }
+
+  /**
+   * Generate the smallest-byte-first IA32 encoding of 32 bit
+   * immediates into the generated code.
+   *
+   * @param disp the displacement to generate.
+   */
+  @Inline
+  private void emitImm32(Address disp) {
+    emitImm32(disp.toWord());
+  }
+
+  /**
+   * Generate the smallest-byte-first IA32 encoding of 32 bit
+   * immediates into the generated code.
+   *
+   * @param disp the displacement to generate.
+   */
+  @Inline
+  private void emitImm32(Word disp) {
     if (VM.VerifyAssertions) VM._assert(fits(disp,32));
     mi = emitImm32(disp.toInt(), mi);
   }
@@ -1219,7 +1267,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * </PRE>
    */
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Offset disp2) {
+  public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Address disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x40, cond);
@@ -1298,7 +1346,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emitSET_Cond_Abs_Byte(byte cond, Offset disp) {
+  public final void emitSET_Cond_Abs_Byte(byte cond, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x90, cond);
@@ -1343,7 +1391,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emitIMUL2_Reg_Abs(GPR dstReg, Offset disp) {
+  public final void emitIMUL2_Reg_Abs(GPR dstReg, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) 0xAF);
@@ -1502,7 +1550,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emitLEA_Reg_Abs(GPR dstReg, Offset disp) {
+  public final void emitLEA_Reg_Abs(GPR dstReg, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
     emitAbsRegOperands(disp, dstReg);

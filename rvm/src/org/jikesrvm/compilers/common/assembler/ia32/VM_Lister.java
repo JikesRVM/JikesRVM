@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.common.assembler.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.pragma.Pure;
 
 /**
@@ -178,7 +179,7 @@ public final class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public void RA(int i, String op, Offset d) {
+  public void RA(int i, String op, Address d) {
     i = begin(i, op);
     VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE));
@@ -192,7 +193,7 @@ public final class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public void RAI(int i, String op, Offset d, int n) {
+  public void RAI(int i, String op, Address d, int n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
@@ -295,21 +296,21 @@ public final class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public void RRA(int i, String op, MachineRegister R0, Offset d) {
+  public void RRA(int i, String op, MachineRegister R0, Address d) {
     i = begin(i, op);
     VM.sysWrite(right(R0 +" ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public void RAR(int i, String op, Offset d, MachineRegister R0) {
+  public void RAR(int i, String op, Address d, MachineRegister R0) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public void RARI(int i, String op, Offset d, MachineRegister R0, int imm) {
+  public void RARI(int i, String op, Address d, MachineRegister R0, int imm) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
@@ -317,7 +318,7 @@ public final class VM_Lister implements VM_RegisterConstants {
     end(i);
   }
 
-  public void RARR(int i, String op, Offset d, MachineRegister R0, MachineRegister R2) {
+  public void RARR(int i, String op, Address d, MachineRegister R0, MachineRegister R2) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
@@ -408,8 +409,8 @@ public final class VM_Lister implements VM_RegisterConstants {
   }
 
   @Pure
-  static String hex(Offset i) {
-    return (hex((short) (i.toInt() >> 16)) + hex((short) i.toInt()));
+  static String hex(Address i) {
+    return (hex((short) (i.toInt() >> 16)) + hex((short) i.toWord().toInt()));
   }
 
   @Pure

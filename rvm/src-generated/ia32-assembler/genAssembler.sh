@@ -77,7 +77,7 @@ function emitBinaryReg() {
 
   // [dstDisp] ${opStr}= $code srcReg
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Reg${ext}(Offset dstDisp, GPR srcReg) {
+  public final void emit${acronym}_Abs_Reg${ext}(Address dstDisp, GPR srcReg) {
     int miStart = mi; ${prefix}
     setMachineCodes(mi++, (byte) ${rmrCode});
     emitAbsRegOperands(dstDisp, srcReg);
@@ -134,7 +134,7 @@ EOF
 
   // dstReg ${opStr}= $code [srcDisp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Reg_Abs${ext}(GPR dstReg, Offset srcDisp) {
+  public final void emit${acronym}_Reg_Abs${ext}(GPR dstReg, Address srcDisp) {
     int miStart = mi; ${prefix}
     setMachineCodes(mi++, (byte) ${rrmCode});
     emitAbsRegOperands(srcDisp, dstReg);
@@ -311,7 +311,7 @@ EOF
 
   // [dstDisp] ${opStr}= ${code} imm
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Imm${ext}(Offset dstDisp, int imm) {
+  public final void emit${acronym}_Abs_Imm${ext}(Address dstDisp, int imm) {
     int miStart = mi;$prefix
 EOF
   if [ x$imm8Code = xnone ]; then
@@ -490,7 +490,7 @@ function emitBinaryImmByte() {
 
   // [dstDisp] ${opStr}= (byte) imm
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Imm_Byte(Offset dstDisp, int imm) {
+  public final void emit${acronym}_Abs_Imm_Byte(Address dstDisp, int imm) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) ${imm32Code});
     // "register ${immExtOp}" is really part of the opcode
@@ -704,7 +704,7 @@ EOF
 
   // pc = [dstDisp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs(Offset dstDisp) {
+  public final void emit${acronym}_Abs(Address dstDisp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) $rmCode);
     // "register $rmExtCode" is really part of the $acronym opcode
@@ -802,7 +802,7 @@ EOF
 
   // $opStr ${code} [disp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs${ext}(Offset disp) {
+  public final void emit${acronym}_Abs${ext}(Address disp) {
     int miStart = mi;$prefix
     setMachineCodes(mi++, (byte) $rmOpCode);
     // "register $rmOpExt" is really part of the opcode
@@ -910,7 +910,7 @@ cat >> $FILENAME<<EOF
 
   // EAX:EDX = EAX $opStr [disp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Reg_Abs(GPR dstReg, Offset disp) {
+  public final void emit${acronym}_Reg_Abs(GPR dstReg, Address disp) {
       int miStart = mi;
       if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
       setMachineCodes(mi++, (byte) 0xF7);
@@ -975,7 +975,7 @@ cat >> $FILENAME <<EOF
 
   // dstReg := (byte) [disp] ($desc)
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Reg_Abs_Byte(GPR dstReg, Offset disp) {
+  public final void emit${acronym}_Reg_Abs_Byte(GPR dstReg, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) $rm8code);
@@ -1035,7 +1035,7 @@ cat >> $FILENAME <<EOF
 
   // dstReg := (word) [disp] ($desc)
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Reg_Abs_Word(GPR dstReg, Offset disp) {
+  public final void emit${acronym}_Reg_Abs_Word(GPR dstReg, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) $rm16code);
@@ -1146,7 +1146,7 @@ cat >> $FILENAME <<EOF
 
   // $descr of [disp] by imm
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Imm${ext}(Offset disp, int imm) {
+  public final void emit${acronym}_Abs_Imm${ext}(Address disp, int imm) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(fits(imm,8)); ${prefix}
     if (imm == 1) {
@@ -1218,7 +1218,7 @@ cat >> $FILENAME <<EOF
 
   // $descr of [disp] by shiftBy
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Reg${ext}(Offset disp, GPR shiftBy) {
+  public final void emit${acronym}_Abs_Reg${ext}(Address disp, GPR shiftBy) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(shiftBy == ECX); ${prefix}
     setMachineCodes(mi++, (byte) $regOp);
@@ -1334,7 +1334,7 @@ emitShiftDouble() {
 
   // [disp] ${opStr}= shiftBy (with bits from right shifted in)
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Reg_Imm(Offset disp, GPR right, int shiftBy) {
+  public final void emit${acronym}_Abs_Reg_Imm(Address disp, GPR right, int shiftBy) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${immOp});
@@ -1400,7 +1400,7 @@ emitShiftDouble() {
 
   // [disp] ${opStr}= shiftBy (with bits from right shifted in)
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Reg_Reg(Offset disp, GPR right, GPR shiftBy) {
+  public final void emit${acronym}_Abs_Reg_Reg(Address disp, GPR right, GPR shiftBy) {
     if (VM.VerifyAssertions) VM._assert(shiftBy == ECX);
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1471,7 +1471,7 @@ emitStackOp() {
 
   // $op1 [dstDisp], SP $op2 4
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs (Offset disp) {
+  public final void emit${acronym}_Abs (Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) ${memCode});
     emitAbsRegOperands(disp, GPR.getForOpcode(${memExt}));
@@ -1586,7 +1586,7 @@ emitSSE2Op() {
 
   // dstReg ${opStr}= $code [srcDisp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Reg_Abs($toRegType dstReg, Offset srcDisp) {
+  public final void emit${acronym}_Reg_Abs($toRegType dstReg, Address srcDisp) {
     int miStart = mi;$prefix1Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
@@ -1675,7 +1675,7 @@ EOF
 
   // [dstDisp] ${opStr}= $code srcReg
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs_Reg${ext}(Offset dstDisp, $fromRegType srcReg) {
+  public final void emit${acronym}_Abs_Reg${ext}(Address dstDisp, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
@@ -1834,7 +1834,7 @@ emitFloatMemAcc() {
 
   // dstReg ${op}= (${size}) [disp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Reg_Abs${ext}(FPR dstReg, Offset disp) {
+  public final void emit${acronym}_Reg_Abs${ext}(FPR dstReg, Address disp) {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == FP0);
@@ -1963,7 +1963,7 @@ emitFloatMem() {
 
   // top of stack ${op} (${size:-double word}) [disp]
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}${pre}_Abs${ext}(${preArg}Offset disp${postArg}) {
+  public final void emit${acronym}${pre}_Abs${ext}(${preArg}Address disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
     setMachineCodes(mi++, (byte) ${opcode});
@@ -2068,7 +2068,7 @@ cat >> $FILENAME <<EOF
   }
 
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emitMOV_Abs_Imm${ext}(Offset disp, int imm) {
+  public final void emitMOV_Abs_Imm${ext}(Address disp, int imm) {
       int miStart = mi;$prefix
       setMachineCodes(mi++, (byte) $opcode);
       emitAbsRegOperands(disp, GPR.getForOpcode(0x0));
@@ -2135,7 +2135,7 @@ cat >> $FILENAME <<EOF
 
   // ${comment}
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public final void emit${acronym}_Abs (Offset disp) {
+  public final void emit${acronym}_Abs (Address disp) {
     int miStart = mi;$prefix
     setMachineCodes(mi++, (byte) ${opcode});
     emitAbsRegOperands(disp, GPR.getForOpcode(${opExt}));

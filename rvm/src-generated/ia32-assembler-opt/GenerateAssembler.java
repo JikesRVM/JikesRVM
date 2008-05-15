@@ -498,7 +498,7 @@ public class GenerateAssembler {
       emit("getBase(" + op + "), getDisp(" + op + ")");
       break;
     case Absolute:
-      emit("getDisp(" + op + ")");
+      emit("getDisp(" + op + ").toWord().toAddress()");
       break;
     case RegisterOffset:
       emit("getIndex(" + op + "), getScale(" + op + "), getDisp(" + op + ")");
