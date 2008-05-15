@@ -524,15 +524,11 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
       }
 
       if (VM.BuildForPowerPC) {
-        /* do icache/dcache dance */
-        VM_Memory.sync(VM_Magic.objectAsAddress(instructions),
-                       instructions.length() << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
-
-        /* we need synchronization on PPC to handle the weak memory model.
-        * before the class loading finish, other processor should get
-        * synchronized.
-        */
-
+        /* we need synchronization on PPC to handle the weak memory model
+         * and its icache/dcache synchronization requriements.
+         * before the class loading finish, other processor should get
+         * synchronized.
+         */
         boolean DEBUG_CODE_PATCH = false;
 
         // let other processors see changes; although really physical processors
@@ -566,6 +562,13 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
         while (VM_Scheduler.toSyncProcessors > 0) {
           VM_Scheduler.yield();
         }
+
+        // All other processors now will see the patched code in their data cache.
+        // We now need to force everyone's instruction caches to be in synch with their
+        // data caches.  Some of the work of this call is redundant (since we already have
+        // forced the data caches to be in synch), but we need the icbi instructions
+        VM_Memory.sync(VM_Magic.objectAsAddress(instructions),
+                       instructions.length() << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
 
         if (DEBUG_CODE_PATCH) {
           VM.sysWrite("all processors get synchronized!\n");

@@ -206,7 +206,6 @@ public class VM_GreenThread extends VM_Thread {
     // Process request for code-patch memory sync operation
     if (VM.BuildForPowerPC && p.codePatchSyncRequested) {
       p.codePatchSyncRequested = false;
-      // TODO: Is this sufficient? Ask Steve why we don't need to sync icache/dcache. --dave
       // make sure not get stale data
       VM_Magic.isync();
       VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_ArchEntrypoints.toSyncProcessorsField.getOffset(), 1);
