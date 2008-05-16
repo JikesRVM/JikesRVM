@@ -19,6 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;
@@ -126,6 +127,7 @@ public class ScanBootImage implements Constants {
       /* enqueue the specified slot or slots */
       if (VM.VerifyAssertions) VM._assert(isAddressAligned(offset));
       Address slot = imageStart.plus(offset);
+      if (VM.VerifyAssertions) VM._assert(isAddressAligned(slot) && MM_Interface.validRef(slot.loadObjectReference()));
       if (DEBUG) refs++;
       if (!FILTER || slot.loadAddress().GT(mapEnd)) {
         if (DEBUG) roots++;
@@ -135,7 +137,7 @@ public class ScanBootImage implements Constants {
         for (int i = 0; i < runlength; i++) {
           offset = offset.plus(BYTES_IN_ADDRESS);
           slot = imageStart.plus(offset);
-          if (VM.VerifyAssertions) VM._assert(isAddressAligned(slot));
+          if (VM.VerifyAssertions) VM._assert(isAddressAligned(slot) && MM_Interface.validRef(slot.loadObjectReference()));
           if (DEBUG) refs++;
           if (!FILTER || slot.loadAddress().GT(mapEnd)) {
             if (DEBUG) roots++;
