@@ -34,11 +34,11 @@ public class ScanBootImage implements Constants {
 
   private static final int LOG_CHUNK_BYTES = 12;
   private static final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
-  private static final int LONG_MASK = 0x1;
+  private static final int LONGENCODING_MASK = 0x1;
   private static final int RUN_MASK = 0x2;
   private static final int MAX_RUN = (1<<BITS_IN_BYTE)-1;
-  private static final int LONG_OFFSET_BYTES = 4;
-  private static final int GUARD_REGION = LONG_OFFSET_BYTES + 1; /* long offset + run encoding */
+  private static final int LONGENCODING_OFFSET_BYTES = 4;
+  private static final int GUARD_REGION = LONGENCODING_OFFSET_BYTES + 1; /* long offset + run encoding */
 
   /* statistics */
   static int roots = 0;
@@ -110,9 +110,9 @@ public class ScanBootImage implements Constants {
     Address cursor = chunkStart;
     while ((value = (cursor.loadByte() & 0xff)) != 0) {
       /* establish the offset */
-      if ((value & LONG_MASK) != 0) {
-        offset = decodeWord(cursor);
-        cursor = cursor.plus(LONG_OFFSET_BYTES);
+      if ((value & LONGENCODING_MASK) != 0) {
+        offset = decodeLongEncoding(cursor);
+        cursor = cursor.plus(LONGENCODING_OFFSET_BYTES);
       } else {
         offset = offset.plus(value & 0xfc);
         cursor = cursor.plus(1);
@@ -124,6 +124,7 @@ public class ScanBootImage implements Constants {
         cursor = cursor.plus(1);
       }
       /* enqueue the specified slot or slots */
+      if (VM.VerifyAssertions) VM._assert(isAddressAligned(offset));
       Address slot = imageStart.plus(offset);
       if (DEBUG) refs++;
       if (!FILTER || slot.loadAddress().GT(mapEnd)) {
@@ -134,6 +135,7 @@ public class ScanBootImage implements Constants {
         for (int i = 0; i < runlength; i++) {
           offset = offset.plus(BYTES_IN_ADDRESS);
           slot = imageStart.plus(offset);
+          if (VM.VerifyAssertions) VM._assert(isAddressAligned(slot));
           if (DEBUG) refs++;
           if (!FILTER || slot.loadAddress().GT(mapEnd)) {
             if (DEBUG) roots++;
@@ -142,6 +144,26 @@ public class ScanBootImage implements Constants {
         }
       }
     }
+  }
+
+  /**
+   * Return true if the given offset is address-aligned
+   * @param offset the offset to be check
+   * @return true if the offset is address aligned.
+   */
+  @Uninterruptible
+  private static boolean isAddressAligned(Offset offset) {
+    return (offset.toLong()>>LOG_BYTES_IN_ADDRESS)<<LOG_BYTES_IN_ADDRESS == offset.toLong();
+  }
+
+  /**
+   * Return true if the given offset is address-aligned
+   * @param offset the offset to be check
+   * @return true if the offset is address aligned.
+   */
+  @Uninterruptible
+  private static boolean isAddressAligned(Address address) {
+    return (address.toLong()>>LOG_BYTES_IN_ADDRESS)<<LOG_BYTES_IN_ADDRESS == address.toLong();
   }
 
   /****************************************************************************
@@ -199,7 +221,7 @@ public class ScanBootImage implements Constants {
     if ((codeIndex ^ (codeIndex + GUARD_REGION)) >= CHUNK_BYTES) {
       codeIndex = (codeIndex + GUARD_REGION) & ~(CHUNK_BYTES - 1);
       oldIndex = codeIndex;
-      codeIndex = encodeWord(code, codeIndex, offset);
+      codeIndex = encodeLongEncoding(code, codeIndex, offset);
       if (DEBUG) {
         startRefs++;
         Log.write("[chunk: "); Log.write(codeIndex);
@@ -228,7 +250,7 @@ public class ScanBootImage implements Constants {
           if (DEBUG) shortRefs++;
         } else {
           /* else four byte encoding */
-          codeIndex = encodeWord(code, codeIndex, offset);
+          codeIndex = encodeLongEncoding(code, codeIndex, offset);
           if (DEBUG) longRefs++;
         }
       }
@@ -273,8 +295,8 @@ public class ScanBootImage implements Constants {
       return lastOffset + BYTES_IN_WORD;
     } else {
       if (((index & (CHUNK_BYTES - 1)) == 0) ||
-          (((int) code[index] &LONG_MASK) == LONG_MASK)) {
-        return decodeWord(code, index);
+          (((int) code[index] &LONGENCODING_MASK) == LONGENCODING_MASK)) {
+        return decodeLongEncoding(code, index);
       } else {
         return lastOffset + (((int) code[index]) & 0xff);
       }
@@ -290,9 +312,9 @@ public class ScanBootImage implements Constants {
    */
   @Inline
   @Uninterruptible
-  private static Offset decodeWord(Address cursor) {
+  private static Offset decodeLongEncoding(Address cursor) {
     int value;
-    value  = ((int) cursor.loadByte())                                    & 0x000000fc;
+    value  = ((int) cursor.loadByte())                                              & 0x000000fc;
     value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
     value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(2))<<(2*BITS_IN_BYTE)) & 0x00ff0000;
     value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
@@ -310,7 +332,7 @@ public class ScanBootImage implements Constants {
    */
   @Inline
   @Uninterruptible
-  private static int decodeWord(byte[] code, int index) {
+  private static int decodeLongEncoding(byte[] code, int index) {
     int value;
     value  = ((int) code[index])                     & 0x000000fc;
     value |= ((int) code[index+1]<<BITS_IN_BYTE)     & 0x0000ff00;
@@ -328,8 +350,8 @@ public class ScanBootImage implements Constants {
    * @param value The value to be encoded
    * @return The updated index into the code array
    */
-  private static int encodeWord(byte[] code, int index, int value) {
-    code[index++] = (byte) ((value & 0xff) | LONG_MASK);
+  private static int encodeLongEncoding(byte[] code, int index, int value) {
+    code[index++] = (byte) ((value & 0xff) | LONGENCODING_MASK);
     value = value >>> BITS_IN_BYTE;
     code[index++] = (byte) (value & 0xff);
     value = value >>> BITS_IN_BYTE;
