@@ -236,7 +236,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
   private final String[] lockReasons = VM.VerifyAssertions ? new String[100] : null;
 
   public void registerLock(String reason) {
-    VM_Magic.setObjectAtOffset(lockReasons, Offset.fromIntSignExtend(lockCount<<2), reason);
+    VM_Magic.setObjectAtOffset(lockReasons, Offset.fromIntSignExtend(lockCount<<VM.LOG_BITS_IN_ADDRESS), reason);
     lockCount ++;
   }
   public void registerUnlock() {
