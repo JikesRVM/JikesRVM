@@ -84,12 +84,22 @@ import org.vmmagic.unboxed.Word;
  */
 public class VM_Statics implements VM_Constants {
   /**
+   * How many 32bit slots do we want in the JTOC to hold numeric (non-reference) values?
+   */
+  private static final int numNumericSlots =   0x10000; // 64k
+
+  /**
+   * How many reference-sized slots do we want in the JTOC to hold reference values?
+   */
+  private static final int numReferenceSlots = 0x10000; // 64k
+
+  /**
    * Static data values (pointed to by jtoc register).
    * This is currently fixed-size, although at one point the system's plans
    * called for making it dynamically growable.  We could also make it
    * non-contiguous.
    */
-  private static final int[] slots = new int[0x20000]; // 128K = 131072
+  private static final int[] slots = new int[numNumericSlots + (VM.BuildFor64Addr ? 2 : 1) * numReferenceSlots];
 
   /**
    * Object version of the slots used during boot image creation and
@@ -97,14 +107,14 @@ public class VM_Statics implements VM_Constants {
    * of a slot address to its associated object during boot image
    * creation.
    */
-  private static Object[] objectSlots = new Object[0x20000];
+  private static Object[] objectSlots = new Object[slots.length];
 
   /**
-   * The middle of the table, references are slots above this and
+   * The logical middle of the table, references are slots above this and
    * numeric values below this. The JTOC points to the middle of the
    * table.
    */
-  public static final int middleOfTable = slots.length / 2;
+  public static final int middleOfTable = numNumericSlots;
 
   /** Next available numeric slot number */
   private static volatile int nextNumericSlot = middleOfTable - 1;
