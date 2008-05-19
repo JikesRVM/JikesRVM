@@ -167,7 +167,7 @@ public class LocalCSE extends CompilerPhase {
       // instruction kills
       cache.eliminate(inst);
       // Non-pure CALL instructions and synchronizations KILL all memory locations!
-      if (Call.conforms(inst) && !isPureCall(inst)) {
+      if (inst.isNonPureCall()) {
         cache.invalidateAllLoads();
       } else if (isSynchronizing(inst) || inst.isDynamicLinkingPoint()) {
         cache.invalidateAllLoads();
@@ -205,19 +205,6 @@ public class LocalCSE extends CompilerPhase {
   }
 
   /**
-   * Is a given instruction a CSE-able pure call?
-   */
-  private static boolean isPureCall(Instruction inst) {
-    if (Call.conforms(inst)) {
-      MethodOperand methOp = Call.getMethod(inst);
-      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Is a given instruction a CSE-able load?
    */
   public static boolean isLoadInstruction(Instruction s) {
@@ -247,7 +234,7 @@ public class LocalCSE extends CompilerPhase {
       case InstructionFormat.InstanceOf_format:
         return true;
       case InstructionFormat.Call_format:
-        return isPureCall(inst);
+        return inst.isPureCall();
       default:
         return false;
     }
