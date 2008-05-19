@@ -241,7 +241,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // yet.
     // java.security.JikesRVMSupport.turnOffChecks();
     runClassInitializer("java.lang.ThreadGroup");
-    runClassInitializer("java.lang.Thread");
 
     /* We can safely allocate a java.lang.Thread now.  The boot
        thread (running right now, as a VM_Thread) has to become a full-fledged
@@ -293,9 +292,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    if (VM.BuildWithAllClasses) {
-      runClassInitializer("java.util.jar.Attributes$Name");
-    }
 
     if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
@@ -320,6 +316,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
     System.loadLibrary("javaio");
     runClassInitializer("java.lang.Math");
+    runClassInitializer("java.util.TreeMap");
     runClassInitializer("gnu.java.nio.VMChannel");
     runClassInitializer("gnu.java.nio.FileChannelImpl");
 
@@ -351,7 +348,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_BaselineCompiler.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
-    runClassInitializer("java.io.FilePermission");
     runClassInitializer("gnu.java.nio.charset.EncodingHelper");
     runClassInitializer("java.util.logging.Logger");
 
