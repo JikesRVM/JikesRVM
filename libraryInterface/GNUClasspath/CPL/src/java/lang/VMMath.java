@@ -76,7 +76,7 @@ class VMMath {
   }
   @Pure
   public static double sqrt(double a) {
-    if (VM.BuildForPowerPC || (VM.BuildForIA32 && VM.BuildForSSE2)) {
+    if (VM.BuildForHwFsqrt) {
       return VM_Magic.sqrt(a);
     } else {
       return mathMagic(VM_BootRecord.the_boot_record.sysVMMathSqrtIP, a);

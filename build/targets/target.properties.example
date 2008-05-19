@@ -24,14 +24,17 @@ target.bootimage.rmap.address=
 # 64 bit architectures should postfix max mappable address with L or else it will be invalid
 target.max-mappable.address=
 
-# suffix for shared libraries
+# Suffix for shared libraries
 target.dll-ext=
 
-# prefix for shared libraries
+# Prefix for shared libraries
 target.dll-prefix=
 
-# suffix for jni shared libraries (differs from dll suffix on OSX)
+# Suffix for jni shared libraries (differs from dll suffix on OSX)
 target.jni-suffix=
 
 # Set to none, base or full depending on usage of SSE2 instructions on ia32
 target.arch.sse2=
+
+# Hardware support for the floating point square root
+target.arch.hw_fsqrt=true
