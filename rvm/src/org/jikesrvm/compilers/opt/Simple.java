@@ -436,7 +436,7 @@ public final class Simple extends CompilerPhase {
    * Simple conservative dead code elimination.
    * An instruction is eliminated if:
    * <ul>
-   *  <li> 1. it is not a PEI, store or call
+   *  <li> 1. it is not a PEI, store or non-pure call
    *  <li> 2. it DEFs only registers
    *  <li> 3. all registers it DEFS are dead
    * </ul>
@@ -456,7 +456,7 @@ public final class Simple extends CompilerPhase {
       prevInstr = instr.prevInstructionInCodeOrder(); // cache because
       // remove nulls next/prev fields
       // if instr is a PEI, store, branch, or call, then it's not dead ...
-      if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch() || instr.isCall()) {
+      if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch() || instr.isNonPureCall()) {
         continue;
       }
       if (preserveImplicitSSA && (instr.isImplicitLoad() || instr.isAllocation() || instr.operator() == PHI)) {
