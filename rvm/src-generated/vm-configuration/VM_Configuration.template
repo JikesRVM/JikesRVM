@@ -56,9 +56,6 @@ public abstract class VM_Configuration {
    */
   public static final boolean ExplicitlyGuardLowMemory = BuildForAix;
 
-  public static final boolean BuildWithAllClasses = @_RVM_WITH_ALL_CLASSES_@;
-
-
  /** Assertion checking.
       <dl>
       <dt>false</dt>  <dd> no assertion checking at runtime</dd>
