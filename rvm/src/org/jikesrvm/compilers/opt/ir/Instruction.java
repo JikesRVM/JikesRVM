@@ -21,6 +21,7 @@ import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.vmmagic.pragma.Inline;
@@ -860,6 +861,40 @@ public final class Instruction implements VM_Constants, Operators, Constants {
    */
   public boolean isCall() {
     return operator.isCall();
+  }
+
+  /**
+   * Is the instruction a pure call (one kind of interprocedural branch)?
+   *
+   * @return <code>true</code> if the instruction is a call
+   *         or <code>false</code> if it is not.
+   */
+  public boolean isPureCall() {
+    if (operator.isCall()) {
+      MethodOperand methOp = Call.getMethod(this);
+      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Is the instruction a call but not a pure call (one kind of interprocedural branch)?
+   *
+   * @return <code>true</code> if the instruction is a call
+   *         or <code>false</code> if it is not.
+   */
+  public boolean isNonPureCall() {
+    if (operator.isCall()) {
+      MethodOperand methOp = Call.getMethod(this);
+      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
