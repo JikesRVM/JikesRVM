@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.ObjectReference;
 public final class VM_SpecializedScanMethod extends VM_SpecializedMethod implements VM_SizeConstants, VM_JavaHeaderConstants {
 
   /** Use specialized scanning ? */
-  public static final boolean ENABLED = VM.BuildFor32Addr;  // not enabled on 64bit platforms due to suspected bug showing up on ppc64-aix runs.
+  public static final boolean ENABLED = true;
 
   /** This method's signature: the object to be scanned and the trace to use */
   private static final VM_TypeReference[] signature = new VM_TypeReference[] {
