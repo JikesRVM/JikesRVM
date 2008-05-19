@@ -39,6 +39,10 @@ public class VM_Entrypoints {
   public static final VM_Method java_lang_reflect_Method_invokeMethod =
       getMethod(java.lang.reflect.Method.class, "invoke",
           "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+  public static final VM_Method getClassFromStackFrame =
+    getMethod(org.jikesrvm.classloader.VM_Class.class, "getClassFromStackFrame", "(I)Lorg/jikesrvm/classloader/VM_Class;");
+  public static final VM_Method getClassLoaderFromStackFrame =
+    getMethod(org.jikesrvm.classloader.VM_Class.class, "getClassLoaderFromStackFrame", "(I)Ljava/lang/ClassLoader;");
 
   public static final VM_Field magicObjectRemapperField =
       getField(org.jikesrvm.runtime.VM_Magic.class,

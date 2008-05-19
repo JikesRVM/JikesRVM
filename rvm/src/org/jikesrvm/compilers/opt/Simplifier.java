@@ -28,6 +28,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.Constants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
@@ -3177,6 +3178,29 @@ public abstract class Simplifier extends IRTools {
                        new IntConstantOperand(1), // true
                        new ObjectConstantOperand(containingMethod.getDeclaringClass().getClassLoader(), Offset.zero()));
           return DefUseEffect.REDUCED;
+        // Can we remove the need for VM_Class.getClass...FromStackFrame to walk the stack?
+        } else if (method == VM_Entrypoints.getClassLoaderFromStackFrame ||
+                   method == VM_Entrypoints.getClassFromStackFrame) {
+          Operand frameOp = Call.getParam(s, 0);
+          if (frameOp.isIntConstant()) {
+            int frame = frameOp.asIntConstant().value;
+            InlineSequence currentFrame = s.position;
+            while (frame > 0 && currentFrame != null) {
+              currentFrame = currentFrame.caller;
+              frame--;
+            }
+            if (currentFrame != null) {
+              // we found the caller
+              ObjectConstantOperand cop;
+              if (method == VM_Entrypoints.getClassLoaderFromStackFrame) {
+                cop = new ObjectConstantOperand(currentFrame.method.getDeclaringClass().getTypeRef().getClassLoader(), Offset.zero());
+              } else {
+                cop = new ObjectConstantOperand(currentFrame.method.getDeclaringClass(), Offset.zero());
+              }
+              Move.mutate(s, REF_MOVE, Call.getClearResult(s), cop);
+              return DefUseEffect.MOVE_FOLDED;
+            }
+          }
         }
       }
       if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
