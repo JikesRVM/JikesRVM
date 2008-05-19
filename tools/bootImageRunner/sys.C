@@ -884,7 +884,19 @@ sysNanoTime()
 	}
 #else
         Nanoseconds nanoTime;
-        retVal = mach_absolute_time() * timebaseInfo.numer / timebaseInfo.denom;
+	unsigned long long high;
+	unsigned long long low;
+
+	low = mach_absolute_time();
+
+	high = low >> 32;
+	low &= 0xffffffff;
+
+	high *= timebaseInfo.numer;
+	low *= timebaseInfo.numer;
+
+	retVal = (high / timebaseInfo.denom) << 32;
+	retVal += (low + ((high % timebaseInfo.denom) << 32)) / timebaseInfo.denom;
 #endif
     return retVal;
 }
