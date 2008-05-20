@@ -1720,9 +1720,6 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     if (loc != null) {
       loc = (LocationOperand) loc.copy();
     }
-    if (guard != null) {
-      guard = guard.copy();
-    }
     inst = MIR_Load.create(PPC_LWZ, I(defLow), right.copyD2U(), IC(Bits.PPCMaskLower16(value) + 4), loc);
     inst.copyPosition(s);
     EMIT(inst);
