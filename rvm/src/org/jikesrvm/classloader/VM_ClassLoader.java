@@ -118,7 +118,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
         }
         if (disabledAssertionStrings != null) {
           for (String s : disabledAssertionStrings) {
-            if (s.equals(klass.getTypeRef().getName().classNameFromDescriptor().toString()) ||
+            if (s.equals(klass.getTypeRef().getName().classNameFromDescriptor()) ||
                 klass.getPackageName().startsWith(s)) {
               result = false;
               break;
