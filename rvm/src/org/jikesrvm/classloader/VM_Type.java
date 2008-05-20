@@ -570,8 +570,8 @@ public abstract class VM_Type extends VM_AnnotatedElement
         }
       } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
-        // ignore - we expect not to have a concrete version of the code class
-        return null;
+        // fix up class for code array
+        return VM_CodeArray.class;
       } else if (!VM.runningVM) {
         // Give a warning as this is probably a protection issue for
         // the tool and JVM

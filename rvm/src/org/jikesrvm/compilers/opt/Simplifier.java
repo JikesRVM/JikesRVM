@@ -22,6 +22,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
@@ -3106,7 +3107,12 @@ public abstract class Simplifier extends IRTools {
     if (CF_FIELDS) {
       Operand op = GuardedUnary.getVal(s);
       if (op.isObjectConstant()) {
-        int length = Array.getLength(op.asObjectConstant().value);
+        int length = 0;
+        if (op.getType().getArrayElementType().isCodeType()) {
+          length = ((VM_CodeArray)(op.asObjectConstant().value)).length();
+        } else {
+          length = Array.getLength(op.asObjectConstant().value);
+        }
         Move.mutate(s, INT_MOVE, GuardedUnary.getClearResult(s), IC(length));
         return DefUseEffect.MOVE_FOLDED;
       } else if (op.isNullConstant()) {
