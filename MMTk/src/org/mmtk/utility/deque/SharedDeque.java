@@ -251,7 +251,7 @@ public class SharedDeque extends Deque implements Constants {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
-        int ordinal = VM.activePlan.collector().getId();
+        int ordinal = TRACE ? 0 : VM.activePlan.collector().getId();
         setNumConsumersWaiting(numConsumersWaiting + 1);
         while (rtn.isZero()) {
           if (numConsumersWaiting == numConsumers)
