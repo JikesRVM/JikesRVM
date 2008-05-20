@@ -878,7 +878,7 @@ public final class LiveAnalysis extends CompilerPhase {
 
         // use local because we need to get a fresh one anyway.
         handlerBlock.setLiveSet(local);
-        local = new LiveSet();
+        local = null;
       } else {
 
         // clear the local set for the next block

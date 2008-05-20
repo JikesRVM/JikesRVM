@@ -85,7 +85,6 @@ public abstract class CallingConvention extends IRTools
    * Expand the calling convention for a particular call instruction
    */
   private static void callExpand(Instruction call, IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     boolean isSysCall = call.operator() == IA32_SYSCALL;
 
     // 0. Handle the parameters
