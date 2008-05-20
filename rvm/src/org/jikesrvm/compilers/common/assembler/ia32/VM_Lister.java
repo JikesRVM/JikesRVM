@@ -349,20 +349,23 @@ public final class VM_Lister implements VM_RegisterConstants {
   private static String left(String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(0, w);
+    StringBuilder result = new StringBuilder(s);
     for (int i = n; i < w; i++) {
-      s = s + " ";
+      result.append(' ');
     }
-    return s;
+    return result.toString();
   }
 
   @Pure
   private static String right(String s, int w) {
     int n = s.length();
     if (w < n) return s.substring(n - w);
+    StringBuilder result = new StringBuilder();
     for (int i = n; i < w; i++) {
-      s = " " + s;
+      result.append(' ');
     }
-    return s;
+    result.append(s);
+    return result.toString();
   }
 
   private static String decimal(Offset o) {

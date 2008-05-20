@@ -18,6 +18,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -110,27 +111,30 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * replace a character in a string with a string
    */
+  @Pure
   private String replaceCharWithString(String originalString, char targetChar, String replaceString) {
-    String returnString;
     int first = originalString.indexOf(targetChar);
     int next = originalString.indexOf(targetChar, first + 1);
     if (first != -1) {
-      returnString = originalString.substring(0, first) + replaceString;
+      StringBuilder returnString  = new StringBuilder(originalString.substring(0, first));
+      returnString.append(replaceString);
       while (next != -1) {
-        returnString += originalString.substring(first + 1, next) + replaceString;
+        returnString.append(originalString.substring(first + 1, next));
+        returnString.append(replaceString);
         first = next;
         next = originalString.indexOf(targetChar, next + 1);
       }
-      returnString += originalString.substring(first + 1);
+      returnString.append(originalString.substring(first + 1));
+      return returnString.toString();
     } else {
-      returnString = originalString;
+      return originalString;
     }
-    return returnString;
   }
 
   /**
    * Compute the mangled name of the native routine: Java_Class_Method_Sig
    */
+  @Pure
   private String getMangledName(boolean sig) {
     String mangledClassName, mangledMethodName;
     String className = getDeclaringClass().toString();
