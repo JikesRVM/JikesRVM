@@ -50,7 +50,7 @@ final class FieldDatabase extends VM_HashMap<VM_Field, FieldDatabase.FieldDataba
   }
 
   // a data structure holding information about a field
-  final class FieldDatabaseEntry {
+  static final class FieldDatabaseEntry {
     private VM_HashMap<VM_Method, FieldWriterInfo> summaries;
     boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
     VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
@@ -113,7 +113,7 @@ final class FieldDatabase extends VM_HashMap<VM_Field, FieldDatabase.FieldDataba
 
   // a data structure holding information about a particular <method,field>
   // combination, where the method may write the field
-  final class FieldWriterInfo {
+  static final class FieldWriterInfo {
     static final int BOTTOM = 0x1;
     static final int ANALYZED = 0x2;
     int status;

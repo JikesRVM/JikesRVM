@@ -284,9 +284,9 @@ public class VM_ManagedCounterData {
   /**
    * Auxiliary class
    */
-  class Counter {
-    String name;
-    double count;
+  static final class Counter {
+    final String name;
+    final double count;
 
     Counter(String s, double c) {
       name = s;
