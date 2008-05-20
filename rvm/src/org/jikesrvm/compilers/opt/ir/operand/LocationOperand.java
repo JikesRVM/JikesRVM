@@ -90,12 +90,6 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
   int spillOffset = -1;
 
   /**
-   * Reference number.  Set by alias analysis.
-   * Used to distinguish same-type accesses.
-   */
-  int refNumber;
-
-  /**
    * Constructs a new location operand with the given field.
    * @param loc location
    */
