@@ -103,6 +103,17 @@ public class VM_CommandLineArgs {
     public int compareTo(Prefix o) {
       return -value.compareTo(o.value);
     }
+    /** Equals method to be consistent with Comparable */
+    public boolean equals(Object o) {
+      if (o instanceof Prefix) {
+        return value.equals(((Prefix)o).value);
+      }
+      return false;
+    }
+    /** Hashcode to be consistent with Comparable */
+    public int hashCode() {
+      return value.hashCode();
+    }
     /** Command line string representation of the prefix */
     public String toString() {
       return value;

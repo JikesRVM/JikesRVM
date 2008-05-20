@@ -410,8 +410,11 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     }
 
     public boolean equals(Object o) {
-      UseRecord u = (UseRecord) o;
-      return ((u.type.equals(type)) && (u.v1 == v1) && (u.v2 == v2));
+      if (o instanceof UseRecord) {
+        UseRecord u = (UseRecord) o;
+        return ((u.type.equals(type)) && (u.v1 == v1) && (u.v2 == v2));
+      }
+      return false;
     }
 
     public int hashCode() {

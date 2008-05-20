@@ -814,6 +814,12 @@ public class LocalCSE extends CompilerPhase {
         }
       }
     }
+    /**
+     * Unused hashcode method
+     */
+    public int hashCode() {
+      return opr.hashCode();
+    }
 
     /**
      * Does this expression represent the result of a load or store?

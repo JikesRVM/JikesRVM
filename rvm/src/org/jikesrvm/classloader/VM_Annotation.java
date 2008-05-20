@@ -701,6 +701,13 @@ public final class VM_Annotation {
     }
 
     /**
+     * Compute hashCode from meth
+     */
+    public int hashCode() {
+      return meth.hashCode();
+    }
+
+    /**
      * Ordering for sorted annotation members
      */
     public int compareTo(AnnotationMember am) {
