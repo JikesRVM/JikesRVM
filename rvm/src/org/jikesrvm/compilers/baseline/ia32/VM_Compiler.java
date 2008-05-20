@@ -3537,8 +3537,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       srcOffset = srcOffset.minus(WORDSIZE);
       dstOffset = dstOffset.minus(WORDSIZE);
     }
-    int[] fprOffset = SSE2_FULL ? null : new int[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
-    boolean[] is32bit = new boolean[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
+    // to handle floating point parameters in registers
+    int[] fprOffset = SSE2_FULL ? null : new int[NUM_PARAMETER_FPRS];
+    boolean[] is32bit = SSE2_FULL ? null : new boolean[NUM_PARAMETER_FPRS];
     for (VM_TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
@@ -3584,7 +3585,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         if (fpr < NUM_PARAMETER_FPRS) {
           srcOffset = srcOffset.minus(WORDSIZE);
           dstOffset = dstOffset.minus(WORDSIZE);
-          //fprOffset.set(fpr,  dstOffset);
           if (SSE2_FULL) {
             asm.emitMOVLPD_RegDisp_Reg(SP, dstOffset, XMM.lookup(fpr));
           } else {
@@ -3618,10 +3618,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     if (!SSE2_FULL) {
       for (int i = fpr - 1; 0 <= i; i--) { // unload the floating point register stack (backwards)
         if (is32bit[i]) {
-          //asm.emitFSTP_RegDisp_Reg(SP, fprOffset.get(i), FP0);
           asm.emitFSTP_RegDisp_Reg(SP, Offset.fromIntSignExtend(fprOffset[i]), FP0);
         } else {
-          //asm.emitFSTP_RegDisp_Reg_Quad(SP, fprOffset.get(i), FP0);
           asm.emitFSTP_RegDisp_Reg_Quad(SP, Offset.fromIntSignExtend(fprOffset[i]), FP0);
         }
       }
