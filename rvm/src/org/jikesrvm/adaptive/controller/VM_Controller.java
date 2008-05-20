@@ -50,7 +50,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   /**
    * Controller subsystem control options
    */
-  public static VM_AOSOptions options = new VM_AOSOptions();
+  public static final VM_AOSOptions options = new VM_AOSOptions();
 
   /**
    * Deferred command line arguments for the opt compiler
@@ -94,7 +94,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   /**
    * Threads that will organize profile data as directed by the controller
    */
-  public static Vector<VM_Organizer> organizers = new Vector<VM_Organizer>();
+  public static final Vector<VM_Organizer> organizers = new Vector<VM_Organizer>();
 
   /**
    * A blocking priority queue where organizers place events to

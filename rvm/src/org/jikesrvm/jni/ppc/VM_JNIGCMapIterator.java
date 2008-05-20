@@ -65,7 +65,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   // the GC flag at the beginning of this area.
   //
 
-  public static int verbose = 0;
+  public static final int verbose = 0;
 
   // additional instance fields added by this subclass of VM_GCMapIterator
   private AddressArray jniRefs;
