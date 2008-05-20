@@ -44,7 +44,6 @@ import org.vmmagic.unboxed.Offset;
 public class GenerateInterfaceDeclarations {
 
   static PrintStream out;
-  static PrintStream e;
   static final GenArch arch;
 
   static {
