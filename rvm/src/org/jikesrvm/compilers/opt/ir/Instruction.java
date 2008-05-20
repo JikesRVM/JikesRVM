@@ -1913,7 +1913,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
           if ((op1 == null) && (op2 == null)) {
             return true;
           }
-          if (!op1.similar(op2)) {
+          if ((op1 == null) || (op2 == null) || !op1.similar(op2)) {
             return false;
           }
         }
