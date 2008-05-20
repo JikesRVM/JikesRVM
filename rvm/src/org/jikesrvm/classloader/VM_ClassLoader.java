@@ -84,7 +84,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
    * @param arg String of the form ":<packagename>...|:<classname>"
    */
   public static void stashDisableAssertionArg(String arg) {
-    if (arg.equals("") || arg == null) {
+    if (arg == null || arg.equals("")) {
       assertionsEnabled = false;
     } else {
       disabledAssertionStrings = arg.split(":");
