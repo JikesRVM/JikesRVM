@@ -3537,9 +3537,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       srcOffset = srcOffset.minus(WORDSIZE);
       dstOffset = dstOffset.minus(WORDSIZE);
     }
-    //KV: todo: This seems not to work
-    //OffsetArray fprOffset = OffsetArray.create(NUM_PARAMETER_FPRS); // to handle floating point parameters in registers
-    int[] fprOffset = new int[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
+    int[] fprOffset = SSE2_FULL ? null : new int[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     boolean[] is32bit = new boolean[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     for (VM_TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
@@ -3569,7 +3567,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         dstOffset = dstOffset.minus(WORDSIZE);
       } else if (t.isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          //fprOffset.set(fpr, dstOffset);
           if (SSE2_FULL) {
             asm.emitMOVSS_RegDisp_Reg(SP, dstOffset, XMM.lookup(fpr));
           } else {
