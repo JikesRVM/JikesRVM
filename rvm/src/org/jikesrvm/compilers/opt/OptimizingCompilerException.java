@@ -33,7 +33,7 @@ public class OptimizingCompilerException extends RuntimeException {
     /** Support for exception serialization */
     static final long serialVersionUID = -847866659938089530L;
     /** Unboxed type that was attempted to convert to an Object */
-    final VM_TypeReference magicType;
+    transient final VM_TypeReference magicType;
 
     public IllegalUpcast(VM_TypeReference type) {
       super("Illegal upcast from " + type + " to java.lang.Object");
