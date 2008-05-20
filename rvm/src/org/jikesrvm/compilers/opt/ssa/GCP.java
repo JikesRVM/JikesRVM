@@ -182,7 +182,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
       ir.options.SSA = true;
       //VM.sysWrite("< " + ir.method + "\n");
       // register in the IR the SSA properties GCP preserves
-      if (ir != null && !GCP.tooBig(ir) && !ir.hasReachableExceptionHandlers() && ir.actualSSAOptions != null) {
+      if (!GCP.tooBig(ir) && !ir.hasReachableExceptionHandlers() && ir.actualSSAOptions != null) {
         if (ir.IRStage == IR.LIR) {
           ir.actualSSAOptions.setScalarsOnly(true);
           ir.actualSSAOptions.setBackwards(false);
