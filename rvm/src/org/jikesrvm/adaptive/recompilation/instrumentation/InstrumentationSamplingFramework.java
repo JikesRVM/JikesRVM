@@ -323,8 +323,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
                                HashSet<BasicBlock> exceptionHandlerBlocks) {
 
     // Iterate through the basic blocks in the original code
-    for (BasicBlock bb : origToDupMap.keySet()) {
-      BasicBlock dup = origToDupMap.get(bb);
+    for (HashMap.Entry<BasicBlock, BasicBlock> entry : origToDupMap.entrySet()) {
+      BasicBlock bb = entry.getKey();
+      BasicBlock dup = entry.getValue();
 
       if (dup == null) {
         // Getting here means that for some reason the block was not duplicated.

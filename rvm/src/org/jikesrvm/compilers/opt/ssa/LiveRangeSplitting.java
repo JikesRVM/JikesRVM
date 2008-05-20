@@ -254,8 +254,9 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * to split
      */
     private static void transform(IR ir, HashMap<BasicBlockPair, HashSet<Register>> xform) {
-      for (BasicBlockPair bbp : xform.keySet()) {
-        HashSet<Register> toSplit = xform.get(bbp);
+      for (HashMap.Entry<BasicBlockPair, HashSet<Register>> entry : xform.entrySet()) {
+        BasicBlockPair bbp = entry.getKey();
+        HashSet<Register> toSplit = entry.getValue();
 
         // we go ahead and split all edges, instead of just critical ones.
         // we'll clean up the mess later after SSA.
