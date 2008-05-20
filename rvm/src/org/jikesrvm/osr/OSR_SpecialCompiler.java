@@ -83,9 +83,8 @@ public class OSR_SpecialCompiler {
 
     /* generate prologue bytes */
     byte[] prologue = state.generatePrologue();
-    int prosize = prologue.length;
 
-    if (VM.TraceOnStackReplacement) {VM.sysWriteln("prologue length " + prosize);}
+    if (VM.TraceOnStackReplacement) {VM.sysWriteln("prologue length " + prologue.length);}
 
     // the compiler will call setForOsrSpecialization after generating the reference map
     /* set a flag for specialization, compiler will see it, and
@@ -93,7 +92,7 @@ public class OSR_SpecialCompiler {
      */
     method.setForOsrSpecialization(prologue, state.getMaxStackHeight());
 
-    /* for baseline compilation, we donot adjust the exception table and line table
+    /* for baseline compilation, we do not adjust the exception table and line table
     * because the compiler will generate maps after compilation.
     * Any necessary adjustment should be made during the compilation
     */
