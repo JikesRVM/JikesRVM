@@ -171,7 +171,7 @@ public final class VM_CounterArrayManager extends InstrumentedEventCounterManage
     Operand incOperand = InstrumentedCounter.getIncrement(counterInst);
     // Insert increment instruction
     RegisterOperand newValue =
-        ConvertToLowLevelIR.InsertBinary(counterInst,
+        ConvertToLowLevelIR.insertBinary(counterInst,
                                              ir,
                                              DOUBLE_ADD,
                                              VM_TypeReference.Double,

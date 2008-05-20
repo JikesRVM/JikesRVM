@@ -367,7 +367,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                          Offset.fromIntZeroExtend(interfaceIndex << 2),
                          new LocationOperand(VM_TypeReference.Int),
                          TG());
-    RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
+    RegisterOperand bit = insertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
     IfCmp.mutate(s,
                  INT_IFCMP,
                  ir.regpool.makeTempValidation(),
@@ -547,7 +547,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
           LocationOperand loc = new LocationOperand(VM_TypeReference.Short);
           if (LOWER_ARRAY_ACCESS) {
             RegisterOperand lhsDepthOffset =
-                InsertBinary(curBlock.lastInstruction(),
+                insertBinary(curBlock.lastInstruction(),
                              ir,
                              INT_SHL,
                              VM_TypeReference.Int,
@@ -646,7 +646,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                Offset.fromIntZeroExtend(interfaceIndex << 2),
                                new LocationOperand(VM_TypeReference.Int),
                                TG());
-          RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
+          RegisterOperand bit = insertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
           //save to use the cheaper ADDR version of BOOLEAN_CMP
           s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR,
                                            result,
@@ -880,7 +880,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                new LocationOperand(VM_TypeReference.Int),
                                TG());
           RegisterOperand bit =
-              InsertBinary(continueAt, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
+              insertBinary(continueAt, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
           continueAt.insertBefore(IfCmp.create(INT_IFCMP,
                                                oldGuard,
                                                bit,

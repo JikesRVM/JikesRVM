@@ -469,7 +469,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     /******* First basic block */
     RegisterOperand t;
     if (lowLimit != 0) {
-      t = InsertBinary(s, ir, INT_ADD, VM_TypeReference.Int, reg, IC(-lowLimit));
+      t = insertBinary(s, ir, INT_ADD, VM_TypeReference.Int, reg, IC(-lowLimit));
     } else {
       t = reg.copyU2U();
     }
@@ -741,7 +741,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         offset = AC(Address.fromIntZeroExtend(((IntConstantOperand) index).value << logwidth));
       } else {
         if (logwidth != 0) {
-          offset = InsertBinary(s, ir, INT_SHL, VM_TypeReference.Int, index, IC(logwidth));
+          offset = insertBinary(s, ir, INT_SHL, VM_TypeReference.Int, index, IC(logwidth));
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, offset.copy());
         } else {
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, index);
@@ -769,7 +769,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         offset = AC(Address.fromIntZeroExtend(((IntConstantOperand) index).value << logwidth));
       } else {
         if (logwidth != 0) {
-          offset = InsertBinary(s, ir, INT_SHL, VM_TypeReference.Int, index, IC(logwidth));
+          offset = insertBinary(s, ir, INT_SHL, VM_TypeReference.Int, index, IC(logwidth));
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, offset.copy());
         } else {
           offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, index);
@@ -1017,7 +1017,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param o2 the second operand
    * @return the result operand of the inserted instruction
    */
-  public static RegisterOperand InsertBinary(Instruction s, IR ir, Operator operator,
+  public static RegisterOperand insertBinary(Instruction s, IR ir, Operator operator,
                                                  VM_TypeReference type, Operand o1, Operand o2) {
     RegisterOperand t = ir.regpool.makeTemp(type);
     s.insertBefore(Binary.create(operator, t, o1, o2));
