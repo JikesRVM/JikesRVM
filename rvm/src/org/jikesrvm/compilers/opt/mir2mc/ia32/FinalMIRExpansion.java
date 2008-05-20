@@ -399,12 +399,12 @@ public class FinalMIRExpansion extends IRTools {
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
-                         value.index == null && value.index.getRegister() == result.getRegister() &&
+                         value.index != null && value.index.getRegister() == result.getRegister() &&
                          value.scale == 0) {
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
-                         value.index == null && value.index.getRegister() == result.getRegister() &&
+                         value.index != null && value.index.getRegister() == result.getRegister() &&
                          value.disp.isZero()) {
                 // reg1 = lea [reg1 << scale] -> shl reg1, scale
                 MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));
