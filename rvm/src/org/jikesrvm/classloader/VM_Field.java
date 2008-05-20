@@ -97,7 +97,10 @@ public final class VM_Field extends VM_Member {
         annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else {
         // all other attributes are boring...
-        input.skipBytes(attLength);
+        int skippedAmount = input.skipBytes(attLength);
+        if (skippedAmount != attLength) {
+          throw new IOException("Unexpected short skip");
+        }
       }
     }
     return new VM_Field(declaringClass,

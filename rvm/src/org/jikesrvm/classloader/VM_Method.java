@@ -174,7 +174,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
             }
           } else {
             // All other entries in the attribute portion of the code attribute are boring.
-            input.skipBytes(attLength);
+            int skippedAmount = input.skipBytes(attLength);
+            if (skippedAmount != attLength) {
+              throw new IOException("Unexpected short skip");
+            }
           }
         }
       } else if (attName == VM_ClassLoader.exceptionsAttributeName) {

@@ -1515,7 +1515,10 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, typeRef.getClassLoader());
       } else {
-        input.skipBytes(attLength);
+        int skippedAmount = input.skipBytes(attLength);
+        if (skippedAmount != attLength) {
+          throw new IOException("Unexpected short skip");
+        }
       }
     }
 
