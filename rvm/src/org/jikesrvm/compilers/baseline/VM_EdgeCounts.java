@@ -161,6 +161,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
           }
         }
       }
+      in.close();
     } catch (IOException e) {
       e.printStackTrace();
       VM.sysFail("Error parsing input edge counter file" + fn);
