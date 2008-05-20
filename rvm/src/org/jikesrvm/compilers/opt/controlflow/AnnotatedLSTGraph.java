@@ -46,9 +46,9 @@ public class AnnotatedLSTGraph extends LSTGraph {
     if (DEBUG) {
       report("Creating an AnnotatedLSTGraph for " + ir.method);
     }
-    ir.HIRInfo.LoopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.LoopStructureTree);
+    ir.HIRInfo.loopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.loopStructureTree);
     if (DEBUG) {
-      report(ir.HIRInfo.LoopStructureTree.toString());
+      report(ir.HIRInfo.loopStructureTree.toString());
     }
   }
 

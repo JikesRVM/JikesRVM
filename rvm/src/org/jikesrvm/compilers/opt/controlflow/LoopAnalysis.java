@@ -48,7 +48,7 @@ public class LoopAnalysis extends CompilerPhase {
       new DominatorsPhase(false).perform(ir);
       DefUse.computeDU(ir);
       // Build annotated version
-      ir.HIRInfo.LoopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.LoopStructureTree);
+      ir.HIRInfo.loopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.loopStructureTree);
     }
   }
 }

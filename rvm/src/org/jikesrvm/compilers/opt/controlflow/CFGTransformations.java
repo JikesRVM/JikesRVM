@@ -106,7 +106,7 @@ public class CFGTransformations extends CompilerPhase {
    * treat all loops of the ir
    */
   private static boolean turnWhilesIntoUntils(IR ir) {
-    LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) {
       return turnLoopTreeIntoUntils((LSTNode) lstg.firstNode(), ir);
     }
@@ -134,7 +134,7 @@ public class CFGTransformations extends CompilerPhase {
    * treat all loops of the ir
    */
   private static void ensureLandingPads(IR ir) {
-    LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) {
       ensureLandingPads((LSTNode) lstg.firstNode(), ir);
     }

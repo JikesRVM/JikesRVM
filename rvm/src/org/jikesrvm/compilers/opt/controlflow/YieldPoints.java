@@ -88,7 +88,7 @@ public class YieldPoints extends CompilerPhase {
     }
 
     // (3) Insert yieldpoints in loop heads based on the LST.
-    LSTGraph lst = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lst = ir.HIRInfo.loopStructureTree;
     if (lst != null) {
       for (java.util.Enumeration<LSTNode> e = lst.getRoot().getChildren(); e.hasMoreElements();) {
         processLoopNest(e.nextElement());

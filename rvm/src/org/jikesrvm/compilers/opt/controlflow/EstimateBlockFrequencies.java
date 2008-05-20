@@ -112,7 +112,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     }
 
     // Get pre-computed LST from IR.
-    lst = ir.HIRInfo.LoopStructureTree;
+    lst = ir.HIRInfo.loopStructureTree;
 
     // Compute loop multipliers
     if (lst != null) {

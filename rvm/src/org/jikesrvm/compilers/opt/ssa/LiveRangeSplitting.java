@@ -111,7 +111,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       // 1. Compute an up-to-date loop structure tree.
       DominatorsPhase dom = new DominatorsPhase(true);
       dom.perform(ir);
-      LSTGraph lst = ir.HIRInfo.LoopStructureTree;
+      LSTGraph lst = ir.HIRInfo.loopStructureTree;
       if (lst == null) {
         throw new OptimizingCompilerException("null loop structure tree");
       }

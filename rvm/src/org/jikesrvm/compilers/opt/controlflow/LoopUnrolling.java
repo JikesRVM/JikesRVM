@@ -116,7 +116,7 @@ public class LoopUnrolling extends CompilerPhase {
    * unroll the loops in the given IR.
    */
   void unrollLoops(IR ir) {
-    LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
 
     for (int i = 1; lstg != null && i <= 1; ++i) {
       unrollLoopTree((LSTNode) lstg.firstNode(), ir, i);
@@ -848,7 +848,7 @@ public class LoopUnrolling extends CompilerPhase {
       e.next().scratchObject = null;
       e.next().scratch = 0;
     }
-    LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) markHeaders((LSTNode) lstg.firstNode());
   }
 

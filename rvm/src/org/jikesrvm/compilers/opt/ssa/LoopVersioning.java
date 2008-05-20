@@ -372,25 +372,25 @@ public final class LoopVersioning extends CompilerPhase {
       domPhase.perform(ir);
       DefUse.computeDU(ir);
       // Build annotated version
-      ir.HIRInfo.LoopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.LoopStructureTree);
+      ir.HIRInfo.loopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.loopStructureTree);
     }
     if (VERIFY) {
       ir.verify(getName(), true);
     }
 
     // Check loop annotation has been performed
-    if (!(ir.HIRInfo.LoopStructureTree instanceof AnnotatedLSTGraph)) {
+    if (!(ir.HIRInfo.loopStructureTree instanceof AnnotatedLSTGraph)) {
       report("Optimisation of " + ir.getMethod() + " failed as LST wasn't annotated\n");
     } else {
       loopRegisterSet = new HashSet<Register>();
 
       if (DEBUG) {
         VM.sysWriteln(ir.getMethod().toString());
-        VM.sysWriteln(ir.HIRInfo.LoopStructureTree.toString());
+        VM.sysWriteln(ir.HIRInfo.loopStructureTree.toString());
         SSA.printInstructions(ir);
       }
 
-      while (findLoopToOptimise((AnnotatedLSTNode) ir.HIRInfo.LoopStructureTree.getRoot())) {
+      while (findLoopToOptimise((AnnotatedLSTNode) ir.HIRInfo.loopStructureTree.getRoot())) {
         if (DEBUG) {
           VM.sysWriteln("Successful optimisation of " + ir.getMethod());
           SSA.printInstructions(ir);
@@ -409,7 +409,7 @@ public final class LoopVersioning extends CompilerPhase {
 
         if (DEBUG) {
           VM.sysWriteln("after an optimization pass");
-          VM.sysWriteln(ir.HIRInfo.LoopStructureTree.toString());
+          VM.sysWriteln(ir.HIRInfo.loopStructureTree.toString());
           SSA.printInstructions(ir);
           VM.sysWriteln("Finish optimize: " + ir.getMethod().toString());
         }

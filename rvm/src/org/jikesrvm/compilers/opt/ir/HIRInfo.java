@@ -47,7 +47,7 @@ public final class HIRInfo {
   public GlobalValueNumberState uniformlyGeneratedValueNumbers;
 
   /** Place to hang Loop Structure Tree (LST) */
-  public LSTGraph LoopStructureTree;
+  public LSTGraph loopStructureTree;
 
   /** Place to hang results of index propagation analysis */
   public DF_Solution indexPropagationSolution;

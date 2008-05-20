@@ -49,9 +49,9 @@ public class LSTGraph extends SpaceEffGraph {
    */
   public static void perform(IR ir) {
     if (DEBUG) System.out.println("LSTGraph:" + ir.method);
-    ir.HIRInfo.LoopStructureTree = new LSTGraph(ir);
+    ir.HIRInfo.loopStructureTree = new LSTGraph(ir);
     if (DEBUG) {
-      System.out.println(ir.HIRInfo.LoopStructureTree.toString());
+      System.out.println(ir.HIRInfo.loopStructureTree.toString());
     }
   }
 
