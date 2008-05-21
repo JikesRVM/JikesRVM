@@ -866,7 +866,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
   /**
    * Is the instruction a pure call (one kind of interprocedural branch)?
    *
-   * @return <code>true</code> if the instruction is a call
+   * @return <code>true</code> if the instruction is a pure call
    *         or <code>false</code> if it is not.
    */
   public boolean isPureCall() {
@@ -882,17 +882,14 @@ public final class Instruction implements VM_Constants, Operators, Constants {
   /**
    * Is the instruction a call but not a pure call (one kind of interprocedural branch)?
    *
-   * @return <code>true</code> if the instruction is a call
+   * @return <code>true</code> if the instruction is a nonpure call
    *         or <code>false</code> if it is not.
    */
   public boolean isNonPureCall() {
     if (operator.isCall()) {
       MethodOperand methOp = Call.getMethod(this);
-      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
-        return false;
-      } else {
-        return true;
-      }
+      boolean isPure = methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure();
+      return !isPure;
     }
     return false;
   }

@@ -924,7 +924,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * An object to help estimate spill costs
      */
-    private transient final SpillCostEstimator spillCost;
+    private final transient SpillCostEstimator spillCost;
 
     /**
      * Have we spilled anything?
