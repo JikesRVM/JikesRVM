@@ -145,7 +145,6 @@ public final class VM_HashSet<T> implements Iterable<T> {
   private class SetIterator implements Iterator<T> {
     private int bucketIndex = 0;
     private Bucket<T> next = null;
-    private Bucket<T> last = null;
     private int numVisited = 0;
 
     public T next() {
@@ -167,14 +166,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
     }
 
     public void remove() {
-      if (last == null) {
-        throw new IllegalStateException();
-      }
-      VM_HashSet.this.remove(last.key);
-      last = null;
+      throw new UnsupportedOperationException();
     }
   }
 }
-
-
-

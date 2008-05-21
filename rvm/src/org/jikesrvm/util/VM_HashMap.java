@@ -156,7 +156,6 @@ public class VM_HashMap<K, V> {
   private class BucketIterator {
     private int bucketIndex = 0;
     private Bucket<K, V> next = null;
-    private Bucket<K, V> last = null;
     private int numVisited = 0;
 
     public Bucket<K, V> nextBucket() {
@@ -178,11 +177,7 @@ public class VM_HashMap<K, V> {
     }
 
     public void remove() {
-      if (last == null) {
-        throw new IllegalStateException();
-      }
-      VM_HashMap.this.remove(last.key);
-      last = null;
+      throw new UnsupportedOperationException();
     }
   }
 
