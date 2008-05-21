@@ -97,12 +97,12 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue implement
    * Array specifying pids to query to see if the
    * processes they represent have exited.
    */
-  private int[] pidArray;
+  private final int[] pidArray;
 
   /**
    * Array for returning exit status of pids which have exited.
    */
-  private int[] exitStatusArray;
+  private final int[] exitStatusArray;
 
   /**
    * Number of interrupted threads.
