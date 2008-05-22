@@ -26,7 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 
 /**
  * Implements an object that functions as the bootstrap class loader.
@@ -34,7 +34,8 @@ import org.jikesrvm.util.VM_HashMap;
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private final VM_HashMap<String, VM_Type> loaded = new VM_HashMap<String, VM_Type>();
+  private final VM_ImmutableEntryHashMap<String, VM_Type> loaded =
+    new VM_ImmutableEntryHashMap<String, VM_Type>();
 
   private static final boolean DBG = false;
 

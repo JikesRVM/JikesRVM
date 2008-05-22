@@ -12,28 +12,29 @@
  */
 package org.jikesrvm.util;
 
-import org.jikesrvm.util.VM_HashMap.Bucket;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap.Bucket;
 
 /**
- * The same as {@link VM_HashMap} except object identities determine equality
- * not the equals method.
+ * A hash map with entirely immutable buckets. It doesn't correctly support
+ * remove, and its values cannot be mutated by a put with the same key.
  */
-public final class VM_IdentityHashMap<K, V> extends VM_AbstractHashMap<K, V> {
-  @Override
-  boolean same(K k1, K k2) {
-    return k1 == k2;
-  }
+public final class VM_ImmutableEntryIdentityHashMap<K, V> extends VM_AbstractHashMap<K,V> {
 
   @Override
   AbstractBucket<K,V> createNewBucket(K key, V value, AbstractBucket<K, V> next) {
     return new Bucket<K,V>(key, value, next);
   }
 
-  public VM_IdentityHashMap() {
+  public VM_ImmutableEntryIdentityHashMap() {
     super(DEFAULT_SIZE);
   }
 
-  public VM_IdentityHashMap(int size) {
+  public VM_ImmutableEntryIdentityHashMap(int size) {
     super(size);
+  }
+
+  @Override
+  protected boolean same(K k1, K k2) {
+    return k1 == k2;
   }
 }

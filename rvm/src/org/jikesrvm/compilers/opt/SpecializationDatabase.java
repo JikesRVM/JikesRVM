@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt;
 import java.util.Iterator;
 
 import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.jikesrvm.util.VM_HashSet;
 
 /**
@@ -31,6 +31,14 @@ import org.jikesrvm.util.VM_HashSet;
  * are never unloaded and the ClassLoader.compiledMethods[] is never cleaned.
  */
 public final class SpecializationDatabase {
+
+  private static boolean specializationInProgress;
+
+  private static final VM_HashSet<SpecializedMethod> deferredMethods =
+    new VM_HashSet<SpecializedMethod>();
+
+  private static final VM_ImmutableEntryHashMap<VM_Method, MethodSet<VM_Method>> specialVersionsHash =
+      new VM_ImmutableEntryHashMap<VM_Method, MethodSet<VM_Method>>();
 
   /**
    * Drain the queue of methods waiting for specialized code
@@ -57,9 +65,6 @@ public final class SpecializationDatabase {
     }
     specializationInProgress = false;
   }
-
-  private static boolean specializationInProgress;
-  private static final VM_HashSet<SpecializedMethod> deferredMethods = new VM_HashSet<SpecializedMethod>();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod(SpecializedMethod m) {
@@ -103,14 +108,11 @@ public final class SpecializationDatabase {
     deferredMethods.add(spMethod);
   }
 
-  private static VM_HashMap<VM_Method, MethodSet<VM_Method>> specialVersionsHash =
-      new VM_HashMap<VM_Method, MethodSet<VM_Method>>();
-
   /**
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static <T> MethodSet<T> findOrCreateMethodSet(VM_HashMap<T, MethodSet<T>> hash, T key) {
+  private static <T> MethodSet<T> findOrCreateMethodSet(VM_ImmutableEntryHashMap<T, MethodSet<T>> hash, T key) {
     MethodSet<T> result = hash.get(key);
     if (result == null) {
       result = new MethodSet<T>(key);
@@ -128,7 +130,7 @@ public final class SpecializationDatabase {
     /**
      * a set of SpecializedMethod
      */
-    VM_HashSet<SpecializedMethod> methods = new VM_HashSet<SpecializedMethod>();
+    final VM_HashSet<SpecializedMethod> methods = new VM_HashSet<SpecializedMethod>();
 
     MethodSet(T key) {
       this.key = key;
@@ -143,6 +145,3 @@ public final class SpecializationDatabase {
     }
   }
 }
-
-
-

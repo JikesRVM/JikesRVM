@@ -17,7 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -30,8 +30,8 @@ public final class VM_DynamicLibrary {
   /**
    * Currently loaded dynamic libraries.
    */
-  private static final VM_HashMap<String, VM_DynamicLibrary> dynamicLibraries =
-      new VM_HashMap<String, VM_DynamicLibrary>();
+  private static final VM_ImmutableEntryHashMap<String, VM_DynamicLibrary> dynamicLibraries =
+      new VM_ImmutableEntryHashMap<String, VM_DynamicLibrary>();
 
   /**
    * Add symbol for the boot image runner to find symbols within it.

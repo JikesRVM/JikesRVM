@@ -40,6 +40,20 @@ import org.jikesrvm.util.VM_HashSet;
  */
 public final class InvalidationDatabase {
 
+  /**
+   * A mapping from VM_Method to MethodSet: holds the set of methods which
+   * depend on a particular method being "final"
+   */
+  private final VM_HashMap<VM_Method, MethodSet> nonOverriddenHash =
+    new VM_HashMap<VM_Method, MethodSet>();
+
+  /**
+   * A mapping from VM_Class to MethodSet: holds the set of methods which
+   * depend on a particular class being "final"
+   */
+  private final VM_HashMap<VM_Class, MethodSet> noSubclassHash =
+    new VM_HashMap<VM_Class, MethodSet>();
+
   /////////////////////
   // (1) Dependency on a particular VM_Method not being overridden.
   /////////////////////
@@ -126,18 +140,6 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * A mapping from VM_Method to MethodSet: holds the set of methods which
-   * depend on a particular method being "final"
-   */
-  private VM_HashMap<VM_Method, MethodSet> nonOverriddenHash = new VM_HashMap<VM_Method, MethodSet>();
-
-  /**
-   * A mapping from VM_Class to MethodSet: holds the set of methods which
-   * depend on a particular class being "final"
-   */
-  private VM_HashMap<VM_Class, MethodSet> noSubclassHash = new VM_HashMap<VM_Class, MethodSet>();
-
-  /**
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
@@ -158,7 +160,7 @@ public final class InvalidationDatabase {
     /**
      * a set of cmids (Integers)
      */
-    VM_HashSet<Integer> methods = new VM_HashSet<Integer>();
+    final VM_HashSet<Integer> methods = new VM_HashSet<Integer>();
 
     MethodSet(Object key) {
       this.key = key;
@@ -177,6 +179,3 @@ public final class InvalidationDatabase {
     }
   }
 }
-
-
-

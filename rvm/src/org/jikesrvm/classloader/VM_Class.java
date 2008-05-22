@@ -32,7 +32,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.jikesrvm.util.VM_LinkedList;
 import org.jikesrvm.util.VM_Synchronizer;
 import org.vmmagic.pragma.NonMoving;
@@ -193,8 +193,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Map from interfaces of annotations to the classes that implement them
    */
-  private static final VM_HashMap<VM_Class, VM_Class> annotationClasses =
-    new VM_HashMap<VM_Class, VM_Class>();
+  private static final VM_ImmutableEntryHashMap<VM_Class, VM_Class> annotationClasses =
+    new VM_ImmutableEntryHashMap<VM_Class, VM_Class>();
 
   // --- Memory manager support --- //
 

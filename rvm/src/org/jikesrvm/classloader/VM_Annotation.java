@@ -24,7 +24,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -49,8 +49,8 @@ public final class VM_Annotation {
   /**
    * Remembered unique annotations
    */
-  private static final VM_HashMap<VM_Annotation, VM_Annotation>
-    uniqueMap = new VM_HashMap<VM_Annotation, VM_Annotation>();
+  private static final VM_ImmutableEntryHashMap<VM_Annotation, VM_Annotation>
+    uniqueMap = new VM_ImmutableEntryHashMap<VM_Annotation, VM_Annotation>();
 
   /**
    * The concrete annotation represented by this VM_Annotation

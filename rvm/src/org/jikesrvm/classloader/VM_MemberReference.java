@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import org.jikesrvm.VM;
-import org.jikesrvm.util.VM_HashSet;
+import org.jikesrvm.util.VM_ImmutableEntryHashSet;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -36,7 +36,8 @@ public abstract class VM_MemberReference {
   /**
    * Used to canonicalize memberReferences
    */
-  private static final VM_HashSet<VM_MemberReference> dictionary = new VM_HashSet<VM_MemberReference>();
+  private static final VM_ImmutableEntryHashSet<VM_MemberReference> dictionary =
+    new VM_ImmutableEntryHashSet<VM_MemberReference>();
 
   /**
    * Dictionary of all VM_MemberReference instances.

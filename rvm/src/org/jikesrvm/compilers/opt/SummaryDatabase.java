@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 
 /**
  * Class that holds method summary information.
@@ -44,5 +44,6 @@ public class SummaryDatabase {
   }
 
   /** Implementation */
-  private static final VM_HashMap<VM_Method, MethodSummary> hash = new VM_HashMap<VM_Method, MethodSummary>();
+  private static final VM_ImmutableEntryHashMap<VM_Method, MethodSummary> hash =
+    new VM_ImmutableEntryHashMap<VM_Method, MethodSummary>();
 }

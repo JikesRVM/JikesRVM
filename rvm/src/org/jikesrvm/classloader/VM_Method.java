@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
@@ -42,31 +42,31 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * exceptions this method might throw (null --> none)
    */
-  private static final VM_HashMap<VM_Method, VM_TypeReference[]> exceptionTypes =
-    new VM_HashMap<VM_Method, VM_TypeReference[]>();
+  private static final VM_ImmutableEntryHashMap<VM_Method, VM_TypeReference[]> exceptionTypes =
+    new VM_ImmutableEntryHashMap<VM_Method, VM_TypeReference[]>();
   /**
    * Method parameter annotations from the class file that are
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  private static final VM_HashMap<VM_Method, VM_Annotation[][]> parameterAnnotations =
-    new VM_HashMap<VM_Method, VM_Annotation[][]>();
+  private static final VM_ImmutableEntryHashMap<VM_Method, VM_Annotation[][]> parameterAnnotations =
+    new VM_ImmutableEntryHashMap<VM_Method, VM_Annotation[][]>();
   /**
    * A table mapping to values present in the method info tables of annotation
    * types. It represents the default result from an annotation method.
    */
-  private static final VM_HashMap<VM_Method, Object> annotationDefaults =
-    new VM_HashMap<VM_Method, Object>();
+  private static final VM_ImmutableEntryHashMap<VM_Method, Object> annotationDefaults =
+    new VM_ImmutableEntryHashMap<VM_Method, Object>();
   /**
    * The offsets of virtual methods in the jtoc, if it's been placed
    * there by constant propagation.
    */
-  private static final VM_HashMap<VM_Method, Integer> jtocOffsets =
-    new VM_HashMap<VM_Method, Integer>();
+  private static final VM_ImmutableEntryHashMap<VM_Method, Integer> jtocOffsets =
+    new VM_ImmutableEntryHashMap<VM_Method, Integer>();
 
   /** Cache of arrays of declared parameter annotations. */
-  private static final VM_HashMap<VM_Method, Annotation[][]> declaredParameterAnnotations =
-    new VM_HashMap<VM_Method, Annotation[][]>();
+  private static final VM_ImmutableEntryHashMap<VM_Method, Annotation[][]> declaredParameterAnnotations =
+    new VM_ImmutableEntryHashMap<VM_Method, Annotation[][]>();
 
   /**
    * Construct a read method

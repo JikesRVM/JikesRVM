@@ -13,17 +13,16 @@
 package org.jikesrvm.util;
 
 /**
- * Stripped down implementation of HashMap data structure for use
- * by core parts of the JikesRVM runtime. Consider the use of
- * {@link VM_ImmutableEntryHashMap} when the use of the HashMap
- * methods is limited.
+ * A hash map with entirely immutable buckets. It doesn't correctly support
+ * remove, and its values cannot be mutated by a put with the same key - use
+ * with care.
  */
-public final class VM_HashMap<K, V> extends VM_AbstractHashMap<K, V> {
+public final class VM_ImmutableEntryHashMap<K, V> extends VM_AbstractHashMap<K,V> {
 
   static final class Bucket<K, V> extends AbstractBucket<K,V> {
-    private AbstractBucket<K, V> next;
+    private final AbstractBucket<K, V> next;
     private final K key;
-    private V value;
+    private final V value;
 
     Bucket(K k, V v, AbstractBucket<K, V> n) {
       key = k;
@@ -36,8 +35,11 @@ public final class VM_HashMap<K, V> extends VM_AbstractHashMap<K, V> {
     }
 
     AbstractBucket<K, V> setNext(AbstractBucket<K, V> n) {
-      next = n;
-      return this;
+      if (next == n) {
+        return this;
+      } else {
+        return new Bucket<K, V>(key, value, n);
+      }
     }
 
     K getKey() {
@@ -49,7 +51,7 @@ public final class VM_HashMap<K, V> extends VM_AbstractHashMap<K, V> {
     }
 
     void setValue(V v) {
-      value = v;
+      throw new UnsupportedOperationException();
     }
   }
 
@@ -58,11 +60,11 @@ public final class VM_HashMap<K, V> extends VM_AbstractHashMap<K, V> {
     return new Bucket<K,V>(key, value, next);
   }
 
-  public VM_HashMap() {
+  public VM_ImmutableEntryHashMap() {
     super(DEFAULT_SIZE);
   }
 
-  public VM_HashMap(int size) {
+  public VM_ImmutableEntryHashMap(int size) {
     super(size);
   }
 

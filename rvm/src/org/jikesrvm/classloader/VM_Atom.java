@@ -30,7 +30,7 @@ import java.util.WeakHashMap;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -55,7 +55,7 @@ public final class VM_Atom {
   /**
    * Used to canonicalize VM_Atoms: possibly non-canonical VM_Atom => VM_Atom
    */
-  private static final VM_HashMap<VM_Atom, VM_Atom> dictionary = new VM_HashMap<VM_Atom, VM_Atom>();
+  private static final VM_ImmutableEntryHashMap<VM_Atom, VM_Atom> dictionary = new VM_ImmutableEntryHashMap<VM_Atom, VM_Atom>();
 
   /**
    * Dictionary of all VM_Atom instances.

@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
-import org.jikesrvm.util.VM_HashSet;
+import org.jikesrvm.util.VM_ImmutableEntryHashSet;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -27,7 +27,8 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   /**
    * Used to canonicalize VM_InterfaceMethodSignatures
    */
-  private static final VM_HashSet<VM_InterfaceMethodSignature> dictionary = new VM_HashSet<VM_InterfaceMethodSignature>();
+  private static final VM_ImmutableEntryHashSet<VM_InterfaceMethodSignature> dictionary =
+    new VM_ImmutableEntryHashSet<VM_InterfaceMethodSignature>();
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
