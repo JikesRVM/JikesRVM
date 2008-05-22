@@ -10,11 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
-
-import org.mmtk.utility.Log;
-import org.mmtk.utility.statistics.Xml;
-import org.mmtk.vm.VM;
+package org.vmutil.options;
 
 /**
  * The abstract base class for all options. This class also has
@@ -34,19 +30,6 @@ import org.mmtk.vm.VM;
  * the case of any character.
  */
 public abstract class Option {
-  // options registry
-  private static Option head;
-  private static Option tail;
-
-  /**
-   * Initialize the options system so that options can be created.
-   * This also creates the first option that can be used to echo
-   * the setting of options to the console to assist debugging.
-   */
-  static {
-    head = tail = null;
-  }
-
   // Option types
   public static final int BOOLEAN_OPTION = 1;
   public static final int STRING_OPTION = 2;
@@ -64,35 +47,6 @@ public abstract class Option {
   public static final int RAW = 1;
   public static final int XML = 2;
 
-
-  /**
-   * Using the VM determined key, look up the corresponding option,
-   * or return null if an option can not be found.
-   *
-   * @param key The (unique) option key.
-   * @return The option, or null.
-   */
-  public static Option getOption(String key) {
-    Option o = getFirst();
-    while (o != null) {
-      if (o.key.equals(key)) {
-        return o;
-      }
-      o = o.getNext();
-    }
-    return null;
-  }
-
-  /**
-   * Return the first option. This can be used with the getNext method to
-   * iterate through the options.
-   *
-   * @return The first option, or null if no options exist.
-   */
-  public static Option getFirst() {
-    return head;
-  }
-
   // Per option values
   private int type;
   private String name;
@@ -100,25 +54,23 @@ public abstract class Option {
   private String key;
   private Option next;
 
+  protected OptionSet set;
+
   /**
    * Construct a new option. This also calls the VM to map the option's
    * name into a unique option key and links it onto the option list.
    *
+   * @param set The option set this option belongs to.
    * @param type The option type as defined in this class.
    * @param name The unique name of the option.
    * @param description A short description of the option and purpose.
    */
-  protected Option(int type, String name, String description) {
+  protected Option(OptionSet set, int type, String name, String description) {
     this.type = type;
     this.name = name;
     this.description = description;
-    this.key = VM.options.getKey(name);
-    if (tail == null) {
-      tail = head = this;
-    } else {
-      tail.next = this;
-      tail = this;
-    }
+    this.set = set;
+    this.key = set.register(this, name);
   }
 
   /**
@@ -128,6 +80,13 @@ public abstract class Option {
    */
   public String getKey() {
     return this.key;
+  }
+
+  /**
+   * Update the next pointer in the Option chain.
+   */
+  void setNext(Option o) {
+    next = o;
   }
 
   /**
@@ -167,34 +126,6 @@ public abstract class Option {
   }
 
   /**
-   * Log the option value in one of several formats
-   *
-   * @param format Output format (see Option.java for possible values)
-   */
-  void log(int format) {
-    switch (format) {
-      case READABLE:
-        Log.write("Option '");
-        Log.write(getKey());
-        Log.write(" = ");
-        log(RAW);
-        Log.writeln();
-        break;
-      case XML:
-        Xml.openMinorTag("option");
-        Xml.attribute("name",getKey());
-        Xml.openAttribute("value");
-        log(RAW);
-        Xml.closeAttribute();
-        Xml.closeMinorTag();
-        break;
-      case RAW:
-        VM.assertions.fail("Subtypes of Option must implement log(RAW)");
-        break;
-    }
-  }
-
-  /**
    * This is a validation method that can be implemented by leaf option
    * classes to provide additional validation. This should not be implemented
    * at other levels within the heirarchy to avoid confusion. The validate
@@ -209,7 +140,7 @@ public abstract class Option {
    * @param message The error message associated with the failure.
    */
   protected void fail(String message) {
-    VM.options.fail(this, message);
+    set.fail(this, message);
   }
 
   /**
@@ -219,7 +150,7 @@ public abstract class Option {
    * @param message The error message associated with the failure.
    */
   protected void failIf(boolean condition, String message) {
-    if (condition) VM.options.fail(this, message);
+    if (condition) set.fail(this, message);
   }
 
   /**
@@ -229,7 +160,7 @@ public abstract class Option {
    * @param message The message associated with the warning.
    */
   protected void warn(String message) {
-    VM.options.warn(this, message);
+    set.warn(this, message);
   }
 
   /**
@@ -239,7 +170,7 @@ public abstract class Option {
    * @param message The message associated with the warning.
    */
   protected void warnIf(boolean condition, String message) {
-    if (condition) VM.options.warn(this, message);
+    if (condition) set.warn(this, message);
   }
 }
 

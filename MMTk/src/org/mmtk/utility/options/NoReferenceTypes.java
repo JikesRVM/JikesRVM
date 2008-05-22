@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should reference type processing be disabled?
  */
-public final class NoReferenceTypes extends BooleanOption {
+public final class NoReferenceTypes extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public NoReferenceTypes() {
-    super("No Reference Types",
+    super(Options.set, "No Reference Types",
           "Should reference type processing be disabled?",
           false);
   }

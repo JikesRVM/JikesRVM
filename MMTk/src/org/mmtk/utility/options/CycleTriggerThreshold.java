@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Trigger cycle detection if the space available falls below this threshold.
  */
-public final class CycleTriggerThreshold extends PagesOption {
+public final class CycleTriggerThreshold extends org.vmutil.options.PagesOption {
   /**
    * Create the option.
    */
   public CycleTriggerThreshold() {
-    super("Cycle Trigger Threshold",
+    super(Options.set, "Cycle Trigger Threshold",
         "Trigger cycle detection if the space available falls below this threshold",
         512);
   }

@@ -10,11 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
+package org.vmutil.options;
 
-import org.mmtk.utility.Log;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * An option that is a selection of several strings. The mapping
@@ -32,14 +30,14 @@ public class EnumOption extends Option {
   /**
    * Create a new enumeration option.
    *
+   * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param description The purpose of the option.
    * @param values A mapping of int to string for the enum.
    * @param defaultValue The default value of the option.
    */
-  protected EnumOption(String name, String description,
-                       String[] values, int defaultValue) {
-    super(ENUM_OPTION, name, description);
+  protected EnumOption(OptionSet set, String name, String description, String[] values, int defaultValue) {
+    super(set, ENUM_OPTION, name, description);
     this.values = values;
     this.value = this.defaultValue = defaultValue;
   }
@@ -107,17 +105,9 @@ public class EnumOption extends Option {
    * @param value The new value for the option.
    */
   public void setValue(int value) {
-    int oldValue = this.value;
     this.value = value;
-    if (Options.echoOptions.getValue()) {
-      Log.write("Option '");
-      Log.write(this.getKey());
-      Log.write("' set ");
-      Log.write(this.values[oldValue]);
-      Log.write(" -> ");
-      Log.writeln(this.values[value]);
-    }
     validate();
+    set.logChange(this);
   }
 
   /**
@@ -139,22 +129,5 @@ public class EnumOption extends Option {
    */
   public String[] getValues() {
     return this.values;
-  }
-
-  /**
-   * Log the option value in raw format - delegate upwards
-   * for fancier formatting.
-   *
-   * @param format Output format (see Option.java for possible values)
-   */
-  @Override
-  void log(int format) {
-    switch (format) {
-      case RAW:
-        Log.write(values[value]);
-        break;
-      default:
-        super.log(format);
-    }
   }
 }

@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Concurrent trigger percentage
  */
-public class ConcurrentTrigger extends IntOption {
+public class ConcurrentTrigger extends org.vmutil.options.IntOption {
   /**
    * Create the option.
    */
   public ConcurrentTrigger() {
-    super("Concurrent Trigger",
+    super(Options.set, "Concurrent Trigger",
           "Concurrent trigger percentage",
           50);
   }

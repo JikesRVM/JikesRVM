@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should we ignore calls to java.lang.System.gc?
  */
-public final class IgnoreSystemGC extends BooleanOption {
+public final class IgnoreSystemGC extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public IgnoreSystemGC() {
-    super("Ignore System GC",
+    super(Options.set, "Ignore System GC",
           "Should we ignore calls to java.lang.System.gc?",
         false);
   }

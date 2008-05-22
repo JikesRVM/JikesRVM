@@ -10,13 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
+package org.vmutil.options;
 
-import org.mmtk.utility.Log;
-import org.mmtk.utility.Conversions;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * A memory option that stores values as a whole number of pages.
@@ -29,12 +26,13 @@ public class PagesOption extends Option {
   /**
    * Create a new pages option.
    *
+   * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultPages The default value of the option.
    */
-  protected PagesOption(String name, String desc, int defaultPages) {
-    super(PAGES_OPTION, name, desc);
+  protected PagesOption(OptionSet set, String name, String desc, int defaultPages) {
+    super(set, PAGES_OPTION, name, desc);
     this.value = this.defaultValue = defaultPages;
   }
 
@@ -55,7 +53,7 @@ public class PagesOption extends Option {
    */
   @Uninterruptible
   public Extent getBytes() {
-    return Conversions.pagesToBytes(this.value);
+    return set.pagesToBytes(this.value);
   }
 
   /**
@@ -65,7 +63,7 @@ public class PagesOption extends Option {
    */
   @Uninterruptible
   public Extent getDefaultBytes() {
-    return Conversions.pagesToBytes(this.defaultValue);
+    return set.pagesToBytes(this.defaultValue);
   }
 
   /**
@@ -79,44 +77,29 @@ public class PagesOption extends Option {
   }
 
   /**
-   * Update the value of the option, echoing the change if the echoOptions
-   * option is set. A warning is raised if the value is not a whole multiple
-   * of pages, and then the validate method is called to allow subclasses to
-   * perform any additional validation.
+   * Update the value of the option, echoing the change if logChanges is set.
+   * A warning is raised if the value is not a whole multiple of pages, and
+   * then the validate method is called to allow subclasses to perform any
+   * additional validation.
    *
    * @param value The new value for the option.
    */
   public void setBytes(Extent value) {
-    Extent oldValue = getBytes();
-    if (Options.echoOptions.getValue()) {
-      Log.write("Option '");
-      Log.write(this.getKey());
-      Log.write("' set ");
-      Log.write(oldValue);
-      Log.write(" -> ");
-      Log.writeln(value);
-    }
-    int pages = Conversions.bytesToPagesUp(value);
-    warnIf(value.NE(Conversions.pagesToBytes(pages)),
-        "Value rounded up to a whole number of pages");
-    this.value = Conversions.bytesToPagesUp(value);
-    validate();
+    int pages = set.bytesToPages(value);
+    warnIf(value.NE(set.pagesToBytes(pages)), "Value rounded up to a whole number of pages");
+    setPages(pages);
   }
 
   /**
-   * Log the option value in raw format - delegate upwards
-   * for fancier formatting.
+   * Update the value of the option, echoing the change if logChanges is set.
+   * The validate method is called to allow subclasses to perform any additional
+   * validation.
    *
-   * @param format Output format (see Option.java for possible values)
+   * @param value The new value for the option.
    */
-  @Override
-  void log(int format) {
-    switch (format) {
-      case RAW:
-        Log.write(value);
-        break;
-      default:
-        super.log(format);
-    }
+  public void setPages(int pages) {
+    this.value = pages;
+    validate();
+    set.logChange(this);
   }
 }

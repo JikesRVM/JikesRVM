@@ -41,6 +41,7 @@
   <property name="mmtk.java" location="MMTk/src"/>
   <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
+  <property name="options.java" location="common/options/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
 
   <!-- Set the properties for intermediate directory -->
@@ -49,6 +50,7 @@
   <property name="build.profiles" location="${build.dir}/profiles"/>
 
   <property name="build.vmmagic-stub.classes" location="${build.dir}/vmmagic-stub/classes"/>
+  <property name="build.options.classes" location="${build.dir}/options/classes"/>
   <property name="build.mmtk.jar" location="${build.dir}/mmtk/mmtk.jar"/>
   <property name="build.native" location="${build.base}/c"/>
   <property name="build.objs" location="${build.base}/objs"/>
@@ -315,14 +317,25 @@ Check to make sure all required properties are specified. This includes properti
            source="1.5" target="1.5"/>
   </target>
 
+  <target name="compile-options" depends="compile-vmmagic-stub">
+    <mkdir dir="${build.options.classes}"/>
+    <javac srcdir="${options.java}" destdir="${build.options.classes}" debug="true" debugLevel="lines,source"
+           source="1.5" target="1.5">
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+      </classpath>
+    </javac>
+  </target>
+
   <!-- we are compiling mmtk independently to ensure that it can build independent of the rvm -->
-  <target name="compile-mmtk" depends="compile-vmmagic-stub" description="Compile MMTk toolkit.">
+  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source" source="1.5"
            target="1.5">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
+        <pathelement location="${build.options.classes}"/>
       </classpath>
     </javac>
     <jar destfile="${build.mmtk.jar}" basedir="${build.mmtk.classes}"/>
@@ -879,7 +892,7 @@ Check to make sure all required properties are specified. This includes properti
     </if>
   </target>
 
-  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
+  <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
 
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
@@ -906,7 +919,7 @@ Check to make sure all required properties are specified. This includes properti
            source="1.5"
            target="1.5"
            srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-rvm.java}"
-           sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-rvm.java}">
+           sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-rvm.java}">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
       </bootclasspath>
@@ -984,6 +997,7 @@ Check to make sure all required properties are specified. This includes properti
         <include name="org/vmmagic/*"/>
       </fileset>
       <fileset dir="${build.vmmagic.classes}"/>
+      <fileset dir="${build.options.classes}"/>
     </jar>
   </target>
   
@@ -1041,6 +1055,7 @@ Check to make sure all required properties are specified. This includes properti
       <exclude name="org/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
       <include name="**/JikesRVMSupport.class"/>
       <include name="org/mmtk/**/*.class"/>
+      <include name="org/vmutil/**/*.class"/>
       <exclude name="org/jikesrvm/compilers/**/*BootImageCompiler.class"/>
     </fileset>
     <fileset id="primordials.vmmagic" dir="${build.vmmagic.classes}">
@@ -1596,6 +1611,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="rvm/src-generated" includes="**/*.java"/>
       <fileset dir="MMTk" includes="**/*.java"/>
       <fileset dir="common/vmmagic" includes="**/*.java"/>
+      <fileset dir="common/options" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
       <fileset dir="libraryInterface/GNUClasspath/CPL" includes="**/*.java"/>
       <fileset dir="tools" includes="**/*.java"/>

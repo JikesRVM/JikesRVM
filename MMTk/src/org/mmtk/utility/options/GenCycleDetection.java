@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should we use a generational approach to cycle detection?
  */
-public final class GenCycleDetection extends BooleanOption {
+public final class GenCycleDetection extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public GenCycleDetection() {
-    super("Gen Cycle Detection",
+    super(Options.set, "Gen Cycle Detection",
           "Should we use a generational approach to cycle detection?",
           false);
   }

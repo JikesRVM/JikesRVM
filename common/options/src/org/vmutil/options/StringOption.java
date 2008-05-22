@@ -10,29 +10,28 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
+package org.vmutil.options;
 
-import org.mmtk.utility.Log;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * An option that has a simple single precision floating point value.
+ * An option that has a simple string value.
  */
-public class FloatOption extends Option {
+public class StringOption extends Option {
   // values
-  protected float defaultValue;
-  protected float value;
+  private String defaultValue;
+  private String value;
 
   /**
-   * Create a new float option.
+   * Create a new string option.
    *
+   * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultValue The default value of the option.
    */
-  protected FloatOption(String name, String desc, float defaultValue) {
-    super(FLOAT_OPTION, name, desc);
+  protected StringOption(OptionSet set, String name, String desc, String defaultValue) {
+    super(set, STRING_OPTION, name, desc);
     this.value = this.defaultValue = defaultValue;
   }
 
@@ -42,7 +41,7 @@ public class FloatOption extends Option {
    * @return The option value.
    */
   @Uninterruptible
-  public float getValue() {
+  public String getValue() {
     return this.value;
   }
 
@@ -52,7 +51,7 @@ public class FloatOption extends Option {
    * @return The default value.
    */
   @Uninterruptible
-  public float getDefaultValue() {
+  public String getDefaultValue() {
     return this.defaultValue;
   }
 
@@ -63,34 +62,9 @@ public class FloatOption extends Option {
    *
    * @param value The new value for the option.
    */
-  public void setValue(float value) {
-    float oldValue = this.value;
+  public void setValue(String value) {
     this.value = value;
-    if (Options.echoOptions.getValue()) {
-      Log.write("Option '");
-      Log.write(this.getKey());
-      Log.write("' set ");
-      Log.write(oldValue);
-      Log.write(" -> ");
-      Log.writeln(value);
-    }
     validate();
-  }
-
-  /**
-   * Log the option value in raw format - delegate upwards
-   * for fancier formatting.
-   *
-   * @param format Output format (see Option.java for possible values)
-   */
-  @Override
-  void log(int format) {
-    switch (format) {
-      case RAW:
-        Log.write(value);
-        break;
-      default:
-        super.log(format);
-    }
+    set.logChange(this);
   }
 }

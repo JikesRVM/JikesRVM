@@ -16,12 +16,12 @@ import static org.mmtk.policy.immix.ImmixConstants.DEFAULT_LINE_REUSE_RATIO;
 
 /**
  */
-public class LineReuseRatio extends FloatOption {
+public class LineReuseRatio extends org.vmutil.options.FloatOption {
   /**
    * Create the option.
    */
   public LineReuseRatio() {
-    super("Line Reuse Ratio",
+    super(Options.set, "Line Reuse Ratio",
           "Blocks with this fraction marked may be reused for allocation",
           DEFAULT_LINE_REUSE_RATIO);
   }

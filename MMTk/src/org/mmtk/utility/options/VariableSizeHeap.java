@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should we shrink/grow the heap to adjust to application working set?
  */
-public final class VariableSizeHeap extends BooleanOption {
+public final class VariableSizeHeap extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public VariableSizeHeap() {
-    super("Variable Size Heap",
+    super(Options.set, "Variable Size Heap",
         "Should we shrink/grow the heap to adjust to application working set?",
         true);
   }

@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should a major GC be performed when a system GC is triggered?
  */
-public final class FullHeapSystemGC extends BooleanOption {
+public final class FullHeapSystemGC extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public FullHeapSystemGC() {
-    super("Full Heap System GC",
+    super(Options.set, "Full Heap System GC",
           "Should a major GC be performed when a system GC is triggered?",
           false);
   }

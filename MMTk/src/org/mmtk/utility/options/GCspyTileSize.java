@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * GCspy Tile Size.
  */
-public final class GCspyTileSize extends IntOption {
+public final class GCspyTileSize extends org.vmutil.options.IntOption {
   /**
    * Create the option.
    */
   public GCspyTileSize() {
-    super("GCspy Tile Size",
+    super(Options.set, "GCspy Tile Size",
           "GCspy Tile Size",
           131072);
   }

@@ -10,12 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
+package org.vmutil.options;
 
-import org.mmtk.utility.Log;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * An option with a simple integer value.
@@ -28,12 +26,13 @@ public class AddressOption extends Option {
   /**
    * Create a new int option.
    *
+   * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultValue The default value of the option.
    */
-  protected AddressOption(String name, String desc, Address defaultValue) {
-    super(ADDRESS_OPTION, name, desc);
+  protected AddressOption(OptionSet set, String name, String desc, Address defaultValue) {
+    super(set, ADDRESS_OPTION, name, desc);
     this.value = this.defaultValue = defaultValue;
   }
 
@@ -65,33 +64,8 @@ public class AddressOption extends Option {
    * @param value The new value for the option.
    */
   public void setValue(int value) {
-    int oldValue = this.value.toInt();
     this.value = Address.fromIntZeroExtend(value);
-    if (Options.echoOptions.getValue()) {
-      Log.write("Option '");
-      Log.write(this.getKey());
-      Log.write("' set ");
-      Log.write(oldValue);
-      Log.write(" -> ");
-      Log.writeln(value);
-    }
     validate();
-  }
-
-  /**
-   * Log the option value in raw format - delegate upwards
-   * for fancier formatting.
-   *
-   * @param format Output format (see Option.java for possible values)
-   */
-  @Override
-  void log(int format) {
-    switch (format) {
-      case RAW:
-        Log.write(value);
-        break;
-      default:
-        super.log(format);
-    }
+    set.logChange(this);
   }
 }

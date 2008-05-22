@@ -254,7 +254,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public static void printStatsXml() {
     Xml.begin();
-    Options.printOptionsXml();
+    Options.set.logXml();
     VM.config.printConfigXml();
     if (Options.printPhaseStats.getValue())
       printPhasesXml();

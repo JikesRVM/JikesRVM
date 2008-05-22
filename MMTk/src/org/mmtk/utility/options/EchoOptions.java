@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Echo when options are set?
  */
-public final class EchoOptions extends BooleanOption {
+public final class EchoOptions extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public EchoOptions() {
-    super("Echo Options",
+    super(Options.set, "Echo Options",
           "Echo when options are set?",
           false);
   }

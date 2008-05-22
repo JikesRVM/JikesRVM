@@ -10,11 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.options;
+package org.vmutil.options;
 
-import org.mmtk.utility.Log;
-
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A time option that stores values at a microsecond granularity.
@@ -27,12 +25,13 @@ public class MicrosecondsOption extends Option {
   /**
    * Create a new microsecond option.
    *
+   * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultUs The default value of the option (usec).
    */
-  protected MicrosecondsOption(String name, String desc, int defaultUs) {
-    super(MICROSECONDS_OPTION, name, desc);
+  protected MicrosecondsOption(OptionSet set, String name, String desc, int defaultUs) {
+    super(set, MICROSECONDS_OPTION, name, desc);
     this.value = this.defaultValue = defaultUs;
   }
 
@@ -85,34 +84,9 @@ public class MicrosecondsOption extends Option {
    * @param value The new value for the option.
    */
   public void setMicroseconds(int value) {
-    int oldValue = this.value;
-    if (Options.echoOptions.getValue()) {
-      Log.write("Option '");
-      Log.write(this.getKey());
-      Log.write("' set ");
-      Log.write(oldValue);
-      Log.write(" -> ");
-      Log.writeln(value);
-    }
     failIf(value < 0, "Unreasonable " + this.getName() + " value");
     this.value = value;
     validate();
-  }
-
-  /**
-   * Log the option value in raw format - delegate upwards
-   * for fancier formatting.
-   *
-   * @param format Output format (see Option.java for possible values)
-   */
-  @Override
-  void log(int format) {
-    switch (format) {
-      case RAW:
-        Log.write(value);
-        break;
-      default:
-        super.log(format);
-    }
+    set.logChange(this);
   }
 }

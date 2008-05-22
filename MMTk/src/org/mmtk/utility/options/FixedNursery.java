@@ -19,7 +19,7 @@ import org.mmtk.plan.Plan;
  *
  * This option is not intended to be created directly, but via NurserySize.
  */
-public final class FixedNursery extends PagesOption {
+public final class FixedNursery extends org.vmutil.options.PagesOption {
   // values
   BoundedNursery boundedNursery;
 
@@ -27,7 +27,7 @@ public final class FixedNursery extends PagesOption {
    * Create the option
    */
   public FixedNursery(BoundedNursery boundedNursery) {
-    super("Fixed Nursery",
+    super(Options.set, "Fixed Nursery",
         "Fix the minimum and maximum size of the nursery to this value",
         Plan.DEFAULT_MIN_NURSERY);
     this.boundedNursery = boundedNursery;

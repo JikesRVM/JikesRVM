@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should we wrap the entire execution with a harnessBegin/harnessEnd?
  */
-public final class HarnessAll extends BooleanOption {
+public final class HarnessAll extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public HarnessAll() {
-    super("Harness All",
+    super(Options.set, "Harness All",
         "Should we wrap the entire execution inside calls to harnessBegin and harnessEnd?",
         false);
   }

@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should finalization be disabled?
  */
-public final class NoFinalizer extends BooleanOption {
+public final class NoFinalizer extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public NoFinalizer() {
-    super("No Finalizer",
+    super(Options.set, "No Finalizer",
           "Should finalization be disabled?",
           false);
   }

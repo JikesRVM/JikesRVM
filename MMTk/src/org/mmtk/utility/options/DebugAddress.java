@@ -17,12 +17,12 @@ import org.vmmagic.unboxed.Address;
 /**
  * Allow an address to be specified on the command line for use in debugging.
  */
-public final class DebugAddress extends AddressOption {
+public final class DebugAddress extends org.vmutil.options.AddressOption {
   /**
    * Create the option
    */
   public DebugAddress() {
-    super("Debug Address",
+    super(Options.set, "Debug Address",
           "Specify an address at runtime for use in debugging",
         Address.zero());
   }

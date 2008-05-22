@@ -37,7 +37,7 @@ import org.vmmagic.pragma.*;
   protected final Address getAvailableEndConstant() { return MAXIMUM_MAPPABLE; }
   protected final byte getLogBytesInAddressConstant() { return VM_SizeConstants.LOG_BYTES_IN_ADDRESS; }
   protected final byte getLogBytesInWordConstant() { return VM_SizeConstants.LOG_BYTES_IN_WORD; }
-  protected final byte getLogBytesInPageConstant() { return 12; }
+  protected final byte getLogBytesInPageConstant() { return VM_SizeConstants.LOG_BYTES_IN_PAGE; }
   protected final byte getLogMinAlignmentConstant() { return VM_JavaHeader.LOG_MIN_ALIGNMENT;}
   protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; }
   protected final int getAlignmentValueConstant() { return VM_JavaHeader.ALIGNMENT_VALUE;}

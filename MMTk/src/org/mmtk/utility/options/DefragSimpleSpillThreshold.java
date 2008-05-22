@@ -14,12 +14,12 @@ package org.mmtk.utility.options;
 
 import static org.mmtk.policy.immix.ImmixConstants.DEFAULT_SIMPLE_SPILL_THRESHOLD;
 
-public class DefragSimpleSpillThreshold extends FloatOption {
+public class DefragSimpleSpillThreshold extends org.vmutil.options.FloatOption {
   /**
    * Create the option.
    */
   public DefragSimpleSpillThreshold() {
-    super("Defrag Simple Spill Threshold",
+    super(Options.set, "Defrag Simple Spill Threshold",
           "Blocks with this fraction spilled will be defrag sources",
           DEFAULT_SIMPLE_SPILL_THRESHOLD);
   }
