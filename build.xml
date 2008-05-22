@@ -40,7 +40,7 @@
   <property name="main.java" location="rvm/src"/>
   <property name="mmtk.java" location="MMTk/src"/>
   <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
-  <property name="vmmagic-stub.java" location="vmmagic/src"/>
+  <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
 
   <!-- Set the properties for intermediate directory -->
@@ -1595,7 +1595,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="rvm/src-generated" includes="**/*.java"/>
       <fileset dir="MMTk" includes="**/*.java"/>
-      <fileset dir="vmmagic" includes="**/*.java"/>
+      <fileset dir="common/vmmagic" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
       <fileset dir="libraryInterface/GNUClasspath/CPL" includes="**/*.java"/>
       <fileset dir="tools" includes="**/*.java"/>
