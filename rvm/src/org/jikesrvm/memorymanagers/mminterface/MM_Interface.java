@@ -54,6 +54,7 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -1074,9 +1075,10 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     return new VM_CompiledMethod[n];
   }
 
-  /*
- *  Will this object move (allows us to optimize some JNI calls)
- *  */
+  /**
+   *  Will this object move (allows us to optimize some JNI calls)
+   */
+  @Pure
   public static boolean willNeverMove(Object obj) {
     return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
   }
