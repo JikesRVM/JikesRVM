@@ -35,10 +35,9 @@ public final class VM_RecompilationManager {
    */
   public static void recompileAllDynamicallyLoadedMethods(boolean report) {
     int numMethods = VM_CompiledMethods.numCompiledMethods();
-    // To avoid the assertion for unused cmids
-    VM_CompiledMethod[] compiledMethods = VM_CompiledMethods.getCompiledMethods();
     for (int cmid = 1; cmid < numMethods; cmid++) {
-      VM_CompiledMethod cpMeth = compiledMethods[cmid];
+      // To avoid the assertion for unused cmids
+      VM_CompiledMethod cpMeth = VM_CompiledMethods.getCompiledMethodUnchecked(cmid);
       if (cpMeth == null) {
         if (DEBUG) {
           VM.sysWrite("Not recompiling method ID ", cmid, " because it has no compiledMethod\n");

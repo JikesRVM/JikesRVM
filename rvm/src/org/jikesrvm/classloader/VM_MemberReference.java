@@ -40,9 +40,17 @@ public abstract class VM_MemberReference {
     new VM_ImmutableEntryHashSet<VM_MemberReference>();
 
   /**
+   * 2^LOG_ROW_SIZE is the number of elements per row
+   */
+  private static final int LOG_ROW_SIZE = 10;
+  /**
+   * Mask to ascertain row from id number
+   */
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  /**
    * Dictionary of all VM_MemberReference instances.
    */
-  private static VM_MemberReference[] members = new VM_MemberReference[16000];
+  private static VM_MemberReference[][] members = new VM_MemberReference[16][1 << LOG_ROW_SIZE];
 
   /**
    * Used to assign ids.  Id 0 is not used to support usage of member reference id's in JNI.
@@ -90,12 +98,16 @@ public abstract class VM_MemberReference {
     if (val != null) return val;
     nextId++;
     VM_TableBasedDynamicLinker.ensureCapacity(key.id);
-    if (key.id == members.length) {
-      VM_MemberReference[] tmp = new VM_MemberReference[members.length * 2];
-      System.arraycopy(members, 0, tmp, 0, members.length);
+    int column = key.id >> LOG_ROW_SIZE;
+    if (column == members.length) {
+      VM_MemberReference[][] tmp = new VM_MemberReference[column+1][];
+      for (int i=0; i < column; i++) {
+        tmp[i] = members[i];
+      }
       members = tmp;
+      members[column] = new VM_MemberReference[1 << LOG_ROW_SIZE];
     }
-    members[key.id] = key;
+    members[column][key.id & ROW_MASK] = key;
     dictionary.add(key);
     return key;
   }
@@ -151,7 +163,7 @@ public abstract class VM_MemberReference {
 
   @Uninterruptible
   public static VM_MemberReference getMemberRef(int id) {
-    return members[id];
+    return members[id >> LOG_ROW_SIZE][id & ROW_MASK];
   }
 
   /**

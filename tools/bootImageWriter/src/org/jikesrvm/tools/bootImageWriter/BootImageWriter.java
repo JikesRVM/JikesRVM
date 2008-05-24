@@ -821,9 +821,8 @@ public class BootImageWriter extends BootImageWriterMessages
     // remainder of the virtual machine at run time!
     //
     if (verbose >= 2) {
-      VM_Type[] types = VM_Type.getTypes();
-      for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
-        VM_Type type = types[i];
+      for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < VM_Type.numTypes(); ++i) {
+        VM_Type type = VM_Type.getType(i);
         if (type == null) continue;
         if (!type.isResolved()) {
           say("type referenced but not resolved: ", type.toString());
@@ -912,10 +911,9 @@ public class BootImageWriter extends BootImageWriterMessages
    * Print a report of space usage in the boot image.
    */
   public static void spaceReport() {
-    VM_Type[] types = VM_Type.getTypes();
-    VM_Type[] tempTypes = new VM_Type[types.length - FIRST_TYPE_DICTIONARY_INDEX];
-    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i)
-      tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = types[i];
+    VM_Type[] tempTypes = new VM_Type[VM_Type.numTypes() - FIRST_TYPE_DICTIONARY_INDEX];
+    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < VM_Type.numTypes(); ++i)
+      tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = VM_Type.getType(i);
     Arrays.sort(tempTypes, new TypeComparator<VM_Type>());
     int totalCount = 0, totalBytes = 0;
     for (VM_Type type : tempTypes) {
@@ -2563,15 +2561,14 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return field name
    */
   private static VM_Field getRvmStaticField(Offset jtocOff) {
-    VM_Type[] types = VM_Type.getTypes();
-    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
-      VM_Type type = types[i];
+    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < VM_Type.numTypes(); ++i) {
+      VM_Type type = VM_Type.getType(i);
       if (type == null) continue;
       if (type.isPrimitiveType())
         continue;
       if (!type.isResolved())
         continue;
-      for (VM_Field rvmField : types[i].getStaticFields()) {
+      for (VM_Field rvmField : type.getStaticFields()) {
         if (rvmField.getOffset().EQ(jtocOff))
           return rvmField;
       }
@@ -2580,9 +2577,8 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   private static VM_CompiledMethod findMethodOfCode(Object code) {
-    VM_CompiledMethod[] compiledMethods = VM_CompiledMethods.getCompiledMethods();
     for (int i = 0; i < VM_CompiledMethods.numCompiledMethods(); ++i) {
-      VM_CompiledMethod compiledMethod = compiledMethods[i];
+      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethodUnchecked(i);
       if (compiledMethod != null &&
           compiledMethod.isCompiled() &&
           compiledMethod.getEntryCodeArray() == code)
@@ -2794,9 +2790,8 @@ public class BootImageWriter extends BootImageWriterMessages
     out.println("                          address             method");
     out.println("                          -------             ------");
     out.println();
-    VM_CompiledMethod[] compiledMethods = VM_CompiledMethods.getCompiledMethods();
     for (int i = 0; i < VM_CompiledMethods.numCompiledMethods(); ++i) {
-      VM_CompiledMethod compiledMethod = compiledMethods[i];
+      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethodUnchecked(i);
       if (compiledMethod != null) {
         VM_Method m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {

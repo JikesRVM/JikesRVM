@@ -64,9 +64,17 @@ public final class VM_TypeReference {
     new VM_ImmutableEntryHashSet<VM_TypeReference>();
 
   /**
+   * 2^LOG_ROW_SIZE is the number of elements per row
+   */
+  private static final int LOG_ROW_SIZE = 10;
+  /**
+   * Mask to ascertain row from id number
+   */
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  /**
    * Dictionary of all VM_TypeReference instances.
    */
-  private static VM_TypeReference[] types = new VM_TypeReference[2500];
+  private static VM_TypeReference[][] types = new VM_TypeReference[3][1<<LOG_ROW_SIZE];
 
   /**
    * Used to assign Ids.  Id 0 is not used. Ids are compressed and
@@ -320,13 +328,17 @@ public final class VM_TypeReference {
       // Create type reference
       val = key;
       nextId++; // id of val is the nextId, move it along
-      if (val.id >= types.length) {
+      int column = val.id >> LOG_ROW_SIZE;
+      if (column == types.length) {
         // Grow the array of types if necessary
-        VM_TypeReference[] tmp = new VM_TypeReference[types.length + 500];
-        System.arraycopy(types, 0, tmp, 0, types.length);
+        VM_TypeReference[][] tmp = new VM_TypeReference[column+1][];
+        for (int i=0; i < column; i++) {
+          tmp[i] = types[i];
+        }
         types = tmp;
+        types[column] = new VM_TypeReference[1 << LOG_ROW_SIZE];
       }
-      types[val.id] = val;
+      types[column][val.id & ROW_MASK] = val;
       dictionary.add(val);
     }
     return val;
@@ -351,7 +363,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public static VM_TypeReference getTypeRef(int id) {
-    return types[id];
+    return types[id >> LOG_ROW_SIZE][id & ROW_MASK];
   }
 
   /**

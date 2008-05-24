@@ -24,7 +24,6 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.vmmagic.pragma.Uninterruptible;
@@ -35,46 +34,65 @@ import org.vmmagic.unboxed.Address;
  * Original extracted from VM_ClassLoader. <p>
  */
 public class VM_CompiledMethods implements VM_SizeConstants {
+  /**
+   * 2^LOG_ROW_SIZE is the number of elements per row
+   */
+  private static final int LOG_ROW_SIZE = 10;
+  /**
+   * Mask to ascertain row from id number
+   */
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  /**
+   * Java methods that have been compiled into machine code.
+   * Note that there may be more than one compiled versions of the same method
+   * (ie. at different levels of optimization).
+   */
+  private static VM_CompiledMethod[][] compiledMethods = new VM_CompiledMethod[16][1 << LOG_ROW_SIZE];
 
   /**
-   * Create a VM_CompiledMethod appropriate for the given compilerType
+   * Index of most recently allocated slot in compiledMethods[].
    */
-  public static synchronized VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
-    int id = currentCompiledMethodId + 1;
-    if (id == compiledMethods.length) {
-      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length);
+  private static int currentCompiledMethodId = 0;
+
+  /** {@see snipObsoleteMethods} */
+  private static boolean scanForObsoleteMethods = false;
+
+  /**
+   * Ensure space in backing array for id
+   */
+  private static void ensureCapacity(int id) {
+    int column = id >> LOG_ROW_SIZE;
+    if (column >= compiledMethods.length) {
+      VM_CompiledMethod[][] tmp = new VM_CompiledMethod[column+1][];
+      for (int i=0; i < column; i++) {
+        tmp[i] = compiledMethods[i];
+      }
+      tmp[column] = new VM_CompiledMethod[1 << LOG_ROW_SIZE];
+      compiledMethods = tmp;
+      VM_Magic.sync();
     }
-    currentCompiledMethodId++;
-    VM_CompiledMethod cm = null;
-    if (compilerType == VM_CompiledMethod.BASELINE) {
-      cm = new VM_BaselineCompiledMethod(id, m);
-    } else if (VM.BuildForOptCompiler && compilerType == VM_CompiledMethod.OPT) {
-      cm = new VM_OptCompiledMethod(id, m);
-    } else if (compilerType == VM_CompiledMethod.JNI) {
-      cm = new VM_JNICompiledMethod(id, m);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(false, "Unexpected compiler type!");
-    }
-    compiledMethods[id] = cm;
-    return cm;
   }
 
   /**
-   * Create a VM_CompiledMethod for the synthetic hardware trap frame
+   * Fetch a previously compiled method without checking
    */
-  public static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
-    int id = currentCompiledMethodId + 1;
-    if (id == compiledMethods.length) {
-      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length);
-    }
-    currentCompiledMethodId++;
-    VM_CompiledMethod cm = new VM_HardwareTrapCompiledMethod(id, null);
-    compiledMethods[id] = cm;
-    return cm;
+  @Uninterruptible
+  public static VM_CompiledMethod getCompiledMethodUnchecked(int cmid) {
+    int column = cmid >> LOG_ROW_SIZE;
+    return compiledMethods[column][cmid & ROW_MASK];
   }
 
-  // Fetch a previously compiled method.
-  //
+  /**
+   * Set entry in compiled method lookup
+   */
+  private static void setCompiledMethod(int cmid, VM_CompiledMethod cm) {
+    int column = cmid >> LOG_ROW_SIZE;
+    compiledMethods[column][cmid & ROW_MASK] = cm;
+  }
+
+  /**
+   * Fetch a previously compiled method.
+   */
   @Uninterruptible
   public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) {
     VM_Magic.isync();  // see potential update from other procs
@@ -86,21 +104,48 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       }
     }
 
-    return compiledMethods[compiledMethodId];
+    return getCompiledMethodUnchecked(compiledMethodId);
   }
 
-  // Get number of methods compiled so far.
-  //
+  /**
+   * Create a VM_CompiledMethod appropriate for the given compilerType
+   */
+  public static synchronized VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
+    int id = currentCompiledMethodId + 1;
+    ensureCapacity(id);
+    currentCompiledMethodId++;
+    VM_CompiledMethod cm = null;
+    if (compilerType == VM_CompiledMethod.BASELINE) {
+      cm = new VM_BaselineCompiledMethod(id, m);
+    } else if (VM.BuildForOptCompiler && compilerType == VM_CompiledMethod.OPT) {
+      cm = new VM_OptCompiledMethod(id, m);
+    } else if (compilerType == VM_CompiledMethod.JNI) {
+      cm = new VM_JNICompiledMethod(id, m);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false, "Unexpected compiler type!");
+    }
+    setCompiledMethod(id, cm);
+    return cm;
+  }
+
+  /**
+   * Create a VM_CompiledMethod for the synthetic hardware trap frame
+   */
+  public static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
+    int id = currentCompiledMethodId + 1;
+    ensureCapacity(id);
+    currentCompiledMethodId++;
+    VM_CompiledMethod cm = new VM_HardwareTrapCompiledMethod(id, null);
+    setCompiledMethod(id, cm);
+    return cm;
+  }
+
+  /**
+   * Get number of methods compiled so far.
+   */
   @Uninterruptible
   public static int numCompiledMethods() {
     return currentCompiledMethodId + 1;
-  }
-
-  // Getter method for the debugger, interpreter.
-  //
-  @Uninterruptible
-  public static VM_CompiledMethod[] getCompiledMethods() {
-    return compiledMethods;
   }
 
   /**
@@ -132,7 +177,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   @Uninterruptible
   public static VM_CompiledMethod findMethodForInstruction(Address ip) {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
-      VM_CompiledMethod compiledMethod = compiledMethods[i];
+      VM_CompiledMethod compiledMethod = getCompiledMethodUnchecked(i);
       if (compiledMethod == null || !compiledMethod.isCompiled()) {
         continue; // empty slot
       }
@@ -165,11 +210,13 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     scanForObsoleteMethods = true;
   }
 
-  // Snip reference to CompiledMethod so that we can reclaim code space. If
-  // the code is currently being executed, stack scanning is responsible for
-  // marking it NOT obsolete. Keep such reference until a future GC.
-  // NOTE: It's expected that this is processed during GC, after scanning
-  //    stacks to determine which methods are currently executing.
+  /**
+   * Snip reference to CompiledMethod so that we can reclaim code space. If
+   * the code is currently being executed, stack scanning is responsible for
+   * marking it NOT obsolete. Keep such reference until a future GC.
+   * NOTE: It's expected that this is processed during GC, after scanning
+   *    stacks to determine which methods are currently executing.
+   */
   public static void snipObsoleteCompiledMethods() {
     VM_Magic.isync();
     if (!scanForObsoleteMethods) return;
@@ -178,7 +225,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
     int max = numCompiledMethods();
     for (int i = 0; i < max; i++) {
-      VM_CompiledMethod cm = compiledMethods[i];
+      VM_CompiledMethod cm = getCompiledMethodUnchecked(i);
       if (cm != null) {
         if (cm.isActiveOnStack()) {
           if (cm.isObsolete()) {
@@ -190,7 +237,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
         } else {
           if (cm.isObsolete()) {
             // obsolete and not active on a thread stack: it's garbage!
-            compiledMethods[i] = null;
+            setCompiledMethod(i, null);
           }
         }
       }
@@ -207,7 +254,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
     for (int i = 0; i < numCompiledMethods(); i++) {
-      VM_CompiledMethod cm = compiledMethods[i];
+      VM_CompiledMethod cm = getCompiledMethodUnchecked(i);
       if (cm == null || !cm.isCompiled()) continue;
       int ct = cm.getCompilerType();
       codeCount[ct]++;
@@ -243,7 +290,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
             }
           });
       for (int i = 0; i < numCompiledMethods(); ++i) {
-        VM_CompiledMethod compiledMethod = compiledMethods[i];
+        VM_CompiledMethod compiledMethod = getCompiledMethodUnchecked(i);
         if (compiledMethod != null) {
           VM_Method m = compiledMethod.getMethod();
           if (m != null && compiledMethod.isCompiled()) {
@@ -275,31 +322,4 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       }
     }
   }
-
-  //----------------//
-  // implementation //
-  //----------------//
-
-  // Java methods that have been compiled into machine code.
-  // Note that there may be more than one compiled versions of the same method
-  // (ie. at different levels of optimization).
-  //
-  private static VM_CompiledMethod[] compiledMethods = new VM_CompiledMethod[16000];
-
-  // Index of most recently allocated slot in compiledMethods[].
-  //
-  private static int currentCompiledMethodId = 0;
-
-  // See usage above
-  private static boolean scanForObsoleteMethods = false;
-
-  // Expand an array.
-  //
-  private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, int newLength) {
-    VM_CompiledMethod[] newarray = MM_Interface.newContiguousCompiledMethodArray(newLength);
-    System.arraycopy(array, 0, newarray, 0, array.length);
-    VM_Magic.sync();
-    return newarray;
-  }
-
 }

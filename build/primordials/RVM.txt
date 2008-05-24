@@ -33,14 +33,18 @@
 [Lorg/jikesrvm/classloader/VM_Field;
 [Lorg/jikesrvm/classloader/VM_Method;
 [Lorg/jikesrvm/classloader/VM_MemberReference;
+[[Lorg/jikesrvm/classloader/VM_MemberReference;
 [Lorg/jikesrvm/classloader/VM_Type;
+[[Lorg/jikesrvm/classloader/VM_Type;
 [Lorg/jikesrvm/classloader/VM_TypeReference;
+[[Lorg/jikesrvm/classloader/VM_TypeReference;
 [Lorg/jikesrvm/classloader/VM_InterfaceInvocation$IMTDict$Link;
 [Lorg/jikesrvm/classloader/VM_SpecializedMethod;
 
 [Lorg/jikesrvm/compilers/baseline/VM_BasicBlock;
 [Lorg/jikesrvm/compilers/baseline/VM_UnusualMaps;
 [Lorg/jikesrvm/compilers/common/VM_CompiledMethod;
+[[Lorg/jikesrvm/compilers/common/VM_CompiledMethod;
 
 [Lorg/jikesrvm/runtime/VM_DynamicLibrary;
 

@@ -65,8 +65,17 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /** Next space in the the type array */
   private static int nextId = 1;
+  
+  /**
+   * 2^LOG_ROW_SIZE is the number of elements per row
+   */
+  private static final int LOG_ROW_SIZE = 10;
+  /**
+   * Mask to ascertain row from id number
+   */
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
   /** All types */
-  private static VM_Type[] types = new VM_Type[1000];
+  private static VM_Type[][] types = new VM_Type[1][1 << LOG_ROW_SIZE];
 
   /** Canonical representation of no fields */
   protected static final VM_Field[] emptyVMField = new VM_Field[0];
@@ -492,14 +501,16 @@ public abstract class VM_Type extends VM_AnnotatedElement
    */
   private static synchronized int nextId(VM_Type it) {
     int ans = nextId++;
-    if (ans == types.length) {
-      VM_Type[] newTypes = new VM_Type[types.length + 500];
+    int column = ans >> LOG_ROW_SIZE;
+    if (column >= types.length) {
+      VM_Type[][] newTypes = new VM_Type[column+1][];
       for (int i = 0; i < types.length; i++) {
         newTypes[i] = types[i];
       }
+      newTypes[column] = new VM_Type[1<<LOG_ROW_SIZE];
       types = newTypes;
     }
-    types[ans] = it;
+    types[ans >> LOG_ROW_SIZE][ans & ROW_MASK] = it;
     return ans;
   }
 
@@ -513,20 +524,11 @@ public abstract class VM_Type extends VM_AnnotatedElement
   }
 
   /**
-   * Get all the created types.
-   * Only intended to be used by the bootimage writer!
-   */
-  @Uninterruptible
-  public static VM_Type[] getTypes() {
-    return types;
-  }
-
-  /**
    * Get the type for the given id
    */
   @Uninterruptible
   public static VM_Type getType(int id) {
-    return types[id];
+    return types[id >> LOG_ROW_SIZE][id & ROW_MASK];
   }
 
   /**

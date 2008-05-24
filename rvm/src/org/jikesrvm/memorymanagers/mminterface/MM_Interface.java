@@ -24,7 +24,6 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_SpecializedMethod;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
@@ -1063,16 +1062,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     /* Now we replace the TIB */
     VM_ObjectModel.setTIB(array, realTib);
     return array;
-  }
-  /**
-   * Allocate a contiguous VM_CompiledMethod array
-   * @param n The number of objects
-   * @return The contiguous object array
-   */
-  @Inline
-  @Interruptible
-  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) {
-    return new VM_CompiledMethod[n];
   }
 
   /**
