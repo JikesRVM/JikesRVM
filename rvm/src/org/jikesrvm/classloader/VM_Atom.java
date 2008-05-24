@@ -55,17 +55,32 @@ public final class VM_Atom {
   /**
    * Used to canonicalize VM_Atoms: possibly non-canonical VM_Atom => VM_Atom
    */
-  private static final VM_ImmutableEntryHashMap<VM_Atom, VM_Atom> dictionary = new VM_ImmutableEntryHashMap<VM_Atom, VM_Atom>();
+  private static final VM_ImmutableEntryHashMap<VM_Atom, VM_Atom> dictionary =
+    new VM_ImmutableEntryHashMap<VM_Atom, VM_Atom>(12000);
 
+  /**
+   * 2^LOG_ROW_SIZE is the number of elements per row
+   */
+  private static final int LOG_ROW_SIZE = 10; 
+  /**
+   * Mask to ascertain row from id number
+   */
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1; 
   /**
    * Dictionary of all VM_Atom instances.
    */
-  private static VM_Atom[] atoms = new VM_Atom[16000];
+  private static VM_Atom[][] atoms = new VM_Atom[36][1 << LOG_ROW_SIZE];
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
    */
   private static int nextId = 1;
+
+  /**
+   * A reference to either a unicode String encoding the atom, an offset in the
+   * JTOC holding a unicode string encoding the atom or null.
+   */
+  private Object unicodeStringOrJTOCoffset;
 
   /**
    * The utf8 value this atom represents
@@ -76,12 +91,6 @@ public final class VM_Atom {
    * The id of this atom
    */
   private final int id;
-
-  /**
-   * A reference to either a unicode String encoding the atom, an offset in the
-   * JTOC holding a unicode string encoding the atom or null.
-   */
-  private Object unicodeStringOrJTOCoffset;
 
   /**
    *@return the id of this atom.
@@ -181,12 +190,16 @@ public final class VM_Atom {
     if (val != null || !create) return val;
     synchronized(VM_Atom.class) {
       val = new VM_Atom(bytes, nextId++, str);
-      if (val.id == atoms.length) {
-        VM_Atom[] tmp = new VM_Atom[atoms.length + 1000];
-        System.arraycopy(atoms, 0, tmp, 0, atoms.length);
+      int column = val.id >> LOG_ROW_SIZE; 
+      if (column == atoms.length) {
+        VM_Atom[][] tmp = new VM_Atom[column+1][];
+        for (int i=0; i < column; i++) {
+          tmp[i] = atoms[i];
+        }
         atoms = tmp;
+        atoms[column] = new VM_Atom[1 << LOG_ROW_SIZE];
       }
-      atoms[val.id] = val;
+      atoms[column][val.id & ROW_MASK] = val;
       dictionary.put(val, val);
     }
     return val;
@@ -199,7 +212,7 @@ public final class VM_Atom {
   @Pure
   @Uninterruptible
   public static VM_Atom getAtom(int id) {
-    return atoms[id];
+    return atoms[id >> LOG_ROW_SIZE][id & ROW_MASK];
   }
 
   //-------------//

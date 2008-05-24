@@ -29,6 +29,7 @@
 [Lorg/jikesrvm/classloader/VM_Annotation;
 [Lorg/jikesrvm/classloader/VM_Annotation$AnnotationMember;
 [Lorg/jikesrvm/classloader/VM_Atom;
+[[Lorg/jikesrvm/classloader/VM_Atom;
 [Lorg/jikesrvm/classloader/VM_Field;
 [Lorg/jikesrvm/classloader/VM_Method;
 [Lorg/jikesrvm/classloader/VM_MemberReference;
