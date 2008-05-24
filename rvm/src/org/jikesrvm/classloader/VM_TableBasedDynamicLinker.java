@@ -43,7 +43,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
   private static int[] memberOffsets;
 
   static {
-    memberOffsets = MM_Interface.newContiguousIntArray(16000);
+    memberOffsets = MM_Interface.newContiguousIntArray(32000);
     if (NEEDS_DYNAMIC_LINK != 0) {
       java.util.Arrays.fill(memberOffsets, NEEDS_DYNAMIC_LINK);
     }
@@ -82,9 +82,9 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * the given member reference.
    */
   static synchronized void ensureCapacity(int id) {
-    if (id == memberOffsets.length) {
+    if (id >= memberOffsets.length) {
       int oldLen = memberOffsets.length;
-      int[] tmp1 = MM_Interface.newContiguousIntArray(oldLen * 2);
+      int[] tmp1 = MM_Interface.newContiguousIntArray((oldLen * 3) / 2);
       System.arraycopy(memberOffsets, 0, tmp1, 0, oldLen);
       if (NEEDS_DYNAMIC_LINK != 0) {
         java.util.Arrays.fill(tmp1, oldLen, tmp1.length, NEEDS_DYNAMIC_LINK);
