@@ -1083,6 +1083,14 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
   }
 
+  /**
+   *  Will this object move (allows us to optimize some JNI calls)
+   */
+  @Pure
+  public static boolean isImmortal(Object obj) {
+    return Space.isImmortal(ObjectReference.fromObject(obj));
+  }
+
   /***********************************************************************
    *
    * Finalizers
