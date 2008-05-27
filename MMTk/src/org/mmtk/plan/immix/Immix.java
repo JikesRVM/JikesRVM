@@ -162,4 +162,14 @@ public class Immix extends StopTheWorld {
         return false;
     return super.willNeverMove(object);
   }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, ImmixTraceLocal.class);
+    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, ImmixDefragTraceLocal.class);
+    super.registerSpecializedMethods();
+  }
 }

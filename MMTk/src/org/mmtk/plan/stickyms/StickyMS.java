@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.stickyms;
 
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.marksweep.MS;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.SharedDeque;
@@ -167,5 +168,14 @@ public class StickyMS extends MS {
    */
   public final boolean isLastGCFull() {
     return collectWholeHeap;
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, StickyMSNurseryTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

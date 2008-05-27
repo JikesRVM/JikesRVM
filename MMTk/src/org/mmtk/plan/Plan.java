@@ -185,6 +185,7 @@ public abstract class Plan implements Constants {
     Options.debugAddress = new DebugAddress();
     Options.perfMetric = new PerfMetric();
     Map.finalizeStaticSpaceMap();
+    registerSpecializedMethods();
   }
 
   /****************************************************************************
@@ -1027,8 +1028,15 @@ public abstract class Plan implements Constants {
    }
 
   /****************************************************************************
-   * Specialized Scanning
+   * Specialized Methods
    */
+
+  /**
+   * Register specialized methods.
+   */
+   @Interruptible
+  protected void registerSpecializedMethods() {
+  }
 
   /**
    * Get the specialized scan with the given id.

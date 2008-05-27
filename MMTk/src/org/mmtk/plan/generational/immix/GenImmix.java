@@ -17,6 +17,7 @@ import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_PINNING;
 
 import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.Trace;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.policy.immix.ObjectHeader;
 import org.mmtk.policy.Space;
@@ -65,7 +66,6 @@ public class GenImmix extends Gen {
 
   public static final int IMMIX = immixSpace.getDescriptor();
 
-  public static final int SCAN_NURSERY = 0;
   public static final int SCAN_IMMIX = 1;
   public static final int SCAN_DEFRAG = 2;
 
@@ -181,5 +181,15 @@ public class GenImmix extends Gen {
       } else
         return false;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, GenImmixMatureTraceLocal.class);
+    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, GenImmixMatureDefragTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

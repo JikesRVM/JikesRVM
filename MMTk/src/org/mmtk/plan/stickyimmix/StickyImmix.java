@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.stickyimmix;
 
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.immix.Immix;
 import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.utility.Log;
@@ -234,5 +235,14 @@ public class StickyImmix extends Immix {
    */
   public final boolean isLastGCFull() {
     return collectWholeHeap;
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, StickyImmixNurseryTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

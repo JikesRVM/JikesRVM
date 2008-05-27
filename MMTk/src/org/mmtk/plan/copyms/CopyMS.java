@@ -171,4 +171,13 @@ public class CopyMS extends StopTheWorld {
     return super.getPagesRequired() + msSpace.requiredPages() +
       (nurserySpace.requiredPages() << 1);
   }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_COPYMS, CopyMSTraceLocal.class);
+    super.registerSpecializedMethods();
+  }
 }

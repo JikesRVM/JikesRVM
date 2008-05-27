@@ -134,4 +134,13 @@ public class MS extends StopTheWorld {
       return true;
     return super.willNeverMove(object);
   }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_MARK, MSTraceLocal.class);
+    super.registerSpecializedMethods();
+  }
 }

@@ -16,6 +16,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.vm.VM;
 
@@ -218,5 +219,14 @@ import org.vmmagic.pragma.*;
   @Inline
   public Space activeMatureSpace() {
     return toSpace();
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_MATURE, GenCopyMatureTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

@@ -14,6 +14,7 @@ package org.mmtk.plan.generational.marksweep;
 
 import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.Trace;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
@@ -165,5 +166,14 @@ public class GenMS extends Gen {
     if (Space.isInSpace(MS, object))
       return true;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_MATURE, GenMSMatureTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }
