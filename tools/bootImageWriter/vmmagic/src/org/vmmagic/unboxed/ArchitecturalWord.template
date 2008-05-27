@@ -48,7 +48,7 @@ abstract class ArchitecturalWord {
 
   public boolean equals(Object that) {
     if (that instanceof ArchitecturalWord) {
-      return value == value;
+      return value == that.value;
     } else {
       return false;
     } 
