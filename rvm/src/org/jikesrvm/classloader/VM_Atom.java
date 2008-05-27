@@ -247,7 +247,7 @@ public final class VM_Atom {
       if (VM.runningVM) {
         s = InternedStrings.internUnfoundString(s);
         unicodeStringOrJTOCoffset = s;
-      } else {
+      } else if (!VM.writingImage) {
         s = s.intern();
         int offset = VM_Statics.findOrCreateObjectLiteral(s);
         unicodeStringOrJTOCoffset = offset;
@@ -274,7 +274,8 @@ public final class VM_Atom {
       return (String)unicodeStringOrJTOCoffset;
     } else {
       if (VM.runningVM) {
-        return (String)VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend((Integer)unicodeStringOrJTOCoffset));
+        Object result = VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend((Integer)unicodeStringOrJTOCoffset));
+        return (String)result;
       } else {
         try {
           return VM_UTF8Convert.fromUTF8(val).intern();
