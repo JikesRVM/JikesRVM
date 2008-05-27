@@ -53,7 +53,7 @@ import org.vmmagic.unboxed.Offset;
 @NonMoving
 public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
 
-  /** Flag for for closed world testing */
+  /** Flag for closed world testing */
   public static boolean classLoadingDisabled = false;
 
   /** Constant pool entry for a UTF-8 encoded atom */
@@ -1001,6 +1001,19 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   }
 
   /**
+   * @return number of fields that are non-final
+   */
+  public int getNumberOfNonFinalReferences() {
+    int count = 0;
+    for(VM_Field field: declaredFields) {
+      if (!field.isFinal()) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
    * Set object representing available holes in the field layout
    */
   public VM_FieldLayoutContext getFieldLayoutContext() {
@@ -1905,14 +1918,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
     Offset literalOffset = field.getDeclaringClass().getLiteralOffset(valueIndex);
 
-    // if field is object, should use reference form of setSlotContents.
-    // But getSlotContentsAsObject() uses Magic to recast as Object, and
-    // Magic is not allowed when BootImageWriter is executing under JDK,
-    // so we only do the "proper" thing when the vm is running.  This is OK
-    // for now, because the bootImage is not collected (all object get BIG
-    // reference counts
-    //
-    if (VM.runningVM && VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
+    if (VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
       Object obj = VM_Statics.getSlotContentsAsObject(literalOffset);
       VM_Statics.setSlotContents(fieldOffset, obj);
     } else if (field.getSize() <= BYTES_IN_INT) {
