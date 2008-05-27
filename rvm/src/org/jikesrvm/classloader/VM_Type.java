@@ -65,7 +65,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /** Next space in the the type array */
   private static int nextId = 1;
-  
+
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row
    */

@@ -61,11 +61,11 @@ public final class VM_Atom {
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row
    */
-  private static final int LOG_ROW_SIZE = 10; 
+  private static final int LOG_ROW_SIZE = 10;
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1; 
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
   /**
    * Dictionary of all VM_Atom instances.
    */
@@ -190,7 +190,7 @@ public final class VM_Atom {
     if (val != null || !create) return val;
     synchronized(VM_Atom.class) {
       val = new VM_Atom(bytes, nextId++, str);
-      int column = val.id >> LOG_ROW_SIZE; 
+      int column = val.id >> LOG_ROW_SIZE;
       if (column == atoms.length) {
         VM_Atom[][] tmp = new VM_Atom[column+1][];
         for (int i=0; i < column; i++) {

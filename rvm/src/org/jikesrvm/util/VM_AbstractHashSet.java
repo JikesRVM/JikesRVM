@@ -57,7 +57,7 @@ abstract class VM_AbstractHashSet<T>  implements Iterable<T> {
 
   /**
    * Advise against growing the buckets if they are immortal, as it will lead
-   * to multiple sets of buckets that will be scanned 
+   * to multiple sets of buckets that will be scanned
    */
   private boolean growMapAllowed() {
     return !VM.runningVM || !MM_Interface.isImmortal(buckets);
