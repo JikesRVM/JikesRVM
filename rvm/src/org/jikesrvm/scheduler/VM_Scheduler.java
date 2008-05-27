@@ -745,7 +745,7 @@ public abstract class VM_Scheduler {
                 showMethod("hardware trap", fp);
               } else {
                 VM_Method method = compiledMethod.getMethod();
-                Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
+                Offset instructionOffset = compiledMethod.getInstructionOffset(ip, false);
                 int lineNumber = compiledMethod.findLineNumberForInstruction(instructionOffset);
                 boolean frameShown = false;
                 if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {

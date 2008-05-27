@@ -188,6 +188,19 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    */
   @Uninterruptible
   public final Offset getInstructionOffset(Address ip) {
+    return getInstructionOffset(ip, true);
+  }
+
+  /**
+   * Return the offset in bytes of the given Address from the start
+   * of the machine code array.
+   * @param ip a Address (should be an interior pointer to instructions)
+   * @param dieOnFailure if ip is invalid should we kill the VM (we don't want
+   *  to if already in the process of killing the VM)
+   * @return offset of addr from start of instructions in bytes
+   */
+  @Uninterruptible
+  public final Offset getInstructionOffset(Address ip, boolean dieOnFailure) {
     if (getCompilerType() == JNI || getCompilerType() == TRAP) {
       return Offset.zero();
     } else {
@@ -210,9 +223,11 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
           VM.sysWrite(realCM.getMethod());
           VM.sysWriteln(" whose code contains this return address");
         }
-        VM.sysWriteln("Attempting to dump virtual machine state before exiting");
-        VM_Scheduler.dumpVirtualMachine();
-        VM.sysFail("Terminating VM due to invalid request for instruction offset");
+        if (dieOnFailure) {
+          VM.sysWriteln("Attempting to dump virtual machine state before exiting");
+          VM_Scheduler.dumpVirtualMachine();
+          VM.sysFail("Terminating VM due to invalid request for instruction offset");
+        }
       }
       // NOTE: we are absolutely positive that offset will fit in 32 bits
       // because we don't create VM_CodeArrays that are so massive it won't.
