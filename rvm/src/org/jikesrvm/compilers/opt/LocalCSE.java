@@ -523,9 +523,11 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.Call_format:
           int numParams = Call.getNumberOfParams(inst);
-          ops = new Operand[numParams];
+          ops = new Operand[numParams+2];
+          ops[0] = Call.getAddress(inst);
+          ops[1] = Call.getMethod(inst);
           for (int i=0; i < numParams; i++) {
-            ops[i] = Call.getParam(inst, i);
+            ops[i+2] = Call.getParam(inst, i);
           }
           break;
         default:
@@ -604,9 +606,11 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.Call_format:
           int numParams = Call.getNumberOfParams(inst);
-          ops = new Operand[numParams];
+          ops = new Operand[numParams+2];
+          ops[0] = Call.getAddress(inst);
+          ops[1] = Call.getMethod(inst);
           for (int i=0; i < numParams; i++) {
-            ops[i] = Call.getParam(inst, i);
+            ops[i+2] = Call.getParam(inst, i);
           }
           break;
         default:
