@@ -37,4 +37,20 @@ abstract class ArchitecturalWord {
     @32MASK@VM._assert(VM.NOT_REACHED);
     @64MASK@this.value = value;
   }
+
+  public String toString() {
+    return ""+value;
+  }
+
+  public int hashCode() {
+    return (int)value;
+  }
+
+  public boolean equals(Object that) {
+    if (that instanceof ArchitecturalWord) {
+      return value == value;
+    } else {
+      return false;
+    } 
+  }
 }
