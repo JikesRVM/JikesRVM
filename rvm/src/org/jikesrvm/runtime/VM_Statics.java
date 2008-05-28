@@ -186,7 +186,7 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateIntSizeLiteral(int literal) {
     final int bottom = getLowestInUseSlot();
-    final int top = middleOfTable-1;
+    final int top = middleOfTable;
     for (int i=top; i >= bottom; i--) {
       if ((slots[i] == literal) && !numericFieldVector.get(i) && (i != numericSlotHole)) {
         return slotAsOffset(i).toInt();
@@ -205,7 +205,7 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateLongSizeLiteral(long literal) {
     final int bottom = getLowestInUseSlot();
-    final int top = (middleOfTable-1) & 0xFFFFFFFE;
+    final int top = middleOfTable & 0xFFFFFFFE;
     for (int i=top; i >= bottom; i-=2) {
       Offset off = slotAsOffset(i);
       if ((getSlotContentsAsLong(off) == literal) &&
@@ -292,7 +292,6 @@ public class VM_Statics implements VM_Constants {
    * (two slots are allocated for longs and doubles)
    */
   public static synchronized Offset allocateNumericSlot(int size, boolean field) {
-    if (VM.VerifyAssertions) VM._assert(!VM.writingImage);
     // Result slot
     int slot;
     // Allocate two slots for wide items after possibly blowing
@@ -339,7 +338,6 @@ public class VM_Statics implements VM_Constants {
    * (two slots are allocated on 64bit architectures)
    */
   public static synchronized Offset allocateReferenceSlot(boolean field) {
-    if (VM.VerifyAssertions) VM._assert(!VM.writingImage);
     int slot = nextReferenceSlot;
     nextReferenceSlot += getReferenceSlotSize();
     if (nextReferenceSlot >= slots.length) {
@@ -457,29 +455,10 @@ public class VM_Statics implements VM_Constants {
   }
 
   /**
-   * Verify the given offset is for a numeric slot
-   */
-  @Uninterruptible
-  private static void verifyNumericSlot(Offset offset) {
-    VM._assert(offset.toInt() < 0);
-    VM._assert(offsetAsSlot(offset) < slots.length);
-  }
-
-  /**
-   * Verify the given offset is for a reference slot
-   */
-  @Uninterruptible
-  private static void verifyReferenceSlot(Offset offset) {
-    VM._assert(offset.toInt() >= 0);
-    VM._assert(offsetAsSlot(offset) < slots.length);
-  }
-
-  /**
    * Fetch contents of a slot, as an integer
    */
   @Uninterruptible
   public static int getSlotContentsAsInt(Offset offset) {
-    if (VM.VerifyAssertions) verifyNumericSlot(offset);
     if (VM.runningVM) {
       return VM_Magic.getIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
@@ -493,10 +472,6 @@ public class VM_Statics implements VM_Constants {
    */
   @Uninterruptible
   public static long getSlotContentsAsLong(Offset offset) {
-    if (VM.VerifyAssertions) {
-      verifyNumericSlot(offset);
-      verifyNumericSlot(offset.plus(4));
-    }
     if (VM.runningVM) {
       return VM_Magic.getLongAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
@@ -518,7 +493,6 @@ public class VM_Statics implements VM_Constants {
    */
   @Uninterruptible
   public static Object getSlotContentsAsObject(Offset offset) {
-    if (VM.VerifyAssertions) verifyReferenceSlot(offset);
     if (VM.runningVM) {
       return VM_Magic.getObjectAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
@@ -531,7 +505,6 @@ public class VM_Statics implements VM_Constants {
    */
   @UninterruptibleNoWarn
   public static Address getSlotContentsAsAddress(Offset offset) {
-    if (VM.VerifyAssertions) verifyNumericSlot(offset);
     if (VM.runningVM) {
       if (VM.BuildFor32Addr) {
         return Address.fromIntSignExtend(getSlotContentsAsInt(offset));
@@ -557,26 +530,10 @@ public class VM_Statics implements VM_Constants {
   }
 
   /**
-   * Fetch contents of a slot, as an object cookie for the boot image writer
-   */
-  @Uninterruptible
-  public static int getSlotContentsAsObjectCookie(Offset offset) {
-    if (VM.VerifyAssertions) verifyReferenceSlot(offset);
-    if (VM.runningVM) {
-      VM._assert(false);
-      return 0;
-    } else {
-      int slot = offsetAsSlot(offset);
-      return slots[slot];
-    }
-  }
-
-  /**
    * Set contents of a slot, as an integer.
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, int value) {
-    if (VM.VerifyAssertions) verifyNumericSlot(offset);
     if (VM.runningVM) {
       VM_Magic.setIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
@@ -589,10 +546,6 @@ public class VM_Statics implements VM_Constants {
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, long value) {
-    if (VM.VerifyAssertions) {
-      verifyNumericSlot(offset);
-      verifyNumericSlot(offset.plus(4));
-    }
     if (VM.runningVM) {
       VM_Magic.setLongAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
@@ -616,20 +569,17 @@ public class VM_Statics implements VM_Constants {
     // the array store which could cause a fault - this can't actually
     // happen as the fault would only ever occur when not running the
     // VM. We suppress the warning as we know the error can't happen.
-    if (VM.VerifyAssertions) verifyReferenceSlot(offset);
-    if (VM.runningVM) {
-      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
-        MM_Interface.putstaticWriteBarrier(offset, object, 0);
-      }
-      setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
+
+    if (VM.runningVM && MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+      MM_Interface.putstaticWriteBarrier(offset, object, 0);
     } else {
-      if (objectSlots != null) {
-        // When creating the boot image objectSlots is populated as
-        // VM_Magic won't work in the bootstrap JVM.
-        objectSlots[offsetAsSlot(offset)] = VM_Magic.bootImageIntern(object);
-      }
-      // NB this places a cookie in the JTOC
       setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
+    }
+    if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
+    if (!VM.runningVM && objectSlots != null) {
+      // When creating the boot image objectSlots is populated as
+      // VM_Magic won't work in the bootstrap JVM.
+      objectSlots[offsetAsSlot(offset)] = VM_Magic.bootImageIntern(object);
     }
   }
 
@@ -654,25 +604,13 @@ public class VM_Statics implements VM_Constants {
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Word word) {
-    if (VM.VerifyAssertions) {
-      int slot = offsetAsSlot(offset);
-      VM._assert(slot >= 0 && slot < slots.length);
-    }
     if (VM.runningVM) {
       VM_Magic.setWordAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), word);
     } else {
       if (VM.BuildFor32Addr) {
-        slots[offsetAsSlot(offset)] = word.toInt();
+        setSlotContents(offset, word.toInt());
       } else {
-        long value = word.toLong();
-        int slot = offsetAsSlot(offset);
-        if (VM.LittleEndian) {
-          slots[slot + 1] = (int) (value >>> BITS_IN_INT); // hi
-          slots[slot] = (int) (value); // lo
-        } else {
-          slots[slot] = (int) (value >>> BITS_IN_INT); // hi
-          slots[slot + 1] = (int) (value); // lo
-        }
+        setSlotContents(offset, word.toLong());
       }
     }
   }

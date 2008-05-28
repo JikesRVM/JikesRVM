@@ -716,7 +716,11 @@ public class BootImageWriter extends BootImageWriterMessages
         jtocCount = i; // for diagnostic
 
         Offset jtocOff = VM_Statics.slotAsOffset(i);
-        int objCookie = VM_Statics.getSlotContentsAsObjectCookie(jtocOff);
+        int objCookie;
+        if (VM.BuildFor32Addr)
+          objCookie = VM_Statics.getSlotContentsAsInt(jtocOff);
+        else
+          objCookie = (int) VM_Statics.getSlotContentsAsLong(jtocOff);
         // if (verbose >= 3)
         // say("       jtoc[", String.valueOf(i), "] = ", String.valueOf(objCookie));
         Object jdkObject = BootImageMap.getObject(objCookie);
@@ -1321,7 +1325,7 @@ public class BootImageWriter extends BootImageWriterMessages
                   traceContext.traceFieldNotInHostJdk();
                   traceContext.pop();
                 }
-                VM_Statics.setSlotContents(rvmFieldOffset, Word.zero());
+                VM_Statics.setSlotContents(rvmFieldOffset, 0);
                 if (!VM.runningTool)
                   bootImage.countNulledReference();
                 invalidEntrys.add(jdkType.getName());
@@ -1334,7 +1338,7 @@ public class BootImageWriter extends BootImageWriterMessages
                 traceContext.traceFieldNotInHostJdk();
                 traceContext.pop();
               }
-              VM_Statics.setSlotContents(rvmFieldOffset, Word.zero());
+              VM_Statics.setSlotContents(rvmFieldOffset, 0);
               if (!VM.runningTool)
                 bootImage.countNulledReference();
               invalidEntrys.add(rvmField.getDeclaringClass().toString());
@@ -1347,7 +1351,7 @@ public class BootImageWriter extends BootImageWriterMessages
                                                 jdkType.getName(), rvmFieldName);
             if (verbose >= 2) traceContext.traceFieldNotStaticInHostJdk();
             if (verbose >= 2) traceContext.pop();
-            VM_Statics.setSlotContents(rvmFieldOffset, Word.zero());
+            VM_Statics.setSlotContents(rvmFieldOffset, 0);
             if (!VM.runningTool)
               bootImage.countNulledReference();
             invalidEntrys.add(jdkType.getName());
@@ -1359,7 +1363,7 @@ public class BootImageWriter extends BootImageWriterMessages
                                                 jdkType.getName(), rvmFieldName);
             if (verbose >= 2) traceContext.traceFieldDifferentTypeInHostJdk();
             if (verbose >= 2) traceContext.pop();
-            VM_Statics.setSlotContents(rvmFieldOffset, Word.zero());
+            VM_Statics.setSlotContents(rvmFieldOffset, 0);
             if (!VM.runningTool)
               bootImage.countNulledReference();
             invalidEntrys.add(jdkType.getName());
@@ -2485,7 +2489,7 @@ public class BootImageWriter extends BootImageWriterMessages
     // written.
 
     VM_Member remapper = VM_Entrypoints.magicObjectRemapperField;
-    VM_Statics.setSlotContents(remapper.getOffset(), Word.zero());
+    VM_Statics.setSlotContents(remapper.getOffset(), 0);
   }
 
   /**
@@ -2722,7 +2726,7 @@ public class BootImageWriter extends BootImageWriterMessages
          jtocSlot <= n;
          jtocSlot += VM_Statics.getReferenceSlotSize()) {
       Offset jtocOff = VM_Statics.slotAsOffset(jtocSlot);
-      Object obj     = BootImageMap.getObject(VM_Statics.getSlotContentsAsObjectCookie(jtocOff));
+      Object obj     = BootImageMap.getObject(getIVal(jtocOff));
       String category;
       String details;
       String contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
@@ -2854,55 +2858,25 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return address of object or zero if not found
    */
   private static Address getReferenceAddr(Offset jtocOff, boolean fatalIfNotFound) {
-    int ival = VM_Statics.getSlotContentsAsObjectCookie(jtocOff);
+    int ival = getIVal(jtocOff);
     if (ival != 0) {
       Object jdkObject = BootImageMap.getObject(ival);
-      VM_TypeReference typeRef = VM_TypeReference.findOrCreate(jdkObject.getClass());
-      if (typeRef.isUnboxedArrayType() || typeRef.isRuntimeTable()) {
-        jdkObject = getBackingArray(typeRef.resolve(), jdkObject);
+      if (jdkObject instanceof VM_CodeArray) {
+        jdkObject = ((VM_CodeArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof AddressArray) {
+        jdkObject = ((AddressArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof ObjectReferenceArray) {
+        jdkObject = ((ObjectReferenceArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof ExtentArray) {
+        jdkObject = ((ExtentArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof OffsetArray) {
+        jdkObject = ((OffsetArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof WordArray) {
+        jdkObject = ((WordArray)jdkObject).getBacking();
       }
       return BootImageMap.getImageAddress(jdkObject, fatalIfNotFound);
     } else {
       return Address.zero();
     }
-  }
-
-  /**
-   * Return the backing array for magic array types
-   * @param rvmType the magic type
-   * @param jdkObject to get backing array from
-   * @return backing array or fail
-   */
-  private static Object getBackingArray(VM_Type rvmType, Object jdkObject) {
-    Object backing;
-    if (rvmType == VM_Type.AddressArrayType) {
-      backing = ((AddressArray) jdkObject).getBacking();
-    } else if (rvmType == VM_Type.CodeArrayType) {
-      backing = ((VM_CodeArray)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.ExtentArrayType) {
-      backing = ((ExtentArray) jdkObject).getBacking();
-    } else if (rvmType == VM_Type.TIBType) {
-      backing = ((VM_TIB)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.IMTType) {
-      backing = ((VM_IMT)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.ITableType) {
-      backing = ((VM_ITable)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.ITableArrayType) {
-      backing = ((VM_ITableArray)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.ObjectReferenceArrayType) {
-      backing = ((ObjectReferenceArray)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.OffsetArrayType) {
-      return ((OffsetArray) jdkObject).getBacking();
-    } else if (rvmType == VM_Type.ProcessorTableType) {
-      backing = ((VM_ProcessorTable)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.FunctionTableType) {
-      backing = ((VM_FunctionTable)jdkObject).getBacking();
-    } else if (rvmType == VM_Type.WordArrayType) {
-      backing = ((WordArray) jdkObject).getBacking();
-    } else {
-      fail("unexpected runtime table type: " + rvmType);
-      backing = null;
-    }
-    return backing;
   }
 }
