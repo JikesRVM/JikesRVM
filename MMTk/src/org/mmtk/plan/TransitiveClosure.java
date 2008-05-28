@@ -40,7 +40,6 @@ public abstract class TransitiveClosure {
    */
   @Interruptible
   public static synchronized void registerSpecializedScan(int id, Class<?> specializedScanClass) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(specializedScans[id] == null || specializedScans[id] == specializedScanClass);
     specializedScans[id] = specializedScanClass;
   }
 

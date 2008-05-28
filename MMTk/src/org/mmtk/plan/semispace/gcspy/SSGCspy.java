@@ -14,6 +14,7 @@ package org.mmtk.plan.semispace.gcspy;
 
 import org.mmtk.plan.GCspyPlan;
 import org.mmtk.plan.Phase;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.semispace.SS;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.LargeObjectSpace;
@@ -341,5 +342,14 @@ import org.vmmagic.pragma.*;
     Log.write(SSGCspy.copySpace1.getStart()
         .plus(SSGCspy.copySpace1.getExtent()));
     Log.flush();
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    super.registerSpecializedMethods();
+    TransitiveClosure.registerSpecializedScan(SCAN_SS, SSGCspyTraceLocal.class);
   }
 }
