@@ -22,6 +22,7 @@
   <property name="test-run.file" value="${jikesrvm.dir}/build/test-runs/${test-run.name}.properties"/>
   <property file="${test-run.file}"/>
 
+  <property name="require.checkstyle" value="false"/>
   <property name="test.tests" value=""/>
   <property name="test.mode" value=""/>
   <property name="driver.scratch.dir" location="${build.dir}/test-driver"/>
@@ -141,6 +142,7 @@
                    failonerrorProperty="${test.config.@{tag}.configuration}.build.error"
                    output="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt">
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
+              <property name="require.checkstyle" value="${require.checkstyle}"/>
             </erant>
             <timer property="${test.config.@{tag}.configuration}.build.time" stop="true"/>
             <property name="${test.config.@{tag}.configuration}.built" value="true"/>
