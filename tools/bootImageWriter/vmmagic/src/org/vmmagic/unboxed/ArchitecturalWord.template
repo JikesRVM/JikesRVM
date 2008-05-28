@@ -15,6 +15,7 @@ package org.vmmagic.unboxed;
 /* machine-generated DO NOT EDIT */
 
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.RawStorage;
 
@@ -38,6 +39,7 @@ abstract class ArchitecturalWord {
     @64MASK@this.value = value;
   }
 
+  @Interruptible
   public String toString() {
     return ""+value;
   }
@@ -48,7 +50,7 @@ abstract class ArchitecturalWord {
 
   public boolean equals(Object that) {
     if (that instanceof ArchitecturalWord) {
-      return value == that.value;
+      return value == ((ArchitecturalWord)that).value;
     } else {
       return false;
     } 

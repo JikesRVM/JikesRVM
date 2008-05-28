@@ -462,7 +462,7 @@ public class VM_Statics implements VM_Constants {
   @Uninterruptible
   private static void verifyNumericSlot(Offset offset) {
     VM._assert(offset.toInt() < 0);
-    VM._assert(offsetAsSlot(offset) < slots.length); 
+    VM._assert(offsetAsSlot(offset) < slots.length);
   }
 
   /**
@@ -471,7 +471,7 @@ public class VM_Statics implements VM_Constants {
   @Uninterruptible
   private static void verifyReferenceSlot(Offset offset) {
     VM._assert(offset.toInt() >= 0);
-    VM._assert(offsetAsSlot(offset) < slots.length); 
+    VM._assert(offsetAsSlot(offset) < slots.length);
   }
 
   /**
@@ -626,7 +626,7 @@ public class VM_Statics implements VM_Constants {
       if (objectSlots != null) {
         // When creating the boot image objectSlots is populated as
         // VM_Magic won't work in the bootstrap JVM.
-        objectSlots[offsetAsSlot(offset)] = VM_Magic.bootImageIntern(object);      
+        objectSlots[offsetAsSlot(offset)] = VM_Magic.bootImageIntern(object);
       }
       // NB this places a cookie in the JTOC
       setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
@@ -656,7 +656,7 @@ public class VM_Statics implements VM_Constants {
   public static void setSlotContents(Offset offset, Word word) {
     if (VM.VerifyAssertions) {
       int slot = offsetAsSlot(offset);
-      VM._assert(slot >= 0 && slot < slots.length); 
+      VM._assert(slot >= 0 && slot < slots.length);
     }
     if (VM.runningVM) {
       VM_Magic.setWordAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), word);
