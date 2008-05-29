@@ -25,7 +25,7 @@ import org.jikesrvm.util.VM_LinkedList;
  *
  *  This class holds GC maps for various program points.
  *  This data structure is IR-based.  In a later phase, this information
- *  will be used to create the final GC map (see VM_OptMachineCodeMap.java)
+ *  will be used to create the final GC map (see OptMachineCodeMap.java)
  */
 public final class GCIRMap implements Iterable<GCIRMapElement> {
   /**

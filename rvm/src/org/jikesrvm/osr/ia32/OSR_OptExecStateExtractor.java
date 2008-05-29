@@ -47,7 +47,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     /* perform machine and compiler dependent operations here
     * osrFPoff is the fp offset of
-    * VM_OptSaveVolatile.threadSwithFrom<...>
+    * OptSaveVolatile.threadSwithFrom<...>
     *
     *  (stack grows downward)
     *          foo
@@ -150,7 +150,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     return state;
   }
 
-  /* VM_OptSaveVolatile has different stack layout from DynamicBridge
+  /* OptSaveVolatile has different stack layout from DynamicBridge
     * Have to separately recover them now, but there should be unified
     * later on.
     *

@@ -23,13 +23,13 @@ import org.jikesrvm.compilers.opt.util.Tree;
  * inlined calls appear as children of that root, and so on
  * recursively.  These trees are used to construct the persistent
  * encoding of inlining information, stored in the
- * VM_OptMachineCodeMap.
+ * OptMachineCodeMap.
  *
  *
  * @see InlineSequence
  * @see CallSiteTreeNode
  * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
- * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap
+ * @see org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap
  */
 public class CallSiteTree extends Tree {
 

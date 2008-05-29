@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptGenericGCMapIterator;
+import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -25,11 +25,11 @@ import org.vmmagic.unboxed.WordArray;
  * represented by a frame built by the OPT compiler.
  *
  * The architecture-specific version of the GC Map iterator.  It inherits
- * its architecture-independent code from VM_OptGenericGCMapIterator.
+ * its architecture-independent code from OptGenericGCMapIterator.
  * This version is for IA32
  */
 @Uninterruptible
-public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_SizeConstants {
+public abstract class VM_OptGCMapIterator extends OptGenericGCMapIterator implements VM_SizeConstants {
 
   private static final boolean DEBUG = false;
 

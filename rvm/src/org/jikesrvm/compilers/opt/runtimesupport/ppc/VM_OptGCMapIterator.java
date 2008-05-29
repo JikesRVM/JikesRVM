@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptGenericGCMapIterator;
+import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
 import org.jikesrvm.ppc.VM_ArchConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -24,11 +24,11 @@ import org.vmmagic.unboxed.WordArray;
  * represented by a frame built by the OPT compiler.
  *
  * The architecture-specific version of the GC Map iterator.  It inherits
- * its architecture-independent code from VM_OptGenericGCMapIterator.
+ * its architecture-independent code from OptGenericGCMapIterator.
  * This version is for the PowerPC
  */
 @Uninterruptible
-public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_ArchConstants {
+public abstract class VM_OptGCMapIterator extends OptGenericGCMapIterator implements VM_ArchConstants {
 
   private static final boolean DEBUG = false;
 
@@ -148,7 +148,7 @@ public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator imp
 
     // This computation will include some locations that are not technically
     // spill locations.  We do this because we currently do not record
-    // enough info in the VM_OptCompiledMethod object (the one that is available
+    // enough info in the OptCompiledMethod object (the one that is available
     // at GC time) to distinguish the lower part of the spill.
 
     Address firstSpill = getFirstSpillLoc();

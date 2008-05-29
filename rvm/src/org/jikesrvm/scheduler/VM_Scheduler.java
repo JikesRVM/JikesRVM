@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
@@ -751,7 +751,7 @@ public abstract class VM_Scheduler {
                 if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
                   OptCompiledMethod optInfo = (OptCompiledMethod) compiledMethod;
                   // Opt stack frames may contain multiple inlined methods.
-                  VM_OptMachineCodeMap map = optInfo.getMCMap();
+                  OptMachineCodeMap map = optInfo.getMCMap();
                   int iei = map.getInlineEncodingForMCOffset(instructionOffset);
                   if (iei >= 0) {
                     int[] inlineEncoding = map.inlineEncoding;

@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Uninterruptible;
@@ -340,7 +340,7 @@ public class VM_StackTrace {
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
           OptCompiledMethod optInfo = (OptCompiledMethod)compiledMethod;
-          VM_OptMachineCodeMap map = optInfo.getMCMap();
+          OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);
           if (iei < 0) {
             elements[element] = new Element(compiledMethod, instructionOffsets[i]);
@@ -381,7 +381,7 @@ public class VM_StackTrace {
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
           OptCompiledMethod optInfo = (OptCompiledMethod)compiledMethod;
-          VM_OptMachineCodeMap map = optInfo.getMCMap();
+          OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);
           if (iei < 0) {
             numElements++;

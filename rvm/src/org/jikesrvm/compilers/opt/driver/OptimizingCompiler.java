@@ -73,11 +73,11 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
 
       initializeStatics();
       if (VM.runningVM) {
-        // Make sure that VM_OptSaveVolatile.java is opt
+        // Make sure that OptSaveVolatile.java is opt
         // compiled (to get special prologues/epilogues)
         // TODO: This could be phased out as the new DynamicBridge
         // magic comes on line.
-        loadSpecialClass("Lorg/jikesrvm/compilers/opt/runtimesupport/VM_OptSaveVolatile;", options);
+        loadSpecialClass("Lorg/jikesrvm/compilers/opt/runtimesupport/OptSaveVolatile;", options);
 
       }
       // want to be notified when VM boot is done and ready to start application

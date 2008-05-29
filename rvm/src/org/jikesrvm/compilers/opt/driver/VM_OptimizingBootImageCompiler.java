@@ -42,7 +42,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
   // Otherwise, methods that match the pattern are not opt-compiled.
-  // In any case, the class VM_OptSaveVolatile is always opt-compiled.
+  // In any case, the class OptSaveVolatile is always opt-compiled.
   //
   private String excludePattern;
 
@@ -50,7 +50,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
     String clsName = cls.toString();
-    if (clsName.compareTo("org.jikesrvm.compilers.opt.runtimesupport.VM_OptSaveVolatile") == 0) return true;
+    if (clsName.compareTo("org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile") == 0) return true;
     String methodName = method.getName().toString();
     String fullName = clsName + "." + methodName;
     return (fullName.indexOf(excludePattern)) < 0;

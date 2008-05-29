@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.WordArray;
  * @see org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator
  */
 @Uninterruptible
-public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
+public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
     implements VM_OptGCMapIteratorConstants, VM_Constants {
 
   /**
@@ -44,7 +44,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    *  The GC map for this method
    */
-  private VM_OptMachineCodeMap map;
+  private OptMachineCodeMap map;
 
   /**
    *  Used to index into the GC map
@@ -83,7 +83,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   static final boolean lookForMissedReferencesInSpills = false;
 
   // Constructor
-  protected VM_OptGenericGCMapIterator(WordArray registerLocations) {
+  protected OptGenericGCMapIterator(WordArray registerLocations) {
     super();
     this.registerLocations = registerLocations;
   }
@@ -108,26 +108,26 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
     reset();
 
-    // retrieve and save the corresponding VM_OptMachineCodeMap for
+    // retrieve and save the corresponding OptMachineCodeMap for
     // this method and instructionOffset
     compiledMethod = (OptCompiledMethod) cm;
     map = compiledMethod.getMCMap();
     mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == OptGCMap.ERROR) {
       if (instructionOffset.sLT(Offset.zero())) {
-        VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset",
+        VM.sysWriteln("OptGenericGCMapIterator.setupIterator called with negative instructionOffset",
                       instructionOffset);
       } else {
         Offset possibleLen =
             Offset.fromIntZeroExtend(cm.numberOfInstructions() << ArchitectureSpecific.VM_RegisterConstants
                 .LG_INSTRUCTION_WIDTH);
         if (possibleLen.sLT(instructionOffset)) {
-          VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
+          VM.sysWriteln("OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
           VM.sysWriteln("offset is", instructionOffset);
           VM.sysWriteln(" bytes of machine code for method ", possibleLen);
         } else {
           VM.sysWriteln(
-              "VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
+              "OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
           VM.sysWrite("Method: ");
           VM.sysWrite(compiledMethod.getMethod());
           VM.sysWrite(", Machine Code (MC) Offset: ");

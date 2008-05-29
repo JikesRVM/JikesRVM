@@ -279,7 +279,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                 loc,
                                 IRTools.TG()));
             }
-            // Step 3. Plant call to VM_OptLinker.newArrayArray
+            // Step 3. Plant call to OptLinker.newArrayArray
             VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
             Call.mutate3(inst,
                          CALL,

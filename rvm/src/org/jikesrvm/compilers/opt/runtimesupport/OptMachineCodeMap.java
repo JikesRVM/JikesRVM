@@ -66,12 +66,12 @@ import org.vmmagic.unboxed.Offset;
  *         2) methods called at GC time (no allocation allowed!)
  */
 @Uninterruptible
-public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
+public final class OptMachineCodeMap implements VM_Constants, Constants {
 
   /**
    * Private constructor, object should be created via create
    */
-  private VM_OptMachineCodeMap(int[] _MCInformation, int[] _gcMaps, int[] _inlineEncoding) {
+  private OptMachineCodeMap(int[] _MCInformation, int[] _gcMaps, int[] _inlineEncoding) {
     MCInformation = _MCInformation;
     gcMaps = _gcMaps;
     inlineEncoding = _inlineEncoding;
@@ -80,7 +80,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
   /**
    * Private null constructor for no information
    */
-  private VM_OptMachineCodeMap() {
+  private OptMachineCodeMap() {
     MCInformation = null;
     gcMaps = null;
     inlineEncoding = null;
@@ -92,13 +92,13 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
    * @param machineCodeSize the number of machine code instructions generated.
    */
   @Interruptible
-  static VM_OptMachineCodeMap create(IR ir, int machineCodeSize) {
+  static OptMachineCodeMap create(IR ir, int machineCodeSize) {
     if (DUMP_MAPS) {
       VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
     }
 
     // create all machine code maps
-    final VM_OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
+    final OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
       map.recordStats(ir.method,
@@ -314,7 +314,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
    *  @param irMap  the irmap to translate from
    */
   @Interruptible
-  private static VM_OptMachineCodeMap generateMCInformation(GCIRMap irMap) {
+  private static OptMachineCodeMap generateMCInformation(GCIRMap irMap) {
     CallSiteTree inliningMap = new CallSiteTree();
     int numEntries = 0;
 
@@ -447,7 +447,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
     System.arraycopy(tmpMC, 0, mcInformation, 0, mcInformation.length);
     int[] gcMaps = gcMapBuilder.finish();
 
-    return new VM_OptMachineCodeMap(mcInformation, gcMaps, inlineEncoding);
+    return new OptMachineCodeMap(mcInformation, gcMaps, inlineEncoding);
   }
 
   ////////////////////////////////////////////
@@ -800,7 +800,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
   /**
    * A machine code map when no information is present
    */
-  private static final VM_OptMachineCodeMap emptyMachineCodeMap = new VM_OptMachineCodeMap();
+  private static final OptMachineCodeMap emptyMachineCodeMap = new OptMachineCodeMap();
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_OptMachineCodeMap.class);
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(OptMachineCodeMap.class);
 }

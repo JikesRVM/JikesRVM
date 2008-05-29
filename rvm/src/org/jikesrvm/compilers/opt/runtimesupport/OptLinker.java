@@ -27,10 +27,10 @@ import org.vmmagic.unboxed.Offset;
  * runtime services.
  *
  * @see org.jikesrvm.ArchitectureSpecific.FinalMIRExpansion
- * @see VM_OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
+ * @see OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see VM_TableBasedDynamicLinker
  */
-public final class VM_OptLinker implements VM_BytecodeConstants {
+public final class OptLinker implements VM_BytecodeConstants {
 
   /**
    * Given an opt compiler info and a machine code offset in that method's
@@ -42,7 +42,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
   public static void resolveDynamicLink(OptCompiledMethod cm, Offset offset) throws NoClassDefFoundError {
-    VM_OptMachineCodeMap map = cm.getMCMap();
+    OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
     VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
     if (bci == -1 || realMethod == null) {
@@ -66,7 +66,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       case JBC_invokeinterface:
       default:
         if (VM.VerifyAssertions) {
-          VM._assert(VM.NOT_REACHED, "Unexpected case in VM_OptLinker.resolveDynamicLink");
+          VM._assert(VM.NOT_REACHED, "Unexpected case in OptLinker.resolveDynamicLink");
         }
         break;
     }

@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
+import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.vmmagic.unboxed.Offset;
 
@@ -166,7 +166,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
         break;
         case VM_CompiledMethod.OPT: {
           OptCompiledMethod optCompiledMethod = (OptCompiledMethod) compiledMethod;
-          VM_OptMachineCodeMap mc_map = optCompiledMethod.getMCMap();
+          OptMachineCodeMap mc_map = optCompiledMethod.getMCMap();
           try {
             bytecodeIndex = mc_map.getBytecodeIndexForMCOffset(MCOffset);
             if (bytecodeIndex == -1) {

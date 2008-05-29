@@ -137,7 +137,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public void set(VM_StackBrowser browser, Offset instr) {
-    VM_OptMachineCodeMap map = getMCMap();
+    OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
       int[] inlineEncoding = map.inlineEncoding;
@@ -164,7 +164,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public boolean up(VM_StackBrowser browser) {
-    VM_OptMachineCodeMap map = getMCMap();
+    OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
     int next = OptEncodedCallSiteTree.getParent(iei, ie);
@@ -197,7 +197,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public void printStackTrace(Offset instructionOffset, VM_PrintLN out) {
-    VM_OptMachineCodeMap map = getMCMap();
+    OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
       int[] inlineEncoding = map.inlineEncoding;
@@ -266,7 +266,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
   // with a particular compiled method.
 
   /** The primary machine code maps */
-  private VM_OptMachineCodeMap _mcMap;
+  private OptMachineCodeMap _mcMap;
   /** The encoded exception tables (null if there are none) */
   private int[] eTable;
   private int[] patchMap;
@@ -437,7 +437,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
   /**
    * @return the machine code map for the compiled method.
    */
-  public VM_OptMachineCodeMap getMCMap() {
+  public OptMachineCodeMap getMCMap() {
     return _mcMap;
   }
 
@@ -449,7 +449,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public void createFinalMCMap(IR ir, int machineCodeLength) {
-    _mcMap = VM_OptMachineCodeMap.create(ir, machineCodeLength);
+    _mcMap = OptMachineCodeMap.create(ir, machineCodeLength);
   }
 
   /**

@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
  */
 @SaveVolatile
 @Uninterruptible
-public class VM_OptSaveVolatile {
+public class OptSaveVolatile {
 
   /**
    * Handle timer interrupt taken in method prologue.
@@ -130,7 +130,7 @@ public class VM_OptSaveVolatile {
     Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     Offset offset = cm.getInstructionOffset(ip);
     VM.enableGC();
-    // (3) Call the routine in VM_OptLinker that does all the real work.
-    VM_OptLinker.resolveDynamicLink(cm, offset);
+    // (3) Call the routine in OptLinker that does all the real work.
+    OptLinker.resolveDynamicLink(cm, offset);
   }
 }
