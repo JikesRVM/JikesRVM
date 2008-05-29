@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.
  */
-final class VM_OptExceptionTable extends VM_ExceptionTable {
+final class OptExceptionTable extends VM_ExceptionTable {
 
   /**
    * Encode an exception table

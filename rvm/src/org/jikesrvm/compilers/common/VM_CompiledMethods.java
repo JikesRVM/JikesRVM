@@ -22,7 +22,7 @@ import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
@@ -118,7 +118,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     if (compilerType == VM_CompiledMethod.BASELINE) {
       cm = new VM_BaselineCompiledMethod(id, m);
     } else if (VM.BuildForOptCompiler && compilerType == VM_CompiledMethod.OPT) {
-      cm = new VM_OptCompiledMethod(id, m);
+      cm = new OptCompiledMethod(id, m);
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {

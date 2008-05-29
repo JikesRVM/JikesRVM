@@ -39,7 +39,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * The compiled method
    */
-  protected VM_OptCompiledMethod compiledMethod;
+  protected OptCompiledMethod compiledMethod;
 
   /**
    *  The GC map for this method
@@ -110,10 +110,10 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
     // retrieve and save the corresponding VM_OptMachineCodeMap for
     // this method and instructionOffset
-    compiledMethod = (VM_OptCompiledMethod) cm;
+    compiledMethod = (OptCompiledMethod) cm;
     map = compiledMethod.getMCMap();
     mapIndex = map.findGCMapIndex(instructionOffset);
-    if (mapIndex == VM_OptGCMap.ERROR) {
+    if (mapIndex == OptGCMap.ERROR) {
       if (instructionOffset.sLT(Offset.zero())) {
         VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset",
                       instructionOffset);
@@ -159,7 +159,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       VM.sysWrite(compiledMethod.getMethod());
       VM.sysWrite("\n ");
 
-      if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
+      if (mapIndex == OptGCMap.NO_MAP_ENTRY) {
         VM.sysWrite("... empty map found\n");
       } else {
         VM.sysWrite("... found a map\n");
@@ -185,7 +185,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     if (DEBUG) { VM.sysWrite("  next => "); }
 
     // make sure we have a map entry to look at
-    if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
+    if (mapIndex == OptGCMap.NO_MAP_ENTRY) {
       if (DEBUG) {
         VM.sysWrite("  No Map, returning 0\n");
       }
@@ -235,7 +235,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // To do this we request the nextLocation from the ref map.
     // If it returns a non-sentinel value we have a reference is a spill.
     mapIndex = map.nextLocation(mapIndex);
-    if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
+    if (mapIndex == OptGCMap.NO_MAP_ENTRY) {
       if (DEBUG) {
         VM.sysWrite("  No more to return, returning 0\n");
       }

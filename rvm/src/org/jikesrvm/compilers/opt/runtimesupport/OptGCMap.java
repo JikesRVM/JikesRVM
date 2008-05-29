@@ -24,7 +24,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * A class that encapsulates the GCMap portion of the machine code maps.
  * An instance of this class is created to encode and instance of a
  * GCIRMap into an int[].  The int[] is stored persistently,
- * but the instance of the VM_OptGCMap is NOT.
+ * but the instance of the OptGCMap is NOT.
  *
  * <ul>
  * <li> each map will be a sequence of 1 or more ints
@@ -43,7 +43,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *            these methods are static
  */
 @Uninterruptible
-public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
+public final class OptGCMap implements VM_OptGCMapIteratorConstants {
   public static final int NO_MAP_ENTRY = -1;
   public static final int ERROR = -2;
 
@@ -75,7 +75,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
   /**
    * Constructor, called during compilation
    */
-  VM_OptGCMap() {
+  OptGCMap() {
     lastGCMapEntry = -1;
     gcMapInformation = new int[INITIAL_MAP_SIZE];   // initial map size
   }

@@ -163,7 +163,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
    * A single postion operator can be shared by many instruction objects.
    *
    * @see InlineSequence
-   * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree
+   * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
    */
   public InlineSequence position;
 

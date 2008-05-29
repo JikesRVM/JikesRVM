@@ -312,7 +312,7 @@ public abstract class StackManager extends GenericStackManager {
           numGprNv++;
         }
       }
-      // Update the VM_OptCompiledMethod object.
+      // Update the OptCompiledMethod object.
       ir.compiledMethod.setNumberOfNonvolatileGPRs((short) numGprNv);
       if (numGprNv > 0) {
         int gprOffset = getNonvolatileGPROffset(0);

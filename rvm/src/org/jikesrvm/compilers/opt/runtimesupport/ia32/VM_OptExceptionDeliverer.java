@@ -17,7 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
@@ -40,7 +40,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    */
   public void deliverException(VM_CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
                                Throwable exceptionObject, VM_Registers registers) {
-    VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod) compiledMethod;
+    OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
     Address fp = registers.getInnermostFramePointer();
     VM_Thread myThread = VM_Scheduler.getCurrentThread();
 
@@ -118,7 +118,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    */
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
-    VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod) compiledMethod;
+    OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
 
     if (TRACE) {
       VM.sysWrite("Registers before unwinding frame for ");

@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
- * Since there will be an instance of this class with every VM_OptCompiledMethod,
+ * Since there will be an instance of this class with every OptCompiledMethod,
  * we attempt to pack the data into a reasonably small number of bits.
  *
  * <p> The supported functions are:
@@ -146,7 +146,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
     if (iei == -1) {
       return null;
     }
-    int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+    int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
     return (VM_NormalMethod) VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
   }
 
@@ -167,15 +167,15 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
   /**
    *  This method searches for the GC map corresponding to the
    *  passed machine code offset.
-   *  If no map is present, an error has occurred and VM_OptGCMap.ERROR
+   *  If no map is present, an error has occurred and OptGCMap.ERROR
    *  is returned.
    *
    *  @param MCOffset the machine code offset to look for
-   *  @return the GC map index or VM_OptGCMap.ERROR
+   *  @return the GC map index or OptGCMap.ERROR
    */
   public int findGCMapIndex(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
-    if (entry == -1) return VM_OptGCMap.ERROR;
+    if (entry == -1) return OptGCMap.ERROR;
     return getGCMapIndex(entry);
   }
 
@@ -194,7 +194,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
         if (bcIndex != -1) {
           int iei = getInlineEncodingIndex(entry);
           if (iei != -1) {
-            int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+            int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
             VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
             if (caller != null) {
               if (ans == null) ans = new ArrayList<VM_CallSite>();
@@ -222,7 +222,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
   public boolean hasInlinedEdge(VM_Method caller, int bcIndex, VM_Method callee) {
     if (MCInformation == null) return false;
     if (inlineEncoding == null) return false;
-    return VM_OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
+    return OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
   }
 
   /**
@@ -230,7 +230,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
    * @param  index     GCmap entry
    */
   public int gcMapInformation(int index) {
-    return VM_OptGCMap.gcMapInformation(index, gcMaps);
+    return OptGCMap.gcMapInformation(index, gcMaps);
   }
 
   /**
@@ -239,14 +239,14 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
    * @param  registerNumber   the register number
    */
   public boolean registerIsSet(int entry, int registerNumber) {
-    return VM_OptGCMap.registerIsSet(entry, registerNumber, gcMaps);
+    return OptGCMap.registerIsSet(entry, registerNumber, gcMaps);
   }
 
   /**
    * @return the next (relative) location or -1 for no more locations
    */
   public int nextLocation(int currentIndex) {
-    return VM_OptGCMap.nextLocation(currentIndex, gcMaps);
+    return OptGCMap.nextLocation(currentIndex, gcMaps);
   }
 
   ///////////////////////////////////////
@@ -334,10 +334,10 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
 
     if (numEntries == 0) return emptyMachineCodeMap; // if no entries, then we are done.
 
-    int[] inlineEncoding = VM_OptEncodedCallSiteTree.getEncoding(inliningMap);
+    int[] inlineEncoding = OptEncodedCallSiteTree.getEncoding(inliningMap);
 
     // (2) Encode the primary machine code mapping information and the GCMaps.
-    VM_OptGCMap gcMapBuilder = new VM_OptGCMap();
+    OptGCMap gcMapBuilder = new OptGCMap();
     int[] tmpMC = new int[numEntries * SIZEOF_HUGE_ENTRY];
     int lastMCInfoEntry = 0;
     for (GCIRMapElement irMapElem : irMap) {
@@ -620,7 +620,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
       }
       boolean first = true;
       while (iei >= 0) {
-        int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+        int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
         VM_Method meth = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
         if (first) {
           first = false;
@@ -629,13 +629,13 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
           VM.sysWrite("\n\tInlined into " + meth + " at bytecode " + bci);
         }
         if (iei > 0) {
-          bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
+          bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
         }
-        iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding);
+        iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding);
       }
-      if (getGCMapIndex(entry) != VM_OptGCMap.NO_MAP_ENTRY) {
+      if (getGCMapIndex(entry) != OptGCMap.NO_MAP_ENTRY) {
         VM.sysWrite("\n\tGC Map Idx: " + getGCMapIndex(entry) + " ");
-        VM_OptGCMap.dumpMap(getGCMapIndex(entry), gcMaps);
+        OptGCMap.dumpMap(getGCMapIndex(entry), gcMaps);
       } else {
         VM.sysWrite("\n\tno GC map");
       }
@@ -777,11 +777,11 @@ public final class VM_OptMachineCodeMap implements VM_Constants, Constants {
    */
   private final int[] MCInformation;
   /**
-   * array of GC maps as defined by VM_OptGCMap
+   * array of GC maps as defined by OptGCMap
    */
   private final int[] gcMaps;
   /**
-   * encoded data as defined by VM_OptEncodedCallSiteTree.
+   * encoded data as defined by OptEncodedCallSiteTree.
    */
   public final int[] inlineEncoding;
   /**

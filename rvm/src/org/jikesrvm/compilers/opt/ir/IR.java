@@ -57,7 +57,7 @@ import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ssa.HeapVariable;
 import org.jikesrvm.compilers.opt.ssa.SSAOptions;
 import org.jikesrvm.util.VM_BitVector;
@@ -149,7 +149,7 @@ public final class IR {
   /**
    * The compiled method created to hold the result of this compilation.
    */
-  public final VM_OptCompiledMethod compiledMethod;
+  public final OptCompiledMethod compiledMethod;
 
   /**
    * The compiler {@link OptOptions options} that apply
@@ -281,7 +281,7 @@ public final class IR {
     options = opts;
     inlinePlan = ip;
     instrumentationPlan = null;
-    compiledMethod = (VM_OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
+    compiledMethod = (OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
   }
 
   /**
@@ -294,7 +294,7 @@ public final class IR {
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     instrumentationPlan = cp.instrumentationPlan;
-    compiledMethod = (VM_OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
+    compiledMethod = (OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
   }
 
   /**

@@ -23,8 +23,8 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -749,20 +749,20 @@ public abstract class VM_Scheduler {
                 int lineNumber = compiledMethod.findLineNumberForInstruction(instructionOffset);
                 boolean frameShown = false;
                 if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-                  VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod) compiledMethod;
+                  OptCompiledMethod optInfo = (OptCompiledMethod) compiledMethod;
                   // Opt stack frames may contain multiple inlined methods.
                   VM_OptMachineCodeMap map = optInfo.getMCMap();
                   int iei = map.getInlineEncodingForMCOffset(instructionOffset);
                   if (iei >= 0) {
                     int[] inlineEncoding = map.inlineEncoding;
                     int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-                    for (; iei >= 0; iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
-                      int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+                    for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+                      int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
                       method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
                       lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
                       showMethod(method, lineNumber, fp);
                       if (iei > 0) {
-                        bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
+                        bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
                       }
                     }
                     frameShown=true;

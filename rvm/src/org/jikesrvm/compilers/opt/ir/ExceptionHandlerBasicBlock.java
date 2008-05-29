@@ -150,7 +150,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    * Get how many table entires this EHBB needs.
    * Really only of interest during final assembly.
    *
-   * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptExceptionTable
+   * @see org.jikesrvm.compilers.opt.runtimesupport.OptExceptionTable
    *
    * @return the number of table entries for this basic block
    */

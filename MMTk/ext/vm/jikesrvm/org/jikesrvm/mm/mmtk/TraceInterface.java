@@ -21,8 +21,8 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
@@ -162,7 +162,7 @@ import org.vmmagic.unboxed.Word;
           ipOffset = compiledMethod.getInstructionOffset(ip);
           m = compiledMethod.getMethod();
           if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+            OptCompiledMethod optInfo = (OptCompiledMethod)compiledMethod;
             /* Opt stack frames may contain multiple inlined methods. */
             VM_OptMachineCodeMap map = optInfo.getMCMap();
             int iei = map.getInlineEncodingForMCOffset(ipOffset);
@@ -171,13 +171,13 @@ import org.vmmagic.unboxed.Word;
               boolean allocCall = true;
               bci = map.getBytecodeIndexForMCOffset(ipOffset);
               for (int j = iei; j >= 0 && allocCall;
-                   j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-                int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
+                   j = OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
+                int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
                 m = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
                 if (!isAllocCall(m.getName().getBytes()))
                   allocCall = false;
                 if (j > 0)
-                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j,
+                  bci = OptEncodedCallSiteTree.getByteCodeOffset(j,
                                                                     inlineEncoding);
               }
               if (!allocCall)

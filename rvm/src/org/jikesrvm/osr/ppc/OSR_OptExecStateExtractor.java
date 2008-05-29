@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
@@ -85,7 +85,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       VM._assert(foocmid == cmid);
     }
 
-    VM_OptCompiledMethod fooCM = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    OptCompiledMethod fooCM = (OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
 
     /* Following code get the machine code offset to the
      * next instruction. All operation of the stack frame
@@ -114,7 +114,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
       // SaveVolatile can only be compiled by OPT compiler
       if (VM.VerifyAssertions) {
-        VM._assert(bufCM instanceof VM_OptCompiledMethod);
+        VM._assert(bufCM instanceof OptCompiledMethod);
       }
 
       restoreValuesFromOptSaveVolatile(stack, osrFPoff, registers, regmap, bufCM);
@@ -163,7 +163,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   private void restoreValuesFromOptSaveVolatile(byte[] stack, Offset osrFPoff, OSR_TempRegisters registers, int regmap,
                                                 VM_CompiledMethod cm) {
 
-    VM_OptCompiledMethod tsfromCM = (VM_OptCompiledMethod) cm;
+    OptCompiledMethod tsfromCM = (OptCompiledMethod) cm;
 
     Offset nvArea = osrFPoff.plus(tsfromCM.getUnsignedNonVolatileOffset());
 
@@ -470,7 +470,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     VM.enableGC();
 
     int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
-    VM_OptCompiledMethod cm = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    OptCompiledMethod cm = (OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
 
     VM.sysWrite("stack of " + cm.getMethod() + "\n");
     VM.sysWrite(" NV area offset " + cm.getUnsignedNonVolatileOffset() + "\n");

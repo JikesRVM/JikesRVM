@@ -20,7 +20,7 @@ import org.jikesrvm.adaptive.measurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 /**
@@ -116,7 +116,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
         // compiled at filterOptLevel or higher.
         if (!(compilerType == VM_CompiledMethod.TRAP ||
               (compilerType == VM_CompiledMethod.OPT &&
-               (((VM_OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
+               (((OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
           VM_HotMethodRecompilationEvent event = new VM_HotMethodRecompilationEvent(cm, ns);
           VM_Controller.controllerInputQueue.insert(ns, event);
           VM_AOSLogging.controllerNotifiedForHotness(cm, ns);

@@ -17,7 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Address;
@@ -38,7 +38,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
                                VM_Registers registers) {
 
     // store exception object for later retrieval by catch block
-    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod) cm;
+    OptCompiledMethod compiledMethod = (OptCompiledMethod) cm;
     Offset offset = Offset.fromIntSignExtend(compiledMethod.getUnsignedExceptionOffset());
     if (!offset.isZero()) {
       // only put the exception object in the stackframe if the catch block is expecting it.
@@ -65,7 +65,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    */
   public void unwindStackFrame(VM_CompiledMethod cm, VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
-    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod) cm;
+    OptCompiledMethod compiledMethod = (OptCompiledMethod) cm;
 
     // restore non-volatile registers
     Offset frameOffset = Offset.fromIntSignExtend(compiledMethod.getUnsignedNonVolatileOffset());

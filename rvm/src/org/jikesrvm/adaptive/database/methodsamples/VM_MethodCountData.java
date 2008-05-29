@@ -24,7 +24,7 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
  * A container for recording how often a method is executed.
@@ -299,7 +299,7 @@ public final class VM_MethodCountData implements VM_Reportable {
           // opt compiled at filterOptLevel or higher.
           if (!(compilerType == VM_CompiledMethod.TRAP ||
                 (compilerType == VM_CompiledMethod.OPT &&
-                 (((VM_OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
+                 (((OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
             double ns = counts[index];
             VM_HotMethodRecompilationEvent event = new VM_HotMethodRecompilationEvent(cm, ns);
             VM_Controller.controllerInputQueue.insert(ns, event);
@@ -337,7 +337,7 @@ public final class VM_MethodCountData implements VM_Reportable {
           collectHotOptMethodsInternal(index, collect, threshold, optLevel);
         } else {
           int compilerType = cm.getCompilerType();
-          if (compilerType == VM_CompiledMethod.OPT && ((VM_OptCompiledMethod) cm).getOptLevel() == optLevel) {
+          if (compilerType == VM_CompiledMethod.OPT && ((OptCompiledMethod) cm).getOptLevel() == optLevel) {
             double ns = counts[index];
             collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
           }

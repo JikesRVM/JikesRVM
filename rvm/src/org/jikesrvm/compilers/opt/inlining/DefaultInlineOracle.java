@@ -25,7 +25,7 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
@@ -255,7 +255,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               // of two evils.
               VM_CompiledMethod prev = state.getRootMethod().getCurrentCompiledMethod();
               if (prev != null && prev.getCompilerType() == VM_CompiledMethod.OPT) {
-                if (((VM_OptCompiledMethod)prev).getMCMap().hasInlinedEdge(caller, bcIndex, callee)) {
+                if (((OptCompiledMethod)prev).getMCMap().hasInlinedEdge(caller, bcIndex, callee)) {
                   if (verbose) VM.sysWriteln("\t\tSelect: Previously inlined");
                   decideYes = true;
                 }

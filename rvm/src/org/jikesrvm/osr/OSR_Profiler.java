@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
  * Maintain statistic information about on stack replacement events
@@ -78,7 +78,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
     }
 
     // make sure the compiled method is an opt one
-    if (!(mostRecentlyCompiledMethod instanceof VM_OptCompiledMethod)) {
+    if (!(mostRecentlyCompiledMethod instanceof OptCompiledMethod)) {
       return;
     }
 

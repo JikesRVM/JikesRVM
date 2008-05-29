@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.osr.OSR_Constants;
@@ -186,7 +186,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       //This is because we don't know at compile time which registers might be in use and wich not by the caller method at runtime!!
       //For now we disallow tsFrom methods to be opt compiled when the caller is baseline compiled
       //todo: fix this together with the SaveVolatile rewrite
-      VM_OptCompiledMethod fooOpt = (VM_OptCompiledMethod) bufCM;
+      OptCompiledMethod fooOpt = (OptCompiledMethod) bufCM;
       // foo definitely not save volatile.
       if (VM.VerifyAssertions) {
         boolean saveVolatile = fooOpt.isSaveVolatile();

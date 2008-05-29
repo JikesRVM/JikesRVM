@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
  * Abstract parent class for events from organizers to the controller
@@ -42,7 +42,7 @@ public abstract class VM_HotMethodEvent {
 
   public final int getOptCompiledLevel() {
     if (!isOptCompiled()) return -1;
-    return ((VM_OptCompiledMethod) cm).getOptLevel();
+    return ((OptCompiledMethod) cm).getOptLevel();
   }
 
   public final int getPrevCompilerConstant() {

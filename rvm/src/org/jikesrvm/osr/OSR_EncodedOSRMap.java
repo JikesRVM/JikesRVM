@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * OSR_EncodedOSRMap provides the samilar function as GC map
  * in VM_OptMachineCodeMap.
  *
- * In VM_OptCompiledMethod, an instance of this class will represent
+ * In OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  */
 

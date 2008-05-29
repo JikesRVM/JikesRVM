@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
  * An abstract class providing the interface to the decision making
@@ -215,7 +215,7 @@ public abstract class VM_RecompilationStrategy {
         return 0;
       }
       case VM_CompiledMethod.OPT:
-        VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod) cmpMethod;
+        OptCompiledMethod optMeth = (OptCompiledMethod) cmpMethod;
         return VM_CompilerDNA.getCompilerConstant(optMeth.getOptLevel());
       default:
         if (VM.VerifyAssertions) VM._assert(false, "Unknown Compiler");

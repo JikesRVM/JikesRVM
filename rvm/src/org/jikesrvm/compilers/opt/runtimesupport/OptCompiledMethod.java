@@ -52,9 +52,9 @@ import org.vmmagic.unboxed.Offset;
  */
 @SynchronizedObject
 @Uninterruptible
-public final class VM_OptCompiledMethod extends VM_CompiledMethod {
+public final class OptCompiledMethod extends VM_CompiledMethod {
 
-  public VM_OptCompiledMethod(int id, VM_Method m) {
+  public OptCompiledMethod(int id, VM_Method m) {
     super(id, m);
   }
 
@@ -141,7 +141,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
       int[] inlineEncoding = map.inlineEncoding;
-      int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+      int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
 
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
@@ -167,10 +167,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
-    int next = VM_OptEncodedCallSiteTree.getParent(iei, ie);
+    int next = OptEncodedCallSiteTree.getParent(iei, ie);
     if (next >= 0) {
-      int mid = VM_OptEncodedCallSiteTree.getMethodID(next, ie);
-      int bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(iei, ie);
+      int mid = OptEncodedCallSiteTree.getMethodID(next, ie);
+      int bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, ie);
 
       browser.setInlineEncodingIndex(next);
       browser.setBytecodeIndex(bci);
@@ -202,8 +202,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     if (iei >= 0) {
       int[] inlineEncoding = map.inlineEncoding;
       int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-      for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
-        int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
+      for (int j = iei; j >= 0; j = OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
+        int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m =
             (VM_NormalMethod) VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
@@ -218,7 +218,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
         out.print(')');
         out.println();
         if (j > 0) {
-          bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
+          bci = OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
         }
       }
     } else {
@@ -459,7 +459,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   @Interruptible
   public void createFinalExceptionTable(IR ir) {
     if (ir.hasReachableExceptionHandlers()) {
-      eTable = VM_OptExceptionTable.encode(ir);
+      eTable = OptExceptionTable.encode(ir);
     }
   }
 

@@ -29,14 +29,14 @@ import org.vmmagic.pragma.Uninterruptible;
  * &lt;H,30,I&gt;
  * </pre>
  *
- * Then the <code>VM_OptEncodedCallSiteTree </code> would be:
+ * Then the <code>OptEncodedCallSiteTree </code> would be:
  *
  * <pre>
  * -1, A, -2, 12, B, 14, C, 16, D, -6, 3, E, 5, F, -9, 10, G, -2, 20 H -2 30 I
  * </pre>
  */
 @Uninterruptible
-public abstract class VM_OptEncodedCallSiteTree {
+public abstract class OptEncodedCallSiteTree {
 
   public static int getMethodID(int entryOffset, int[] encoding) {
     return encoding[entryOffset + 1];

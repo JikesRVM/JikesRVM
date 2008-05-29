@@ -23,8 +23,8 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
@@ -339,7 +339,7 @@ public class VM_StackTrace {
           element++;
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
-          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+          OptCompiledMethod optInfo = (OptCompiledMethod)compiledMethod;
           VM_OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);
           if (iei < 0) {
@@ -348,8 +348,8 @@ public class VM_StackTrace {
           } else {
             int[] inlineEncoding = map.inlineEncoding;
             int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-            for (; iei >= 0; iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
-              int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+            for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+              int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
               VM_Method method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
               int lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
               elements[element] = new Element(method, lineNumber);
@@ -380,14 +380,14 @@ public class VM_StackTrace {
           numElements++;
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
-          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+          OptCompiledMethod optInfo = (OptCompiledMethod)compiledMethod;
           VM_OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);
           if (iei < 0) {
             numElements++;
           } else {
             int[] inlineEncoding = map.inlineEncoding;
-            for (; iei >= 0; iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+            for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
               numElements++;
             }
           }
