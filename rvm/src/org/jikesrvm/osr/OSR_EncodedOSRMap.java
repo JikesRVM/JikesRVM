@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
+import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * all OSR map info for that method.
  */
 
-public final class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OSR_Constants {
+public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_Constants {
 
   /** osr info entries */
   private final long[] mapEntries;

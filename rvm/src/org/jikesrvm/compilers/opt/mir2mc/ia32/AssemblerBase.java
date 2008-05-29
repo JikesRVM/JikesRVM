@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import java.util.ArrayList;
 import static org.jikesrvm.ia32.VM_ArchConstants.SSE2_FULL;
-import org.jikesrvm.ArchitectureSpecific.Assembler;
+import org.jikesrvm.ArchitectureSpecificOpt.Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;

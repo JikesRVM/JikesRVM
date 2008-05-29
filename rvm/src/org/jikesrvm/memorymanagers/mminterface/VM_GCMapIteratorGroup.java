@@ -15,7 +15,7 @@ package org.jikesrvm.memorymanagers.mminterface;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.VM_JNIGCMapIterator;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator;
+import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIterator;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -63,7 +63,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
 
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
     if (VM.BuildForOptCompiler) {
-      optIterator = new VM_OptGCMapIterator(registerLocations);
+      optIterator = new OptGCMapIterator(registerLocations);
     } else {
       optIterator = null;
     }

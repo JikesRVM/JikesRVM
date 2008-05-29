@@ -14,9 +14,9 @@ package org.jikesrvm.adaptive;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor;
-import org.jikesrvm.ArchitectureSpecific.OSR_CodeInstaller;
-import org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor;
+import org.jikesrvm.ArchitectureSpecificOpt.OSR_BaselineExecStateExtractor;
+import org.jikesrvm.ArchitectureSpecificOpt.OSR_CodeInstaller;
+import org.jikesrvm.ArchitectureSpecificOpt.OSR_OptExecStateExtractor;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;

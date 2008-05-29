@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.util.Bits; //NOPMD
-import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
 
 import org.vmmagic.unboxed.*;
 

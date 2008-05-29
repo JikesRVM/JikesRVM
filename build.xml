@@ -533,6 +533,14 @@ Check to make sure all required properties are specified. This includes properti
           <filter token="_IA32_QUOTE_" value="${@{arch}-ia32_quote}"/>
         </filterset>
       </copy>
+        <copy file="${basedir}/rvm/src-generated/vm-configuration/ArchitectureSpecificOpt.template"
+              tofile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/ArchitectureSpecificOpt.java">
+          <filterset>
+            <filter token="_ARCH_" value="@{arch}"/>
+            <filter token="_PPC_QUOTE_" value="${@{arch}-ppc_quote}"/>
+            <filter token="_IA32_QUOTE_" value="${@{arch}-ia32_quote}"/>
+          </filterset>
+        </copy>
     </sequential>
   </macrodef>
 
@@ -1038,9 +1046,7 @@ Check to make sure all required properties are specified. This includes properti
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
-      <exclude name="org/jikesrvm/ArchitectureSpecific$OSR*.class" unless="include.opt"/>
-      <exclude name="org/jikesrvm/ArchitectureSpecific$OPT*.class" unless="include.opt"/>
-      <exclude name="org/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
+      <exclude name="org/jikesrvm/ArchitectureSpecificOpt$*.class" unless="include.opt"/>
       <include name="**/JikesRVMSupport.class"/>
       <include name="java/**/VM*.class" />
       <include name="gnu/**/VM*.class" />

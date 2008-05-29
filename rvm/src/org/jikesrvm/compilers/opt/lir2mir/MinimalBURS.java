@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import org.jikesrvm.ArchitectureSpecific.BURS_Debug;
-import org.jikesrvm.ArchitectureSpecific.BURS_STATE;
-import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.scheduler.greenthreads;
 
-import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecificOpt;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_NORMAL;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.OSR_Listener;
@@ -363,7 +363,7 @@ public class VM_GreenThread extends VM_Thread {
 
     VM_GreenThread myThread = VM_GreenScheduler.getCurrentThread();
     if (VM.BuildForAdaptiveSystem && myThread.isWaitingForOsr) {
-      ArchitectureSpecific.OSR_PostThreadSwitch.postProcess(myThread);
+      ArchitectureSpecificOpt.OSR_PostThreadSwitch.postProcess(myThread);
     }
   }
 

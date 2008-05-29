@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.driver;
 import java.util.ArrayList;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.MIROptimizationPlanner;
+import org.jikesrvm.ArchitectureSpecificOpt.MIROptimizationPlanner;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertInstructionCounters;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertMethodInvocationCounter;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCounters;

@@ -38,10 +38,10 @@ import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_SUPERCLASS_IDS_
 import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_TYPE_INDEX;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.CallingConvention;
-import org.jikesrvm.ArchitectureSpecific.ComplexLIR2MIRExpansion;
-import org.jikesrvm.ArchitectureSpecific.ConvertALUOperators;
-import org.jikesrvm.ArchitectureSpecific.NormalizeConstants;
+import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
+import org.jikesrvm.ArchitectureSpecificOpt.ComplexLIR2MIRExpansion;
+import org.jikesrvm.ArchitectureSpecificOpt.ConvertALUOperators;
+import org.jikesrvm.ArchitectureSpecificOpt.NormalizeConstants;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.NullCheckCombining;

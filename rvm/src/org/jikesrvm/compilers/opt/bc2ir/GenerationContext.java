@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_Type;

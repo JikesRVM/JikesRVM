@@ -24,10 +24,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
-import org.jikesrvm.ArchitectureSpecific.RegisterRestrictions;
-import org.jikesrvm.ArchitectureSpecific.StackManager;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
+import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;

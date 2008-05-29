@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;

@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Iterator;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
+import org.jikesrvm.ArchitectureSpecificOpt;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -326,7 +326,7 @@ public abstract class IREnumeration {
     /**
      * Implicit definitions from the operator
      */
-    private final ArchitectureSpecific.PhysicalDefUse.PDUEnumeration implicitDefs;
+    private final ArchitectureSpecificOpt.PhysicalDefUse.PDUEnumeration implicitDefs;
     /**
      * Defining instruction
      */
@@ -342,7 +342,7 @@ public abstract class IREnumeration {
       this.instr = instr;
       instructionOperands = instr.getDefs();
       if (instr.operator().getNumberOfImplicitDefs() > 0) {
-        implicitDefs = ArchitectureSpecific.PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
+        implicitDefs = ArchitectureSpecificOpt.PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
       } else {
         implicitDefs = null;
       }

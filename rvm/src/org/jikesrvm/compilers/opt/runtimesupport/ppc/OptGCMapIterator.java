@@ -28,11 +28,11 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for the PowerPC
  */
 @Uninterruptible
-public abstract class VM_OptGCMapIterator extends OptGenericGCMapIterator implements VM_ArchConstants {
+public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements VM_ArchConstants {
 
   private static final boolean DEBUG = false;
 
-  public VM_OptGCMapIterator(WordArray registerLocations) {
+  public OptGCMapIterator(WordArray registerLocations) {
     super(registerLocations);
   }
 

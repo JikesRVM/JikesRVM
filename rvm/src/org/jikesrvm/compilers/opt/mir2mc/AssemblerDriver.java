@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.mir2mc;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.Assembler;
+import org.jikesrvm.ArchitectureSpecificOpt.Assembler;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;

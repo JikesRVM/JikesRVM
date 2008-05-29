@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.regalloc.ia32;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_CacheOp;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;

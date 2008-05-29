@@ -36,8 +36,8 @@ import java.util.HashSet;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.ArchitectureSpecific.StackManager;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;

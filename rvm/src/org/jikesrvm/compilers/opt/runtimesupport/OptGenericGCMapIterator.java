@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
+import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -30,11 +30,11 @@ import org.vmmagic.unboxed.WordArray;
  * This class contains its architecture-independent code for iteration
  * across the references represented by a frame built by the OPT compiler.
  *
- * @see org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator
+ * @see org.jikesrvm.ArchitectureSpecific.OptGCMapIterator
  */
 @Uninterruptible
 public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
-    implements VM_OptGCMapIteratorConstants, VM_Constants {
+    implements OptGCMapIteratorConstants, VM_Constants {
 
   /**
    * The compiled method
@@ -132,7 +132,7 @@ public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
           VM.sysWrite(compiledMethod.getMethod());
           VM.sysWrite(", Machine Code (MC) Offset: ");
           VM.sysWriteln(instructionOffset);
-          VM.sysFail("VM_OptGenericMapIterator: findGCMapIndex failed\n");
+          VM.sysFail("OptGenericMapIterator: findGCMapIndex failed\n");
         }
       }
       VM.sysWrite("Supposed method: ");
@@ -148,7 +148,7 @@ public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
         VM.sysWrite(realCM.getMethod());
         VM.sysWriteln(" whose code contains this return address");
       }
-      VM.sysFail("VM_OptGenericMapIterator: setupIterator failed\n");
+      VM.sysFail("OptGenericMapIterator: setupIterator failed\n");
     }
 
     // save the frame pointer

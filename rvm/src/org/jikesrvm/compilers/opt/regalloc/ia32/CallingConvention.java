@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
 import org.jikesrvm.classloader.VM_TypeReference;

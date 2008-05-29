@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
@@ -93,7 +94,7 @@ public abstract class Assembler implements Operators, VM_Constants, VM_ArchConst
    */
   public static int generateCode(IR ir, boolean shouldPrint) {
     ir.MIRInfo.machinecode = ArchitectureSpecific.VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
-    return new ArchitectureSpecific.Assembler().genCode(ir, shouldPrint);
+    return new ArchitectureSpecificOpt.Assembler().genCode(ir, shouldPrint);
   }
 
   protected final int genCode(IR ir, boolean shouldPrint) {

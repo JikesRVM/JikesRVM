@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;

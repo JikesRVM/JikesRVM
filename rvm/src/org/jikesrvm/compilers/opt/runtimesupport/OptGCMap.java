@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.runtimesupport;
 
 import java.util.List;
-import org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIteratorConstants;
+import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
@@ -43,7 +43,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *            these methods are static
  */
 @Uninterruptible
-public final class OptGCMap implements VM_OptGCMapIteratorConstants {
+public final class OptGCMap implements OptGCMapIteratorConstants {
   public static final int NO_MAP_ENTRY = -1;
   public static final int ERROR = -2;
 

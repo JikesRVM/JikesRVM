@@ -68,7 +68,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.GenerateMachineSpecificMagic;
+import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_MemberReference;

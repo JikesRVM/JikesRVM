@@ -1,0 +1,73 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package org.jikesrvm;
+
+import org.vmmagic.unboxed.WordArray;
+
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.opt.lir2mir.BURS;
+import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
+import org.jikesrvm.compilers.opt.ir.IR;
+
+public class ArchitectureSpecificOpt {
+  public static final class Assembler extends org.jikesrvm.compilers.opt.mir2mc.@_ARCH_@.Assembler {
+  @_PPC_QUOTE_@
+    public Assembler(int bcSize, boolean print, IR ir) {
+      super(bcSize, print, ir);
+    }
+  //*/
+  }
+  public static final class BURS_Debug extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Debug {}
+  public static final class BURS_STATE extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_STATE {
+    public BURS_STATE(BURS b) {
+      super(b);
+    }}
+  public static class BURS_TreeNode extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_TreeNode {
+    public BURS_TreeNode(DepGraphNode node) {
+      super(node);
+    }
+    public BURS_TreeNode(char int_constant_opcode) {
+      super(int_constant_opcode);
+    }}
+  public static final class CallingConvention extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.CallingConvention {}
+  public static final class ComplexLIR2MIRExpansion extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.ComplexLIR2MIRExpansion {}
+  public static final class ConvertALUOperators extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.ConvertALUOperators {}
+  public static final class FinalMIRExpansion extends org.jikesrvm.compilers.opt.mir2mc.@_ARCH_@.FinalMIRExpansion {}
+  public static final class MIROptimizationPlanner extends org.jikesrvm.compilers.opt.driver.@_ARCH_@.MIROptimizationPlanner {}
+  public static final class NormalizeConstants extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.NormalizeConstants {}
+  public interface PhysicalRegisterConstants extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.PhysicalRegisterConstants {}
+  public abstract static class PhysicalRegisterTools extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalRegisterTools {}
+  public static final class RegisterPreferences extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.RegisterPreferences {}
+  public static final class RegisterRestrictions extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.RegisterRestrictions {
+    public RegisterRestrictions(PhysicalRegisterSet phys) {
+      super(phys);
+    }}
+  public static final class StackManager extends org.jikesrvm.compilers.opt.regalloc.@_ARCH_@.StackManager {}
+  public static final class OptExceptionDeliverer extends org.jikesrvm.compilers.opt.runtimesupport.@_ARCH_@.OptExceptionDeliverer {}
+  public static final class OptGCMapIterator extends org.jikesrvm.compilers.opt.runtimesupport.@_ARCH_@.OptGCMapIterator {
+    public OptGCMapIterator(WordArray registerLocations) {
+      super(registerLocations);
+    }}
+  public interface OptGCMapIteratorConstants extends org.jikesrvm.compilers.opt.runtimesupport.@_ARCH_@.OptGCMapIteratorConstants {}
+  public static final class GenerateMachineSpecificMagic extends org.jikesrvm.compilers.opt.bc2ir.@_ARCH_@.GenerateMachineSpecificMagic {}
+  public static final class PhysicalDefUse extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalDefUse {}
+  public static final class PhysicalRegisterSet extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalRegisterSet {}
+  public static final class RegisterPool extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.RegisterPool {
+    public RegisterPool(VM_Method meth) {
+      super(meth);
+    }}
+  public static final class OSR_BaselineExecStateExtractor extends org.jikesrvm.osr.@_ARCH_@.OSR_BaselineExecStateExtractor {}
+  public static final class OSR_CodeInstaller extends org.jikesrvm.osr.@_ARCH_@.OSR_CodeInstaller {}
+  public static final class OSR_OptExecStateExtractor extends org.jikesrvm.osr.@_ARCH_@.OSR_OptExecStateExtractor {}
+  public static final class OSR_PostThreadSwitch extends org.jikesrvm.osr.@_ARCH_@.OSR_PostThreadSwitch {}
+}

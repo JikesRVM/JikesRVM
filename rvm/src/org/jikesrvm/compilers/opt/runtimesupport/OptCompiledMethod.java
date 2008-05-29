@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.classloader.VM_Array;
@@ -45,7 +46,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * An implementation of VM_CompiledMethod for the OPT compiler.
  *
- * <p> NOTE: VM_OptCompilerMethod live as long as their corresponding
+ * <p> NOTE: OptCompiledMethod live as long as their corresponding
  * compiled machine code.  Therefore, they should only contain
  * state that is really required to be persistent.  Anything
  * transitory should be stored on the IR object.
@@ -247,8 +248,8 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
   //----------------//
   // implementation //
   //----------------//
-  private static final ArchitectureSpecific.VM_OptExceptionDeliverer exceptionDeliverer =
-      new ArchitectureSpecific.VM_OptExceptionDeliverer();
+  private static final ArchitectureSpecificOpt.OptExceptionDeliverer exceptionDeliverer =
+      new ArchitectureSpecificOpt.OptExceptionDeliverer();
 
   private OSR_EncodedOSRMap _osrMap;
 
@@ -517,7 +518,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
         if (VM.BuildForIA32) {
           ArchitectureSpecific.VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
-          ArchitectureSpecific.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          ArchitectureSpecificOpt.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.VerifyAssertions) {
           VM._assert(VM.NOT_REACHED);
         }

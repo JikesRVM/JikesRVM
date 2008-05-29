@@ -29,8 +29,8 @@ import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
  */
 public class BURS_TreeNode implements BURS_Definitions {
 
-  public ArchitectureSpecific.BURS_TreeNode child1;
-  public ArchitectureSpecific.BURS_TreeNode child2;
+  public ArchitectureSpecificOpt.BURS_TreeNode child1;
+  public ArchitectureSpecificOpt.BURS_TreeNode child2;
 
   /**
    * Dependence graph node corresponding to

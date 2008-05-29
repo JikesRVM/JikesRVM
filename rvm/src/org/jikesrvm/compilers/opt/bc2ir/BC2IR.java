@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
