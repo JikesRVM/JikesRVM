@@ -246,9 +246,6 @@ Check to make sure all required properties are specified. This includes properti
     </tstamp>
 
     <!-- set include.* properties if corresponding feature is in use. Properties used by if/unless guards. -->
-    <condition property="include.all" value="true">
-      <equals arg1="${config.include.all-classes}" arg2="true"/>
-    </condition>
     <condition property="include.opt" value="true">
       <equals arg1="${config.runtime.compiler}" arg2="opt"/>
     </condition>
@@ -790,7 +787,6 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_SSE2_" value="${pp_RVM_FOR_SSE2}"/>
         <filter token="_RVM_FOR_SSE2_FULL_" value="${pp_RVM_FOR_SSE2_FULL}"/>
         <filter token="_RVM_FOR_HW_FSQRT_" value="${target.arch.hw_fsqrt}"/>
-        <filter token="_RVM_WITH_ALL_CLASSES_" value="${config.include.all-classes}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
         <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${config.include.aos}"/>
@@ -1034,29 +1030,23 @@ Check to make sure all required properties are specified. This includes properti
   <target name="gen-primordial-list">
 
     <fileset id="primordials.main" dir="${build.classes}">
-      <include name="**/VM*.class"/>
-      <include name="org/**/*.class" if="include.all"/>
+      <include name="org/**/*.class" />
       <exclude name="**/ppc/*.class" unless="include.ppc"/>
       <exclude name="**/ia32/*.class" if="include.ppc"/>
-      <include name="org/jikesrvm/adaptive/**/*.class" if="include.aos"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
-      <include name="org/jikesrvm/compilers/opt/**/*.class" if="include.opt"/>
       <exclude name="org/jikesrvm/compilers/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
-      <include name="org/jikesrvm/osr/**/*.class" if="include.opt"/>
       <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
-      <include name="org/jikesrvm/memorymanagers/**/*.class"/>
-      <include name="org/jikesrvm/mm/mmtk/**/*.class"/>
-      <include name="org/jikesrvm/${target.arch}/**/*.class"/>
-      <include name="org/jikesrvm/ArchitectureSpecific$VM*.class"/>
-      <include name="org/jikesrvm/ArchitectureSpecific$OSR*.class" if="include.opt"/>
-      <include name="org/jikesrvm/ArchitectureSpecific$OPT*.class" if="include.opt"/>
+      <exclude name="org/jikesrvm/ArchitectureSpecific$OSR*.class" unless="include.opt"/>
+      <exclude name="org/jikesrvm/ArchitectureSpecific$OPT*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/ArchitectureSpecific$VM_Opt*.class" unless="include.opt"/>
       <include name="**/JikesRVMSupport.class"/>
-      <include name="org/mmtk/**/*.class"/>
-      <include name="org/vmutil/**/*.class"/>
+      <include name="java/**/VM*.class" />
+      <include name="gnu/**/VM*.class" />
       <exclude name="org/jikesrvm/compilers/**/*BootImageCompiler.class"/>
+      <exclude name="org/jikesrvm/tools/header_gen/**/*.class" />
+      <exclude name="org/jikesrvm/apt/**/*.class" />
     </fileset>
     <fileset id="primordials.vmmagic" dir="${build.vmmagic.classes}">
       <include name="**/*.class"/>
@@ -1079,12 +1069,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="primordials.opt" value=",RVM_OPT.txt" else="">
       <isset property="include.opt"/>
     </condition>
-    <condition property="primordials.opt-all" value=",RVM_OPT_ALL.txt" else="">
-      <and>
-        <isset property="include.opt"/>
-        <isset property="include.all"/>
-      </and>
-    </condition>
     <condition property="primordials.arch" value=",RVM_PPC.txt" else=",RVM_IA32.txt">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -1092,7 +1076,7 @@ Check to make sure all required properties are specified. This includes properti
     <concat destfile="${build.base}/Primordials.txt">
       <filelist dir="${build.base}" files="ClassesForImage.txt"/>
       <filelist dir="${primordials.dir}"
-                files="Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.opt-all}${primordials.arch}"/>
+                files="Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
     </concat>
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
@@ -1456,7 +1440,6 @@ config.include.aos=${config.include.aos}
 config.include.perfctr=${config.include.perfctr}
 config.include.gcspy=${config.include.gcspy}
 config.include.gcspy-client=${config.include.gcspy-client}
-config.include.all-classes=${config.include.all-classes}
 config.assertions=${config.assertions}
 config.default-heapsize.initial=${config.default-heapsize.initial}
 config.default-heapsize.maximum=${config.default-heapsize.maximum}

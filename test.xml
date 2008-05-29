@@ -160,7 +160,7 @@
             <property prefix="@{tag}" file="${test.config.@{tag}.rvm.dir}/constants.properties"/>
 
             <property name="properties.config"
-                      value="config.name config.runtime.compiler config.bootimage.compiler config.mmtk.plan config.include.aos config.include.gcspy config.include.gcspy-client config.include.all-classes config.assertions config.default-heapsize.initial config.default-heapsize.maximum config.bootimage.compiler.args config.stress-gc-interval config.alignment-checking"/>
+                      value="config.name config.runtime.compiler config.bootimage.compiler config.mmtk.plan config.include.aos config.include.gcspy config.include.gcspy-client config.assertions config.default-heapsize.initial config.default-heapsize.maximum config.bootimage.compiler.args config.stress-gc-interval config.alignment-checking"/>
               <forEach list="${properties.config}" property="property">
                 <sequential>
                   <bres><![CDATA[

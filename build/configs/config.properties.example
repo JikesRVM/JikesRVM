@@ -30,9 +30,6 @@ config.include.gcspy-client=
 # Set to true to use GCSpy stub rather than "real" GCSpy. Defaults to false.
 config.include.gcspy-stub=
 
-# Include all reacable RVM classes in the bootimage. Defaults to false.
-config.include.all-classes=
-
 # Either extreme, normal or none. Defaults to normal.
 config.assertions=
 
