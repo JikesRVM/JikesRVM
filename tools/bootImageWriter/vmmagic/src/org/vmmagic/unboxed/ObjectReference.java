@@ -31,6 +31,12 @@ import org.jikesrvm.VM_SizeConstants;
     super(value);
   }
 
+  /* Compensate for some java compilers helpfully defining this synthetically */
+  @Interruptible
+  public String toString() {
+    return super.toString();
+  }
+
   /**
    * Convert from an object to a reference.
    * @param obj The object

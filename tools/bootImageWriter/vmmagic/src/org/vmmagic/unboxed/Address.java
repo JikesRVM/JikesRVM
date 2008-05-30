@@ -28,8 +28,6 @@ import org.vmmagic.pragma.*;
  * intercepted like {@link org.jikesrvm.runtime.VM_Magic} and converted into the base type so no
  * Address object is created run-time.
  *
- * @author Perry Cheng
- * @modified Daniel Frampton
  */
 @Uninterruptible public final class Address extends ArchitecturalWord implements VM_SizeConstants {
 
@@ -42,6 +40,13 @@ import org.vmmagic.pragma.*;
   Address(long value) {
     super(value);
   }
+
+  /* Compensate for some java compilers helpfully defining this synthetically */
+  @Interruptible
+  public String toString() {
+    return super.toString();
+  }
+
 
   /****************************************************************************
    *

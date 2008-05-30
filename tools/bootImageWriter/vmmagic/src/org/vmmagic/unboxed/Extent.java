@@ -23,7 +23,6 @@ import org.vmmagic.pragma.*;
  * For efficiency and to avoid meta-circularity, the class is intercepted like
  * magic and converted into the base type so no objects are created run-time.
  *
- * @author Perry Cheng
  * @see Address Word Offset
  */
 @Uninterruptible public final class Extent extends ArchitecturalWord {
@@ -35,6 +34,12 @@ import org.vmmagic.pragma.*;
   }
   Extent(long value) {
     super(value);
+  }
+
+  /* Compensate for some java compilers helpfully defining this synthetically */
+  @Interruptible
+  public String toString() {
+    return super.toString();
   }
 
   public boolean equals(Object o) {

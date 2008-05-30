@@ -25,8 +25,6 @@ import org.vmmagic.pragma.*;
  * For efficiency and to avoid meta-circularity, the Word class is intercepted like
  * magic and converted into the base type so no Word object is created run-time.
  *
- * @author Perry Cheng
- * @modified Daniel Frampton
  * @see Address
  */
 @Uninterruptible public final class Word extends ArchitecturalWord {
@@ -39,6 +37,13 @@ import org.vmmagic.pragma.*;
   Word(long value) {
     super(value);
   }
+
+  /* Compensate for some java compilers helpfully defining this synthetically */
+  @Interruptible
+  public String toString() {
+    return super.toString();
+  }
+
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (o instanceof Word) && ((Word) o).value == value;

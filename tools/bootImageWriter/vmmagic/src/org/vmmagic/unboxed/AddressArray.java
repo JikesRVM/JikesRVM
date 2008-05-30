@@ -19,8 +19,6 @@ import org.jikesrvm.VM;
  * The VM front end is not capable of correct handling an array of Address, VM_Word, ....
  * For now, we provide special types to handle these situations.
  *
- * @author Perry Cheng
- * @modified Daniel Frampton
  */
 
 @Uninterruptible public final class AddressArray {

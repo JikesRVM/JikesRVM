@@ -18,8 +18,6 @@ import org.jikesrvm.VM;
 /**
  * The VM front end is not capable of correct handling an array
  * of ObjectReferences ...
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class ObjectReferenceArray {
 
