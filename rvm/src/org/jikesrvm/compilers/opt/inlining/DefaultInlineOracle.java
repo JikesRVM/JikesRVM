@@ -398,7 +398,18 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         while (methodIterator.hasNext()) {
           VM_Method target = methodIterator.next();
           boolean needsGuard = guardIterator.next();
-          if (VM.VerifyAssertions) VM._assert(needsGuard);
+          if (VM.VerifyAssertions) {
+            if (!needsGuard) {
+              VM.sysWriteln("Error, inlining for " + methodsToInline.size() + " targets");
+              VM.sysWriteln("Inlining into " + rootMethod + " at bytecode index " + bcIndex);
+              VM.sysWriteln("Method: " + target + " doesn't need a guard");
+              for (int i=0; i < methodsToInline.size(); i++) {
+                VM.sysWriteln("  Method " + i + ": " + methodsToInline.get(i));
+                VM.sysWriteln("  NeedsGuard: " + methodsNeedGuard.get(i));
+              }
+              VM._assert(false);
+            }
+          }
           methods[idx] = target;
           guards[idx] = chooseGuard(caller, target, staticCallee, state, false);
           idx++;
