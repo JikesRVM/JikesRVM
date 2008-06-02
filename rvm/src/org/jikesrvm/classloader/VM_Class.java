@@ -1400,11 +1400,19 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     if (myTypeRef != typeRef) {
       // eg. file contains a different class than would be
       // expected from its .class file name
-      throw new ClassFormatError("expected class \"" +
-                                 typeRef.getName() +
-                                 "\" but found \"" +
-                                 myTypeRef.getName() +
-                                 "\"");
+      if (!VM.VerifyAssertions) {
+        throw new ClassFormatError("expected class \"" +
+                                   typeRef.getName() +
+                                   "\" but found \"" +
+                                   myTypeRef.getName() +
+                                   "\"");
+      } else {
+        throw new ClassFormatError("expected class \"" +
+                                   typeRef.getName() +
+                                   "\" but found \"" +
+                                   myTypeRef.getName() +
+                                   "\"\n" + typeRef + " != " + myTypeRef);
+      }
     }
 
     VM_TypeReference superType = getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
