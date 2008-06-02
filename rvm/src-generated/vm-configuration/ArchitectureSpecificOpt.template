@@ -20,9 +20,9 @@ import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 public class ArchitectureSpecificOpt {
-  public static final class Assembler extends org.jikesrvm.compilers.opt.mir2mc.@_ARCH_@.Assembler {
+  public static final class AssemblerOpt extends org.jikesrvm.compilers.opt.mir2mc.@_ARCH_@.AssemblerOpt {
   @_PPC_QUOTE_@
-    public Assembler(int bcSize, boolean print, IR ir) {
+    public AssemblerOpt(int bcSize, boolean print, IR ir) {
       super(bcSize, print, ir);
     }
   //*/

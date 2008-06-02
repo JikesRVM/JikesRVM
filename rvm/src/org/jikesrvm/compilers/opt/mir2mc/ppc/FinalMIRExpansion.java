@@ -289,14 +289,14 @@ public abstract class FinalMIRExpansion extends IRTools {
 
     // this is conservative but pretty close, especially for
     // reasonably sized methods
-    if ((instructionCount + conditionalBranchCount) > Assembler.MAX_COND_DISPL) {
+    if ((instructionCount + conditionalBranchCount) > AssemblerOpt.MAX_COND_DISPL) {
       machinecodeLength = instructionCount + 2 * conditionalBranchCount;
     } else {
       machinecodeLength = instructionCount + conditionalBranchCount;
     }
 
-    if ((machinecodeLength & ~Assembler.MAX_24_BITS) != 0) {
-      throw new OptimizingCompilerException("CodeGen", "method too large to compile:", Assembler.MAX_24_BITS);
+    if ((machinecodeLength & ~AssemblerOpt.MAX_24_BITS) != 0) {
+      throw new OptimizingCompilerException("CodeGen", "method too large to compile:", AssemblerOpt.MAX_24_BITS);
     }
     return machinecodeLength;
   }

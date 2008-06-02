@@ -518,7 +518,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
         if (VM.BuildForIA32) {
           ArchitectureSpecific.VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
-          ArchitectureSpecificOpt.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          ArchitectureSpecificOpt.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.VerifyAssertions) {
           VM._assert(VM.NOT_REACHED);
         }

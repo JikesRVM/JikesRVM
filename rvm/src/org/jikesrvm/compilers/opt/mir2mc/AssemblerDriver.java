@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.mir2mc;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecificOpt.Assembler;
+import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
@@ -57,7 +57,7 @@ final class AssemblerDriver extends CompilerPhase implements VM_Constants {
     // As part of the generation, the machinecode offset
     // of every instruction will be set by calling setmcOffset.
     //////////
-    int codeLength = Assembler.generateCode(ir, shouldPrint);
+    int codeLength = AssemblerOpt.generateCode(ir, shouldPrint);
 
     //////////
     // STEP 3: Generate all the mapping information

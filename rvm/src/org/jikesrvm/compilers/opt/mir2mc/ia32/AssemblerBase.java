@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import java.util.ArrayList;
 import static org.jikesrvm.ia32.VM_ArchConstants.SSE2_FULL;
-import org.jikesrvm.ArchitectureSpecificOpt.Assembler;
+import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
@@ -995,7 +995,7 @@ abstract class AssemblerBase extends VM_Assembler
    */
   public static int generateCode(IR ir, boolean shouldPrint) {
     int count = 0;
-    Assembler asm = new Assembler(count, shouldPrint, ir);
+    AssemblerOpt asm = new AssemblerOpt(count, shouldPrint, ir);
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       p.setmcOffset(-++count);

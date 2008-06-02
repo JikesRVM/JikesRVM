@@ -54,7 +54,7 @@ import org.jikesrvm.ppc.VM_Disassembler;
 /**
  * Assemble PowerPC MIR into binary code.
  */
-public abstract class Assembler implements Operators, VM_Constants, VM_ArchConstants {
+public abstract class AssemblerOpt implements Operators, VM_Constants, VM_ArchConstants {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_CODE_PATCH = false;
@@ -94,7 +94,7 @@ public abstract class Assembler implements Operators, VM_Constants, VM_ArchConst
    */
   public static int generateCode(IR ir, boolean shouldPrint) {
     ir.MIRInfo.machinecode = ArchitectureSpecific.VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
-    return new ArchitectureSpecificOpt.Assembler().genCode(ir, shouldPrint);
+    return new ArchitectureSpecificOpt.AssemblerOpt().genCode(ir, shouldPrint);
   }
 
   protected final int genCode(IR ir, boolean shouldPrint) {
