@@ -14,12 +14,6 @@ package org.jikesrvm;
 
 public class VM {
 
-    public static boolean BuildForFastInterfaceInvocation;
-
-    public static boolean CompileForRefCountingGC;
-
-    public static boolean BuildForITableInterfaceInvocation;
-
     public static boolean VerifyAssertions;
 
     public static boolean NOT_REACHED;
