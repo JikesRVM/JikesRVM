@@ -13,7 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
@@ -28,13 +28,13 @@ public final class VM_IMT {
   /**
    * The backing data used during boot image writing.
    */
-  private final VM_CodeArray[] data;
+  private final CodeArray[] data;
 
   /**
    * Private constructor. Can not create instances.
    */
   private VM_IMT() {
-    this.data = new VM_CodeArray[VM_TIBLayoutConstants.IMT_METHOD_SLOTS];
+    this.data = new CodeArray[VM_TIBLayoutConstants.IMT_METHOD_SLOTS];
   }
 
   /**
@@ -64,7 +64,7 @@ public final class VM_IMT {
    */
   @Intrinsic
   @Uninterruptible
-  public VM_CodeArray get(int index) {
+  public CodeArray get(int index) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return data[index];
   }
@@ -77,7 +77,7 @@ public final class VM_IMT {
    */
   @Intrinsic
   @UninterruptibleNoWarn
-  public void set(int index, VM_CodeArray value) {
+  public void set(int index, CodeArray value) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     data[index] = value;
   }

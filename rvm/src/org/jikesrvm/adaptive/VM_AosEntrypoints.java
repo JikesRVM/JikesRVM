@@ -46,5 +46,5 @@ public interface VM_AosEntrypoints {
   VM_Field specializedMethodsField =
       getField("Lorg/jikesrvm/compilers/opt/SpecializedMethodPool;",
                "specializedMethods",
-               "[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+               "[Lorg/jikesrvm/ArchitectureSpecific$CodeArray;");
 }

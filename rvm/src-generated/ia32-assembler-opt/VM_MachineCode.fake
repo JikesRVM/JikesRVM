@@ -12,5 +12,5 @@
  */
 package org.jikesrvm.ia32;
 public class VM_MachineCode {
-  public VM_MachineCode(VM_CodeArray x, int[] y) {}
+  public VM_MachineCode(CodeArray x, int[] y) {}
 }

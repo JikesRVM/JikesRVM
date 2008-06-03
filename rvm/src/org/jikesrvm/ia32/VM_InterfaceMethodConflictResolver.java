@@ -37,7 +37,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   //
-  public static ArchitectureSpecific.VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
+  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(numEntries);

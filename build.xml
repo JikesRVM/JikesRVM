@@ -699,7 +699,7 @@ Check to make sure all required properties are specified. This includes properti
     <copy todir="${build.ia32-assembler-opt.dir}">
       <globmapper from="*.fake" to="*.java"/>
       <fileset dir="${ia32-assembler-opt.dir}">
-        <include name="**/VM*.fake"/>
+        <include name="**/*.fake"/>
         <include name="ArchitectureSpecific.fake"/>
         <include name="JikesRVMSupport.fake"/>
       </fileset>

@@ -19,7 +19,7 @@
 [Lorg/vmmagic/unboxed/AddressArray;
 [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
-[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
+[Lorg/jikesrvm/ArchitectureSpecific$CodeArray;
 
 [Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
 [Lorg/jikesrvm/VM_CommandLineArgs$PrefixType;

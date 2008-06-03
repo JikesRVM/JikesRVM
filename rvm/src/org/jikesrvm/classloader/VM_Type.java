@@ -17,7 +17,7 @@ import java.lang.annotation.Annotation;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Statics;
@@ -573,7 +573,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
       } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
         // fix up class for code array
-        return VM_CodeArray.class;
+        return CodeArray.class;
       } else if (!VM.runningVM) {
         // Give a warning as this is probably a protection issue for
         // the tool and JVM
@@ -786,7 +786,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * Set the specialized method for a class or array.
    */
-  public final void setSpecializedMethod(int id, VM_CodeArray code) {
+  public final void setSpecializedMethod(int id, CodeArray code) {
     getTypeInformationBlock().setSpecializedMethod(id, code);
   }
 

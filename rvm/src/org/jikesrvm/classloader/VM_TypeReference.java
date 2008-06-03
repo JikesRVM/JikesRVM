@@ -107,14 +107,14 @@ public final class VM_TypeReference {
   public static final VM_TypeReference Offset = findOrCreate(org.vmmagic.unboxed.Offset.class);
   public static final VM_TypeReference Extent = findOrCreate(org.vmmagic.unboxed.Extent.class);
   public static final VM_TypeReference Code =
-      findOrCreate(VM.BuildForIA32 ? "Lorg/jikesrvm/ia32/VM_Code;" : "Lorg/jikesrvm/ppc/VM_Code;");
+      findOrCreate(VM.BuildForIA32 ? "Lorg/jikesrvm/ia32/Code;" : "Lorg/jikesrvm/ppc/Code;");
   public static final VM_TypeReference WordArray = findOrCreate(org.vmmagic.unboxed.WordArray.class);
   public static final VM_TypeReference AddressArray = findOrCreate(org.vmmagic.unboxed.AddressArray.class);
   public static final VM_TypeReference ObjectReferenceArray =
       findOrCreate(org.vmmagic.unboxed.ObjectReferenceArray.class);
   public static final VM_TypeReference OffsetArray = findOrCreate(org.vmmagic.unboxed.OffsetArray.class);
   public static final VM_TypeReference ExtentArray = findOrCreate(org.vmmagic.unboxed.ExtentArray.class);
-  public static final VM_TypeReference CodeArray = findOrCreate(org.jikesrvm.ArchitectureSpecific.VM_CodeArray.class);
+  public static final VM_TypeReference CodeArray = findOrCreate(org.jikesrvm.ArchitectureSpecific.CodeArray.class);
   public static final VM_TypeReference Magic = findOrCreate(org.jikesrvm.runtime.VM_Magic.class);
   public static final VM_TypeReference SysCall = findOrCreate(org.vmmagic.pragma.SysCall.class);
   public static final VM_TypeReference TIB = findOrCreate(org.jikesrvm.objectmodel.VM_TIB.class);
@@ -507,7 +507,7 @@ public final class VM_TypeReference {
   }
 
   /**
-   * Does 'this' refer to VM_Code
+   * Does 'this' refer to Code
    */
   @Uninterruptible
   public boolean isCodeType() {
@@ -542,7 +542,7 @@ public final class VM_TypeReference {
   }
 
   /**
-   * Does 'this' refer to VM_CodeArray
+   * Does 'this' refer to CodeArray
    */
   @Uninterruptible
   public boolean isCodeArrayType() {

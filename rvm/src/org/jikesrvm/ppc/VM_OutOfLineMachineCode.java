@@ -52,16 +52,16 @@ public abstract class VM_OutOfLineMachineCode
 
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static ArchitectureSpecific.CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray saveThreadStateInstructions;
+  private static ArchitectureSpecific.CodeArray saveThreadStateInstructions;
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray threadSwitchInstructions;
+  private static ArchitectureSpecific.CodeArray threadSwitchInstructions;
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
 
   // Machine code for reflective method invocation.
   // See also: "VM_Compiler.generateMethodInvocation".
@@ -79,7 +79,7 @@ public abstract class VM_OutOfLineMachineCode
   //   artificial stackframe created and destroyed
   //   R0, volatile, and scratch registers destroyed
   //
-  private static ArchitectureSpecific.VM_CodeArray generateReflectiveMethodInvokerInstructions() {
+  private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     //
@@ -188,7 +188,7 @@ public abstract class VM_OutOfLineMachineCode
   // Side effects at runtime:
   //   T1 destroyed
   //
-  private static ArchitectureSpecific.VM_CodeArray generateSaveThreadStateInstructions() {
+  private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // save return address
@@ -237,7 +237,7 @@ public abstract class VM_OutOfLineMachineCode
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static ArchitectureSpecific.VM_CodeArray generateThreadSwitchInstructions() {
+  private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     Offset ipOffset = VM_ArchEntrypoints.registersIPField.getOffset();
@@ -307,7 +307,7 @@ public abstract class VM_OutOfLineMachineCode
   //   all registers are restored except condition registers, count register,
   //   JTOC_POINTER, and PROCESSOR_REGISTER with execution resuming at "registers.ip"
   //
-  private static ArchitectureSpecific.VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
+  private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // restore LR

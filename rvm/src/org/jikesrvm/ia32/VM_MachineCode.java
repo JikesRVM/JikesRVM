@@ -17,18 +17,18 @@ import org.jikesrvm.ArchitectureSpecific;
 /**
  */
 public abstract class VM_MachineCode {
-  private final ArchitectureSpecific.VM_CodeArray instructions;
+  private final ArchitectureSpecific.CodeArray instructions;
 
   // TODO: This should really be a final field, but is not due to the way
   //       OSR is currently implemented.
   private int[] bytecodeMap;
 
-  public VM_MachineCode(ArchitectureSpecific.VM_CodeArray i, int[] bm) {
+  public VM_MachineCode(ArchitectureSpecific.CodeArray i, int[] bm) {
     instructions = i;
     bytecodeMap = bm;
   }
 
-  public final ArchitectureSpecific.VM_CodeArray getInstructions() {
+  public final ArchitectureSpecific.CodeArray getInstructions() {
     return instructions;
   }
 

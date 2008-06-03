@@ -30,7 +30,7 @@ public abstract class VM_MachineCode {
   /**
    * Get the instructions comprising this block of machine code.
    */
-  public ArchitectureSpecific.VM_CodeArray getInstructions() {
+  public ArchitectureSpecific.CodeArray getInstructions() {
     if (VM.VerifyAssertions) VM._assert(instructions != null); // must call "finish" first
     return instructions;
   }
@@ -55,7 +55,7 @@ public abstract class VM_MachineCode {
     /* NOTE: MM_Interface.pickAllocator() depends on the name of this
        class and method to identify code allocation */
     int n = (next_bundle - 1) * size + next;
-    instructions = ArchitectureSpecific.VM_CodeArray.Factory.create(n, false);
+    instructions = ArchitectureSpecific.CodeArray.Factory.create(n, false);
     int k = 0;
     for (int i = 0; i < next_bundle; i++) {
       int[] b = bundles.get(i);
@@ -120,7 +120,7 @@ public abstract class VM_MachineCode {
   private static final int size = mask + 1;
   private static final int shift = 8;
 
-  private ArchitectureSpecific.VM_CodeArray instructions;
+  private ArchitectureSpecific.CodeArray instructions;
   private ArrayList<int[]> bundles;
   private int[] current_bundle;
   private int next;

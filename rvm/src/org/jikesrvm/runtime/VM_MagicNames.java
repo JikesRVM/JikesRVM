@@ -186,7 +186,7 @@ public class VM_MagicNames {
   public static final VM_Atom wordRshl = VM_Atom.findOrCreateAsciiAtom("rshl");
   public static final VM_Atom wordRsha = VM_Atom.findOrCreateAsciiAtom("rsha");
 
-  // atoms related to WordArray, AddressArray, OffsetArray, ExtentArray, VM_CodeArray
+  // atoms related to WordArray, AddressArray, OffsetArray, ExtentArray, CodeArray
   public static final VM_Atom addressArrayCreate = VM_Atom.findOrCreateAsciiAtom("create");
   public static final VM_Atom addressArrayLength = VM_Atom.findOrCreateAsciiAtom("length");
   public static final VM_Atom addressArrayGet = VM_Atom.findOrCreateAsciiAtom("get");

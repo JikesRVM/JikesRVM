@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
@@ -381,7 +381,7 @@ public abstract class VM_Thread {
    * Before call new instructions, we need a bridge to recover
    * register states from the stack frame.
    */
-  public VM_CodeArray bridgeInstructions = null;
+  public CodeArray bridgeInstructions = null;
   /** Foo frame pointer offset */
   public Offset fooFPOffset = Offset.zero();
   /** Thread switch frame pointer offset */
@@ -437,7 +437,7 @@ public abstract class VM_Thread {
       stackLimit = VM_Magic.objectAsAddress(stack).plus(STACK_SIZE_GUARD);
 
       // get instructions for method to be executed as thread startoff
-      VM_CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentEntryCodeArray();
+      CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentEntryCodeArray();
 
       VM.disableGC();
 

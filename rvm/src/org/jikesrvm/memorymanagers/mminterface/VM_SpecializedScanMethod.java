@@ -14,7 +14,7 @@ package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
@@ -142,7 +142,7 @@ public final class VM_SpecializedScanMethod extends VM_SpecializedMethod impleme
    * TODO: Lazily compile specialized methods?
    */
   @Interruptible
-  public synchronized VM_CodeArray specializeMethod(VM_Type type) {
+  public synchronized CodeArray specializeMethod(VM_Type type) {
     /* Work out which pattern this type uses */
     int pattern = getPattern(type);
 

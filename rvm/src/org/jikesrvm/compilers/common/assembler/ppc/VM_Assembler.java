@@ -1606,7 +1606,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     mc.finish();
     if (shouldPrint) {
       VM.sysWriteln();
-      ArchitectureSpecific.VM_CodeArray instructions = mc.getInstructions();
+      ArchitectureSpecific.CodeArray instructions = mc.getInstructions();
       boolean saved = VM_BaselineCompiler.options.PRINT_MACHINECODE;
       try {
         VM_BaselineCompiler.options.PRINT_MACHINECODE = false;
@@ -1637,9 +1637,9 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   }
 
   /**
-   * Append a VM_CodeArray to the current machine code
+   * Append a CodeArray to the current machine code
    */
-  public void appendInstructions(ArchitectureSpecific.VM_CodeArray instructionSegment) {
+  public void appendInstructions(ArchitectureSpecific.CodeArray instructionSegment) {
     for (int i = 0; i < instructionSegment.length(); i++) {
       mIP++;
       mc.addInstruction(instructionSegment.get(i));
@@ -3082,7 +3082,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   /************************************************************************
    * Stub/s added for IA32 compatability
    */
-  public static void patchCode(ArchitectureSpecific.VM_CodeArray code, int indexa, int indexb) {
+  public static void patchCode(ArchitectureSpecific.CodeArray code, int indexa, int indexb) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 }

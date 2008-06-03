@@ -25,4 +25,8 @@ public class Word {
     return true;
   }
 
+  public int toInt() {
+    return 0;
+  }
+
 }

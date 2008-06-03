@@ -11,6 +11,7 @@
  *  regarding copyright ownership.
  */
 package org.jikesrvm;
+
 public class ArchitectureSpecific {
   public static final class VM_Assembler extends org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler {
     public VM_Assembler (int bytecodeSize) {
@@ -23,10 +24,10 @@ public class ArchitectureSpecific {
       super(bytecodeSize, shouldPrint);
     }
   }
-  public static final class VM_CodeArray extends org.jikesrvm.ia32.VM_CodeArray {}
+  public static final class CodeArray extends org.jikesrvm.ia32.CodeArray {}
   public static final class VM_Compiler extends org.jikesrvm.compilers.baseline.ia32.VM_Compiler {}
   public static final class VM_MachineCode extends org.jikesrvm.ia32.VM_MachineCode {
-    public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {
+    public VM_MachineCode(ArchitectureSpecific.CodeArray array, int[] bm) {
       super(array, bm);
     }}
   public interface VM_RegisterConstants extends org.jikesrvm.ia32.VM_RegisterConstants {}

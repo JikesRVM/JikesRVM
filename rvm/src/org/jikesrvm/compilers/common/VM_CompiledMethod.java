@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_Method;
@@ -84,7 +84,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /**
    * The compiled machine code for said method.
    */
-  protected VM_CodeArray instructions;
+  protected CodeArray instructions;
 
   /**
    * the offset of instructions in JTOC, for osr-special compiled
@@ -161,11 +161,11 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   }
 
   /**
-   * @return the VM_CodeArray to jump to to invoke this method (ie,
+   * @return the CodeArray to jump to to invoke this method (ie,
    *         code_array[0] contains the first instruction of the method's prologue).
    */
   @Uninterruptible
-  public final VM_CodeArray getEntryCodeArray() {
+  public final CodeArray getEntryCodeArray() {
     if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
     return instructions;
   }
@@ -230,7 +230,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
         }
       }
       // NOTE: we are absolutely positive that offset will fit in 32 bits
-      // because we don't create VM_CodeArrays that are so massive it won't.
+      // because we don't create CodeArrays that are so massive it won't.
       // Thus, we do the assertion checking above to ensure that ip is in range.
       return offset;
     }
@@ -250,10 +250,10 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /**
    * Return the code array for this method that contains the given offset.
    * @param offset the offset of the desired instruction (as returned by getInstructionOffset)
-   * @return VM_CodeArray that contains the specified instruction
+   * @return CodeArray that contains the specified instruction
    */
   @Uninterruptible
-  public final VM_CodeArray codeArrayForOffset(Offset offset) {
+  public final CodeArray codeArrayForOffset(Offset offset) {
     return instructions;
   }
 
@@ -277,7 +277,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /**
    * Record that the compilation is complete.
    */
-  public final void compileComplete(VM_CodeArray code) {
+  public final void compileComplete(CodeArray code) {
     instructions = code;
     flags |= COMPILED;
   }

@@ -19,7 +19,7 @@ import java.io.OutputStreamWriter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.TreeSet;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.measurements.VM_Decayable;
@@ -256,8 +256,8 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
       VM_WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new VM_WeightedCallTargets.Visitor() {
         public void visit(VM_Method callee, double weight) {
-          VM_CodeArray callerArray = cs.getMethod().getCurrentEntryCodeArray();
-          VM_CodeArray calleeArray = callee.getCurrentEntryCodeArray();
+          CodeArray callerArray = cs.getMethod().getCurrentEntryCodeArray();
+          CodeArray calleeArray = callee.getCurrentEntryCodeArray();
           try {
             f.write("CallSite " +
                     cs.getMethod().getMemberRef() +

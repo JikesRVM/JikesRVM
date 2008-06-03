@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Type;
@@ -535,7 +535,7 @@ public final class VM_Magic {
    * @param code the code array to convert
    * @return object reference
    */
-  public static Object codeArrayAsObject(VM_CodeArray code) {
+  public static Object codeArrayAsObject(CodeArray code) {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
@@ -785,48 +785,48 @@ public final class VM_Magic {
    * never returns (target method returns to caller of dynamic bridge method)
    * @param instructions target method
    */
-  public static void dynamicBridgeTo(VM_CodeArray instructions) {
+  public static void dynamicBridgeTo(CodeArray instructions) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "<clinit>" method with no argument list. */
-  public static void invokeClassInitializer(VM_CodeArray clinit) throws Exception {
+  public static void invokeClassInitializer(CodeArray clinit) throws Exception {
     // Since the real method passes exceptions up. Constructor might throw an arbitrary exception.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     throw new Exception("UNREACHED");
   }
 
   /** Call arbitrary method with argument list. */
-  public static void invokeMethodReturningVoid(VM_CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
+  public static void invokeMethodReturningVoid(CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call arbitrary method with argument list. */
-  public static int invokeMethodReturningInt(VM_CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
-  }
-
-  /** Call arbitrary method with argument list. */
-  public static long invokeMethodReturningLong(VM_CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
+  public static int invokeMethodReturningInt(CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static float invokeMethodReturningFloat(VM_CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
+  public static long invokeMethodReturningLong(CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static double invokeMethodReturningDouble(VM_CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
+  public static float invokeMethodReturningFloat(CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static Object invokeMethodReturningObject(VM_CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
+  public static double invokeMethodReturningDouble(CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return -1;
+  }
+
+  /** Call arbitrary method with argument list. */
+  public static Object invokeMethodReturningObject(CodeArray code, WordArray gprs, double[] fprs, byte[] fprmeta, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }

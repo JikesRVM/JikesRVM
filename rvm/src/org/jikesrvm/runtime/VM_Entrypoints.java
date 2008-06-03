@@ -112,7 +112,7 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod invokeInterfaceMethod =
       getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "invokeInterface",
-                "(Ljava/lang/Object;I)Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
+                "(Ljava/lang/Object;I)Lorg/jikesrvm/ArchitectureSpecific$CodeArray;");
   public static final VM_NormalMethod findItableMethod =
       getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
                 "findITable",
@@ -389,7 +389,7 @@ public class VM_Entrypoints {
       specializedMethodsField =
           getField(org.jikesrvm.compilers.opt.SpecializedMethodPool.class,
                    "specializedMethods",
-                   org.jikesrvm.ArchitectureSpecific.VM_CodeArray[].class);
+                   org.jikesrvm.ArchitectureSpecific.CodeArray[].class);
       osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSR_OrganizerThread.class, "queueLock", int.class);
       optThreadSwitchFromOsrOptMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromOsrOpt", "()V");

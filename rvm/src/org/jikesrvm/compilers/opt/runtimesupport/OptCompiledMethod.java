@@ -514,7 +514,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
   public void applyCodePatches(VM_CompiledMethod cm) {
     if (patchMap != null) {
       for (int idx = 0; idx < patchMap.length; idx += 2) {
-        ArchitectureSpecific.VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
+        ArchitectureSpecific.CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
         if (VM.BuildForIA32) {
           ArchitectureSpecific.VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {

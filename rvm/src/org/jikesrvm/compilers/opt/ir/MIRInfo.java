@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan;
 import org.jikesrvm.osr.OSR_VariableMap;
 
@@ -24,7 +24,7 @@ public final class MIRInfo {
   /**
    * The generated machinecodes produced by this compilation of 'method'
    */
-  public VM_CodeArray machinecode;
+  public CodeArray machinecode;
 
   /**
    * Estimate produced by FinalMIRExpansion and used by

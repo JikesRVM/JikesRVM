@@ -23,7 +23,7 @@ import org.jikesrvm.jni.VM_JNIFunctions;
  * This class is responsible for constructing the JNIFuctions
  * array at bootimage writing time.  It uses "internal reflection" to
  * inspect the methods of VM_JNIFunctions and construct
- * a VM_CodeArray[] that contains pointers to the compiled code
+ * a CodeArray[] that contains pointers to the compiled code
  * of the appropriate JNI function implementation.
  * <p>
  * It builds a JNI function table for JNI version 1.2.

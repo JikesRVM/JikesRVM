@@ -15,7 +15,7 @@ package org.jikesrvm.memorymanagers.mminterface;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.classloader.VM_Array;
@@ -778,7 +778,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a VM_CodeArray into a code space.
+   * Allocate a CodeArray into a code space.
    * Currently the interface is fairly primitive;
    * just the number of instructions in the code array and a boolean
    * to indicate hot or cold code.
@@ -787,7 +787,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return The  array
    */
   @Interruptible
-  public static VM_CodeArray allocateCode(int numInstrs, boolean isHot) {
+  public static CodeArray allocateCode(int numInstrs, boolean isHot) {
     VM_Array type = VM_Type.CodeArrayType;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
     int align = VM_ObjectModel.getAlignment(type);
@@ -796,7 +796,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     VM_TIB tib = type.getTypeInformationBlock();
     int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
 
-    return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
+    return (CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
   }
 
   /**

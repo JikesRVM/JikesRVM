@@ -28,7 +28,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * be the globally shared lazy compilation stub.
  */
 public abstract class VM_LazyCompilationTrampoline implements VM_BaselineConstants {
-  public static final ArchitectureSpecific.VM_CodeArray instructions;
+  public static final ArchitectureSpecific.CodeArray instructions;
 
   static {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);

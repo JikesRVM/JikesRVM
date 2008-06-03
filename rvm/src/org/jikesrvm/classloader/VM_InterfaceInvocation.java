@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_InterfaceMethodConflictResolver;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
@@ -55,7 +55,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @return machine code corresponding to desired interface method
    */
   @Entrypoint
-  public static VM_CodeArray invokeInterface(Object target, int mid) throws IncompatibleClassChangeError {
+  public static CodeArray invokeInterface(Object target, int mid) throws IncompatibleClassChangeError {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
     VM_Method sought = mref.resolveInterfaceMethod();
@@ -431,14 +431,14 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
             targets[idx] = p.method;
             sigIds[idx] = p.signature.getId();
           }
-          VM_CodeArray conflictResolutionStub = VM_InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          CodeArray conflictResolutionStub = VM_InterfaceMethodConflictResolver.createStub(sigIds, targets);
           klass.addCachedObject(VM_Magic.codeArrayAsObject(conflictResolutionStub));
           set(tib, imt, slot, conflictResolutionStub);
         }
       }
     }
 
-    private void set(VM_TIB tib, VM_IMT imt, int extSlot, VM_CodeArray value) {
+    private void set(VM_TIB tib, VM_IMT imt, int extSlot, CodeArray value) {
       imt.set(extSlot, value);
     }
 

@@ -305,12 +305,12 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   protected boolean isHotCode() { return false; }
 
   /**
-   * Return a copy of the generated code as a VM_CodeArray.
-   * @return a copy of the generated code as a VM_CodeArray.
+   * Return a copy of the generated code as a CodeArray.
+   * @return a copy of the generated code as a CodeArray.
    */
-  public final ArchitectureSpecific.VM_CodeArray getMachineCodes () {
+  public final ArchitectureSpecific.CodeArray getMachineCodes () {
     int len = getMachineCodeIndex();
-    ArchitectureSpecific.VM_CodeArray trimmed = ArchitectureSpecific.VM_CodeArray.Factory.create(len, isHotCode());
+    ArchitectureSpecific.CodeArray trimmed = ArchitectureSpecific.CodeArray.Factory.create(len, isHotCode());
     for (int i=0; i<len; i++) {
       trimmed.set(i, machineCodes[i]);
     }
@@ -881,9 +881,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param rel32     the new immediate to use in the branch instruction
    *          the code patcher is going to lay down before patchOffset
    */
-  public static void patchCode(ArchitectureSpecific.VM_CodeArray code,
-                   int patchOffset,
-                   int rel32) {
+  public static void patchCode(ArchitectureSpecific.CodeArray code, int patchOffset, int rel32) {
     byte p0 = (byte)0xE9;
     byte p1 = (byte) (rel32 & 0x000000ff);
     byte p2 = (byte)((rel32 & 0x0000ff00) >>>  8);

@@ -60,16 +60,16 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static ArchitectureSpecific.CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray saveThreadStateInstructions;
+  private static ArchitectureSpecific.CodeArray saveThreadStateInstructions;
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray threadSwitchInstructions;
+  private static ArchitectureSpecific.CodeArray threadSwitchInstructions;
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via VM_EntryPoints
-  private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
 
   private static final Offset PARAMS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 2);
   private static final Offset FPRMETA_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 3);
@@ -122,7 +122,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *   artificial stackframe created and destroyed
    *   volatile, and scratch registers destroyed
    */
-  private static ArchitectureSpecific.VM_CodeArray generateReflectiveMethodInvokerInstructions() {
+  private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(100);
 
     /* write at most 2 parameters from registers in the stack.  This is
@@ -285,7 +285,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    S0, T1 destroyed
    *    Thread state stored into VM_Registers object
    */
-  private static ArchitectureSpecific.VM_CodeArray generateSaveThreadStateInstructions() {
+  private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) {
       VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     }
@@ -325,7 +325,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static ArchitectureSpecific.VM_CodeArray generateThreadSwitchInstructions() {
+  private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) {
       VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     }
@@ -384,7 +384,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    all registers are restored except PROCESSOR_REGISTER and EFLAGS;
    *    execution resumes at "registers.ip"
    */
-  private static ArchitectureSpecific.VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
+  private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // Set PR.framePointer to be registers.fp

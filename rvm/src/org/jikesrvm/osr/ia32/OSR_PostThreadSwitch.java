@@ -43,7 +43,7 @@ public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
     * the new code get executed.
     */
     // add branch instruction from CTR.
-    ArchitectureSpecific.VM_CodeArray bridge = myThread.bridgeInstructions;
+    ArchitectureSpecific.CodeArray bridge = myThread.bridgeInstructions;
 
     Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 

@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 
 /**
  * A method that is specialized across all reference types.
@@ -42,7 +42,7 @@ public abstract class VM_SpecializedMethod {
   /**
    * Return the specialized method for the given type.
    */
-  public abstract VM_CodeArray specializeMethod(VM_Type type);
+  public abstract CodeArray specializeMethod(VM_Type type);
 
   /**
    * Return the method signature of the specialized method's invoke.

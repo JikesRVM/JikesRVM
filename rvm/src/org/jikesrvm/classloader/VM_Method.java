@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -658,7 +658,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * Get the code array that corresponds to the entry point (prologue) for the method.
    */
-  public final synchronized VM_CodeArray getCurrentEntryCodeArray() {
+  public final synchronized CodeArray getCurrentEntryCodeArray() {
     VM_Class declaringClass = getDeclaringClass();
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {

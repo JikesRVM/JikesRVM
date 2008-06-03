@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.Intrinsic;
@@ -250,12 +250,12 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    */
   @NoInline
   @Interruptible
-  public VM_CodeArray getVirtualMethod(int virtualMethodIndex) {
+  public CodeArray getVirtualMethod(int virtualMethodIndex) {
     int index = TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethodIndex;
     if (VM.runningVM && isInternalLazyCompilationTrampoline(virtualMethodIndex)) {
       return VM_LazyCompilationTrampoline.instructions;
     }
-    return (VM_CodeArray) get(index);
+    return (CodeArray) get(index);
   }
 
   /**
@@ -274,7 +274,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    * Get a virtual method from this TIB by offset.
    */
   @Interruptible
-  public VM_CodeArray getVirtualMethod(Offset virtualMethodOffset) {
+  public CodeArray getVirtualMethod(Offset virtualMethodOffset) {
     return getVirtualMethod(getVirtualMethodIndex(virtualMethodOffset));
   }
 
@@ -285,7 +285,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    * lazy compilation trampoline.
    */
   @NoInline
-  public void setVirtualMethod(int virtualMethodIndex, VM_CodeArray code) {
+  public void setVirtualMethod(int virtualMethodIndex, CodeArray code) {
     if (VM.VerifyAssertions) VM._assert(virtualMethodIndex >= 0);
 
     if (VM.runningVM && code == VM_LazyCompilationTrampoline.instructions) {
@@ -300,7 +300,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
   /**
    * Set a virtual method in this TIB by offset.
    */
-  public void setVirtualMethod(Offset virtualMethodOffset, VM_CodeArray code) {
+  public void setVirtualMethod(Offset virtualMethodOffset, CodeArray code) {
     setVirtualMethod(getVirtualMethodIndex(virtualMethodOffset), code);
   }
 
@@ -317,7 +317,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    */
   @NoInline
   public void initializeInternalLazyCompilationTrampoline() {
-    VM_CodeArray source = VM_LazyCompilationTrampoline.instructions;
+    CodeArray source = VM_LazyCompilationTrampoline.instructions;
     int targetSlot = lazyMethodInvokerTrampolineIndex();
     int logIPW = LOG_BYTES_IN_ADDRESS - VM_ArchConstants.LG_INSTRUCTION_WIDTH;
     int logIPI = LOG_BYTES_IN_INT - VM_ArchConstants.LG_INSTRUCTION_WIDTH;
@@ -339,7 +339,7 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
   /**
    * Set a specialized method in this TIB.
    */
-  public void setSpecializedMethod(int specializedMethodIndex, VM_CodeArray code) {
+  public void setSpecializedMethod(int specializedMethodIndex, CodeArray code) {
     if (VM.VerifyAssertions) VM._assert(specializedMethodIndex >= 0);
     set(TIB_FIRST_SPECIALIZED_METHOD_INDEX + specializedMethodIndex, code);
   }

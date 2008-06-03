@@ -14,7 +14,7 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -584,15 +584,15 @@ public class VM_Statics implements VM_Constants {
   }
 
   /**
-   * Set contents of a slot, as a VM_CodeArray.
+   * Set contents of a slot, as a CodeArray.
    */
   @Uninterruptible
-  public static void setSlotContents(Offset offset, VM_CodeArray code) {
+  public static void setSlotContents(Offset offset, CodeArray code) {
     setSlotContents(offset, VM_Magic.codeArrayAsObject(code));
   }
 
   /**
-   * Set contents of a slot, as a VM_CodeArray.
+   * Set contents of a slot, as a CodeArray.
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, VM_TIB tib) {

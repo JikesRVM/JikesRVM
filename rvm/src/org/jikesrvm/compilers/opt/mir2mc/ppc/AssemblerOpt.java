@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecificOpt;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.VM_Services;
@@ -93,13 +93,13 @@ public abstract class AssemblerOpt implements Operators, VM_Constants, VM_ArchCo
    * @return the number of machinecode instructions generated
    */
   public static int generateCode(IR ir, boolean shouldPrint) {
-    ir.MIRInfo.machinecode = ArchitectureSpecific.VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
+    ir.MIRInfo.machinecode = ArchitectureSpecific.CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
     return new ArchitectureSpecificOpt.AssemblerOpt().genCode(ir, shouldPrint);
   }
 
   protected final int genCode(IR ir, boolean shouldPrint) {
     int mi = 0;
-    VM_CodeArray machinecodes = ir.MIRInfo.machinecode;
+    CodeArray machinecodes = ir.MIRInfo.machinecode;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     boolean unsafeCondDispl = machinecodes.length() > MAX_COND_DISPL;
     //boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
@@ -1304,7 +1304,7 @@ public abstract class AssemblerOpt implements Operators, VM_Constants, VM_ArchCo
    * @param patchOffset the offset of the last byte of the patch point
    * @param rel32       the new immediate to use in the branch instruction
    */
-  public static void patchCode(VM_CodeArray code, int patchOffset, int rel32) {
+  public static void patchCode(CodeArray code, int patchOffset, int rel32) {
 
     /* The expecting instruction at patchOffset should be a NOP.
      */

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineReflection;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
@@ -117,7 +117,7 @@ public class VM_Reflection implements VM_Constants {
 
     VM_Processor.getCurrentProcessor().disableThreadSwitching("Packaging parameters for reflection");
 
-    VM_CodeArray code = cm.getEntryCodeArray();
+    CodeArray code = cm.getEntryCodeArray();
     VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
 
     // critical: no threadswitch/GCpoints between here and the invoke of code!

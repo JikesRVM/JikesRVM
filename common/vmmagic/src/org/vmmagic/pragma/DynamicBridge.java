@@ -29,7 +29,7 @@ import org.vmmagic.Pragma;
  * <p>Methods of a class that implement this interface may not return.
  *    (it is assumed that execution is resumed via a call to VM_Magic.dynamicBridgeTo)
  *
- * @see org.jikesrvm.runtime.VM_Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.VM_CodeArray)
+ * @see org.jikesrvm.runtime.VM_Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.CodeArray)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

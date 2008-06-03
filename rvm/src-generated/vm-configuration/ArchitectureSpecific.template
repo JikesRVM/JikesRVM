@@ -36,12 +36,12 @@ public class ArchitectureSpecific {
     public VM_BaselineGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
-  public static final class VM_CodeArray extends org.jikesrvm.@_ARCH_@.VM_CodeArray {
-    public VM_CodeArray() { super(0);}
-    public VM_CodeArray(int size) { super(size);}
-    public static VM_CodeArray create (int size) { // only intended to be called from VM_CodeArray.factory
+  public static final class CodeArray extends org.jikesrvm.@_ARCH_@.CodeArray {
+    public CodeArray() { super(0);}
+    public CodeArray(int size) { super(size);}
+    public static CodeArray create (int size) { // only intended to be called from CodeArray.factory
       if (VM.runningVM) VM._assert(false);  // should be hijacked
-      return new VM_CodeArray(size);
+      return new CodeArray(size);
     }
   }
   public static final class VM_Compiler extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_Compiler {
@@ -53,7 +53,7 @@ public class ArchitectureSpecific {
   public static final class VM_LazyCompilationTrampoline extends org.jikesrvm.@_ARCH_@.VM_LazyCompilationTrampoline {}
   public static final class VM_MachineCode extends org.jikesrvm.@_ARCH_@.VM_MachineCode {
   @_PPC_QUOTE_@
-    public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {
+    public VM_MachineCode(ArchitectureSpecific.CodeArray array, int[] bm) {
       super(array, bm);
     }
   //*/

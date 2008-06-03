@@ -15,7 +15,7 @@ package org.jikesrvm.objectmodel;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -106,9 +106,9 @@ public final class VM_ITable {
    */
   @Inline
   @Interruptible
-  public VM_CodeArray getCode(int index) {
+  public CodeArray getCode(int index) {
     if (VM.VerifyAssertions) VM._assert(index < length());
-    return (VM_CodeArray)get(index);
+    return (CodeArray)get(index);
   }
   /**
    * Set an ITable entry.

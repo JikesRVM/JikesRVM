@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import org.jikesrvm.VM;
@@ -235,7 +235,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     // Phase 3: Code gen
     int[] bcMap;
     VM_MachineCode machineCode;
-    VM_CodeArray instructions;
+    CodeArray instructions;
     try {
       if (VM.MeasureCompilationPhases) {
         start = VM_Scheduler.getCurrentThread().startTimedInterval();

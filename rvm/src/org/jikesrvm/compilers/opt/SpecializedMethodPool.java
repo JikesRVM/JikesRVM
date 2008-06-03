@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 public class SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;
   static int specializedMethodCount = 0;
-  static VM_CodeArray[] specializedMethods = new VM_CodeArray[SPECIALIZED_METHOD_COUNT];
+  static CodeArray[] specializedMethods = new CodeArray[SPECIALIZED_METHOD_COUNT];
 
   /**
    * Return the number of specialized methods
@@ -73,7 +73,7 @@ public class SpecializedMethodPool {
   public static void growSpecializedMethods() {
     int org_length = specializedMethods.length;
     int new_length = 2 * org_length;
-    VM_CodeArray[] temp = new VM_CodeArray[new_length];
+    CodeArray[] temp = new CodeArray[new_length];
     for (int i = 0; i < org_length; i++) {
       temp[i] = specializedMethods[i];
     }

@@ -49,7 +49,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_ProcessorTable;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
 import org.jikesrvm.ArchitectureSpecific.VM_OutOfLineMachineCode;
 import org.jikesrvm.jni.*;
@@ -754,7 +754,7 @@ public class BootImageWriter extends BootImageWriterMessages
     if (verbose >= 1) say("updating boot record");
 
     byte[] startupStack = startupThread.getStack();
-    VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentEntryCodeArray();
+    CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentEntryCodeArray();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = BootImageMap.getImageAddress(startupStack, true).plus(startupStack.length);
@@ -1705,7 +1705,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
         if (rvmType == VM_Type.CodeArrayType) {
           if (verbose >= 2) depth--;
-          VM_CodeArray codeArray = (VM_CodeArray) jdkObject;
+          CodeArray codeArray = (CodeArray) jdkObject;
           Object backing = codeArray.getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
@@ -2795,7 +2795,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (compiledMethod != null) {
         VM_Method m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {
-          VM_CodeArray instructions = compiledMethod.getEntryCodeArray();
+          CodeArray instructions = compiledMethod.getEntryCodeArray();
           Address code = BootImageMap.getImageAddress(instructions.getBacking(), true);
           out.println(".     .          code     " + VM.addressAsHexString(code) +
                       "          " + compiledMethod.getMethod());
@@ -2861,8 +2861,8 @@ public class BootImageWriter extends BootImageWriterMessages
     int ival = getIVal(jtocOff);
     if (ival != 0) {
       Object jdkObject = BootImageMap.getObject(ival);
-      if (jdkObject instanceof VM_CodeArray) {
-        jdkObject = ((VM_CodeArray)jdkObject).getBacking();
+      if (jdkObject instanceof CodeArray) {
+        jdkObject = ((CodeArray)jdkObject).getBacking();
       } else if (jdkObject instanceof AddressArray) {
         jdkObject = ((AddressArray)jdkObject).getBacking();
       } else if (jdkObject instanceof ObjectReferenceArray) {

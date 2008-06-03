@@ -22,7 +22,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
@@ -3109,7 +3109,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isObjectConstant()) {
         int length = 0;
         if (op.getType().getArrayElementType().isCodeType()) {
-          length = ((VM_CodeArray)(op.asObjectConstant().value)).length();
+          length = ((CodeArray)(op.asObjectConstant().value)).length();
         } else {
           length = Array.getLength(op.asObjectConstant().value);
         }

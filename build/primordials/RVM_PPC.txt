@@ -10,7 +10,7 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-[Lorg/jikesrvm/ppc/VM_Code;
-[Lorg/jikesrvm/ppc/VM_CodeArray;
+[Lorg/jikesrvm/ppc/Code;
+[Lorg/jikesrvm/ppc/CodeArray;
 [Lorg/jikesrvm/ppc/VM_OpcodeXX;
 [Lorg/jikesrvm/ppc/VM_OpcodeTab;
