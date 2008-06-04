@@ -122,6 +122,13 @@ import org.vmmagic.unboxed.*;
   public abstract boolean isArray(ObjectReference object);
 
   /**
+   * Is the passed object a primitive array?
+   *
+   * @param object address of the object
+   */
+  public abstract boolean isPrimitiveArray(ObjectReference object);
+
+  /**
    * Get the length of an array object.
    *
    * @param object address of the object

@@ -266,6 +266,21 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Is the passed object a primitive array?
+   *
+   * @param object address of the object
+   */
+  public boolean isPrimitiveArray(ObjectReference object) {
+    Object obj = object.toObject();
+    return (obj instanceof long[]   ||
+            obj instanceof int[]    ||
+            obj instanceof short[]  ||
+            obj instanceof byte[]   ||
+            obj instanceof double[] ||
+            obj instanceof float[]);
+  }
+
+  /**
    * Tests a bit available for memory manager use in an object.
    *
    * @param object the address of the object

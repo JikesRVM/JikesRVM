@@ -350,7 +350,7 @@ import org.vmmagic.pragma.*;
           totalArrayUsedSpace += length;
         }
       } else {
-        if(!this.scanCheckPrimitiveArray(obj.toObject(), index, total, length)) {
+        if(!this.scanCheckPrimitiveArray(obj, index, total, length)) {
           // real object
           scalarObjectsStream.increment(index, (short)1);
           if (total) {
@@ -373,13 +373,8 @@ import org.vmmagic.pragma.*;
    * @param length Current size of the Object, will be added to array space summary.
    * @return True if this Object is an array of primitives.
    */
-  protected boolean scanCheckPrimitiveArray(Object obj, int index, boolean total, int length) {
-    if(obj instanceof long[]   ||
-       obj instanceof int[]    ||
-       obj instanceof short[]  ||
-       obj instanceof byte[]   ||
-       obj instanceof double[] ||
-       obj instanceof float[]) {
+  protected boolean scanCheckPrimitiveArray(ObjectReference obj, int index, boolean total, int length) {
+    if(VM.objectModel.isPrimitiveArray(obj)) {
       arrayPrimitiveStream.increment(index, (short)1);
       if (total) {
         totalPrimitives++;
