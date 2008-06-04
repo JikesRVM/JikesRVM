@@ -34,7 +34,6 @@ import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 import org.jikesrvm.util.VM_LinkedList;
-import org.jikesrvm.util.VM_Synchronizer;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -2243,7 +2242,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   // Additional fields and methods for Interfaces               //
   //------------------------------------------------------------//
 
-  private static final VM_Synchronizer interfaceCountLock = new VM_Synchronizer();
+  private static final Object interfaceCountLock = new Object();
   private static int interfaceCount = 0;
   private static VM_Class[] interfaces;
   private int interfaceId = -1;
