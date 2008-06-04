@@ -19,8 +19,8 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 public class StringOption extends Option {
   // values
-  private String defaultValue;
-  private String value;
+  protected String defaultValue;
+  protected String value;
 
   /**
    * Create a new string option.
