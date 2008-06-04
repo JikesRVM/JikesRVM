@@ -45,7 +45,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible public abstract class RCMutator extends RCBaseMutator implements Constants {
+@Uninterruptible
+public class RCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    *
    * Mutator-time allocation

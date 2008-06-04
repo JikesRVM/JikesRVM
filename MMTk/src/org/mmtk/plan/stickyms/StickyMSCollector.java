@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
  * @see SimplePhase#delegatePhase
  */
 @Uninterruptible
-public abstract class StickyMSCollector extends MSCollector {
+public class StickyMSCollector extends MSCollector {
 
   /****************************************************************************
    * Instance fields

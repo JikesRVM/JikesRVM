@@ -49,7 +49,8 @@ import org.vmmagic.unboxed.ObjectReference;
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  */
-@Uninterruptible public abstract class ImmixCollector extends StopTheWorldCollector {
+@Uninterruptible
+public class ImmixCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields

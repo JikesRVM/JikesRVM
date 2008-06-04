@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.CollectorContext
  */
 @Uninterruptible
-public abstract class GenImmixCollector extends GenCollector {
+public class GenImmixCollector extends GenCollector {
 
   /*****************************************************************************
    *

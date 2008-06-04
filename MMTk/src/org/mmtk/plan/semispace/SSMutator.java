@@ -36,7 +36,8 @@ import org.vmmagic.pragma.*;
  * @see StopTheWorldMutator
  * @see MutatorContext
  */
-@Uninterruptible public abstract class SSMutator extends StopTheWorldMutator {
+@Uninterruptible
+public class SSMutator extends StopTheWorldMutator {
   /****************************************************************************
    * Instance fields
    */

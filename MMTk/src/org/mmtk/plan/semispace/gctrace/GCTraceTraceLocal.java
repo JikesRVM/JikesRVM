@@ -73,7 +73,8 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  */
-@Uninterruptible public final class GCTraceTraceLocal extends SSTraceLocal {
+@Uninterruptible
+public final class GCTraceTraceLocal extends SSTraceLocal {
 
   /**
    * Constructor

@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * @see SimplePhase#delegatePhase
  */
 @Uninterruptible
-public abstract class StickyImmixMutator extends ImmixMutator {
+public class StickyImmixMutator extends ImmixMutator {
 
   /****************************************************************************
    * Instance fields

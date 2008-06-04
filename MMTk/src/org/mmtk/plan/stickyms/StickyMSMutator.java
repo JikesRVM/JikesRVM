@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
  * @see SimplePhase#delegatePhase
  */
 @Uninterruptible
-public abstract class StickyMSMutator extends MSMutator {
+public class StickyMSMutator extends MSMutator {
 
   /****************************************************************************
    * Instance fields

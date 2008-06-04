@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implements the thread-local functionality for a transitive
+ * This class implements the thread-local functionality for a transitive
  * closure over a sticky-immix space.
  */
 @Uninterruptible

@@ -47,7 +47,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible public abstract class GenRCMutator extends RCBaseMutator implements Constants {
+@Uninterruptible
+public class GenRCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    * Instance fields
    */

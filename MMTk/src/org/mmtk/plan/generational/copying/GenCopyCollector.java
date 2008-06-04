@@ -40,7 +40,8 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
  */
-@Uninterruptible public abstract class GenCopyCollector extends GenCollector {
+@Uninterruptible
+public class GenCopyCollector extends GenCollector {
 
   /******************************************************************
    * Instance fields

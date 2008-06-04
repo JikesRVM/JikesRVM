@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
  * @see MutatorContext
  */
 @Uninterruptible
-public abstract class CMSMutator extends ConcurrentMutator {
+public class CMSMutator extends ConcurrentMutator {
 
   /****************************************************************************
    * Instance fields

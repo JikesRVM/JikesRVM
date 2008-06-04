@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class is the fundamental mechanism for performing a
+ * This class is the fundamental mechanism for performing a
  * transitive closure over an object graph.<p>
  *
  * @see org.mmtk.plan.TraceLocal

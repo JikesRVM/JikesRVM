@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implements the thread-local functionality for a defragmenting
+ * This class implements the thread-local functionality for a defragmenting
  * transitive closure over an immix space.
  */
 @Uninterruptible

@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
  * case for read and write barriers in the VM.
  */
 @Uninterruptible
-public abstract class PoisonedMutator extends MSMutator {
+public class PoisonedMutator extends MSMutator {
 
   /****************************************************************************
    *

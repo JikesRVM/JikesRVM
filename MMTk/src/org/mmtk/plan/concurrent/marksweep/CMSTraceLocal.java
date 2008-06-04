@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the thread-local functionality for a transitive
+ * This class implments the thread-local functionality for a transitive
  * closure over a mark-sweep space.
  */
 @Uninterruptible

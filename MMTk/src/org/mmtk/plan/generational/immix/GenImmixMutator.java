@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible
-public abstract class GenImmixMutator extends GenMutator {
+public class GenImmixMutator extends GenMutator {
 
   /******************************************************************
    * Instance fields

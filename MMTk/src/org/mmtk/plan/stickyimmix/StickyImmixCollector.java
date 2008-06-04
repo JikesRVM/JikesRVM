@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
  * @see SimplePhase#delegatePhase
  */
 @Uninterruptible
-public abstract class StickyImmixCollector extends ImmixCollector {
+public class StickyImmixCollector extends ImmixCollector {
 
   /****************************************************************************
    * Instance fields

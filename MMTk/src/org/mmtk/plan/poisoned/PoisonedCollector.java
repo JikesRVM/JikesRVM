@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * case for read and write barriers in the VM.
  */
 @Uninterruptible
-public abstract class PoisonedCollector extends MSCollector {
+public class PoisonedCollector extends MSCollector {
   /****************************************************************************
    *
    * Collector read/write barriers.

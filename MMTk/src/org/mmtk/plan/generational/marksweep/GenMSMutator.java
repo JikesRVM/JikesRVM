@@ -41,7 +41,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible public abstract class GenMSMutator extends GenMutator {
+@Uninterruptible
+public class GenMSMutator extends GenMutator {
   /******************************************************************
    * Instance fields
    */

@@ -24,11 +24,12 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the core functionality for a transitive
+ * This class implments the core functionality for a transitive
  * closure over the heap graph, specifically in a Generational copying
  * collector.
  */
-@Uninterruptible public class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
+@Uninterruptible
+public final class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 
   /**
    * Constructor
@@ -51,7 +52,7 @@ import org.vmmagic.unboxed.*;
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public final ObjectReference traceObject(ObjectReference object) {
+  public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(global().traceFullHeap());
     if (object.isNull()) return object;
 
@@ -68,7 +69,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public final boolean isLive(ObjectReference object) {
+  public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(GenCopy.MS0, object))
       return GenCopy.hi ? GenCopy.matureSpace0.isLive(object) : true;

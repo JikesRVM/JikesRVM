@@ -40,7 +40,8 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible public abstract class GenCopyMutator extends GenMutator {
+@Uninterruptible
+public class GenCopyMutator extends GenMutator {
   /******************************************************************
    * Instance fields
    */

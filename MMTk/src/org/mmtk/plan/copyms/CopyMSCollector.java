@@ -34,7 +34,8 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  */
-@Uninterruptible public abstract class CopyMSCollector extends StopTheWorldCollector {
+@Uninterruptible
+public class CopyMSCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields

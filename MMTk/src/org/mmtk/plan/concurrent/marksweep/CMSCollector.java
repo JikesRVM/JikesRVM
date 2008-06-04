@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * concurrent mark-sweep collector.<p>
  */
 @Uninterruptible
-public abstract class CMSCollector extends ConcurrentCollector {
+public class CMSCollector extends ConcurrentCollector {
 
   /****************************************************************************
    * Instance fields
