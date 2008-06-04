@@ -131,7 +131,7 @@ public final class BlockAllocator implements Constants {
   @Inline
   private static void setBlkSizeMetaData(Address block, byte sc) {
     if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(block == Conversions.pageAlign(block));
+      VM.assertions._assert(block.EQ(Conversions.pageAlign(block)));
       VM.assertions._assert(pagesForSizeClass(sc) - 1  <= MAX_BLOCK_PAGE_OFFSET);
     }
     Address address = block;
@@ -186,7 +186,7 @@ public final class BlockAllocator implements Constants {
    */
   @Inline
   public static void setAllClientSizeClass(Address block, int blocksc, byte sc) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block == Conversions.pageAlign(block));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block.EQ(Conversions.pageAlign(block)));
     Address address = block;
     for (int i = 0; i < pagesForSizeClass(blocksc); i++) {
       getMetaAddress(address).store(sc, CSC_OFFSET);
