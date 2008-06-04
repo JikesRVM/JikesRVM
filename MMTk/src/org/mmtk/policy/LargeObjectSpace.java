@@ -83,6 +83,7 @@ import org.vmmagic.unboxed.*;
     }
     cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
+    markState = Word.zero();
   }
 
   /****************************************************************************
