@@ -564,12 +564,13 @@ public final class ImmixSpace extends Space implements Constants {
                )) {
             Log.write("   object: "); Log.writeln(object);
             Log.write("newObject: "); Log.writeln(newObject);
-            Log.write("    space: "); Log.writeln(ObjectReference.fromObject(this));
-            Log.write(" space(o): "); Log.writeln(ObjectReference.fromObject(getSpaceForObject(newObject)));
+            Log.write("    space: "); Log.writeln(getName());
             Log.write(" nursery?: "); Log.writeln(nurseryCollection);
             Log.write("  mature?: "); Log.writeln(ObjectHeader.isMatureObject(object));
             Log.write("  wnmngc?: "); Log.writeln(willNotMoveThisNurseryGC(newObject));
             Log.write("  pinned?: "); Log.writeln(ObjectHeader.isPinnedObject(object));
+            Space otherSpace = getSpaceForObject(newObject);
+            Log.write(" space(o): "); Log.writeln(otherSpace == null ? "<NULL>" : otherSpace.getName());
             VM.assertions._assert(false);
           }
         }
