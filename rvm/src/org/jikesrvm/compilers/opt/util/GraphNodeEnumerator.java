@@ -10,13 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.util;
+package org.jikesrvm.compilers.opt.util;
 
 import java.util.Enumeration;
 import java.util.Iterator;
 
-import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 public abstract class GraphNodeEnumerator implements GraphNodeEnumeration {
 
@@ -34,27 +32,27 @@ public abstract class GraphNodeEnumerator implements GraphNodeEnumeration {
     return new Iter(i.iterator());
   }
 
-  public static class Enum extends GraphNodeEnumerator {
+  private static final class Enum extends GraphNodeEnumerator {
     private final Enumeration<GraphNode> e;
 
     Enum(Enumeration<GraphNode> e) {
       this.e = e;
     }
 
-    public final boolean hasMoreElements() { return e.hasMoreElements(); }
+    public boolean hasMoreElements() { return e.hasMoreElements(); }
 
-    public final GraphNode next() { return e.nextElement(); }
+    public GraphNode next() { return e.nextElement(); }
   }
 
-  public static class Iter extends GraphNodeEnumerator {
+  private static final class Iter extends GraphNodeEnumerator {
     private final Iterator<GraphNode> i;
 
     Iter(Iterator<GraphNode> i) {
       this.i = i;
     }
 
-    public final boolean hasMoreElements() { return i.hasNext(); }
+    public boolean hasMoreElements() { return i.hasNext(); }
 
-    public final GraphNode next() { return i.next(); }
+    public GraphNode next() { return i.next(); }
   }
 }

@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
-import org.jikesrvm.util.GraphNodeEnumerator;
 
 /**
  * This class implements miscellaneous utilities for graphs.
