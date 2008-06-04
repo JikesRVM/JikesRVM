@@ -229,8 +229,8 @@ import org.vmmagic.unboxed.Word;
    */
 
   @Inline
-  public void updateDeathTime(Object obj) {
-    VM_MiscHeader.updateDeathTime(obj);
+  public void updateDeathTime(ObjectReference obj) {
+    VM_MiscHeader.updateDeathTime(obj.toObject());
   }
 
   @Inline

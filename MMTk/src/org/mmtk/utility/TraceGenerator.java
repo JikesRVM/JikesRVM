@@ -188,7 +188,7 @@ import org.vmmagic.unboxed.*;
       if (MERLIN_ANALYSIS) {
         ObjectReference oldTgt = slot.loadObjectReference();
         if (!oldTgt.isNull())
-          VM.traceInterface.updateDeathTime(oldTgt.toObject());
+          VM.traceInterface.updateDeathTime(oldTgt);
       }
 
       traceBusy = true;
@@ -354,7 +354,7 @@ import org.vmmagic.unboxed.*;
    * @param obj The root-referenced object
    */
   public static void rootEnumerate(ObjectReference obj) {
-    VM.traceInterface.updateDeathTime(obj.toObject());
+    VM.traceInterface.updateDeathTime(obj);
   }
 
   /**

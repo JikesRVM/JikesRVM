@@ -65,7 +65,7 @@ import org.vmmagic.pragma.*;
    *
    * Wrapper methods
    */
-  public abstract void updateDeathTime(Object obj);
+  public abstract void updateDeathTime(ObjectReference obj);
   public abstract void setDeathTime(ObjectReference ref, Word time_);
   public abstract void setLink(ObjectReference ref, ObjectReference link);
   public abstract void updateTime(Word time_);
