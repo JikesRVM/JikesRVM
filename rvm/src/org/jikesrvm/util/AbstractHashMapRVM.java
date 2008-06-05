@@ -21,7 +21,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 /**
  * Common super class for all VM hash maps
  */
-abstract class VM_AbstractHashMap<K, V> {
+abstract class AbstractHashMapRVM<K, V> {
 
   protected static final int DEFAULT_SIZE = 7;
   private static final float LOAD = 3;
@@ -51,7 +51,7 @@ abstract class VM_AbstractHashMap<K, V> {
 
   abstract AbstractBucket<K,V> createNewBucket(K k, V v, AbstractBucket<K,V> n);
 
-  VM_AbstractHashMap(int size) {
+  AbstractHashMapRVM(int size) {
     buckets = newBucketArray(size);
   }
 
@@ -170,7 +170,7 @@ abstract class VM_AbstractHashMap<K, V> {
   public final Iterable<V> values() {
     return new Iterable<V>() {
       public Iterator<V> iterator() {
-        return VM_AbstractHashMap.this.valueIterator();
+        return AbstractHashMapRVM.this.valueIterator();
       }
     };
   }
@@ -182,7 +182,7 @@ abstract class VM_AbstractHashMap<K, V> {
   public final Iterable<K> keys() {
     return new Iterable<K>() {
       public Iterator<K> iterator() {
-        return VM_AbstractHashMap.this.keyIterator();
+        return AbstractHashMapRVM.this.keyIterator();
       }
     };
   }

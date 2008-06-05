@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import org.jikesrvm.VM;
-import org.jikesrvm.util.VM_ImmutableEntryHashSet;
+import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -36,8 +36,8 @@ public abstract class VM_MemberReference {
   /**
    * Used to canonicalize memberReferences
    */
-  private static final VM_ImmutableEntryHashSet<VM_MemberReference> dictionary =
-    new VM_ImmutableEntryHashSet<VM_MemberReference>();
+  private static final ImmutableEntryHashSetRVM<VM_MemberReference> dictionary =
+    new ImmutableEntryHashSetRVM<VM_MemberReference>();
 
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row

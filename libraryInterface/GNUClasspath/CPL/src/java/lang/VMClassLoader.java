@@ -38,7 +38,7 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 import org.jikesrvm.classloader.VM_ClassLoader;
 import org.jikesrvm.classloader.VM_Type;
 
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.HashMapRVM;
 
 /**
  * Jikes RVM impl of VMClassLoader.
@@ -49,15 +49,15 @@ final class VMClassLoader {
    * A map of maps. The first map is indexed by the classloader. The
    * map this finds then maps String class names to classes
    */
-  private static final VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>> loadedClasses =
-    new VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>>();
+  private static final HashMapRVM<ClassLoader,HashMapRVM<String,Class<?>>> loadedClasses =
+    new HashMapRVM<ClassLoader,HashMapRVM<String,Class<?>>>();
 
   /** packages loaded by the bootstrap class loader */
-  private static final VM_HashMap<String,Package> definedPackages =
-    new VM_HashMap<String,Package>();
+  private static final HashMapRVM<String,Package> definedPackages =
+    new HashMapRVM<String,Package>();
 
-  private static final VM_HashMap<String,ZipFile> bootjars =
-    new VM_HashMap<String,ZipFile>();
+  private static final HashMapRVM<String,ZipFile> bootjars =
+    new HashMapRVM<String,ZipFile>();
 
   static {
     String[] packages = getBootPackages();
@@ -93,9 +93,9 @@ final class VMClassLoader {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
     Class<?> ans = vmType.getClassForType();
     JikesRVMSupport.setClassProtectionDomain(ans, pd);
-    VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(cl);
+    HashMapRVM<String,Class<?>> mapForCL = loadedClasses.get(cl);
     if (mapForCL == null) {
-      mapForCL = new VM_HashMap<String,Class<?>>();
+      mapForCL = new HashMapRVM<String,Class<?>>();
       loadedClasses.put(cl, mapForCL);
     }
     mapForCL.put(name, ans);
@@ -266,7 +266,7 @@ final class VMClassLoader {
 
   static Class<?>[] getAllLoadedClasses() {
     Vector<Class<?>> classList = new Vector<Class<?>>();
-    for (VM_HashMap<String,Class<?>> classes : loadedClasses.values()) {
+    for (HashMapRVM<String,Class<?>> classes : loadedClasses.values()) {
       for (Class<?> cl : classes.values()) {
         classList.add(cl);
       }
@@ -276,7 +276,7 @@ final class VMClassLoader {
   }
 
   static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
-    VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(classLoader);
+    HashMapRVM<String,Class<?>> mapForCL = loadedClasses.get(classLoader);
     if (mapForCL == null) return new Class[]{};
     Vector<Class<?>> classList = new Vector<Class<?>>();
     for (Class<?> cl : mapForCL.values())
@@ -286,7 +286,7 @@ final class VMClassLoader {
   }
 
   static Class<?> findLoadedClass(ClassLoader cl, String name) {
-    VM_HashMap<String,Class<?>> mapForCL = loadedClasses.get(cl);
+    HashMapRVM<String,Class<?>> mapForCL = loadedClasses.get(cl);
     if (mapForCL == null) return null;
     return mapForCL.get(name);
   }

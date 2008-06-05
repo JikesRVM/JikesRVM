@@ -19,7 +19,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.util.VM_ImmutableEntryHashMap;
+import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
  *  This class records decisions taken by the controller.  It will remember
@@ -32,8 +32,8 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  This is a hashtable of controller plans indexed by VM_Method.
    *  Each method can have a list of such plans associated with.
    */
-  private static final VM_ImmutableEntryHashMap<VM_Method, LinkedList<VM_ControllerPlan>> table =
-      new VM_ImmutableEntryHashMap<VM_Method, LinkedList<VM_ControllerPlan>>();
+  private static final ImmutableEntryHashMapRVM<VM_Method, LinkedList<VM_ControllerPlan>> table =
+      new ImmutableEntryHashMapRVM<VM_Method, LinkedList<VM_ControllerPlan>>();
 
   /**
    * Number of times controller is awoken and did nothing.
@@ -155,7 +155,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *         otherwise, null
    */
   @SuppressWarnings("unchecked")
-  // until VM_HashMap becomes generic
+  // until HashMapRVM becomes generic
   private static synchronized LinkedList<VM_ControllerPlan> findPlan(VM_Method method) {
     return table.get(method);
   }

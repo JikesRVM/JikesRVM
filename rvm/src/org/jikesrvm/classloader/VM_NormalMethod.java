@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.runtime.VM_DynamicLink;
-import org.jikesrvm.util.VM_HashMap;
+import org.jikesrvm.util.HashMapRVM;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -123,17 +123,17 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
 
   // Extra fields for on-stack replacement
   /** Possible OSR bytecode array consisting of prologue and original bytecodes */
-  private static final VM_HashMap<VM_NormalMethod, byte[]> synthesizedBytecodes =
-    new VM_HashMap<VM_NormalMethod, byte[]>();
+  private static final HashMapRVM<VM_NormalMethod, byte[]> synthesizedBytecodes =
+    new HashMapRVM<VM_NormalMethod, byte[]>();
   /** Possible OSR record of osr prologue */
-  private static final VM_HashMap<VM_NormalMethod, byte[]> osrPrologues =
-    new VM_HashMap<VM_NormalMethod, byte[]>();
+  private static final HashMapRVM<VM_NormalMethod, byte[]> osrPrologues =
+    new HashMapRVM<VM_NormalMethod, byte[]>();
   /**
    * Possibly OSR prologue may change the maximum stack height, remember the
    * original stack height
    */
-  private static final VM_HashMap<VM_NormalMethod, Integer> savedOperandWords =
-    new VM_HashMap<VM_NormalMethod, Integer>();
+  private static final HashMapRVM<VM_NormalMethod, Integer> savedOperandWords =
+    new HashMapRVM<VM_NormalMethod, Integer>();
 
   /**
    * Construct a normal Java bytecode method's information

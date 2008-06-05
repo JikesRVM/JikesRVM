@@ -13,15 +13,14 @@
 package org.jikesrvm.util;
 
 /**
- * Stripped down implementation of HashSet for use
- * by core parts of the JikesRVM runtime. Consider the use of
- * {@link VM_ImmutableEntryHashSet} when the use of the HashSet
- * methods is limited.
+ * A hash set with entirely immutable buckets. It doesn't correctly support
+ * remove, so use with care.
  */
-public final class VM_HashSet<T> extends VM_AbstractHashSet<T> {
+public final class ImmutableEntryHashSetRVM<T> extends AbstractHashSetRVM<T> {
+
   static final class Bucket<T> extends AbstractBucket<T> {
     private final T key;
-    private AbstractBucket<T> next;
+    private final AbstractBucket<T> next;
 
     Bucket(T key, AbstractBucket<T> next) {
       this.key = key;
@@ -30,8 +29,11 @@ public final class VM_HashSet<T> extends VM_AbstractHashSet<T> {
 
     @Override
     AbstractBucket<T> setNext(AbstractBucket<T> next) {
-      this.next = next;
-      return this;
+      if (this.next == next) {
+        return this;
+      } else {
+        return new Bucket<T>(key, next);
+      }
     }
 
     @Override
@@ -50,11 +52,11 @@ public final class VM_HashSet<T> extends VM_AbstractHashSet<T> {
     return new Bucket<T>(key, next);
   }
 
-  public VM_HashSet() {
+  public ImmutableEntryHashSetRVM() {
     super(DEFAULT_SIZE);
   }
 
-  public VM_HashSet(int size) {
+  public ImmutableEntryHashSetRVM(int size) {
     super(size);
   }
 }

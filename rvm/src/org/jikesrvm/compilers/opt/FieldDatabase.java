@@ -17,7 +17,7 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.util.VM_ImmutableEntryHashMap;
+import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
  * database to hold field-level information
@@ -26,8 +26,8 @@ import org.jikesrvm.util.VM_ImmutableEntryHashMap;
 final class FieldDatabase {
   private static final boolean DEBUG = false;
 
-  private final VM_ImmutableEntryHashMap<VM_Field, FieldDatabase.FieldDatabaseEntry> db =
-    new VM_ImmutableEntryHashMap<VM_Field, FieldDatabase.FieldDatabaseEntry>();
+  private final ImmutableEntryHashMapRVM<VM_Field, FieldDatabase.FieldDatabaseEntry> db =
+    new ImmutableEntryHashMapRVM<VM_Field, FieldDatabase.FieldDatabaseEntry>();
 
   FieldDatabaseEntry findOrCreateEntry(VM_Field f) {
     FieldDatabaseEntry e = db.get(f);
@@ -54,7 +54,7 @@ final class FieldDatabase {
 
   // a data structure holding information about a field
   static final class FieldDatabaseEntry {
-    private final VM_ImmutableEntryHashMap<VM_Method, FieldWriterInfo> summaries;
+    private final ImmutableEntryHashMapRVM<VM_Method, FieldWriterInfo> summaries;
     boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
     VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
 
@@ -100,7 +100,7 @@ final class FieldDatabase {
       if (VM.VerifyAssertions) VM._assert(f.isPrivate());
 
       VM_Class klass = f.getDeclaringClass();
-      summaries = new VM_ImmutableEntryHashMap<VM_Method, FieldWriterInfo>(1);
+      summaries = new ImmutableEntryHashMapRVM<VM_Method, FieldWriterInfo>(1);
 
       // walk thru each method of the declaring class.
       // If a method m may write to f, then create a FieldWriterInfo for m

@@ -20,7 +20,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.util.VM_BitVector;
-import org.jikesrvm.util.VM_ImmutableEntryIdentityHashMap;
+import org.jikesrvm.util.ImmutableEntryIdentityHashMapRVM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -138,8 +138,8 @@ public class VM_Statics implements VM_Constants {
   /**
    * Map of objects to their literal offsets
    */
-  private static final VM_ImmutableEntryIdentityHashMap<Object, Integer> objectLiterals =
-    new VM_ImmutableEntryIdentityHashMap<Object, Integer>();
+  private static final ImmutableEntryIdentityHashMapRVM<Object, Integer> objectLiterals =
+    new ImmutableEntryIdentityHashMapRVM<Object, Integer>();
 
   static {
     // allocate a slot to be null - offset zero should map to null

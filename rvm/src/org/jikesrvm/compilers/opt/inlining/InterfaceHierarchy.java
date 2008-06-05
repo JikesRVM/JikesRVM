@@ -15,8 +15,8 @@ package org.jikesrvm.compilers.opt.inlining;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.util.VM_ImmutableEntryHashMap;
-import org.jikesrvm.util.VM_ImmutableEntryHashSet;
+import org.jikesrvm.util.ImmutableEntryHashMapRVM;
+import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
 /**
  * This class holds, for each interface, the set of initialized classes
@@ -28,8 +28,8 @@ public class InterfaceHierarchy {
    * a mapping from VM_Class (an interface) to a set of classes that
    * claim to implement this interface.
    */
-  private static final VM_ImmutableEntryHashMap<VM_Class, VM_ImmutableEntryHashSet<VM_Class>> interfaceMapping =
-      new VM_ImmutableEntryHashMap<VM_Class, VM_ImmutableEntryHashSet<VM_Class>>();
+  private static final ImmutableEntryHashMapRVM<VM_Class, ImmutableEntryHashSetRVM<VM_Class>> interfaceMapping =
+      new ImmutableEntryHashMapRVM<VM_Class, ImmutableEntryHashSetRVM<VM_Class>>();
 
   /**
    * Notify this dictionary that a new class has been initialized.
@@ -48,7 +48,7 @@ public class InterfaceHierarchy {
    * Note that class c implements interface I;
    */
   private static void noteImplements(VM_Class c, VM_Class I) {
-    VM_ImmutableEntryHashSet<VM_Class> implementsSet = findOrCreateSet(I);
+    ImmutableEntryHashSetRVM<VM_Class> implementsSet = findOrCreateSet(I);
     implementsSet.add(c);
   }
 
@@ -56,10 +56,10 @@ public class InterfaceHierarchy {
    * Return the set of classes that implement a given interface. Create a
    * set if none found.
    */
-  private static synchronized VM_ImmutableEntryHashSet<VM_Class> findOrCreateSet(VM_Class I) {
-    VM_ImmutableEntryHashSet<VM_Class> set = interfaceMapping.get(I);
+  private static synchronized ImmutableEntryHashSetRVM<VM_Class> findOrCreateSet(VM_Class I) {
+    ImmutableEntryHashSetRVM<VM_Class> set = interfaceMapping.get(I);
     if (set == null) {
-      set = new VM_ImmutableEntryHashSet<VM_Class>(3);
+      set = new ImmutableEntryHashSetRVM<VM_Class>(3);
       interfaceMapping.put(I, set);
     }
     return set;
@@ -68,9 +68,9 @@ public class InterfaceHierarchy {
   /**
    * Return the set of all classes known to implement interface I.
    */
-  private static VM_ImmutableEntryHashSet<VM_Class> allImplementors(VM_Class I) {
+  private static ImmutableEntryHashSetRVM<VM_Class> allImplementors(VM_Class I) {
     // get the set of classes registered as implementing I
-    VM_ImmutableEntryHashSet<VM_Class> result = findOrCreateSet(I);
+    ImmutableEntryHashSetRVM<VM_Class> result = findOrCreateSet(I);
 
     // also add any classes that implement a sub-interface of I.
     // need to do this kludge to avoid recursive concurrent modification
@@ -80,7 +80,7 @@ public class InterfaceHierarchy {
 
     // also add any sub-classes of these classes.
     // need to cache additions to avoid modifying the set while iterating
-    VM_ImmutableEntryHashSet<VM_Class> toAdd = new VM_ImmutableEntryHashSet<VM_Class>(5);
+    ImmutableEntryHashSetRVM<VM_Class> toAdd = new ImmutableEntryHashSetRVM<VM_Class>(5);
     for (VM_Class c : result) {
       toAdd.addAll(allSubClasses(c));
     }
@@ -92,8 +92,8 @@ public class InterfaceHierarchy {
   /**
    * Return the set of all classes known to extend C
    */
-  private static VM_ImmutableEntryHashSet<VM_Class> allSubClasses(VM_Class C) {
-    VM_ImmutableEntryHashSet<VM_Class> result = new VM_ImmutableEntryHashSet<VM_Class>(5);
+  private static ImmutableEntryHashSetRVM<VM_Class> allSubClasses(VM_Class C) {
+    ImmutableEntryHashSetRVM<VM_Class> result = new ImmutableEntryHashSetRVM<VM_Class>(5);
 
     // also add any classes that implement a sub-interface of I.
     for (VM_Class subClass : C.getSubClasses()) {
@@ -113,7 +113,7 @@ public class InterfaceHierarchy {
   public static synchronized VM_Method getUniqueImplementation(VM_Method foo) {
     VM_Class I = foo.getDeclaringClass();
 
-    VM_ImmutableEntryHashSet<VM_Class> classes = allImplementors(I);
+    ImmutableEntryHashSetRVM<VM_Class> classes = allImplementors(I);
     VM_Method firstMethod = null;
     VM_Atom name = foo.getName();
     VM_Atom desc = foo.getDescriptor();

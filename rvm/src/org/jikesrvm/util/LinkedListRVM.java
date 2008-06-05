@@ -22,7 +22,7 @@ import org.jikesrvm.VM;
  * Implementation of java.util.LinkedList for use in classes that
  * end up in the boot image.
  */
-public final class VM_LinkedList<T> implements List<T> {
+public final class LinkedListRVM<T> implements List<T> {
 
   /** Element count */
   private int count = 0;
@@ -192,7 +192,7 @@ public final class VM_LinkedList<T> implements List<T> {
   }
 
   public Iterator<T> iterator() {
-    return new VM_LinkedListIterator<T>(this);
+    return new LinkedListIteratorRVM<T>(this);
   }
 
   /** UNIMPLEMENTED */
@@ -202,7 +202,7 @@ public final class VM_LinkedList<T> implements List<T> {
   }
 
   public ListIterator<T> listIterator() {
-    return new VM_LinkedListIterator<T>(this);
+    return new LinkedListIteratorRVM<T>(this);
   }
 
   /** UNIMPLEMENTED */

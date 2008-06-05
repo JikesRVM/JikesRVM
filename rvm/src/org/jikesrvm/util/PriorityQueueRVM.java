@@ -19,7 +19,7 @@ import org.jikesrvm.VM;
  * (balanced partially-ordered tree, i.e., "heap") algorithm.
  * Smaller priority objects are in the front of the queue.
  */
-public class VM_PriorityQueue {
+public class PriorityQueueRVM {
 
   /**
    * the queue, we use elements 1..queue.length
@@ -31,7 +31,7 @@ public class VM_PriorityQueue {
    */
   private int numElements = 0;
 
-  protected VM_PriorityQueue() {
+  protected PriorityQueueRVM() {
     queue = new VM_PriorityQueueNode[20];
 
     // We don't use element #0

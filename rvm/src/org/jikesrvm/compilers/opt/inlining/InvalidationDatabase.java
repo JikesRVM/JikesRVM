@@ -15,8 +15,8 @@ package org.jikesrvm.compilers.opt.inlining;
 import java.util.Iterator;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.util.VM_HashMap;
-import org.jikesrvm.util.VM_HashSet;
+import org.jikesrvm.util.HashMapRVM;
+import org.jikesrvm.util.HashSetRVM;
 
 /**
  * This class holds the dependencies that define invalidation
@@ -44,15 +44,15 @@ public final class InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private final VM_HashMap<VM_Method, MethodSet> nonOverriddenHash =
-    new VM_HashMap<VM_Method, MethodSet>();
+  private final HashMapRVM<VM_Method, MethodSet> nonOverriddenHash =
+    new HashMapRVM<VM_Method, MethodSet>();
 
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private final VM_HashMap<VM_Class, MethodSet> noSubclassHash =
-    new VM_HashMap<VM_Class, MethodSet>();
+  private final HashMapRVM<VM_Class, MethodSet> noSubclassHash =
+    new HashMapRVM<VM_Class, MethodSet>();
 
   /////////////////////
   // (1) Dependency on a particular VM_Method not being overridden.
@@ -143,7 +143,7 @@ public final class InvalidationDatabase {
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
-  private <T> MethodSet findOrCreateMethodSet(VM_HashMap<T, MethodSet> hash, T key) {
+  private <T> MethodSet findOrCreateMethodSet(HashMapRVM<T, MethodSet> hash, T key) {
     MethodSet result = hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -160,7 +160,7 @@ public final class InvalidationDatabase {
     /**
      * a set of cmids (Integers)
      */
-    final VM_HashSet<Integer> methods = new VM_HashSet<Integer>();
+    final HashSetRVM<Integer> methods = new HashSetRVM<Integer>();
 
     MethodSet(Object key) {
       this.key = key;

@@ -13,15 +13,15 @@
 package org.jikesrvm.adaptive.util;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.util.VM_PriorityQueue;
+import org.jikesrvm.util.PriorityQueueRVM;
 
 /**
- * This class extends VM_PriorityQueue to safely
+ * This class extends PriorityQueueRVM to safely
  * support multiple producers/consumers where
  * the consumers are blocked if no objects are available
  * to consume.
  */
-public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
+public class VM_BlockingPriorityQueue extends PriorityQueueRVM {
 
   /**
    * Used to notify consumers when about to wait and when notified

@@ -21,7 +21,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 /**
  * Common super class for all VM hash sets
  */
-abstract class VM_AbstractHashSet<T>  implements Iterable<T> {
+abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
 
   protected static final int DEFAULT_SIZE = 7;
   private static final float LOAD = 3;
@@ -47,7 +47,7 @@ abstract class VM_AbstractHashSet<T>  implements Iterable<T> {
     return new AbstractBucket[size];
   }
 
-  VM_AbstractHashSet(int size) {
+  AbstractHashSetRVM(int size) {
     buckets = newBucketArray(size);
   }
 
@@ -96,7 +96,7 @@ abstract class VM_AbstractHashSet<T>  implements Iterable<T> {
     return get(key) != null;
   }
 
-  public void addAll(VM_AbstractHashSet<T> c) {
+  public void addAll(AbstractHashSetRVM<T> c) {
     for (T t : c) {
       add(t);
     }

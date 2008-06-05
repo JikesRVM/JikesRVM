@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 
-import org.jikesrvm.util.VM_ImmutableEntryHashSet;
+import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
 // TODO: The following is due to a bug in checkstyle 4.3
 // CHECKSTYLE:OFF
@@ -60,8 +60,8 @@ public final class VM_TypeReference {
   /**
    * Used to canonicalize TypeReferences
    */
-  private static final VM_ImmutableEntryHashSet<VM_TypeReference> dictionary =
-    new VM_ImmutableEntryHashSet<VM_TypeReference>();
+  private static final ImmutableEntryHashSetRVM<VM_TypeReference> dictionary =
+    new ImmutableEntryHashSetRVM<VM_TypeReference>();
 
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row

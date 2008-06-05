@@ -57,8 +57,8 @@
 [Lorg/jikesrvm/scheduler/greenthreads/VM_GreenLock;
 [Lorg/jikesrvm/scheduler/VM_Scheduler$ThreadModel;
 
-[Lorg/jikesrvm/util/VM_AbstractHashMap$AbstractBucket;
-[Lorg/jikesrvm/util/VM_AbstractHashSet$AbstractBucket;
+[Lorg/jikesrvm/util/AbstractHashMapRVM$AbstractBucket;
+[Lorg/jikesrvm/util/AbstractHashSetRVM$AbstractBucket;
 
 [Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
 [Lorg/jikesrvm/memorymanagers/mminterface/VM_ConcurrentCollectorThread;

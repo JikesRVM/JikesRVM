@@ -30,7 +30,7 @@ import java.util.WeakHashMap;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.util.VM_ImmutableEntryHashMap;
+import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -55,8 +55,8 @@ public final class VM_Atom {
   /**
    * Used to canonicalize VM_Atoms: possibly non-canonical VM_Atom => VM_Atom
    */
-  private static final VM_ImmutableEntryHashMap<VM_Atom, VM_Atom> dictionary =
-    new VM_ImmutableEntryHashMap<VM_Atom, VM_Atom>(12000);
+  private static final ImmutableEntryHashMapRVM<VM_Atom, VM_Atom> dictionary =
+    new ImmutableEntryHashMapRVM<VM_Atom, VM_Atom>(12000);
 
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row

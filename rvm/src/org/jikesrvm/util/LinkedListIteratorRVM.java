@@ -16,21 +16,21 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import org.jikesrvm.VM;
 
-public final class VM_LinkedListIterator<T> implements ListIterator<T> {
+public final class LinkedListIteratorRVM<T> implements ListIterator<T> {
   boolean canRemove = false;
 
   /** The list we are iterating over */
-  final VM_LinkedList<T> l;
+  final LinkedListRVM<T> l;
 
   /** Pointer to the current (most recently returned) element. */
-  private VM_LinkedList.Element<T> cursor = null;
+  private LinkedListRVM.Element<T> cursor = null;
 
   /**
    * Constructor
    *
    * @param l The list to iterate over.
    */
-  VM_LinkedListIterator(VM_LinkedList<T> l) {
+  LinkedListIteratorRVM(LinkedListRVM<T> l) {
     this.l = l;
   }
 
