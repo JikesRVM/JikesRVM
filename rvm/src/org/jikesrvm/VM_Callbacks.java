@@ -44,7 +44,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  * <li> ForName           - called when java.lang.Class.forName() is invoked
  * <li> BootImageWriting  - called when boot image writing is started
  * <li> Startup           - called when the VM has completed booting
- * <li> Exit              - called when the VM is about to exit
+ * <li> Exit              - called when the VM is about to exit  (note: this is very fragile; TODO: remove???)
  * <li> AppStart          - called before the application starts executing
  *                          all runs -- needs application support)
  * <li> AppComplete       - called after the application completes executing
