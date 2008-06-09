@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
+import org.jikesrvm.compilers.baseline.ppc.VM_BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.ppc.VM_BaselineConstants;
@@ -53,7 +53,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   /** Debug output? */
   private final boolean shouldPrint;
   /**  // VM_Baseline compiler instance for this assembler.  May be null. */
-  final VM_Compiler compiler;
+  final VM_BaselineCompilerImpl compiler;
   /** current machine code instruction */
   private int mIP;
 
@@ -61,7 +61,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     this(length, false, null);
   }
 
-  public VM_Assembler(int length, boolean sp, VM_Compiler comp) {
+  public VM_Assembler(int length, boolean sp, VM_BaselineCompilerImpl comp) {
     mc = new ArchitectureSpecific.VM_MachineCode();
     shouldPrint = sp;
     compiler = comp;
@@ -2310,7 +2310,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
 
   // -----------------------------------------------------------//
   // The following section contains assembler "macros" used by: //
-  //    VM_Compiler                                             //
+  //    VM_BaselineCompilerImpl                                             //
   //    VM_Barriers                                             //
   // -----------------------------------------------------------//
 

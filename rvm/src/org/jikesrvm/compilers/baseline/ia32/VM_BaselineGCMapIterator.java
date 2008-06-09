@@ -188,7 +188,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
     if (index == 0) return 0; //invalid
 
     // index is biased by 1, index 1 means local 0, this is at offset -BYTES_IN_ADDRESS from startLocalOffset
-    int offset = VM_Compiler.locationToOffset(convertIndexToLocation(index)) - BYTES_IN_ADDRESS; // no jsrbit here
+    int offset = VM_BaselineCompilerImpl.locationToOffset(convertIndexToLocation(index)) - BYTES_IN_ADDRESS; // no jsrbit here
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertIndexToOffset- input index = ", index, "  offset = ", offset);
     }

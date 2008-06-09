@@ -61,7 +61,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
   // offset of saved offset to preceeding java frame
   public static final Offset SAVED_JAVA_FP_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
 
-  // following used in VM_Compiler to compute offset to first local:
+  // following used in VM_BaselineCompilerImpl to compute offset to first local:
   // includes 5 words:
   //   SAVED_JAVA_FP,  VM_JNIEnvironment, S0 (ECX), EBX, and EDI
   public static final int SAVED_GPRS_FOR_JNI = 5;
@@ -830,7 +830,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // has been acquired.
 
     // finally proceed with the normal Java compiled code
-    // skip the thread switch test for now, see VM_Compiler.genThreadSwitchTest(true)
+    // skip the thread switch test for now, see VM_BaselineCompilerImpl.genThreadSwitchTest(true)
     asm.emitNOP(); // end of prologue marker
   }
 

@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
+import org.jikesrvm.compilers.baseline.ia32.VM_BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.VM_ArchConstants;
@@ -166,8 +166,8 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     // L0, L1, ..., S0, S1, ....
 
     // adjust local offset and stack offset
-    // NOTE: do not call VM_Compiler.getFirstLocalOffset(method)
-    Offset startLocalOffset = methFPoff.plus(VM_Compiler.locationToOffset(fooCM.getGeneralLocalLocation(0)));
+    // NOTE: do not call VM_BaselineCompilerImpl.getFirstLocalOffset(method)
+    Offset startLocalOffset = methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(fooCM.getGeneralLocalLocation(0)));
 
     Offset stackOffset = methFPoff.plus(fooCM.getEmptyStackOffset());
 

@@ -22,7 +22,7 @@ public class ArchitectureSpecific {
     public VM_Assembler (int bytecodeSize) {
       super(bytecodeSize, false);
     }
-    public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler compiler) {
+    public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_BaselineCompilerImpl compiler) {
       super(bytecodeSize, shouldPrint, compiler);
     }
     public VM_Assembler (int bytecodeSize, boolean shouldPrint) {
@@ -44,8 +44,8 @@ public class ArchitectureSpecific {
       return new CodeArray(size);
     }
   }
-  public static final class VM_Compiler extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_Compiler {
-    public VM_Compiler(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+  public static final class VM_BaselineCompilerImpl extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineCompilerImpl {
+    public VM_BaselineCompilerImpl(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
       super(cm @_IA32_QUOTE_@, genLocLoc, floatLocLoc @_PPC_QUOTE_@ */);
     }}
   public static final class VM_DynamicLinkerHelper extends org.jikesrvm.@_ARCH_@.VM_DynamicLinkerHelper {}

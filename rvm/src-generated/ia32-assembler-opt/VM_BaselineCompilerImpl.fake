@@ -11,5 +11,5 @@
  *  regarding copyright ownership.
  */
 package org.jikesrvm.compilers.baseline.ia32;
-public class VM_Compiler {
+public class VM_BaselineCompilerImpl {
 }

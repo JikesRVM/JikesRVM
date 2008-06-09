@@ -38,7 +38,7 @@ public abstract class VM_MultianewarrayHelper {
    * caller's frame This is used to access the number of elements to
    * be allocated for each dimension.
    *
-   * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
+   * See also: bytecode 0xc5 ("multianewarray") in VM_BaselineCompilerImpl
    */
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {

@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
 class VM_Barriers implements VM_BaselineConstants {
 
   // on entry T0, T1, and T2 already contain the appropriate values
-  static void compileArrayStoreBarrier(VM_Compiler comp) {
+  static void compileArrayStoreBarrier(VM_BaselineCompilerImpl comp) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -34,7 +34,7 @@ class VM_Barriers implements VM_BaselineConstants {
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
   // T1 already contains the offset of the field on entry
-  static void compilePutfieldBarrier(VM_Compiler comp, int locationMetadata) {
+  static void compilePutfieldBarrier(VM_BaselineCompilerImpl comp, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -46,7 +46,7 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
-  static void compilePutfieldBarrierImm(VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
+  static void compilePutfieldBarrierImm(VM_BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -60,7 +60,7 @@ class VM_Barriers implements VM_BaselineConstants {
 
   //  on entry java stack contains ...|ref_to_store|
   // T0 already contains the offset of the field on entry
-  static void compilePutstaticBarrier(VM_Compiler comp, int locationMetadata) {
+  static void compilePutstaticBarrier(VM_BaselineCompilerImpl comp, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -70,7 +70,7 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   //  on entry java stack contains ...|ref_to_store|
-  static void compilePutstaticBarrierImm(VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
+  static void compilePutstaticBarrierImm(VM_BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -81,7 +81,7 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   // on entry T0, T1 already contain the appropriate values
-  static void compileArrayLoadBarrier(VM_Compiler comp) {
+  static void compileArrayLoadBarrier(VM_BaselineCompilerImpl comp) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.arrayLoadReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -90,7 +90,7 @@ class VM_Barriers implements VM_BaselineConstants {
 
   //  on entry java stack contains ...|source_ref|
   // T1 already contains the offset of the field on entry
-  static void compileGetfieldBarrier(VM_Compiler comp, int locationMetadata) {
+  static void compileGetfieldBarrier(VM_BaselineCompilerImpl comp, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.getfieldReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -101,7 +101,7 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   //  on entry java stack contains ...|source_ref|
-  static void compileGetfieldBarrierImm(VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
+  static void compileGetfieldBarrierImm(VM_BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.getfieldReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -114,7 +114,7 @@ class VM_Barriers implements VM_BaselineConstants {
 
   //  on entry java stack contains ...|
   // T0 already contains the offset of the field on entry
-  static void compileGetstaticBarrier(VM_Compiler comp, int locationMetadata) {
+  static void compileGetstaticBarrier(VM_BaselineCompilerImpl comp, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.getstaticReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -123,7 +123,7 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   //  on entry java stack contains ...|
-  static void compileGetstaticBarrierImm(VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
+  static void compileGetstaticBarrierImm(VM_BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.getstaticReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);

@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
  */
-public abstract class VM_Compiler extends VM_BaselineCompiler
+public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
     implements VM_BaselineConstants, VM_JNIStackframeLayoutConstants, VM_BBConstants, VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
@@ -88,7 +88,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
-  protected VM_Compiler(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+  protected VM_BaselineCompilerImpl(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
     super(cm);
     localFixedLocations = genLocLoc;
     localFloatLocations = floatLocLoc;

@@ -62,7 +62,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
     // save input information and compute related data
     this.bitsPerMap = (method.getLocalWords() + method.getOperandWords() + 1); // +1 for jsr bit
 
-    //   this.startLocal0Offset = VM_Compiler.getStartLocalOffset(method);
+    //   this.startLocal0Offset = VM_BaselineCompilerImpl.getStartLocalOffset(method);
 
     if (VM.TraceStkMaps) {
       VM.sysWrite("VM_ReferenceMaps constructor. Method name is:");

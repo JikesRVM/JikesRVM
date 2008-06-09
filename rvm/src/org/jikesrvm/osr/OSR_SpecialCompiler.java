@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
 import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
@@ -66,7 +66,7 @@ public class OSR_SpecialCompiler {
   * 1. generate  prologue (PSEUDO_bytecode) from the state.
   * 2. make up new byte code with prologue.
   * 3. set method's bytecode to the specilizaed byte code.
-  * 4. call VM_Compiler.compile,
+  * 4. call VM_BaselineCompilerImpl.compile,
   *    the 'compile' method is customized to process pseudo instructions,
   *    and it will reset the byte code to the original one, and adjust
   *    the map from bytecode to the generated machine code. then the
@@ -96,9 +96,9 @@ public class OSR_SpecialCompiler {
     * because the compiler will generate maps after compilation.
     * Any necessary adjustment should be made during the compilation
     */
-    VM_CompiledMethod newCompiledMethod = VM_Compiler.compile(method);
+    VM_CompiledMethod newCompiledMethod = VM_BaselineCompilerImpl.compile(method);
 
-    // compiled method was already set by VM_Compiler.compile
+    // compiled method was already set by VM_BaselineCompilerImpl.compile
     // the call here does nothing
 //    method.finalizeOsrSpecialization();
 

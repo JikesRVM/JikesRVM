@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
+import org.jikesrvm.compilers.baseline.ppc.VM_BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -147,7 +147,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     // L0, L1, ..., S0, S1, ....
 
     // adjust local offset and stack offset
-    // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)
+    // NOTE: donot call VM_BaselineCompilerImpl.getFirstLocalOffset(method)
     int bufCMID = VM_Magic.getIntAtOffset(stack, tsFromFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_CompiledMethod bufCM = VM_CompiledMethods.getCompiledMethod(bufCMID);
     int cType = bufCM.getCompilerType();
@@ -165,10 +165,10 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     if (cType == VM_CompiledMethod.BASELINE) {
       if (VM.VerifyAssertions) {
         VM._assert(bufCM.getMethod().hasBaselineSaveLSRegistersAnnotation());
-        VM._assert(methFPoff.EQ(tsFromFPoff.plus(VM_Compiler.getFrameSize((VM_BaselineCompiledMethod) bufCM))));
+        VM._assert(methFPoff.EQ(tsFromFPoff.plus(VM_BaselineCompilerImpl.getFrameSize((VM_BaselineCompiledMethod) bufCM))));
       }
 
-      Offset currentRegisterLocation = tsFromFPoff.plus(VM_Compiler.getFrameSize((VM_BaselineCompiledMethod) bufCM));
+      Offset currentRegisterLocation = tsFromFPoff.plus(VM_BaselineCompilerImpl.getFrameSize((VM_BaselineCompiledMethod) bufCM));
 
       for (int i = LAST_FLOAT_STACK_REGISTER; i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
         currentRegisterLocation = currentRegisterLocation.minus(BYTES_IN_DOUBLE);
@@ -221,7 +221,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     for (int i = 0; i < size; i++) {
       if ((localTypes[i] == ClassTypeCode) || (localTypes[i] == ArrayTypeCode)) {
         int loc = fooCM.getGeneralLocalLocation(i);
-        if (VM_Compiler.isRegister(loc)) {
+        if (VM_BaselineCompilerImpl.isRegister(loc)) {
           objs[loc] = VM_Magic.addressAsObject(gprs.get(loc).toAddress());
         }
       }
@@ -269,10 +269,10 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case IntTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           int value;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             value = registers.gprs.get(loc).toInt();
           } else {
-            value = VM_Magic.getIntAtOffset(stack, methFPoff.plus(VM_Compiler.locationToOffset(loc) - BYTES_IN_INT));
+            value = VM_Magic.getIntAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_INT));
           }
 
           state.add(new OSR_VariableElement(kind, i, INT, value));
@@ -281,7 +281,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case LongTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           long lvalue;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             if (VM.BuildFor32Addr) {
               lvalue =
                   ((((long) registers.gprs.get(loc).toInt()) << 32) |
@@ -290,7 +290,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
               lvalue = registers.gprs.get(loc).toLong();
             }
           } else {
-            lvalue = VM_Magic.getLongAtOffset(stack, methFPoff.plus(VM_Compiler.locationToOffset(loc) - BYTES_IN_LONG));
+            lvalue = VM_Magic.getLongAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_LONG));
           }
 
           state.add(new OSR_VariableElement(kind, i, LONG, lvalue));
@@ -303,10 +303,10 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case FloatTypeCode: {
           int loc = compiledMethod.getFloatLocalLocation(i);
           int value;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             value = VM_Magic.floatAsIntBits((float) registers.fprs[loc]);
           } else {
-            value = VM_Magic.getIntAtOffset(stack, methFPoff.plus(VM_Compiler.locationToOffset(loc) - BYTES_IN_FLOAT));
+            value = VM_Magic.getIntAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_FLOAT));
           }
 
           state.add(new OSR_VariableElement(kind, i, FLOAT, value));
@@ -315,11 +315,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case DoubleTypeCode: {
           int loc = compiledMethod.getFloatLocalLocation(i);
           long lvalue;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             lvalue = VM_Magic.doubleAsLongBits(registers.fprs[loc]);
           } else {
             lvalue =
-                VM_Magic.getLongAtOffset(stack, methFPoff.plus(VM_Compiler.locationToOffset(loc) - BYTES_IN_DOUBLE));
+                VM_Magic.getLongAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_DOUBLE));
           }
 
           state.add(new OSR_VariableElement(kind, i, DOUBLE, lvalue));
@@ -333,11 +333,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           int loc = compiledMethod.getGeneralLocalLocation(i);
           VM.disableGC();
           Address rowIP;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             rowIP = registers.gprs.get(loc).toAddress();
           } else {
             rowIP =
-                VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(VM_Compiler.locationToOffset(loc) -
+                VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) -
                                                                            BYTES_IN_ADDRESS));
           }
           Offset ipOffset = compiledMethod.getInstructionOffset(rowIP);
@@ -362,11 +362,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case ArrayTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           Object ref;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             ref = registers.objs[loc];
           } else {
             ref =
-                VM_Magic.getObjectAtOffset(stack, methFPoff.plus(VM_Compiler.locationToOffset(loc) - BYTES_IN_ADDRESS));
+                VM_Magic.getObjectAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_ADDRESS));
           }
 
           state.add(new OSR_VariableElement(kind, i, REF, ref));
@@ -375,11 +375,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case WordTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           Word value;
-          if (VM_Compiler.isRegister(loc)) {
+          if (VM_BaselineCompilerImpl.isRegister(loc)) {
             value = registers.gprs.get(loc);
           } else {
             value =
-                VM_Magic.getWordAtOffset(stack, methFPoff.plus(VM_Compiler.locationToOffset(loc) - BYTES_IN_ADDRESS));
+                VM_Magic.getWordAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_ADDRESS));
           }
 
           state.add(new OSR_VariableElement(kind, i, WORD, value));

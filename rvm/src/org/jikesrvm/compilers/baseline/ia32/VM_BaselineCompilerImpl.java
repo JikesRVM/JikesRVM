@@ -53,9 +53,9 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * VM_Compiler is the baseline compiler class for the IA32 architecture.
+ * VM_BaselineCompilerImpl is the baseline compiler implementation for the IA32 architecture.
  */
-public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
+public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 
   private final int parameterWords;
   private int firstLocalOffset;
@@ -71,9 +71,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private static final Offset MINUS_ONE_SLOT = NO_SLOT.minus(WORDSIZE);
 
   /**
-   * Create a VM_Compiler object for the compilation of method.
+   * Create a VM_BaselineCompilerImpl object for the compilation of method.
    */
-  protected VM_Compiler(VM_BaselineCompiledMethod cm) {
+  protected VM_BaselineCompilerImpl(VM_BaselineCompiledMethod cm) {
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
@@ -156,7 +156,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     VM_ObjectModel.baselineEmitLoadTIB(asm, (int)dest.value(), (int)object.value());
   }
   /**
-   * Notify VM_Compiler that we are starting code gen for the bytecode biStart
+   * Notify VM_BaselineCompilerImpl that we are starting code gen for the bytecode biStart
    */
   @Override
   protected final void starting_bytecode() {}

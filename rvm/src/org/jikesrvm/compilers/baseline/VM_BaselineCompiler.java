@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineCode;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -28,10 +28,10 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Baseline compiler - platform independent code.
  * Platform dependent versions extend this class and define
- * the host of abstract methods defined by VM_CompilerFramework to complete
+ * the host of abstract methods defined by VM_TemplateCompilerFramework to complete
  * the implementation of a baseline compiler for a particular target,
  */
-public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
+public abstract class VM_BaselineCompiler extends VM_TemplateCompilerFramework {
 
   private static long gcMapNanos;
   private static long osrSetupNanos;
@@ -62,12 +62,12 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
    * Second, the other locals, numbers get reused when stack shrinks and grows again.
    * Therefore, these can have more than one type assigned.
    * The compiler can use this information to assign registers to locals
-   * See the VM_Compiler constructor.
+   * See the VM_BaselineCompilerImpl constructor.
    */
   protected final byte[] localTypes;
 
   /**
-   * Construct a VM_Compiler
+   * Construct a VM_BaselineCompilerImpl
    */
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     super(cm);
@@ -82,7 +82,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
         VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
       }
     }
-    asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler) this);
+    asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_BaselineCompilerImpl) this);
     localTypes = new byte[method.getLocalWords()];
   }
 

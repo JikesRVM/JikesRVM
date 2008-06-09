@@ -106,11 +106,11 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
       while (JSRindex != 0) {
         Address nextCallerAddress;
         int location = convertIndexToLocation(JSRindex);
-        if (VM_Compiler.isRegister(location)) {
+        if (VM_BaselineCompilerImpl.isRegister(location)) {
           nextCallerAddress = registerLocations.get(location).toAddress();
         } else {
           nextCallerAddress =
-              framePtr.plus(VM_Compiler.locationToOffset(location) -
+              framePtr.plus(VM_BaselineCompilerImpl.locationToOffset(location) -
                             BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
         }
         nextCallerAddress = nextCallerAddress.loadAddress();
@@ -198,7 +198,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
                                                            1); //register (positive value) or stacklocation (negative value)
     } else {
       return currentCompiledMethod.getGeneralStackLocation(index - 1 - currentNumLocals);
-      //(VM_Compiler.offsetToLocation(maps.convertIndexToOffset(index) + BYTES_IN_STACKSLOT)); //locations must point to the top of the slot
+      //(VM_BaselineCompilerImpl.offsetToLocation(maps.convertIndexToOffset(index) + BYTES_IN_STACKSLOT)); //locations must point to the top of the slot
     }
   }
 
@@ -232,18 +232,18 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
         }
 
         Address nextCallerAddress;
-        if (VM_Compiler.isRegister(location)) {
+        if (VM_BaselineCompilerImpl.isRegister(location)) {
           nextCallerAddress = registerLocations.get(location).toAddress();
         } else {
           nextCallerAddress =
-              framePtr.plus(VM_Compiler.locationToOffset(location) -
+              framePtr.plus(VM_BaselineCompilerImpl.locationToOffset(location) -
                             BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
         }
         nextCallerAddress = nextCallerAddress.loadAddress();
-        if (VM_Compiler.isRegister(location)) {
+        if (VM_BaselineCompilerImpl.isRegister(location)) {
           return registerLocations.get(location).toAddress();
         } else {
-          return framePtr.plus(VM_Compiler.locationToOffset(location) -
+          return framePtr.plus(VM_BaselineCompilerImpl.locationToOffset(location) -
                                BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
         }
       } else {
@@ -257,7 +257,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        Address location = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
+        Address location = framePtr.plus(VM_BaselineCompilerImpl.getFrameSize(currentCompiledMethod));
         location = location.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE);
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
@@ -373,18 +373,18 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
       VM.sysWrite(".\n");
     }
     Address nextCallerAddress;
-    if (VM_Compiler.isRegister(location)) {
+    if (VM_BaselineCompilerImpl.isRegister(location)) {
       nextCallerAddress = registerLocations.get(location).toAddress();
     } else {
       nextCallerAddress =
-          framePtr.plus(VM_Compiler.locationToOffset(location) -
+          framePtr.plus(VM_BaselineCompilerImpl.locationToOffset(location) -
                         BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
     }
     nextCallerAddress = nextCallerAddress.loadAddress();
-    if (VM_Compiler.isRegister(location)) {
+    if (VM_BaselineCompilerImpl.isRegister(location)) {
       return registerLocations.get(location).toAddress();
     } else {
-      return framePtr.plus(VM_Compiler.locationToOffset(location) -
+      return framePtr.plus(VM_BaselineCompilerImpl.locationToOffset(location) -
                            BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
     }
   }
@@ -417,7 +417,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
     //dynamic bridge's registers already restored by calls to getNextReferenceAddress()
     if (!currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
-      Address addr = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
+      Address addr = framePtr.plus(VM_BaselineCompilerImpl.getFrameSize(currentCompiledMethod));
       addr =
           addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER + 1) <<
                      LOG_BYTES_IN_DOUBLE); //skip float registers

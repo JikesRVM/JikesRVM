@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
@@ -35,7 +35,7 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
     // Process arguments specified by the user.
     for (int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
-      if (!VM_Compiler.options.processAsOption("-X:bc:", arg)) {
+      if (!VM_BaselineCompilerImpl.options.processAsOption("-X:bc:", arg)) {
         VM.sysWrite("VM_BootImageCompiler(baseline): Unrecognized argument " + arg + "; ignoring\n");
       }
     }

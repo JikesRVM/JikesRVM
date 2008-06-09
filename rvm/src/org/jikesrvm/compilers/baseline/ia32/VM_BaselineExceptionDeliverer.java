@@ -45,7 +45,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
 
     // reset sp to "empty expression stack" state
     //
-    Address sp = fp.plus(VM_Compiler.getEmptyStackOffset(method));
+    Address sp = fp.plus(VM_BaselineCompilerImpl.getEmptyStackOffset(method));
 
     // push exception object as argument to catch block
     //
@@ -91,7 +91,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
           lock = method.getDeclaringClass().getClassForType();
         } else {
           lock =
-              VM_Magic.addressAsObject(fp.plus(VM_Compiler.locationToOffset(((VM_BaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
+              VM_Magic.addressAsObject(fp.plus(VM_BaselineCompilerImpl.locationToOffset(((VM_BaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
                   0)) - BYTES_IN_ADDRESS).loadAddress());
         }
         if (VM_ObjectModel.holdsLock(lock, VM_Scheduler.getCurrentThread())) {

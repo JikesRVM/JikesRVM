@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
 import org.jikesrvm.classloader.VM_Method;
@@ -97,26 +97,26 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
 
   //These Locations are positioned at the top of the stackslot that contains the value
   //before accessing, substract size of value you want to access
-  //e.g. to load int: load at VM_Compiler.locationToOffset(location) - BYTES_IN_INT
-  //e.g. to load double: load at VM_Compiler.locationToOffset(location) - BYTES_IN_DOUBLE
+  //e.g. to load int: load at VM_BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT
+  //e.g. to load double: load at VM_BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
   @Uninterruptible
   public int getGeneralLocalLocation(int localIndex) {
-    return VM_Compiler.getGeneralLocalLocation(localIndex, localFixedLocations, (VM_NormalMethod) method);
+    return VM_BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, (VM_NormalMethod) method);
   }
 
   @Uninterruptible
   public int getFloatLocalLocation(int localIndex) {
-    return VM_Compiler.getFloatLocalLocation(localIndex, localFloatLocations, (VM_NormalMethod) method);
+    return VM_BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFloatLocations, (VM_NormalMethod) method);
   }
 
   @Uninterruptible
   public int getGeneralStackLocation(int stackIndex) {
-    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
+    return VM_BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
   public int getFloatStackLocation(int stackIndex) { //for now same implementation as getGeneralStackLocation, todo
-    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
+    return VM_BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
@@ -132,8 +132,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
     VM_NormalMethod nm = (VM_NormalMethod) m;
-    //this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
-    this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
+    //this.startLocalOffset = VM_BaselineCompilerImpl.getStartLocalOffset(nm);
+    this.emptyStackOffset = VM_BaselineCompilerImpl.getEmptyStackOffset(nm);
     this.localFixedLocations = new int[nm.getLocalWords()];
     this.localFloatLocations = new int[nm.getLocalWords()];
     this.lastFixedStackRegister = -1;
@@ -141,7 +141,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
   }
 
   public void compile() {
-    VM_Compiler comp = new VM_Compiler(this, localFixedLocations, localFloatLocations);
+    VM_BaselineCompilerImpl comp = new VM_BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
     comp.compile();
     this.lastFixedStackRegister = comp.getLastFixedStackRegister();
     this.lastFloatStackRegister = comp.getLastFloatStackRegister();

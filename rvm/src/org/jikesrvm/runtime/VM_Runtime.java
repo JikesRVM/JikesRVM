@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  * Entrypoints into the runtime of the virtual machine.
  *
  * <p> These are "helper functions" called from machine code
- * emitted by VM_Compiler.
+ * emitted by VM_BaselineCompilerImpl.
  * They implement functionality that cannot be mapped directly
  * into a small inline
  * sequence of machine instructions. See also: VM_Linker.

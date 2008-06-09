@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  * one that generates code as each bytecode in the class file is
  * seen. It is the common base class of the base compiler.
  */
-public abstract class VM_CompilerFramework
+public abstract class VM_TemplateCompilerFramework
     implements VM_BytecodeConstants, VM_SizeConstants, VM_StackframeLayoutConstants {
 
   /**
@@ -89,7 +89,7 @@ public abstract class VM_CompilerFramework
   /**
    * The height of the expression stack at the start of each bytecode.
    * Only saved for some architectures, on others this field will be null.
-   * See the VM_Compiler constructor.
+   * See the VM_BaselineCompilerImpl constructor.
    */
   protected int[] stackHeights;
 
@@ -119,9 +119,9 @@ public abstract class VM_CompilerFramework
   protected final boolean isUnpreemptible;
 
   /**
-   * Construct a VM_Compiler
+   * Construct a VM_BaselineCompilerImpl
    */
-  protected VM_CompilerFramework(VM_CompiledMethod cm) {
+  protected VM_TemplateCompilerFramework(VM_CompiledMethod cm) {
     compiledMethod = cm;
     method = (VM_NormalMethod) cm.getMethod();
 
@@ -2000,7 +2000,7 @@ public abstract class VM_CompilerFramework
         }
 
         default:
-          VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString(code, false) + "\n");
+          VM.sysWrite("VM_BaselineCompilerImpl: unexpected bytecode: " + VM_Services.getHexString(code, false) + "\n");
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
       ending_bytecode();
@@ -2091,7 +2091,7 @@ public abstract class VM_CompilerFramework
   }
 
   /*
-   * The target-specific VM_Compiler class must implement the
+   * The target-specific VM_BaselineCompilerImpl class must implement the
    * following (lengthy) list of abstract methods.  Porting this
    * compiler to a new platform mainly entails implementing all of
    * these methods.
@@ -2102,12 +2102,12 @@ public abstract class VM_CompilerFramework
   */
 
   /**
-   * Notify VM_Compiler that we are starting code gen for the bytecode biStart
+   * Notify VM_BaselineCompilerImpl that we are starting code gen for the bytecode biStart
    */
   protected abstract void starting_bytecode();
 
   /**
-   * Notify VM_Compiler that we are ending code gen for the bytecode biStart
+   * Notify VM_BaselineCompilerImpl that we are ending code gen for the bytecode biStart
    */
   protected void ending_bytecode() {}
 

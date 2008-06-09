@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ppc.VM_Compiler;
+import org.jikesrvm.compilers.baseline.ppc.VM_BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
@@ -61,7 +61,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     /////////////////////////////////////
     if (cType == VM_CompiledMethod.BASELINE) {
       VM_BaselineCompiledMethod bcm = (VM_BaselineCompiledMethod) foo;
-      int offset = VM_Compiler.getFrameSize(bcm);
+      int offset = VM_BaselineCompilerImpl.getFrameSize(bcm);
       for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
         offset -= BYTES_IN_DOUBLE;
         asm.emitLFD(i, offset, FP);

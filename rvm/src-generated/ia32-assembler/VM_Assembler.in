@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
+import org.jikesrvm.compilers.baseline.ia32.VM_BaselineCompilerImpl;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
@@ -230,10 +230,10 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    *
    * @param bytecodeSize initial machine code buffer size.
    * @param shouldPrint whether to dump generated machine code.
-   * @param comp VM_Compiler instance that this assembler is associated with;
+   * @param comp VM_BaselineCompilerImpl instance that this assembler is associated with;
    *           currently ignored on IA32.
    */
-  protected VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler comp) {
+  protected VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_BaselineCompilerImpl comp) {
     this(bytecodeSize, shouldPrint);
   }
 

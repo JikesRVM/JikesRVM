@@ -137,7 +137,7 @@ class VM_Barriers implements VM_BaselineConstants {
    */
   private static void genNullCheck(VM_Assembler asm, int offset) {
     asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend(offset));
-    VM_Compiler.baselineEmitLoadTIB(asm, T1, T1);
+    VM_BaselineCompilerImpl.baselineEmitLoadTIB(asm, T1, T1);
   }
 
   static void compileModifyCheck(VM_Assembler asm, int offset) {
@@ -150,7 +150,7 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   /**
-   * (Taken from VM_Compiler.java)
+   * (Taken from VM_BaselineCompilerImpl.java)
    *
    * Copy parameters from operand stack into registers.
    * Assumption: parameters are layed out on the stack in order

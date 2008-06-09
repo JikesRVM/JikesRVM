@@ -41,7 +41,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
 
     // reset sp to "empty expression stack" state
     //
-    Address sp = fp.plus(VM_Compiler.getEmptyStackOffset(method));
+    Address sp = fp.plus(VM_BaselineCompilerImpl.getEmptyStackOffset(method));
 
     // push exception object as argument to catch block
     //
@@ -80,11 +80,11 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
           Address fp = registers.getInnermostFramePointer();
           int location = bcm.getGeneralLocalLocation(0);
           Address addr;
-          if (VM_Compiler.isRegister(location)) {
+          if (VM_BaselineCompilerImpl.isRegister(location)) {
             lock = VM_Magic.addressAsObject(registers.gprs.get(location).toAddress());
           } else {
             addr =
-                fp.plus(VM_Compiler.locationToOffset(location) -
+                fp.plus(VM_BaselineCompilerImpl.locationToOffset(location) -
                         BYTES_IN_ADDRESS); //location offsets are positioned on top of their stackslot
             lock = VM_Magic.addressAsObject(addr.loadAddress());
           }
@@ -96,7 +96,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     }
     // restore non-volatile registers
     Address fp = registers.getInnermostFramePointer();
-    Offset frameOffset = Offset.fromIntSignExtend(VM_Compiler.getFrameSize(bcm));
+    Offset frameOffset = Offset.fromIntSignExtend(VM_BaselineCompilerImpl.getFrameSize(bcm));
 
     for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
       frameOffset = frameOffset.minus(BYTES_IN_DOUBLE);

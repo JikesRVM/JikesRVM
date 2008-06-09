@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
+import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
@@ -2076,7 +2076,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     boolean popParams = true;
 
     if (target.getType().isMagicType()) {
-      boolean producesCall = VM_Compiler.checkForActualCall(target);
+      boolean producesCall = VM_BaselineCompilerImpl.checkForActualCall(target);
       if (producesCall) {
         // register a map, but do NOT include any of the parameters to the call.
         // Chances are what appear to be parameters are not parameters to
