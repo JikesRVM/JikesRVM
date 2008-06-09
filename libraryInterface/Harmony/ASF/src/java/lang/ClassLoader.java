@@ -681,7 +681,11 @@ public abstract class ClassLoader {
         }
         if (pkg == null) {
             if (parentClassLoader == null) {
-                pkg = VM_BootstrapClassLoader.getBootstrapClassLoader().getPackage(name);
+		if (this != VM_BootstrapClassLoader.getBootstrapClassLoader()) {
+		    pkg = VM_BootstrapClassLoader.getBootstrapClassLoader().getPackage(name);
+                } else {
+                    pkg = null;
+		}
             } else {
                 pkg = parentClassLoader.getPackage(name);
             }
