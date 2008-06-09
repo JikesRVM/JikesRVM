@@ -293,6 +293,7 @@ Ljava/net/URL;
 Ljava/net/InetAddress;
 Ljava/net/NetPermission;
 Ljava/net/URLConnection;
+Ljava/net/URLConnection$DefaultContentHandler;
 
 
 # class loading from regular files
@@ -380,6 +381,7 @@ Ljava/util/jar/JarEntry;
 Ljava/util/jar/JarFile;
 Ljava/util/jar/JarFile$1JarFileEnumerator;
 Ljava/util/jar/JarFile$JarFileInputStream;
+Ljava/util/jar/JarVerifier;
 
 Ljava/util/jar/Manifest;
 Ljava/io/BufferedOutputStream;

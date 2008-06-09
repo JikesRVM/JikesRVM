@@ -361,6 +361,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     }
     runClassInitializer("java.util.zip.ZipFile");
     if (VM.BuildForHarmony) {
+      runClassInitializer("org.apache.harmony.luni.internal.net.www.protocol.jar.JarURLConnection");
       runClassInitializer("org.apache.harmony.luni.platform.OSMemory");
       runClassInitializer("org.apache.harmony.luni.platform.Platform");
       runClassInitializer("org.apache.harmony.luni.platform.AbstractMemorySpy");
