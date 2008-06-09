@@ -461,6 +461,7 @@ Lorg/apache/harmony/luni/platform/RuntimeMemorySpy;
 Lorg/apache/harmony/luni/util/Msg;
 Lorg/apache/harmony/luni/util/MsgHelp;
 Lorg/apache/harmony/luni/util/MsgHelp$1;
+Lorg/apache/harmony/luni/util/NumberConverter;
 Lorg/apache/harmony/luni/util/PriviAction;
 Lorg/apache/harmony/luni/util/Util;
 Lorg/apache/harmony/nio/FileChannelFactory;
