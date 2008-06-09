@@ -67,10 +67,12 @@ extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
 
 /* Defined in RunBootImage.C */
+#ifdef __cplusplus
 unsigned int parse_memory_size(
     const char *sizeName, const char *sizeFlag,
     const char *defaultFactor, unsigned roundTo,
     const char *token, const char *subtoken, bool *fastExit);
+#endif
 
 extern int verboseBoot;
 
@@ -109,6 +111,8 @@ extern void processTimerTick(void);
 extern mach_timebase_info_data_t timebaseInfo;
 #endif
 
+// Defined in jvm.C. Used in harmony.c
+extern struct JavaVM_ sysJavaVM;
 #ifdef __cplusplus
 }
 #endif

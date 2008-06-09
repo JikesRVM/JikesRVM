@@ -224,15 +224,6 @@ public class GenerateInterfaceDeclarations {
     pln("#endif /* NEED_BOOT_RECORD_INITIALIZATION */");
     pln();
 
-    pln("#ifdef NEED_GNU_CLASSPATH_VERSION");
-    // version of the classpath library from gnu.classpath.configuration
-    p("static const char*classpath_version                        = \"" +
-      gnu.classpath.Configuration
-          .CLASSPATH_VERSION +
-                             "\";\n");
-    pln("#endif /* NEED_GNU_CLASSPATH_VERSION */");
-    pln();
-
     pln("#ifdef NEED_VIRTUAL_MACHINE_DECLARATIONS");
     emitVirtualMachineDeclarations(bootImageDataAddress, bootImageCodeAddress, bootImageRMapAddress);
     pln("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
@@ -559,12 +550,12 @@ public class GenerateInterfaceDeclarations {
     pln("VM_JNIEnvironment_JNIExternalFunctions_offset = ", offset);
 
     // fields in java.net.InetAddress
-    //
-    offset = VM_Entrypoints.inetAddressAddressField.getOffset();
-    pln("java_net_InetAddress_address_offset = ", offset);
-    offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
-    pln("java_net_InetAddress_family_offset = ", offset);
-
+    if (VM.BuildForGnuClasspath) {
+      offset = VM_Entrypoints.inetAddressAddressField.getOffset();
+      pln("java_net_InetAddress_address_offset = ", offset);
+      offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
+      pln("java_net_InetAddress_family_offset = ", offset);
+    }
     // fields in java.net.SocketImpl
     //
     offset = VM_Entrypoints.socketImplAddressField.getOffset();

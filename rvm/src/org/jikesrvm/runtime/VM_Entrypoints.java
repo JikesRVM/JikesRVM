@@ -84,7 +84,6 @@ public class VM_Entrypoints {
       getMethod(org.jikesrvm.runtime.VM_Runtime.class,
                 "resolvedNewArray",
                 "(IIILorg/jikesrvm/objectmodel/VM_TIB;IIII)Ljava/lang/Object;");
-  public static final VM_Field gcLockField = getField(java.lang.VMRuntime.class, "gcLock", int.class);
 
   public static final VM_Field sysWriteLockField = getField(org.jikesrvm.VM.class, "sysWriteLock", int.class);
   public static final VM_Field intBufferLockField =
@@ -219,7 +218,7 @@ public class VM_Entrypoints {
   public static final VM_Field threadIdField = getField(org.jikesrvm.scheduler.VM_Processor.class, "threadId", int.class);
 
   public static final VM_Field referenceReferentField =
-      getField(java.lang.ref.Reference.class, "referent", org.vmmagic.unboxed.Address.class);
+      getField(java.lang.ref.Reference.class, "_referent", org.vmmagic.unboxed.Address.class);
 
   /** Used in deciding which stack frames we can elide when printing. */
   public static final VM_NormalMethod mainThreadRunMethod =
@@ -360,8 +359,10 @@ public class VM_Entrypoints {
   public static final VM_Field edgeCountersField =
       getField(org.jikesrvm.compilers.baseline.VM_EdgeCounts.class, "data", int[][].class);
 
-  public static final VM_Field inetAddressAddressField = getField(java.net.InetAddress.class, "address", int.class);
-  public static final VM_Field inetAddressFamilyField = getField(java.net.InetAddress.class, "family", int.class);
+  public static final VM_Field inetAddressAddressField = VM.BuildForGnuClasspath ?
+      getField(java.net.InetAddress.class, "address", int.class) : null;
+  public static final VM_Field inetAddressFamilyField = VM.BuildForGnuClasspath ?
+      getField(java.net.InetAddress.class, "family", int.class) : null;
 
   public static final VM_Field socketImplAddressField =
       getField(java.net.SocketImpl.class, "address", java.net.InetAddress.class);
@@ -409,9 +410,12 @@ public class VM_Entrypoints {
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
       optNew2DArrayMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptLinker.class, "new2DArray", "(IIII)Ljava/lang/Object;");
-
-      sysArrayCopy = getMethod(java.lang.VMSystem.class, "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
-      sysArrayCopy.setRuntimeServiceMethod(false);
+      if (VM.BuildForGnuClasspath) {
+        sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+        sysArrayCopy.setRuntimeServiceMethod(false);
+      } else {
+        sysArrayCopy = null;
+      }
     } else {
       specializedMethodsField = null;
       osrOrganizerQueueLockField = null;
@@ -429,5 +433,30 @@ public class VM_Entrypoints {
   }
 
   public static final VM_Field classLoaderDefinedPackages =
-      getField(java.lang.ClassLoader.class, "definedPackages", java.util.HashMap.class);
+    getField(java.lang.ClassLoader.class, "definedPackages", java.util.HashMap.class);
+
+  public static final VM_Field luni1;
+  public static final VM_Field luni2;
+  public static final VM_Field luni3;
+  public static final VM_Field luni4;
+  public static final VM_Field luni5;
+  public static final VM_Field gcLockField;
+
+  static {
+    if (VM.BuildForHarmony) {
+      luni1 = getField("Lorg/apache/harmony/luni/util/Msg;", "bundle", java.util.ResourceBundle.class);
+      luni2 = getField("Lorg/apache/harmony/archive/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
+      luni3 = getField("Lorg/apache/harmony/luni/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
+      luni4 = getField("Lorg/apache/harmony/nio/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
+      luni5 = getField("Lorg/apache/harmony/niochar/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
+      gcLockField = null;
+    } else {
+      luni1 = null;
+      luni2 = null;
+      luni3 = null;
+      luni4 = null;
+      luni5 = null;
+      gcLockField = getField("Ljava/lang/VMRuntime;", "gcLock", int.class);
+    }
+  }
 }

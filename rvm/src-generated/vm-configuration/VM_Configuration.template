@@ -37,6 +37,9 @@ public abstract class VM_Configuration {
   public static final boolean BuildForSolaris = @_RVM_FOR_SOLARIS_@; 
   public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux && !BuildForSolaris;
 
+  public static final boolean BuildForGnuClasspath = @_RVM_WITH_GNU_CLASSPATH_@;
+  public static final boolean BuildForHarmony = @_RVM_WITH_HARMONY_@;
+
   public static final boolean LittleEndian = BuildForIA32;
 
   /* ABI selection.  Exactly one of these variables will be true in each build. */
@@ -106,20 +109,6 @@ public abstract class VM_Configuration {
   public static final int StressGCAllocationInterval = @_RVM_STRESSGC_INTERVAL_@;
   public static final boolean ForceFrequentGC = 0 != StressGCAllocationInterval;
 
-  /*
-   * We often need to slightly tweak the VM boot sequence and/or
-   * the library/VM interface depending on the version of GNU classpath
-   * we are building against.
-   * We always have at least two versions we are supporting (CVS Head and
-   * the most recent release).  Sometimes we also support some back-level
-   * releases of GNU classpath.
-   * For each supported released version, define a static final boolean.
-   * We don't define a boolean for CVS head because we prefer to define
-   * CVS head as the ! of all other variables.
-   * This makes it easier to find an eliminate
-   * old code when we move up to the next version.
-   */
-  private static final int ClasspathVersion = (int)@_RVM_CLASSPATH_VERSION_@;
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
 

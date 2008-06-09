@@ -17,6 +17,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SPLIT;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -254,7 +255,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * to split
      */
     private static void transform(IR ir, HashMap<BasicBlockPair, HashSet<Register>> xform) {
-      for (HashMap.Entry<BasicBlockPair, HashSet<Register>> entry : xform.entrySet()) {
+      for (Map.Entry<BasicBlockPair, HashSet<Register>> entry : xform.entrySet()) {
         BasicBlockPair bbp = entry.getKey();
         HashSet<Register> toSplit = entry.getValue();
 

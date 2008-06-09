@@ -16,6 +16,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -323,7 +324,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
                                HashSet<BasicBlock> exceptionHandlerBlocks) {
 
     // Iterate through the basic blocks in the original code
-    for (HashMap.Entry<BasicBlock, BasicBlock> entry : origToDupMap.entrySet()) {
+    for (Map.Entry<BasicBlock, BasicBlock> entry : origToDupMap.entrySet()) {
       BasicBlock bb = entry.getKey();
       BasicBlock dup = entry.getValue();
 

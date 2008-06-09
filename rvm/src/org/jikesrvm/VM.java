@@ -208,8 +208,8 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     // Initialize class loader.
     //
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader");
     String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader: ", bootstrapClasses);
     VM_ClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
 
@@ -222,17 +222,22 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-    runClassInitializer("gnu.classpath.SystemProperties");
 
-    runClassInitializer("java.lang.Throwable$StaticData");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
+    }
+    runClassInitializer("org.jikesrvm.classloader.VM_Atom$InternedStrings");
+
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.classpath.SystemProperties");
+      runClassInitializer("java.lang.Throwable$StaticData");
+    }
 
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("sun.misc.Unsafe");
 
     runClassInitializer("java.lang.Character");
-    runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
-    runClassInitializer("org.jikesrvm.classloader.VM_Atom$InternedStrings");
     runClassInitializer("org.jikesrvm.classloader.VM_TypeReferenceVector");
     runClassInitializer("org.jikesrvm.classloader.VM_MethodVector");
     runClassInitializer("org.jikesrvm.classloader.VM_FieldVector");
@@ -240,8 +245,9 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // Commented out because we haven't incorporated this into the CVS head
     // yet.
     // java.security.JikesRVMSupport.turnOffChecks();
-    runClassInitializer("java.lang.ThreadGroup");
-
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.lang.ThreadGroup");
+    }
     /* We can safely allocate a java.lang.Thread now.  The boot
        thread (running right now, as a VM_Thread) has to become a full-fledged
        Thread, since we're about to encounter a security check:
@@ -256,43 +262,17 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
         Thread.getCurrentThread() to return. */
     VM.safeToAllocateJavaThread = true;
 
-    runClassInitializer("java.lang.ThreadLocal");
-    runClassInitializer("java.lang.ThreadLocalMap");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.lang.ThreadLocal");
+      runClassInitializer("java.lang.ThreadLocalMap");
+    }
     // Possibly fix VMAccessController's contexts and inGetContext fields
-    runClassInitializer("java.security.VMAccessController");
-
-    runClassInitializer("java.io.File"); // needed for when we initialize the
-    // system/application class loader.
-    runClassInitializer("java.lang.String");
-    runClassInitializer("gnu.java.security.provider.DefaultPolicy");
-    runClassInitializer("java.net.URL"); // needed for URLClassLoader
-    /* Needed for VM_ApplicationClassLoader, which in turn is needed by
-       VMClassLoader.getSystemClassLoader()  */
-    runClassInitializer("java.net.URLClassLoader");
-
-    /* Used if we start up Jikes RVM with the -jar argument; that argument
-* means that we need a working -jar before we can return an
-* Application Class Loader. */
-    runClassInitializer("java.net.URLConnection");
-    runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
-
-    runClassInitializer("java.lang.ClassLoader$StaticData");
-
-    runClassInitializer("java.lang.Class$StaticData");
-
-    runClassInitializer("java.nio.charset.CharsetEncoder");
-    runClassInitializer("java.nio.charset.CoderResult");
-
-    runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
-    runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    runClassInitializer("java.util.Locale");
-    runClassInitializer("java.util.ResourceBundle");
-    runClassInitializer("java.util.zip.CRC32");
-    runClassInitializer("java.util.zip.Inflater");
-    runClassInitializer("java.util.zip.DeflaterHuffman");
-    runClassInitializer("java.util.zip.InflaterDynHeader");
-    runClassInitializer("java.util.zip.InflaterHuffmanTree");
-
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.security.VMAccessController");
+    }
+    if (VM.BuildForHarmony) {
+      runClassInitializer("java.security.AccessController");
+    }
     if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
 
@@ -312,27 +292,92 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Scheduler.getCurrentThread().initializeJNIEnv();
 
+    if (VM.BuildForHarmony) {
+      System.loadLibrary("hyluni");
+      System.loadLibrary("hythr");
+    }
+    runClassInitializer("java.io.File"); // needed for when we initialize the
+    // system/application class loader.
+    runClassInitializer("java.lang.String");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.security.provider.DefaultPolicy");
+    }
+    runClassInitializer("java.net.URL"); // needed for URLClassLoader
+    /* Needed for VM_ApplicationClassLoader, which in turn is needed by
+       VMClassLoader.getSystemClassLoader()  */
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.net.URLClassLoader");
+    }
+    /* Used if we start up Jikes RVM with the -jar argument; that argument
+     * means that we need a working -jar before we can return an
+     * Application Class Loader. */
+    runClassInitializer("java.net.URLConnection");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
+      runClassInitializer("java.lang.ClassLoader$StaticData");
+    }
+    runClassInitializer("java.lang.Class$StaticData");
+
+    runClassInitializer("java.nio.charset.Charset");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.nio.charset.CharsetEncoder");
+    }
+    runClassInitializer("java.nio.charset.CoderResult");
+    if (VM.BuildForHarmony) {
+      runClassInitializer("org.apache.harmony.niochar.CharsetProviderImpl");
+    }
+
+    runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    System.setProperty("line.separator", "\n");
+    runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
+    runClassInitializer("java.util.Locale");
+    runClassInitializer("java.util.ResourceBundle");
+    runClassInitializer("java.util.zip.CRC32");
+    if (VM.BuildForHarmony) {
+      System.loadLibrary("hyarchive");
+    }
+    runClassInitializer("java.util.zip.Inflater");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.util.zip.DeflaterHuffman");
+      runClassInitializer("java.util.zip.InflaterDynHeader");
+      runClassInitializer("java.util.zip.InflaterHuffmanTree");
+    }
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
-    System.loadLibrary("javaio");
+    if (VM.BuildForGnuClasspath) {
+      System.loadLibrary("javaio");
+    }
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.util.TreeMap");
-    runClassInitializer("gnu.java.nio.VMChannel");
-    runClassInitializer("gnu.java.nio.FileChannelImpl");
-
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.nio.VMChannel");
+      runClassInitializer("gnu.java.nio.FileChannelImpl");
+    }
     runClassInitializer("java.io.FileDescriptor");
+    runClassInitializer("java.io.FilePermission");
     runClassInitializer("java.util.jar.JarFile");
-    runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
-
-    runClassInitializer("java.lang.VMDouble");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
+    }
+    runClassInitializer("java.util.zip.ZipFile");
+    if (VM.BuildForHarmony) {
+      runClassInitializer("org.apache.harmony.luni.platform.OSMemory");
+      runClassInitializer("org.apache.harmony.luni.platform.Platform");
+      runClassInitializer("org.apache.harmony.luni.platform.AbstractMemorySpy");
+      runClassInitializer("org.apache.harmony.luni.platform.PlatformAddress");
+    }
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.lang.VMDouble");
+    }
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("org.jikesrvm.scheduler.greenthreads.VM_Process");
     runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
     runClassInitializer("java.lang.annotation.RetentionPolicy");
     runClassInitializer("java.lang.annotation.ElementType");
     runClassInitializer("java.lang.Thread$State");
-    runClassInitializer("java.lang.VMClassLoader");
-
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.lang.VMClassLoader");
+    }
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 
@@ -348,7 +393,9 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_BaselineCompiler.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
-    runClassInitializer("gnu.java.nio.charset.EncodingHelper");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
+    }
     runClassInitializer("java.util.logging.Logger");
 
     // Initialize compiler that compiles dynamically loaded classes.
@@ -363,8 +410,10 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
 
     // set up JikesRVM socket I/O
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing socket factories");
-    JikesRVMSocketImpl.boot();
+    if (VM.BuildForGnuClasspath) {
+      if (verboseBoot >= 1) VM.sysWriteln("Initializing socket factories");
+      JikesRVMSocketImpl.boot();
+    }
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
@@ -395,8 +444,23 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // tree yet.
     // java.security.JikesRVMSupport.fullyBootedVM();
 
-    runClassInitializer("java.lang.ClassLoader$StaticData");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.lang.ClassLoader$StaticData");
+    }
 
+    if (VM.BuildForHarmony) {
+      VM_Entrypoints.luni1.setObjectValueUnchecked(null, null);
+      VM_Entrypoints.luni2.setObjectValueUnchecked(null, null);
+      VM_Entrypoints.luni3.setObjectValueUnchecked(null, null);
+      VM_Entrypoints.luni4.setObjectValueUnchecked(null, null);
+      VM_Entrypoints.luni5.setObjectValueUnchecked(null, null);
+      //runClassInitializer("java.lang.String$ConsolePrintStream");
+      runClassInitializer("org.apache.harmony.luni.util.Msg");
+      runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
+      runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
+      runClassInitializer("org.apache.harmony.nio.internal.nls.Messages");
+      runClassInitializer("org.apache.harmony.niochar.internal.nls.Messages");
+    }
     // Allow profile information to be read in from a file
     //
     VM_EdgeCounts.boot(EdgeCounterFile);
@@ -480,8 +544,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
           throw e;
         } catch (Throwable t) {
           ExceptionInInitializerError eieio =
-              new ExceptionInInitializerError("Caught exception while invoking the class initializer for " + className);
-          eieio.initCause(t);
+              new ExceptionInInitializerError(t);
           throw eieio;
         }
         // <clinit> is no longer needed: reclaim space by removing references to it

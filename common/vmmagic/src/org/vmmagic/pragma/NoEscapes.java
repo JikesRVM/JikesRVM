@@ -23,5 +23,5 @@ import java.lang.annotation.ElementType;
  * method marked with this annotation will be removed.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface NoEscapes { }

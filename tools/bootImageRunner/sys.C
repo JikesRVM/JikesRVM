@@ -2265,8 +2265,8 @@ sysNetSocketAccept(int fd, void *connectionObject)
 #endif
 
     void *addressObject = *(void **)((char *)connectionObject + java_net_SocketImpl_address_offset);
-    int  *familyField   =  (int   *)((char *)addressObject    + java_net_InetAddress_family_offset);
-    int  *addressField  =  (int   *)((char *)addressObject    + java_net_InetAddress_address_offset);
+    int  *familyField   =  NULL; // TODO - Harmony - (int   *)((char *)addressObject    + java_net_InetAddress_family_offset);
+    int  *addressField  =  NULL; // TODO - Harmony - (int   *)((char *)addressObject    + java_net_InetAddress_address_offset);
     int  *portField     =  (int   *)((char *)connectionObject + java_net_SocketImpl_port_offset);
 
     *familyField  = remoteFamily;

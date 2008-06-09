@@ -357,6 +357,14 @@ public class VM_CommandLineArgs {
   }
 
   /**
+   * Get all environment arguments as pairs of string of key followed by value
+   */
+  public static String[] getEnvironmentArgs() {
+    if (!VM.runningVM) throw new IllegalAccessError("Environment variables can't be read in a non-running VM");
+    return getArgs(PrefixType.ENVIRONMENT_ARG);
+  }
+
+  /**
    * Extract the first -D... command line argument that matches a given
    * variable, and return it.
    * @return the environment arg, or null if there is none.

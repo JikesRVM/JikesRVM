@@ -31,7 +31,7 @@ public abstract class Reference<T> {
    *
    * Set and maintained by the ReferenceProcessor class.
    */
-  private Address referent;
+  private Address _referent;
 
   /**
    * Link to the next entry on the queue.  If this is null, this
@@ -68,7 +68,7 @@ public abstract class Reference<T> {
    */
   @SuppressWarnings("unchecked") // This method requires an unchecked cast
   public T get() {
-    Address tmp = referent;
+    Address tmp = _referent;
 
     if (tmp.isZero())
         return null;
@@ -96,7 +96,7 @@ public abstract class Reference<T> {
   }
 
   public void clear() {
-    referent = Address.zero();
+    _referent = Address.zero();
   }
 
   public boolean isEnqueued() {
@@ -119,5 +119,10 @@ public abstract class Reference<T> {
       return true;
     }
     return false;
+  }
+
+  // TODO: Harmony
+  void dequeue() {
+    return;
   }
 }

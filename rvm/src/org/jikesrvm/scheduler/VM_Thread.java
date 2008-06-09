@@ -1854,6 +1854,7 @@ public abstract class VM_Thread {
       VM.sysWriteln(".");
     }
     if (uncaughtExceptionCount > VM.maxSystemTroubleRecursionDepth) {
+      VM_Scheduler.dumpVirtualMachine();
       VM.dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }

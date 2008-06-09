@@ -506,6 +506,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return pd == null ? StaticData.unknownProtectionDomain : pd;
   }
 
+  void setProtectionDomain(ProtectionDomain protectionDomain) {
+    pd = protectionDomain;
+  }
+
   public URL getResource(String resName) {
     ClassLoader loader = type.getClassLoader();
     if (loader == VM_BootstrapClassLoader.getBootstrapClassLoader())
@@ -1023,5 +1027,15 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (! klass.isAssignableFrom(this))
       throw new ClassCastException();
     return (Class<? extends U>) this;
+  }
+
+  // TODO: Harmony
+  ClassLoader getClassLoaderImpl() {
+    return null;
+  }
+
+  // TODO: Harmony
+  static Class[] getStackClasses(int maxDepth, boolean stopAtPrivileged) {
+    return null;
   }
 }
