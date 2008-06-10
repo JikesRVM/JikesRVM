@@ -496,8 +496,10 @@ Lorg/apache/harmony/niochar/internal/nls/Messages;
 Lorg/apache/harmony/niochar/internal/nls/Messages$1;
 
 # Picked up from icu4j
+Lcom/ibm/icu/impl/SimpleCache;
 Lcom/ibm/icu/util/ULocale;
 Lcom/ibm/icu/util/ULocale$IDParser;
+Lcom/ibm/icu/util/ULocale$Type;
 Lcom/ibm/icu/charset/CharsetProviderICU;
 Lcom/ibm/icu/charset/CharsetUTF8$CharsetDecoderUTF8;
 Lcom/ibm/icu/charset/CharsetUTF8$CharsetEncoderUTF8;
