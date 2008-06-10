@@ -18,6 +18,7 @@
 package java.lang;
 
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.jikesrvm.VM;
@@ -99,6 +100,13 @@ public class Thread implements Runnable {
      */
     public final static int NORM_PRIORITY = 5;
 
+  /**
+   * This map is used to provide <code>ThreadLocal</code> functionality.
+   * Maps <code>ThreadLocal</code> object to value. Lazy initialization is
+   * used to avoid circular dependance.
+   */
+  private Map<ThreadLocal<Object>, Object> localValues = null;
+  
     Object slot1;
 
     Object slot2;
@@ -484,8 +492,44 @@ public class Thread implements Runnable {
      * @return the value of the ThreadLocal
      * @see #setThreadLocal
      */
-    Object getThreadLocal(ThreadLocal<?> local) {
-      throw new Error("TODO");
+    Object getThreadLocal(ThreadLocal<Object> local) {
+        Object value;
+        if (localValues == null) {
+            localValues = new IdentityHashMap<ThreadLocal<Object>, Object>();
+            value = local.initialValue();
+            localValues.put(local, value);
+            return value;
+        }
+        value = localValues.get(local);
+        if (value != null) {
+            return value;
+        } else {
+            if (localValues.containsKey(local)) {
+                return null;
+            } else {
+                value = local.initialValue();
+                localValues.put(local, value);
+                return value;
+            }
+        }
+    }
+
+  
+    /**
+     * A sample implementation of this method is provided by the reference
+     * implementation. It must be included, as it is called by ThreadLocal.set()
+     * and InheritableThreadLocal.set(). Set the value associated with the
+     * ThreadLocal in the receiver to be <code>value</code>.
+     * 
+     * @param local ThreadLocal to set
+     * @param value new value for the ThreadLocal
+     * @see #getThreadLocal
+     */
+    void setThreadLocal(ThreadLocal<Object> local, Object value) {
+      if (localValues == null) {
+        localValues = new IdentityHashMap<ThreadLocal<Object>, Object>();
+      }
+      localValues.put(local, value);
     }
 
     /**
@@ -720,20 +764,6 @@ public class Thread implements Runnable {
      */
     public final void setPriority(int priority) {
       vmThread.setPriority(priority);
-    }
-
-    /**
-     * A sample implementation of this method is provided by the reference
-     * implementation. It must be included, as it is called by ThreadLocal.set()
-     * and InheritableThreadLocal.set(). Set the value associated with the
-     * ThreadLocal in the receiver to be <code>value</code>.
-     * 
-     * @param local ThreadLocal to set
-     * @param value new value for the ThreadLocal
-     * @see #getThreadLocal
-     */
-    void setThreadLocal(ThreadLocal<?> local, Object value) {
-        return;
     }
 
     /**
