@@ -138,7 +138,7 @@ public final class String implements Serializable, Comparable<String>,
 
     private final char[] value;
 
-    private final int offset;
+    final int offset;
 
     private final int count;
 

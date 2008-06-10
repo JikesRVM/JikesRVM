@@ -75,7 +75,7 @@ public class JikesRVMSupport {
   @Uninterruptible
   public static int getStringOffset(String str) {
     // TODO - Harmony
-    return 0;
+    return str.offset;
   }
 
   public static String newStringWithoutCopy(char[] data, int offset, int count) {
