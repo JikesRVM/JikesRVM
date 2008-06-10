@@ -17,6 +17,9 @@
 
 package java.lang.reflect;
 
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.runtime.VM_Runtime;
+
 /**
  * This class must be implemented by the VM vendor. This class provides methods
  * to dynamically create and access arrays.
@@ -280,7 +283,7 @@ public final class Array {
 	 */
 	public static Object newInstance(Class<?> componentType, int[] dimensions)
 			throws NegativeArraySizeException, IllegalArgumentException {
-		return null;
+          throw new Error("TODO");
 	}
 
 	/**
@@ -298,9 +301,20 @@ public final class Array {
 	 *                if the size if negative
 	 */
 	public static Object newInstance(Class<?> componentType, int size)
-			throws NegativeArraySizeException {
-		return null;
-	}
+          throws NegativeArraySizeException {
+          if(componentType == null)
+            throw new NullPointerException();
+          if(size < 0)
+            throw new NegativeArraySizeException();
+
+          VM_Array arrayType = java.lang.JikesRVMSupport.getTypeForClass(componentType).getArrayTypeForElementType();
+          if (!arrayType.isInitialized()) {
+            arrayType.resolve();
+            arrayType.instantiate();
+            arrayType.initialize();
+          }
+          return VM_Runtime.resolvedNewArray(size, arrayType);
+        }
 
 	/**
 	 * Set the element of the array at the specified index to the value. This

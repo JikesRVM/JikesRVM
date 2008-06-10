@@ -43,6 +43,7 @@ public class AccessibleObject implements AnnotatedElement {
      */
     static final Object[] emptyArgs = new Object[0];
 
+    private boolean isAccessible = false;
     /**
      * Attempts to set the value of the accessible flag for all the objects in
      * the array provided. Only one security check is performed. Setting this
@@ -154,7 +155,7 @@ public class AccessibleObject implements AnnotatedElement {
      * @return the value of the accessible flag
      */
     public boolean isAccessible() {
-        return false;
+      return isAccessible;
     }
 
     /**
@@ -168,7 +169,7 @@ public class AccessibleObject implements AnnotatedElement {
      * @throws SecurityException if the request is denied
      */
     public void setAccessible(boolean flag) throws SecurityException {
-        return;
+      isAccessible = flag;
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
@@ -176,15 +177,15 @@ public class AccessibleObject implements AnnotatedElement {
     }
 
     public Annotation[] getDeclaredAnnotations() {
-        return new Annotation[0];
+      throw new Error("TODO");
     }
 
     public Annotation[] getAnnotations() {
-        return new Annotation[0];
+      throw new Error("TODO");
     }
 
     public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        return null;
+      throw new Error("TODO");
     }
 
     /**

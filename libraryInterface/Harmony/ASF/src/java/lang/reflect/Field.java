@@ -17,7 +17,13 @@
 
 package java.lang.reflect;
 
+import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.VM;
 
 /**
  * This class must be implemented by the VM vendor. This class models a field.
@@ -27,7 +33,38 @@ import org.jikesrvm.classloader.VM_Field;
  */
 public final class Field extends AccessibleObject implements Member {
   private final VM_Field vmField;
+  private void checkReadAccess(Object obj) throws IllegalAccessException,
+                                                  IllegalArgumentException,
+                                                  ExceptionInInitializerError {
 
+    VM_Class declaringClass = vmField.getDeclaringClass();
+    if (!vmField.isStatic()) {
+      if (obj == null) {
+        throw new NullPointerException();
+      }
+
+      VM_Type objType = VM_ObjectModel.getObjectType(obj);
+      if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
+        throw new IllegalArgumentException();
+      }
+    }
+
+    if (!vmField.isPublic() && !isAccessible()) {
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(3);
+      JikesRVMSupport.checkAccess(vmField, accessingClass);
+    }
+
+    if (vmField.isStatic() && !declaringClass.isInitialized()) {
+      try {
+        VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      } catch (Throwable e) {
+        ExceptionInInitializerError ex = new ExceptionInInitializerError();
+        ex.initCause(e);
+        throw ex;
+      }
+    }
+  }
+  
     /**
      * Constructor
      */
@@ -138,8 +175,31 @@ public final class Field extends AccessibleObject implements Member {
 	 * @throws IllegalAccessException
 	 *             if modeled field is not accessible
 	 */
-	public native Object get(Object object) throws IllegalAccessException,
-			IllegalArgumentException;
+  public Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
+        checkReadAccess(object);
+    if (vmField.isReferenceType()) {
+      return vmField.getObjectValueUnchecked(object);
+    }
+    VM_TypeReference type = vmField.getType();
+    if (type.isIntType()) {
+      return vmField.getIntValueUnchecked(object);
+    } else if (type.isCharType()) {
+      return vmField.getCharValueUnchecked(object);
+    } else if (type.isShortType()) {
+      return vmField.getShortValueUnchecked(object);
+    } else if (type.isLongType()) {
+      return vmField.getLongValueUnchecked(object);
+    } else if (type.isByteType()) {
+      return vmField.getByteValueUnchecked(object);
+    } else if (type.isBooleanType()) {
+      return vmField.getBooleanValueUnchecked(object);
+    } else if (type.isDoubleType()) {
+      return vmField.getDoubleValueUnchecked(object);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(type.isFloatType());
+      return vmField.getFloatValueUnchecked(object);
+    }
+  }
 
 	/**
 	 * Return the value of the field in the specified object as a boolean. This
@@ -304,8 +364,21 @@ public final class Field extends AccessibleObject implements Member {
 	 * @throws IllegalAccessException
 	 *             if modeled field is not accessible
 	 */
-	public native int getInt(Object object) throws IllegalAccessException,
-			IllegalArgumentException;
+  public int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
+    checkReadAccess(object);
+    VM_TypeReference type = vmField.getType();
+    if (type.isIntType()) {
+      return vmField.getIntValueUnchecked(object);
+    } else if (type.isShortType()) {
+      return (int)vmField.getShortValueUnchecked(object);
+    } else if (type.isCharType()) {
+      return (int)vmField.getCharValueUnchecked(object);
+    } else if (type.isByteType()) {
+      return (int)vmField.getByteValueUnchecked(object);
+    } else {
+      throw new IllegalArgumentException("field type mismatch");
+    }
+  }
 
 	/**
 	 * Return the value of the field in the specified object as a long. This

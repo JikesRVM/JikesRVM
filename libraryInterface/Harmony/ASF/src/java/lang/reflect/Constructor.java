@@ -19,7 +19,11 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
 
 /**
  * This class must be implemented by the VM vendor. This class models a
@@ -47,7 +51,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
     }
 
     public TypeVariable<Constructor<T>>[] getTypeParameters() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -60,7 +64,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @since 1.5
      */
     public String toGenericString() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -80,7 +84,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @since 1.5
      */
     public Type[] getGenericParameterTypes() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -114,7 +118,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @since 1.5
      */
     public Annotation[][] getParameterAnnotations() {
-        return null;
+        return vmConstructor.getDeclaredParameterAnnotations();
     }
 
     /**
@@ -128,11 +132,11 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @since 1.5
      */
     public boolean isVarArgs() {
-        return false;
+      return (vmConstructor.getModifiers() & Modifier.VARARGS) != 0;
     }
 
     public boolean isSynthetic() {
-        return false;
+      return (vmConstructor.getModifiers() & Modifier.SYNTHETIC) != 0;
     }
 
     /**
@@ -147,7 +151,12 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      */
     @Override
     public boolean equals(Object object) {
+      if (object instanceof Constructor) {
+        Constructor that = (Constructor)object;
+        return this.vmConstructor == that.vmConstructor;
+      } else {
         return false;
+      }
     }
 
     /**
@@ -157,7 +166,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @return the declaring class
      */
     public Class<T> getDeclaringClass() {
-        return null;
+      return (Class<T>)vmConstructor.getDeclaringClass().getClassForType();
     }
 
     /**
@@ -169,7 +178,12 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @return the declared exception classes
      */
     public Class<?>[] getExceptionTypes() {
-        return null;
+      VM_TypeReference[] exceptionTypes = vmConstructor.getExceptionTypes();
+      if (exceptionTypes == null) {
+        return new Class[0];
+      } else {
+        return JikesRVMSupport.typesToClasses(exceptionTypes);
+      }
     }
 
     /**
@@ -180,7 +194,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @see java.lang.reflect.Modifier
      */
     public int getModifiers() {
-        return 0;
+        return vmConstructor.getModifiers();
     }
 
     /**
@@ -190,7 +204,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @return the name
      */
     public String getName() {
-        return null;
+      return getDeclaringClass().getName();
     }
 
     /**
@@ -201,7 +215,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      * @return the parameter types
      */
     public Class<?>[] getParameterTypes() {
-        return null;
+      return JikesRVMSupport.typesToClasses(vmConstructor.getParameterTypes());
     }
 
     /**
@@ -214,7 +228,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      */
     @Override
     public int hashCode() {
-        return 0;
+      return getName().hashCode();
     }
 
     /**
@@ -260,7 +274,53 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      */
     public T newInstance(Object... args) throws InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException {
-        return null;
+      // Check accessibility
+      if (!vmConstructor.isPublic() && !isAccessible()) {
+        VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+        JikesRVMSupport.checkAccess(vmConstructor, accessingClass);
+      }
+
+      // validate number and types of arguments to constructor
+      VM_TypeReference[] parameterTypes = vmConstructor.getParameterTypes();
+      if (args == null) {
+        if (parameterTypes.length != 0) {
+          throw new IllegalArgumentException("argument count mismatch");
+        }
+      } else {
+        if (args.length != parameterTypes.length) {
+          throw new IllegalArgumentException("argument count mismatch");
+        }
+        for (int i = 0; i < parameterTypes.length; i++) {
+          args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
+        }
+      }
+
+      VM_Class cls = vmConstructor.getDeclaringClass();
+      if (cls.isAbstract()) {
+        throw new InstantiationException("Abstract class");
+      }
+
+      // Ensure that the class is initialized
+      if (!cls.isInitialized()) {
+        try {
+          VM_Runtime.initializeClassForDynamicLink(cls);
+        } catch (Throwable e) {
+          ExceptionInInitializerError ex = new ExceptionInInitializerError();
+          ex.initCause(e);
+          throw ex;
+        }
+      }
+      
+      // Allocate an uninitialized instance;
+      Object obj = VM_Runtime.resolvedNewScalar(cls);
+
+      // Run the constructor on the instance.
+      try {
+        VM_Reflection.invoke(vmConstructor, obj, args);
+      } catch (Throwable e) {
+        throw new InvocationTargetException(e);
+      }
+      return (T)obj;
     }
 
     /**
@@ -274,6 +334,6 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
      */
     @Override
     public String toString() {
-        return null;
+      return vmConstructor.getSignature().toString();
     }
 }
