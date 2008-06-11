@@ -165,7 +165,7 @@ import org.vmmagic.unboxed.*;
     if (newSize.LT(reserved)) newSize = reserved;
     newSize = newSize.plus(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
     if (newSize.GT(maxHeapSize)) newSize = maxHeapSize;
-    if (newSize.NE(oldSize)) {
+    if (newSize.NE(oldSize) && newSize.GT(Extent.zero())) {
       // Heap size is going to change
       currentHeapSize = newSize;
       if (Options.verbose.getValue() >= 2) {
