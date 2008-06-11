@@ -58,7 +58,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
 
     // branch to catch block
     //
-    VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
+    VM.enableGC(); // disabled right before RuntimeEntrypoints.deliverException was called
     if (VM.VerifyAssertions) VM._assert(registers.inuse);
 
     registers.inuse = false;

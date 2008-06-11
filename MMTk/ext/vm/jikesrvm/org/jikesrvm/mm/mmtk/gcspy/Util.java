@@ -22,7 +22,7 @@ import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -193,7 +193,7 @@ import org.vmmagic.pragma.*;
   public Object createDataArray(Object templ, int numElements) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       VM_Array array = VM_Magic.getObjectType(templ).asArray();
-      return VM_Runtime.resolvedNewArray(numElements,
+      return RuntimeEntrypoints.resolvedNewArray(numElements,
                               array.getLogElementSize(),
                               VM_ObjectModel.computeArrayHeaderSize(array),
                               array.getTypeInformationBlock(),

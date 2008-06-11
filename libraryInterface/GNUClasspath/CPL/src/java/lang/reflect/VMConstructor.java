@@ -16,7 +16,7 @@ import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
  * Implementation of java.lang.reflect.VMConstructor for JikesRVM.
@@ -105,7 +105,7 @@ final class VMConstructor {
     // Ensure that the class is initialized
     if (!cls.isInitialized()) {
       try {
-        VM_Runtime.initializeClassForDynamicLink(cls);
+        RuntimeEntrypoints.initializeClassForDynamicLink(cls);
       } catch (Throwable e) {
         ExceptionInInitializerError ex = new ExceptionInInitializerError();
         ex.initCause(e);
@@ -114,7 +114,7 @@ final class VMConstructor {
     }
 
     // Allocate an uninitialized instance;
-    Object obj = VM_Runtime.resolvedNewScalar(cls);
+    Object obj = RuntimeEntrypoints.resolvedNewScalar(cls);
 
     // Run the constructor on the instance.
     try {

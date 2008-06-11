@@ -13,7 +13,7 @@
 package java.lang.reflect;
 
 import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
  * VM dependent Array operations
@@ -41,6 +41,6 @@ class VMArray {
       arrayType.instantiate();
       arrayType.initialize();
     }
-    return VM_Runtime.resolvedNewArray(length, arrayType);
+    return RuntimeEntrypoints.resolvedNewArray(length, arrayType);
   }
 }

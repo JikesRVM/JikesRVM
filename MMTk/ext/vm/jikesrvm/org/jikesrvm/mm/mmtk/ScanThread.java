@@ -25,7 +25,7 @@ import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.mmtk.plan.TraceLocal;
@@ -347,7 +347,7 @@ import org.vmmagic.unboxed.Offset;
     /* skip preceeding native frames if this frame is a native bridge */
     if (compiledMethodType != VM_CompiledMethod.TRAP &&
         compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-      fp = VM_Runtime.unwindNativeStackFrameForGC(fp);
+      fp = RuntimeEntrypoints.unwindNativeStackFrameForGC(fp);
       if (verbosity >= 1) Log.write("scanFrame skipping native C frames\n");
     }
     return fp;

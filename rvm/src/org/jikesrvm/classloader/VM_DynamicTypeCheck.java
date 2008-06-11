@@ -64,7 +64,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *        or, this dimensionality is k and the baseclass is NOT primitive
  * <p>
  * (3) Otherwise, is the LHS unresolved?
- *    If so, fall back to calling VM_Runtime.instanceOf at runtime which will
+ *    If so, fall back to calling RuntimeEntrypoints.instanceOf at runtime which will
  *    load/resolve the types and then call VM_DynamicTypeCheck.instanceOf.
  * <p>
  * (4) Otherwise, is the LHS an interface?

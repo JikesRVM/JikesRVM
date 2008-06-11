@@ -14,7 +14,7 @@ package java.lang;
 
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Pure;
 
 /**
@@ -27,7 +27,7 @@ public class Object {
 
   @SuppressWarnings({"PMD.ProperCloneImplementation","PMD.CloneMethodMustImplementCloneable","CloneDoesntCallSuperClone"})
   protected Object clone() throws CloneNotSupportedException {
-    return VM_Runtime.clone(this);
+    return RuntimeEntrypoints.clone(this);
   }
 
   public boolean equals(Object o) {

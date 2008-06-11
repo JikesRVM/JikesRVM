@@ -423,7 +423,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * to point to the "call site" or "exception site".
    *
    * <li> This method must not cause any allocations, because it executes with
-   * gc disabled when called by VM_Runtime.deliverException().
+   * gc disabled when called by RuntimeEntrypoints.deliverException().
    * </ul>
    */
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType);

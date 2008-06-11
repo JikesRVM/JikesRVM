@@ -29,7 +29,7 @@ import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_MapIterator;
 import org.jikesrvm.osr.OSR_VariableElement;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -531,7 +531,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         VM.disableGC();
         fp = VM_Magic.objectAsAddress(stack).plus(fpOffset);
         if (cm.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-          fp = VM_Runtime.unwindNativeStackFrame(fp);
+          fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
         }
       }
 

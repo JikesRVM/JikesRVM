@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.vmmagic.unboxed.Address;
 
 /**
- * Interface for exception delivery called by VM_Runtime.deliverException() to
+ * Interface for exception delivery called by RuntimeEntrypoints.deliverException() to
  * pass control to a stackframe whose method has an appropriate "catch" block
  * or to step over a stackframe that does not have an appropriate catch block.
  * <p>

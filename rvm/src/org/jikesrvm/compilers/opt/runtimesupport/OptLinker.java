@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.VM_BytecodeStream;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TableBasedDynamicLinker;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -84,7 +84,7 @@ public final class OptLinker implements VM_BytecodeConstants {
     // create array
     //
     VM_Array aType = (VM_Array) VM_TypeReference.getTypeRef(typeId).resolve();
-    return VM_Runtime.buildMultiDimensionalArray(methodId, dimensions, aType);
+    return RuntimeEntrypoints.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
 
   public static Object new2DArray(int methodId, int dim0, int dim1, int typeId)
@@ -95,6 +95,6 @@ public final class OptLinker implements VM_BytecodeConstants {
     // create array
     //
     VM_Array aType = (VM_Array) VM_TypeReference.getTypeRef(typeId).resolve();
-    return VM_Runtime.buildTwoDimensionalArray(methodId, dim0, dim1, aType);
+    return RuntimeEntrypoints.buildTwoDimensionalArray(methodId, dim0, dim1, aType);
   }
 }

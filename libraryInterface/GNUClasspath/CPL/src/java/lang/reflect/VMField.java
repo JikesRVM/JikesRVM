@@ -21,7 +21,7 @@ import org.jikesrvm.classloader.VM_Type;
 
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
@@ -150,7 +150,7 @@ public final class VMField {
           throw new IllegalArgumentException("field type mismatch");
         }
         if (fieldType != valueType &&
-            !VM_Runtime.isAssignableWith(fieldType, valueType)) {
+            !RuntimeEntrypoints.isAssignableWith(fieldType, valueType)) {
           throw new IllegalArgumentException("field type mismatch");
         }
       }
@@ -235,7 +235,7 @@ public final class VMField {
       }
 
       VM_Type objType = VM_ObjectModel.getObjectType(obj);
-      if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
+      if (objType != declaringClass && !RuntimeEntrypoints.isAssignableWith(declaringClass, objType)) {
         throw new IllegalArgumentException();
       }
     }
@@ -247,7 +247,7 @@ public final class VMField {
 
     if (field.isStatic() && !declaringClass.isInitialized()) {
       try {
-        VM_Runtime.initializeClassForDynamicLink(declaringClass);
+        RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
       } catch (Throwable e) {
         ExceptionInInitializerError ex = new ExceptionInInitializerError();
         ex.initCause(e);
@@ -267,7 +267,7 @@ public final class VMField {
       }
 
       VM_Type objType = VM_ObjectModel.getObjectType(obj);
-      if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
+      if (objType != declaringClass && !RuntimeEntrypoints.isAssignableWith(declaringClass, objType)) {
         throw new IllegalArgumentException();
       }
     }
@@ -282,7 +282,7 @@ public final class VMField {
 
     if (field.isStatic() && !declaringClass.isInitialized()) {
       try {
-        VM_Runtime.initializeClassForDynamicLink(declaringClass);
+        RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
       } catch (Throwable e) {
         ExceptionInInitializerError ex = new ExceptionInInitializerError();
         ex.initCause(e);

@@ -28,7 +28,7 @@ import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StringConstantOperand;
 import org.jikesrvm.compilers.opt.util.Stack;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
 
@@ -228,7 +228,7 @@ public final class ClassLoaderProxy implements VM_Constants, Constants {
       // at the type hierarchy.
       // IMPORTANT: We aren't allowed to cause dynamic class loading,
       // so we have to roll some of this ourselves
-      // instead of simply calling VM_Runtime.instanceOf
+      // instead of simply calling RuntimeEntrypoints.instanceOf
       // (which is allowed/required to load classes to answer the question).
       try {
         if (parentType.isArrayType()) {
@@ -270,7 +270,7 @@ public final class ClassLoaderProxy implements VM_Constants, Constants {
               if (parentClass.isResolved() && childClass.isResolved() ||
                   (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
                 if (parentClass.isInterface()) {
-                  if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
+                  if (RuntimeEntrypoints.isAssignableWith(parentClass, childClass)) {
                     return YES;
                   } else {
                     // If child is not a final class, it is
@@ -282,7 +282,7 @@ public final class ClassLoaderProxy implements VM_Constants, Constants {
                   return MAYBE;
                 } else {
                   // parent & child are both proper classes.
-                  if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
+                  if (RuntimeEntrypoints.isAssignableWith(parentClass, childClass)) {
                     return YES;
                   }
                   // If child is a final class, then
@@ -295,7 +295,7 @@ public final class ClassLoaderProxy implements VM_Constants, Constants {
                   if (childClass.isFinal()) {
                     return NO;
                   } else {
-                    if (VM_Runtime.isAssignableWith(childClass, parentClass)) {
+                    if (RuntimeEntrypoints.isAssignableWith(childClass, parentClass)) {
                       return MAYBE;
                     } else {
                       return NO;

@@ -58,7 +58,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
     Address fp;
     if (currentMethod != null && currentMethod.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       // Elide native frames
-      fp = VM_Runtime.unwindNativeStackFrame(currentFramePointer);
+      fp = RuntimeEntrypoints.unwindNativeStackFrame(currentFramePointer);
     } else {
         fp = currentFramePointer;
     }

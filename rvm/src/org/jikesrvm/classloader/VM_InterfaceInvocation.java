@@ -24,7 +24,7 @@ import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;
 
 /**
@@ -66,7 +66,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       VM_ITable iTable = findITable(tib, I.getInterfaceId());
       return iTable.getCode(getITableIndex(I, mref.getName(), mref.getDescriptor()));
     } else {
-      if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
+      if (!RuntimeEntrypoints.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
       VM_Method found = C.findVirtualMethod(sought.getName(), sought.getDescriptor());
       if (found == null) throw new IncompatibleClassChangeError();
       return found.getCurrentEntryCodeArray();
@@ -110,7 +110,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     // Therefore, we need to establish that and then
     // look for the iTable again.
     VM_Class C = (VM_Class) tib.getType();
-    if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
+    if (!RuntimeEntrypoints.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
     synchronized (C) {
       installITable(C, (VM_Class) I);
     }
@@ -205,7 +205,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(im.getMemberRef());
         VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
         // NOTE: if there is some error condition, then we are playing a dirty trick and
-        //       pretending that a static method of VM_Runtime is a virtual method.
+        //       pretending that a static method of RuntimeEntrypoints is a virtual method.
         //       Since the methods in question take no arguments, we can get away with this.
         if (vm == null || vm.isAbstract()) {
           vm = VM_Entrypoints.raiseAbstractMethodError;
@@ -274,7 +274,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract());
       VM_Method vm = C.findVirtualMethod(im.getName(), im.getDescriptor());
       // NOTE: if there is some error condition, then we are playing a dirty trick and
-      //       pretending that a static method of VM_Runtime is a virtual method.
+      //       pretending that a static method of RuntimeEntrypoints is a virtual method.
       //       Since the methods in question take no arguments, we can get away with this.
       if (vm == null || vm.isAbstract()) {
         vm = VM_Entrypoints.raiseAbstractMethodError;

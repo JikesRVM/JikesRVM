@@ -25,7 +25,7 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
@@ -467,18 +467,18 @@ public class GenerateInterfaceDeclarations {
     p("static const int VM_ThreadProcessWaitQueue_PROCESS_FINISHED = " +
       VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
 
-    // values in VM_Runtime
+    // values in RuntimeEntrypoints
     //
-    p("static const int VM_Runtime_TRAP_UNKNOWN        = " + VM_Runtime.TRAP_UNKNOWN + ";\n");
-    p("static const int VM_Runtime_TRAP_NULL_POINTER   = " + VM_Runtime.TRAP_NULL_POINTER + ";\n");
-    p("static const int VM_Runtime_TRAP_ARRAY_BOUNDS   = " + VM_Runtime.TRAP_ARRAY_BOUNDS + ";\n");
-    p("static const int VM_Runtime_TRAP_DIVIDE_BY_ZERO = " + VM_Runtime.TRAP_DIVIDE_BY_ZERO + ";\n");
-    p("static const int VM_Runtime_TRAP_STACK_OVERFLOW = " + VM_Runtime.TRAP_STACK_OVERFLOW + ";\n");
-    p("static const int VM_Runtime_TRAP_CHECKCAST      = " + VM_Runtime.TRAP_CHECKCAST + ";\n");
-    p("static const int VM_Runtime_TRAP_REGENERATE     = " + VM_Runtime.TRAP_REGENERATE + ";\n");
-    p("static const int VM_Runtime_TRAP_JNI_STACK     = " + VM_Runtime.TRAP_JNI_STACK + ";\n");
-    p("static const int VM_Runtime_TRAP_MUST_IMPLEMENT = " + VM_Runtime.TRAP_MUST_IMPLEMENT + ";\n");
-    p("static const int VM_Runtime_TRAP_STORE_CHECK = " + VM_Runtime.TRAP_STORE_CHECK + ";\n");
+    p("static const int VM_Runtime_TRAP_UNKNOWN        = " + RuntimeEntrypoints.TRAP_UNKNOWN + ";\n");
+    p("static const int VM_Runtime_TRAP_NULL_POINTER   = " + RuntimeEntrypoints.TRAP_NULL_POINTER + ";\n");
+    p("static const int VM_Runtime_TRAP_ARRAY_BOUNDS   = " + RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + ";\n");
+    p("static const int VM_Runtime_TRAP_DIVIDE_BY_ZERO = " + RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + ";\n");
+    p("static const int VM_Runtime_TRAP_STACK_OVERFLOW = " + RuntimeEntrypoints.TRAP_STACK_OVERFLOW + ";\n");
+    p("static const int VM_Runtime_TRAP_CHECKCAST      = " + RuntimeEntrypoints.TRAP_CHECKCAST + ";\n");
+    p("static const int VM_Runtime_TRAP_REGENERATE     = " + RuntimeEntrypoints.TRAP_REGENERATE + ";\n");
+    p("static const int VM_Runtime_TRAP_JNI_STACK     = " + RuntimeEntrypoints.TRAP_JNI_STACK + ";\n");
+    p("static const int VM_Runtime_TRAP_MUST_IMPLEMENT = " + RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + ";\n");
+    p("static const int VM_Runtime_TRAP_STORE_CHECK = " + RuntimeEntrypoints.TRAP_STORE_CHECK + ";\n");
     pln();
 
     // values in VM_FileSystem

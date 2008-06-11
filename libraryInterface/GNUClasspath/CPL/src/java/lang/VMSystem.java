@@ -25,7 +25,7 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Time;
 
 /**
@@ -36,7 +36,7 @@ public final class VMSystem {
 
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (src == null || dst == null) {
-      VM_Runtime.raiseNullPointerException();
+      RuntimeEntrypoints.raiseNullPointerException();
     } else if ((src instanceof char[]) && (dst instanceof char[])) {
       VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
     } else if ((src instanceof Object[]) && (dst instanceof Object[])) {
@@ -56,7 +56,7 @@ public final class VMSystem {
     } else if ((src instanceof double[]) && (dst instanceof double[])) {
       VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
     } else {
-      VM_Runtime.raiseArrayStoreException();
+      RuntimeEntrypoints.raiseArrayStoreException();
     }
   }
 

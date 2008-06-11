@@ -17,13 +17,13 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and
- * pass them to VM_Runtime.buildMultiDimensionalArray.
+ * pass them to RuntimeEntrypoints.buildMultiDimensionalArray.
  *
  * TODO: There is only 1 line of platform dependent code here; refactor?
  */
@@ -57,7 +57,7 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
       // create array
       VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
       VM_Array array = tRef.resolve().asArray();
-      return VM_Runtime.buildTwoDimensionalArray(methodId, dim0, dim1, array);
+      return RuntimeEntrypoints.buildTwoDimensionalArray(methodId, dim0, dim1, array);
     } else {
       // fetch number of elements to be allocated for each array dimension
       int[] numElements = new int[numDimensions];
@@ -75,7 +75,7 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
       // create array
       VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
       VM_Array array = tRef.resolve().asArray();
-      return VM_Runtime.buildMultiDimensionalArray(methodId, numElements, array);
+      return RuntimeEntrypoints.buildMultiDimensionalArray(methodId, numElements, array);
     }
   }
 }

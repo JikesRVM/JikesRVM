@@ -588,7 +588,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       }
     }
 
-    // Call VM_Runtime.checkstore.
+    // Call RuntimeEntrypoints.checkstore.
     VM_Method target = VM_Entrypoints.checkstoreMethod;
     Instruction call =
         Call.create2(CALL,
@@ -728,7 +728,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       } else {
         // A non-resolved class or interface.
         // We expect these to be extremely uncommon in opt code in AOS.
-        // Mutate s into a call to VM_Runtime.instanceOf
+        // Mutate s into a call to RuntimeEntrypoints.instanceOf
         VM_Method target = VM_Entrypoints.instanceOfMethod;
         Call.mutate2(s,
                      CALL,
@@ -950,7 +950,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       } else {
         // A non-resolved class or interface. Case 3 of VM_DynamicTypeCheck
         // Branch on the result of a call to
-        // VM_Runtime.instance
+        // RuntimeEntrypoints.instance
         RegisterOperand result = ir.regpool.makeTempInt();
         VM_Method target = VM_Entrypoints.instanceOfMethod;
         Instruction call =

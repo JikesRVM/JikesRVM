@@ -18,7 +18,7 @@ import org.vmmagic.pragma.Entrypoint;
  * Placeholder for constants that are accessed from
  * generated code.
  */
-public class VM_Math {
+public class MathConstants {
   /*
    * Constants that are used by the compilers in generated code.
    */

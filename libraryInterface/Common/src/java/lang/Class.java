@@ -43,7 +43,7 @@ import org.jikesrvm.classloader.*;
 
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.VM_UnimplementedError;
 
 /**
@@ -557,7 +557,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public boolean isAssignableFrom(Class<?> cls) {
-    return type == cls.type || VM_Runtime.isAssignableWith(type, cls.type);
+    return type == cls.type || RuntimeEntrypoints.isAssignableWith(type, cls.type);
   }
 
   public boolean isInstance(Object object) {
@@ -619,7 +619,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     // Ensure that the class is initialized
     if (!cls.isInitialized()) {
       try {
-        VM_Runtime.initializeClassForDynamicLink(cls);
+        RuntimeEntrypoints.initializeClassForDynamicLink(cls);
       } catch (Throwable e) {
         ExceptionInInitializerError ex = new ExceptionInInitializerError();
         ex.initCause(e);
@@ -629,7 +629,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     // Allocate an uninitialized instance;
     @SuppressWarnings("unchecked") // yes, we're giving an anonymous object a type.
-    T obj = (T)VM_Runtime.resolvedNewScalar(cls);
+    T obj = (T)RuntimeEntrypoints.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
     VM_Reflection.invoke(defaultConstructor, obj, null);

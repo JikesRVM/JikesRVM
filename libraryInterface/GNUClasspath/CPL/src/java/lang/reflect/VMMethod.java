@@ -17,7 +17,7 @@ import java.lang.annotation.Annotation;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 
@@ -224,7 +224,7 @@ final class VMMethod {
   @NoInline
   private static void runClassInitializer(VM_Class declaringClass) throws ExceptionInInitializerError {
     try {
-      VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
     } catch (Throwable e) {
       ExceptionInInitializerError ex = new ExceptionInInitializerError();
       ex.initCause(e);

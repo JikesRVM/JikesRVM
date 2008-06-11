@@ -35,7 +35,7 @@ import org.vmmagic.Pragma;
  *      running (various VM.sysWrite that check VM.runningVM).
  * <li> The interruptible regions represent an 'error' condition that will
  *      never be executed unless the VM is already in the process of reporting
- *      an error, for example VM_Runtime.raiseClassCastException.
+ *      an error, for example RuntimeEntrypoints.raiseClassCastException.
  * <ul>
  * Extreme care must be exercised when using this pragma since it supresses
  * the checking of uninterruptibility.

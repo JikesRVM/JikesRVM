@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationHandler;
 import java.util.Arrays;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.pragma.Uninterruptible;
@@ -140,10 +140,10 @@ public final class VM_Annotation {
     }
     if (VM.runningVM) {
       if (!annotationClass.isInitialized()) {
-        VM_Runtime.initializeClassForDynamicLink(annotationClass);
+        RuntimeEntrypoints.initializeClassForDynamicLink(annotationClass);
       }
       // Construct an instance with default values
-      Annotation annotationInstance = (Annotation) VM_Runtime.resolvedNewScalar(annotationClass);
+      Annotation annotationInstance = (Annotation) RuntimeEntrypoints.resolvedNewScalar(annotationClass);
       VM_Method defaultConstructor = annotationClass.getConstructorMethods()[0];
       VM_Reflection.invoke(defaultConstructor, annotationInstance, new VM_Annotation[]{this});
       // Override default values with those given in the element value pairs

@@ -21,7 +21,7 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
@@ -977,7 +977,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) <= dst.length) {
       VM_Type lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
       VM_Type rhs = VM_Magic.getObjectType(src).asArray().getElementType();
-      if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType) || VM_Runtime.isAssignableWith(lhs, rhs)) {
+      if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType) || RuntimeEntrypoints.isAssignableWith(lhs, rhs)) {
         fastArrayCopy(src, srcIdx, dst, dstIdx, len);
       } else {
         slowArrayCopy(src, srcIdx, dst, dstIdx, len);
@@ -1069,7 +1069,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     } else {
       // the arrays overlap: must use temp array
       VM_Array ary = VM_Magic.getObjectType(src).asArray();
-      Object[] temp = (Object[]) VM_Runtime.resolvedNewArray(len, ary);
+      Object[] temp = (Object[]) RuntimeEntrypoints.resolvedNewArray(len, ary);
       int cnt = len;
       int tempIdx = 0;
       while (cnt-- != 0) {

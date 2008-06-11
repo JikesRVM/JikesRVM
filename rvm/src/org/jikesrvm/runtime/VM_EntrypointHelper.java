@@ -33,7 +33,7 @@ public class VM_EntrypointHelper {
    * Note: This is method is intended for use only by VM classes that need
    * to address their own fields and methods in the runtime virtual machine
    * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "Lorg/jikesrvm/VM_Runtime;"
+   * @param classDescriptor  class  descriptor - something like "Lorg/jikesrvm/RuntimeEntrypoints;"
    * @param memberName       member name       - something like "invokestatic"
    * @param memberDescriptor member descriptor - something like "()V"
    * @return corresponding VM_Member object

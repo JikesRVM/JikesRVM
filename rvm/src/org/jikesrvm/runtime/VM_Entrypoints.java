@@ -50,38 +50,38 @@ public class VM_Entrypoints {
                org.jikesrvm.runtime.VM_ObjectAddressRemapper.class);
 
   public static final VM_NormalMethod instanceOfMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "instanceOf", "(Ljava/lang/Object;I)Z");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "instanceOf", "(Ljava/lang/Object;I)Z");
   public static final VM_NormalMethod instanceOfResolvedClassMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
   public static final VM_NormalMethod instanceOfFinalMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class,
                 "instanceOfFinal",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)Z");
   public static final VM_NormalMethod checkcastMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "checkcast", "(Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "checkcast", "(Ljava/lang/Object;I)V");
   public static final VM_NormalMethod checkcastResolvedClassMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
   public static final VM_NormalMethod checkcastFinalMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class,
                 "checkcastFinal",
                 "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
   public static final VM_NormalMethod checkstoreMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "athrow", "(Ljava/lang/Throwable;)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "athrow", "(Ljava/lang/Throwable;)V");
 
   // Allocation-related entry points
   //
   public static final VM_NormalMethod resolvedNewScalarMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class,
                 "resolvedNewScalar",
                 "(ILorg/jikesrvm/objectmodel/VM_TIB;ZIIII)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewScalarMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unresolvedNewScalar", "(II)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unresolvedNewScalar", "(II)Ljava/lang/Object;");
   public static final VM_NormalMethod unresolvedNewArrayMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unresolvedNewArray", "(III)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unresolvedNewArray", "(III)Ljava/lang/Object;");
   public static final VM_NormalMethod resolvedNewArrayMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class,
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class,
                 "resolvedNewArray",
                 "(IIILorg/jikesrvm/objectmodel/VM_TIB;IIII)Ljava/lang/Object;");
 
@@ -92,21 +92,21 @@ public class VM_Entrypoints {
       getField(org.jikesrvm.VM_Services.class, "dumpBufferLock", int.class);
 
   public static final VM_NormalMethod unexpectedAbstractMethodCallMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unexpectedAbstractMethodCall", "()V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unexpectedAbstractMethodCall", "()V");
   public static final VM_NormalMethod raiseNullPointerException =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseNullPointerException", "()V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseNullPointerException", "()V");
   public static final VM_NormalMethod raiseArrayBoundsException =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseArrayIndexOutOfBoundsException", "(I)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseArrayIndexOutOfBoundsException", "(I)V");
   public static final VM_NormalMethod raiseArithmeticException =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseArithmeticException", "()V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseArithmeticException", "()V");
   public static final VM_NormalMethod raiseAbstractMethodError =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseAbstractMethodError", "()V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseAbstractMethodError", "()V");
   public static final VM_NormalMethod raiseIllegalAccessError =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "raiseIllegalAccessError", "()V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
   public static final VM_NormalMethod deliverHardwareExceptionMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "deliverHardwareException", "(II)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(II)V");
   public static final VM_NormalMethod unlockAndThrowMethod =
-      getMethod(org.jikesrvm.runtime.VM_Runtime.class, "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 
   public static final VM_NormalMethod invokeInterfaceMethod =
       getMethod(org.jikesrvm.classloader.VM_InterfaceInvocation.class,
@@ -152,48 +152,48 @@ public class VM_Entrypoints {
       getField(org.jikesrvm.classloader.VM_TableBasedDynamicLinker.class, "memberOffsets", int[].class);
 
   /** 1L */
-  public static final VM_Field longOneField = getField(org.jikesrvm.runtime.VM_Math.class, "longOne", long.class);
+  public static final VM_Field longOneField = getField(org.jikesrvm.runtime.MathConstants.class, "longOne", long.class);
   /** -1.0F */
-  public static final VM_Field minusOneField = getField(org.jikesrvm.runtime.VM_Math.class, "minusOne", float.class);
+  public static final VM_Field minusOneField = getField(org.jikesrvm.runtime.MathConstants.class, "minusOne", float.class);
   /** 0.0F */
-  public static final VM_Field zeroFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "zero", float.class);
+  public static final VM_Field zeroFloatField = getField(org.jikesrvm.runtime.MathConstants.class, "zero", float.class);
   /**0.5F */
-  public static final VM_Field halfFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "half", float.class);
+  public static final VM_Field halfFloatField = getField(org.jikesrvm.runtime.MathConstants.class, "half", float.class);
   /** 1.0F */
-  public static final VM_Field oneFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "one", float.class);
+  public static final VM_Field oneFloatField = getField(org.jikesrvm.runtime.MathConstants.class, "one", float.class);
   /** 2.0F */
-  public static final VM_Field twoFloatField = getField(org.jikesrvm.runtime.VM_Math.class, "two", float.class);
+  public static final VM_Field twoFloatField = getField(org.jikesrvm.runtime.MathConstants.class, "two", float.class);
   /** 2.0F^32 */
-  public static final VM_Field two32Field = getField(org.jikesrvm.runtime.VM_Math.class, "two32", float.class);
+  public static final VM_Field two32Field = getField(org.jikesrvm.runtime.MathConstants.class, "two32", float.class);
   /** 0.5F^32 */
-  public static final VM_Field half32Field = getField(org.jikesrvm.runtime.VM_Math.class, "half32", float.class);
+  public static final VM_Field half32Field = getField(org.jikesrvm.runtime.MathConstants.class, "half32", float.class);
   /** 1e-9 */
-  public static final VM_Field billionthField = getField(org.jikesrvm.runtime.VM_Math.class, "billionth", double.class);
+  public static final VM_Field billionthField = getField(org.jikesrvm.runtime.MathConstants.class, "billionth", double.class);
   /** 0.0 */
-  public static final VM_Field zeroDoubleField = getField(org.jikesrvm.runtime.VM_Math.class, "zeroD", double.class);
+  public static final VM_Field zeroDoubleField = getField(org.jikesrvm.runtime.MathConstants.class, "zeroD", double.class);
   /** 1.0 */
-  public static final VM_Field oneDoubleField = getField(org.jikesrvm.runtime.VM_Math.class, "oneD", double.class);
+  public static final VM_Field oneDoubleField = getField(org.jikesrvm.runtime.MathConstants.class, "oneD", double.class);
   /** largest double that can be rounded to an int */
   public static final VM_Field maxintField =
-      getField(org.jikesrvm.runtime.VM_Math.class, "maxint", double.class);
+      getField(org.jikesrvm.runtime.MathConstants.class, "maxint", double.class);
   /** largest double that can be rounded to a long */
   public static final VM_Field maxlongField =
-    getField(org.jikesrvm.runtime.VM_Math.class, "maxlong", double.class);
+    getField(org.jikesrvm.runtime.MathConstants.class, "maxlong", double.class);
   /** smallest double that can be rounded to an int */
   public static final VM_Field minintField =
-      getField(org.jikesrvm.runtime.VM_Math.class, "minint", double.class);
+      getField(org.jikesrvm.runtime.MathConstants.class, "minint", double.class);
   /** largest float that can be rounded to an int */
   public static final VM_Field maxintFloatField =
-    getField(org.jikesrvm.runtime.VM_Math.class, "maxintF", float.class);
+    getField(org.jikesrvm.runtime.MathConstants.class, "maxintF", float.class);
   /** largest float that can be rounded to a long */
   public static final VM_Field maxlongFloatField =
-    getField(org.jikesrvm.runtime.VM_Math.class, "maxlongF", float.class);
+    getField(org.jikesrvm.runtime.MathConstants.class, "maxlongF", float.class);
   /** IEEEmagic constant */
   public static final VM_Field IEEEmagicField =
-      getField(org.jikesrvm.runtime.VM_Math.class, "IEEEmagic", double.class);
+      getField(org.jikesrvm.runtime.MathConstants.class, "IEEEmagic", double.class);
   /** special double value for use in int <--> double conversions */
   public static final VM_Field I2DconstantField =
-      getField(org.jikesrvm.runtime.VM_Math.class,
+      getField(org.jikesrvm.runtime.MathConstants.class,
                "I2Dconstant",
                double.class);
 

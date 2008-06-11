@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;
 
 /**
@@ -69,7 +69,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
   public static int resolveMember(VM_MemberReference ref) throws NoClassDefFoundError {
     VM_Member resolvedMember = ref.resolveMember();
     VM_Class declaringClass = resolvedMember.getDeclaringClass();
-    VM_Runtime.initializeClassForDynamicLink(declaringClass);
+    RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
     int offset = resolvedMember.getOffset().toInt();
     if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     memberOffsets[ref.getId()] = offset;

@@ -113,7 +113,7 @@ public class VM_StackTrace {
             compiledMethod.hasBridgeFromNativeAnnotation()) {
           // skip native frames, stopping at last native frame preceeding the
           // Java To C transition frame
-          fp = VM_Runtime.unwindNativeStackFrame(fp);
+          fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
         }
       }
       stackFrameCount++;
@@ -148,7 +148,7 @@ public class VM_StackTrace {
           if (compiledMethod.hasBridgeFromNativeAnnotation()) {
             // skip native frames, stopping at last native frame preceeding the
             // Java To C transition frame
-            fp = VM_Runtime.unwindNativeStackFrame(fp);
+            fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
           }
         }
       }
@@ -183,7 +183,7 @@ public class VM_StackTrace {
             compiledMethod.hasBridgeFromNativeAnnotation()) {
           // skip native frames, stopping at last native frame preceeding the
           // Java To C transition frame
-          fp = VM_Runtime.unwindNativeStackFrame(fp);
+          fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
         }
       }
       stackFrameCount++;
@@ -219,7 +219,7 @@ public class VM_StackTrace {
           if (compiledMethod.hasBridgeFromNativeAnnotation()) {
             // skip native frames, stopping at last native frame preceeding the
             // Java To C transition frame
-            fp = VM_Runtime.unwindNativeStackFrame(fp);
+            fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
           }
         }
       }
@@ -417,7 +417,7 @@ public class VM_StackTrace {
      * at java.lang.Exception.<init>(Exception.java:66)
      * at java.lang.RuntimeException.<init>(RuntimeException.java:64)
      * at java.lang.NullPointerException.<init>(NullPointerException.java:69)
-     * at org.jikesrvm.runtime.VM_Runtime.deliverHardwareException(VM_Runtime.java:682)
+     * at org.jikesrvm.runtime.RuntimeEntrypoints.deliverHardwareException(RuntimeEntrypoints.java:682)
      * at <hardware trap>(Unknown Source:0)
      *
      * and a software trap to look like:
@@ -436,7 +436,7 @@ public class VM_StackTrace {
      * ...
      * at org.jikesrvm.memorymanagers.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
      * ...
-     * at org.jikesrvm.runtime.VM_Runtime.unresolvedNewArray(VM_Runtime.java:401)
+     * at org.jikesrvm.runtime.RuntimeEntrypoints.unresolvedNewArray(RuntimeEntrypoints.java:401)
      */
     if (VM_Options.stackTraceFull) {
       return 0;
@@ -446,17 +446,17 @@ public class VM_StackTrace {
 
       // Deal with OutOfMemoryError
       if (cause instanceof OutOfMemoryError) {
-        // (1) search until VM_Runtime
+        // (1) search until RuntimeEntrypoints
         while((element < compiledMethods.length) &&
             (compiledMethod != null) &&
-             compiledMethod.getMethod().getDeclaringClass().getClassForType() != VM_Runtime.class) {
+             compiledMethod.getMethod().getDeclaringClass().getClassForType() != RuntimeEntrypoints.class) {
           element++;
           compiledMethod = getCompiledMethod(element);
         }
-        // (2) continue until not VM_Runtime
+        // (2) continue until not RuntimeEntrypoints
         while((element < compiledMethods.length) &&
               (compiledMethod != null) &&
-              compiledMethod.getMethod().getDeclaringClass().getClassForType() == VM_Runtime.class) {
+              compiledMethod.getMethod().getDeclaringClass().getClassForType() == RuntimeEntrypoints.class) {
           element++;
           compiledMethod = getCompiledMethod(element);
         }

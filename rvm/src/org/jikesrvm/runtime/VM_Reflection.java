@@ -51,7 +51,7 @@ public class VM_Reflection implements VM_Constants {
     //
     VM_Class klass = method.getDeclaringClass();
     if (!klass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(klass);
+      RuntimeEntrypoints.initializeClassForDynamicLink(klass);
     }
 
     // remember return type

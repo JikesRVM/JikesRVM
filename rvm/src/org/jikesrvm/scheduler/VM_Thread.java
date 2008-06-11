@@ -32,7 +32,7 @@ import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Time;
 import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
@@ -259,7 +259,7 @@ public abstract class VM_Thread {
 
   /**
    * Place to save register state during hardware(C signal trap handler) or
-   * software (VM_Runtime.athrow) trap handling.
+   * software (RuntimeEntrypoints.athrow) trap handling.
    */
   @Entrypoint
   @Untraced
@@ -537,7 +537,7 @@ public abstract class VM_Thread {
 
   /**
    * Indicate whether the stack of this VM_Thread contains any C frame
-   * (used in VM_Runtime.deliverHardwareException for stack resize)
+   * (used in RuntimeEntrypoints.deliverHardwareException for stack resize)
    * @return false during the prolog of the first Java to C transition
    *        true afterward
    */
@@ -860,7 +860,7 @@ public abstract class VM_Thread {
     // regain outer lock
     VM_ObjectModel.genericLock(thread);
     if (rethrow != null) {
-      VM_Runtime.athrow(rethrow);
+      RuntimeEntrypoints.athrow(rethrow);
     }
   }
 
@@ -954,7 +954,7 @@ public abstract class VM_Thread {
     VM_Thread t = VM_Scheduler.getCurrentThread();
     Throwable rethrow = t.waitInternal(o);
     if (rethrow != null) {
-      VM_Runtime.athrow(rethrow); // doesn't return
+      RuntimeEntrypoints.athrow(rethrow); // doesn't return
     }
   }
 
@@ -971,7 +971,7 @@ public abstract class VM_Thread {
     VM_Thread t = VM_Scheduler.getCurrentThread();
     Throwable rethrow = t.waitInternal(o, millis);
     if (rethrow != null) {
-      VM_Runtime.athrow(rethrow);
+      RuntimeEntrypoints.athrow(rethrow);
     }
   }
 
@@ -1566,7 +1566,7 @@ public abstract class VM_Thread {
       t.fillInStackTrace();
     }
     state = State.RUNNABLE;
-    VM_Runtime.athrow(t);
+    RuntimeEntrypoints.athrow(t);
   }
 
   /**

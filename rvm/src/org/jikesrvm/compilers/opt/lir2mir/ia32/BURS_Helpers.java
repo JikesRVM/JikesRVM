@@ -138,7 +138,7 @@ import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.lir2mir.BURS_MemOp_Helpers;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -3186,7 +3186,7 @@ Operand value, boolean signExtend) {
     // A little awkward, but probably the easiest workaround...
     if (longConstant) {
       if (VM.VerifyAssertions) {
-        VM._assert((tc.getTrapCode() == VM_Runtime.TRAP_DIVIDE_BY_ZERO) &&
+        VM._assert((tc.getTrapCode() == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO) &&
                    (((LongConstantOperand) v2).value == 0L));
       }
       RegisterOperand rr = regpool.makeTempInt();

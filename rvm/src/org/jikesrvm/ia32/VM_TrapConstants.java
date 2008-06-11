@@ -18,7 +18,7 @@ package org.jikesrvm.ia32;
 public interface VM_TrapConstants {
 
   /**
-   * This base is added to the numeric trap codes in VM_Runtime.java
+   * This base is added to the numeric trap codes in RuntimeEntrypoints.java
    * to yield the intel trap number that is given to INT instructions
    */
   byte RVM_TRAP_BASE = (byte) 0x40;

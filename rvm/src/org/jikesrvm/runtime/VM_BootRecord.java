@@ -185,7 +185,7 @@ public class VM_BootRecord {
    */
   int hardwareTrapMethodId;
   /**
-   * jtoc offset of VM_Runtime.deliverHardwareException()
+   * jtoc offset of RuntimeEntrypoints.deliverHardwareException()
    */
   Offset deliverHardwareExceptionOffset;
   /**

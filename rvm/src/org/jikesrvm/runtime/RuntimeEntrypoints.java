@@ -74,7 +74,7 @@ import org.vmmagic.unboxed.Offset;
  *   <li> "fp" values that point to interior of "stack" objects
  * </ul>
  */
-public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_StackframeLayoutConstants {
+public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM_StackframeLayoutConstants {
 
   // Trap codes for communication with C trap handler.
   //
@@ -626,7 +626,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   public static void initializeClassForDynamicLink(VM_Class cls) {
     if (VM.TraceClassLoading) {
-      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
+      VM.sysWrite("RuntimeEntrypoints.initializeClassForDynamicLink: (begin) " + cls + "\n");
     }
 
     cls.resolve();
@@ -634,7 +634,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     cls.initialize();   // throws ExceptionInInitializerError
 
     if (VM.TraceClassLoading) {
-      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
+      VM.sysWrite("RuntimeEntrypoints.initializeClassForDynamicLink: (end)   " + cls + "\n");
     }
   }
 
@@ -655,7 +655,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @Entrypoint
   static void unexpectedAbstractMethodCall() {
-    VM.sysWrite("VM_Runtime.unexpectedAbstractMethodCall\n");
+    VM.sysWrite("RuntimeEntrypoints.unexpectedAbstractMethodCall\n");
     throw new AbstractMethodError();
   }
 
@@ -910,7 +910,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
   public static void init() {
     // tell "RunBootImage.C" to pass control to
-    // "VM_Runtime.deliverHardwareException()"
+    // "RuntimeEntrypoints.deliverHardwareException()"
     // whenever the host operating system detects a hardware trap
     //
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
@@ -1015,7 +1015,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   private static void deliverException(Throwable exceptionObject, VM_Registers exceptionRegisters) {
     if (VM.TraceExceptionDelivery) {
-      VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
+      VM.sysWriteln("RuntimeEntrypoints.deliverException() entered; just got an exception object.");
     }
 
     // walk stack and look for a catch block
@@ -1053,7 +1053,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
     if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("Nope.");
-      VM.sysWriteln("VM_Runtime.deliverException() found no catch block.");
+      VM.sysWriteln("RuntimeEntrypoints.deliverException() found no catch block.");
     }
     /* No appropriate catch block found. */
 

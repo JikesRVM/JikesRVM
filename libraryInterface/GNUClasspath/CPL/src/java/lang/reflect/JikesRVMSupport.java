@@ -13,7 +13,7 @@
 package java.lang.reflect;
 
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.classloader.*;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
@@ -80,7 +80,7 @@ public class JikesRVMSupport {
       VM_Type actualType = VM_ObjectModel.getObjectType(arg);
       if (expectedType == actualType ||
           expectedType == VM_Type.JavaLangObjectType ||
-          VM_Runtime.isAssignableWith(expectedType, actualType)) {
+          RuntimeEntrypoints.isAssignableWith(expectedType, actualType)) {
         return true;
       } else {
         throwNewIllegalArgumentException();

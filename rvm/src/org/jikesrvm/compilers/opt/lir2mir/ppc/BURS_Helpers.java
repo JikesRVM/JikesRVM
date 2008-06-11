@@ -67,7 +67,7 @@ import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.ppc.VM_TrapConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -1883,7 +1883,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     TrapCodeOperand tc = TrapIf.getClearTCode(s);
 
     switch (tc.getTrapCode()) {
-      case VM_Runtime.TRAP_ARRAY_BOUNDS: {
+      case RuntimeEntrypoints.TRAP_ARRAY_BOUNDS: {
         if (cond.isLOWER_EQUAL()) {
           EMIT(MIR_Trap.mutate(s, PPC_TW, gRes, new PowerPCTrapOperand(cond), v1, v2, tc));
         } else {
@@ -1912,7 +1912,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     TrapCodeOperand tc = TrapIf.getClearTCode(s);
 
     switch (tc.getTrapCode()) {
-      case VM_Runtime.TRAP_ARRAY_BOUNDS: {
+      case RuntimeEntrypoints.TRAP_ARRAY_BOUNDS: {
         IntConstantOperand v2 = (IntConstantOperand) TrapIf.getClearVal2(s);
         if (cond.isLOWER_EQUAL()) {
           EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, new PowerPCTrapOperand(cond), v1, v2, tc));
@@ -1926,7 +1926,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
         }
       }
       break;
-      case VM_Runtime.TRAP_DIVIDE_BY_ZERO: {
+      case RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO: {
         ConstantOperand v2 = (ConstantOperand) TrapIf.getClearVal2(s);
         if (VM.VerifyAssertions) {
           if (longConstant) {
@@ -1968,22 +1968,22 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     RegisterOperand gRes = Trap.getClearGuardResult(s);
     TrapCodeOperand tc = Trap.getClearTCode(s);
     switch (tc.getTrapCode()) {
-      case VM_Runtime.TRAP_NULL_POINTER: {
+      case RuntimeEntrypoints.TRAP_NULL_POINTER: {
         VM_Method target = VM_Entrypoints.raiseNullPointerException;
         mutateTrapToCall(s, target);
       }
       break;
-      case VM_Runtime.TRAP_ARRAY_BOUNDS: {
+      case RuntimeEntrypoints.TRAP_ARRAY_BOUNDS: {
         VM_Method target = VM_Entrypoints.raiseArrayBoundsException;
         mutateTrapToCall(s, target);
       }
       break;
-      case VM_Runtime.TRAP_DIVIDE_BY_ZERO: {
+      case RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO: {
         VM_Method target = VM_Entrypoints.raiseArithmeticException;
         mutateTrapToCall(s, target);
       }
       break;
-      case VM_Runtime.TRAP_CHECKCAST: {
+      case RuntimeEntrypoints.TRAP_CHECKCAST: {
         EMIT(MIR_Trap.mutate(s,
                              PPC_TWI,
                              gRes,
@@ -1993,7 +1993,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              tc));
       }
       break;
-      case VM_Runtime.TRAP_MUST_IMPLEMENT: {
+      case RuntimeEntrypoints.TRAP_MUST_IMPLEMENT: {
         EMIT(MIR_Trap.mutate(s,
                              PPC_TWI,
                              gRes,
@@ -2003,7 +2003,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              tc));
       }
       break;
-      case VM_Runtime.TRAP_STORE_CHECK: {
+      case RuntimeEntrypoints.TRAP_STORE_CHECK: {
         EMIT(MIR_Trap.mutate(s,
                              PPC_TWI,
                              gRes,

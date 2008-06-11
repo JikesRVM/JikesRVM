@@ -34,7 +34,7 @@ import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_ExitStatus;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_SysCall;
 
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
@@ -2334,7 +2334,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
       // initialize compiler that builds boot image
       VM_BootImageCompiler.init(bootCompilerArgs);
     }
-    VM_Runtime.init();
+    RuntimeEntrypoints.init();
     VM_Scheduler.init();
     MM_Interface.init();
   }
@@ -2350,7 +2350,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * translated by the java compiler into String() and StringBuffer()
    * operations). Furthermore, to prevent deadlocks, code running with gc
    * disabled must not lock any objects. This means the code must not execute
-   * any bytecodes that require runtime support (eg. via VM_Runtime)
+   * any bytecodes that require runtime support (eg. via RuntimeEntrypoints)
    * such as:
    *   - calling methods or accessing fields of classes that haven't yet
    *     been loaded/resolved/instantiated

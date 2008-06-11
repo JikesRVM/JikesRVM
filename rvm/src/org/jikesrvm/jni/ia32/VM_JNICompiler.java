@@ -245,7 +245,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
 
     // don't use CALL since it will push on the stack frame the return address to here
-    asm.emitJMP_Reg(T1); // jumps to VM_Runtime.athrow
+    asm.emitJMP_Reg(T1); // jumps to RuntimeEntrypoints.athrow
 
     fr.resolve(asm);  // branch to here if no exception
 

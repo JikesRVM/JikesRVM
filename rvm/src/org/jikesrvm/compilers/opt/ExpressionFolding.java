@@ -54,7 +54,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 
@@ -2523,7 +2523,7 @@ public class ExpressionFolding extends IRTools {
           if (newType == instanceofType) {
             return Move.create(INT_MOVE, y.copyRO(), IC(1));
           } else {
-            return Move.create(INT_MOVE, y.copyRO(), IC(VM_Runtime.isAssignableWith(instanceofType.resolve(), newType.resolve()) ? 1 : 0));
+            return Move.create(INT_MOVE, y.copyRO(), IC(RuntimeEntrypoints.isAssignableWith(instanceofType.resolve(), newType.resolve()) ? 1 : 0));
           }
         }
         return null;

@@ -29,11 +29,11 @@ import org.jikesrvm.objectmodel.VM_IMT;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.util.VM_ImmutableEntryHashMap;
-import org.jikesrvm.util.VM_LinkedList;
+import org.jikesrvm.util.ImmutableEntryHashMapRVM;
+import org.jikesrvm.util.LinkedListRVM;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -192,8 +192,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * Map from interfaces of annotations to the classes that implement them
    */
-  private static final VM_ImmutableEntryHashMap<VM_Class, VM_Class> annotationClasses =
-    new VM_ImmutableEntryHashMap<VM_Class, VM_Class>();
+  private static final ImmutableEntryHashMapRVM<VM_Class, VM_Class> annotationClasses =
+    new ImmutableEntryHashMapRVM<VM_Class, VM_Class>();
 
   // --- Memory manager support --- //
 
@@ -218,7 +218,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   private Annotation[] annotations;
 
   /** Set of objects that are cached here to ensure they are not collected by GC **/
-  private final VM_LinkedList<Object> objectCache;
+  private final LinkedListRVM<Object> objectCache;
 
   /** The imt for this class **/
   private VM_IMT imt;
@@ -366,7 +366,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   public boolean isThrowable() {
     return (getTypeRef() == VM_TypeReference.JavaLangThrowable) ||
-    VM_Runtime.isAssignableWith(VM_TypeReference.JavaLangThrowable.resolve(), this);
+    RuntimeEntrypoints.isAssignableWith(VM_TypeReference.JavaLangThrowable.resolve(), this);
   }
   /**
    * Get the modifiers associated with this class {@link
@@ -1190,7 +1190,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     this.sourceName = sourceName;
     this.classInitializerMethod = classInitializerMethod;
     this.signature = signature;
-    this.objectCache = new VM_LinkedList<Object>();
+    this.objectCache = new LinkedListRVM<Object>();
 
     // non-final fields
     this.subClasses = emptyVMClass;

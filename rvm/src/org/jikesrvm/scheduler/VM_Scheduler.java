@@ -616,7 +616,7 @@ public abstract class VM_Scheduler {
    * Print interesting scheduler information, starting with a stack traceback.
    * Note: the system could be in a fragile state when this method
    * is called, so we try to rely on as little runtime functionality
-   * as possible (eg. use no bytecodes that require VM_Runtime support).
+   * as possible (eg. use no bytecodes that require RuntimeEntrypoints support).
    */
   public static void traceback(String message) {
     if (VM.runningVM) {
