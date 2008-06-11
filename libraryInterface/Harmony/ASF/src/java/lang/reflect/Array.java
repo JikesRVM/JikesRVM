@@ -18,7 +18,7 @@
 package java.lang.reflect;
 
 import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
  * This class must be implemented by the VM vendor. This class provides methods
@@ -313,7 +313,7 @@ public final class Array {
             arrayType.instantiate();
             arrayType.initialize();
           }
-          return VM_Runtime.resolvedNewArray(size, arrayType);
+          return RuntimeEntrypoints.resolvedNewArray(size, arrayType);
         }
 
 	/**

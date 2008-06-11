@@ -22,7 +22,7 @@ import java.lang.annotation.Annotation;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Reflection;
 
 /**
@@ -303,7 +303,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
       // Ensure that the class is initialized
       if (!cls.isInitialized()) {
         try {
-          VM_Runtime.initializeClassForDynamicLink(cls);
+          RuntimeEntrypoints.initializeClassForDynamicLink(cls);
         } catch (Throwable e) {
           ExceptionInInitializerError ex = new ExceptionInInitializerError();
           ex.initCause(e);
@@ -312,7 +312,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
       }
       
       // Allocate an uninitialized instance;
-      Object obj = VM_Runtime.resolvedNewScalar(cls);
+      Object obj = RuntimeEntrypoints.resolvedNewScalar(cls);
 
       // Run the constructor on the instance.
       try {

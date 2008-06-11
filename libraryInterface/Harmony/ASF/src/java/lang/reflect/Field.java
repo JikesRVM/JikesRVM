@@ -22,7 +22,7 @@ import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.VM;
 
 /**
@@ -44,7 +44,7 @@ public final class Field extends AccessibleObject implements Member {
       }
 
       VM_Type objType = VM_ObjectModel.getObjectType(obj);
-      if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
+      if (objType != declaringClass && !RuntimeEntrypoints.isAssignableWith(declaringClass, objType)) {
         throw new IllegalArgumentException();
       }
     }
@@ -56,7 +56,7 @@ public final class Field extends AccessibleObject implements Member {
 
     if (vmField.isStatic() && !declaringClass.isInitialized()) {
       try {
-        VM_Runtime.initializeClassForDynamicLink(declaringClass);
+        RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
       } catch (Throwable e) {
         ExceptionInInitializerError ex = new ExceptionInInitializerError();
         ex.initCause(e);
