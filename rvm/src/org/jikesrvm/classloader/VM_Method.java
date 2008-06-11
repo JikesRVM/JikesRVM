@@ -85,13 +85,13 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
                       VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     if (parameterAnnotations != null) {
-      synchronized(this.parameterAnnotations) {
-        this.parameterAnnotations.put(this, parameterAnnotations);
+      synchronized(VM_Method.parameterAnnotations) {
+        VM_Method.parameterAnnotations.put(this, parameterAnnotations);
       }
     }
     if (exceptionTypes != null) {
-      synchronized(this.exceptionTypes) {
-        this.exceptionTypes.put(this, exceptionTypes);
+      synchronized(VM_Method.exceptionTypes) {
+        VM_Method.exceptionTypes.put(this, exceptionTypes);
       }
     }
     if (annotationDefault != null) {
@@ -115,7 +115,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Get the annotation default value for an annotation method
    */
   @Pure
-  Object getAnnotationDefault() {
+  public Object getAnnotationDefault() {
     synchronized(annotationDefaults) {
       return annotationDefaults.get(this);
     }
