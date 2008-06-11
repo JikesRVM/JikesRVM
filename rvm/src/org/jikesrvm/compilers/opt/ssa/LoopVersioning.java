@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.SYNTH_LOOP_VERSIONING_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_LOOP_VERSIONING_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;

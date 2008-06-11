@@ -14,7 +14,7 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -64,7 +64,7 @@ public class OSR_AdjustBCIndexes extends CompilerPhase {
       if (s.bcIndex >= offset) {
         s.bcIndex -= offset;
       } else if (s.bcIndex >= 0) {
-        s.bcIndex = Constants.OSR_PROLOGUE;
+        s.bcIndex = OptConstants.OSR_PROLOGUE;
       }
     }
   }

@@ -34,7 +34,7 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Call;
@@ -257,7 +257,7 @@ public class Inliner {
           boolean requiresImplementsTest = true;
           if (recType != null && recType.isResolved() && !recType.isInterface()) {
             byte doesImplement = ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
-            requiresImplementsTest = doesImplement != Constants.YES;
+            requiresImplementsTest = doesImplement != OptConstants.YES;
           }
           if (requiresImplementsTest) {
             RegisterOperand checkedReceiver = parent.temps.makeTemp(receiver);
@@ -317,7 +317,7 @@ public class Inliner {
           // (2) at runtime.
           byte doesImplement = ClassLoaderProxy.
               includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
-          if (doesImplement != Constants.YES) {
+          if (doesImplement != OptConstants.YES) {
             // We can't be sure at compile time that the receiver implements
             // the interface. So, inject a test to make sure that it does.
             // Unlike the above case, this can actually happen (when

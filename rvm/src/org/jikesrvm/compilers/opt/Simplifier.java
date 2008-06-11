@@ -27,7 +27,7 @@ import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
@@ -692,7 +692,7 @@ public abstract class Simplifier extends IRTools {
       VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
       VM_TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == Constants.YES) {
+      if (ans == OptConstants.YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
         if (ref.isConstant())
           return DefUseEffect.MOVE_FOLDED;
@@ -710,13 +710,13 @@ public abstract class Simplifier extends IRTools {
     VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
     VM_TypeReference rhsType = ref.getType();
     byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-    if (ans == Constants.YES) {
+    if (ans == OptConstants.YES) {
       Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
       if (ref.isConstant())
         return DefUseEffect.MOVE_FOLDED;
       else
         return DefUseEffect.MOVE_REDUCED;
-    } else if (ans == Constants.NO) {
+    } else if (ans == OptConstants.NO) {
       VM_Type rType = rhsType.peekType();
       if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
         // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -742,7 +742,7 @@ public abstract class Simplifier extends IRTools {
       VM_TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       // NOTE: Constants.YES doesn't help because ref may be null and null instanceof T is false
-      if (ans == Constants.NO) {
+      if (ans == OptConstants.NO) {
         VM_Type rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -763,10 +763,10 @@ public abstract class Simplifier extends IRTools {
       VM_TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       VM_TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == Constants.YES) {
+      if (ans == OptConstants.YES) {
         Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(1));
         return DefUseEffect.MOVE_FOLDED;
-      } else if (ans == Constants.NO) {
+      } else if (ans == OptConstants.NO) {
         VM_Type rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -812,11 +812,11 @@ public abstract class Simplifier extends IRTools {
       if (refIsPrecise && valIsPrecise) {
         // writing a known type of value into a known type of array
         byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-        if (ans == Constants.YES) {
+        if (ans == OptConstants.YES) {
           // all stores should succeed
           Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
           return DefUseEffect.MOVE_REDUCED;
-        } else if (ans == Constants.NO) {
+        } else if (ans == OptConstants.NO) {
           // all stores will fail
           Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
           return DefUseEffect.TRAP_REDUCED;
@@ -855,11 +855,11 @@ public abstract class Simplifier extends IRTools {
     if (refIsPrecise && valIsPrecise) {
       // writing a known type of value into a known type of array
       byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-      if (ans == Constants.YES) {
+      if (ans == OptConstants.YES) {
         // all stores should succeed
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
         return DefUseEffect.MOVE_REDUCED;
-      } else if (ans == Constants.NO) {
+      } else if (ans == OptConstants.NO) {
         // all stores will fail
         Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
         return DefUseEffect.TRAP_REDUCED;
@@ -879,13 +879,13 @@ public abstract class Simplifier extends IRTools {
       VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
       VM_TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == Constants.YES) {
+      if (ans == OptConstants.YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
         if (ref.isConstant())
           return DefUseEffect.MOVE_FOLDED;
         else
           return DefUseEffect.MOVE_REDUCED;
-      } else if (ans == Constants.NO) {
+      } else if (ans == OptConstants.NO) {
         VM_Type rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative

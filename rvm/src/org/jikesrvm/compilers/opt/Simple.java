@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.YES;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;

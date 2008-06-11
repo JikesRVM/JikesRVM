@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.driver;
 /**
  * Class that holds miscellaneous constants used in the opt compiler
  */
-public interface Constants {
+public interface OptConstants {
   // the following constants are dummy bytecode indices,
   // used to mark IR instructions that do not correspond
   // to any original bytecode

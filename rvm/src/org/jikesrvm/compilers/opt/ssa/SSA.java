@@ -26,7 +26,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.SSA_SYNTH_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SSA_SYNTH_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Phi;

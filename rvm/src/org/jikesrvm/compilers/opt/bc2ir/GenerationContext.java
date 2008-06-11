@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class GenerationContext implements org.jikesrvm.compilers.opt.driver.Constants, Operators {
+public final class GenerationContext implements org.jikesrvm.compilers.opt.driver.OptConstants, Operators {
 
   //////////
   // These fields are used to communicate information from its

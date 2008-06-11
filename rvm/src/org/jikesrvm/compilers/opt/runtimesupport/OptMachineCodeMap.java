@@ -23,7 +23,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.GCIRMap;
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.Offset;
  *         2) methods called at GC time (no allocation allowed!)
  */
 @Uninterruptible
-public final class OptMachineCodeMap implements VM_Constants, Constants {
+public final class OptMachineCodeMap implements VM_Constants, OptConstants {
 
   /**
    * Private constructor, object should be created via create

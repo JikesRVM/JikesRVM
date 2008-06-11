@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.hir2lir;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;

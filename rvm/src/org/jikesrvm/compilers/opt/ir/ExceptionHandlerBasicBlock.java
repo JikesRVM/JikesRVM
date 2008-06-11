@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.MAYBE;
-import static org.jikesrvm.compilers.opt.driver.Constants.NO;
-import static org.jikesrvm.compilers.opt.driver.Constants.YES;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 
 import java.util.Enumeration;
 

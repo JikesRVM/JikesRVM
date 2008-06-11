@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-public final class LocationOperand extends Operand implements org.jikesrvm.compilers.opt.driver.Constants {
+public final class LocationOperand extends Operand implements org.jikesrvm.compilers.opt.driver.OptConstants {
 
   /*
    * TODO: Now that we don't pay a large penalty for dynamic type checks

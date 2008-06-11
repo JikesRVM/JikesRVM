@@ -18,7 +18,7 @@ import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.vmmagic.unboxed.Address;
@@ -703,7 +703,7 @@ public abstract class Operand {
             return true;
           }
         } else if (compatiblePrimitives(type1, type2) ||
-                   ClassLoaderProxy.includesType(type1, type2) == Constants.YES) {
+                   ClassLoaderProxy.includesType(type1, type2) == OptConstants.YES) {
           // types are ok, only have to worry about the flags
           if (rop1.isPreciseType() || rop1.hasLessConservativeFlags(rop2)) {
             if (IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -739,7 +739,7 @@ public abstract class Operand {
         VM_TypeReference type2 = op2.getType();
         if (type1 == type2 ||
             compatiblePrimitives(type1, type2) ||
-            (ClassLoaderProxy.includesType(type1, type2) == Constants.YES)) {
+            (ClassLoaderProxy.includesType(type1, type2) == OptConstants.YES)) {
           // only have to consider state of op1's flags.  Types are ok.
           if (rop1.isPreciseType() && (type1 != type2)) {
             if (IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -937,7 +937,7 @@ public abstract class Operand {
             return op1;
           }
         } else if (compatiblePrimitives(type1, type2) ||
-                   ClassLoaderProxy.includesType(type1, type2) == Constants.YES) {
+                   ClassLoaderProxy.includesType(type1, type2) == OptConstants.YES) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Compatibly typed register operands, checking flags...");
           }
@@ -1005,7 +1005,7 @@ public abstract class Operand {
         VM_TypeReference type2 = op2.getType();
         if (type1 == type2 ||
             compatiblePrimitives(type1, type2) ||
-            (ClassLoaderProxy.includesType(type1, type2) == Constants.YES)) {
+            (ClassLoaderProxy.includesType(type1, type2) == OptConstants.YES)) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Compatibly typed register & other operand, checking flags...");
           }

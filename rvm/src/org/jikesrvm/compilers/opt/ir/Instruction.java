@@ -17,7 +17,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -121,7 +121,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements VM_Constants, Operators, Constants {
+public final class Instruction implements VM_Constants, Operators, OptConstants {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.

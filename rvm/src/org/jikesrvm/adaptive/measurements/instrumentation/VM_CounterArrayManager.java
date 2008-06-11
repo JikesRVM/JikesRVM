@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.Offset;
  * NOTE: Much of this class was stolen from VM_CounterArray.java, which
  * is now gone.
  */
-public final class VM_CounterArrayManager extends InstrumentedEventCounterManager implements Operators, Constants {
+public final class VM_CounterArrayManager extends InstrumentedEventCounterManager implements Operators, OptConstants {
 
   static final boolean DEBUG = false;
 

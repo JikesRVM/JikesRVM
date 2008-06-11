@@ -40,7 +40,7 @@ import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.StaticFieldReader;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.inlining.CompilationState;
 import org.jikesrvm.compilers.opt.inlining.InlineDecision;
@@ -148,7 +148,7 @@ import org.vmmagic.unboxed.Offset;
  * @see ConvertBCtoHIR
  */
 public final class BC2IR
-    implements IRGenOptions, Operators, VM_BytecodeConstants, Constants, OSR_Constants {
+    implements IRGenOptions, Operators, VM_BytecodeConstants, OptConstants, OSR_Constants {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take

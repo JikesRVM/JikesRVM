@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.INSTRUMENTATION_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.INSTRUMENTATION_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE;
