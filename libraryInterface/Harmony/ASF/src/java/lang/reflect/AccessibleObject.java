@@ -19,6 +19,11 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
+import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+
 /**
  * This class must be implemented by the VM vendor. This class is the superclass
  * of all member reflect classes (Field, Constructor, Method). AccessibleObject
@@ -38,236 +43,245 @@ import java.lang.annotation.Annotation;
  * @since 1.2
  */
 public class AccessibleObject implements AnnotatedElement {
-    /**
-     * TODO Is this necessary?
-     */
-    static final Object[] emptyArgs = new Object[0];
+  /**
+	* Has the object been marked as accessible?
+	*/
+  private boolean isAccessible = false;
 
-    private boolean isAccessible = false;
-    /**
-     * Attempts to set the value of the accessible flag for all the objects in
-     * the array provided. Only one security check is performed. Setting this
-     * flag to false will enable access checks, setting to true will disable
-     * them. If there is a security manager, checkPermission is called with a
-     * ReflectPermission("suppressAccessChecks").
-     * 
-     * @param objects the accessible objects
-     * @param flag the new value for the accessible flag
-     * @see #setAccessible(boolean)
-     * @see ReflectPermission
-     * @throws SecurityException if the request is denied
-     */
-    public static void setAccessible(AccessibleObject[] objects, boolean flag)
-            throws SecurityException {
-        return;
-    }
+  /**
+	* Attempts to set the value of the accessible flag for all the objects in
+	* the array provided. Only one security check is performed. Setting this
+	* flag to false will enable access checks, setting to true will disable
+	* them. If there is a security manager, checkPermission is called with a
+	* ReflectPermission("suppressAccessChecks").
+	* 
+	* @param objects the accessible objects
+	* @param flag the new value for the accessible flag
+	* @see #setAccessible(boolean)
+	* @see ReflectPermission
+	* @throws SecurityException if the request is denied
+	*/
+  public static void setAccessible(AccessibleObject[] objects, boolean flag)
+	 throws SecurityException {
+	 SecurityManager sc = System.getSecurityManager();
+	 if (sc != null) {
+		sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
+	 }
+	 for (int i = 0; i < objects.length; i++) {
+		objects[i].setAccessible0(flag);
+	 }
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param parameterTypes
-     * @param args
-     * @return
-     * @throws IllegalArgumentException
-     */
-    static Object[] marshallArguments(Class[] parameterTypes, Object[] args)
-            throws IllegalArgumentException {
-        return null;
-    }
+  /**
+	* AccessibleObject constructor. AccessibleObjects can only be created by
+	* the Virtual Machine.
+	*/
+  AccessibleObject() {
+	 super();
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param clazz
-     */
-    static native void initializeClass(Class<?> clazz);
+  /**
+	* Returns the value of the accessible flag. This is false if access checks
+	* are performed, true if they are skipped.
+	* 
+	* @return the value of the accessible flag
+	*/
+  public boolean isAccessible() {
+	 return isAccessible;
+  }
 
-    /**
-     * Answer the class at depth. Notes: 1) This method operates on the defining
-     * classes of methods on stack. NOT the classes of receivers. 2) The item at
-     * index zero describes the caller of this method.
-     */
-    static final native Class<?> getStackClass(int depth);
+  /**
+	* Attempts to set the value of the accessible flag. Setting this flag to
+	* false will enable access checks, setting to true will disable them. If
+	* there is a security manager, checkPermission is called with a
+	* ReflectPermission("suppressAccessChecks").
+	* 
+	* @param flag the new value for the accessible flag
+	* @see ReflectPermission
+	* @throws SecurityException if the request is denied
+	*/
+  public void setAccessible(boolean flag) throws SecurityException {
+	 SecurityManager sc = System.getSecurityManager();
+	 if (sc != null) {
+		sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
+	 }
+	 setAccessible0(flag);
+  }
 
-    /**
-     * AccessibleObject constructor. AccessibleObjects can only be created by
-     * the Virtual Machine.
-     */
-    protected AccessibleObject() {
-        super();
-    }
+  public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+    return getVMMember().isAnnotationPresent(annotationType);
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native Class[] getParameterTypesImpl();
+  public Annotation[] getDeclaredAnnotations() {
+    return getVMMember().getDeclaredAnnotations();
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native int getModifiers();
+  public Annotation[] getAnnotations() {
+    return getVMMember().getDeclaredAnnotations();
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native Class[] getExceptionTypesImpl();
+  public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
+    return getVMMember().getAnnotation(annotationType);
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native String getSignature();
+  /* ---- Non-API Methods ---- */
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param senderClass
-     * @param receiver
-     * @return
-     */
-    native boolean checkAccessibility(Class<?> senderClass, Object receiver);
+  /**
+   * Set the accessibilty to the value of flag. Overridden in Constructor.
+   */
+  void setAccessible0(boolean flag) {
+	 isAccessible = flag;
+  }
 
-    /**
-     * Returns the value of the accessible flag. This is false if access checks
-     * are performed, true if they are skipped.
-     * 
-     * @return the value of the accessible flag
-     */
-    public boolean isAccessible() {
-      return isAccessible;
-    }
+  /**
+   * Get the VM member implementation. Package protected to stop outside use.
+   */
+  VM_Member getVMMember() {
+    throw new Error("This method should always be overridden");
+  }
 
-    /**
-     * Attempts to set the value of the accessible flag. Setting this flag to
-     * false will enable access checks, setting to true will disable them. If
-     * there is a security manager, checkPermission is called with a
-     * ReflectPermission("suppressAccessChecks").
-     * 
-     * @param flag the new value for the accessible flag
-     * @see ReflectPermission
-     * @throws SecurityException if the request is denied
-     */
-    public void setAccessible(boolean flag) throws SecurityException {
-      isAccessible = flag;
-    }
+  /**
+   * Get the VM method implementation, invalid for fields. Package protected to
+   * stop outside use.
+   */
+  VM_Method getVMMethod() {
+    throw new Error("This method should always be overridden");
+  }
 
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return false;
-    }
+  /**
+   * <p>
+   * Gets an array of arrays that represent the annotations of the formal
+   * parameters of this VM_Method. If there are no parameters on this
+   * constructor, then an empty array is returned. If there are no annotations
+   * set, then and array of empty arrays is returned.
+   * </p>
+   * 
+   * @return An array of arrays of {@link Annotation} instances.
+   * @since 1.5
+   */
+  Annotation[][] getParameterAnnotations() {
+    return getVMMethod().getDeclaredParameterAnnotations();
+  }
 
-    public Annotation[] getDeclaredAnnotations() {
-      throw new Error("TODO");
-    }
+  /**
+   * <p>
+   * Indicates whether or not this VM_Method takes a variable number
+   * argument.
+   * </p>
+   * 
+   * @return A value of <code>true</code> if a vararg is declare, otherwise
+   *         <code>false</code>.
+   */
+  boolean isVarArgs() {
+    return (getVMMethod().getModifiers() & Modifier.VARARGS) != 0;
+  }
 
-    public Annotation[] getAnnotations() {
-      throw new Error("TODO");
-    }
+  boolean isSynthetic() {
+    return (getVMMethod().getModifiers() & Modifier.SYNTHETIC) != 0;
+  }
 
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-      throw new Error("TODO");
-    }
+  /**
+   * Return the modifiers for the modeled method. The Modifier class
+   * should be used to decode the result.
+   * 
+   * @return the modifiers
+   * @see java.lang.reflect.Modifier
+   */
+  int getModifiers() {
+    return getVMMethod().getModifiers();
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @throws InvocationTargetException
-     */
-    void invokeV(Object receiver, Object args[]) throws InvocationTargetException {
-        return;
-    }
+  /**
+	* Return an array of the {@link Class} objects associated with the
+	* exceptions declared to be thrown by this method. If the method
+	* was not declared to throw any exceptions, the array returned will be
+	* empty.
+	* 
+	* @return the declared exception classes
+	*/
+  Class<?>[] getExceptionTypes() {
+	 VM_TypeReference[] exceptionTypes = getVMMethod().getExceptionTypes();
+	 if (exceptionTypes == null) {
+		return new Class[0];
+	 } else {
+		return VMCommonLibrarySupport.typesToClasses(exceptionTypes);
+	 }
+  }
+  /**
+	* Appends the specified class name to the buffer. The class may represent
+	* a simple type, a reference type or an array type.
+	* 
+	* @param sb buffer
+	* @param obj the class which name should be appended to the buffer
+	* @throws NullPointerException if any of the arguments is null 
+	*/
+  static void appendArrayType(StringBuilder sb, Class<?> obj) {
+	 if (!obj.isArray()) {
+		sb.append(obj.getName());
+		return;
+	 }
+	 int dimensions = 1;
+	 Class simplified = obj.getComponentType();
+	 obj = simplified;
+	 while (simplified.isArray()) {
+		obj = simplified;
+		dimensions++;
+	 }
+	 sb.append(obj.getName());
+	 switch (dimensions) {
+	 case 1:
+		sb.append("[]");
+		break;
+	 case 2:
+		sb.append("[][]");
+		break;
+	 case 3:
+		sb.append("[][][]");
+		break;
+	 default:
+		for (int i=0; i < dimensions; i++) {
+		  sb.append("[]");
+		}
+	 }
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    Object invokeL(Object receiver, Object args[]) throws InvocationTargetException {
-        return null;
-    }
+  /**
+	* Appends names of the specified array classes to the buffer. The array
+	* elements may represent a simple type, a reference type or an array type.
+	* Output format: java.lang.Object[], java.io.File, void
+	* 
+	* @param sb buffer
+	* @param objs array of classes to print the names
+	* @throws NullPointerException if any of the arguments is null 
+	*/
+  void appendArrayType(StringBuilder sb, Class[] objs) {
+	 if (objs.length > 0) {
+		appendArrayType(sb, objs[0]);
+		for (int i = 1; i < objs.length; i++) {
+		  sb.append(',');
+		  appendArrayType(sb, objs[i]);
+		}
+	 }
+  }
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    int invokeI(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    long invokeJ(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0L;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    float invokeF(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0.0F;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    double invokeD(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0.0D;
-    }
+  /**
+	* Appends names of the specified array classes to the buffer. The array
+	* elements may represent a simple type, a reference type or an array type.
+	* In case if the specified array element represents an array type its
+	* internal will be appended to the buffer.   
+	* Output format: [Ljava.lang.Object;, java.io.File, void
+	* 
+	* @param sb buffer
+	* @param objs array of classes to print the names
+	* @throws NullPointerException if any of the arguments is null 
+	*/
+  static void appendSimpleType(StringBuilder sb, Class<?>[] objs) {
+	 if (objs.length > 0) {
+		sb.append(objs[0].getName());
+		for (int i = 1; i < objs.length; i++) {
+		  sb.append(',');
+		  sb.append(objs[i].getName());
+		}
+	 }
+  }
 }

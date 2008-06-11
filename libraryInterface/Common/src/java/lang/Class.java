@@ -613,7 +613,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     // Check that caller is allowed to access it
     if (!defaultConstructor.isPublic()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
-      JikesRVMSupport.checkAccess(defaultConstructor, accessingClass);
+      VMCommonLibrarySupport.checkAccess(defaultConstructor, accessingClass);
     }
 
     // Ensure that the class is initialized

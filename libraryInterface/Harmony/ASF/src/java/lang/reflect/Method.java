@@ -18,7 +18,10 @@
 package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.VMCommonLibrarySupport;
 
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Member;
 import org.jikesrvm.classloader.VM_Method;
 
 /**
@@ -45,7 +48,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
     }
     
     public TypeVariable<Method>[] getTypeParameters() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -58,7 +61,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public String toGenericString() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -78,7 +81,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public Type[] getGenericParameterTypes() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -97,7 +100,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public Type[] getGenericExceptionTypes() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -115,7 +118,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public Type getGenericReturnType() {
-        return null;
+      throw new Error("TODO");
     }
 
     /**
@@ -130,7 +133,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public Annotation[][] getParameterAnnotations() {
-        return null;
+      return super.getParameterAnnotations();
     }
 
     /**
@@ -143,7 +146,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public boolean isVarArgs() {
-        return false;
+      return super.isVarArgs();
     }
 
     /**
@@ -156,11 +159,11 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public boolean isBridge() {
-        return false;
+		return (vmMethod.getModifiers() & Modifier.BRIDGE) != 0;
     }
 
     public boolean isSynthetic() {
-        return false;
+		return super.isSynthetic();
     }
     
     /**
@@ -172,7 +175,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * @since 1.5
      */
     public Object getDefaultValue() {
-        return null;
+        return vmMethod.getAnnotationDefault();
     }
     
 	/**
@@ -187,8 +190,13 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @see #hashCode
 	 */
 	@Override
-    public boolean equals(Object object) {
-		return false;
+   public boolean equals(Object object) {
+	  if (object instanceof Method) {
+		 Method that = (Method)object;
+		 return this.vmMethod == that.vmMethod;
+	  } else {
+		 return false;
+	  }
 	}
 
 	/**
@@ -198,7 +206,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @return the declaring class
 	 */
 	public Class<?> getDeclaringClass() {
-		return null;
+      return (Class<?>)vmMethod.getDeclaringClass().getClassForType();
 	}
 
 	/**
@@ -209,7 +217,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @return the declared exception classes
 	 */
 	public Class<?>[] getExceptionTypes() {
-		return null;
+		return super.getExceptionTypes();
 	}
 
 	/**
@@ -220,7 +228,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @see java.lang.reflect.Modifier
 	 */
     public int getModifiers() {
-		return 0;
+		return super.getModifiers();
 	}
 
 	/**
@@ -229,7 +237,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @return the name
 	 */
 	public String getName() {
-		return null;
+		return vmMethod.getName().toString();
 	}
 
 	/**
@@ -240,7 +248,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @return the parameter types
 	 */
 	public Class<?>[] getParameterTypes() {
-		return null;
+      return VMCommonLibrarySupport.typesToClasses(vmMethod.getParameterTypes());
 	}
 
 	/**
@@ -250,7 +258,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @return the return type
 	 */
 	public Class<?> getReturnType() {
-		return null;
+	  return vmMethod.getReturnType().resolve().getClassForType();
 	}
 
 	/**
@@ -263,7 +271,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 */
 	@Override
     public int hashCode() {
-		return 0;
+		return getName().hashCode();
 	}
 
 	/**
@@ -324,7 +332,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	public Object invoke(Object receiver, Object... args)
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
-		return null;
+	    return VMCommonLibrarySupport.invoke(receiver, args, vmMethod, this, VM_Class.getClassFromStackFrame(1));
 	}
 
 	/**
@@ -338,7 +346,49 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * @return a printable representation for the receiver
 	 */
 	@Override
-    public String toString() {
-		return null;
+   public String toString() {
+	  StringBuilder sb = new StringBuilder(80);
+	  // append modifiers if any
+	  int modifier = getModifiers();
+	  if (modifier != 0) {
+		 // BRIDGE & VARARGS recognized incorrectly
+		 final int MASK = ~(Modifier.BRIDGE | Modifier.VARARGS);
+		 sb.append(Modifier.toString(modifier & MASK)).append(' ');            
+	  }
+	  // append return type
+	  appendArrayType(sb, getReturnType());
+	  sb.append(' ');
+	  // append full method name
+	  sb.append(getDeclaringClass().getName()).append('.').append(getName());
+	  // append parameters
+	  sb.append('(');
+	  appendArrayType(sb, getParameterTypes());
+	  sb.append(')');
+	  // append exeptions if any
+	  Class[] exn = getExceptionTypes(); 
+	  if (exn.length > 0) {
+		 sb.append(" throws ");
+		 appendSimpleType(sb, exn);
+	  }
+	  return sb.toString();
 	}
+
+  /* ---- Non-API methods ---- */
+
+  /**
+   * Get the VM member implementation. Package protected to stop outside use.
+   */
+  @Override
+  VM_Member getVMMember() {
+	 return vmMethod;
+  }
+
+  /**
+   * Get the VM method implementation, invalid for fields. Package protected to
+   * stop outside use.
+   */
+  @Override
+  VM_Method getVMMethod() {
+	 return vmMethod;
+  }
 }

@@ -12,9 +12,6 @@
  */
 package java.lang.reflect;
 
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.runtime.RuntimeEntrypoints;
-
 /**
  * VM dependent Array operations
  */
@@ -30,17 +27,6 @@ class VMArray {
    */
   static Object createObjectArray(Class<?> cls, int length)
     throws OutOfMemoryError, NegativeArraySizeException {
-    if(cls == null)
-      throw new NullPointerException();
-    if(length < 0)
-      throw new NegativeArraySizeException();
-
-    VM_Array arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
-    if (!arrayType.isInitialized()) {
-      arrayType.resolve();
-      arrayType.instantiate();
-      arrayType.initialize();
-    }
-    return RuntimeEntrypoints.resolvedNewArray(length, arrayType);
+    return VMCommonLibrarySupport.createArray(cls, length);
   }
 }
