@@ -48,6 +48,9 @@ Ljava/lang/Thread$UncaughtExceptionHandler;
 [Ljava/lang/Thread$State;
 
 Ljava/lang/ThreadGroup;
+Ljava/lang/ThreadGroup$1;
+Ljava/lang/ThreadGroup$ChildrenGroupsLock;
+Ljava/lang/ThreadGroup$ChildrenThreadsLock;
 
 Ljava/lang/OutOfMemoryError;
 Ljava/lang/Cloneable;

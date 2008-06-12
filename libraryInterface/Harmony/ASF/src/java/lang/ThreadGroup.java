@@ -72,8 +72,8 @@ public class ThreadGroup implements Thread.UncaughtExceptionHandler {
      * Used by the JVM to create the "system" ThreadGroup. Construct a
      * ThreadGroup instance, and assign the name "system".
      */
-    private ThreadGroup() {
-        name = "system";
+    ThreadGroup() {
+        this.name = "system";
     }
 
     /**
