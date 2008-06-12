@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * This class must be implemented by the VM vendor. The documented methods must
@@ -42,7 +42,7 @@ import org.jikesrvm.scheduler.VM_Thread;
  */
 public class Thread implements Runnable {
 
-    private final VM_Thread vmThread;
+    private final RVMThread vmThread;
 
     private long stacksize;
 
@@ -118,9 +118,9 @@ public class Thread implements Runnable {
   private Runnable runnable;
   
     /**
-     * Construct a wrapper for a given VM_Thread
+     * Construct a wrapper for a given RVMThread
      */
-    Thread(VM_Thread vmt, String name) {
+    Thread(RVMThread vmt, String name) {
       this(vmt, null, null, name, 0);
     }
 
@@ -219,7 +219,7 @@ public class Thread implements Runnable {
       this(null, group, runnable, threadName, stack);
     }
 
-  private Thread(VM_Thread vmt, ThreadGroup group, Runnable runnable, String threadName, long stack){
+  private Thread(RVMThread vmt, ThreadGroup group, Runnable runnable, String threadName, long stack){
     if (vmt == null) {
       vmThread = new org.jikesrvm.scheduler.greenthreads.VM_GreenThread(this, stacksize,  threadName, false, NORM_PRIORITY);
     } else {
@@ -575,7 +575,7 @@ public class Thread implements Runnable {
      * @see Thread#isInterrupted
      */
     public static boolean interrupted() {
-      VM_Thread current = VM_Scheduler.getCurrentThread();
+      RVMThread current = VM_Scheduler.getCurrentThread();
       if (current.isInterrupted()) {
         current.clearInterrupted();
         return true;
@@ -791,7 +791,7 @@ public class Thread implements Runnable {
      * @see Thread#interrupt()
      */
     public static void sleep(long time) throws InterruptedException {
-      VM_Thread.sleep(time, 0);
+      RVMThread.sleep(time, 0);
     }
 
     /**
@@ -806,7 +806,7 @@ public class Thread implements Runnable {
      * @see Thread#interrupt()
      */
     public static void sleep(long time, int nanos) throws InterruptedException {
-      VM_Thread.sleep(time, nanos);
+      RVMThread.sleep(time, nanos);
     }
 
     /**

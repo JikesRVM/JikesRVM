@@ -13,7 +13,7 @@
 package org.jikesrvm.adaptive.measurements.listeners;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -37,7 +37,7 @@ public final class VM_CallDensityListener extends VM_NullListener {
    */
   public void update(int whereFrom) {
     numSamples++;
-    if (whereFrom == VM_Thread.BACKEDGE) numBackedgeSamples++;
+    if (whereFrom == RVMThread.BACKEDGE) numBackedgeSamples++;
   }
 
   public double callDensity() {

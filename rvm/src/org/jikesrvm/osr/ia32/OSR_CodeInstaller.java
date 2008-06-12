@@ -25,7 +25,7 @@ import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
-    VM_Thread thread = state.getThread();
+    RVMThread thread = state.getThread();
     byte[] stack = thread.getStack();
 
     Offset tsfromFPOffset = state.getTSFPOffset();

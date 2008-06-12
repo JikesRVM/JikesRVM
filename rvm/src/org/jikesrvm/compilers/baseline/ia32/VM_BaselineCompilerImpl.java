@@ -47,7 +47,7 @@ import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -3250,7 +3250,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
 
       if (method.isSynchronized()) genMonitorEnter();
 
-      genThreadSwitchTest(VM_Thread.PROLOGUE);
+      genThreadSwitchTest(RVMThread.PROLOGUE);
     }
   }
 
@@ -3276,7 +3276,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
      * code starts after original monitor enter.
      */
 
-    genThreadSwitchTest(VM_Thread.PROLOGUE);
+    genThreadSwitchTest(RVMThread.PROLOGUE);
   }
 
   private void genEpilogue(int bytesPopped) {
@@ -3666,11 +3666,11 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
     // thread switch requested ??
     VM_ProcessorLocalState.emitCompareFieldWithImm(asm, VM_Entrypoints.takeYieldpointField.getOffset(), 0);
     VM_ForwardReference fr1;
-    if (whereFrom == VM_Thread.PROLOGUE) {
+    if (whereFrom == RVMThread.PROLOGUE) {
       // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
       fr1 = asm.forwardJcc(VM_Assembler.EQ);
       asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()));
-    } else if (whereFrom == VM_Thread.BACKEDGE) {
+    } else if (whereFrom == RVMThread.BACKEDGE) {
       // Take yieldpoint if yieldpoint flag is >0
       fr1 = asm.forwardJcc(VM_Assembler.LE);
       asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()));

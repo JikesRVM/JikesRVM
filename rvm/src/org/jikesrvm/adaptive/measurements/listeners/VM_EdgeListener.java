@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -126,7 +126,7 @@ public class VM_EdgeListener extends VM_ContextListener implements VM_Stackframe
     VM_Synchronization.fetchAndAdd(this, VM_AosEntrypoints.edgeListenerUpdateCalledField.getOffset(), 1);
 
     // don't take a sample for back edge yield points
-    if (whereFrom == VM_Thread.BACKEDGE) return;
+    if (whereFrom == RVMThread.BACKEDGE) return;
 
     int calleeCMID = 0;
     int callerCMID = 0;

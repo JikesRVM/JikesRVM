@@ -13,7 +13,7 @@
 package java.lang;
 
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 
 /**
@@ -23,19 +23,19 @@ final class VMThread {
   /**
    * Corresponding VM_Thread accessed by JikesRVMSupport.getThread()
    */
-  final VM_Thread vmdata;
+  final RVMThread vmdata;
 
   /**
    * Constructor, called by JikesRVMSupport.createThread and VMThread.create
    */
-  VMThread(VM_Thread vmdata) {
+  VMThread(RVMThread vmdata) {
     this.vmdata = vmdata;
   }
   /**
    * Create the VM thread, set this in the parent Thread and start its execution
    */
   static void create(Thread parent, long stacksize) {
-    VM_Thread vmd = new VM_GreenThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
+    RVMThread vmd = new VM_GreenThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
     parent.vmThread = new VMThread(vmd);
     vmd.start();
   }
@@ -117,7 +117,7 @@ final class VMThread {
    * @param ns nanoseconds to sleep
    */
   static void sleep(long ms, int ns) throws InterruptedException {
-    VM_Thread.sleep(ms, ns);
+    RVMThread.sleep(ms, ns);
   }
   /**
    * Was the current thread interrupted and if it was clear the interrupted
@@ -125,7 +125,7 @@ final class VMThread {
    * @return whether the thread was interrupted
    */
   static boolean interrupted() {
-    VM_Thread current = VM_Scheduler.getCurrentThread();
+    RVMThread current = VM_Scheduler.getCurrentThread();
     if (current.isInterrupted()) {
       current.clearInterrupted();
       return true;

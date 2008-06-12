@@ -77,7 +77,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
    */
   @Entrypoint
   @Untraced
-  public VM_Thread activeThread;
+  public RVMThread activeThread;
 
   /**
    * cached activeThread.stackLimit;
@@ -343,7 +343,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
    * Get processor that's being used to run the current java thread.
    */
   @Inline
-  public static VM_Thread getCurrentThread() {
+  public static RVMThread getCurrentThread() {
     return getCurrentProcessor().activeThread;
   }
 

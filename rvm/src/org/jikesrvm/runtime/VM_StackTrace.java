@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -50,7 +50,7 @@ public class VM_StackTrace {
   private static int lastTraceIndex = 0;
 
   /**
-   * Create a trace for the call stack of VM_Thread.getThreadForStackTrace
+   * Create a trace for the call stack of RVMThread.getThreadForStackTrace
    * (normally the current thread unless we're in GC)
    */
   public VM_StackTrace() {
@@ -63,7 +63,7 @@ public class VM_StackTrace {
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
-    VM_Thread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
+    RVMThread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
     if (stackTraceThread != VM_Scheduler.getCurrentThread()) {
       // (1) Count the number of frames comprising the stack.
       int numFrames = countFramesNoGC(stackTraceThread);
@@ -96,7 +96,7 @@ public class VM_StackTrace {
    * The stack being walked isn't our stack so GC must be disabled.
    * @return number of stack frames encountered
    */
-  private int countFramesNoGC(VM_Thread stackTraceThread) {
+  private int countFramesNoGC(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
     Address fp;
@@ -128,7 +128,7 @@ public class VM_StackTrace {
    * Walk the stack recording the stack frames encountered.
    * The stack being walked isn't our stack so GC must be disabled.
    */
-  private void recordFramesNoGC(VM_Thread stackTraceThread) {
+  private void recordFramesNoGC(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
     Address fp;
@@ -166,7 +166,7 @@ public class VM_StackTrace {
    * @return number of stack frames encountered
    */
   @Uninterruptible
-  private int countFramesUninterruptible(VM_Thread stackTraceThread) {
+  private int countFramesUninterruptible(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     Address fp;
     Address ip;
@@ -199,7 +199,7 @@ public class VM_StackTrace {
    * stack moving.
    */
   @Uninterruptible
-  private void recordFramesUninterruptible(VM_Thread stackTraceThread) {
+  private void recordFramesUninterruptible(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     Address fp;
     Address ip;
@@ -432,7 +432,7 @@ public class VM_StackTrace {
      *
      * and an OutOfMemoryError to look like:
      * at org.jikesrvm.scheduler.VM_Processor.dispatch(VM_Processor.java:211)
-     * at org.jikesrvm.scheduler.VM_Thread.morph(VM_Thread.java:1125)
+     * at org.jikesrvm.scheduler.RVMThread.morph(RVMThread.java:1125)
      * ...
      * at org.jikesrvm.memorymanagers.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
      * ...
@@ -528,12 +528,12 @@ public class VM_StackTrace {
      * at <invisible method>(Unknown Source:0)
      * at org.jikesrvm.runtime.VM_Reflection.invoke(VM_Reflection.java:132)
      * at org.jikesrvm.scheduler.VM_MainThread.run(VM_MainThread.java:195)
-     * at org.jikesrvm.scheduler.VM_Thread.run(VM_Thread.java:534)
-     * at org.jikesrvm.scheduler.VM_Thread.startoff(VM_Thread.java:1113
+     * at org.jikesrvm.scheduler.RVMThread.run(RVMThread.java:534)
+     * at org.jikesrvm.scheduler.RVMThread.startoff(RVMThread.java:1113
      *
      * and on another thread to look like:
-     * at org.jikesrvm.scheduler.VM_Thread.run(VM_Thread.java:534)
-     * at org.jikesrvm.scheduler.VM_Thread.startoff(VM_Thread.java:1113)
+     * at org.jikesrvm.scheduler.RVMThread.run(RVMThread.java:534)
+     * at org.jikesrvm.scheduler.RVMThread.startoff(RVMThread.java:1113)
      */
     int max = compiledMethods.length-1;
     if (VM_Options.stackTraceFull) {
@@ -556,7 +556,7 @@ public class VM_StackTrace {
         }
         Class<?> frameClass = compiledMethod.getMethod().getDeclaringClass().getClassForType();
         if ((frameClass != org.jikesrvm.scheduler.VM_MainThread.class) &&
-            (frameClass != org.jikesrvm.scheduler.VM_Thread.class) &&
+            (frameClass != org.jikesrvm.scheduler.RVMThread.class) &&
             (frameClass != org.jikesrvm.runtime.VM_Reflection.class)){
           // Found a non-VM method
           return i;

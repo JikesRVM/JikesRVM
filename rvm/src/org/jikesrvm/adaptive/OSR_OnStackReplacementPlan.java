@@ -27,7 +27,7 @@ import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_Profiler;
 import org.jikesrvm.osr.OSR_SpecialCompiler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -51,13 +51,13 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   @SuppressWarnings("unused")
   private byte status;
 
-  private final VM_Thread suspendedThread;
+  private final RVMThread suspendedThread;
   private final CompilationPlan compPlan;
 
   private int timeInitiated = 0;
   private int timeCompleted = 0;
 
-  public OSR_OnStackReplacementPlan(VM_Thread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
+  public OSR_OnStackReplacementPlan(RVMThread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
                                     Offset ypoff, double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;

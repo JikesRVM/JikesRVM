@@ -29,7 +29,7 @@ import org.jikesrvm.osr.OSR_VariableElement;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_Registers;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -46,7 +46,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
   /**
    * Implements OSR_ExecStateExtractor.extractState.
    */
-  public OSR_ExecutionState extractState(VM_Thread thread, Offset tsFromFPoff, Offset methFPoff, int cmid) {
+  public OSR_ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset methFPoff, int cmid) {
 
     /* performs architecture and compiler dependent operations here
     *

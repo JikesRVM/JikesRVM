@@ -18,7 +18,7 @@ import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -81,7 +81,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   // Taken:    thread
   // Returned: nothing
   //
-  public void newStackWalk(VM_Thread thread) {
+  public void newStackWalk(RVMThread thread) {
     super.newStackWalk(thread);   // sets this.thread
     VM_JNIEnvironment env = this.thread.getJNIEnv();
     // the "primordial" thread, created by JDK in the bootimage, does not have

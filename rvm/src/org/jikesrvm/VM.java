@@ -43,7 +43,7 @@ import org.jikesrvm.scheduler.VM_MainThread;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
 import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
@@ -148,7 +148,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     // because it's accessed by compiler-generated stack overflow checks.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
-    VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
+    RVMThread currentThread = VM_Processor.getCurrentProcessor().activeThread;
     currentThread.stackLimit = VM_Magic.objectAsAddress(
         currentThread.getStack()).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
 
@@ -2398,7 +2398,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     //    would invalidate the addresses we're holding)
     //
 
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
 
     // 0. Sanity Check; recursion
     int gcDepth = myThread.getDisableGCDepth();
@@ -2413,7 +2413,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     //
     if (VM_Magic.getFramePointer().minus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
-      VM_Thread.resizeCurrentStack(myThread.getStackLength()+
+      RVMThread.resizeCurrentStack(myThread.getStackLength()+
           ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
     }
 
@@ -2447,7 +2447,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     int gcDepth = myThread.getDisableGCDepth();
     if (VM.VerifyAssertions) {
       VM._assert(gcDepth >= 1);

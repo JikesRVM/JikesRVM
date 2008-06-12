@@ -522,16 +522,16 @@ public class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.threadIdField.getOffset();
     pln("VM_Processor_threadId_offset = ", offset);
 
-    // fields in VM_Thread
+    // fields in RVMThread
     //
     offset = VM_Entrypoints.threadStackField.getOffset();
-    pln("VM_Thread_stack_offset = ", offset);
+    pln("RVMThread_stack_offset = ", offset);
     offset = VM_Entrypoints.stackLimitField.getOffset();
-    pln("VM_Thread_stackLimit_offset = ", offset);
+    pln("RVMThread_stackLimit_offset = ", offset);
     offset = VM_Entrypoints.threadExceptionRegistersField.getOffset();
-    pln("VM_Thread_exceptionRegisters_offset = ", offset);
+    pln("RVMThread_exceptionRegisters_offset = ", offset);
     offset = VM_Entrypoints.jniEnvField.getOffset();
-    pln("VM_Thread_jniEnv_offset = ", offset);
+    pln("RVMThread_jniEnv_offset = ", offset);
 
     // fields in VM_Registers
     //

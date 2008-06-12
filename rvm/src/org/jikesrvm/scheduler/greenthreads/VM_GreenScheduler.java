@@ -31,7 +31,7 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
 import org.jikesrvm.scheduler.VM_ProcessorTable;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -494,7 +494,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     VM.sysWriteln("This is somewhat risky since if the thread is running we're going to be quite confused");
     VM_GreenProcessor.getCurrentProcessor().disableThreadSwitching("disabled by scheduler to dump stack");
     for (int i = 1; i < threads.length; ++i) {
-      VM_Thread thr = threads[i];
+      RVMThread thr = threads[i];
       if (thr != null && thr != VM_Scheduler.getCurrentThread() && thr.isAlive()) {
         thr.dump();
         if (thr.contextRegisters != null)
@@ -675,7 +675,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
    */
   @Override
   @Interruptible
-  protected VM_Thread setupBootThreadInternal() {
+  protected RVMThread setupBootThreadInternal() {
     int initProc = PRIMORDIAL_PROCESSOR_ID;
     byte[] stack = new byte[ArchitectureSpecific.VM_ArchConstants.STACK_SIZE_BOOT];
     VM_GreenThread startupThread = new VM_Scheduler.ThreadModel(stack, "Jikes_RVM_Boot_Thread");

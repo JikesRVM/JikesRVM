@@ -20,7 +20,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_HardwareTrapGCMapIterator;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
@@ -85,7 +85,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
   @Uninterruptible
-  public void newStackWalk(VM_Thread thread, Address registerLocation) {
+  public void newStackWalk(RVMThread thread, Address registerLocation) {
     for (int i = 0; i < ArchitectureSpecific.VM_ArchConstants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);

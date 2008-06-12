@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
@@ -597,7 +597,7 @@ public final class VM_Magic {
    * @param object object reference
    * @return object reference as thread (no checking on cast)
    */
-  public static VM_Thread objectAsThread(Object object) {
+  public static RVMThread objectAsThread(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -648,7 +648,7 @@ public final class VM_Magic {
    * @param t VM_Thread object reference
    * @return VM_CollectorThread object reference
    */
-  public static VM_CollectorThread threadAsCollectorThread(VM_Thread t) {
+  public static VM_CollectorThread threadAsCollectorThread(RVMThread t) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -752,7 +752,7 @@ public final class VM_Magic {
    * @param restoreRegs   registers from which we should restore
    *                      the saved hardware state of another thread.
    */
-  public static void threadSwitch(VM_Thread currentThread, VM_Registers restoreRegs) {
+  public static void threadSwitch(RVMThread currentThread, VM_Registers restoreRegs) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 

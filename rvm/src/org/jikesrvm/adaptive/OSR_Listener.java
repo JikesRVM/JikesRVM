@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -37,7 +37,7 @@ public class OSR_Listener {
       VM_Controller.osrOrganizer.activate();
     }
 
-    if (whereFrom != VM_Thread.BACKEDGE) return false;
+    if (whereFrom != RVMThread.BACKEDGE) return false;
 
     // See if we are at a loop backedge in an outdated baseline compiled method
 
@@ -70,6 +70,6 @@ public class OSR_Listener {
     Offset tsFromFPoff = tsFromFP.diff(stackbeg);
     Offset realFPoff = realFP.diff(stackbeg);
 
-    OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, VM_Thread.OSROPT);
+    OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, RVMThread.OSROPT);
   }
 }

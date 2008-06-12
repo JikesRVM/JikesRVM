@@ -150,7 +150,7 @@ public abstract class VM_Scheduler {
    * @return the thread slot assigned this thread
    */
   @LogicallyUninterruptible
-  static int assignThreadSlot(VM_Thread thread) {
+  static int assignThreadSlot(RVMThread thread) {
     if (!VM.runningVM) {
       // create primordial thread (in boot image)
       int threadSlot = VM_Scheduler.PRIMORDIAL_THREAD_INDEX;
@@ -203,7 +203,7 @@ public abstract class VM_Scheduler {
      * implies that this method must be called after the exit callbacks
      * are invoked if they are to be able to do JNI.
      */
-  static void releaseThreadSlot(int threadSlot, VM_Thread thread) {
+  static void releaseThreadSlot(int threadSlot, RVMThread thread) {
     threadCreationMutex.lock("releasing a thread slot");
     if (VM.VerifyAssertions) VM._assert(VM_Scheduler.threads[threadSlot] == thread);
     /*
@@ -391,7 +391,7 @@ public abstract class VM_Scheduler {
   /**
    * Get the current executing thread on this VM_Processor
    */
-  public static VM_Thread getCurrentThread() {
+  public static RVMThread getCurrentThread() {
     return VM_Magic.objectAsThread(VM_Processor.getCurrentProcessor().activeThread);
   }
 
@@ -503,7 +503,7 @@ public abstract class VM_Scheduler {
     VM_Processor.getCurrentProcessor().disableThreadSwitching("disabled for scheduler to trace processor(1)");
     VM.sysWriteInt(VM_Processor.getCurrentProcessorId());
     VM.sysWrite("[");
-    VM_Thread t = getCurrentThread();
+    RVMThread t = getCurrentThread();
     t.dump();
     VM.sysWrite("] ");
     if (traceDetails) {
@@ -909,14 +909,14 @@ public abstract class VM_Scheduler {
    * @return the boot thread
    */
   @Interruptible
-  protected abstract VM_Thread setupBootThreadInternal();
+  protected abstract RVMThread setupBootThreadInternal();
 
   /**
    * Set up the initial thread and processors as part of boot image writing
    * @return the boot thread
    */
   @Interruptible
-  public static VM_Thread setupBootThread() {
+  public static RVMThread setupBootThread() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return getScheduler().setupBootThreadInternal();
   }

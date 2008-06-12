@@ -22,7 +22,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.runtime.VM_Time;
 
 import org.mmtk.utility.Log;
@@ -83,7 +83,7 @@ import org.mmtk.utility.Log;
 
   // Diagnosis Instance fields
   @Entrypoint
-  private VM_Thread thread;   // if locked, who locked it?
+  private RVMThread thread;   // if locked, who locked it?
   private int where = -1;     // how far along has the lock owner progressed?
 
   public Lock(String name) {
@@ -146,7 +146,7 @@ import org.mmtk.utility.Log;
           Log.write(VM_Time.nanosToMillis(nowNano - approximateStartNano)); Log.write(" ms");
           Log.writelnNoFlush();
 
-          VM_Thread t = thread;
+          RVMThread t = thread;
           if (t == null) {
             Log.writeln("GC Warning: Locking thread unknown", false);
           } else {
@@ -217,7 +217,7 @@ import org.mmtk.utility.Log;
 
   // want to avoid generating a putfield so as to avoid write barrier recursion
   @Inline
-  private void setLocker(VM_Thread thread, int w) {
+  private void setLocker(RVMThread thread, int w) {
     VM_Magic.setObjectAtOffset(this, threadFieldOffset, thread);
     where = w;
   }
@@ -228,9 +228,9 @@ import org.mmtk.utility.Log;
    *  This function may be called during GC; it avoids write barriers and
    *  allocation.
    *
-   *  @param t  The {@link VM_Thread} we are interested in.
+   *  @param t  The {@link RVMThread} we are interested in.
    */
-  private static void writeThreadIdToLog(VM_Thread t) {
+  private static void writeThreadIdToLog(RVMThread t) {
     char[] buf = VM_Services.grabDumpBuffer();
     int len = t.dump(buf);
     Log.write(buf, len);

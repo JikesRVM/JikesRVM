@@ -24,7 +24,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_ThinLock;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
@@ -593,7 +593,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * @return <code>true</code> if the lock on obj is currently owned
    *         by thread <code>false</code> if it is not.
    */
-  public static boolean holdsLock(Object obj, VM_Thread thread) {
+  public static boolean holdsLock(Object obj, RVMThread thread) {
     return VM_ThinLock.holdsLock(obj, STATUS_OFFSET, thread);
   }
 

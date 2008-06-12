@@ -208,7 +208,7 @@ public class VM_Entrypoints {
   public static final VM_Field takeYieldpointField =
       getField(org.jikesrvm.scheduler.VM_Processor.class, "takeYieldpoint", int.class);
   public static final VM_Field activeThreadField =
-      getField(org.jikesrvm.scheduler.VM_Processor.class, "activeThread", org.jikesrvm.scheduler.VM_Thread.class);
+      getField(org.jikesrvm.scheduler.VM_Processor.class, "activeThread", org.jikesrvm.scheduler.RVMThread.class);
   public static final VM_Field activeThreadStackLimitField =
       getField(org.jikesrvm.scheduler.VM_Processor.class, "activeThreadStackLimit", org.vmmagic.unboxed.Address.class);
   public static final VM_Field pthreadIDField = getField(org.jikesrvm.scheduler.VM_Processor.class, "pthread_id", int.class);
@@ -227,30 +227,30 @@ public class VM_Entrypoints {
       getMethod(org.jikesrvm.scheduler.VM_MainThread.class, "run", "()V");
 
   public static final VM_NormalMethod yieldpointFromPrologueMethod =
-      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "yieldpointFromPrologue", "()V");
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "yieldpointFromPrologue", "()V");
   public static final VM_NormalMethod yieldpointFromBackedgeMethod =
-      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "yieldpointFromBackedge", "()V");
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "yieldpointFromBackedge", "()V");
   public static final VM_NormalMethod yieldpointFromEpilogueMethod =
-      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "yieldpointFromEpilogue", "()V");
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "yieldpointFromEpilogue", "()V");
 
-  public static final VM_NormalMethod threadRunMethod = getMethod(org.jikesrvm.scheduler.VM_Thread.class, "run", "()V");
+  public static final VM_NormalMethod threadRunMethod = getMethod(org.jikesrvm.scheduler.RVMThread.class, "run", "()V");
   public static final VM_NormalMethod threadStartoffMethod =
-      getMethod(org.jikesrvm.scheduler.VM_Thread.class, "startoff", "()V");
-  public static final VM_Field threadStackField = getField(org.jikesrvm.scheduler.VM_Thread.class, "stack", byte[].class);
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "startoff", "()V");
+  public static final VM_Field threadStackField = getField(org.jikesrvm.scheduler.RVMThread.class, "stack", byte[].class);
   public static final VM_Field stackLimitField =
-      getField(org.jikesrvm.scheduler.VM_Thread.class, "stackLimit", org.vmmagic.unboxed.Address.class);
+      getField(org.jikesrvm.scheduler.RVMThread.class, "stackLimit", org.vmmagic.unboxed.Address.class);
 
   public static final VM_Field beingDispatchedField =
-      getField(org.jikesrvm.scheduler.VM_Thread.class, "beingDispatched", boolean.class);
-  public static final VM_Field threadSlotField = getField(org.jikesrvm.scheduler.VM_Thread.class, "threadSlot", int.class);
+      getField(org.jikesrvm.scheduler.RVMThread.class, "beingDispatched", boolean.class);
+  public static final VM_Field threadSlotField = getField(org.jikesrvm.scheduler.RVMThread.class, "threadSlot", int.class);
   public static final VM_Field jniEnvField =
-      getField(org.jikesrvm.scheduler.VM_Thread.class, "jniEnv", org.jikesrvm.jni.VM_JNIEnvironment.class);
+      getField(org.jikesrvm.scheduler.RVMThread.class, "jniEnv", org.jikesrvm.jni.VM_JNIEnvironment.class);
   public static final VM_Field threadContextRegistersField =
-      getField(org.jikesrvm.scheduler.VM_Thread.class,
+      getField(org.jikesrvm.scheduler.RVMThread.class,
                "contextRegisters",
                org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
   public static final VM_Field threadExceptionRegistersField =
-      getField(org.jikesrvm.scheduler.VM_Thread.class,
+      getField(org.jikesrvm.scheduler.RVMThread.class,
                "exceptionRegisters",
                org.jikesrvm.ArchitectureSpecific.VM_Registers.class);
 
@@ -261,7 +261,7 @@ public class VM_Entrypoints {
   public static final VM_Field dispenserField = getField(org.jikesrvm.mm.mmtk.Lock.class, "dispenser", int.class);
   public static final VM_Field servingField = getField(org.jikesrvm.mm.mmtk.Lock.class, "serving", int.class);
   public static final VM_Field lockThreadField =
-      getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.VM_Thread.class);
+      getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.RVMThread.class);
   public static final VM_Field gcStatusField = getField(org.mmtk.plan.Plan.class, "gcStatus", int.class);
   public static final VM_Field SQCFField = getField(org.mmtk.utility.deque.SharedDeque.class, "completionFlag", int.class);
   public static final VM_Field SQNCField = getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumers", int.class);

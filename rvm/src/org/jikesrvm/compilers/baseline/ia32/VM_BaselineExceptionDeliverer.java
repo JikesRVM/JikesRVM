@@ -23,7 +23,7 @@ import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -41,7 +41,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
                                Throwable exceptionObject, ArchitectureSpecific.VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
     VM_NormalMethod method = (VM_NormalMethod) compiledMethod.getMethod();
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //

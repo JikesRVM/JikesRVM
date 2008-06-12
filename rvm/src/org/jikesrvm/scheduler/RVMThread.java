@@ -58,7 +58,7 @@ import org.vmmagic.unboxed.Offset;
  */
 @Uninterruptible
 @NonMoving
-public abstract class VM_Thread {
+public abstract class RVMThread {
   /*
    *  debug and statistics
    */
@@ -222,7 +222,7 @@ public abstract class VM_Thread {
    * The boot thread, can't be final so as to allow initialization during boot
    * image writing.
    */
-  private static VM_Thread bootThread;
+  private static RVMThread bootThread;
 
   /**
    * Assertion checking while manipulating raw addresses --
@@ -401,7 +401,7 @@ public abstract class VM_Thread {
   /**
    * @param stack stack in which to execute the thread
    */
-  protected VM_Thread(byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
+  protected RVMThread(byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
     this.stack = stack;
     this.name = name;
     this.daemon = daemon;
@@ -608,7 +608,7 @@ public abstract class VM_Thread {
   @SuppressWarnings({"unused", "UnusedDeclaration"})
   // Called by back-door methods.
   private static void startoff() {
-    VM_Thread currentThread = VM_Scheduler.getCurrentThread();
+    RVMThread currentThread = VM_Scheduler.getCurrentThread();
     if (trace) {
       VM.sysWriteln("VM_Thread.startoff(): about to call ", currentThread.toString(), ".run()");
     }
@@ -908,7 +908,7 @@ public abstract class VM_Thread {
    */
   @Interruptible
   public static void sleep(long millis, int ns) throws InterruptedException {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     myThread.changeThreadState(State.RUNNABLE, State.SLEEPING);
     try {
       myThread.sleepInternal(millis, ns);
@@ -951,7 +951,7 @@ public abstract class VM_Thread {
   /* only loses control at expected points -- I think -dave */
   public static void wait(Object o) {
     if (STATS) waitOperations++;
-    VM_Thread t = VM_Scheduler.getCurrentThread();
+    RVMThread t = VM_Scheduler.getCurrentThread();
     Throwable rethrow = t.waitInternal(o);
     if (rethrow != null) {
       RuntimeEntrypoints.athrow(rethrow); // doesn't return
@@ -968,7 +968,7 @@ public abstract class VM_Thread {
   /* only loses control at expected points -- I think -dave */
   public static void wait(Object o, long millis) {
     if (STATS) timedWaitOperations++;
-    VM_Thread t = VM_Scheduler.getCurrentThread();
+    RVMThread t = VM_Scheduler.getCurrentThread();
     Throwable rethrow = t.waitInternal(o, millis);
     if (rethrow != null) {
       RuntimeEntrypoints.athrow(rethrow);
@@ -1062,7 +1062,7 @@ public abstract class VM_Thread {
   @Interruptible
   public final void park(boolean isAbsolute, long time) throws Throwable {
     if (VM.VerifyAssertions) {
-      VM_Thread curThread = VM_Scheduler.getCurrentThread();
+      RVMThread curThread = VM_Scheduler.getCurrentThread();
       VM._assert(curThread == this);
     }
     // Has the thread already been unparked? (ie the permit is available?)
@@ -1171,7 +1171,7 @@ public abstract class VM_Thread {
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     if (traceAdjustments) {
-      VM_Thread t = VM_Scheduler.getCurrentThread();
+      RVMThread t = VM_Scheduler.getCurrentThread();
       VM.sysWrite("VM_Thread: resized stack ", t.getIndex());
       VM.sysWrite(" to ", t.stack.length / 1024);
       VM.sysWrite("k\n");
@@ -1185,7 +1185,7 @@ public abstract class VM_Thread {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     byte[] myStack = myThread.stack;
 
     // initialize new stack with live portion of stack we're
@@ -1348,7 +1348,7 @@ public abstract class VM_Thread {
    *  </pre>
    */
   private static Offset copyStack(byte[] newStack) {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     byte[] myStack = myThread.stack;
 
     Address myTop = VM_Magic.objectAsAddress(myStack).plus(myStack.length);
@@ -1410,7 +1410,7 @@ public abstract class VM_Thread {
    */
   public static void dumpAll(int verbosity) {
     for (int i = 0; i < VM_Scheduler.threads.length; i++) {
-      VM_Thread t = VM_Scheduler.threads[i];
+      RVMThread t = VM_Scheduler.threads[i];
       if (t == null) continue;
       VM.sysWrite("Thread ");
       VM.sysWriteInt(i);
@@ -1550,7 +1550,7 @@ public abstract class VM_Thread {
    * @see java.lang.Thread#holdsLock(Object)
    */
   public final boolean holdsLock(Object obj) {
-    VM_Thread mine = VM_Scheduler.getCurrentThread();
+    RVMThread mine = VM_Scheduler.getCurrentThread();
     return VM_ObjectModel.holdsLock(obj, mine);
   }
 
@@ -1665,7 +1665,7 @@ public abstract class VM_Thread {
    */
   @Interruptible
   public final void join(long ms, int ns) throws InterruptedException {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     if (VM.VerifyAssertions) VM._assert(myThread != this);
     synchronized(this) {
       myThread.changeThreadState(State.RUNNABLE, State.JOINING);
@@ -1800,7 +1800,7 @@ public abstract class VM_Thread {
    * NB overridden by {@link org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread}
    */
   @Uninterruptible
-  public VM_Thread getThreadForStackTrace() {
+  public RVMThread getThreadForStackTrace() {
     return this;
   }
 

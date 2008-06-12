@@ -27,7 +27,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
 import org.vmmagic.pragma.Inline;
@@ -102,7 +102,7 @@ import org.vmmagic.unboxed.Offset;
   private VM_GCMapIterator iterator;
   private TraceLocal trace;
   private boolean processCodeLocations;
-  private VM_Thread thread;
+  private RVMThread thread;
   private Address ip, fp, prevFp, initialIPLoc, topFrame;
   private VM_CompiledMethod compiledMethod;
   private int compiledMethodType;
@@ -120,7 +120,7 @@ import org.vmmagic.unboxed.Offset;
    * @param trace The trace instance to use for reporting references.
    * @param processCodeLocations Should code locations be processed?
    */
-  public static void scanThread(VM_Thread thread, TraceLocal trace,
+  public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations) {
     /* get the gprs associated with this thread */
     Address gprs = VM_Magic.objectAsAddress(thread.getContextRegisters().gprs);
@@ -140,7 +140,7 @@ import org.vmmagic.unboxed.Offset;
    * @param topFrame The top frame of the stack being scanned, or zero
    * if this is to be inferred from the thread (normally the case).
    */
-  public static void scanThread(VM_Thread thread, TraceLocal trace,
+  public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations,
                                 Address gprs, Address topFrame) {
     /* establish ip and fp for the stack to be scanned */
@@ -195,7 +195,7 @@ import org.vmmagic.unboxed.Offset;
    */
   private void startScan(TraceLocal trace,
                          boolean processCodeLocations,
-                         VM_Thread thread, Address gprs, Address ip,
+                         RVMThread thread, Address gprs, Address ip,
                          Address fp, Address initialIPLoc, Address topFrame) {
     this.trace = trace;
     this.processCodeLocations = processCodeLocations;

@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -115,7 +115,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
 
   /**
    * Check to see if any events occurred.
-   * Called prior to calling {@link #isReady(VM_Thread)} on
+   * Called prior to calling {@link #isReady(RVMThread)} on
    * queued threads.
    * @return whether or not polling was successful
    */
@@ -130,7 +130,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
 
   /**
    * Place a thread on this queue.
-   * Its {@link VM_Thread#waitData waitData} field should
+   * Its {@link RVMThread#waitData waitData} field should
    * be set to indicate the event that the thread is waiting for.
    * @param thread the thread to put on the queue
    */
@@ -195,7 +195,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
    * Debugging.
    */
   /** Does the queue contain the given thread */
-  final boolean contains(VM_Thread x) {
+  final boolean contains(RVMThread x) {
     for (VM_GreenThread t = head; t != null; t = t.getNext()) {
       if (t == x) return true;
     }

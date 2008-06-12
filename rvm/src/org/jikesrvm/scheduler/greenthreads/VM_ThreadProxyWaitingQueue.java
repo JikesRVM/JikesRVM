@@ -13,7 +13,7 @@
 package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -89,7 +89,7 @@ public final class VM_ThreadProxyWaitingQueue extends VM_AbstractThreadQueue {
 
   // For debugging.
   //
-  boolean contains(VM_Thread t) {
+  boolean contains(RVMThread t) {
     VM_ThreadProxy p = head;
     while (p != null) {
       if (p.getPatron() == t) return true;

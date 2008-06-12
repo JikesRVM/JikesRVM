@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -47,7 +47,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants {
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
    */
-  public abstract OSR_ExecutionState extractState(VM_Thread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
+  public abstract OSR_ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
 
   public static void printStackTraces(int[] stack, Offset osrFPoff) {
 

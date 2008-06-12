@@ -13,7 +13,7 @@
 package org.jikesrvm.scheduler.nativethreads;
 
 import org.jikesrvm.scheduler.VM_Lock;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 
 public class VM_NativeLock extends VM_Lock {
 
@@ -29,13 +29,13 @@ public class VM_NativeLock extends VM_Lock {
   }
 
   @Override
-  public boolean isBlocked(VM_Thread t) {
+  public boolean isBlocked(RVMThread t) {
     // TODO Auto-generated method stub
     return false;
   }
 
   @Override
-  public boolean isWaiting(VM_Thread t) {
+  public boolean isWaiting(RVMThread t) {
     // TODO Auto-generated method stub
     return false;
   }

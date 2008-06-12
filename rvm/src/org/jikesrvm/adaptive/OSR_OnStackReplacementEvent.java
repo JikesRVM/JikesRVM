@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
 public final class OSR_OnStackReplacementEvent implements VM_ControllerInputEvent {
 
   /** the suspended thread. */
-  public VM_Thread suspendedThread;
+  public RVMThread suspendedThread;
 
   /** remember where it comes from */
   public int whereFrom;

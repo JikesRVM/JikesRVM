@@ -658,7 +658,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* then get its hardware exception registers */
     unsigned int registers =
         *(unsigned int *) (threadObjectAddress +
-                           VM_Thread_exceptionRegisters_offset);
+                           RVMThread_exceptionRegisters_offset);
 
     /* get the addresses of the gps and other fields in the VM_Registers object */
     unsigned *vmr_gprs  = *(unsigned **) ((char *) registers + VM_Registers_gprs_offset);
@@ -736,7 +736,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
      */
     sp = (long unsigned int *) IA32_ESP(context);
     uintptr_t stackLimit
-        = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
+        = *(unsigned *)(threadObjectAddress + RVMThread_stackLimit_offset);
     if ((uintptr_t) sp <= stackLimit - 384) {
         writeErr("sp (0x%08" PRIxPTR ")too far below stackLimit (0x%08" PRIxPTR ")to recover\n", (uintptr_t) sp, stackLimit);
         signal(signo, SIG_DFL);
@@ -746,7 +746,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     }
     sp = (long unsigned int *)stackLimit - 384;
     stackLimit -= VM_Constants_STACK_SIZE_GUARD;
-    *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
+    *(unsigned *)(threadObjectAddress + RVMThread_stackLimit_offset) = stackLimit;
     *(unsigned *)(IA32_ESI(context) + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
 
     /* Insert artificial stackframe at site of trap. */

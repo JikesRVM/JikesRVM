@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -149,7 +149,7 @@ public final class VM_ThreadQueue extends VM_AbstractThreadQueue{
   }
 
   /** Debugging. */
-  public boolean contains(VM_Thread x) {
+  public boolean contains(RVMThread x) {
     for (VM_GreenThread t = head; t != null; t = t.getNext()) {
       if (t == x) return true;
     }

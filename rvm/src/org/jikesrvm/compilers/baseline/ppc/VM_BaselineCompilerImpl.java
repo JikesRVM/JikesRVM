@@ -47,7 +47,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -3440,7 +3440,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       return;
     }
 
-    genThreadSwitchTest(VM_Thread.PROLOGUE); //           (VM_BaselineExceptionDeliverer WONT release the lock (for synchronized methods) during prologue code)
+    genThreadSwitchTest(RVMThread.PROLOGUE); //           (VM_BaselineExceptionDeliverer WONT release the lock (for synchronized methods) during prologue code)
 
     // Acquire method syncronization lock.  (VM_BaselineExceptionDeliverer will release the lock (for synchronized methods) after  prologue code)
     //
@@ -3451,7 +3451,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
 
   protected final void emit_deferred_prologue() {
     if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
-    genThreadSwitchTest(VM_Thread.PROLOGUE);
+    genThreadSwitchTest(RVMThread.PROLOGUE);
 
     /* donot generate sync for synced method because we are reenter
      * the method in the middle.
@@ -3585,11 +3585,11 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       // yield if takeYieldpoint is non-zero.
       asm.emitLIntOffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.takeYieldpointField.getOffset());
       asm.emitCMPI(S0, 0);
-      if (whereFrom == VM_Thread.PROLOGUE) {
+      if (whereFrom == RVMThread.PROLOGUE) {
         // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
         fr = asm.emitForwardBC(EQ);
         asm.emitLAddrToc(S0, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset());
-      } else if (whereFrom == VM_Thread.BACKEDGE) {
+      } else if (whereFrom == RVMThread.BACKEDGE) {
         // Take yieldpoint if yieldpoint flag is >0
         fr = asm.emitForwardBC(LE);
         asm.emitLAddrToc(S0, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset());
@@ -4526,7 +4526,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       discardSlot();  // pop arg
     } else if (methodName == VM_MagicNames.threadSwitch) {
       peekAddr(T1, 0); // T1 := address of VM_Registers of new thread
-      peekAddr(T0, 1); // T0 := address of previous VM_Thread object
+      peekAddr(T0, 1); // T0 := address of previous RVMThread object
       asm.emitLAddrToc(S0, VM_ArchEntrypoints.threadSwitchInstructionsField.getOffset());
       asm.emitMTCTR(S0);
       asm.emitBCCTRL();

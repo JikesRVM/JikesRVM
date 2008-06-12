@@ -26,7 +26,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Method;
@@ -138,7 +138,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   @Inline
   @LogicallyUninterruptible
   private static void checkForOutOfMemoryError(boolean afterCollection) {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     OutOfMemoryError oome = myThread.getOutOfMemoryError();
     if (oome != null && (!afterCollection || !myThread.physicalAllocationFailed())) {
       if (Options.verbose.getValue() >= 4) {
@@ -156,7 +156,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   public int maximumCollectionAttempt() {
     int max = 1;
     for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
-      VM_Thread thread = VM_Scheduler.threads[t];
+      RVMThread thread = VM_Scheduler.threads[t];
       if (thread != null) {
         int current = thread.getCollectionAttempt();
         if (current > max) max = current;
@@ -169,7 +169,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Report that the the physical allocation has succeeded.
    */
   public void reportAllocationSuccess() {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     myThread.clearOutOfMemoryError();
     myThread.resetCollectionAttempts();
     myThread.clearPhysicalAllocationFailed();
@@ -238,7 +238,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
        frame, which has been saved in the running threads JNIEnv.  Put
        the saved frame pointer into the threads saved context regs,
        which is where the stack scan starts. */
-      VM_Thread t = vp.activeThread;
+      RVMThread t = vp.activeThread;
       t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
     }
   }
@@ -252,7 +252,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     VM_Processor vp = ((Selected.Collector) c).getProcessor();
     int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
-    VM_Thread t = VM_Scheduler.getCurrentThread();
+    RVMThread t = VM_Scheduler.getCurrentThread();
     Address fp = VM_Magic.getFramePointer();
     while (true) {
       Address caller_ip = VM_Magic.getReturnAddress(fp);
@@ -316,7 +316,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   @Inline
   public boolean yieldpoint() {
     if (VM_Processor.getCurrentProcessor().takeYieldpoint != 0) {
-      VM_Thread.yieldpointFromBackedge();
+      RVMThread.yieldpointFromBackedge();
       return true;
     }
     return false;

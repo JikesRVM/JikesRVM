@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
@@ -42,7 +42,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   public LinkedList<OSR_VariableElement> varElms;
 
   /** the thread on which the activation is running */
-  public VM_Thread thread;
+  public RVMThread thread;
 
   /** the offset of frame pointer of the activation. */
   public Offset fpOffset;
@@ -64,7 +64,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
    * @param pc
    * @param tsFPOffset
    */
-  public OSR_ExecutionState(VM_Thread whichThread, Offset framePointerOffset, int compiledMethodID, int pc,
+  public OSR_ExecutionState(RVMThread whichThread, Offset framePointerOffset, int compiledMethodID, int pc,
                             Offset tsFPOffset) {
     this.thread = whichThread;
     this.fpOffset = framePointerOffset;
@@ -92,7 +92,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   }
 
   /** returns thread. */
-  public VM_Thread getThread() {
+  public RVMThread getThread() {
     return this.thread;
   }
 

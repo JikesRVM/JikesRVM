@@ -22,7 +22,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
@@ -196,17 +196,17 @@ public final class VM_CollectorThread extends VM_GreenThread {
    */
   @Uninterruptible
   @Override
-  public VM_Thread getThreadForStackTrace() {
+  public RVMThread getThreadForStackTrace() {
     if (stackTraceThread.isZero())
       return this;
-    return (VM_Thread)VM_Magic.addressAsObject(stackTraceThread);
+    return (RVMThread)VM_Magic.addressAsObject(stackTraceThread);
   }
 
   /**
    * Set the thread to use for building stack traces.
    */
   @Uninterruptible
-  public void setThreadForStackTrace(VM_Thread thread) {
+  public void setThreadForStackTrace(RVMThread thread) {
     stackTraceThread = VM_Magic.objectAsAddress(thread);
   }
 
@@ -434,7 +434,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
           boolean gcFailed = Selected.Plan.get().lastCollectionFailed();
           // Allocate OOMEs (some of which *may* not get used)
           for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
-            VM_Thread thread = VM_Scheduler.threads[t];
+            RVMThread thread = VM_Scheduler.threads[t];
             if (thread != null) {
               if (thread.getCollectionAttempt() > 0) {
                 /* this thread was allocating */
@@ -514,7 +514,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
    */
   @LogicallyUninterruptible
   @Uninterruptible
-  public void allocateOOMEForThread(VM_Thread thread) {
+  public void allocateOOMEForThread(RVMThread thread) {
     /* We are running inside a gc thread, so we will allocate if physically possible */
     this.setThreadForStackTrace(thread);
     thread.setOutOfMemoryError(new OutOfMemoryError());

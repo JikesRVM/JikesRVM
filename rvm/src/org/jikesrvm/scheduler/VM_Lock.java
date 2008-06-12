@@ -304,12 +304,12 @@ public abstract class VM_Lock implements VM_Constants {
   /**
    * Is this lock blocking thread t?
    */
-  protected abstract boolean isBlocked(VM_Thread t);
+  protected abstract boolean isBlocked(RVMThread t);
 
   /**
    * Is this thread t waiting on this lock?
    */
-  protected abstract boolean isWaiting(VM_Thread t);
+  protected abstract boolean isWaiting(RVMThread t);
 
   /****************************************************************************
    * Static Lock Table
@@ -561,7 +561,7 @@ public abstract class VM_Lock implements VM_Constants {
    * scan lock queues for thread and report its state
    */
   @Interruptible
-  public static String getThreadState(VM_Thread t) {
+  public static String getThreadState(RVMThread t) {
     for (int i = 0; i < numLocks(); i++) {
       VM_Lock l = getLock(i);
       if (l == null || !l.active) continue;
@@ -606,7 +606,7 @@ public abstract class VM_Lock implements VM_Constants {
     public void notifyExit(int value) {
       int totalLocks = lockOperations + VM_ThinLock.fastLocks + VM_ThinLock.slowLocks;
 
-      VM_Thread.dumpStats();
+      RVMThread.dumpStats();
       VM.sysWrite(" notifyAll operations\n");
       VM.sysWrite("FatLocks: ");
       VM.sysWrite(lockOperations);

@@ -15,7 +15,7 @@ package org.jikesrvm.osr.ppc;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -33,7 +33,7 @@ public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
    * is threadSwitchFrom<...>
    */
   @NoInline
-  public static void postProcess(VM_Thread myThread) {
+  public static void postProcess(RVMThread myThread) {
 
     /* We need to generate thread specific code and install new code.
     * We have to make sure that no GC happens from here and before

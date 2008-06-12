@@ -30,7 +30,7 @@ import org.jikesrvm.osr.OSR_MapIterator;
 import org.jikesrvm.osr.OSR_VariableElement;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     implements VM_Constants, VM_ArchConstants, OSR_Constants, PhysicalRegisterConstants {
 
-  public OSR_ExecutionState extractState(VM_Thread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
+  public OSR_ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* perform machine and compiler dependent operations here
     * osrFPoff is the fp offset of
@@ -219,7 +219,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     }
   }
 
-  private OSR_ExecutionState getExecStateSequence(VM_Thread thread, byte[] stack, Offset ipOffset, Offset fpOffset,
+  private OSR_ExecutionState getExecStateSequence(RVMThread thread, byte[] stack, Offset ipOffset, Offset fpOffset,
                                                   int cmid, Offset tsFPOffset, OSR_TempRegisters registers,
                                                   OSR_EncodedOSRMap osrmap) {
 

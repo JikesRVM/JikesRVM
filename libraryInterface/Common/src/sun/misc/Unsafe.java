@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 public final class Unsafe {
@@ -131,14 +131,14 @@ public final class Unsafe {
   }
 
   public void unpark(Object thread) {
-    VM_Thread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
+    RVMThread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
     if (vmthread != null) {
       vmthread.unpark();
     }
   }
 
   public void park(boolean isAbsolute,long time) throws Throwable  {
-    VM_Thread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
+    RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
     vmthread.park(isAbsolute, time);
   }
 }

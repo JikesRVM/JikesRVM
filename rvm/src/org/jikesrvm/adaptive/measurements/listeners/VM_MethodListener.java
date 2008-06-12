@@ -15,7 +15,7 @@ package org.jikesrvm.adaptive.measurements.listeners;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -75,7 +75,7 @@ public final class VM_MethodListener extends VM_Listener {
       // Use epilogue yieldpoints.  We increment one sample
       // for every yieldpoint.  On a prologue, we count the caller.
       // On backedges and epilogues, we count the current method.
-      if (whereFrom == VM_Thread.PROLOGUE) {
+      if (whereFrom == RVMThread.PROLOGUE) {
         // Before getting a sample index, make sure we have something to insert
         if (callerCmid != -1) {
           recordSample(callerCmid);
@@ -88,7 +88,7 @@ public final class VM_MethodListener extends VM_Listener {
       // Original scheme: No epilogue yieldpoints.  We increment two samples
       // for every yieldpoint.  On a prologue, we count both the caller
       // and callee.  On backedges, we count the current method twice.
-      if (whereFrom == VM_Thread.PROLOGUE) {
+      if (whereFrom == RVMThread.PROLOGUE) {
         // Increment both for this method and the caller
         recordSample(cmid);
         if (callerCmid != -1) {

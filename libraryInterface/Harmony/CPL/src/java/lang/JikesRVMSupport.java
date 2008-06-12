@@ -21,7 +21,7 @@ import org.jikesrvm.VM;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM;              // for VerifyAssertions and _assert()
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Library support interface of Jikes RVM
@@ -86,11 +86,11 @@ public class JikesRVMSupport {
   /***
    * Thread stuff
    * */
-  public static Thread createThread(VM_Thread vmdata, String myName) {
+  public static Thread createThread(RVMThread vmdata, String myName) {
       return new Thread(vmdata, myName);
   }
 
-  public static VM_Thread getThread(Thread thread) {
+  public static RVMThread getThread(Thread thread) {
     throw new Error("TODO");
   }
 

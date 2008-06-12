@@ -18,7 +18,7 @@ import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_ThinLock;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -158,7 +158,7 @@ public class VM_GreenLock extends VM_Lock {
    * Is this lock blocking thread t?
    */
   @Override
-  protected final boolean isBlocked(VM_Thread t) {
+  protected final boolean isBlocked(RVMThread t) {
     return entering.contains(t);
   }
 
@@ -166,7 +166,7 @@ public class VM_GreenLock extends VM_Lock {
    * Is this thread t waiting on this lock?
    */
   @Override
-  protected final boolean isWaiting(VM_Thread t) {
+  protected final boolean isWaiting(RVMThread t) {
     return waiting.contains(t);
   }
 

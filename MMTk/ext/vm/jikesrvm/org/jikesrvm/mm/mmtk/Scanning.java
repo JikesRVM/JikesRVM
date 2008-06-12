@@ -29,7 +29,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 import org.vmmagic.unboxed.*;
@@ -169,7 +169,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
         VM.sysWriteln(ct.getGCOrdinal()," Chunk end  ",end);
       }
       for (threadIndex = start; threadIndex < end; threadIndex++) {
-        VM_Thread thread = VM_Scheduler.threads[threadIndex];
+        RVMThread thread = VM_Scheduler.threads[threadIndex];
         if (thread != null) {
           /* Copy the thread object - use address arithmetic to get the address
            * of the array entry */
@@ -303,7 +303,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       int threadIndex = threadCounter.increment();
       if (threadIndex > VM_Scheduler.getThreadHighWatermark()) break;
 
-      VM_Thread thread = VM_Scheduler.threads[threadIndex];
+      RVMThread thread = VM_Scheduler.threads[threadIndex];
       if (thread == null) continue;
 
       /* scan the thread (stack etc.) */

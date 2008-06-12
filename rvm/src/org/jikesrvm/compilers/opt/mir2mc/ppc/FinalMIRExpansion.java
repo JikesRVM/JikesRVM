@@ -71,7 +71,7 @@ import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -202,7 +202,7 @@ public abstract class FinalMIRExpansion extends IRTools {
         }
         case YIELDPOINT_PROLOGUE_opcode: {
           Register TSR = phys.getTSR();
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.PROLOGUE);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.PROLOGUE);
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
@@ -218,7 +218,7 @@ public abstract class FinalMIRExpansion extends IRTools {
         }
         break;
         case YIELDPOINT_BACKEDGE_opcode: {
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.BACKEDGE);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.BACKEDGE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
           Register PR = phys.getPR();
@@ -242,7 +242,7 @@ public abstract class FinalMIRExpansion extends IRTools {
         }
         break;
         case YIELDPOINT_EPILOGUE_opcode: {
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.EPILOGUE);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.EPILOGUE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
           Register PR = phys.getPR();
@@ -267,7 +267,7 @@ public abstract class FinalMIRExpansion extends IRTools {
         break;
         case YIELDPOINT_OSR_opcode: {
           // unconditionally branch to yield point.
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.OSROPT);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.OSROPT);
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
@@ -316,25 +316,25 @@ public abstract class FinalMIRExpansion extends IRTools {
 
     // first see if the requested block exists. If not, set up some
     // state for creating the block
-    if (whereFrom == VM_Thread.PROLOGUE) {
+    if (whereFrom == RVMThread.PROLOGUE) {
       if (ir.MIRInfo.prologueYieldpointBlock != null) {
         return ir.MIRInfo.prologueYieldpointBlock;
       } else {
         meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
       }
-    } else if (whereFrom == VM_Thread.BACKEDGE) {
+    } else if (whereFrom == RVMThread.BACKEDGE) {
       if (ir.MIRInfo.backedgeYieldpointBlock != null) {
         return ir.MIRInfo.backedgeYieldpointBlock;
       } else {
         meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
       }
-    } else if (whereFrom == VM_Thread.EPILOGUE) {
+    } else if (whereFrom == RVMThread.EPILOGUE) {
       if (ir.MIRInfo.epilogueYieldpointBlock != null) {
         return ir.MIRInfo.epilogueYieldpointBlock;
       } else {
         meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
       }
-    } else if (whereFrom == VM_Thread.OSROPT) {
+    } else if (whereFrom == RVMThread.OSROPT) {
       if (ir.MIRInfo.osrYieldpointBlock != null) {
         return ir.MIRInfo.osrYieldpointBlock;
       } else {
@@ -360,13 +360,13 @@ public abstract class FinalMIRExpansion extends IRTools {
     result.appendInstruction(MIR_Branch.create(PPC_BCTR));
 
     // cache the create block and then return it
-    if (whereFrom == VM_Thread.PROLOGUE) {
+    if (whereFrom == RVMThread.PROLOGUE) {
       ir.MIRInfo.prologueYieldpointBlock = result;
-    } else if (whereFrom == VM_Thread.BACKEDGE) {
+    } else if (whereFrom == RVMThread.BACKEDGE) {
       ir.MIRInfo.backedgeYieldpointBlock = result;
-    } else if (whereFrom == VM_Thread.EPILOGUE) {
+    } else if (whereFrom == RVMThread.EPILOGUE) {
       ir.MIRInfo.epilogueYieldpointBlock = result;
-    } else if (whereFrom == VM_Thread.OSROPT) {
+    } else if (whereFrom == RVMThread.OSROPT) {
       ir.MIRInfo.osrYieldpointBlock = result;
     }
 

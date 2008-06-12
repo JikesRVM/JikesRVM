@@ -44,11 +44,11 @@ getJniEnvFromVmProcessor(void *vmProcessorPtr)
         return 0; // oops
 
     // Follow chain of pointers:
-    // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
+    // VM_Processor -> RVMThread -> VM_JNIEnvironment -> thread's native JNIEnv
     void *vmThreadPtr =
         getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
     void *jniEnvironment =
-        getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
+        getFieldAsAddress(vmThreadPtr, RVMThread_jniEnv_offset);
     // Convert VM_JNIEnvironment to JNIEnv* expected by native code
     // by creating the appropriate interior pointer.
     void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);

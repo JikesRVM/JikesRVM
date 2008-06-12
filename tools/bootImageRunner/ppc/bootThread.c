@@ -11,7 +11,7 @@
  *  regarding copyright ownership.
  */
 /*
- * Begin execution of a VM_Thread "startoff" method.
+ * Begin execution of a RVMThread "startoff" method.
  *
  * Signature:
  *    void bootThread(int jtoc, int pr, int ti, int fp);
@@ -58,7 +58,7 @@
         mr      FP,T3
 
         /*
-         * At this point we've abandoned the C stack and are running on a VM_Thread's stack.
+         * At this point we've abandoned the C stack and are running on a RVMThread's stack.
          */
 
 #ifdef RVM_FOR_32_ADDR

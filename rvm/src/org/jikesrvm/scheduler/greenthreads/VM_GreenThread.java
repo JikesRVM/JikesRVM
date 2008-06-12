@@ -28,7 +28,7 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
@@ -42,7 +42,7 @@ import org.vmmagic.unboxed.Offset;
  */
 @Uninterruptible
 @NonMoving
-public class VM_GreenThread extends VM_Thread {
+public class VM_GreenThread extends RVMThread {
   /** Offset of the lock field controlling the suspending of a thread */
   private static final Offset suspendPendingOffset = VM_Entrypoints.suspendPendingField.getOffset();
 
@@ -601,7 +601,7 @@ public class VM_GreenThread extends VM_Thread {
       }
       // allow an entering thread a chance to get the lock
       l.mutex.lock("performing Object.wait"); // until unlock(), thread-switching fatal
-      VM_Thread n = l.entering.dequeue();
+      RVMThread n = l.entering.dequeue();
       if (n != null) n.schedule();
       if (hasTimeout) {
         VM_GreenScheduler.wakeupMutex.lock("performing timed Object.wait");
@@ -830,7 +830,7 @@ public class VM_GreenThread extends VM_Thread {
   public final void schedule() {
     if (trace) VM_Scheduler.trace("VM_GreenThread", "schedule", getIndex());
     if (state == State.BLOCKED)
-      changeThreadState(VM_Thread.State.BLOCKED, State.RUNNABLE);
+      changeThreadState(RVMThread.State.BLOCKED, State.RUNNABLE);
     VM_GreenProcessor.getCurrentProcessor().scheduleThread(this);
   }
 

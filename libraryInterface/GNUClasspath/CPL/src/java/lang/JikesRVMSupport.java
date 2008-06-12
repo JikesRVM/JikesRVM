@@ -20,7 +20,7 @@ import org.jikesrvm.classloader.VM_Type;
 import org.vmmagic.pragma.*;
 
 import org.jikesrvm.VM;              // for VerifyAssertions and _assert()
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Library support interface of Jikes RVM
@@ -83,7 +83,7 @@ public class JikesRVMSupport {
   /***
    * Thread stuff
    * */
-  public static Thread createThread(VM_Thread vmdata, String myName) {
+  public static Thread createThread(RVMThread vmdata, String myName) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     Thread bootThread = new Thread(new VMThread(vmdata), myName,
         vmdata.getPriority(), vmdata.isDaemonThread());
@@ -91,7 +91,7 @@ public class JikesRVMSupport {
     return bootThread;
   }
 
-  public static VM_Thread getThread(Thread thread) {
+  public static RVMThread getThread(Thread thread) {
     if (thread == null) {
       return null;
     } else if(thread.vmThread == null) {

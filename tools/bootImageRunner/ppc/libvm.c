@@ -742,7 +742,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
       *(VM_Address *)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +
                       VM_Processor_activeThread_offset);
     VM_Address *registers = *(VM_Address **)
-        ((char *)thread + VM_Thread_exceptionRegisters_offset);
+        ((char *)thread + RVMThread_exceptionRegisters_offset);
 
     VM_Word *gprs
         = *(VM_Word **)((char *)registers + VM_Registers_gprs_offset);
@@ -924,8 +924,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
             /* Adjust the stack limit downward to give the exception handler
                 some space in which to run.
             */
-            VM_Address stackLimit = *(VM_Address *)((char *)thread + VM_Thread_stackLimit_offset);
-            VM_Address stackStart = *(VM_Address *)((char *)thread + VM_Thread_stack_offset);
+            VM_Address stackLimit = *(VM_Address *)((char *)thread + RVMThread_stackLimit_offset);
+            VM_Address stackStart = *(VM_Address *)((char *)thread + RVMThread_stack_offset);
             stackLimit -= VM_Constants_STACK_SIZE_GUARD;
             if (stackLimit < stackStart) {
                 /* double fault - stack overflow exception handler used too
@@ -936,7 +936,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
                 /* Go ahead and get all the stack space we need to generate
                  * the error dump (since we're crashing anyways)
                  */
-                *(VM_Address *)((char *)thread + VM_Thread_stackLimit_offset) = 0;
+                *(VM_Address *)((char *)thread + RVMThread_stackLimit_offset) = 0;
 
                 /* Things are very badly wrong anyways, so attempt to generate
                    a useful error dump before exiting by returning to
@@ -957,7 +957,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #endif
                 return;
             }
-            *(VM_Address *)((char *)thread + VM_Thread_stackLimit_offset)
+            *(VM_Address *)((char *)thread + RVMThread_stackLimit_offset)
                 = stackLimit;
             VM_Address *limit_address =
                 (VM_Address *)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +

@@ -47,7 +47,7 @@ import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_ProcessorTable;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
@@ -102,7 +102,7 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * The boot thread
    */
-  private static VM_Thread startupThread;
+  private static RVMThread startupThread;
 
   /**
    * How much talking while we work?

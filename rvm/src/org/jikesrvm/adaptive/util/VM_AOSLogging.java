@@ -30,7 +30,7 @@ import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * This class provides logging functionality for the Adaptive Optimization System
@@ -139,7 +139,7 @@ public class VM_AOSLogging {
    * to allow us to record the time spent in the thread.
    * @param t the thread of interest
    */
-  public static void threadExiting(VM_Thread t) {
+  public static void threadExiting(RVMThread t) {
     if (!booted) return; // fast exit
     try {
       if (VM_Controller.options.LOGGING_LEVEL >= 1) {
@@ -457,7 +457,7 @@ public class VM_AOSLogging {
       printControllerStats();
 
       for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-        VM_Thread t = VM_Scheduler.threads[i];
+        RVMThread t = VM_Scheduler.threads[i];
         if (t != null) {
           VM_AOSLogging.threadExiting(t);
         }

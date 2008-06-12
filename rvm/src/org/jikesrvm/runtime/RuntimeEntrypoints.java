@@ -30,7 +30,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
@@ -675,7 +675,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @NoInline
   @Entrypoint
   public static void athrow(Throwable exceptionObject) {
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     VM_Magic.saveThreadState(exceptionRegisters);
@@ -706,7 +706,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @Entrypoint
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
-    VM_Thread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = VM_Scheduler.getCurrentThread();
     VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
@@ -716,9 +716,9 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-        VM_Thread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
+        RVMThread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
       } else {
-        VM_Thread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_GROW, exceptionRegisters);
+        RVMThread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_GROW, exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse);
       exceptionRegisters.inuse = false;

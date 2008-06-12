@@ -49,7 +49,7 @@
 [Lorg/jikesrvm/runtime/VM_DynamicLibrary;
 
 [Lorg/jikesrvm/scheduler/VM_Processor;
-[Lorg/jikesrvm/scheduler/VM_Thread;
+[Lorg/jikesrvm/scheduler/RVMThread;
 [Lorg/jikesrvm/scheduler/VM_Lock;
 [[Lorg/jikesrvm/scheduler/VM_Lock;
 [Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;
@@ -76,7 +76,7 @@
 [Lorg/mmtk/utility/statistics/Timer;
 [Lorg/mmtk/vm/ReferenceProcessor$Semantics;
 
-[Lorg/jikesrvm/scheduler/VM_Thread$State;
+[Lorg/jikesrvm/scheduler/RVMThread$State;
 
 [Lorg/vmmagic/pragma/Inline$When;
 Lsun/misc/Unsafe;

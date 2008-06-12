@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -360,7 +360,7 @@ public abstract class VM_RuntimeMeasurements {
     VM_AOSLogging.decayStatistics(decayEventCounter);
 
     for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-      VM_Thread t = VM_Scheduler.threads[i];
+      RVMThread t = VM_Scheduler.threads[i];
       if (t != null) {
         VM_AOSLogging.threadExiting(t);
       }

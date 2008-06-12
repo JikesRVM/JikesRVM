@@ -16,7 +16,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
 
 public class VM_NativeScheduler extends VM_Scheduler {
@@ -171,7 +171,7 @@ public class VM_NativeScheduler extends VM_Scheduler {
    */
   @Interruptible
   @Override
-  protected VM_Thread setupBootThreadInternal() {
+  protected RVMThread setupBootThreadInternal() {
     // TODO Auto-generated method stub
     return null;
   }

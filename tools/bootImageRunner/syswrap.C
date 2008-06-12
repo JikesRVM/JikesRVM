@@ -219,7 +219,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
         totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
     }
 
-    // Call VM_Thread.ioWaitSelect()
+    // Call RVMThread.ioWaitSelect()
     jclass vmWaitClass = env->FindClass("org/jikesrvm/scheduler/greenthreads/VM_Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
                                                           "ioWaitSelect", "([I[I[IDZ)V");

@@ -360,7 +360,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * @return <code>true</code> if the lock on obj at offset lockOffset is currently owned
    *         by thread <code>false</code> if it is not.
    */
-  public static boolean holdsLock(Object obj, Offset lockOffset, VM_Thread thread) {
+  public static boolean holdsLock(Object obj, Offset lockOffset, RVMThread thread) {
     int tid = thread.getLockingId();
     Word bits = VM_Magic.getWordAtOffset(obj, lockOffset);
     if (bits.and(TL_FAT_LOCK_MASK).isZero()) {

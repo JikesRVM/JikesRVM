@@ -15,11 +15,11 @@ package org.jikesrvm.scheduler.nativethreads;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_NORMAL;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Lock;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NonMoving;
 
 @NonMoving
-public class VM_NativeThread extends VM_Thread {
+public class VM_NativeThread extends RVMThread {
 
   /**
    * Create a thread with default stack and with the given name.

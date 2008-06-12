@@ -79,7 +79,7 @@ public class VM_DebuggerThread extends VM_Scheduler.ThreadModel {
           for (VM_Scheduler.debugRequested = false; !VM_Scheduler.debugRequested;) {
             VM.sysWrite("\033[H\033[2J");
             eval(previousTokens);
-            VM_Thread.sleep(1000,0);
+            RVMThread.sleep(1000,0);
           }
         }
         return;
@@ -103,7 +103,7 @@ public class VM_DebuggerThread extends VM_Scheduler.ThreadModel {
           // !!TODO: danger here - how do we know if thread's context registers are
           //         currently valid (ie. thread is not currently running and
           //         won't start running while we're looking at it) ?
-          VM_Thread thread = VM_Scheduler.threads[threadIndex];
+          RVMThread thread = VM_Scheduler.threads[threadIndex];
 
           VM.sysWriteln(thread.getIndex() + " " + thread + " " + thread.getThreadState());
 

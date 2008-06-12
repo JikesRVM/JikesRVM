@@ -13,7 +13,7 @@
 package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class VM_GCMapIterator {
 
   /** thread whose stack is currently being scanned */
-  public VM_Thread thread;
+  public RVMThread thread;
 
   /** address of stackframe currently being scanned */
   public Address framePtr;
@@ -43,7 +43,7 @@ public abstract class VM_GCMapIterator {
    *
    * @param thread VM_Thread whose stack is being scanned
    */
-  public void newStackWalk(VM_Thread thread) {
+  public void newStackWalk(RVMThread thread) {
     this.thread = thread;
   }
 
