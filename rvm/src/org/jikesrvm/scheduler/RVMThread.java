@@ -491,7 +491,6 @@ public abstract class RVMThread {
    */
   @Interruptible
   public final Thread getJavaLangThread() {
-    if (VM.VerifyAssertions) VM._assert(thread != null);
     return thread;
   }
 
