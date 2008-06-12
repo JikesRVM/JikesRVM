@@ -16,14 +16,9 @@ import java.io.File;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.greenthreads.VM_Process;
-import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
-
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
@@ -32,16 +27,6 @@ import org.vmmagic.pragma.Entrypoint;
 public final class VMRuntime {
 
   private static boolean runFinalizersOnExit = false;
-
-  static {
-    instance = new VMRuntime();
-    gcLockOffset = VM_Entrypoints.gcLockField.getOffset();
-  }
-  private static final VMRuntime instance;
-  @SuppressWarnings("unused") // Accessed from VM_EntryPoints
-  @Entrypoint
-  private int gcLock;
-  private static final Offset gcLockOffset;
 
   private VMRuntime() { }
 
@@ -62,10 +47,7 @@ public final class VMRuntime {
   }
 
   static void gc() {
-    if (VM_Synchronization.testAndSet(instance, gcLockOffset, 1)) {
-      MM_Interface.gc();
-      VM_Synchronization.fetchAndStore(instance, gcLockOffset, 0);
-    }
+    VMCommonLibrarySupport.gc();
   }
 
   static void runFinalization() {
@@ -106,19 +88,12 @@ public final class VMRuntime {
   }
 
 
-  /** Mangle a short-name to the file name (not the full pathname) for a
-   *  dynamically loadable library.
+  /**
+   * Mangle a short-name to the file name (not the full pathname) for a
+   * dynamically loadable library.
    */
   static String mapLibraryName(String libname) {
-    String libSuffix;
-    if (VM.BuildForLinux || VM.BuildForSolaris) {
-      libSuffix = ".so";
-    } else if (VM.BuildForOsx) {
-      libSuffix = ".jnilib";
-    } else {
-      libSuffix = ".a";
-    }
-    return "lib" + libname + libSuffix;
+    return VMCommonLibrarySupport.mapLibraryName(libname);
   }
 
   static Process exec(String[] cmd, String[] env, File dir) {

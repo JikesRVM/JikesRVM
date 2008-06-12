@@ -543,6 +543,21 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   }
 
   /**
+   * Find description of a field of this class. NB. ignores descriptor.
+   * @param fieldName field name - something like "foo"
+   * @return description (null --> not found)
+   */
+  public VM_Field findDeclaredField(VM_Atom fieldName) {
+    for (int i = 0, n = declaredFields.length; i < n; ++i) {
+      VM_Field field = declaredFields[i];
+      if (field.getName() == fieldName) {
+        return field;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Find description of a method of this class.
    * @param methodName method name - something like "foo"
    * @param methodDescriptor method descriptor - something like "()I"

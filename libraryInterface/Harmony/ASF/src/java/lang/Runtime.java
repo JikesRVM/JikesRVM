@@ -21,10 +21,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_Process;
 
 /**
  * This class, with the exception of the exec() APIs, must be implemented by the
@@ -36,394 +40,452 @@ public class Runtime {
 
   private static final Runtime singleton = new Runtime();
 
-    /**
-     * Prevent this class from being instantiated
-     */
-    private Runtime(){
-        //do nothing
-    }
-    
-    /**
-     * Execute progArray[0] in a separate platform process The new process
-     * inherits the environment of the caller.
-     * 
-     * @param progArray the array containing the program to execute as well as
-     *        any arguments to the program.
-     * @throws java.io.IOException if the program cannot be executed
-     * @throws SecurityException if the current SecurityManager disallows
-     *         program execution
-     * @see SecurityManager#checkExec
-     */
-    public Process exec(String[] progArray) throws java.io.IOException {
-        return null;
-    }
+  /**
+   * Prevent this class from being instantiated
+   */
+  private Runtime(){
+    //do nothing
+  }
 
-    /**
-     * Execute progArray[0] in a separate platform process The new process uses
-     * the environment provided in envp
-     * 
-     * @param progArray the array containing the program to execute a well as
-     *        any arguments to the program.
-     * @param envp the array containing the environment to start the new process
-     *        in.
-     * @throws java.io.IOException if the program cannot be executed
-     * @throws SecurityException if the current SecurityManager disallows
-     *         program execution
-     * @see SecurityManager#checkExec
-     */
-    public Process exec(String[] progArray, String[] envp) throws java.io.IOException {
-        return null;
-    }
+  /**
+   * Execute progArray[0] in a separate platform process The new process
+   * inherits the environment of the caller.
+   * 
+   * @param progArray the array containing the program to execute as well as
+   *        any arguments to the program.
+   * @throws java.io.IOException if the program cannot be executed
+   * @throws SecurityException if the current SecurityManager disallows
+   *         program execution
+   * @see SecurityManager#checkExec
+   */
+  public Process exec(String[] progArray) throws java.io.IOException {
+    return exec(progArray, null, null);
+  }
 
-    /**
-     * Execute progArray[0] in a separate platform process. The new process uses
-     * the environment provided in envp
-     * 
-     * @param progArray the array containing the program to execute a well as
-     *        any arguments to the program.
-     * @param envp the array containing the environment to start the new process
-     *        in.
-     * @param directory the directory in which to execute progArray[0]. If null,
-     *        execute in same directory as parent process.
-     * @throws java.io.IOException if the program cannot be executed
-     * @throws SecurityException if the current SecurityManager disallows
-     *         program execution
-     * @see SecurityManager#checkExec
-     */
-    public Process exec(String[] progArray, String[] envp, File directory)
-            throws java.io.IOException {
-        return null;
-    }
+  /**
+   * Execute progArray[0] in a separate platform process The new process uses
+   * the environment provided in envp
+   * 
+   * @param progArray the array containing the program to execute a well as
+   *        any arguments to the program.
+   * @param envp the array containing the environment to start the new process
+   *        in.
+   * @throws java.io.IOException if the program cannot be executed
+   * @throws SecurityException if the current SecurityManager disallows
+   *         program execution
+   * @see SecurityManager#checkExec
+   */
+  public Process exec(String[] progArray, String[] envp) throws java.io.IOException {
+    return exec(progArray, envp, null);
+  }
 
-    /**
-     * Execute program in a separate platform process The new process inherits
-     * the environment of the caller.
-     * 
-     * @param prog the name of the program to execute
-     * @throws java.io.IOException if the program cannot be executed
-     * @throws SecurityException if the current SecurityManager disallows
-     *         program execution
-     * @see SecurityManager#checkExec
-     */
-    public Process exec(String prog) throws java.io.IOException {
-        return null;
+  /**
+   * Execute progArray[0] in a separate platform process. The new process uses
+   * the environment provided in envp
+   * 
+   * @param progArray the array containing the program to execute a well as
+   *        any arguments to the program.
+   * @param envp the array containing the environment to start the new process
+   *        in.
+   * @param directory the directory in which to execute progArray[0]. If null,
+   *        execute in same directory as parent process.
+   * @throws java.io.IOException if the program cannot be executed
+   * @throws SecurityException if the current SecurityManager disallows
+   *         program execution
+   * @see SecurityManager#checkExec
+   */
+  public Process exec(String[] progArray, String[] envp, File directory)
+  throws java.io.IOException {
+    SecurityManager currentSecurity = System.getSecurityManager();
+
+    if (currentSecurity != null) {
+      currentSecurity.checkExec(progArray[0]);
     }
 
-    /**
-     * Execute prog in a separate platform process The new process uses the
-     * environment provided in envp
-     * 
-     * @param prog the name of the program to execute
-     * @param envp the array containing the environment to start the new process
-     *        in.
-     * @throws java.io.IOException if the program cannot be executed
-     * @throws SecurityException if the current SecurityManager disallows
-     *         program execution
-     * @see SecurityManager#checkExec
-     */
-    public Process exec(String prog, String[] envp) throws java.io.IOException {
-        return null;
+    if (progArray == null) {
+      throw new NullPointerException("Command argument shouldn't be empty.");
     }
-
-    /**
-     * Execute prog in a separate platform process The new process uses the
-     * environment provided in envp
-     * 
-     * @param prog the name of the program to execute
-     * @param envp the array containing the environment to start the new process
-     *        in.
-     * @param directory the initial directory for the subprocess, or null to use
-     *        the directory of the current process
-     * @throws java.io.IOException if the program cannot be executed
-     * @throws SecurityException if the current SecurityManager disallows
-     *         program execution
-     * @see SecurityManager#checkExec
-     */
-    public Process exec(String prog, String[] envp, File directory) throws java.io.IOException {
-        return null;
+    if (progArray.length == 0) {
+      throw new IndexOutOfBoundsException();
     }
-
-    /**
-     * Causes the virtual machine to stop running, and the program to exit. If
-     * runFinalizersOnExit(true) has been invoked, then all finalizers will be
-     * run first.
-     * 
-     * @param code the return code.
-     * @throws SecurityException if the running thread is not allowed to cause
-     *         the vm to exit.
-     * @see SecurityManager#checkExit
-     */
-    public void exit(int code) {
-      VM.sysExit(code);
+    for (int i = 0; i < progArray.length; i++) {
+      if (progArray[i] == null) {
+        throw new NullPointerException("An element of progArray shouldn't be empty.");
+      }
     }
-
-    /**
-     * Answers the amount of free memory resources which are available to the
-     * running program.
-     * 
-     */
-    public long freeMemory() {
-        return 0L;
-    }
-
-    /**
-     * Indicates to the virtual machine that it would be a good time to collect
-     * available memory. Note that, this is a hint only.
-     * 
-     */
-    public void gc() {
-        return;
-    }
-
-    /**
-     * Return the single Runtime instance
-     * 
-     */
-    public static Runtime getRuntime() {
-      return singleton;
-    }
-
-    /**
-     * Loads and links the library specified by the argument.
-     * 
-     * @param pathName the absolute (ie: platform dependent) path to the library
-     *        to load
-     * @throws UnsatisfiedLinkError if the library could not be loaded
-     * @throws SecurityException if the library was not allowed to be loaded
-     */
-    public void load(String pathName) {
-        load0(pathName, VM_Class.getClassLoaderFromStackFrame(1), true);
-    }
-
-    void load0(String filename, ClassLoader cL, boolean check) throws SecurityException, UnsatisfiedLinkError {
-        if (check) {
-            if (filename == null) {
-                throw new NullPointerException();
-            }
-
-            SecurityManager currentSecurity = System.getSecurityManager();
-
-            if (currentSecurity != null) {
-                currentSecurity.checkLink(filename);
-            }
+    if (envp != null) {
+      if (envp.length != 0) {
+        for (int i = 0; i < envp.length; i++) {
+          if (envp[i] == null) {
+            throw new NullPointerException("An element of envp shouldn't be empty.");
+          }
         }
-	if (VM_DynamicLibrary.load(filename) == 0) {
-            // TODO: make use of cL
-	    throw new UnsatisfiedLinkError("Can not find the library: " +
-					   filename);
-	}
+      } else {
+        envp = null;
+      }
     }
 
-    /**
-     * Loads and links the library specified by the argument.
-     * 
-     * @param libName the name of the library to load
-     * @throws UnsatisfiedLinkError if the library could not be loaded
-     * @throws SecurityException if the library was not allowed to be loaded
-     */
-    public void loadLibrary(String libName) {
-        loadLibrary0(libName, VM_Class.getClassLoaderFromStackFrame(1), true);
+    String dirPathName = (directory != null ? directory.getPath() : null);
+
+    String dirPath = (directory != null) ? directory.getPath() : null;
+    return new VM_Process(progArray[0], progArray, envp, dirPathName);
+  }
+
+  /**
+   * Execute program in a separate platform process The new process inherits
+   * the environment of the caller.
+   * 
+   * @param prog the name of the program to execute
+   * @throws java.io.IOException if the program cannot be executed
+   * @throws SecurityException if the current SecurityManager disallows
+   *         program execution
+   * @see SecurityManager#checkExec
+   */
+  public Process exec(String prog) throws java.io.IOException {
+    return exec(prog, null, null);
+  }
+
+  /**
+   * Execute prog in a separate platform process The new process uses the
+   * environment provided in envp
+   * 
+   * @param prog the name of the program to execute
+   * @param envp the array containing the environment to start the new process
+   *        in.
+   * @throws java.io.IOException if the program cannot be executed
+   * @throws SecurityException if the current SecurityManager disallows
+   *         program execution
+   * @see SecurityManager#checkExec
+   */
+  public Process exec(String prog, String[] envp) throws java.io.IOException {
+    return exec(prog, envp, null);
+  }
+
+  /**
+   * Execute prog in a separate platform process The new process uses the
+   * environment provided in envp
+   * 
+   * @param prog the name of the program to execute
+   * @param envp the array containing the environment to start the new process
+   *        in.
+   * @param directory the initial directory for the subprocess, or null to use
+   *        the directory of the current process
+   * @throws java.io.IOException if the program cannot be executed
+   * @throws SecurityException if the current SecurityManager disallows
+   *         program execution
+   * @see SecurityManager#checkExec
+   */
+  public Process exec(String prog, String[] envp, File directory) throws java.io.IOException {
+    if (prog == null) {
+      throw new NullPointerException();
+    }
+    if (prog.length() == 0) {
+      throw new IllegalArgumentException();
+    }
+    if (envp != null) {
+      if (envp.length != 0) {
+        for (int i = 0; i < envp.length; i++) {
+          if (envp[i] == null) {
+            throw new NullPointerException("An element of envp shouldn't be empty.");
+          }
+        }
+      } else {
+        envp = null;
+      }
     }
 
-    void loadLibrary0(String libname, ClassLoader cL, boolean check) throws SecurityException, UnsatisfiedLinkError {
-        if (check) {
-            if (libname == null) {
-                throw new NullPointerException();
-            }
+    StringTokenizer st = new StringTokenizer(prog);
+    String[] progArray = new String[st.countTokens()];
+    int i = 0;
 
-            SecurityManager currentSecurity = System.getSecurityManager();
+    while (st.hasMoreTokens()) {
+      progArray[i++] = st.nextToken();
 
-            if (currentSecurity != null) {
-                currentSecurity.checkLink(libname);
-            }
-        }
+    }
 
-        String libFullName = null;
+    return exec(progArray, envp, directory);
+  }
 
-        if (cL!=null) {
-            libFullName = cL.findLibrary(libname);
-        }
-        if (libFullName == null) {
-            String allPaths = null;
+  /**
+   * Causes the virtual machine to stop running, and the program to exit. If
+   * runFinalizersOnExit(true) has been invoked, then all finalizers will be
+   * run first.
+   * 
+   * @param code the return code.
+   * @throws SecurityException if the running thread is not allowed to cause
+   *         the vm to exit.
+   * @see SecurityManager#checkExit
+   */
+  public void exit(int code) {
+    VM.sysExit(code);
+  }
 
-            //XXX: should we think hard about security policy for this block?:
-            String jlp = System.getProperty("java.library.path");
-            String vblp = System.getProperty("vm.boot.library.path");
-            String udp = System.getProperty("user.dir");
-            String pathSeparator = System.getProperty("path.separator");
-            String fileSeparator = System.getProperty("file.separator");
-            allPaths = (jlp!=null?jlp:"")+(vblp!=null?pathSeparator+vblp:"")+(udp!=null?pathSeparator+udp:"");
+  /**
+   * Answers the amount of free memory resources which are available to the
+   * running program.
+   * 
+   */
+  public long freeMemory() {
+    return MM_Interface.freeMemory().toLong();
+  }
 
-            if (allPaths.length()==0) {
-                throw new UnsatisfiedLinkError("Can not find the library: " +
-					       libname);
-            }
+  /**
+   * Indicates to the virtual machine that it would be a good time to collect
+   * available memory. Note that, this is a hint only.
+   * 
+   */
+  public void gc() {
+    VMCommonLibrarySupport.gc();
+  }
 
-            //String[] paths = allPaths.split(pathSeparator);
-            String[] paths;
-            {
-                ArrayList<String> res = new ArrayList<String>();
-                int curPos = 0;
-                int l = pathSeparator.length();
-                int i = allPaths.indexOf(pathSeparator);
-                int in = 0;
-                while (i != -1) {
-                    String s = allPaths.substring(curPos, i);
-                    res.add(s);
-                    in++;
-                    curPos = i + l;
-                    i = allPaths.indexOf(pathSeparator, curPos);
-                }
+  /**
+   * Return the single Runtime instance
+   * 
+   */
+  public static Runtime getRuntime() {
+    return singleton;
+  }
 
-                if (curPos <= allPaths.length()) {
-                    String s = allPaths.substring(curPos, allPaths.length());
-                    in++;
-                    res.add(s);
-                }
+  /**
+   * Loads and links the library specified by the argument.
+   * 
+   * @param pathName the absolute (ie: platform dependent) path to the library
+   *        to load
+   * @throws UnsatisfiedLinkError if the library could not be loaded
+   * @throws SecurityException if the library was not allowed to be loaded
+   */
+  public void load(String pathName) {
+    load0(pathName, VM_Class.getClassLoaderFromStackFrame(1), true);
+  }
 
-                paths = (String[]) res.toArray(new String[in]);
-            }
+  void load0(String filename, ClassLoader cL, boolean check) throws SecurityException, UnsatisfiedLinkError {
+    if (check) {
+      if (filename == null) {
+        throw new NullPointerException();
+      }
 
-            libname = System.mapLibraryName(libname);
-            for (int i=0; i<paths.length; i++) {
-                if (paths[i]==null) {
-                    continue;
-                }
-                libFullName = paths[i] + fileSeparator + libname;
-                try {
-                    this.load0(libFullName, cL, false);
-                    return;
-                } catch (UnsatisfiedLinkError e) {
-                }
-            }
-        } else {
-            this.load0(libFullName, cL, false);
-            return;
-        }
+      SecurityManager currentSecurity = System.getSecurityManager();
+
+      if (currentSecurity != null) {
+        currentSecurity.checkLink(filename);
+      }
+    }
+    if (VM_DynamicLibrary.load(filename) == 0) {
+      // TODO: make use of cL
+      throw new UnsatisfiedLinkError("Can not find the library: " +
+          filename);
+    }
+  }
+
+  /**
+   * Loads and links the library specified by the argument.
+   * 
+   * @param libName the name of the library to load
+   * @throws UnsatisfiedLinkError if the library could not be loaded
+   * @throws SecurityException if the library was not allowed to be loaded
+   */
+  public void loadLibrary(String libName) {
+    loadLibrary0(libName, VM_Class.getClassLoaderFromStackFrame(1), true);
+  }
+
+  void loadLibrary0(String libname, ClassLoader cL, boolean check) throws SecurityException, UnsatisfiedLinkError {
+    if (check) {
+      if (libname == null) {
+        throw new NullPointerException();
+      }
+
+      SecurityManager currentSecurity = System.getSecurityManager();
+
+      if (currentSecurity != null) {
+        currentSecurity.checkLink(libname);
+      }
+    }
+
+    String libFullName = null;
+
+    if (cL!=null) {
+      libFullName = cL.findLibrary(libname);
+    }
+    if (libFullName == null) {
+      String allPaths = null;
+
+      //XXX: should we think hard about security policy for this block?:
+      String jlp = System.getProperty("java.library.path");
+      String vblp = System.getProperty("vm.boot.library.path");
+      String udp = System.getProperty("user.dir");
+      String pathSeparator = System.getProperty("path.separator");
+      String fileSeparator = System.getProperty("file.separator");
+      allPaths = (jlp!=null?jlp:"")+(vblp!=null?pathSeparator+vblp:"")+(udp!=null?pathSeparator+udp:"");
+
+      if (allPaths.length()==0) {
         throw new UnsatisfiedLinkError("Can not find the library: " +
-				       libname);
-    }
+            libname);
+      }
 
-    /**
-     * Provides a hint to the virtual machine that it would be useful to attempt
-     * to perform any outstanding object finalizations.
-     * 
-     */
-    public void runFinalization() {
-        return;
-    }
+      //String[] paths = allPaths.split(pathSeparator);
+      String[] paths;
+      {
+        ArrayList<String> res = new ArrayList<String>();
+        int curPos = 0;
+        int l = pathSeparator.length();
+        int i = allPaths.indexOf(pathSeparator);
+        int in = 0;
+        while (i != -1) {
+          String s = allPaths.substring(curPos, i);
+          res.add(s);
+          in++;
+          curPos = i + l;
+          i = allPaths.indexOf(pathSeparator, curPos);
+        }
 
-    /**
-     * Ensure that, when the virtual machine is about to exit, all objects are
-     * finalized. Note that all finalization which occurs when the system is
-     * exiting is performed after all running threads have been terminated.
-     * 
-     * @param run true means finalize all on exit.
-     * @deprecated This method is unsafe.
-     */
-    @Deprecated
-    public static void runFinalizersOnExit(boolean run) {
-        return;
-    }
+        if (curPos <= allPaths.length()) {
+          String s = allPaths.substring(curPos, allPaths.length());
+          in++;
+          res.add(s);
+        }
 
-    /**
-     * Answers the total amount of memory resources which is available to (or in
-     * use by) the running program.
-     * 
-     */
-    public long totalMemory() {
-        return 0L;
-    }
+        paths = (String[]) res.toArray(new String[in]);
+      }
 
-    /**
-     * Turns the output of debug information for instructions on or off.
-     * 
-     * @param enable if true, turn trace on. false turns trace off.
-     */
-    public void traceInstructions(boolean enable) {
-        return;
+      libname = System.mapLibraryName(libname);
+      for (int i=0; i<paths.length; i++) {
+        if (paths[i]==null) {
+          continue;
+        }
+        libFullName = paths[i] + fileSeparator + libname;
+        try {
+          this.load0(libFullName, cL, false);
+          return;
+        } catch (UnsatisfiedLinkError e) {
+        }
+      }
+    } else {
+      this.load0(libFullName, cL, false);
+      return;
     }
+    throw new UnsatisfiedLinkError("Can not find the library: " +
+        libname);
+  }
 
-    /**
-     * Turns the output of debug information for methods on or off.
-     * 
-     * @param enable if true, turn trace on. false turns trace off.
-     */
-    public void traceMethodCalls(boolean enable) {
-        return;
-    }
+  /**
+   * Provides a hint to the virtual machine that it would be useful to attempt
+   * to perform any outstanding object finalizations.
+   * 
+   */
+  public void runFinalization() {
+    return;
+  }
 
-    /**
-     * @deprecated Use InputStreamReader
-     */
-    @Deprecated
-    public InputStream getLocalizedInputStream(InputStream stream) {
-        return null;
-    }
+  /**
+   * Ensure that, when the virtual machine is about to exit, all objects are
+   * finalized. Note that all finalization which occurs when the system is
+   * exiting is performed after all running threads have been terminated.
+   * 
+   * @param run true means finalize all on exit.
+   * @deprecated This method is unsafe.
+   */
+  @Deprecated
+  public static void runFinalizersOnExit(boolean run) {
+    return;
+  }
 
-    /**
-     * @deprecated Use OutputStreamWriter
-     */
-    @Deprecated
-    public OutputStream getLocalizedOutputStream(OutputStream stream) {
-        return null;
-    }
+  /**
+   * Answers the total amount of memory resources which is available to (or in
+   * use by) the running program.
+   * 
+   */
+  public long totalMemory() {
+    return MM_Interface.totalMemory().toLong();
+  }
 
-    /**
-     * Registers a new virtual-machine shutdown hook.
-     * 
-     * @param hook the hook (a Thread) to register
-     */
-    public void addShutdownHook(Thread hook) {
-        // Check hook for null
-        if (hook == null)
-            throw new NullPointerException("null is not allowed here");
-                
-        return;
-    }
+  /**
+   * Turns the output of debug information for instructions on or off.
+   * 
+   * @param enable if true, turn trace on. false turns trace off.
+   */
+  public void traceInstructions(boolean enable) {
+    return;
+  }
 
-    /**
-     * De-registers a previously-registered virtual-machine shutdown hook.
-     * 
-     * @param hook the hook (a Thread) to de-register
-     * @return true if the hook could be de-registered
-     */
-    public boolean removeShutdownHook(Thread hook) {
-        // Check hook for null
-        if (hook == null)
-            throw new NullPointerException("null is not allowed here");
-                
-        return false;
-    }
+  /**
+   * Turns the output of debug information for methods on or off.
+   * 
+   * @param enable if true, turn trace on. false turns trace off.
+   */
+  public void traceMethodCalls(boolean enable) {
+    return;
+  }
 
-    /**
-     * Causes the virtual machine to stop running, and the program to exit.
-     * Finalizers will not be run first. Shutdown hooks will not be run.
-     * 
-     * @param code
-     *            the return code.
-     * @throws SecurityException
-     *                if the running thread is not allowed to cause the vm to
-     *                exit.
-     * @see SecurityManager#checkExit
-     */
-    public void halt(int code) {
-      VM.sysExit(code);
-    }
+  /**
+   * @deprecated Use InputStreamReader
+   */
+  @Deprecated
+  public InputStream getLocalizedInputStream(InputStream stream) {
+    throw new Error("TODO");
+  }
 
-    /**
-     * Return the number of processors, always at least one.
-     */
-    public int availableProcessors() {
-        return 0;
-    }
+  /**
+   * @deprecated Use OutputStreamWriter
+   */
+  @Deprecated
+  public OutputStream getLocalizedOutputStream(OutputStream stream) {
+    throw new Error("TODO");
+  }
 
-    /**
-     * Return the maximum memory that will be used by the virtual machine, or
-     * Long.MAX_VALUE.
-     */
-    public long maxMemory() {
-        return 0L;
-    }
+  /**
+   * Registers a new virtual-machine shutdown hook.
+   * 
+   * @param hook the hook (a Thread) to register
+   */
+  public void addShutdownHook(Thread hook) {
+    // Check hook for null
+    if (hook == null)
+      throw new NullPointerException("null is not allowed here");
 
+    throw new Error("TODO");
+  }
+
+  /**
+   * De-registers a previously-registered virtual-machine shutdown hook.
+   * 
+   * @param hook the hook (a Thread) to de-register
+   * @return true if the hook could be de-registered
+   */
+  public boolean removeShutdownHook(Thread hook) {
+    // Check hook for null
+    if (hook == null)
+      throw new NullPointerException("null is not allowed here");
+
+    throw new Error("TODO");
+  }
+
+  /**
+   * Causes the virtual machine to stop running, and the program to exit.
+   * Finalizers will not be run first. Shutdown hooks will not be run.
+   * 
+   * @param code
+   *            the return code.
+   * @throws SecurityException
+   *                if the running thread is not allowed to cause the vm to
+   *                exit.
+   * @see SecurityManager#checkExit
+   */
+  public void halt(int code) {
+    VM.sysExit(code);
+  }
+
+  /**
+   * Return the number of processors, always at least one.
+   */
+  public int availableProcessors() {
+    return VM_Scheduler.availableProcessors();
+  }
+
+  /**
+   * Return the maximum memory that will be used by the virtual machine, or
+   * Long.MAX_VALUE.
+   */
+  public long maxMemory() {
+    return MM_Interface.maxMemory().toLong();
+  }
 }
