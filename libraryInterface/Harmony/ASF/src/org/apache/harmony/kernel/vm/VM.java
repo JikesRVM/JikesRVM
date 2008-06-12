@@ -123,7 +123,11 @@ public final class VM {
      * @param classLoader the classloader to do the work
      */
     static Class<?> findClassOrNull(String className, ClassLoader classLoader) {
+      try {
+        return classLoader.loadClass(className);
+      } catch (ClassNotFoundException e) {
         return null;
+      }
     }
 
     /**
