@@ -384,8 +384,8 @@ public class Mutator extends Thread {
    */
   public void muAlloc(String toVar, int bytes) {
     int words = (bytes >>> SimulatedMemory.LOG_BYTES_IN_WORD);
-    assert words >= ObjectModel.HEADER_SIZE: "Allocation request smaller than minimum object size";
-    muAlloc(toVar, 0, words - ObjectModel.HEADER_SIZE);
+    assert words >= ObjectModel.HEADER_WORDS: "Allocation request smaller than minimum object size";
+    muAlloc(toVar, 0, words - ObjectModel.HEADER_WORDS);
   }
 
   /**
