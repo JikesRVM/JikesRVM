@@ -35,7 +35,7 @@ import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
-import org.jikesrvm.options.VM_OptionSet;
+import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_ProcessorTable;
@@ -151,7 +151,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void processCommandLineArg(String arg) {
-    if (!VM_OptionSet.gc.process(arg)) {
+    if (!OptionSet.gc.process(arg)) {
       VM.sysWriteln("Unrecognized command line argument: \"" + arg + "\"");
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }

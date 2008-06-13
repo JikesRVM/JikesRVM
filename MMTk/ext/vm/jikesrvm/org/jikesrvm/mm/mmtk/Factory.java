@@ -18,7 +18,6 @@ import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.ReferenceProcessor.Semantics;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.options.VM_OptionSet;
 
 /**
  * This is a VM-specific class which defines factory methods for
@@ -37,7 +36,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    * @return A concrete VM-specific OptionSet instance
    */
   public OptionSet getOptionSet() {
-    return VM_OptionSet.gc;
+    return org.jikesrvm.options.OptionSet.gc;
   }
 
   /**

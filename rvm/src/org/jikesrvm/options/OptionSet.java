@@ -12,9 +12,18 @@
  */
 package org.jikesrvm.options;
 
-import org.vmutil.options.*;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Word;
+import org.vmutil.options.AddressOption;
+import org.vmutil.options.BooleanOption;
+import org.vmutil.options.EnumOption;
+import org.vmutil.options.FloatOption;
+import org.vmutil.options.IntOption;
+import org.vmutil.options.MicrosecondsOption;
+import org.vmutil.options.Option;
+import org.vmutil.options.PagesOption;
+import org.vmutil.options.StringOption;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
@@ -23,13 +32,13 @@ import org.jikesrvm.VM_CommandLineArgs;
 /**
  * Class to handle command-line arguments and options for GC.
  */
-public final class VM_OptionSet extends org.vmutil.options.OptionSet {
+public final class OptionSet extends org.vmutil.options.OptionSet {
 
   private String prefix;
 
-  public static final VM_OptionSet gc = new VM_OptionSet("-X:gc");
+  public static final OptionSet gc = new OptionSet("-X:gc");
 
-  private VM_OptionSet(String prefix) {
+  private OptionSet(String prefix) {
     this.prefix = prefix;
   }
 
