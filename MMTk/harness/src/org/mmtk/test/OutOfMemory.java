@@ -31,6 +31,7 @@ public class OutOfMemory extends Test {
       }
     } catch (Mutator.OutOfMemory oom) {
       System.err.println("OutOfMemory");
+      m.muEnd();
       return;
     }
   }
