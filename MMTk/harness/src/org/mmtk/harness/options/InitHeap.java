@@ -13,6 +13,7 @@
 package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
+import org.vmmagic.unboxed.SimulatedMemory;
 
 /**
  * The initial heap size.
@@ -24,7 +25,7 @@ public final class InitHeap extends org.vmutil.options.PagesOption {
   public InitHeap() {
     super(Harness.options, "Init Heap",
         "Initial Heap Size",
-        2 << 20);
+        (1 << 20) >>> SimulatedMemory.LOG_BYTES_IN_PAGE);
   }
 
   protected void validate() {
