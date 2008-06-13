@@ -67,36 +67,48 @@
   <!-- *************************************************************************** -->
   <!--                           Build Harmony                                     -->
   <!-- *************************************************************************** -->
+  <macrodef name="buildHarmony">
+    <attribute name="target"/>
+    <sequential>
+      <if>
+        <conditions>
+          <isset property="harmony.arch"/>
+        </conditions>
+        <sequential>
+          <exec executable="${ant.exe}" dir="${harmony.dir}" failonerror="true">
+            <env key="ASFLAGS" value="${harmony.asflags}"/>
+            <env key="LDFLAGS" value="${harmony.ldflags}"/>
+            <env key="CFLAGS" value="${harmony.cflags}"/>
+            <env key="CXXFLAGS" value="${harmony.cxxflags}"/>
+            <arg value="-Dhy.javac.compiler=modern"/>
+            <arg value="-Dhy.arch=${harmony.arch}"/>
+            <arg value="@{target}"/>
+          </exec>
+        </sequential>
+      </if>
+      <if>
+        <conditions>
+          <not>
+            <isset property="harmony.arch"/>
+          </not>
+        </conditions>
+        <sequential>
+          <subant buildpath="${harmony.dir}" target="@{target}">
+            <property name="hy.javac.compiler" value="modern"/>
+          </subant>
+        </sequential>
+      </if>
+    </sequential>
+  </macrodef>
+
+
   <target name="build" depends="fetch,patch" description="Download Harmony and build.">
     <!-- fetch harmony dependencies -->
-    <subant buildpath="${harmony.dir}" target="fetch-depends"/>
+    <buildHarmony target="fetch-depends"/>
+
     <!-- build harmony in harmony.dir -->
-    <if>
-      <conditions>
-        <isset property="ant.exe"/>
-      </conditions>
-      <sequential>
-        <exec executable="${ant.exe}" dir="${harmony.dir}" failonerror="true">
-          <env key="CFLAGS" value="${c.args}"/>
-          <env key="CXXFLAGS" value="${c++.args}"/>
-          <arg value="-Dhy.javac.compiler=modern"/>
-          <arg value="build"/>
-        </exec>
-      </sequential>
-    </if>
-    <if>
-      <conditions>
-        <not>
-          <isset property="ant.exe"/>
-        </not>
-      </conditions>
-      <sequential>
-        <subant buildpath="${harmony.dir}" target="build">
-          <property name="hy.javac.compiler" value="modern"/>
-        </subant>
-      </sequential>
-    </if>
-           
+    <buildHarmony target="build"/>
+
     <!-- copy to a build target directory -->
     <condition property="library.suffix" value=".so">
       <equals arg1="${target.os}" arg2="Linux"/>
