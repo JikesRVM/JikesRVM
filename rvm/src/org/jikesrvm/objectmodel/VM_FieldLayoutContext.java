@@ -13,7 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 
 /**
  * State for the field layout engine.  Subtypes of this are closely
@@ -113,6 +113,6 @@ public abstract class VM_FieldLayoutContext implements VM_SizeConstants {
    * @param size The size occupied by data fields in the object.
    */
   protected void ensureObjectSize(int size) {
-    objectSize = size > objectSize ? VM_Memory.alignUp(size, OBJECT_SIZE_ALIGN) : objectSize;
+    objectSize = size > objectSize ? Memory.alignUp(size, OBJECT_SIZE_ALIGN) : objectSize;
   }
 }

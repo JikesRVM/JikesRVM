@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 
 /**
  * Generates a custom IMT-conflict resolution stub.
@@ -54,7 +54,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
     ArchitectureSpecific.CodeArray stub = asm.makeMachineCode().getInstructions();
 
     // (5) synchronize icache with generated machine code that was written through dcache
-    if (VM.runningVM) VM_Memory.sync(VM_Magic.objectAsAddress(stub), stub.length() << LG_INSTRUCTION_WIDTH);
+    if (VM.runningVM) Memory.sync(VM_Magic.objectAsAddress(stub), stub.length() << LG_INSTRUCTION_WIDTH);
 
     return stub;
   }

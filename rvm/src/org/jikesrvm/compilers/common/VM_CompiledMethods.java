@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -259,7 +259,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       int ct = cm.getCompilerType();
       codeCount[ct]++;
       int size = codeArray.getInstanceSize(cm.numberOfInstructions());
-      codeBytes[ct] += VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
+      codeBytes[ct] += Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }
     VM.sysWriteln("Compiled code space report\n");

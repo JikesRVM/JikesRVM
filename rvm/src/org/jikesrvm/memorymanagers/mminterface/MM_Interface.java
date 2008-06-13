@@ -38,7 +38,6 @@ import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.options.VM_OptionSet;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.scheduler.VM_ProcessorTable;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -632,7 +631,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Inline
   public static Object allocateScalar(int size, VM_TIB tib, int allocator, int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
+    allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
@@ -698,7 +697,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   private static Object allocateArrayInternal(int numElements, int size, VM_TIB tib, int allocator,
                                               int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
+    allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
@@ -720,7 +719,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   private static Address allocateSpace(Selected.Mutator mutator, int bytes, int align, int offset, int allocator,
                                        int site) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
-    bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
+    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
 
     /* Now make the request */
     Address region;
@@ -746,7 +745,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   public static Address allocateSpace(Selected.Collector collector, int bytes, int align, int offset, int allocator,
                                       ObjectReference from) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
-    bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
+    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
 
     /* Now make the request */
     Address region;
@@ -773,7 +772,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
-    Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
+    Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
   }
 

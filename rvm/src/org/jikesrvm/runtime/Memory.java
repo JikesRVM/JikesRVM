@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.Word;
  * might cause a gc, for example).
  */
 @Uninterruptible
-public class VM_Memory {
+public class Memory {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory

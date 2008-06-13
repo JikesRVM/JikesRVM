@@ -21,7 +21,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.VM_SizeConstants;
 
@@ -106,7 +105,7 @@ import org.vmmagic.pragma.*;
    * @return 0 if successful, otherwise the system errno
    */
   public final int dzmmap(Address start, int size) {
-    Address result = VM_Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
+    Address result = org.jikesrvm.runtime.Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
     if (result.EQ(start)) return 0;
     if (result.GT(Address.fromIntZeroExtend(127))) {
       VM.sysWrite("demand zero mmap with MAP_FIXED on ", start);
@@ -125,8 +124,8 @@ import org.vmmagic.pragma.*;
    * <code>false</code>
    */
   public final boolean mprotect(Address start, int size) {
-    return VM_Memory.mprotect(start, Extent.fromIntZeroExtend(size),
-                              VM_Memory.PROT_NONE);
+    return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
+                                                   org.jikesrvm.runtime.Memory.PROT_NONE);
   }
 
   /**
@@ -138,8 +137,10 @@ import org.vmmagic.pragma.*;
    * <code>false</code>
    */
   public final boolean munprotect(Address start, int size) {
-    return VM_Memory.mprotect(start, Extent.fromIntZeroExtend(size),
-                              VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
+    return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
+                                                   org.jikesrvm.runtime.Memory.PROT_READ |
+                                                   org.jikesrvm.runtime.Memory.PROT_WRITE |
+                                                   org.jikesrvm.runtime.Memory.PROT_EXEC);
   }
 
   /**
@@ -149,7 +150,7 @@ import org.vmmagic.pragma.*;
    * Returned: nothing
    */
   public final void zero(Address start, Extent len) {
-    VM_Memory.zero(start,len);
+    org.jikesrvm.runtime.Memory.zero(start,len);
   }
 
   /**
@@ -159,7 +160,7 @@ import org.vmmagic.pragma.*;
    */
   public final void zeroPages(Address start, int len) {
       /* AJG: Add assertions to check conditions documented above. */
-    VM_Memory.zeroPages(start,len);
+    org.jikesrvm.runtime.Memory.zeroPages(start,len);
   }
 
   /**
@@ -174,7 +175,7 @@ import org.vmmagic.pragma.*;
    */
   public final void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {
-    VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
+    org.jikesrvm.runtime.Memory.dumpMemory(start,beforeBytes,afterBytes);
   }
 
   /*

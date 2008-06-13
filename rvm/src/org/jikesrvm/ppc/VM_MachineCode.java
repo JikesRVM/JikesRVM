@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 
 /*
  * A block of machine code in the running virtual machine image.
@@ -68,8 +68,8 @@ public abstract class VM_MachineCode {
     // synchronize icache with generated machine code that was written through dcache
     //
     if (VM.runningVM) {
-      VM_Memory.sync(VM_Magic.objectAsAddress(instructions),
-                     instructions.length() << VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+      Memory.sync(VM_Magic.objectAsAddress(instructions),
+                  instructions.length() << VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
 
     // release work buffers

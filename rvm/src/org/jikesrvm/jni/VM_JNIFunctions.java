@@ -35,7 +35,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.util.VM_AddressInputStream;
@@ -3834,7 +3834,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       final char[] contents = new char[len];
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len * 2);
+      Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len * 2);
       return env.pushJNIRef(java.lang.JikesRVMSupport.newStringWithoutCopy(contents, 0, len));
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3890,7 +3890,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       Address strBase = VM_Magic.objectAsAddress(strChars);
       Address srcBase = strBase.plus(strOffset * 2);
-      VM_Memory.memcopy(copyBuffer, srcBase, len * 2);
+      Memory.memcopy(copyBuffer, srcBase, len * 2);
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4336,7 +4336,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return Address.zero();
       }
 
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size);
+      Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size);
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4380,7 +4380,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           return Address.zero();
         }
 
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
            address */
@@ -4423,7 +4423,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           return Address.zero();
         }
 
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size * BYTES_IN_CHAR);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size * BYTES_IN_CHAR);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4466,7 +4466,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           return Address.zero();
         }
 
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size * BYTES_IN_SHORT);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size * BYTES_IN_SHORT);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4508,7 +4508,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_INT);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_INT);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4550,7 +4550,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_LONG);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_LONG);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4593,7 +4593,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           return Address.zero();
         }
 
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_FLOAT);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_FLOAT);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4635,7 +4635,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_DOUBLE);
+        Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size << LOG_BYTES_IN_DOUBLE);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4727,7 +4727,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4768,7 +4768,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_CHAR);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_CHAR);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4806,7 +4806,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_SHORT);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_SHORT);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4844,7 +4844,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if (releaseMode == 0 || releaseMode == 1) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_INT);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_INT);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4882,7 +4882,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if (releaseMode == 0 || releaseMode == 1) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_LONG);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_LONG);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4920,7 +4920,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if (releaseMode == 0 || releaseMode == 1) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_FLOAT);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_FLOAT);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4958,7 +4958,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         // mode 0 and mode 1:  copy back the buffer
         if (releaseMode == 0 || releaseMode == 1) {
-          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_DOUBLE);
+          Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_DOUBLE);
         }
 
         // mode 0 and mode 2:  free the buffer
@@ -4993,7 +4993,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length);
+      Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5022,7 +5022,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length);
+      Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5051,7 +5051,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress,
+      Memory.memcopy(bufAddress,
                         VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_CHAR),
                         length << LOG_BYTES_IN_CHAR);
     } catch (Throwable unexpected) {
@@ -5082,7 +5082,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress,
+      Memory.memcopy(bufAddress,
                         VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_SHORT),
                         length << LOG_BYTES_IN_SHORT);
     } catch (Throwable unexpected) {
@@ -5113,7 +5113,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress,
+      Memory.memcopy(bufAddress,
                         VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_INT),
                         length << LOG_BYTES_IN_INT);
     } catch (Throwable unexpected) {
@@ -5144,7 +5144,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress,
+      Memory.memcopy(bufAddress,
                         VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_LONG),
                         length << LOG_BYTES_IN_LONG);
     } catch (Throwable unexpected) {
@@ -5175,7 +5175,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress,
+      Memory.memcopy(bufAddress,
                         VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_FLOAT),
                         length << LOG_BYTES_IN_FLOAT);
     } catch (Throwable unexpected) {
@@ -5206,7 +5206,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(bufAddress,
+      Memory.memcopy(bufAddress,
                         VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_DOUBLE),
                         length << LOG_BYTES_IN_DOUBLE);
     } catch (Throwable unexpected) {
@@ -5237,7 +5237,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length);
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5266,7 +5266,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length);
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5295,7 +5295,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_CHAR),
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_CHAR),
                         bufAddress,
                         length << LOG_BYTES_IN_CHAR);
     } catch (Throwable unexpected) {
@@ -5326,7 +5326,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_SHORT),
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_SHORT),
                         bufAddress,
                         length << LOG_BYTES_IN_SHORT);
     } catch (Throwable unexpected) {
@@ -5357,7 +5357,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_INT),
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_INT),
                         bufAddress,
                         length << LOG_BYTES_IN_INT);
     } catch (Throwable unexpected) {
@@ -5388,7 +5388,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_LONG),
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_LONG),
                         bufAddress,
                         length << LOG_BYTES_IN_LONG);
     } catch (Throwable unexpected) {
@@ -5419,7 +5419,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_FLOAT),
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_FLOAT),
                         bufAddress,
                         length << LOG_BYTES_IN_FLOAT);
     } catch (Throwable unexpected) {
@@ -5450,7 +5450,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_DOUBLE),
+      Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_DOUBLE),
                         bufAddress,
                         length << LOG_BYTES_IN_DOUBLE);
     } catch (Throwable unexpected) {
@@ -5797,7 +5797,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       }
       Address strBase = VM_Magic.objectAsAddress(strChars);
       Address srcBase = strBase.plus(strOffset * 2).plus(start * 2);
-      VM_Memory.memcopy(buf, srcBase, len * 2);
+      Memory.memcopy(buf, srcBase, len * 2);
 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);

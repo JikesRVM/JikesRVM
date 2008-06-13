@@ -20,7 +20,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Entrypoint;
@@ -600,7 +600,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) {
-        VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -647,7 +647,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) {
-        VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -694,7 +694,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_SHORT)) {
-        VM_Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -741,7 +741,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_CHAR)) {
-        VM_Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -788,7 +788,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= dstIdx) {
-        VM_Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -835,7 +835,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
-        VM_Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -882,7 +882,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
-        VM_Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -929,7 +929,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
-        VM_Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
+        Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
       } else {
         arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
       }
@@ -1011,7 +1011,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     if (!MM_Constants.NEEDS_READ_BARRIER && ((src != dst) || loToHi)) {
       if (!MM_Constants.NEEDS_WRITE_BARRIER ||
           !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, bytes)) {
-        VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).plus(dstOffset),
+        Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).plus(dstOffset),
                                   VM_Magic.objectAsAddress(src).plus(srcOffset),
                                   bytes);
       }

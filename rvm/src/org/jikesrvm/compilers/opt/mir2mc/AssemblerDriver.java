@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 
 /**
  * A compiler phase that generates machine code instructions and maps.
@@ -81,7 +81,7 @@ final class AssemblerDriver extends CompilerPhase implements VM_Constants {
     }
 
     if (VM.runningVM) {
-      VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode),
+      Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode),
                      codeLength << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
   }

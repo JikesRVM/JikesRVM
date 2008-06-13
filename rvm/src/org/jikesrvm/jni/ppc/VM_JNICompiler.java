@@ -29,7 +29,7 @@ import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
@@ -397,7 +397,7 @@ public abstract class VM_JNICompiler
     }
     int size = NATIVE_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;
     if (VM.BuildFor32Addr) {
-      size = VM_Memory.alignUp(size, STACKFRAME_ALIGNMENT);
+      size = Memory.alignUp(size, STACKFRAME_ALIGNMENT);
     }
     return size;
   }

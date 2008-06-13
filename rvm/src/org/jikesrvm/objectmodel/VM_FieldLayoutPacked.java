@@ -15,7 +15,7 @@ package org.jikesrvm.objectmodel;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 
 /**
  * Layout fields in an object, packt like sardines in a crushd tin box.
@@ -42,7 +42,7 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
         case 0: return slot0;
         case 1: return slot1;
         case 2: return slot2;
-        case 3: return (short)VM_Memory.alignUp(getObjectSize(), MAX_SLOT_SIZE);
+        case 3: return (short)Memory.alignUp(getObjectSize(), MAX_SLOT_SIZE);
         default: VM.sysFail("Invalid slot"); return -1;
       }
     }

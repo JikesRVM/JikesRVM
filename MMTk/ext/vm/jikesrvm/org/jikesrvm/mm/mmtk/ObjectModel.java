@@ -17,7 +17,6 @@ import org.mmtk.utility.alloc.Allocator;
 
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_JavaHeaderConstants;
 import org.jikesrvm.objectmodel.VM_TIB;
@@ -90,7 +89,7 @@ import org.vmmagic.pragma.*;
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.
       int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-      VM_Memory.sync(to.toAddress(), dataSize);
+      org.jikesrvm.runtime.Memory.sync(to.toAddress(), dataSize);
     }
     return to;
   }

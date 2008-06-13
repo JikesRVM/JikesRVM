@@ -45,7 +45,7 @@ import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
@@ -143,7 +143,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       size += (lastFixedStackRegister - FIRST_FIXED_LOCAL_REGISTER + 1) << LOG_BYTES_IN_ADDRESS;
     }
     if (VM.BuildFor32Addr) {
-      size = VM_Memory.alignUp(size, STACKFRAME_ALIGNMENT);
+      size = Memory.alignUp(size, STACKFRAME_ALIGNMENT);
     }
     return size;
   }
@@ -164,7 +164,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       size += (num_gpr << LOG_BYTES_IN_ADDRESS);
     }
     if (VM.BuildFor32Addr) {
-      size = VM_Memory.alignUp(size, STACKFRAME_ALIGNMENT);
+      size = Memory.alignUp(size, STACKFRAME_ALIGNMENT);
     }
     return size;
   }
@@ -3402,7 +3402,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       }
 
       // round up first, save scratch FPRs
-      offset = VM_Memory.alignDown(offset - STACKFRAME_ALIGNMENT + 1, STACKFRAME_ALIGNMENT);
+      offset = Memory.alignDown(offset - STACKFRAME_ALIGNMENT + 1, STACKFRAME_ALIGNMENT);
 
       for (int i = LAST_SCRATCH_FPR; i >= FIRST_SCRATCH_FPR; --i) {
         asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);

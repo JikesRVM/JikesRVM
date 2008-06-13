@@ -15,7 +15,7 @@ package org.jikesrvm.jni.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 
 /**
  * Define the stackframes used for JNI transition frames.
@@ -54,7 +54,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants, V
 
   int JNI_GC_FLAG_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
 
-  int JNI_MINI_FRAME_POINTER_OFFSET = VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE, STACKFRAME_ALIGNMENT);
+  int JNI_MINI_FRAME_POINTER_OFFSET = Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE, STACKFRAME_ALIGNMENT);
 
   int JNI_SAVE_AREA_SIZE = JNI_MINI_FRAME_POINTER_OFFSET;
 
@@ -75,7 +75,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants, V
   int JNI_GLUE_FRAME_OTHERS = 1 * BYTES_IN_ADDRESS;
 
   int JNI_GLUE_FRAME_SIZE =
-      VM_Memory.alignUp(STACKFRAME_HEADER_SIZE +
+      Memory.alignUp(STACKFRAME_HEADER_SIZE +
                         JNI_GLUE_SAVED_VOL_SIZE +
                         JNI_GLUE_RVM_EXTRA_GPRS_SIZE +
                         JNI_GLUE_FRAME_OTHERS, STACKFRAME_ALIGNMENT);

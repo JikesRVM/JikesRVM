@@ -23,7 +23,7 @@ import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -133,7 +133,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
     Address bridgeaddr = VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
-    VM_Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
+    Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
     VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
 

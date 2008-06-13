@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.classloader.VM_UTF8Convert;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -100,7 +100,7 @@ public abstract class VM_JNIGenericHelpers {
 
     int length = strlen(stringAddress);
     byte[] contents = new byte[length];
-    VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
+    Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
 
     return contents;
   }

@@ -31,7 +31,7 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Time;
 import org.vmmagic.pragma.BaselineNoRegisters;
@@ -1362,7 +1362,7 @@ public abstract class RVMThread {
       VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD)));
     }
 
-    VM_Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
+    Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
 
     return newFP.diff(myFP);
   }

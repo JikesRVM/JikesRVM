@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
@@ -94,7 +94,7 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
     // spills[] carries burden of doubleword aligning stack frame
     if (VM.BuildFor32Addr) {
       int frameSize = (Spills << LOG_BYTES_IN_STACKSLOT) + STACKFRAME_HEADER_SIZE;
-      frameSize = VM_Memory.alignUp(frameSize, STACKFRAME_ALIGNMENT);
+      frameSize = Memory.alignUp(frameSize, STACKFRAME_ALIGNMENT);
       Spills = (frameSize - STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_STACKSLOT;
     }
 

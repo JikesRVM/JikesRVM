@@ -21,7 +21,7 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_ThinLock;
 import org.jikesrvm.scheduler.RVMThread;
@@ -128,7 +128,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
         size += HASHCODE_BYTES;
       }
     }
-    return VM_Magic.objectAsAddress(obj).plus(VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT) -
+    return VM_Magic.objectAsAddress(obj).plus(Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT) -
                                               OBJECT_REF_OFFSET);
   }
 
@@ -143,7 +143,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
         size += HASHCODE_BYTES;
       }
     }
-    return VM_Magic.objectAsAddress(obj).plus(VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT) -
+    return VM_Magic.objectAsAddress(obj).plus(Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT) -
                                               OBJECT_REF_OFFSET);
   }
 
@@ -240,7 +240,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
         size += HASHCODE_BYTES;
       }
     }
-    return VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT);
+    return Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT);
   }
 
   /**
@@ -256,7 +256,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
         }
       }
     }
-    return VM_Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT);
+    return Memory.alignUp(size, VM_SizeConstants.BYTES_IN_INT);
   }
 
   /**
@@ -469,7 +469,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
     }
 
     // Do the copy
-    VM_Memory.aligned32Copy(toAddress, fromAddress, copyBytes);
+    Memory.aligned32Copy(toAddress, fromAddress, copyBytes);
     toObj = VM_Magic.addressAsObject(toAddress.plus(objRefOffset));
 
     // Do we need to copy the hash code?

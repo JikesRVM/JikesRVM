@@ -475,7 +475,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * internal reflective operations and some magic.
    * This is inefficient for large scalar objects, but until that
    * is proven to be a  performance problem, we won't worry about it.
-   * By keeping this in Java instead of dropping into VM_Memory.copy,
+   * By keeping this in Java instead of dropping into Memory.copy,
    * we avoid having to add special case code to deal with write barriers,
    * and other such things.
    *
