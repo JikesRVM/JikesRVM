@@ -20,6 +20,12 @@ import org.mmtk.harness.Mutator;
  */
 public abstract class Test {
     public static void main(String[] args) {
+      /* Usage */
+      if (args.length < 1) {
+        System.err.println("usage: java -jar mmtk-harness.jar test-class [options ...]");
+        System.exit(1);
+      }
+
       /* First argument is the test class name */
       String[] harnessArgs = new String[args.length - 1];
       System.arraycopy(args, 1, harnessArgs, 0, harnessArgs.length);
