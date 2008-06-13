@@ -37,7 +37,10 @@
   <property name="primordials.dir" location="build/primordials"/>
   <property name="main.java" location="rvm/src"/>
   <property name="mmtk.java" location="MMTk/src"/>
-  <property name="mmtk-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
+  <property name="mmtk-harness.java" location="MMTk/harness/src"/>
+  <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
+  <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
+  <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="options.java" location="common/options/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
@@ -50,6 +53,7 @@
   <property name="build.vmmagic-stub.classes" location="${build.dir}/vmmagic-stub/classes"/>
   <property name="build.options.classes" location="${build.dir}/options/classes"/>
   <property name="build.mmtk.jar" location="${build.dir}/mmtk/mmtk.jar"/>
+  <property name="build.mmtk-harness.jar" location="${build.dir}/mmtk/mmtk-harness.jar"/>
   <property name="build.native" location="${build.base}/c"/>
   <property name="build.objs" location="${build.base}/objs"/>
   <property name="build.classes" location="${build.base}/classes"/>
@@ -399,6 +403,25 @@ Check to make sure all required properties are specified. This includes properti
       </classpath>
     </javac>
     <jar destfile="${build.mmtk.jar}" basedir="${build.mmtk.classes}"/>
+    <property name="build.mmtk-harness.classes" location="${build.dir}/mmtk/harness/classes"/>
+    <mkdir dir="${build.mmtk-harness.classes}"/>
+    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}" destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" source="1.5"
+           target="1.5">
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+        <pathelement location="${build.mmtk.classes}"/>
+        <pathelement location="${build.options.classes}"/>
+      </classpath>
+    </javac>
+    <jar destfile="${build.mmtk-harness.jar}" update="true" compress="false">
+      <manifest>
+        <attribute name="Main-Class" value="org.mmtk.test.Test"/>
+      </manifest>
+      <fileset dir="${build.vmmagic-stub.classes}"/>
+      <fileset dir="${build.mmtk-harness.classes}"/>
+      <fileset dir="${build.mmtk.classes}"/>
+      <fileset dir="${build.options.classes}"/>
+    </jar>
   </target>
 
   <!-- **************************************************************************** -->
@@ -1007,8 +1030,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="1.5"
                target="1.5"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-rvm.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-rvm.java}">
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
           </bootclasspath>
@@ -1040,8 +1063,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="1.5"
                target="1.5"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-rvm.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-rvm.java}">
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}">
           <bootclasspath>
             <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
             <pathelement location="${harmony.lib.dir}/luni.jar"/>
@@ -1985,7 +2008,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="${mmtk.java}">
         <include name="**/*.java"/>
       </fileset>
-      <fileset dir="${mmtk-rvm.java}">
+      <fileset dir="${mmtk-vm-rvm.java}">
         <include name="**/*.java"/>
       </fileset>
       <fileset dir="${generated.java}">
@@ -2032,7 +2055,7 @@ target.jni-suffix=${target.jni-suffix}
       <src path="${classlib.library-interface.non-cpl2.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${mmtk.java}"/>
-      <src path="${mmtk-rvm.java}"/>
+      <src path="${mmtk-vm-rvm.java}"/>
       <src path="${generated.java}"/>
       <src path="${generated.arch.java}"/>
       <src path="${generated.config.java}"/>
@@ -2075,7 +2098,7 @@ target.jni-suffix=${target.jni-suffix}
 
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
-      <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${generated.java}" includes="org/**"/>
       <packageset dir="${generated.arch.java}" includes="org/**"/>
       <packageset dir="${generated.config.java}" includes="org/**"/>
