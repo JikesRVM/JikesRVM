@@ -186,7 +186,7 @@ import org.vmmagic.unboxed.*;
     double gcLoad = accumulatedGCTime / totalTime;
 
     if (liveRatio > 1) {
-      // Perhaps indicates bad bookkeeping in JMTk?
+      // Perhaps indicates bad bookkeeping in MMTk?
       Log.write("GCWarning: Live ratio greater than 1: ");
       Log.writeln(liveRatio);
       liveRatio = 1;
