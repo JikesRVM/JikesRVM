@@ -416,6 +416,22 @@ public class Mutator extends Thread {
   }
 
   /**
+   * Load a data field from an object.
+   *
+   * @param fromVar The object to load the data from.
+   * @param fromIndex The index to load.
+   */
+  public int muLoadData(String fromVar, int fromIndex) {
+    ObjectReference ref = getVar(fromVar);
+    int dataCount = ObjectModel.getDataCount(ref);
+    assert fromIndex >= 0 && fromIndex < dataCount: "Index out of bounds";
+    Address slot = ObjectModel.getDataSlot(ref, fromIndex);
+    int value = slot.loadInt();
+    gcSafePoint();
+    return value;
+  }
+
+  /**
    * Store a reference into an object at the specified index.
    *
    * @param toVar The variable holding the object to store into.
@@ -425,6 +441,22 @@ public class Mutator extends Thread {
   public void muStore(String toVar, int toIndex, String fromVar) {
     ObjectReference target = getVar(fromVar);
     storeInternal(toVar, toIndex, target);
+    gcSafePoint();
+  }
+
+  /**
+   * Store data into an object at the specified index.
+   *
+   * @param toVar The variable holding the object to store into.
+   * @param toIndex The index to store.
+   * @param value The data value to store.
+   */
+  public void muStoreData(String toVar, int toIndex, int value) {
+    ObjectReference src = getVar(toVar);
+    int dataCount = ObjectModel.getDataCount(src);
+    assert toIndex >= 0 && toIndex < dataCount: "Index out of bounds";
+    Address slot = ObjectModel.getDataSlot(src, toIndex);
+    slot.store(value);
     gcSafePoint();
   }
 

@@ -125,8 +125,24 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
     return getSize(refs, data);
   }
 
+  /**
+   * Return the address of the specified reference.
+   *
+   * @param object The object with the references.
+   * @param index The reference index.
+   */
   public static Address getRefSlot(ObjectReference object, int index) {
     return object.toAddress().plus(REFS_OFFSET).plus(index << SimulatedMemory.LOG_BYTES_IN_WORD);
+  }
+
+  /**
+   * Return the address of the specified data slot.
+   *
+   * @param object The object with the data slot.
+   * @param index The data slot index.
+   */
+  public static Address getDataSlot(ObjectReference object, int index) {
+    return getRefSlot(object, index + getRefs(object));
   }
 
   /**
