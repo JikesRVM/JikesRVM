@@ -62,6 +62,9 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
     setId(ref, allocateObjectId());
     setRefCount(ref, refCount);
     setDataCount(ref, dataCount);
+
+    // Call MMTk postAlloc
+    context.postAlloc(ref, null, bytes, allocator);
     return ref;
   }
 
