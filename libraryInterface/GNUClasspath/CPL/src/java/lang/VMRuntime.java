@@ -16,7 +16,7 @@ import java.io.File;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
-import org.jikesrvm.scheduler.greenthreads.VM_Process;
+import org.jikesrvm.scheduler.greenthreads.VMProcess;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
 
@@ -98,7 +98,7 @@ public final class VMRuntime {
 
   static Process exec(String[] cmd, String[] env, File dir) {
     String dirPath = (dir != null) ? dir.getPath() : null;
-    return new VM_Process(cmd[0], cmd, env, dirPath);
+    return new VMProcess(cmd[0], cmd, env, dirPath);
   }
 
   /**

@@ -1422,9 +1422,9 @@ Check to make sure all required properties are specified. This includes properti
            classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.VM_DynamicLibrary"/>
     </javah>
-    <javah outputFile="${build.native}/org_jikesrvm_scheduler_greenthreads_VM_0005fProcess.h"
+    <javah outputFile="${build.native}/org_jikesrvm_scheduler_greenthreads_VMProcess.h"
            classpath="${build.vm.jar}">
-      <class name="org.jikesrvm.scheduler.greenthreads.VM_Process"/>
+      <class name="org.jikesrvm.scheduler.greenthreads.VMProcess"/>
     </javah>
   </target>
 
@@ -1592,7 +1592,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvmexec.dll}"/>
-      <arg value="${bl.dir}/org_jikesrvm_scheduler_greenthreads_VM_0005fProcess.c"/>
+      <arg value="${bl.dir}/org_jikesrvm_scheduler_greenthreads_VMProcess.c"/>
     </exec>
 
     <!-- create rvmdynlib shared library -->

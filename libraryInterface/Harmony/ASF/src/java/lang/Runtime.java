@@ -28,7 +28,7 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_Process;
+import org.jikesrvm.scheduler.greenthreads.VMProcess;
 
 /**
  * This class, with the exception of the exec() APIs, must be implemented by the
@@ -128,7 +128,7 @@ public class Runtime {
     String dirPathName = (directory != null ? directory.getPath() : null);
 
     String dirPath = (directory != null) ? directory.getPath() : null;
-    return new VM_Process(progArray[0], progArray, envp, dirPathName);
+    return new VMProcess(progArray[0], progArray, envp, dirPathName);
   }
 
   /**

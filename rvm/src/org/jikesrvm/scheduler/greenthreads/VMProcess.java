@@ -21,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Jikes RVM implementation of <code>java.lang.Process</code>.
  */
-public class VM_Process extends java.lang.Process {
+public class VMProcess extends java.lang.Process {
 
   static {
     System.loadLibrary("rvmexec");
@@ -57,7 +57,7 @@ public class VM_Process extends java.lang.Process {
    * @param env array of environment variable bindings (optional)
    * @param dirPath name of directory to use as working directory (optional)
    */
-  public VM_Process(String program, String[] args, String[] env, String dirPath) {
+  public VMProcess(String program, String[] args, String[] env, String dirPath) {
     pid = exec4(program, args, env, dirPath);
     creatingProcessor = VM_GreenProcessor.getCurrentProcessor();
     // FIXME: check for error creating process

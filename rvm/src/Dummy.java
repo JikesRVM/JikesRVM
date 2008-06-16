@@ -14,7 +14,7 @@ import org.jikesrvm.compilers.common.VM_RecompilationManager;
 import org.jikesrvm.runtime.VM_DynamicLinker;
 import org.jikesrvm.runtime.MathConstants;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.scheduler.greenthreads.VM_Process;
+import org.jikesrvm.scheduler.greenthreads.VMProcess;
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -29,7 +29,7 @@ class Dummy {
   static VM_DynamicLinker c;
   static org.jikesrvm.jni.VM_JNIFunctions d;
   static VM_Reflection e;
-  static VM_Process f;
+  static VMProcess f;
   static org.vmmagic.pragma.SaveVolatile i;
   static org.jikesrvm.memorymanagers.mminterface.MM_Interface l;
   static VM_RecompilationManager o;

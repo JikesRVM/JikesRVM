@@ -163,7 +163,7 @@ class VM_Wait {
    * @return the <code>VM_ThreadProcessWaitData</code> representing
    *   the state of the process
    */
-  public static VM_ThreadProcessWaitData processWait(VM_Process process, double totalWaitTime)
+  public static VM_ThreadProcessWaitData processWait(VMProcess process, double totalWaitTime)
       throws InterruptedException {
 
     // Create wait data to represent the event the thread is

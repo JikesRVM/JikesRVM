@@ -29,7 +29,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * for a particular process to exit.  The reason for
  * this restriction is that Unix semantics only allow us to
  * perform a <code>waitpid()</code> once
- * for a given process id.  {@link org.jikesrvm.scheduler.greenthreads.VM_Process} uses Java synchronization
+ * for a given process id.  {@link org.jikesrvm.scheduler.greenthreads.VMProcess} uses Java synchronization
  * to enforce this property.
  *
  * <p> Note that a strange issue arises on Linux: it is only possible
@@ -48,7 +48,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * <p> I would imagine that AIX pthreads work correctly with respect to
  * allowing arbitrary pthreads to perform a <code>waitpid()</code>.
  *
- * @see org.jikesrvm.scheduler.greenthreads.VM_Process
+ * @see org.jikesrvm.scheduler.greenthreads.VMProcess
  */
 @Uninterruptible
 public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue implements VM_ThreadEventConstants {

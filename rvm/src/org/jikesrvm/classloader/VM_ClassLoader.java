@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Properties;
+import org.jikesrvm.Properties;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
@@ -204,7 +204,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
 
     String r = getApplicationRepositories();
 
-    if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL) {
+    if (Properties.verboseBoot >= 1 || DBG_APP_CL) {
       VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): " +
                     "Initializing Application ClassLoader, with" +
                     " repositories: `", r, "'...");
@@ -212,7 +212,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
 
     appCL = new VM_ApplicationClassLoader(r);
 
-    if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL) {
+    if (Properties.verboseBoot >= 1 || DBG_APP_CL) {
       VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ",
                     appCL.toString());
     }

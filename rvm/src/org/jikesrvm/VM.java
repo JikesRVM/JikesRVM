@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.Word;
  * A virtual machine.
  */
 @Uninterruptible
-public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
+public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
   /**
    * Reference to the main thread that is the first none VM thread run
@@ -374,7 +374,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
       runClassInitializer("java.lang.VMDouble");
     }
     runClassInitializer("java.util.PropertyPermission");
-    runClassInitializer("org.jikesrvm.scheduler.greenthreads.VM_Process");
+    runClassInitializer("org.jikesrvm.scheduler.greenthreads.VMProcess");
     runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
     runClassInitializer("java.lang.annotation.RetentionPolicy");
     runClassInitializer("java.lang.annotation.ElementType");

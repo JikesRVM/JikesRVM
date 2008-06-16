@@ -38,7 +38,7 @@ extern char **environ;
 #include "InterfaceDeclarations.h"
 
 // generated class header
-#include "org_jikesrvm_scheduler_greenthreads_VM_0005fProcess.h"
+#include "org_jikesrvm_scheduler_greenthreads_VMProcess.h"
 
 // local stuff
 
@@ -156,7 +156,7 @@ static char *convertString(JNIEnv *env, jstring jstr)
 const int INPUT = 0, OUTPUT = 1;
 
 /* Create a pipe, and set appropriate file descriptor
-   field in the VM_Process object.
+   field in the VMProcess object.
    Returns -1 on error, 0 on OK. */
 static int
 createPipe(int descriptors[2], JNIEnv* env,
@@ -194,12 +194,12 @@ closePipe(int descriptors[])
 //////////////////////////////////////////////////////////////
 
 /*
- * Class:     VM_0005fProcess
+ * Class:     VMProcess
  * Method:    exec4
  * Signature: (Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL
-Java_org_jikesrvm_scheduler_greenthreads_VM_1Process_exec4
+Java_org_jikesrvm_scheduler_greenthreads_VMProcess_exec4
   (JNIEnv *env,
    jobject self,
    jstring programName,
@@ -255,7 +255,7 @@ Java_org_jikesrvm_scheduler_greenthreads_VM_1Process_exec4
 
   // Create pipes to communicate with child process.
 
-  jclass ProcessClassID = env->FindClass( "org/jikesrvm/scheduler/greenthreads/VM_Process" );
+  jclass ProcessClassID = env->FindClass( "org/jikesrvm/scheduler/greenthreads/VMProcess" );
   assert(ProcessClassID);
   int inputPipe[2], outputPipe[2], errorPipe[2];
   pid_t fid = -1;
@@ -405,14 +405,14 @@ Java_org_jikesrvm_scheduler_greenthreads_VM_1Process_exec4
 }
 
 /*
- * Class:     VM_0005fProcess
+ * Class:     VMProcess
  * Method:    destroyInternal
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_jikesrvm_scheduler_greenthreads_VM_1Process_destroyInternal
+JNIEXPORT void JNICALL Java_org_jikesrvm_scheduler_greenthreads_VMProcess_destroyInternal
   (JNIEnv *env, jobject self)
 {
-  // extract pid field from VM_Process object
+  // extract pid field from VMProcess object
   jclass ProcessClassID = env->GetObjectClass( self );
   assert(ProcessClassID);
   jfieldID pidFieldID = env->GetFieldID(ProcessClassID, "pid", "I");

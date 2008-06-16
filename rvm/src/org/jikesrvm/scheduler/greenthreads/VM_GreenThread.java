@@ -702,7 +702,7 @@ public class VM_GreenThread extends RVMThread {
    * @param process the <code>VM_Process</code> object associated
    *    with the process
    */
-  public static void processWaitImpl(VM_ThreadProcessWaitData waitData, VM_Process process) {
+  public static void processWaitImpl(VM_ThreadProcessWaitData waitData, VMProcess process) {
     VM_GreenThread myThread = VM_GreenScheduler.getCurrentThread();
     myThread.waitData = waitData;
     myThread.changeThreadState(State.RUNNABLE, State.PROCESS_WAITING);

@@ -21,7 +21,7 @@ import org.vmmagic.pragma.RuntimeFinal;
  * (and thus are NOT final).  All final properties should be
  * declared in VM_Configuration
  */
-public class VM_Properties extends VM_Options {
+public class Properties extends VM_Options {
 
   // The VM class hierarchy is used in three ways:
   //    - by boot image writer to create an executable vm image
