@@ -200,9 +200,9 @@ public class Memory extends org.mmtk.vm.Memory {
   /** @return The log base two of the minimum allocation alignment */
   protected byte getLogMinAlignmentConstant()  { return SimulatedMemory.LOG_BYTES_IN_WORD; }
   /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
-  protected byte getMaxAlignmentShiftConstant() { return 0; }
+  protected byte getMaxAlignmentShiftConstant() { return 1; }
   /** @return The maximum number of bytes of padding to prepend to an object */
-  protected int getMaxBytesPaddingConstant() { return 0; }
+  protected int getMaxBytesPaddingConstant() { return SimulatedMemory.BYTES_IN_WORD; }
   /** @return The value to store in alignment holes */
-  protected int getAlignmentValueConstant() { return 0; }
+  protected int getAlignmentValueConstant() { return ObjectModel.ALIGNMENT_VALUE; }
 }

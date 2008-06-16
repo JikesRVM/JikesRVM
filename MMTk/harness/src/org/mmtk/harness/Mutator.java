@@ -371,16 +371,14 @@ public class Mutator extends Thread {
   }
 
   /**
-   * Return the address of an object as a string for output
+   * Return the current address of an object (for use in assertions/debug output).
+   * This method will never yield to a collection.
    *
    * @param var The variable storing the object reference.
-   * @return The hash code
+   * @return The address of the object.
    */
-  public String muToString(String var) {
-    ObjectReference ref = getVar(var);
-    String result = ref.toString();
-    gcSafePoint();
-    return result;
+  public Address muAddress(String var) {
+    return getVar(var).toAddress();
   }
 
   /**
@@ -389,7 +387,17 @@ public class Mutator extends Thread {
    * @param bytes the size of the object in bytes.
    */
   public void muAlloc(int bytes) {
-    muAlloc(null, bytes);
+    muAlloc(null, bytes, false);
+  }
+
+  /**
+   * Allocate an object of the specified size.
+   *
+   * @param bytes the size of the object in bytes.
+   * @param doubleAlign Align the object on an 8 byte boundary
+   */
+  public void muAlloc(int bytes, boolean doubleAlign) {
+    muAlloc(null, bytes, doubleAlign);
   }
 
   /**
@@ -399,7 +407,18 @@ public class Mutator extends Thread {
    * @param dataCount The number of data fields.
    */
   public void muAlloc(int refCount, int dataCount) {
-    muAlloc(null, refCount, dataCount);
+    muAlloc(null, refCount, dataCount, false);
+  }
+
+  /**
+   * Allocate an object with the specified number of reference and data fields.
+   *
+   * @param refCount The number of reference fields.
+   * @param dataCount The number of data fields.
+   * @param doubleAlign Align the object on an 8 byte boundary
+   */
+  public void muAlloc(int refCount, int dataCount, boolean doubleAlign) {
+    muAlloc(null, refCount, dataCount, doubleAlign);
   }
 
   /**
@@ -409,6 +428,17 @@ public class Mutator extends Thread {
    * @param bytes the size of the object in bytes.
    */
   public void muAlloc(String toVar, int bytes) {
+    muAlloc(toVar, 0, false);
+  }
+
+  /**
+   * Allocate an object of the specified size and store a reference to it in the given variable.
+   *
+   * @param toVar The variable to store the object into.
+   * @param bytes the size of the object in bytes.
+   * @param doubleAlign Align the object on an 8 byte boundary
+   */
+  public void muAlloc(String toVar, int bytes, boolean doubleAlign) {
     int words = (bytes >>> SimulatedMemory.LOG_BYTES_IN_WORD);
     assert words >= ObjectModel.HEADER_WORDS: "Allocation request smaller than minimum object size";
     muAlloc(toVar, 0, words - ObjectModel.HEADER_WORDS);
@@ -423,7 +453,20 @@ public class Mutator extends Thread {
    * @param dataCount The number of data fields.
    */
   public void muAlloc(String toVar, int refCount, int dataCount) {
-    ObjectReference ref = ObjectModel.allocateObject(context, refCount, dataCount);
+    muAlloc(toVar, refCount, dataCount, false);
+  }
+
+  /**
+   * Allocate an object with the specified number of reference and data fields and store a
+   * reference to it in the given variable.
+   *
+   * @param toVar The variable to store the object into.
+   * @param refCount The number of reference fields.
+   * @param dataCount The number of data fields.
+   * @param doubleAlign Align the object on an 8 byte boundary
+   */
+  public void muAlloc(String toVar, int refCount, int dataCount, boolean doubleAlign) {
+    ObjectReference ref = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign);
     setVar(toVar, ref);
     gcSafePoint();
   }

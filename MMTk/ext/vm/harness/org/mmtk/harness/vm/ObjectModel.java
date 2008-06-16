@@ -32,7 +32,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    *    References
    *    Data
    *
-   * We assume BITS_IN_WORD >= 32
+   * Only tested using 32 bit and assumes at least 32 bits.
    */
 
   /** The total header size (including any requested GC words) */
@@ -59,6 +59,11 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   private static final int HASHED           = 0x1 << (3 * SimulatedMemory.BITS_IN_BYTE);
   /** Has this object been moved since it was hashed? */
   private static final int HASHED_AND_MOVED = 0x3 << (3 * SimulatedMemory.BITS_IN_BYTE);
+  /** Is this object 8 byte aligned */
+  private static final int DOUBLE_ALIGN     = 0x1 << (2 * SimulatedMemory.BITS_IN_BYTE);
+
+  /** The value placed in alignment holes */
+  public static final int ALIGNMENT_VALUE = 1;
 
   /** The next object id that will be allocated */
   private static int nextObjectId = 1;
@@ -69,22 +74,25 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   }
 
   /**
-   * Allocate an object and return the initialized ObjectReference.
+   * Allocate an object and return the ObjectReference.
    *
    * @param context The MMTk MutatorContext to use.
    * @param refCount The number of reference fields.
    * @param dataCount The number of data fields.
+   * @param doubleAlign Align the object at an 8 byte boundary?
    * @return The new ObjectReference.
    */
-  public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount) {
+  public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount, boolean doubleAlign) {
     int bytes = (HEADER_WORDS + refCount + dataCount) << SimulatedMemory.LOG_BYTES_IN_WORD;
+    int align = (doubleAlign ? 2 : 1) * SimulatedMemory.BYTES_IN_WORD;
     int allocator = context.checkAllocator(bytes, SimulatedMemory.LOG_BYTES_IN_WORD, Plan.ALLOC_DEFAULT);
 
     // Allocate the raw memory
-    Address region = context.alloc(bytes, SimulatedMemory.BYTES_IN_WORD, 0, allocator, 0);
+    Address region = context.alloc(bytes, align, 0, allocator, 0);
 
     // Create an object reference.
     ObjectReference ref = region.toObjectReference();
+    if (doubleAlign) region.store(DOUBLE_ALIGN, STATUS_OFFSET);
     setId(ref, allocateObjectId());
     setRefCount(ref, refCount);
     setDataCount(ref, dataCount);
@@ -197,7 +205,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Return the hash code for this object.
    *
    * @param ref The object.
-   * @return The hashcode
+   * @return The hash code
    */
   public static int getHashCode(ObjectReference ref) {
     Address addr = ref.toAddress();
@@ -312,7 +320,8 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return The alignment required for a copy of <code>obj</code>
    */
   public int getAlignWhenCopied(ObjectReference object) {
-    return SimulatedMemory.BYTES_IN_WORD;
+    boolean doubleAlign = (object.toAddress().loadInt(STATUS_OFFSET) & DOUBLE_ALIGN) == DOUBLE_ALIGN;
+    return (doubleAlign ? 2 : 1) * SimulatedMemory.BYTES_IN_WORD;
   }
 
   /**
@@ -340,6 +349,9 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    */
   public ObjectReference getNextObject(ObjectReference object) {
     Address nextAddress = object.toAddress().plus(getSize(object));
+    if (nextAddress.loadInt() == ALIGNMENT_VALUE) {
+      nextAddress = nextAddress.plus(SimulatedMemory.BYTES_IN_WORD);
+    }
     if (nextAddress.loadWord().isZero()) {
       return ObjectReference.nullReference();
     }
@@ -350,13 +362,16 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Return an object reference from knowledge of the low order word
    */
   public ObjectReference getObjectFromStartAddress(Address start) {
+    if (start.loadInt() == ALIGNMENT_VALUE) {
+      start = start.plus(SimulatedMemory.BYTES_IN_WORD);
+    }
     return start.toObjectReference();
   }
 
   /**
    * Gets a pointer to the address just past the end of the object.
    *
-   * @param object The objecty.
+   * @param object The object.
    */
   public Address getObjectEndAddress(ObjectReference object) {
     return object.toAddress().plus(getSize(object));
