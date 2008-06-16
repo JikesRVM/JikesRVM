@@ -22,6 +22,7 @@ public final class SimulatedMemory {
   public static final int LOG_BYTES_IN_WORD = 2;
   public static final int LOG_BYTES_IN_SHORT = 1;
   public static final int LOG_BITS_IN_BYTE = 3;
+  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
   public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
   public static final int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
   public static final int PAGE_SIZE = 1 << LOG_BYTES_IN_PAGE;

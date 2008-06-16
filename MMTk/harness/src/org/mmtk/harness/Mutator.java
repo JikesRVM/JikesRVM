@@ -358,6 +358,32 @@ public class Mutator extends Thread {
   }
 
   /**
+   * Return the hash code for object stored in the given variable.
+   *
+   * @param var The variable storing the object reference.
+   * @return The hash code
+   */
+  public int muHashCode(String var) {
+    ObjectReference ref = getVar(var);
+    int result = ObjectModel.getHashCode(ref);
+    gcSafePoint();
+    return result;
+  }
+
+  /**
+   * Return the address of an object as a string for output
+   *
+   * @param var The variable storing the object reference.
+   * @return The hash code
+   */
+  public String muToString(String var) {
+    ObjectReference ref = getVar(var);
+    String result = ref.toString();
+    gcSafePoint();
+    return result;
+  }
+
+  /**
    * Allocate an object of the specified size.
    *
    * @param bytes the size of the object in bytes.
@@ -472,6 +498,18 @@ public class Mutator extends Thread {
     ObjectReference ref = loadInternal(fromVar, fromIndex);
     storeInternal(toVar, toIndex, ref);
     gcSafePoint();
+  }
+
+  /**
+   * Check if the value stored in the given variable is null.
+   *
+   * @param var The variable to check.
+   */
+  public boolean muIsNull(String var) {
+    ObjectReference value = getVar(var);
+    boolean result = value.isNull();
+    gcSafePoint();
+    return result;
   }
 
   /**

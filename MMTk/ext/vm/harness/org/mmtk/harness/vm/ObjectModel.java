@@ -28,28 +28,54 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    *    Object id (age in allocations);        (Word)
    *    The size of the data section in words. (UInt16)
    *    The number of reference words.         (UInt16)
-   *    GC Word
+   *    Status Word (includes GC)
    *    References
    *    Data
    *
    * We assume BITS_IN_WORD >= 32
    */
 
-  public static final int HEADER_WORDS = 3;
+  /** The total header size (including any requested GC words) */
+  public static final int HEADER_WORDS = 3 + ActivePlan.constraints.gcHeaderWords();
+  /** The number of bytes in the header */
   public static final int HEADER_SIZE = HEADER_WORDS << SimulatedMemory.LOG_BYTES_IN_WORD;
+  /** The number of bytes requested for GC in the header */
+  private static final int GC_HEADER_BYTES = ActivePlan.constraints.gcHeaderWords() << SimulatedMemory.LOG_BYTES_IN_WORD;
 
-  private static final Offset ID_OFFSET        = Offset.zero();
+  /** The offset of the first GC header word */
+  private static final Offset GC_OFFSET        = Offset.zero();
+  /** The offset of the object ID */
+  private static final Offset ID_OFFSET        = GC_OFFSET.plus(GC_HEADER_BYTES);
+  /** The offset of the UInt16 storing the number of data fields */
   private static final Offset DATACOUNT_OFFSET = ID_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  /** The offset of the UInt16 storing the number of reference fields */
   private static final Offset REFCOUNT_OFFSET  = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_SHORT);
-  private static final Offset GC_OFFSET        = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
-  public  static final Offset REFS_OFFSET      = GC_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  /** The offset of the status word */
+  private static final Offset STATUS_OFFSET    = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  /** The offset of the first reference field. */
+  public  static final Offset REFS_OFFSET      = STATUS_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
 
+  /** Has this object been hashed? */
+  private static final int HASHED           = 0x1 << (3 * SimulatedMemory.BITS_IN_BYTE);
+  /** Has this object been moved since it was hashed? */
+  private static final int HASHED_AND_MOVED = 0x3 << (3 * SimulatedMemory.BITS_IN_BYTE);
+
+  /** The next object id that will be allocated */
   private static int nextObjectId = 1;
 
+  /** Allocate a new (sequential) object id */
   private static synchronized int allocateObjectId() {
     return nextObjectId++;
   }
 
+  /**
+   * Allocate an object and return the initialized ObjectReference.
+   *
+   * @param context The MMTk MutatorContext to use.
+   * @param refCount The number of reference fields.
+   * @param dataCount The number of data fields.
+   * @return The new ObjectReference.
+   */
   public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount) {
     int bytes = (HEADER_WORDS + refCount + dataCount) << SimulatedMemory.LOG_BYTES_IN_WORD;
     int allocator = context.checkAllocator(bytes, SimulatedMemory.LOG_BYTES_IN_WORD, Plan.ALLOC_DEFAULT);
@@ -119,13 +145,25 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   }
 
   /**
-   * Get the size of an object.
+   * Get the current size of an object.
    */
   public static int getSize(ObjectReference object) {
     int refs = getRefs(object);
     int data = getDataCount(object);
+    boolean includesHash = (object.toAddress().loadInt(STATUS_OFFSET) & HASHED_AND_MOVED) == HASHED_AND_MOVED;
 
-    return getSize(refs, data);
+    return getSize(refs, data) + (includesHash ? SimulatedMemory.BYTES_IN_WORD : 0);
+  }
+
+  /**
+   * Get the size this object will require when copied.
+   */
+  public static int getCopiedSize(ObjectReference object) {
+    int refs = getRefs(object);
+    int data = getDataCount(object);
+    boolean needsHash = (object.toAddress().loadInt(STATUS_OFFSET) & HASHED) == HASHED;
+
+    return getSize(refs, data) + (needsHash ? SimulatedMemory.BYTES_IN_WORD : 0);
   }
 
   /**
@@ -156,6 +194,28 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   }
 
   /**
+   * Return the hash code for this object.
+   *
+   * @param ref The object.
+   * @return The hashcode
+   */
+  public static int getHashCode(ObjectReference ref) {
+    Address addr = ref.toAddress();
+    int status = addr.loadInt(STATUS_OFFSET) & HASHED_AND_MOVED;
+    if (status == 0) {
+      // Set status to be HASHED
+      int old;
+      do {
+        old = addr.prepareInt(STATUS_OFFSET);
+      } while (!addr.attempt(old, old | HASHED, STATUS_OFFSET));
+    } else if (status == HASHED_AND_MOVED) {
+      // Load stored hash code
+      return addr.loadInt(Offset.fromIntZeroExtend(getSize(ref) - SimulatedMemory.BYTES_IN_WORD));
+    }
+    return addr.toInt() >>> SimulatedMemory.LOG_BYTES_IN_WORD;
+  }
+
+  /**
    * Copy an object using a plan's allocCopy to get space and install
    * the forwarding pointer.  On entry, <code>from</code> must have
    * been reserved for copying by the caller.  This method calls the
@@ -168,19 +228,27 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return the address of the new object
    */
   public ObjectReference copy(ObjectReference from, int allocator) {
-    int bytes = getSize(from);
+    int oldBytes = getSize(from);
+    int newBytes = getCopiedSize(from);
     int align = getAlignWhenCopied(from);
     CollectorContext c = Collector.current().getContext();
-    allocator = c.copyCheckAllocator(from, bytes, align, allocator);
-    Address toRegion = c.allocCopy(from, bytes, align, getAlignOffsetWhenCopied(from), allocator);
+    allocator = c.copyCheckAllocator(from, newBytes, align, allocator);
+    Address toRegion = c.allocCopy(from, newBytes, align, getAlignOffsetWhenCopied(from), allocator);
 
     Address fromRegion = from.toAddress();
-    for(int i=0; i < bytes; i += SimulatedMemory.BYTES_IN_WORD) {
+    for(int i=0; i < oldBytes; i += SimulatedMemory.BYTES_IN_WORD) {
       SimulatedMemory.setInt(toRegion.plus(i), SimulatedMemory.getInt(fromRegion.plus(i)));
     }
+
+    int status = toRegion.loadInt(STATUS_OFFSET);
+    if ((status & HASHED_AND_MOVED) == HASHED) {
+      toRegion.store(status | HASHED_AND_MOVED, STATUS_OFFSET);
+      toRegion.store(getHashCode(from), Offset.fromIntZeroExtend(oldBytes));
+    }
+
     ObjectReference to = toRegion.toObjectReference();
 
-    c.postCopy(to, null, bytes, allocator);
+    c.postCopy(to, null, newBytes, allocator);
     return to;
   }
 
@@ -202,6 +270,14 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
     for(int i=0; i < (bytes >>> SimulatedMemory.LOG_BYTES_IN_WORD); i++) {
       SimulatedMemory.setInt(toRegion.plus(i), SimulatedMemory.getInt(fromRegion.plus(i)));
     }
+
+    int status = toRegion.loadInt(STATUS_OFFSET);
+    if ((status & HASHED_AND_MOVED) == HASHED) {
+      toRegion.store(status | HASHED_AND_MOVED, STATUS_OFFSET);
+      toRegion.store(getHashCode(from), Offset.fromIntZeroExtend(bytes));
+      return toRegion.plus(bytes + SimulatedMemory.BYTES_IN_WORD);
+    }
+
     return toRegion.plus(bytes);
   }
 
@@ -226,7 +302,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return The size required to copy <code>obj</code>
    */
   public int getSizeWhenCopied(ObjectReference object) {
-    return getSize(object);
+    return getCopiedSize(object);
   }
 
   /**
@@ -305,7 +381,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   public String getString(ObjectReference ref) {
     int refs = getRefs(ref);
     int data = getDataCount(ref);
-    int size = getSize(refs, data);
+    int size = getSize(ref);
     return ("Object[" + size + "bytes " + refs + "R / " + data + "D]");
   }
 
@@ -354,7 +430,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * <code>false</code> otherwise
    */
   public boolean attemptAvailableBits(ObjectReference object, Word oldVal, Word newVal) {
-    return object.toAddress().attempt(oldVal, newVal, GC_OFFSET);
+    return object.toAddress().attempt(oldVal, newVal, STATUS_OFFSET);
   }
 
   /**
@@ -365,7 +441,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return the value of the bits
    */
   public Word prepareAvailableBits(ObjectReference object) {
-    return object.toAddress().prepareWord(GC_OFFSET);
+    return object.toAddress().prepareWord(STATUS_OFFSET);
   }
 
   /**
@@ -375,7 +451,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param val the new value of the byte
    */
   public void writeAvailableByte(ObjectReference object, byte val) {
-    object.toAddress().store(val, GC_OFFSET);
+    object.toAddress().store(val, STATUS_OFFSET);
   }
 
   /**
@@ -385,7 +461,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return the value of the byte
    */
   public byte readAvailableByte(ObjectReference object) {
-    return object.toAddress().loadByte(GC_OFFSET);
+    return object.toAddress().loadByte(STATUS_OFFSET);
   }
 
   /**
@@ -395,7 +471,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param val the new value of the bits
    */
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
-    object.toAddress().store(val, GC_OFFSET);
+    object.toAddress().store(val, STATUS_OFFSET);
   }
 
   /**
@@ -405,7 +481,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return the value of the bits
    */
   public Word readAvailableBitsWord(ObjectReference object) {
-    return object.toAddress().loadWord(GC_OFFSET);
+    return object.toAddress().loadWord(STATUS_OFFSET);
   }
 
   /**
