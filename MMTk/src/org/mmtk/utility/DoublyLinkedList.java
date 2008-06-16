@@ -80,7 +80,7 @@ import org.vmmagic.unboxed.*;
   private static final Word nodeMask;
   static {
     Word mask = Word.one();
-    while (mask.LT(HEADER_SIZE.plus(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
+    while (mask.LE(HEADER_SIZE.plus(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
     nodeMask = mask.minus(Word.one()).not();
   }
 
