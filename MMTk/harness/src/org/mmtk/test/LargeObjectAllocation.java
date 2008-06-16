@@ -27,7 +27,7 @@ public class LargeObjectAllocation extends Test {
   protected void main(Mutator m) {
     int limitPages = HeapGrowthManager.getMaxHeapSize().toWord().rshl(SimulatedMemory.LOG_BYTES_IN_PAGE + 1).toInt();
     int startPages = Plan.LOS_SIZE_THRESHOLD >>> SimulatedMemory.LOG_BYTES_IN_PAGE;
-    System.err.println("Allocating from " + startPages + " to " + limitPages + " page size objects");
+    System.err.println("Allocating from " + startPages + " to " + limitPages + " page objects");
     for (int p = startPages; p <= limitPages; p <<= 1) {
       System.err.println(p + " pages");
       m.muAlloc("temp", p << SimulatedMemory.LOG_BYTES_IN_PAGE);
