@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * A list of compiled method and instructionOffset pairs that describe the state
  * of the call stack at a particular instant.
  */
-public class VM_StackTrace {
+public class StackTrace {
   /**
    * The compiled method ids of the stack trace. Ordered with the top of the stack at
    * 0 and the bottom of the stack at the end of the array
@@ -53,12 +53,12 @@ public class VM_StackTrace {
    * Create a trace for the call stack of RVMThread.getThreadForStackTrace
    * (normally the current thread unless we're in GC)
    */
-  public VM_StackTrace() {
+  public StackTrace() {
     boolean isVerbose = false;
     int traceIndex = 0;
     if (VM.VerifyAssertions && VM.VerboseStackTracePeriod > 0) {
       // Poor man's atomic integer, to get through bootstrap
-      synchronized(VM_StackTrace.class) {
+      synchronized(StackTrace.class) {
          traceIndex = lastTraceIndex++;
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
@@ -84,9 +84,9 @@ public class VM_StackTrace {
     // Debugging trick: print every nth stack trace created
     if (isVerbose) {
       VM.disableGC();
-      VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex);
+      VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating StackTrace # ", traceIndex);
       VM_Scheduler.dumpStack();
-      VM.sysWriteln("END Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex, " ]");
+      VM.sysWriteln("END Verbosely dumping stack at time of creating StackTrace # ", traceIndex, " ]");
       VM.enableGC();
     }
   }
@@ -409,7 +409,7 @@ public class VM_StackTrace {
    */
   private int firstRealMethod(Throwable cause) {
     /* We expect a hardware trap to look like:
-     * at org.jikesrvm.runtime.VM_StackTrace.<init>(VM_StackTrace.java:78)
+     * at org.jikesrvm.runtime.StackTrace.<init>(StackTrace.java:78)
      * at java.lang.VMThrowable.fillInStackTrace(VMThrowable.java:67)
      * at java.lang.Throwable.fillInStackTrace(Throwable.java:498)
      * at java.lang.Throwable.<init>(Throwable.java:159)
@@ -421,7 +421,7 @@ public class VM_StackTrace {
      * at <hardware trap>(Unknown Source:0)
      *
      * and a software trap to look like:
-     * at org.jikesrvm.runtime.VM_StackTrace.<init>(VM_StackTrace.java:78)
+     * at org.jikesrvm.runtime.StackTrace.<init>(StackTrace.java:78)
      * at java.lang.VMThrowable.fillInStackTrace(VMThrowable.java:67)
      * at java.lang.Throwable.fillInStackTrace(Throwable.java:498)
      * at java.lang.Throwable.<init>(Throwable.java:159)
@@ -463,10 +463,10 @@ public class VM_StackTrace {
         return element;
       }
 
-      // (1) remove any VM_StackTrace frames
+      // (1) remove any StackTrace frames
       while((element < compiledMethods.length) &&
             (compiledMethod != null) &&
-            compiledMethod.getMethod().getDeclaringClass().getClassForType() == VM_StackTrace.class) {
+            compiledMethod.getMethod().getDeclaringClass().getClassForType() == StackTrace.class) {
         element++;
         compiledMethod = getCompiledMethod(element);
       }

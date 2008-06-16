@@ -81,7 +81,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
            (caller.getDeclaringClass().getClassForType() == Throwable.class))) {
         // We need throwable constructors to have their own compiled method IDs
         // to correctly elide stack frames when generating stack traces (see
-        // VM_StackTrace).
+        // StackTrace).
         if (verbose) VM.sysWriteln("\tNO: throwable constructor\n");
         return InlineDecision.NO("throwable constructor");
       }

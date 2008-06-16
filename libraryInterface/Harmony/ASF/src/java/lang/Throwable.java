@@ -23,7 +23,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_StackTrace;
+import org.jikesrvm.runtime.StackTrace;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 import org.vmmagic.pragma.NoEscapes;
@@ -48,7 +48,7 @@ public class Throwable implements java.io.Serializable {
     private static final long serialVersionUID = -3042686055658047285L;
 
     /** The stack trace for this throwable */
-    private transient VM_StackTrace vmStackTrace;
+    private transient StackTrace vmStackTrace;
 
     /**
      * Zero length array of stack trace elements, returned when handling an OOM or
@@ -128,7 +128,7 @@ public class Throwable implements java.io.Serializable {
           VM_Scheduler.dumpVirtualMachine();
         } else {
           try {
-            vmStackTrace = new VM_StackTrace();
+            vmStackTrace = new StackTrace();
           } catch (OutOfMemoryError oome) {
             // ignore
           } catch (Throwable t) {
@@ -184,16 +184,16 @@ public class Throwable implements java.io.Serializable {
 	    return zeroLengthStackTrace;
 	}
 
-	VM_StackTrace.Element[] vmElements;
+	StackTrace.Element[] vmElements;
 	try {
 	    vmElements = vmStackTrace.getStackTrace(this);
 	} catch (Throwable t) {
-	    VM.sysWriteln("Error calling VM_StackTrace.getStackTrace: dumping stack using scheduler");
+	    VM.sysWriteln("Error calling StackTrace.getStackTrace: dumping stack using scheduler");
 	    VM_Scheduler.dumpStack();
 	    return zeroLengthStackTrace;
 	}
 	if (vmElements == null) {
-	    VM.sysWriteln("Error calling VM_StackTrace.getStackTrace returned null");
+	    VM.sysWriteln("Error calling StackTrace.getStackTrace returned null");
 	    VM_Scheduler.dumpStack();
 	    return zeroLengthStackTrace;
 	}
@@ -201,7 +201,7 @@ public class Throwable implements java.io.Serializable {
 	    try {
 		StackTraceElement[] elements = new StackTraceElement[vmElements.length];
 		for (int i=0; i < vmElements.length; i++) {
-		    VM_StackTrace.Element vmElement = vmElements[i];
+		    StackTrace.Element vmElement = vmElements[i];
 		    String fileName = vmElement.getFileName();
 		    int lineNumber = vmElement.getLineNumber();
 		    String className = vmElement.getClassName();
@@ -218,7 +218,7 @@ public class Throwable implements java.io.Serializable {
 	} else {
 	    VM.sysWriteln("Dumping stack using sysWrite in not fullyBooted VM");
 	}
-	for (VM_StackTrace.Element vmElement : vmElements) {
+	for (StackTrace.Element vmElement : vmElements) {
 	    if (vmElement == null) {
 		VM.sysWriteln("Error stack trace with null entry");
 		VM_Scheduler.dumpStack();
