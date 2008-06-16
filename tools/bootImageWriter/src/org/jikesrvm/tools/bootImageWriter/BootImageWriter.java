@@ -128,10 +128,10 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * Types to be placed into bootimage, stored as key/value pairs
    * where key is a String like "java.lang.Object" or "[Ljava.lang.Object;"
-   * and value is the corresponding VM_Type.
+   * and value is the corresponding RVMType.
    */
-  private static final Hashtable<String,VM_Type> bootImageTypes =
-    new Hashtable<String,VM_Type>(5000);
+  private static final Hashtable<String,RVMType> bootImageTypes =
+    new Hashtable<String,RVMType>(5000);
 
   /**
    * For all the scalar types to be placed into bootimage, keep
@@ -163,7 +163,7 @@ public class BootImageWriter extends BootImageWriterMessages
     /**
      *  Rvm type associated with this Field info
      */
-    VM_Type rvmType;
+    RVMType rvmType;
 
     /**
      *  Jdk type associated with this Field info
@@ -174,7 +174,7 @@ public class BootImageWriter extends BootImageWriterMessages
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public FieldInfo(Class jdkType, VM_Type rvmType) {
+    public FieldInfo(Class jdkType, RVMType rvmType) {
       this.jdkFields = jdkType.getDeclaredFields();
       this.jdkType = jdkType;
       this.rvmType = rvmType;
@@ -835,8 +835,8 @@ public class BootImageWriter extends BootImageWriterMessages
     // remainder of the virtual machine at run time!
     //
     if (verbose >= 2) {
-      for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < VM_Type.numTypes(); ++i) {
-        VM_Type type = VM_Type.getType(i);
+      for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < RVMType.numTypes(); ++i) {
+        RVMType type = RVMType.getType(i);
         if (type == null) continue;
         if (!type.isResolved()) {
           say("type referenced but not resolved: ", type.toString());
@@ -879,9 +879,9 @@ public class BootImageWriter extends BootImageWriterMessages
     public int compare(T a, T b) {
       if (a == null) return 1;
       if (b == null) return -1;
-      if ((a instanceof VM_Type) && (b instanceof VM_Type)) {
-        VM_Type typeA = (VM_Type) a;
-        VM_Type typeB = (VM_Type) b;
+      if ((a instanceof RVMType) && (b instanceof RVMType)) {
+        RVMType typeA = (RVMType) a;
+        RVMType typeB = (RVMType) b;
         DemographicInformation infoA = demographicData.get(typeA);
         if (infoA == null) return 1;
         DemographicInformation infoB = demographicData.get(typeB);
@@ -898,15 +898,15 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * Demographic data on all types
    */
-  private static final HashMap<VM_Type,DemographicInformation> demographicData =
-    new HashMap<VM_Type,DemographicInformation>();
+  private static final HashMap<RVMType,DemographicInformation> demographicData =
+    new HashMap<RVMType,DemographicInformation>();
 
   /**
    * Log an allocation in the boot image
    * @param type the type allocated
    * @param size the size of the type
    */
-  public static void logAllocation(VM_Type type, int size) {
+  public static void logAllocation(RVMType type, int size) {
     if(demographics) {
       DemographicInformation info = demographicData.get(type);
       if(info != null) {
@@ -925,12 +925,12 @@ public class BootImageWriter extends BootImageWriterMessages
    * Print a report of space usage in the boot image.
    */
   public static void spaceReport() {
-    VM_Type[] tempTypes = new VM_Type[VM_Type.numTypes() - FIRST_TYPE_DICTIONARY_INDEX];
-    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < VM_Type.numTypes(); ++i)
-      tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = VM_Type.getType(i);
-    Arrays.sort(tempTypes, new TypeComparator<VM_Type>());
+    RVMType[] tempTypes = new RVMType[RVMType.numTypes() - FIRST_TYPE_DICTIONARY_INDEX];
+    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < RVMType.numTypes(); ++i)
+      tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = RVMType.getType(i);
+    Arrays.sort(tempTypes, new TypeComparator<RVMType>());
     int totalCount = 0, totalBytes = 0;
-    for (VM_Type type : tempTypes) {
+    for (RVMType type : tempTypes) {
       if (type == null) continue;
       DemographicInformation info = demographicData.get(type);
       if (info == null) continue;
@@ -956,7 +956,7 @@ public class BootImageWriter extends BootImageWriterMessages
     VM.sysWriteField(15, totalCount);
     VM.sysWriteField(15, totalBytes);
     VM.sysWriteln();
-    for (VM_Type type : tempTypes) {
+    for (RVMType type : tempTypes) {
       if (type == null) continue;
       DemographicInformation info = demographicData.get(type);
       if (info == null) continue;
@@ -1037,7 +1037,7 @@ public class BootImageWriter extends BootImageWriterMessages
         //
         // create corresponding rvm type
         //
-        VM_Type type;
+        RVMType type;
         try {
           VM_TypeReference tRef = VM_TypeReference.findOrCreate(typeName);
           type = tRef.resolve();
@@ -1088,7 +1088,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("resolving");
-      for (VM_Type type : bootImageTypes.values()) {
+      for (RVMType type : bootImageTypes.values()) {
         if (verbose >= 2) say("resolving " + type);
         // The resolution is supposed to be cached already.
         type.resolve();
@@ -1097,7 +1097,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       // Now that all types are resolved, do some additional fixup before we do any compilation
       //
-      for (VM_Type type : bootImageTypes.values()) {
+      for (RVMType type : bootImageTypes.values()) {
         type.allBootImageTypesResolved();
       }
 
@@ -1116,8 +1116,8 @@ public class BootImageWriter extends BootImageWriterMessages
       // than replicate the allocation code here, we perform dummy
       // allocations and then reset the boot image allocator.
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-      VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
-      VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
+      RVMClass rvmBRType = getRvmType(bootRecord.getClass()).asClass();
+      RVMArray intArrayType =  RVMArray.getPrimitiveArrayType(10);
       // allocate storage for boot record
       bootImage.allocateDataStorage(rvmBRType.getInstanceSize(),
                                     VM_ObjectModel.getAlignment(rvmBRType),
@@ -1140,7 +1140,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
       if (verbose >= 1) say(" compiling with " + numThreads + " threads");
       ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
-      for (VM_Type type: bootImageTypes.values()) {
+      for (RVMType type: bootImageTypes.values()) {
         threadPool.execute(new BootImageWorker(type));
       }
       threadPool.shutdown();
@@ -1179,7 +1179,7 @@ public class BootImageWriter extends BootImageWriterMessages
       HashSet<String> invalidEntrys = new HashSet<String>();
 
       // First retrieve the jdk Field table for each class of interest
-      for (VM_Type rvmType : bootImageTypes.values()) {
+      for (RVMType rvmType : bootImageTypes.values()) {
         FieldInfo fieldInfo;
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static or instance fields
@@ -1213,7 +1213,7 @@ public class BootImageWriter extends BootImageWriterMessages
       }
       // Now build the one-to-one instance and static field maps
       for (FieldInfo fieldInfo : bootImageTypeFields.values()) {
-        VM_Type rvmType = fieldInfo.rvmType;
+        RVMType rvmType = fieldInfo.rvmType;
         if (rvmType == null) {
           if (verbose >= 1) say("bootImageTypeField entry has no rvmType:"+fieldInfo.jdkType);
           continue;
@@ -1223,7 +1223,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
         // First the static fields
         //
-        VM_Field[] rvmFields = rvmType.getStaticFields();
+        RVMField[] rvmFields = rvmType.getStaticFields();
         fieldInfo.jdkStaticFields = new Field[rvmFields.length];
 
         for (int j = 0; j < rvmFields.length; j++) {
@@ -1245,7 +1245,7 @@ public class BootImageWriter extends BootImageWriterMessages
         for (int j = 0; j<rvmFields.length; j++) {
           String  rvmName = rvmFields[j].getName().toString();
           // We look only in the JDK type that corresponds to the
-          // VM_Type of the field's declaring class.
+          // RVMType of the field's declaring class.
           // This is the only way to correctly handle private fields.
           jdkType = getJdkType(rvmFields[j].getDeclaringClass());
           if (jdkType == null) continue;
@@ -1295,14 +1295,14 @@ public class BootImageWriter extends BootImageWriterMessages
 
       //
       // Finally, populate jtoc with static field values.
-      // This is equivalent to the VM_Class.initialize() phase that would have
+      // This is equivalent to the RVMClass.initialize() phase that would have
       // executed each class's static constructors at run time.  We simulate
       // this by copying statics created in the host rvm into the appropriate
       // slots of the jtoc.
       //
       if (verbose >= 1) say("populating jtoc with static fields");
       if (profile) startTime = System.currentTimeMillis();
-      for (VM_Type rvmType : bootImageTypes.values()) {
+      for (RVMType rvmType : bootImageTypes.values()) {
         if (verbose >= 1) say("  jtoc for ", rvmType.toString());
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static fields
@@ -1312,9 +1312,9 @@ public class BootImageWriter extends BootImageWriterMessages
           say("host has no class \"" + rvmType + "\"");
         }
 
-        VM_Field[] rvmFields = rvmType.getStaticFields();
+        RVMField[] rvmFields = rvmType.getStaticFields();
         for (int j = 0; j < rvmFields.length; ++j) {
-          VM_Field rvmField     = rvmFields[j];
+          RVMField rvmField     = rvmFields[j];
           VM_TypeReference rvmFieldType = rvmField.getType();
           Offset rvmFieldOffset = rvmField.getOffset();
           String   rvmFieldName = rvmField.getName().toString();
@@ -1529,7 +1529,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // fetch object's type information
       //
       Class   jdkType = jdkObject.getClass();
-      VM_Type rvmType = getRvmType(jdkType);
+      RVMType rvmType = getRvmType(jdkType);
       if (rvmType == null) {
         if (verbose >= 2) traverseObject(jdkObject);
         if (verbose >= 2) depth--;
@@ -1540,7 +1540,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // copy object to image
       //
       if (jdkType.isArray()) {
-        VM_Array rvmArrayType = rvmType.asArray();
+        RVMArray rvmArrayType = rvmType.asArray();
 
         //
         // allocate space in image
@@ -1563,11 +1563,11 @@ public class BootImageWriter extends BootImageWriterMessages
           }
         }
 
-        VM_Type rvmElementType = rvmArrayType.getElementType();
+        RVMType rvmElementType = rvmArrayType.getElementType();
 
         // Show info on reachability of int arrays
         //
-        if (false && rvmElementType.equals(VM_Type.IntType)) {
+        if (false && rvmElementType.equals(RVMType.IntType)) {
           if (parentObject != null) {
             Class parentObjectType = parentObject.getClass();
             VM.sysWrite("Copying int array (", 4 * ((int []) jdkObject).length);
@@ -1583,36 +1583,36 @@ public class BootImageWriter extends BootImageWriterMessages
         //
         if (rvmElementType.isPrimitiveType()) {
           // array element is logical or numeric type
-          if (rvmElementType.equals(VM_Type.BooleanType)) {
+          if (rvmElementType.equals(RVMType.BooleanType)) {
             boolean[] values = (boolean[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setByte(arrayImageAddress.plus(i), values[i] ? 1 : 0);
-          } else if (rvmElementType.equals(VM_Type.ByteType)) {
+          } else if (rvmElementType.equals(RVMType.ByteType)) {
             byte[] values = (byte[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setByte(arrayImageAddress.plus(i), values[i]);
-          } else if (rvmElementType.equals(VM_Type.CharType)) {
+          } else if (rvmElementType.equals(RVMType.CharType)) {
             char[] values = (char[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setHalfWord(arrayImageAddress.plus(i << LOG_BYTES_IN_CHAR), values[i]);
-          } else if (rvmElementType.equals(VM_Type.ShortType)) {
+          } else if (rvmElementType.equals(RVMType.ShortType)) {
             short[] values = (short[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setHalfWord(arrayImageAddress.plus(i << LOG_BYTES_IN_SHORT), values[i]);
-          } else if (rvmElementType.equals(VM_Type.IntType)) {
+          } else if (rvmElementType.equals(RVMType.IntType)) {
             int[] values = (int[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setFullWord(arrayImageAddress.plus(i << LOG_BYTES_IN_INT), values[i]);
-          } else if (rvmElementType.equals(VM_Type.LongType)) {
+          } else if (rvmElementType.equals(RVMType.LongType)) {
             long[] values = (long[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setDoubleWord(arrayImageAddress.plus(i << LOG_BYTES_IN_LONG), values[i]);
-          } else if (rvmElementType.equals(VM_Type.FloatType)) {
+          } else if (rvmElementType.equals(RVMType.FloatType)) {
             float[] values = (float[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setFullWord(arrayImageAddress.plus(i << LOG_BYTES_IN_FLOAT),
                   Float.floatToIntBits(values[i]));
-          } else if (rvmElementType.equals(VM_Type.DoubleType)) {
+          } else if (rvmElementType.equals(RVMType.DoubleType)) {
             double[] values = (double[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setDoubleWord(arrayImageAddress.plus(i << LOG_BYTES_IN_DOUBLE),
@@ -1652,22 +1652,22 @@ public class BootImageWriter extends BootImageWriterMessages
           }
         }
       } else {
-        if (rvmType == VM_Type.ObjectReferenceArrayType || rvmType.getTypeRef().isRuntimeTable()) {
+        if (rvmType == RVMType.ObjectReferenceArrayType || rvmType.getTypeRef().isRuntimeTable()) {
           if (verbose >= 2) depth--;
           Object backing;
-          if (rvmType == VM_Type.ObjectReferenceArrayType) {
+          if (rvmType == RVMType.ObjectReferenceArrayType) {
             backing = ((ObjectReferenceArray)jdkObject).getBacking();
-          } else if (rvmType == VM_Type.TIBType) {
+          } else if (rvmType == RVMType.TIBType) {
             backing = ((VM_TIB)jdkObject).getBacking();
-          } else if (rvmType == VM_Type.IMTType) {
+          } else if (rvmType == RVMType.IMTType) {
             backing = ((VM_IMT)jdkObject).getBacking();
-          } else if (rvmType == VM_Type.ITableType) {
+          } else if (rvmType == RVMType.ITableType) {
             backing = ((VM_ITable)jdkObject).getBacking();
-          } else if (rvmType == VM_Type.ITableArrayType) {
+          } else if (rvmType == RVMType.ITableArrayType) {
             backing = ((VM_ITableArray)jdkObject).getBacking();
-          } else if (rvmType == VM_Type.ProcessorTableType) {
+          } else if (rvmType == RVMType.ProcessorTableType) {
             backing = ((VM_ProcessorTable)jdkObject).getBacking();
-          } else if (rvmType == VM_Type.FunctionTableType) {
+          } else if (rvmType == RVMType.FunctionTableType) {
             backing = ((VM_FunctionTable)jdkObject).getBacking();
           } else {
             fail("unexpected runtime table type: " + rvmType);
@@ -1690,35 +1690,35 @@ public class BootImageWriter extends BootImageWriterMessages
           return mapEntry.imageAddress;
         }
 
-        if (rvmType == VM_Type.AddressArrayType) {
+        if (rvmType == RVMType.AddressArrayType) {
           if (verbose >= 2) depth--;
           AddressArray addrArray = (AddressArray) jdkObject;
           Object backing = addrArray.getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
-        if (rvmType == VM_Type.OffsetArrayType) {
+        if (rvmType == RVMType.OffsetArrayType) {
           if (verbose >= 2) depth--;
           OffsetArray addrArray = (OffsetArray) jdkObject;
           Object backing = addrArray.getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
-        if (rvmType == VM_Type.WordArrayType) {
+        if (rvmType == RVMType.WordArrayType) {
           if (verbose >= 2) depth--;
           WordArray addrArray = (WordArray) jdkObject;
           Object backing = addrArray.getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
-        if (rvmType == VM_Type.ExtentArrayType) {
+        if (rvmType == RVMType.ExtentArrayType) {
           if (verbose >= 2) depth--;
           ExtentArray addrArray = (ExtentArray) jdkObject;
           Object backing = addrArray.getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
-        if (rvmType == VM_Type.CodeArrayType) {
+        if (rvmType == RVMType.CodeArrayType) {
           if (verbose >= 2) depth--;
           CodeArray codeArray = (CodeArray) jdkObject;
           Object backing = codeArray.getBacking();
@@ -1734,7 +1734,7 @@ public class BootImageWriter extends BootImageWriterMessages
         //
         // allocate space in image
         //
-        VM_Class rvmScalarType = rvmType.asClass();
+        RVMClass rvmScalarType = rvmType.asClass();
         Address scalarImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateScalar(rvmScalarType) : overwriteAddress;
         mapEntry.imageAddress = scalarImageAddress;
 
@@ -1756,9 +1756,9 @@ public class BootImageWriter extends BootImageWriterMessages
         // copy object fields from host jdk address space into image
         // recurse on values that are references
         //
-        VM_Field[] rvmFields = rvmScalarType.getInstanceFields();
+        RVMField[] rvmFields = rvmScalarType.getInstanceFields();
         for (int i = 0, n = rvmFields.length; i < n; ++i) {
-          VM_Field rvmField       = rvmFields[i];
+          RVMField rvmField       = rvmFields[i];
           VM_TypeReference rvmFieldType   = rvmField.getType();
           Address rvmFieldAddress = scalarImageAddress.plus(rvmField.getOffset());
           String  rvmFieldName    = rvmField.getName().toString();
@@ -1898,7 +1898,7 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   private static Address copyMagicArrayToBootImage(Object jdkObject,
-                                                   VM_Array rvmArrayType,
+                                                   RVMArray rvmArrayType,
                                                    boolean allocOnly,
                                                    Address overwriteAddress,
                                                    Object parentObject)
@@ -1912,13 +1912,13 @@ public class BootImageWriter extends BootImageWriterMessages
 
     if (verbose >= 2) depth++;
 
-    VM_Type rvmElementType = rvmArrayType.getElementType();
+    RVMType rvmElementType = rvmArrayType.getElementType();
 
     // allocate space in image
     int arrayCount       = Array.getLength(jdkObject);
     Address arrayImageAddress;
     if (overwriteAddress.isMax()) {
-      if (rvmElementType.equals(VM_Type.CodeType)) {
+      if (rvmElementType.equals(RVMType.CodeType)) {
         arrayImageAddress = bootImage.allocateCode(rvmArrayType, arrayCount);
       } else {
         arrayImageAddress = bootImage.allocateArray(rvmArrayType, arrayCount);
@@ -1943,7 +1943,7 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
     // copy array elements from host jdk address space into image
-    if (rvmElementType.equals(VM_Type.CodeType)) {
+    if (rvmElementType.equals(RVMType.CodeType)) {
       if (VM.BuildForIA32) {
         byte[] values = (byte[]) jdkObject;
         for (int i = 0; i < arrayCount; ++i)
@@ -1953,7 +1953,7 @@ public class BootImageWriter extends BootImageWriterMessages
         for (int i = 0; i < arrayCount; ++i)
           bootImage.setFullWord(arrayImageAddress.plus(i << LOG_BYTES_IN_INT), values[i]);
       }
-    } else if (rvmElementType.equals(VM_Type.AddressType)) {
+    } else if (rvmElementType.equals(RVMType.AddressType)) {
       Address[] values = (Address[]) jdkObject;
       for (int i=0; i<arrayCount; i++) {
         Address addr = values[i];
@@ -1961,7 +1961,7 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
                                  getWordValue(addr, msg, true), false, false);
       }
-    } else if (rvmElementType.equals(VM_Type.WordType)) {
+    } else if (rvmElementType.equals(RVMType.WordType)) {
       Word[] values = (Word[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "Word array element ";
@@ -1969,7 +1969,7 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
                                  getWordValue(addr, msg, false), false, false);
       }
-    } else if (rvmElementType.equals(VM_Type.OffsetType)) {
+    } else if (rvmElementType.equals(RVMType.OffsetType)) {
       Offset[] values = (Offset[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "Offset array element " + i;
@@ -1977,7 +1977,7 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
                                  getWordValue(addr, msg, false), false, false);
       }
-    } else if (rvmElementType.equals(VM_Type.ExtentType)) {
+    } else if (rvmElementType.equals(RVMType.ExtentType)) {
       Extent[] values = (Extent[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "Extent array element ";
@@ -2193,23 +2193,23 @@ public class BootImageWriter extends BootImageWriterMessages
         // Looks as though we're trying to write the type for Class,
         // lets go over the common ones
         if (jdkObject == java.lang.Boolean.TYPE) {
-          value = VM_Type.BooleanType;
+          value = RVMType.BooleanType;
         } else if (jdkObject == java.lang.Byte.TYPE) {
-          value = VM_Type.ByteType;
+          value = RVMType.ByteType;
         } else if (jdkObject == java.lang.Character.TYPE) {
-          value = VM_Type.CharType;
+          value = RVMType.CharType;
         } else if (jdkObject == java.lang.Double.TYPE) {
-          value = VM_Type.DoubleType;
+          value = RVMType.DoubleType;
         } else if (jdkObject == java.lang.Float.TYPE) {
-          value = VM_Type.FloatType;
+          value = RVMType.FloatType;
         } else if (jdkObject == java.lang.Integer.TYPE) {
-          value = VM_Type.IntType;
+          value = RVMType.IntType;
         } else if (jdkObject == java.lang.Long.TYPE) {
-          value = VM_Type.LongType;
+          value = RVMType.LongType;
         } else if (jdkObject == java.lang.Short.TYPE) {
-          value = VM_Type.ShortType;
+          value = RVMType.ShortType;
         } else if (jdkObject == java.lang.Void.TYPE) {
-          value = VM_Type.VoidType;
+          value = RVMType.VoidType;
         } else {
           value = VM_TypeReference.findOrCreate((Class)jdkObject).peekType();
           if (value == null) {
@@ -2348,17 +2348,17 @@ public class BootImageWriter extends BootImageWriterMessages
       } else if (jdkObject instanceof java.lang.reflect.Constructor)   {
         Constructor cons = (Constructor)jdkObject;
         if(rvmFieldName.equals("cons")) {
-          // fill in this VM_Method field
+          // fill in this RVMMethod field
           String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
-          VM_Type type = VM_TypeReference.findOrCreate(typeName).peekType();
+          RVMType type = VM_TypeReference.findOrCreate(typeName).peekType();
           if (type == null) {
             throw new Error("Failed to find type for Constructor.constructor: " + cons + " " + typeName);
           }
-          final VM_Class klass = type.asClass();
+          final RVMClass klass = type.asClass();
           Class[] consParams = cons.getParameterTypes();
-          VM_Method constructor = null;
+          RVMMethod constructor = null;
           loop_over_all_constructors:
-          for (VM_Method vmCons : klass.getConstructorMethods()) {
+          for (RVMMethod vmCons : klass.getConstructorMethods()) {
             VM_TypeReference[] vmConsParams = vmCons.getParameterTypes();
             if (vmConsParams.length == consParams.length) {
               for (int j = 0; j < vmConsParams.length; j++) {
@@ -2636,7 +2636,7 @@ public class BootImageWriter extends BootImageWriterMessages
     // don't want to see warning messages about it when the bootimage is
     // written.
 
-    VM_Member remapper = VM_Entrypoints.magicObjectRemapperField;
+    RVMMember remapper = VM_Entrypoints.magicObjectRemapperField;
     VM_Statics.setSlotContents(remapper.getOffset(), 0);
   }
 
@@ -2647,7 +2647,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return rvm type (null --> type does not appear in list of classes
    *         comprising bootimage)
    */
-  private static VM_Type getRvmType(Class jdkType) {
+  private static RVMType getRvmType(Class jdkType) {
     return bootImageTypes.get(jdkType.getName());
   }
 
@@ -2657,7 +2657,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param rvmType rvm type
    * @return jdk type (null --> type does not exist in host namespace)
    */
-  private static Class getJdkType(VM_Type rvmType) {
+  private static Class getJdkType(RVMType rvmType) {
     Throwable x;
     try {
       return Class.forName(rvmType.toString());
@@ -2708,15 +2708,15 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param jtocSlot jtoc slot number
    * @return field name
    */
-  private static VM_Field getRvmStaticField(Offset jtocOff) {
-    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < VM_Type.numTypes(); ++i) {
-      VM_Type type = VM_Type.getType(i);
+  private static RVMField getRvmStaticField(Offset jtocOff) {
+    for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < RVMType.numTypes(); ++i) {
+      RVMType type = RVMType.getType(i);
       if (type == null) continue;
       if (type.isPrimitiveType())
         continue;
       if (!type.isResolved())
         continue;
-      for (VM_Field rvmField : type.getStaticFields()) {
+      for (RVMField rvmField : type.getStaticFields()) {
         if (rvmField.getOffset().EQ(jtocOff))
           return rvmField;
       }
@@ -2779,8 +2779,8 @@ public class BootImageWriter extends BootImageWriterMessages
       String category;
       String contents;
       String details;
-      VM_Field field = getRvmStaticField(jtocOff);
-      VM_Field field2 = getRvmStaticField(jtocOff.plus(4));
+      RVMField field = getRvmStaticField(jtocOff);
+      RVMField field2 = getRvmStaticField(jtocOff.plus(4));
       boolean couldBeLongLiteral = VM_Statics.isLongSizeLiteral(jtocSlot);
       boolean couldBeIntLiteral = VM_Statics.isIntSizeLiteral(jtocSlot);
       if (couldBeLongLiteral && ((field == null) || (field2 == null))) {
@@ -2878,7 +2878,7 @@ public class BootImageWriter extends BootImageWriterMessages
       String category;
       String details;
       String contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
-      VM_Field field = getRvmStaticField(jtocOff);
+      RVMField field = getRvmStaticField(jtocOff);
       if (VM_Statics.isReferenceLiteral(jtocSlot)) {
         if (field != null) {
           category = "literal/field";
@@ -2893,7 +2893,7 @@ public class BootImageWriter extends BootImageWriterMessages
           details = "class "+ obj;
         } else if (obj instanceof VM_TIB) {
           category = "literal tib  ";
-          VM_Type type = VM_Statics.findTypeOfTIBSlot(jtocOff);
+          RVMType type = VM_Statics.findTypeOfTIBSlot(jtocOff);
           details = (type == null) ? "?" : type.toString();
         } else {
           details = "object "+ obj.getClass();
@@ -2907,7 +2907,7 @@ public class BootImageWriter extends BootImageWriterMessages
       } else if (obj instanceof VM_TIB) {
         // TIBs confuse the statics as their backing is written into the boot image
         category = "tib          ";
-        VM_Type type = VM_Statics.findTypeOfTIBSlot(jtocOff);
+        RVMType type = VM_Statics.findTypeOfTIBSlot(jtocOff);
         details = (type == null) ? "?" : type.toString();
       } else {
         category = "unknown      ";
@@ -2941,7 +2941,7 @@ public class BootImageWriter extends BootImageWriterMessages
     for (int i = 0; i < VM_CompiledMethods.numCompiledMethods(); ++i) {
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethodUnchecked(i);
       if (compiledMethod != null) {
-        VM_Method m = compiledMethod.getMethod();
+        RVMMethod m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {
           CodeArray instructions = compiledMethod.getEntryCodeArray();
           Address code = BootImageMap.getImageAddress(instructions.getBacking(), true);

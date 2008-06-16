@@ -16,8 +16,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -140,8 +140,8 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
     VM_TypeReference tRef =
         VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                       VM_Atom.findOrCreateAsciiAtom(klassName));
-    VM_Class klass = (VM_Class) tRef.peekType();
-    for (VM_Method meth : klass.getDeclaredMethods()) {
+    RVMClass klass = (RVMClass) tRef.peekType();
+    for (RVMMethod meth : klass.getDeclaredMethods()) {
       if (meth.isClassInitializer()) {
         continue;
       }

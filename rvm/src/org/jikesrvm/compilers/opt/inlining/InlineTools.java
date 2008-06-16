@@ -15,8 +15,8 @@ package org.jikesrvm.compilers.opt.inlining;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
@@ -49,7 +49,7 @@ public abstract class InlineTools implements OptConstants {
    * @param callee The callee method
    * @return <code>true</code> if it has bytecodes, false otherwise.
    */
-  public static boolean hasBody(VM_Method callee) {
+  public static boolean hasBody(RVMMethod callee) {
     return !(callee.isNative() || callee.isAbstract());
   }
 
@@ -59,7 +59,7 @@ public abstract class InlineTools implements OptConstants {
    *
    * @param callee the callee method
    */
-  public static boolean needsGuard(VM_Method callee) {
+  public static boolean needsGuard(RVMMethod callee) {
     return !(callee.isFinal() ||
              callee.getDeclaringClass().isFinal() ||
              callee.isPrivate() ||
@@ -72,29 +72,29 @@ public abstract class InlineTools implements OptConstants {
    * Note that this says nothing about whether or not the method will
    * be overriden by future dynamically loaded classes.
    */
-  public static boolean isCurrentlyFinal(VM_Method callee, boolean searchSubclasses) {
-    VM_Class klass = callee.getDeclaringClass();
+  public static boolean isCurrentlyFinal(RVMMethod callee, boolean searchSubclasses) {
+    RVMClass klass = callee.getDeclaringClass();
     if (klass.isInterface()) {
       // interface methods are not final.
       return false;
     }
-    VM_Class[] subClasses = klass.getSubClasses();
+    RVMClass[] subClasses = klass.getSubClasses();
     if (subClasses.length == 0) {
       //  Currently no subclasses, so trivially not overridden
       return true;
     } else if (searchSubclasses) {
       // see if any subclasses have overridden the method
-      Stack<VM_Class> s = new Stack<VM_Class>();
-      for (VM_Class subClass1 : subClasses) {
+      Stack<RVMClass> s = new Stack<RVMClass>();
+      for (RVMClass subClass1 : subClasses) {
         s.push(subClass1);
       }
       while (!s.isEmpty()) {
-        VM_Class subClass = s.pop();
+        RVMClass subClass = s.pop();
         if (subClass.findDeclaredMethod(callee.getName(), callee.getDescriptor()) != null) {
           return false;        // found an overridding method
         }
         subClasses = subClass.getSubClasses();
-        for (VM_Class subClass1 : subClasses) {
+        for (RVMClass subClass1 : subClasses) {
           s.push(subClass1);
         }
       }
@@ -162,7 +162,7 @@ public abstract class InlineTools implements OptConstants {
    * @param state the compilation state of the caller.
    * @return whether or not the callee should be unconditionally inlined.
    */
-  public static boolean hasInlinePragma(VM_Method callee, CompilationState state) {
+  public static boolean hasInlinePragma(RVMMethod callee, CompilationState state) {
     if (callee.hasInlineAnnotation()) {
       Inline ann = callee.getAnnotation(Inline.class);
       if (ann == null) {
@@ -226,7 +226,7 @@ public abstract class InlineTools implements OptConstants {
    * @return whether or not the callee should be unconditionally barred
    *         from being inlined.
    */
-  public static boolean hasNoInlinePragma(VM_Method callee, CompilationState state) {
+  public static boolean hasNoInlinePragma(RVMMethod callee, CompilationState state) {
     return callee.hasNoInlinePragma();
   }
 
@@ -247,7 +247,7 @@ public abstract class InlineTools implements OptConstants {
    * @return Whether or not we are allowed to speculatively inline
    *         the callee into the caller.
    */
-  public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
+  public static boolean isForbiddenSpeculation(RVMMethod caller, RVMMethod callee) {
     return caller.getDeclaringClass().isInBootImage() && !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
   }
 }

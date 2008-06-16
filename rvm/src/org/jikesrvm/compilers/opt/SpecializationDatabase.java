@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Iterator;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.HashSetRVM;
 
@@ -23,7 +23,7 @@ import org.jikesrvm.util.HashSetRVM;
  *
  * <p> The overall design is very similar to that of the
  * InvalidationDatabase (see InvalidationDatabase.java)
- * In this database, the key is the VM_Method object of the source method
+ * In this database, the key is the RVMMethod object of the source method
  * and the value is a method set. The method set is a list of
  * specialized versions of the method pointed by the key. Specialized
  * versions are represented by using the SpecializedMethod class.
@@ -37,8 +37,8 @@ public final class SpecializationDatabase {
   private static final HashSetRVM<SpecializedMethod> deferredMethods =
     new HashSetRVM<SpecializedMethod>();
 
-  private static final ImmutableEntryHashMapRVM<VM_Method, MethodSet<VM_Method>> specialVersionsHash =
-      new ImmutableEntryHashMapRVM<VM_Method, MethodSet<VM_Method>>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, MethodSet<RVMMethod>> specialVersionsHash =
+      new ImmutableEntryHashMapRVM<RVMMethod, MethodSet<RVMMethod>>();
 
   /**
    * Drain the queue of methods waiting for specialized code
@@ -73,11 +73,11 @@ public final class SpecializationDatabase {
 
   /**
    * Return an iteration of SpecializedMethods that represents
-   * specialied compiled versions of the method pointed by VM_Method
+   * specialied compiled versions of the method pointed by RVMMethod
    * @return null if no specialized versions
    */
-  static synchronized Iterator<SpecializedMethod> getSpecialVersions(VM_Method m) {
-    MethodSet<VM_Method> s = specialVersionsHash.get(m);
+  static synchronized Iterator<SpecializedMethod> getSpecialVersions(RVMMethod m) {
+    MethodSet<RVMMethod> s = specialVersionsHash.get(m);
     if (s == null) {
       return null;
     } else {
@@ -85,7 +85,7 @@ public final class SpecializationDatabase {
     }
   }
 
-  static int getSpecialVersionCount(VM_Method m) {
+  static int getSpecialVersionCount(RVMMethod m) {
     Iterator<SpecializedMethod> versions = getSpecialVersions(m);
     int count = 0;
     if (versions != null) {
@@ -102,8 +102,8 @@ public final class SpecializationDatabase {
    * at the next call to <code> doDeferredSpecializations() </code>
    */
   static synchronized void registerSpecialVersion(SpecializedMethod spMethod) {
-    VM_Method source = spMethod.getMethod();
-    MethodSet<VM_Method> s = findOrCreateMethodSet(specialVersionsHash, source);
+    RVMMethod source = spMethod.getMethod();
+    MethodSet<RVMMethod> s = findOrCreateMethodSet(specialVersionsHash, source);
     s.add(spMethod);
     deferredMethods.add(spMethod);
   }

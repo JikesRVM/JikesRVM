@@ -34,7 +34,7 @@ import java.util.PropertyPermission;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_CommandLineArgs;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Time;
 
@@ -489,7 +489,7 @@ public final class System {
   public static void load(String pathName) {
     Runtime.getRuntime().load0(
         pathName,
-        VM_Class.getClassLoaderFromStackFrame(1),
+        RVMClass.getClassLoaderFromStackFrame(1),
         true);
   }
 
@@ -504,7 +504,7 @@ public final class System {
   public static void loadLibrary(String libName) {
     Runtime.getRuntime().loadLibrary0(
         libName,
-        VM_Class.getClassLoaderFromStackFrame(1),
+        RVMClass.getClassLoaderFromStackFrame(1),
         true);
   }
 

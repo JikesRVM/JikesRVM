@@ -26,7 +26,7 @@ import org.jikesrvm.adaptive.measurements.VM_Decayable;
 import org.jikesrvm.adaptive.measurements.VM_Reportable;
 import org.jikesrvm.adaptive.util.VM_UnResolvedCallSite;
 import org.jikesrvm.adaptive.util.VM_UnResolvedWeightedCallTargets;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 
 /**
@@ -101,17 +101,17 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
    * @return the VM_WeightedCallTargets currently associated with the
    *         given caller bytecodeIndex pair.
    */
-  public VM_WeightedCallTargets getCallTargets(VM_Method caller, int bcIndex) {
+  public VM_WeightedCallTargets getCallTargets(RVMMethod caller, int bcIndex) {
     VM_MethodReference callerRef = caller.getMemberRef().asMethodReference();
     VM_UnResolvedWeightedCallTargets unresolvedTargets =
         unresolvedCallGraph.get(new VM_UnResolvedCallSite(callerRef, bcIndex));
     if (unresolvedTargets != null) {
-      final VM_Method fCaller = caller;
+      final RVMMethod fCaller = caller;
       final int fBcIndex = bcIndex;
       final VM_PartialCallGraph pg = this;
       unresolvedTargets.visitTargets(new VM_UnResolvedWeightedCallTargets.Visitor() {
         public void visit(VM_MethodReference calleeRef, double weight) {
-          VM_Method callee = calleeRef.getResolvedMember();
+          RVMMethod callee = calleeRef.getResolvedMember();
           if (callee != null) {
             pg.incrementEdge(fCaller, fBcIndex, callee, (float) weight);
           }
@@ -137,7 +137,7 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
    * @param bcIndex  call site, if -1 then no call site is specified.
    * @param callee   method called
    */
-  public synchronized void incrementEdge(VM_Method caller, int bcIndex, VM_Method callee) {
+  public synchronized void incrementEdge(RVMMethod caller, int bcIndex, RVMMethod callee) {
     augmentEdge(caller, bcIndex, callee, 1);
   }
 
@@ -150,7 +150,7 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
    * @param callee   method called
    * @param weight   the frequency of this calling edge
    */
-  public synchronized void incrementEdge(VM_Method caller, int bcIndex, VM_Method callee, float weight) {
+  public synchronized void incrementEdge(RVMMethod caller, int bcIndex, RVMMethod callee, float weight) {
     augmentEdge(caller, bcIndex, callee, (double) weight);
   }
 
@@ -192,7 +192,7 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
    * @param callee   method called
    * @param weight   the frequency of this calling edge
    */
-  private void augmentEdge(VM_Method caller, int bcIndex, VM_Method callee, double weight) {
+  private void augmentEdge(RVMMethod caller, int bcIndex, RVMMethod callee, double weight) {
     VM_CallSite callSite = new VM_CallSite(caller, bcIndex);
     VM_WeightedCallTargets targets = callGraph.get(callSite);
     if (targets == null) {
@@ -222,7 +222,7 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
     for (final VM_CallSite cs : tmp) {
       VM_WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new VM_WeightedCallTargets.Visitor() {
-        public void visit(VM_Method callee, double weight) {
+        public void visit(RVMMethod callee, double weight) {
           System.out.println(weight + " <" + cs.getMethod() + ", " + cs.getBytecodeIndex() + ", " + callee + ">");
         }
       });
@@ -255,7 +255,7 @@ public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
     for (final VM_CallSite cs : tmp) {
       VM_WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new VM_WeightedCallTargets.Visitor() {
-        public void visit(VM_Method callee, double weight) {
+        public void visit(RVMMethod callee, double weight) {
           CodeArray callerArray = cs.getMethod().getCurrentEntryCodeArray();
           CodeArray calleeArray = callee.getCurrentEntryCodeArray();
           try {

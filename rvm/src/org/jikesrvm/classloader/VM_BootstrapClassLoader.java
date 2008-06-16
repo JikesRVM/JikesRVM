@@ -34,8 +34,8 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private final ImmutableEntryHashMapRVM<String, VM_Type> loaded =
-    new ImmutableEntryHashMapRVM<String, VM_Type>();
+  private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
+    new ImmutableEntryHashMapRVM<String, RVMType>();
 
   private static final boolean DBG = false;
 
@@ -108,16 +108,16 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
    * As of this writing, it is not used by any other classes.
    * @throws NoClassDefFoundError
    */
-  synchronized VM_Type loadVMClass(String className) throws NoClassDefFoundError {
+  synchronized RVMType loadVMClass(String className) throws NoClassDefFoundError {
     try {
       InputStream is = getResourceAsStream(className.replace('.', '/') + ".class");
       if (is == null) throw new NoClassDefFoundError(className);
       DataInputStream dataInputStream = new DataInputStream(is);
-      VM_Type type = null;
+      RVMType type = null;
       try {
         // Debugging:
         // VM.sysWriteln("loadVMClass: trying to resolve className " + className);
-        type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+        type = RVMClassLoader.defineClassInternal(className, dataInputStream, this);
         loaded.put(className, type);
       } finally {
         try {
@@ -140,7 +140,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length() - 2);
     }
-    VM_Type loadedType = loaded.get(className);
+    RVMType loadedType = loaded.get(className);
     Class<?> loadedClass;
     if (loadedType == null) {
       loadedClass = findClass(className);
@@ -164,7 +164,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     if (className.startsWith("[")) {
       VM_TypeReference typeRef =
           VM_TypeReference.findOrCreate(this, VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')));
-      VM_Type ans = typeRef.resolve();
+      RVMType ans = typeRef.resolve();
       loaded.put(className, ans);
       return ans.getClassForType();
     } else {
@@ -185,7 +185,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         DataInputStream dataInputStream = new DataInputStream(is);
         Class<?> cls = null;
         try {
-          VM_Type type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+          RVMType type = RVMClassLoader.defineClassInternal(className, dataInputStream, this);
           loaded.put(className, type);
           cls = type.getClassForType();
         } finally {

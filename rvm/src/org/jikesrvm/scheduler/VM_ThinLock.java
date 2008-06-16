@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Magic;
@@ -171,10 +171,10 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
           Address fp = VM_Magic.getFramePointer();
           fp = VM_Magic.getCallerFramePointer(fp);
           int mid = VM_Magic.getCompiledMethodID(fp);
-          VM_Method m1 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
+          RVMMethod m1 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
           fp = VM_Magic.getCallerFramePointer(fp);
           mid = VM_Magic.getCompiledMethodID(fp);
-          VM_Method m2 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
+          RVMMethod m2 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
           String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
           VM_Scheduler.trace(VM_Magic.getObjectType(o).toString(), s, -2 - retries);
         }

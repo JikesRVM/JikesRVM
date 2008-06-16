@@ -30,7 +30,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * <li> an initiating class loader
  * <li> a type name
  * </ul>
- * Resolving a VM_TypeReference to a VM_Type can
+ * Resolving a VM_TypeReference to a RVMType can
  * be an expensive operation.  Therefore we canonicalize
  * VM_TypeReference instances and cache the result of resolution.
  */
@@ -52,10 +52,10 @@ public final class VM_TypeReference {
   final int id;
 
   /**
-   * The VM_Type instance that this type reference resolves to.
+   * The RVMType instance that this type reference resolves to.
    * Null if the reference has not yet been resolved.
    */
-  private VM_Type type;
+  private RVMType type;
 
   /**
    * Used to canonicalize TypeReferences
@@ -78,7 +78,7 @@ public final class VM_TypeReference {
 
   /**
    * Used to assign Ids.  Id 0 is not used. Ids are compressed and
-   * stored in the constant pool (See {@link VM_Class}).
+   * stored in the constant pool (See {@link RVMClass}).
    */
   private static int nextId = 1;
 
@@ -147,8 +147,8 @@ public final class VM_TypeReference {
       findOrCreate(java.lang.IllegalMonitorStateException.class);
 
   public static final VM_TypeReference VM_Processor = findOrCreate(org.jikesrvm.scheduler.VM_Processor.class);
-  public static final VM_TypeReference VM_Type = findOrCreate(org.jikesrvm.classloader.VM_Type.class);
-  public static final VM_TypeReference VM_Class = findOrCreate(org.jikesrvm.classloader.VM_Class.class);
+  public static final VM_TypeReference VM_Type = findOrCreate(org.jikesrvm.classloader.RVMType.class);
+  public static final VM_TypeReference VM_Class = findOrCreate(org.jikesrvm.classloader.RVMClass.class);
 
   public static final VM_TypeReference NativeBridge = findOrCreate(org.vmmagic.pragma.NativeBridge.class);
   public static final VM_TypeReference DynamicBridge = findOrCreate(org.vmmagic.pragma.DynamicBridge.class);
@@ -179,7 +179,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference NonMoving = findOrCreate(org.vmmagic.pragma.NonMoving.class);
 
   public static final VM_TypeReference VM_BaseAnnotation =
-      findOrCreate(org.jikesrvm.classloader.VM_Annotation.BaseAnnotation.class);
+      findOrCreate(org.jikesrvm.classloader.RVMAnnotation.BaseAnnotation.class);
   public static final VM_TypeReference VM_ReferenceMaps =
       findOrCreate(org.jikesrvm.compilers.baseline.VM_ReferenceMaps.class);
   public static final VM_TypeReference VM_JNIFunctions = findOrCreate(org.jikesrvm.jni.VM_JNIFunctions.class);
@@ -187,7 +187,7 @@ public final class VM_TypeReference {
   public static final VM_TypeReference VM_CollectorThread =
       findOrCreate(org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread.class);
 
-  public static final VM_TypeReference VM_Array = findOrCreate(org.jikesrvm.classloader.VM_Array.class);
+  public static final VM_TypeReference RVMArray = findOrCreate(org.jikesrvm.classloader.RVMArray.class);
 
   // Synthetic types used by the opt compiler
   public static final VM_TypeReference NULL_TYPE =
@@ -680,8 +680,8 @@ public final class VM_TypeReference {
   public boolean definitelyDifferent(VM_TypeReference that) {
     if (this == that) return false;
     if (name != that.name) return true;
-    VM_Type mine = peekType();
-    VM_Type theirs = that.peekType();
+    RVMType mine = peekType();
+    RVMType theirs = that.peekType();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -693,8 +693,8 @@ public final class VM_TypeReference {
     if (VM.VerifyAssertions) VM._assert(that != null);
     if (this == that) return true;
     if (name != that.name) return false;
-    VM_Type mine = peekType();
-    VM_Type theirs = that.peekType();
+    RVMType mine = peekType();
+    RVMType theirs = that.peekType();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
@@ -719,14 +719,14 @@ public final class VM_TypeReference {
    * @return the current value of resolvedType -- null if not yet resolved.
    */
   @Uninterruptible
-  public VM_Type peekType() {
+  public RVMType peekType() {
     return type;
   }
 
   /*
-   * for use by VM_ClassLoader.defineClassInternal
+   * for use by RVMClassLoader.defineClassInternal
    */
-  void setType(VM_Type rt) {
+  void setType(RVMType rt) {
     type = rt;
     if (type.isClassType()) {
       type.asClass().setResolvedMembers();
@@ -737,7 +737,7 @@ public final class VM_TypeReference {
    * Force the resolution of the type reference. May cause class loading
    * if a required class file hasn't been loaded before.
    *
-   * @return the VM_Type instance that this references resolves to.
+   * @return the RVMType instance that this references resolves to.
    *
    * @throws NoClassDefFoundError When it cannot resolve a class.
    *        we go to the trouble of converting the class loader's
@@ -751,7 +751,7 @@ public final class VM_TypeReference {
    *        validate them as soon as we insert them into a VM_TypeReference.
    *        This stinks. XXX)
    */
-  public VM_Type resolve() throws NoClassDefFoundError, IllegalArgumentException {
+  public RVMType resolve() throws NoClassDefFoundError, IllegalArgumentException {
     /*
     * Lock the classloader instead of this to avoid conflicting locking order.
     * Suppose we locked this, then one thread could call resolve(), locking this,
@@ -764,10 +764,10 @@ public final class VM_TypeReference {
     }
   }
 
-  private VM_Type resolveInternal() throws NoClassDefFoundError, IllegalArgumentException {
+  private RVMType resolveInternal() throws NoClassDefFoundError, IllegalArgumentException {
     if (type != null) return type;
     if (isClassType()) {
-      VM_Type ans;
+      RVMType ans;
       if (VM.runningVM) {
         Class<?> klass;
         String myName = name.classNameFromDescriptor();
@@ -794,12 +794,12 @@ public final class VM_TypeReference {
       setType(ans);
     } else if (isArrayType()) {
       if (isUnboxedArrayType()) {
-        // Ensure that we only create one VM_Array object for each pair of
+        // Ensure that we only create one RVMArray object for each pair of
         // names for this type.
         // Do this by resolving AddressArray to [Address
         setType(getArrayElementType().getArrayTypeForElementType().resolve());
       } else {
-        VM_Type elementType = getArrayElementType().resolve();
+        RVMType elementType = getArrayElementType().resolve();
         if (elementType.getClassLoader() != classloader) {
           // We aren't the canonical type reference because the element type
           // was loaded using a different classloader.
@@ -807,7 +807,7 @@ public final class VM_TypeReference {
           VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
           setType(canonical.resolve());
         } else {
-          setType(new VM_Array(this, elementType));
+          setType(new RVMArray(this, elementType));
         }
       }
     } else {

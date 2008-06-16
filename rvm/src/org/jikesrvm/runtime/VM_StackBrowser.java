@@ -14,8 +14,8 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.vmmagic.pragma.NoInline;
@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_StackBrowser implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 
   /** Method associated with current stack location */
-  private VM_Method currentMethod;
+  private RVMMethod currentMethod;
   /** Bytecode associated with current stack location */
   private int currentBytecodeIndex;
 
@@ -117,7 +117,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
   }
 
   /** Set the current method, called only by the appropriate compiled method code */
-  public void setMethod(VM_Method method) {
+  public void setMethod(RVMMethod method) {
     currentMethod = method;
   }
 
@@ -137,7 +137,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
   }
 
   /** The method associated with the current stack frame */
-  public VM_Method getMethod() {
+  public RVMMethod getMethod() {
     return currentMethod;
   }
 
@@ -147,7 +147,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
   }
 
   /** The class of the method associated with the current stack frame */
-  public VM_Class getCurrentClass() {
+  public RVMClass getCurrentClass() {
     return getMethod().getDeclaringClass();
   }
 

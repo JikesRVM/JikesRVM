@@ -15,7 +15,7 @@ package org.jikesrvm.runtime;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.scheduler.VM_Processor;
@@ -574,10 +574,10 @@ public final class VM_Magic {
    * @param object object reference
    * @return object reference as type (no checking on cast)
    */
-  public static VM_Type objectAsType(Object object) {
+  public static RVMType objectAsType(Object object) {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
 
-    return (VM_Type)object;
+    return (RVMType)object;
   }
 
   /**
@@ -699,7 +699,7 @@ public final class VM_Magic {
    * @param object object reference
    * @return object type
    */
-  public static VM_Type getObjectType(Object object) {
+  public static RVMType getObjectType(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     return null;
   }

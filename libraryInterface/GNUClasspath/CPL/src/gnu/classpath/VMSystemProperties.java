@@ -17,7 +17,7 @@ import org.jikesrvm.VM;     // for VM.sysWrite()
 import org.jikesrvm.VM_CommandLineArgs;
 import org.jikesrvm.VM_Configuration;
 
-import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 /**
@@ -129,9 +129,9 @@ public class VMSystemProperties {
     s = VM_CommandLineArgs.getEnvironmentArg("java.class.path");
     if (s != null) {
       p.put("java.class.path", s);
-      VM_ClassLoader.stashApplicationRepositories(s);
+      RVMClassLoader.stashApplicationRepositories(s);
     } else {
-      p.put("java.class.path", VM_ClassLoader.getApplicationRepositories());
+      p.put("java.class.path", RVMClassLoader.getApplicationRepositories());
     }
 
     if (VM.PortableNativeSync) {

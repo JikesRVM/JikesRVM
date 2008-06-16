@@ -70,7 +70,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_TypeReference;
@@ -123,7 +123,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
    * @param bc2ir the bc2ir object that is generating the
    *              ir containing this magic
    * @param gc must be bc2ir.gc
-   * @param meth the VM_Method that is the magic method
+   * @param meth the RVMMethod that is the magic method
    */
   static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, VM_MethodReference meth)
       throws MagicNotImplementedException {
@@ -590,12 +590,12 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         RegisterOperand op0;
         VM_TypeReference argType = val.getType();
         if (argType.isArrayType()) {
-          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Array);
+          op0 = gc.temps.makeTemp(VM_TypeReference.RVMArray);
         } else {
           if (argType == VM_TypeReference.JavaLangObject ||
               argType == VM_TypeReference.JavaLangCloneable ||
               argType == VM_TypeReference.JavaIoSerializable) {
-            // could be an array or a class, so make op0 be a VM_Type
+            // could be an array or a class, so make op0 be a RVMType
             op0 = gc.temps.makeTemp(VM_TypeReference.VM_Type);
           } else {
             op0 = gc.temps.makeTemp(VM_TypeReference.VM_Class);
@@ -641,24 +641,24 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         res = gc.temps.makeTempInt();
         bc2ir.push(res.copyD2U());
       }
-      VM_Field target = VM_ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
+      RVMField target = VM_ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
       MethodOperand met = MethodOperand.STATIC(target);
       Instruction s =
           Call.create5(CALL, res, new AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_ArchEntrypoints.saveThreadStateInstructionsField;
+      RVMField target = VM_ArchEntrypoints.saveThreadStateInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL, null, new AddressConstantOperand(target.getOffset()), mo, p1));
     } else if (methodName == VM_MagicNames.threadSwitch) {
       Operand p2 = bc2ir.popRef();
       Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_ArchEntrypoints.threadSwitchInstructionsField;
+      RVMField target = VM_ArchEntrypoints.threadSwitchInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create2(CALL, null, new AddressConstantOperand(target.getOffset()), mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      VM_Field target = VM_ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
+      RVMField target = VM_ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL,
                                            null,

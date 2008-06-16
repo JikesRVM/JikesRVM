@@ -15,7 +15,7 @@ package org.jikesrvm.mm.mmtk;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
@@ -463,7 +463,7 @@ import org.vmmagic.unboxed.Offset;
    * pointer).<p>
    *
    * The code pointers are updated later (after stack scanning) when
-   * the code locations deque is processed. The pointer from VM_Method
+   * the code locations deque is processed. The pointer from RVMMethod
    * to the code object is not updated until after stack scanning, so
    * the pointer to the (uncopied) code object is available throughout
    * the stack scanning process, which enables interior pointer
@@ -636,7 +636,7 @@ import org.vmmagic.unboxed.Offset;
    *
    * @param m The method to be printed
    */
-  private void printMethod(VM_Method m) {
+  private void printMethod(RVMMethod m) {
     Log.write(m.getMemberRef().getType().getName().toByteArray()); Log.write(".");
     Log.write(m.getMemberRef().getName().toByteArray()); Log.write(" ");
     Log.write(m.getMemberRef().getDescriptor().toByteArray());
@@ -647,7 +647,7 @@ import org.vmmagic.unboxed.Offset;
    * current frame
    */
   private void printMethodHeader() {
-    VM_Method method = compiledMethod.getMethod();
+    RVMMethod method = compiledMethod.getMethod();
 
     Log.write("\n--- METHOD (");
     Log.write(VM_CompiledMethod.compilerTypeToString(compiledMethodType));

@@ -20,8 +20,8 @@ package java.lang.reflect;
 import java.lang.annotation.Annotation;
 
 import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
-import org.jikesrvm.classloader.VM_Member;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMember;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
@@ -136,7 +136,7 @@ public class AccessibleObject implements AnnotatedElement {
   /**
    * Get the VM member implementation. Package protected to stop outside use.
    */
-  VM_Member getVMMember() {
+  RVMMember getVMMember() {
     throw new Error("This method should always be overridden");
   }
 
@@ -144,14 +144,14 @@ public class AccessibleObject implements AnnotatedElement {
    * Get the VM method implementation, invalid for fields. Package protected to
    * stop outside use.
    */
-  VM_Method getVMMethod() {
+  RVMMethod getVMMethod() {
     throw new Error("This method should always be overridden");
   }
 
   /**
    * <p>
    * Gets an array of arrays that represent the annotations of the formal
-   * parameters of this VM_Method. If there are no parameters on this
+   * parameters of this RVMMethod. If there are no parameters on this
    * constructor, then an empty array is returned. If there are no annotations
    * set, then and array of empty arrays is returned.
    * </p>
@@ -165,7 +165,7 @@ public class AccessibleObject implements AnnotatedElement {
 
   /**
    * <p>
-   * Indicates whether or not this VM_Method takes a variable number
+   * Indicates whether or not this RVMMethod takes a variable number
    * argument.
    * </p>
    * 

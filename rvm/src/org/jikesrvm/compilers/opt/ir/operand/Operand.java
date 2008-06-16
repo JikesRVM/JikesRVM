@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.Address;
  *      trap instructions.
  * <li> {@link LocationOperand} represents the memory location
  *      accessed by a load or store operation.
- * <li> {@link TypeOperand} encodes a {@link org.jikesrvm.classloader.VM_Type} for use
+ * <li> {@link TypeOperand} encodes a {@link org.jikesrvm.classloader.RVMType} for use
  *      in instructions such as NEW or INSTANCEOF that operate on the
  *      type hierarchy.
  * </ul>

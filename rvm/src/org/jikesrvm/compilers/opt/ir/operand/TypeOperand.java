@@ -12,18 +12,18 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * A TypeOperand represents a type.
  * Used in checkcast, instanceof, new, etc.
- * It will contain either a VM_Type (if the type can be resolved
+ * It will contain either a RVMType (if the type can be resolved
  * at compile time) or a VM_TypeReference (if the type cannot be resolved
  * at compile time).
  *
  * @see Operand
- * @see VM_Type
+ * @see RVMType
  * @see VM_TypeReference
  */
 public final class TypeOperand extends Operand {
@@ -31,7 +31,7 @@ public final class TypeOperand extends Operand {
   /**
    * A type
    */
-  private final VM_Type type;
+  private final RVMType type;
 
   /**
    * The data type.
@@ -41,7 +41,7 @@ public final class TypeOperand extends Operand {
   /**
    * Create a new type operand with the specified type.
    */
-  public TypeOperand(VM_Type typ) {
+  public TypeOperand(RVMType typ) {
     type = typ;
     typeRef = type.getTypeRef();
   }
@@ -54,7 +54,7 @@ public final class TypeOperand extends Operand {
     typeRef = tr;
   }
 
-  private TypeOperand(VM_Type t, VM_TypeReference tr) {
+  private TypeOperand(RVMType t, VM_TypeReference tr) {
     type = t;
     typeRef = tr;
   }
@@ -76,9 +76,9 @@ public final class TypeOperand extends Operand {
   }
 
   /**
-   * @return the VM_Type for this type operand -- may be null
+   * @return the RVMType for this type operand -- may be null
    */
-  public VM_Type getVMType() {
+  public RVMType getVMType() {
     return type;
   }
 

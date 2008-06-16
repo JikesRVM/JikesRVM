@@ -69,7 +69,7 @@ public final class VM_ExceptionHandlerMap {
    * - something like "java/lang/IOException".
    * NOTE: When constructing the VM_ExceptionHandlerMap we replace
    * 'null' entries (means a finally block that catches everything)
-   * with VM_Type.JavaLangThrowableType so we don't have to do anything
+   * with RVMType.JavaLangThrowableType so we don't have to do anything
    * special anywhere else in the VM.
    */
   private final VM_TypeReference[] exceptionTypes;
@@ -105,7 +105,7 @@ public final class VM_ExceptionHandlerMap {
         startPCs[i] = input.readUnsignedShort();
         endPCs[i] = input.readUnsignedShort();
         handlerPCs[i] = input.readUnsignedShort();
-        VM_TypeReference et = VM_Class.getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
+        VM_TypeReference et = RVMClass.getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
         if (et == null) {
           // A finally block...set to java.lang.Throwable to avoid
           // needing to think about this case anywhere else in the VM.

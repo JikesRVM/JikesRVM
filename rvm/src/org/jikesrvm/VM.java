@@ -17,11 +17,11 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_CompilerAdvice;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeDescriptorParsing;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
@@ -77,7 +77,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
   /**
    * Prepare vm classes for use by boot image writer.
-   * @param classPath class path to be used by VM_ClassLoader
+   * @param classPath class path to be used by RVMClassLoader
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */
   @Interruptible
@@ -98,7 +98,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
   /**
    * Prepare vm classes for use by tools.
-   * @param classpath class path to be used by VM_ClassLoader
+   * @param classpath class path to be used by RVMClassLoader
    */
   @Interruptible
   public static void initForTool(String classpath) {
@@ -210,7 +210,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     //
     String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader: ", bootstrapClasses);
-    VM_ClassLoader.boot();      // Wipe out cached application class loader
+    RVMClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
 
     // Initialize statics that couldn't be placed in bootimage, either
@@ -375,7 +375,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     }
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("org.jikesrvm.scheduler.greenthreads.VMProcess");
-    runClassInitializer("org.jikesrvm.classloader.VM_Annotation");
+    runClassInitializer("org.jikesrvm.classloader.RVMAnnotation");
     runClassInitializer("java.lang.annotation.RetentionPolicy");
     runClassInitializer("java.lang.annotation.ElementType");
     runClassInitializer("java.lang.Thread$State");
@@ -437,8 +437,8 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     }
 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
-    VM_ClassLoader.getApplicationClassLoader();
-    VM_ClassLoader.declareApplicationClassLoaderIsReady();
+    RVMClassLoader.getApplicationClassLoader();
+    RVMClassLoader.declareApplicationClassLoaderIsReady();
 
     if (verboseBoot >= 1) {
       VM.sysWriteln("Turning back on security checks.  Letting people see the VM_ApplicationClassLoader.");
@@ -528,7 +528,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
     VM_TypeReference tRef =
         VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
-    VM_Class cls = (VM_Class) tRef.peekType();
+    RVMClass cls = (RVMClass) tRef.peekType();
     if (null == cls) {
       sysWrite("Failed to run class intializer for ");
       sysWrite(className);
@@ -538,7 +538,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
       sysWrite(className);
       sysWriteln(" as the class is not in the boot image.");
     } else {
-      VM_Method clinit = cls.getClassInitializerMethod();
+      RVMMethod clinit = cls.getClassInitializerMethod();
       if (clinit != null) {
         clinit.compile();
         if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
@@ -716,7 +716,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    */
   @NoInline
   /* don't waste code space inlining these --dave */
-  public static void write(VM_Member value) {
+  public static void write(RVMMember value) {
     write(value.getMemberRef());
   }
 
@@ -1069,7 +1069,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   }
 
   @NoInline
-  public static void sysWrite(VM_Member m) {
+  public static void sysWrite(RVMMember m) {
     swLock();
     write(m);
     swUnlock();
@@ -2326,7 +2326,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     VM_BootRecord.the_boot_record = new VM_BootRecord();
 
     // initialize type subsystem and classloader
-    VM_ClassLoader.init(bootstrapClasspath);
+    RVMClassLoader.init(bootstrapClasspath);
 
     // initialize remaining subsystems needed for compilation
     //

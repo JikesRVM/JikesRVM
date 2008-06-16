@@ -32,9 +32,9 @@ public final class VM_MethodReference extends VM_MemberReference {
   private final VM_TypeReference[] parameterTypes;
 
   /**
-   * The VM_Method that this method reference resolved to (null if not yet resolved).
+   * The RVMMethod that this method reference resolved to (null if not yet resolved).
    */
-  private VM_Method resolvedMember;
+  private RVMMethod resolvedMember;
 
   /**
    * @param tr a type reference to the defining class in which this method
@@ -83,8 +83,8 @@ public final class VM_MethodReference extends VM_MemberReference {
   public boolean definitelyDifferent(VM_MethodReference that) {
     if (this == that) return false;
     if (name != that.name || descriptor != that.descriptor) return true;
-    VM_Method mine = peekResolvedMethod();
-    VM_Method theirs = that.peekResolvedMethod();
+    RVMMethod mine = peekResolvedMethod();
+    RVMMethod theirs = that.peekResolvedMethod();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -95,8 +95,8 @@ public final class VM_MethodReference extends VM_MemberReference {
   public boolean definitelySame(VM_MethodReference that) {
     if (this == that) return true;
     if (name != that.name || descriptor != that.descriptor) return false;
-    VM_Method mine = peekResolvedMethod();
-    VM_Method theirs = that.peekResolvedMethod();
+    RVMMethod mine = peekResolvedMethod();
+    RVMMethod theirs = that.peekResolvedMethod();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
@@ -113,14 +113,14 @@ public final class VM_MethodReference extends VM_MemberReference {
    * it has already been resolved. Does NOT force resolution.
    */
   @Uninterruptible
-  public VM_Method getResolvedMember() {
+  public RVMMethod getResolvedMember() {
     return resolvedMember;
   }
 
   /**
-   * For use by VM_Method constructor
+   * For use by RVMMethod constructor
    */
-  void setResolvedMember(VM_Method it) {
+  void setResolvedMember(RVMMethod it) {
     if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;
   }
@@ -129,10 +129,10 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Resolve the method reference for an invoke special into a target
    * method, return null if the method cannot be resolved without classloading.
    */
-  public synchronized VM_Method resolveInvokeSpecial() {
-    VM_Class thisClass = (VM_Class) type.peekType();
-    if (thisClass == null && name != VM_ClassLoader.StandardObjectInitializerMethodName) {
-      thisClass = (VM_Class) type.resolve();
+  public synchronized RVMMethod resolveInvokeSpecial() {
+    RVMClass thisClass = (RVMClass) type.peekType();
+    if (thisClass == null && name != RVMClassLoader.StandardObjectInitializerMethodName) {
+      thisClass = (RVMClass) type.resolve();
       /* Can't fail to resolve thisClass; we're at compile time doing
          resolution of an invocation to a private method or super call.  We
          must have loaded the class already */
@@ -140,19 +140,19 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (thisClass == null) {
       return null; // can't be found now.
     }
-    VM_Method sought = resolveInternal(thisClass);
+    RVMMethod sought = resolveInternal(thisClass);
 
     if (sought.isObjectInitializer()) {
       return sought;   // <init>
     }
 
-    VM_Class cls = sought.getDeclaringClass();
+    RVMClass cls = sought.getDeclaringClass();
     if (!cls.isSpecial()) {
       return sought;   // old-style invokespecial semantics
     }
 
     for (; cls != null; cls = cls.getSuperClass()) {
-      VM_Method found = cls.findDeclaredMethod(sought.getName(), sought.getDescriptor());
+      RVMMethod found = cls.findDeclaredMethod(sought.getName(), sought.getDescriptor());
       if (found != null) {
         return found; // new-style invokespecial semantics
       }
@@ -161,29 +161,29 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Find the VM_Method that this method reference refers to using
+   * Find the RVMMethod that this method reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
-   * @return the VM_Method that this method ref resolved to or null if it cannot be resolved.
+   * @return the RVMMethod that this method ref resolved to or null if it cannot be resolved.
    */
-  public VM_Method peekResolvedMethod() {
+  public RVMMethod peekResolvedMethod() {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class) type.peekType();
+    RVMClass declaringClass = (RVMClass) type.peekType();
     if (declaringClass == null) return null;
     return resolveInternal(declaringClass);
   }
 
   /**
-   * Find the VM_Method that this field reference refers to using
+   * Find the RVMMethod that this field reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
-   * @return the VM_Method that this method ref resolved to.
+   * @return the RVMMethod that this method ref resolved to.
    */
-  public synchronized VM_Method resolve() {
+  public synchronized RVMMethod resolve() {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
-    return resolveInternal((VM_Class) type.resolve());
+    return resolveInternal((RVMClass) type.resolve());
   }
 
   static final boolean DBG = false;
@@ -203,7 +203,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   public boolean isMiranda() {
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class) type.peekType();
+    RVMClass declaringClass = (RVMClass) type.peekType();
     if (declaringClass == null) { return false; }
 
     if (!declaringClass.isResolved()) {
@@ -211,7 +211,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     }
 
     // See if method is explicitly declared in any superclass
-    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
+    for (RVMClass c = declaringClass; c != null; c = c.getSuperClass()) {
 
       if (c.findDeclaredMethod(name, descriptor) != null) {
         // Method declared in superclass => not interface method
@@ -220,9 +220,9 @@ public final class VM_MethodReference extends VM_MemberReference {
     }
 
     // Not declared in any superclass; now check to see if it is coming from an interface somewhere
-    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
+    for (RVMClass c = declaringClass; c != null; c = c.getSuperClass()) {
       // See if method is in any interfaces of c
-      for (VM_Class intf : c.getDeclaredInterfaces()) {
+      for (RVMClass intf : c.getDeclaredInterfaces()) {
         if (searchInterfaceMethods(intf) != null) {
           // Found method in interface or superinterface
           return true;
@@ -258,20 +258,20 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Find the VM_Method that this member reference refers to using
+   * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
-   * @return the VM_Method that this method ref resolved to.
+   * @return the RVMMethod that this method ref resolved to.
    */
-  private VM_Method resolveInternal(VM_Class declaringClass) {
+  private RVMMethod resolveInternal(RVMClass declaringClass) {
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
-    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
+    for (RVMClass c = declaringClass; c != null; c = c.getSuperClass()) {
       if (DBG) {
         VM.sysWrite("Checking for <" + name + "," + descriptor + "> in class " + c + "...");
       }
 
-      VM_Method it = c.findDeclaredMethod(name, descriptor);
+      RVMMethod it = c.findDeclaredMethod(name, descriptor);
       if (it != null) {
         if (DBG) {
           VM.sysWriteln("...found <" + name + "," + descriptor + "> in class " + c);
@@ -303,15 +303,15 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Find the VM_Method that this member reference refers to using
+   * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @return the VM_Method that this method ref resolved to or null if it cannot be resolved without trigering class loading
+   * @return the RVMMethod that this method ref resolved to or null if it cannot be resolved without trigering class loading
    */
-  public VM_Method peekInterfaceMethod() {
+  public RVMMethod peekInterfaceMethod() {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now.
-    VM_Class declaringClass = (VM_Class) type.peekType();
+    RVMClass declaringClass = (RVMClass) type.peekType();
     if (declaringClass == null) return null;
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
@@ -321,15 +321,15 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Find the VM_Method that this member reference refers to using
+   * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @return the VM_Method that this method ref resolved to
+   * @return the RVMMethod that this method ref resolved to
    */
-  public VM_Method resolveInterfaceMethod() throws IncompatibleClassChangeError, NoSuchMethodError {
+  public RVMMethod resolveInterfaceMethod() throws IncompatibleClassChangeError, NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Do it now.
-    VM_Class declaringClass = (VM_Class) type.resolve();
+    RVMClass declaringClass = (RVMClass) type.resolve();
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
@@ -339,7 +339,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (!declaringClass.isInterface() && !isMiranda()) {
       throw new IncompatibleClassChangeError();
     }
-    VM_Method ans = resolveInterfaceMethodInternal(declaringClass);
+    RVMMethod ans = resolveInterfaceMethodInternal(declaringClass);
     if (ans == null) {
       throw new NoSuchMethodError(this.toString());
     }
@@ -347,17 +347,17 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Find the VM_Method that this member reference refers to using
+   * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @return the VM_Method that this method ref resolved to or null for error
+   * @return the RVMMethod that this method ref resolved to or null for error
    */
-  private VM_Method resolveInterfaceMethodInternal(VM_Class declaringClass) {
-    VM_Method it = declaringClass.findDeclaredMethod(name, descriptor);
+  private RVMMethod resolveInterfaceMethodInternal(RVMClass declaringClass) {
+    RVMMethod it = declaringClass.findDeclaredMethod(name, descriptor);
     if (it != null) {
       resolvedMember = it;
       return resolvedMember;
     }
-    for (VM_Class intf : declaringClass.getDeclaredInterfaces()) {
+    for (RVMClass intf : declaringClass.getDeclaredInterfaces()) {
       it = searchInterfaceMethods(intf);
       if (it != null) {
         resolvedMember = it;
@@ -367,11 +367,11 @@ public final class VM_MethodReference extends VM_MemberReference {
     return null;
   }
 
-  private VM_Method searchInterfaceMethods(VM_Class c) {
+  private RVMMethod searchInterfaceMethods(RVMClass c) {
     if (!c.isResolved()) c.resolve();
-    VM_Method it = c.findDeclaredMethod(name, descriptor);
+    RVMMethod it = c.findDeclaredMethod(name, descriptor);
     if (it != null) return it;
-    for (VM_Class intf : c.getDeclaredInterfaces()) {
+    for (RVMClass intf : c.getDeclaredInterfaces()) {
       it = searchInterfaceMethods(intf);
       if (it != null) return it;
     }

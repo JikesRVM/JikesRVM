@@ -19,15 +19,15 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -59,7 +59,7 @@ public abstract class VM_TemplateCompilerFramework
   /**
    * The declaring class of the method being compiled
    */
-  protected final VM_Class klass;
+  protected final RVMClass klass;
 
   /**
    * The bytecodes of the method being compiled
@@ -161,7 +161,7 @@ public abstract class VM_TemplateCompilerFramework
    * Print a message to mark the start of machine code printing for a method
    * @param method
    */
-  protected final void printStartHeader(VM_Method method) {
+  protected final void printStartHeader(RVMMethod method) {
     VM.sysWrite(getCompilerName());
     VM.sysWrite(" Start: Final machine code for method ");
     VM.sysWrite(method.getDeclaringClass().toString());
@@ -176,7 +176,7 @@ public abstract class VM_TemplateCompilerFramework
    * Print a message to mark the end of machine code printing for a method
    * @param method
    */
-  protected final void printEndHeader(VM_Method method) {
+  protected final void printEndHeader(RVMMethod method) {
     VM.sysWrite(getCompilerName());
     VM.sysWrite(" End: Final machine code for method ");
     VM.sysWrite(method.getDeclaringClass().toString());
@@ -1492,7 +1492,7 @@ public abstract class VM_TemplateCompilerFramework
           }
           VM_MethodReference methodRef = bcodes.getMethodReference();
           if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
-          VM_Method target = methodRef.resolveInvokeSpecial();
+          RVMMethod target = methodRef.resolveInvokeSpecial();
           if (target != null) {
             if (VM.VerifyUnint && !isInterruptible) checkTarget(target, bcodes.index());
             emit_resolved_invokespecial(methodRef, target);
@@ -1582,7 +1582,7 @@ public abstract class VM_TemplateCompilerFramework
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
-          VM_Type type = typeRef.peekType();
+          RVMType type = typeRef.peekType();
           if (type != null && (type.isInitialized() || type.isInBootImage())) {
             emit_resolved_new(type.asClass());
           } else {
@@ -1593,7 +1593,7 @@ public abstract class VM_TemplateCompilerFramework
 
         case JBC_newarray: {
           int atype = bcodes.getArrayElementType();
-          VM_Array array = VM_Array.getPrimitiveArrayType(atype);
+          RVMArray array = RVMArray.getPrimitiveArrayType(atype);
           if (VM.VerifyAssertions) VM._assert(array.isResolved());
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
@@ -1624,11 +1624,11 @@ public abstract class VM_TemplateCompilerFramework
 
           // We can do early resolution of the array type if the element type
           // is already initialized.
-          VM_Array array = (VM_Array) arrayRef.peekType();
+          RVMArray array = (RVMArray) arrayRef.peekType();
           if (array != null &&
               !(array.isInitialized() || array.isInBootImage()) &&
-              VM_Type.JavaLangObjectType.isInstantiated()) {
-            VM_Type elementType = elementTypeRef.peekType();
+              RVMType.JavaLangObjectType.isInstantiated()) {
+            RVMType elementType = elementTypeRef.peekType();
             if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
               array.resolve();
               array.instantiate();
@@ -1661,7 +1661,7 @@ public abstract class VM_TemplateCompilerFramework
         case JBC_checkcast: {
           VM_TypeReference typeRef = bcodes.getTypeReference();
           if (shouldPrint) asm.noteBytecode(biStart, "checkcast", typeRef);
-          VM_Type type = typeRef.peekType();
+          RVMType type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
               if (type.asClass().isFinal()) {
@@ -1672,7 +1672,7 @@ public abstract class VM_TemplateCompilerFramework
                 break;
               } // else fall through to emit_checkcast
             } else if (type.isArrayType()) {
-              VM_Type elemType = type.asArray().getElementType();
+              RVMType elemType = type.asArray().getElementType();
               if (elemType.isPrimitiveType() || (elemType.isClassType() && elemType.asClass().isFinal())) {
                 emit_checkcast_final(type);
                 break;
@@ -1693,7 +1693,7 @@ public abstract class VM_TemplateCompilerFramework
         case JBC_instanceof: {
           VM_TypeReference typeRef = bcodes.getTypeReference();
           if (shouldPrint) asm.noteBytecode(biStart, "instanceof", typeRef);
-          VM_Type type = typeRef.peekType();
+          RVMType type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
               if (type.asClass().isFinal()) {
@@ -1704,7 +1704,7 @@ public abstract class VM_TemplateCompilerFramework
                 break;
               }
             } else if (type.isArrayType()) {
-              VM_Type elemType = type.asArray().getElementType();
+              RVMType elemType = type.asArray().getElementType();
               if (elemType.isPrimitiveType() || (elemType.isClassType() && elemType.asClass().isFinal())) {
                 emit_instanceof_final(type);
                 break;
@@ -1867,7 +1867,7 @@ public abstract class VM_TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
 
                 Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
-                emit_ldc(offset, VM_Class.CP_INT);
+                emit_ldc(offset, RVMClass.CP_INT);
 
                 break;
               }
@@ -1877,7 +1877,7 @@ public abstract class VM_TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
 
                 Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
-                emit_ldc2(offset, VM_Class.CP_LONG);
+                emit_ldc2(offset, RVMClass.CP_LONG);
 
                 break;
               }
@@ -1888,14 +1888,14 @@ public abstract class VM_TemplateCompilerFramework
                   if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(value));
-                  emit_ldc(offset, VM_Class.CP_INT);
+                  emit_ldc(offset, RVMClass.CP_INT);
                 } else {
                   long value = bcodes.readLongConst();
 
                   if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(value));
-                  emit_ldc2(offset, VM_Class.CP_LONG);
+                  emit_ldc2(offset, RVMClass.CP_LONG);
                   emit_l2i(); //dirty hack
                 }
                 break;
@@ -1906,7 +1906,7 @@ public abstract class VM_TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
 
                 Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(ibits));
-                emit_ldc(offset, VM_Class.CP_FLOAT);
+                emit_ldc(offset, RVMClass.CP_FLOAT);
 
                 break;
               }
@@ -1916,7 +1916,7 @@ public abstract class VM_TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
 
                 Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(lbits));
-                emit_ldc2(offset, VM_Class.CP_DOUBLE);
+                emit_ldc2(offset, RVMClass.CP_DOUBLE);
 
                 break;
               }
@@ -1931,7 +1931,7 @@ public abstract class VM_TemplateCompilerFramework
                 break;
               }
               case org.jikesrvm.osr.OSR_Constants.PSEUDO_InvokeStatic: {
-                VM_Method methodRef = null;
+                RVMMethod methodRef = null;
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
                 switch (targetidx) {
                   case org.jikesrvm.osr.OSR_Constants.GETREFAT:
@@ -2072,7 +2072,7 @@ public abstract class VM_TemplateCompilerFramework
    * @param target the target methodRef
    * @param bci the index of the current bytecode
    */
-  protected final void checkTarget(VM_Method target, int bci) {
+  protected final void checkTarget(RVMMethod target, int bci) {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
       if (method.hasLogicallyUninterruptibleAnnotation()) return;
@@ -2946,7 +2946,7 @@ public abstract class VM_TemplateCompilerFramework
    * @param methodRef the referenced method
    * @param target the method to invoke
    */
-  protected abstract void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target);
+  protected abstract void emit_resolved_invokespecial(VM_MethodReference methodRef, RVMMethod target);
 
   /**
    * Emit code to implement invokespecial
@@ -2985,9 +2985,9 @@ public abstract class VM_TemplateCompilerFramework
   /**
    * Emit code to allocate a scalar object
    *
-   * @param typeRef  The {@link VM_Class} to instantiate
+   * @param typeRef  The {@link RVMClass} to instantiate
    */
-  protected abstract void emit_resolved_new(VM_Class typeRef);
+  protected abstract void emit_resolved_new(RVMClass typeRef);
 
   /**
    * Emit code to dynamically link and allocate a scalar object
@@ -2997,9 +2997,9 @@ public abstract class VM_TemplateCompilerFramework
 
   /**
    * Emit code to allocate an array
-   * @param array the {@link VM_Array} to instantiate
+   * @param array the {@link RVMArray} to instantiate
    */
-  protected abstract void emit_resolved_newarray(VM_Array array);
+  protected abstract void emit_resolved_newarray(RVMArray array);
 
   /**
    * Emit code to dynamically link the element class and allocate an array
@@ -3034,13 +3034,13 @@ public abstract class VM_TemplateCompilerFramework
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_checkcast_resolvedClass(VM_Type type);
+  protected abstract void emit_checkcast_resolvedClass(RVMType type);
 
   /**
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_checkcast_final(VM_Type type);
+  protected abstract void emit_checkcast_final(RVMType type);
 
   /**
    * Emit code to implement the instanceof bytecode
@@ -3052,13 +3052,13 @@ public abstract class VM_TemplateCompilerFramework
    * Emit code to implement the instanceof bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_instanceof_resolvedClass(VM_Type type);
+  protected abstract void emit_instanceof_resolvedClass(RVMType type);
 
   /**
    * Emit code to implement the instanceof bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_instanceof_final(VM_Type type);
+  protected abstract void emit_instanceof_final(RVMType type);
 
   /**
    * Emit code to implement the monitorenter bytecode

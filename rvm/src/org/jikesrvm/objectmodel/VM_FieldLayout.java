@@ -14,8 +14,8 @@ package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -70,7 +70,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
    * @param klass The class
    * @return The layout context
    */
-  protected abstract VM_FieldLayoutContext getLayoutContext(VM_Class klass);
+  protected abstract VM_FieldLayoutContext getLayoutContext(RVMClass klass);
 
   /**
    * This is where a class gets laid out.  Differences in layout strategy
@@ -78,7 +78,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
    *
    * @param klass The class to lay out.
    */
-  public void layoutInstanceFields(VM_Class klass) {
+  public void layoutInstanceFields(RVMClass klass) {
     /*
      * Determine available field slots from parent classes, and allocate
      * a new context object for this class and its children.
@@ -87,7 +87,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
 
     // Preferred alignment of object - modified to reflect added fields
     // New fields to be allocated for this object
-    VM_Field[] fields = klass.getDeclaredFields();
+    RVMField[] fields = klass.getDeclaredFields();
 
     if (DEBUG) {
       VM.sysWriteln("Laying out: ", klass.toString());
@@ -99,7 +99,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
     */
     if (clusterReferenceFields) {
       // For every field
-      for (VM_Field field : fields) {
+      for (RVMField field : fields) {
         if (!field.isStatic() && !field.hasOffset()) {
           if (field.isReferenceType()) {
             layoutField(fieldLayout, klass, field, BYTES_IN_ADDRESS);
@@ -114,7 +114,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
     */
     if (largeFieldsFirst) {
       // For every field
-      for (VM_Field field : fields) {
+      for (RVMField field : fields) {
         // Should we allocate space in the object now?
         if (!field.isStatic() && !field.hasOffset()) {
           if (field.getSize() == BYTES_IN_LONG) {
@@ -124,7 +124,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
       }
     }
 
-    for (VM_Field field : fields) {                               // For every field
+    for (RVMField field : fields) {                               // For every field
       int fieldSize = field.getSize();                            // size of field
       if (!field.isStatic() && !field.hasOffset()) {              // Allocate space in the object?
         layoutField(fieldLayout, klass, field, fieldSize);
@@ -139,12 +139,12 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
   }
 
   /**
-   * Update the VM_Class with context info.
+   * Update the RVMClass with context info.
    *
    * @param klass
    * @param fieldLayout
    */
-  protected void updateClass(VM_Class klass, VM_FieldLayoutContext fieldLayout) {
+  protected void updateClass(RVMClass klass, VM_FieldLayoutContext fieldLayout) {
     /*
      * Save the new field layout.
      */
@@ -161,7 +161,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
    * @param field
    * @param offset
    */
-  protected void setOffset(VM_Class klass, VM_Field field, int offset) {
+  protected void setOffset(RVMClass klass, RVMField field, int offset) {
 
     Offset fieldOffset;
     if (offset >= 0) {
@@ -188,7 +188,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
    * @param field The field we are laying out.
    * @param fieldSize The size of the field.
    */
-  protected void layoutField(VM_FieldLayoutContext layout, VM_Class klass, VM_Field field, int fieldSize) {
+  protected void layoutField(VM_FieldLayoutContext layout, RVMClass klass, RVMField field, int fieldSize) {
     boolean isRef = field.isReferenceType();
     setOffset(klass, field, layout.nextOffset(fieldSize, isRef));
   }

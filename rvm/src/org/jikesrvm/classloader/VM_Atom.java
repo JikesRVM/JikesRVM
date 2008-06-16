@@ -666,7 +666,7 @@ public final class VM_Atom {
    * The type code will be one of the constants appearing in the table above.
    *
    * Implementation note: This is supposed to be uninterruptible, since another
-   * allegedly uninterruptible method (VM_Array.getLogElementSize()) calls it.
+   * allegedly uninterruptible method (RVMArray.getLogElementSize()) calls it.
    */
   @Uninterruptible
   @Pure

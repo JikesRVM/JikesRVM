@@ -15,11 +15,11 @@ package java.lang;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
@@ -37,18 +37,18 @@ final class VMCommonLibrarySupport {
    * Method just to throw an illegal access exception without being inlined
    */
   @NoInline
-  private static void throwNewIllegalAccessException(VM_Member member, VM_Class accessingClass) throws IllegalAccessException{
+  private static void throwNewIllegalAccessException(RVMMember member, RVMClass accessingClass) throws IllegalAccessException{
     throw new IllegalAccessException("Access to " + member + " is denied to " + accessingClass);
   }
   /* ---- General Reflection Support ---- */
   /**
    * Check to see if a method declared by the accessingClass
-   * should be allowed to access the argument VM_Member.
+   * should be allowed to access the argument RVMMember.
    * Assumption: member is not public.  This trivial case should
    * be approved by the caller without needing to call this method.
    */
-  static void checkAccess(VM_Member member, VM_Class accessingClass) throws IllegalAccessException {
-    VM_Class declaringClass = member.getDeclaringClass();
+  static void checkAccess(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
+    RVMClass declaringClass = member.getDeclaringClass();
     if (member.isPrivate()) {
       // access from the declaringClass is allowed
       if (accessingClass == declaringClass) return;
@@ -57,7 +57,7 @@ final class VMCommonLibrarySupport {
       if (declaringClass.getClassLoader() == accessingClass.getClassLoader() && declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
 
       // access by subclasses is allowed.
-      for (VM_Class cls = accessingClass; cls != null; cls = cls.getSuperClass()) {
+      for (RVMClass cls = accessingClass; cls != null; cls = cls.getSuperClass()) {
         if (accessingClass == declaringClass) return;
       }
     } else {
@@ -106,23 +106,23 @@ final class VMCommonLibrarySupport {
     if (src == null || dst == null) {
       RuntimeEntrypoints.raiseNullPointerException();
     } else if ((src instanceof char[]) && (dst instanceof char[])) {
-      VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
+      RVMArray.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
     } else if ((src instanceof Object[]) && (dst instanceof Object[])) {
-      VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
+      RVMArray.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
     } else if ((src instanceof byte[]) && (dst instanceof byte[])) {
-      VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
+      RVMArray.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
     } else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
-      VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
+      RVMArray.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
     } else if ((src instanceof short[]) && (dst instanceof short[])) {
-      VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
+      RVMArray.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
     } else if ((src instanceof int[]) && (dst instanceof int[])) {
-      VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
+      RVMArray.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
     } else if ((src instanceof long[]) && (dst instanceof long[])) {
-      VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
+      RVMArray.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
     } else if ((src instanceof float[]) && (dst instanceof float[])) {
-      VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
+      RVMArray.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
     } else if ((src instanceof double[]) && (dst instanceof double[])) {
-      VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
+      RVMArray.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
     } else {
       RuntimeEntrypoints.raiseArrayStoreException();
     }
@@ -135,7 +135,7 @@ final class VMCommonLibrarySupport {
    */
   static void setSystemStreamField(String fieldName, Object stream) {
     try {
-      VM_Field field = ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+      RVMField field = ((RVMClass)JikesRVMSupport.getTypeForClass(System.class))
         .findDeclaredField(VM_Atom.findOrCreateUnicodeAtom(fieldName));
       field.setObjectValueUnchecked(null, stream);
     } catch (Exception e) {

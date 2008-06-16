@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -37,7 +37,7 @@ public final class OptLinker implements VM_BytecodeConstants {
    * instruction array, perform the dynamic linking required by that
    * instruction.
    * <p>
-   * We do this by mapping back to the source VM_Method and bytecode offset,
+   * We do this by mapping back to the source RVMMethod and bytecode offset,
    * then examining the bytecodes to see what field/method was being
    * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
@@ -83,7 +83,7 @@ public final class OptLinker implements VM_BytecodeConstants {
     }
     // create array
     //
-    VM_Array aType = (VM_Array) VM_TypeReference.getTypeRef(typeId).resolve();
+    RVMArray aType = (RVMArray) VM_TypeReference.getTypeRef(typeId).resolve();
     return RuntimeEntrypoints.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
 
@@ -94,7 +94,7 @@ public final class OptLinker implements VM_BytecodeConstants {
 
     // create array
     //
-    VM_Array aType = (VM_Array) VM_TypeReference.getTypeRef(typeId).resolve();
+    RVMArray aType = (RVMArray) VM_TypeReference.getTypeRef(typeId).resolve();
     return RuntimeEntrypoints.buildTwoDimensionalArray(methodId, dim0, dim1, aType);
   }
 }

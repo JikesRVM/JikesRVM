@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 
 /**
  * Hold semantic information about a method that is not defined in
- * VM_Method.
+ * RVMMethod.
  */
 public class MethodSummary {
 
@@ -32,9 +32,9 @@ public class MethodSummary {
   private long escapeInfo = RES_ESCAPE;
 
   /**
-   * @param m VM_Method representing this method.
+   * @param m RVMMethod representing this method.
    */
-  MethodSummary(VM_Method m) { }
+  MethodSummary(RVMMethod m) { }
 
   /**
    * Record that a parameter may or may not escape from a thread.

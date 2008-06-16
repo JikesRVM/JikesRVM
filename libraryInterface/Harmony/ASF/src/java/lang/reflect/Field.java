@@ -19,10 +19,10 @@ package java.lang.reflect;
 
 import java.lang.reflect.VMCommonLibrarySupport;
 
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Member;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMember;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -35,12 +35,12 @@ import org.jikesrvm.VM;
  * 
  */
 public final class Field extends AccessibleObject implements Member {
-  private final VM_Field vmField;
+  private final RVMField vmField;
 
   /**
 	* Constructor
 	*/
-  Field(VM_Field vmField){
+  Field(RVMField vmField){
 	 this.vmField = vmField;
   }
 
@@ -146,7 +146,7 @@ public final class Field extends AccessibleObject implements Member {
 	*             if modeled field is not accessible
 	*/
   public Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.get(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+    return VMCommonLibrarySupport.get(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -174,7 +174,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public boolean getBoolean(Object object)
 	 throws IllegalAccessException, IllegalArgumentException{
-	 return VMCommonLibrarySupport.getBoolean(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getBoolean(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -202,7 +202,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public byte getByte(Object object) throws IllegalAccessException,
 														  IllegalArgumentException{
-	 return VMCommonLibrarySupport.getByte(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getByte(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -230,7 +230,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public char getChar(Object object) throws IllegalAccessException,
 														  IllegalArgumentException {
-	 return VMCommonLibrarySupport.getChar(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getChar(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -268,7 +268,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public double getDouble(Object object)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 return VMCommonLibrarySupport.getDouble(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getDouble(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -296,7 +296,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public float getFloat(Object object) throws IllegalAccessException,
 															 IllegalArgumentException {
-	 return VMCommonLibrarySupport.getFloat(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getFloat(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -323,7 +323,7 @@ public final class Field extends AccessibleObject implements Member {
 	*             if modeled field is not accessible
 	*/
   public int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getInt(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+    return VMCommonLibrarySupport.getInt(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -351,7 +351,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public long getLong(Object object) throws IllegalAccessException,
 														  IllegalArgumentException {
-	 return VMCommonLibrarySupport.getLong(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getLong(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -400,7 +400,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public short getShort(Object object) throws IllegalAccessException,
 															 IllegalArgumentException {
-	 return VMCommonLibrarySupport.getShort(object, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 return VMCommonLibrarySupport.getShort(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -457,7 +457,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void set(Object object, Object value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.set(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.set(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -489,7 +489,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setBoolean(Object object, boolean value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setBoolean(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setBoolean(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -521,7 +521,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setByte(Object object, byte value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setByte(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setByte(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -553,7 +553,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setChar(Object object, char value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setChar(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setChar(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -585,7 +585,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setDouble(Object object, double value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setDouble(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setDouble(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -617,7 +617,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setFloat(Object object, float value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setFloat(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setFloat(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -649,7 +649,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setInt(Object object, int value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setInt(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setInt(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -681,7 +681,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setLong(Object object, long value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setLong(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setLong(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -713,7 +713,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setShort(Object object, short value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setShort(object, value, vmField, this, VM_Class.getClassFromStackFrame(1));
+	 VMCommonLibrarySupport.setShort(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -755,7 +755,7 @@ public final class Field extends AccessibleObject implements Member {
    * Get the VM member implementation. Package protected to stop outside use.
    */
   @Override
-  VM_Member getVMMember() {
+  RVMMember getVMMember() {
 	 return vmField;
   }
 }

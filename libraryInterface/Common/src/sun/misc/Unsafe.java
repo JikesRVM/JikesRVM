@@ -14,8 +14,8 @@ package sun.misc;
 
 import java.lang.reflect.Field;
 
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
@@ -38,7 +38,7 @@ public final class Unsafe {
   }
 
   public long objectFieldOffset(Field field) {
-    VM_Field vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
+    RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     return vmfield.getOffset().toLong();
   }
 
@@ -122,7 +122,7 @@ public final class Unsafe {
   }
 
   public int arrayIndexScale(Class<?> arrayClass) {
-    VM_Type arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
+    RVMType arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
     if (!arrayType.isArrayType()) {
       return 0;
     } else {

@@ -137,7 +137,7 @@ public interface VM_StackframeLayoutConstants {
   int STACKFRAME_FRAME_POINTER_OFFSET = 0;    // base of this frame
 
   Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
-  int INVISIBLE_METHOD_ID = -1; // marker for "assembler" frames that have no associated VM_Method
+  int INVISIBLE_METHOD_ID = -1; // marker for "assembler" frames that have no associated RVMMethod
 
   // Stackframe alignment.
   // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).

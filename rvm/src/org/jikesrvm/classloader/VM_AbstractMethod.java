@@ -18,7 +18,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 /**
  * An abstract method of a java class.
  */
-public final class VM_AbstractMethod extends VM_Method {
+public final class VM_AbstractMethod extends RVMMethod {
 
   /**
    * Construct abstract method information
@@ -33,8 +33,8 @@ public final class VM_AbstractMethod extends VM_Method {
    * @param annotationDefault value for this annotation that appears
    */
   VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
-                    VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
-                    VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
+                    VM_TypeReference[] exceptionTypes, VM_Atom signature, RVMAnnotation[] annotations,
+                    RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass,
           memRef,
           modifiers,

@@ -16,8 +16,8 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
@@ -77,9 +77,9 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   protected final int cmid;
 
   /**
-   * The VM_Method that was compiled
+   * The RVMMethod that was compiled
    */
-  public final VM_Method method;
+  public final RVMMethod method;
 
   /**
    * The compiled machine code for said method.
@@ -127,7 +127,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /**
    * Set the cmid and method fields
    */
-  public VM_CompiledMethod(int id, VM_Method m) {
+  public VM_CompiledMethod(int id, RVMMethod m) {
     cmid = id;
     method = m;
     if (m != null && m.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
@@ -144,10 +144,10 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   }
 
   /**
-   * Return the VM_Method associated with this compiled method
+   * Return the RVMMethod associated with this compiled method
    */
   @Uninterruptible
-  public final VM_Method getMethod() {
+  public final RVMMethod getMethod() {
     return method;
   }
 
@@ -426,7 +426,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * gc disabled when called by RuntimeEntrypoints.deliverException().
    * </ul>
    */
-  public abstract int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType);
+  public abstract int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType);
 
   /**
    * Fetch symbolic reference to a method that's called by one of

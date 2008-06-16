@@ -27,9 +27,9 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   private final VM_TypeReference fieldContentsType;
 
   /**
-   * The VM_Field that this field reference resolved to (null if not yet resolved).
+   * The RVMField that this field reference resolved to (null if not yet resolved).
    */
-  private VM_Field resolvedMember;
+  private RVMField resolvedMember;
 
   /**
    * @param tr a type reference
@@ -73,8 +73,8 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
     if (getName() != that.getName() || getDescriptor() != that.getDescriptor()) {
       return true;
     }
-    VM_Field mine = peekResolvedField();
-    VM_Field theirs = that.peekResolvedField();
+    RVMField mine = peekResolvedField();
+    RVMField theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -87,8 +87,8 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
     if (getName() != that.getName() || getDescriptor() != that.getDescriptor()) {
       return false;
     }
-    VM_Field mine = peekResolvedField();
-    VM_Field theirs = that.peekResolvedField();
+    RVMField mine = peekResolvedField();
+    RVMField theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
@@ -101,52 +101,52 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   }
 
   /**
-   * For use by VM_Field constructor
+   * For use by RVMField constructor
    */
-  void setResolvedMember(VM_Field it) {
+  void setResolvedMember(RVMField it) {
     if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;
   }
 
   /**
-   * Find the VM_Field that this field reference refers to using
+   * Find the RVMField that this field reference refers to using
    * the search order specified in JVM spec 5.4.3.2.
-   * @return the VM_Field that this method ref resolved to or null if it cannot be resolved.
+   * @return the RVMField that this method ref resolved to or null if it cannot be resolved.
    */
-  public VM_Field peekResolvedField() {
+  public RVMField peekResolvedField() {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class) type.peekType();
+    RVMClass declaringClass = (RVMClass) type.peekType();
     if (declaringClass == null) return null;
     return resolveInternal(declaringClass);
   }
 
   /**
-   * Find the VM_Field that this field reference refers to using
+   * Find the RVMField that this field reference refers to using
    * the search order specified in JVM spec 5.4.3.2.
-   * @return the VM_Field that this method ref resolved to.
+   * @return the RVMField that this method ref resolved to.
    */
-  public synchronized VM_Field resolve() {
+  public synchronized RVMField resolve() {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
-    return resolveInternal((VM_Class) type.resolve());
+    return resolveInternal((RVMClass) type.resolve());
   }
 
-  private VM_Field resolveInternal(VM_Class declaringClass) {
+  private RVMField resolveInternal(RVMClass declaringClass) {
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
-    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
+    for (RVMClass c = declaringClass; c != null; c = c.getSuperClass()) {
       // Look in this class
-      VM_Field it = c.findDeclaredField(name, descriptor);
+      RVMField it = c.findDeclaredField(name, descriptor);
       if (it != null) {
         resolvedMember = it;
         return resolvedMember;
       }
       // Look at all interfaces directly and indirectly implemented by this class.
-      for (VM_Class i : c.getDeclaredInterfaces()) {
+      for (RVMClass i : c.getDeclaredInterfaces()) {
         it = searchInterfaceFields(i);
         if (it != null) {
           resolvedMember = it;
@@ -157,10 +157,10 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
     throw new NoSuchFieldError(this.toString());
   }
 
-  private VM_Field searchInterfaceFields(VM_Class c) {
-    VM_Field it = c.findDeclaredField(name, descriptor);
+  private RVMField searchInterfaceFields(RVMClass c) {
+    RVMField it = c.findDeclaredField(name, descriptor);
     if (it != null) return it;
-    for (VM_Class i : c.getDeclaredInterfaces()) {
+    for (RVMClass i : c.getDeclaredInterfaces()) {
       it = searchInterfaceFields(i);
       if (it != null) return it;
     }

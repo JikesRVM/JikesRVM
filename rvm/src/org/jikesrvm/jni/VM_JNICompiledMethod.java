@@ -13,8 +13,8 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
 @SynchronizedObject
 public final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
-  public VM_JNICompiledMethod(int id, VM_Method m) {
+  public VM_JNICompiledMethod(int id, RVMMethod m) {
     super(id, m);
   }
 
@@ -67,7 +67,7 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return false;
   }
 
-  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     return -1;
   }
 

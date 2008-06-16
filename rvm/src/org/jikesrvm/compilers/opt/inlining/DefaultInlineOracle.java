@@ -19,8 +19,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_AdaptiveInlining;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.callgraph.VM_WeightedCallTargets;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -51,9 +51,9 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       return InlineDecision.NO("inlining not enabled");
     }
 
-    final VM_Method staticCallee = state.obtainTarget();
+    final RVMMethod staticCallee = state.obtainTarget();
     final VM_NormalMethod rootMethod = state.getRootMethod();
-    final VM_Method caller = state.getMethod();
+    final RVMMethod caller = state.getMethod();
     final int bcIndex = state.getBytecodeIndex();
 
     if (verbose) VM.sysWriteln("Begin inline decision for " + "<" + caller + "," + bcIndex + "," + staticCallee + ">");
@@ -139,7 +139,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
     // Critical section: must prevent class hierarchy from changing while
     // we are inspecting it to determine how/whether to do the inline guard.
-    synchronized (VM_Class.classLoadListener) {
+    synchronized (RVMClass.classLoadListener) {
 
       boolean guardOverrideOnStaticCallee = false;
       if (targets == null) {
@@ -149,7 +149,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         // be able to share all the decision making logic.
         if (state.isInvokeInterface()) {
           if (opts.GUARDED_INLINE_INTERFACE) {
-            VM_Method singleImpl = InterfaceHierarchy.getUniqueImplementation(staticCallee);
+            RVMMethod singleImpl = InterfaceHierarchy.getUniqueImplementation(staticCallee);
             if (singleImpl != null && hasBody(singleImpl)) {
               if (verbose) {
                 VM.sysWriteln("\tFound a single implementation " +
@@ -165,11 +165,11 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
           // invokestatic, invokevirtual, invokespecial
           if (staticCallee.isAbstract()) {
             // look for single non-abstract implementation of the abstract method
-            VM_Class klass = staticCallee.getDeclaringClass();
+            RVMClass klass = staticCallee.getDeclaringClass();
             while (true) {
-              VM_Class[] subClasses = klass.getSubClasses();
+              RVMClass[] subClasses = klass.getSubClasses();
               if (subClasses.length != 1) break; // multiple subclasses => multiple targets
-              VM_Method singleImpl =
+              RVMMethod singleImpl =
                   subClasses[0].findDeclaredMethod(staticCallee.getName(), staticCallee.getDescriptor());
               if (singleImpl != null && !singleImpl.isAbstract()) {
                 // found something
@@ -194,13 +194,13 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       if (targets == null) return InlineDecision.NO("No potential targets identified");
 
       // Stage 3: We have one or more targets.  Determine what if anything should be done with them.
-      final ArrayList<VM_Method> methodsToInline = new ArrayList<VM_Method>();
+      final ArrayList<RVMMethod> methodsToInline = new ArrayList<RVMMethod>();
       final ArrayList<Boolean> methodsNeedGuard = new ArrayList<Boolean>();
       final double callSiteWeight = targets.totalWeight();
       final boolean goosc = guardOverrideOnStaticCallee; // real closures anyone?
       final boolean ps = purelyStatic;                   // real closures anyone?
       targets.visitTargets(new VM_WeightedCallTargets.Visitor() {
-        public void visit(VM_Method callee, double weight) {
+        public void visit(RVMMethod callee, double weight) {
           if (hasBody(callee)) {
             if (verbose) {
               VM.sysWriteln("\tEvaluating target " +
@@ -324,7 +324,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               // Record that and also whether or not we think it needs a guard.
               methodsToInline.add(callee);
               if (preEx) {
-                ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) VM_Class.classLoadListener;
+                ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) RVMClass.classLoadListener;
                 if (ClassLoadingDependencyManager.TRACE || ClassLoadingDependencyManager.DEBUG) {
                   cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller + "\n");
                 }
@@ -347,7 +347,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         if (verbose) VM.sysWriteln("\tDecide: " + d);
         return d;
       } else if (methodsToInline.size() == 1) {
-        VM_Method target = methodsToInline.get(0);
+        RVMMethod target = methodsToInline.get(0);
         boolean needsGuard = methodsNeedGuard.get(0);
         if (needsGuard) {
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
@@ -390,13 +390,13 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
           return d;
         }
       } else {
-        VM_Method[] methods = new VM_Method[methodsNeedGuard.size()];
+        RVMMethod[] methods = new RVMMethod[methodsNeedGuard.size()];
         byte[] guards = new byte[methods.length];
         int idx = 0;
-        Iterator<VM_Method> methodIterator = methodsToInline.iterator();
+        Iterator<RVMMethod> methodIterator = methodsToInline.iterator();
         Iterator<Boolean> guardIterator = methodsNeedGuard.iterator();
         while (methodIterator.hasNext()) {
-          VM_Method target = methodIterator.next();
+          RVMMethod target = methodIterator.next();
           boolean needsGuard = guardIterator.next();
           if (VM.VerifyAssertions) {
             if (!needsGuard) {
@@ -426,21 +426,21 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    * from caller to callee according to the controlling {@link OptOptions}.
    * If we are using IG_CODE_PATCH, then this method also records
    * the required dependency.
-   * Precondition: lock on {@link VM_Class#classLoadListener} is held.
+   * Precondition: lock on {@link RVMClass#classLoadListener} is held.
    *
    * @param caller The caller method
    * @param callee The callee method
    * @param codePatchSupported   Can we use code patching at this call site?
    */
-  private byte chooseGuard(VM_Method caller, VM_Method singleImpl, VM_Method callee, CompilationState state,
+  private byte chooseGuard(RVMMethod caller, RVMMethod singleImpl, RVMMethod callee, CompilationState state,
                            boolean codePatchSupported) {
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener, VM_Scheduler.getCurrentThread()));
+        VM._assert(VM_ObjectModel.holdsLock(RVMClass.classLoadListener, VM_Scheduler.getCurrentThread()));
       }
       if (guard == OptOptions.IG_CODE_PATCH) {
-        ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) VM_Class.classLoadListener;
+        ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) RVMClass.classLoadListener;
         if (ClassLoadingDependencyManager.TRACE || ClassLoadingDependencyManager.DEBUG) {
           cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
         }

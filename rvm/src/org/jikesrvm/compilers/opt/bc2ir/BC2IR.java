@@ -23,13 +23,13 @@ import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -400,7 +400,7 @@ public final class BC2IR
     markGuardlessNonNull(t);
     // We can do early resolution of the array type if the element type
     // is already initialized.
-    VM_Type arrayType = arrayTypeRef.peekType();
+    RVMType arrayType = arrayTypeRef.peekType();
     Operator op;
     TypeOperand arrayOp;
 
@@ -409,7 +409,7 @@ public final class BC2IR
       arrayOp = makeTypeOperand(arrayType);
       t.setExtant();
     } else {
-      VM_Type elementType = elementTypeRef.peekType();
+      RVMType elementType = elementTypeRef.peekType();
       if ((elementType != null) && (elementType.isInitialized() || elementType.isInBootImage())) {
         arrayType = arrayTypeRef.resolve();
         arrayType.resolve();
@@ -1577,11 +1577,11 @@ public final class BC2IR
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
-            VM_Field field = ref.peekResolvedField();
+            RVMField field = ref.peekResolvedField();
             offsetOp = new AddressConstantOperand(field.getOffset());
 
             // use results of field analysis to refine type of result
-            VM_Type ft = fieldType.peekType();
+            RVMType ft = fieldType.peekType();
             if (ft != null && ft.isClassType()) {
               VM_TypeReference concreteType = FieldAnalysis.getConcreteType(field);
               if (concreteType != null) {
@@ -1601,7 +1601,7 @@ public final class BC2IR
             // RVM bootimage class, then get the value at compile
             // time.
             if (field.isFinal()) {
-              VM_Class declaringClass = field.getDeclaringClass();
+              RVMClass declaringClass = field.getDeclaringClass();
               if (declaringClass.isInitialized() || declaringClass.isInBootImage()) {
                 try {
                   ConstantOperand rhs = StaticFieldReader.getStaticFieldValue(field);
@@ -1642,7 +1642,7 @@ public final class BC2IR
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
-            VM_Field field = ref.peekResolvedField();
+            RVMField field = ref.peekResolvedField();
             offsetOp = new AddressConstantOperand(field.getOffset());
           }
 
@@ -1659,7 +1659,7 @@ public final class BC2IR
           LocationOperand fieldOp = makeInstanceFieldRef(ref);
           Operand offsetOp;
           VM_TypeReference fieldType = ref.getFieldContentsType();
-          VM_Field field = null;
+          RVMField field = null;
           RegisterOperand t = gc.temps.makeTemp(fieldType);
           if (unresolved) {
             RegisterOperand offsetrop = gc.temps.makeTempOffset();
@@ -1671,7 +1671,7 @@ public final class BC2IR
             offsetOp = new AddressConstantOperand(field.getOffset());
 
             // use results of field analysis to refine type.
-            VM_Type ft = fieldType.peekType();
+            RVMType ft = fieldType.peekType();
             if (ft != null && ft.isClassType()) {
               VM_TypeReference concreteType = FieldAnalysis.getConcreteType(field);
               if (concreteType != null) {
@@ -1730,7 +1730,7 @@ public final class BC2IR
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
           } else {
-            VM_Field field = ref.peekResolvedField();
+            RVMField field = ref.peekResolvedField();
             offsetOp = new AddressConstantOperand(field.getOffset());
           }
 
@@ -1768,7 +1768,7 @@ public final class BC2IR
             if (s == null)
               break;
             Operand receiver = Call.getParam(s, 0);
-            VM_Class receiverType = (VM_Class) receiver.getType().peekType();
+            RVMClass receiverType = (RVMClass) receiver.getType().peekType();
             // null check on this parameter of call
             clearCurrentGuard();
             if (do_NullCheck(receiver)) {
@@ -1782,7 +1782,7 @@ public final class BC2IR
             // This is independent of whether or not the static type of the receiver is
             // known to implement the interface and it is not that case that being able
             // to prove one implies the other.
-            VM_Method vmeth = null;
+            RVMMethod vmeth = null;
             if (receiverType != null && receiverType.isInitialized() && !receiverType.isInterface()) {
               vmeth = ClassLoaderProxy.lookupMethod(receiverType, ref);
             }
@@ -1814,7 +1814,7 @@ public final class BC2IR
           } else {
             // A normal invokevirtual.  Create call instruction.
             boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
-            VM_Method target = ref.peekResolvedMethod();
+            RVMMethod target = ref.peekResolvedMethod();
             MethodOperand methOp = MethodOperand.VIRTUAL(ref, target);
 
             s = _callHelper(ref, methOp);
@@ -1859,10 +1859,10 @@ public final class BC2IR
               isPreciseType = true;
               tr = receiver.getType();
             }
-            VM_Type type = tr.peekType();
+            RVMType type = tr.peekType();
             if (type != null && type.isResolved()) {
               if (type.isClassType()) {
-                VM_Method vmeth = target;
+                RVMMethod vmeth = target;
                 if (target == null || type != target.getDeclaringClass()) {
                   vmeth = ClassLoaderProxy.lookupMethod(type.asClass(), ref);
                 }
@@ -1889,7 +1889,7 @@ public final class BC2IR
 
         case JBC_invokespecial: {
           VM_MethodReference ref = bcodes.getMethodReference();
-          VM_Method target = ref.resolveInvokeSpecial();
+          RVMMethod target = ref.resolveInvokeSpecial();
 
           /* just create an osr barrier right before _callHelper
            * changes the states of locals and stacks.
@@ -1945,7 +1945,7 @@ public final class BC2IR
 
           // A non-magical invokestatic.  Create call instruction.
           boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
-          VM_Method target = ref.peekResolvedMethod();
+          RVMMethod target = ref.peekResolvedMethod();
 
           /* just create an osr barrier right before _callHelper
           * changes the states of locals and stacks.
@@ -1985,7 +1985,7 @@ public final class BC2IR
         case JBC_invokeinterface: {
           VM_MethodReference ref = bcodes.getMethodReference();
           bcodes.alignInvokeInterface();
-          VM_Method resolvedMethod = null;
+          RVMMethod resolvedMethod = null;
           resolvedMethod = ref.peekInterfaceMethod();
 
           /* just create an osr barrier right before _callHelper
@@ -2000,7 +2000,7 @@ public final class BC2IR
             break;
 
           Operand receiver = Call.getParam(s, 0);
-          VM_Class receiverType = (VM_Class) receiver.getType().peekType();
+          RVMClass receiverType = (RVMClass) receiver.getType().peekType();
           // null check on this parameter of call
           // TODO: Strictly speaking we need to do dynamic linking of the
           //       interface type BEFORE we do the null check. FIXME.
@@ -2032,7 +2032,7 @@ public final class BC2IR
               appendInstruction(getTib);
               getTib.bcIndex = RUNTIME_SERVICES_BCI;
 
-              VM_Method target = VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
+              RVMMethod target = VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
               Instruction callCheck =
                   Call.create2(CALL,
                                null,
@@ -2053,7 +2053,7 @@ public final class BC2IR
               // We know what interface method the program wants to invoke.
               // Attempt to avoid inserting the type check by seeing if the
               // known static type of the receiver implements the desired interface.
-              VM_Type interfaceType = resolvedMethod.getDeclaringClass();
+              RVMType interfaceType = resolvedMethod.getDeclaringClass();
               if (receiverType != null && receiverType.isResolved() && !receiverType.isInterface()) {
                 byte doesImplement =
                     ClassLoaderProxy.includesType(interfaceType.getTypeRef(), receiverType.getTypeRef());
@@ -2066,7 +2066,7 @@ public final class BC2IR
           // This is independent of whether or not the static type of the receiver is
           // known to implement the interface and it is not that case that being able
           // to prove one implies the other.
-          VM_Method vmeth = null;
+          RVMMethod vmeth = null;
           if (receiverType != null && receiverType.isInitialized() && !receiverType.isInterface()) {
             vmeth = ClassLoaderProxy.lookupMethod(receiverType, ref);
           }
@@ -2144,7 +2144,7 @@ public final class BC2IR
           markGuardlessNonNull(t);
           Operator operator;
           TypeOperand klassOp;
-          VM_Class klassType = (VM_Class) klass.peekType();
+          RVMClass klassType = (RVMClass) klass.peekType();
           if (klassType != null && (klassType.isInitialized() || klassType.isInBootImage())) {
             klassOp = makeTypeOperand(klassType);
             operator = NEW;
@@ -2160,7 +2160,7 @@ public final class BC2IR
         break;
 
         case JBC_newarray: {
-          VM_Type array = bcodes.getPrimitiveArrayType();
+          RVMType array = bcodes.getPrimitiveArrayType();
           TypeOperand arrayOp = makeTypeOperand(array);
           RegisterOperand t = gc.temps.makeTemp(array.getTypeRef());
           t.setPreciseType();
@@ -2412,7 +2412,7 @@ public final class BC2IR
             markGuardlessNonNull(result);
             result.setPreciseType();
             VM_TypeReference innermostElementTypeRef = arrayType.getInnermostElementType();
-            VM_Type innermostElementType = innermostElementTypeRef.peekType();
+            RVMType innermostElementType = innermostElementTypeRef.peekType();
             if (innermostElementType != null && (innermostElementType.isInitialized() || innermostElementType.isInBootImage())) {
               result.setExtant();
             }
@@ -2528,7 +2528,7 @@ public final class BC2IR
             }
             case PSEUDO_InvokeStatic: {
               /* pseudo invoke static for getRefAt and cleanRefAt, both must be resolved already */
-              VM_Method meth = null;
+              RVMMethod meth = null;
               int targetidx = bcodes.readIntConst();
               switch (targetidx) {
                 case GETREFAT:
@@ -2576,7 +2576,7 @@ public final class BC2IR
               int cmid = bcodes.readIntConst();
               int origBCIdx = bcodes.readIntConst(); // skip it
               VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-              VM_Method meth = cm.getMethod();
+              RVMMethod meth = cm.getMethod();
 
               if (VM.TraceOnStackReplacement) {
                 VM.sysWriteln("PSEUDO_InvokeCompiledMethod " + meth + "\n");
@@ -2910,13 +2910,13 @@ public final class BC2IR
    *
    * @param type desired type
    */
-  private TypeOperand makeTypeOperand(VM_Type type) {
+  private TypeOperand makeTypeOperand(RVMType type) {
     if (VM.VerifyAssertions) VM._assert(type != null);
     return new TypeOperand(type);
   }
 
   private boolean couldCauseClassLoading(VM_TypeReference typeRef) {
-    VM_Type type = typeRef.peekType();
+    RVMType type = typeRef.peekType();
     if (type == null) return true;
     if (type.isInitialized()) return false;
     if (type.isArrayType()) return !type.isResolved();
@@ -2932,19 +2932,19 @@ public final class BC2IR
    */
   public Operand getConstantOperand(int index) {
     byte desc = bcodes.getConstantType(index);
-    VM_Class declaringClass = bcodes.getDeclaringClass();
+    RVMClass declaringClass = bcodes.getDeclaringClass();
     switch (desc) {
-      case VM_Class.CP_INT:
+      case RVMClass.CP_INT:
         return ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
-      case VM_Class.CP_FLOAT:
+      case RVMClass.CP_FLOAT:
         return ClassLoaderProxy.getFloatFromConstantPool(declaringClass, index);
-      case VM_Class.CP_STRING:
+      case RVMClass.CP_STRING:
         return ClassLoaderProxy.getStringFromConstantPool(declaringClass, index);
-      case VM_Class.CP_LONG:
+      case RVMClass.CP_LONG:
         return ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
-      case VM_Class.CP_DOUBLE:
+      case RVMClass.CP_DOUBLE:
         return ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
-      case VM_Class.CP_CLASS:
+      case RVMClass.CP_CLASS:
         return ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
       default:
         VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));
@@ -3812,9 +3812,9 @@ public final class BC2IR
         do {
           elemType2 = elemType2.getArrayElementType();
         } while (elemType2.isArrayType());
-        VM_Type et2 = elemType2.peekType();
+        RVMType et2 = elemType2.peekType();
         if (et2 != null) {
-          if (et2.isPrimitiveType() || ((VM_Class) et2).isFinal()) {
+          if (et2.isPrimitiveType() || ((RVMClass) et2).isFinal()) {
             VM_TypeReference myElemType = getRefTypeOf(elem);
             if (myElemType == elemType) {
               if (DBG_TYPE) {
@@ -3828,8 +3828,8 @@ public final class BC2IR
         }
       } else {
         // elemType is class
-        VM_Type et = elemType.peekType();
-        if (et != null && ((VM_Class) et).isFinal()) {
+        RVMType et = elemType.peekType();
+        if (et != null && ((RVMClass) et).isFinal()) {
           if (getRefTypeOf(elem) == elemType) {
             if (DBG_TYPE) {
               db("eliminating checkstore to an array with a final element type " + elemType);

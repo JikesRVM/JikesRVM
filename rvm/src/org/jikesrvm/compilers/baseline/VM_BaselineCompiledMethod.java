@@ -17,11 +17,11 @@ import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_ExceptionTable;
@@ -129,7 +129,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
     return lastFloatStackRegister;
   }
 
-  public VM_BaselineCompiledMethod(int id, VM_Method m) {
+  public VM_BaselineCompiledMethod(int id, RVMMethod m) {
     super(id, m);
     VM_NormalMethod nm = (VM_NormalMethod) m;
     //this.startLocalOffset = VM_BaselineCompilerImpl.getStartLocalOffset(nm);
@@ -161,7 +161,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
     return exceptionDeliverer;
   }
 
-  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
@@ -267,7 +267,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
   //          the VM_PrintLN to print the stack trace to.
   public void printStackTrace(Offset instructionOffset, VM_PrintLN out) {
     out.print("\tat ");
-    out.print(method.getDeclaringClass()); // VM_Class
+    out.print(method.getDeclaringClass()); // RVMClass
     out.print('.');
     out.print(method.getName()); // a VM_Atom, returned via VM_MemberReference.getName().
     out.print("(");
@@ -373,8 +373,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
 
   public int size() {
     int size = TYPE.peekType().asClass().getInstanceSize();
-    if (bytecodeMap != null) size += VM_Array.ByteArray.getInstanceSize(bytecodeMap.length);
-    if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
+    if (bytecodeMap != null) size += RVMArray.ByteArray.getInstanceSize(bytecodeMap.length);
+    if (eTable != null) size += RVMArray.IntArray.getInstanceSize(eTable.length);
     if (referenceMaps != null) size += referenceMaps.size();
     return size;
   }

@@ -16,18 +16,18 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_InterfaceInvocation;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
@@ -2414,7 +2414,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    */
   @Override
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       VM_Barriers.compileGetstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
@@ -2457,7 +2457,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    */
   @Override
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && field.isReferenceType() && !field.isUntraced()) {
       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
@@ -2539,7 +2539,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
   @Override
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     if (field.isReferenceType()) {
       // 32bit reference load
@@ -2652,7 +2652,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    */
   @Override
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
     if (field.isReferenceType()) {
@@ -2752,7 +2752,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    * @param target    The method to invoke
    */
   @Override
-  protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
+  protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, RVMMethod target) {
     if (target.isObjectInitializer()) {
       genParameterRegisterLoad(methodRef, true);
       asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(target.getOffset()));
@@ -2812,7 +2812,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
   protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
 
-    VM_Method resolvedMethod = null;
+    RVMMethod resolvedMethod = null;
     resolvedMethod = methodRef.peekInterfaceMethod();
 
     // (1) Emit dynamic type checking sequence if required to do so inline.
@@ -2916,10 +2916,10 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
 
   /**
    * Emit code to allocate a scalar object
-   * @param typeRef the VM_Class to instantiate
+   * @param typeRef the RVMClass to instantiate
    */
   @Override
-  protected final void emit_resolved_new(VM_Class typeRef) {
+  protected final void emit_resolved_new(RVMClass typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
@@ -2954,10 +2954,10 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
 
   /**
    * Emit code to allocate an array
-   * @param array the VM_Array to instantiate
+   * @param array the RVMArray to instantiate
    */
   @Override
-  protected final void emit_resolved_newarray(VM_Array array) {
+  protected final void emit_resolved_newarray(RVMArray array) {
     int width = array.getLogElementSize();
     Offset tibOffset = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
@@ -3056,9 +3056,9 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    * @param type the LHS type
    */
   @Override
-  protected final void emit_checkcast_resolvedClass(VM_Type type) {
+  protected final void emit_checkcast_resolvedClass(RVMType type) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
-    asm.emitPUSH_Imm(type.getId());                  // VM_Type id.
+    asm.emitPUSH_Imm(type.getId());                  // RVMType id.
     genParameterRegisterLoad(2);                     // pass 2 parameter words
     asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.checkcastResolvedClassMethod.getOffset())); // checkcast(obj, type id)
   }
@@ -3068,7 +3068,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    * @param type the LHS type
    */
   @Override
-  protected final void emit_checkcast_final(VM_Type type) {
+  protected final void emit_checkcast_final(RVMType type) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getTibOffset().toInt());           // JTOC index that identifies klass
     genParameterRegisterLoad(2);                     // pass 2 parameter words
@@ -3092,7 +3092,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    * @param type the LHS type
    */
   @Override
-  protected final void emit_instanceof_resolvedClass(VM_Type type) {
+  protected final void emit_instanceof_resolvedClass(RVMType type) {
     asm.emitPUSH_Imm(type.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
     asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.instanceOfResolvedClassMethod.getOffset()));
@@ -3104,7 +3104,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
    * @param type the LHS type
    */
   @Override
-  protected final void emit_instanceof_final(VM_Type type) {
+  protected final void emit_instanceof_final(RVMType type) {
     asm.emitPUSH_Imm(type.getTibOffset().toInt());
     genParameterRegisterLoad(2);          // pass 2 parameter words
     asm.emitCALL_Abs(VM_Magic.getTocPointer().plus(VM_Entrypoints.instanceOfFinalMethod.getOffset()));
@@ -3695,7 +3695,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
   }
 
   // Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
-  // Taken:   VM_Method of the magic method being called
+  // Taken:   RVMMethod of the magic method being called
   // Returned: true if method causes a stackframe to be created
   //
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
@@ -4304,11 +4304,11 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler implem
       return true;
     }
 
-    // code for      VM_Type VM_Magic.getObjectType(Object object)
+    // code for      RVMType VM_Magic.getObjectType(Object object)
     if (methodName == VM_MagicNames.getObjectType) {
       asm.emitPOP_Reg(T0);                               // object ref
       baselineEmitLoadTIB(asm, S0, T0);
-      asm.emitPUSH_RegDisp(S0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << LG_WORDSIZE)); // push VM_Type slot of TIB
+      asm.emitPUSH_RegDisp(S0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << LG_WORDSIZE)); // push RVMType slot of TIB
       return true;
     }
 

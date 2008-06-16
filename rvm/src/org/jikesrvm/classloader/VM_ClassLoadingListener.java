@@ -14,11 +14,11 @@ package org.jikesrvm.classloader;
 
 /**
  * Interface for callbacks on classloading events.
- * Just before a class is marked as INITIALIZED, VM_Class.initialize()
+ * Just before a class is marked as INITIALIZED, RVMClass.initialize()
  * invokes listeners that implement this interface.
  */
 public interface VM_ClassLoadingListener {
 
-  void classInitialized(VM_Class c, boolean writingBootImage);
+  void classInitialized(RVMClass c, boolean writingBootImage);
 
 }

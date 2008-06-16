@@ -17,7 +17,7 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.VM_EdgeListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -137,7 +137,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
       int calleeCMID = buffer[i + 0];
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
-      VM_Method callee = compiledMethod.getMethod();
+      RVMMethod callee = compiledMethod.getMethod();
       if (callee.isRuntimeServiceMethod()) {
         if (DEBUG) VM.sysWrite("Skipping sample with runtime service callee");
         continue;
@@ -145,12 +145,12 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
       int callerCMID = buffer[i + 1];
       compiledMethod = VM_CompiledMethods.getCompiledMethod(callerCMID);
       if (compiledMethod == null) continue;
-      VM_Method stackFrameCaller = compiledMethod.getMethod();
+      RVMMethod stackFrameCaller = compiledMethod.getMethod();
 
       int MCOff = buffer[i + 2];
       Offset MCOffset = Offset.fromIntSignExtend(buffer[i + 2]);
       int bytecodeIndex = -1;
-      VM_Method caller = null;
+      RVMMethod caller = null;
 
       switch (compiledMethod.getCompilerType()) {
         case VM_CompiledMethod.TRAP:

@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
@@ -203,7 +203,7 @@ class SimpleEscape extends CompilerPhase {
       ir.printInstructions();
     }
     // create a method summary object for this method
-    VM_Method m = ir.method;
+    RVMMethod m = ir.method;
     MethodSummary summ = SummaryDatabase.findOrCreateMethodSummary(m);
     summ.setInProgress(true);
     FI_EscapeSummary result = new FI_EscapeSummary();
@@ -669,7 +669,7 @@ class SimpleEscape extends CompilerPhase {
         // except when the target is to Throwable.<init> (which we never inline)
         MethodOperand mop = Call.getMethod(inst);
         if (mop != null && mop.hasPreciseTarget()) {
-          VM_Method target = mop.getTarget();
+          RVMMethod target = mop.getTarget();
           if (target.hasNoEscapesAnnotation()) {
             return false;
           }
@@ -767,7 +767,7 @@ class SimpleEscape extends CompilerPhase {
    *   perform escape analysis, which will create the method
    *    summary as a side effect, and return the summary
    */
-  private static MethodSummary findOrCreateMethodSummary(VM_Method m, OptOptions options) {
+  private static MethodSummary findOrCreateMethodSummary(RVMMethod m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
       if (options.SIMPLE_ESCAPE_IPA) {
@@ -783,7 +783,7 @@ class SimpleEscape extends CompilerPhase {
   /**
    * Perform the simple escape analysis for a method.
    */
-  private static void performSimpleEscapeAnalysis(VM_Method m, OptOptions options) {
+  private static void performSimpleEscapeAnalysis(RVMMethod m, OptOptions options) {
     if (!options.SIMPLE_ESCAPE_IPA) {
       return;
     }

@@ -14,8 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
@@ -102,7 +102,7 @@ public final class ShortArrayReplacer implements AggregateReplacer {
       return null;
     }
     Register r = NewArray.getResult(inst).getRegister();
-    VM_Array a = NewArray.getType(inst).getVMType().asArray();
+    RVMArray a = NewArray.getType(inst).getVMType().asArray();
     // TODO :handle these cases
     if (containsUnsupportedUse(ir, r, s, null)) {
       return null;
@@ -145,7 +145,7 @@ public final class ShortArrayReplacer implements AggregateReplacer {
   /**
    * type of the array
    */
-  private final VM_Array vmArray;
+  private final RVMArray vmArray;
   /**
    * the register holding the array reference
    */
@@ -161,7 +161,7 @@ public final class ShortArrayReplacer implements AggregateReplacer {
    * @param s the size of the array to replace
    * @param i the IR
    */
-  private ShortArrayReplacer(Register r, VM_Array a, int s, IR i) {
+  private ShortArrayReplacer(Register r, RVMArray a, int s, IR i) {
     reg = r;
     vmArray = a;
     size = s;
@@ -177,7 +177,7 @@ public final class ShortArrayReplacer implements AggregateReplacer {
    */
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, Set<Register> visited) {
     Instruction inst = use.instruction;
-    VM_Type type = vmArray.getElementType();
+    RVMType type = vmArray.getElementType();
     Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
     switch (inst.getOpcode()) {
       case INT_ALOAD_opcode:

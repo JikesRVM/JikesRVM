@@ -18,7 +18,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -744,7 +744,7 @@ public abstract class VM_Scheduler {
               } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
                 showMethod("hardware trap", fp);
               } else {
-                VM_Method method = compiledMethod.getMethod();
+                RVMMethod method = compiledMethod.getMethod();
                 Offset instructionOffset = compiledMethod.getInstructionOffset(ip, false);
                 int lineNumber = compiledMethod.findLineNumberForInstruction(instructionOffset);
                 boolean frameShown = false;
@@ -854,7 +854,7 @@ public abstract class VM_Scheduler {
    * Helper function for {@link #dumpStack(Address,Address)}. Print a stack
    * frame showing the method.
    */
-  private static void showMethod(VM_Method method, int lineNumber, Address fp) {
+  private static void showMethod(RVMMethod method, int lineNumber, Address fp) {
     showPrologue(fp);
     if (method == null) {
       VM.sysWrite("<unknown method>");

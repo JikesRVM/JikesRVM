@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.inlining;
 
 import java.util.Iterator;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.util.HashMapRVM;
 import org.jikesrvm.util.HashSetRVM;
 
@@ -23,9 +23,9 @@ import org.jikesrvm.util.HashSetRVM;
  * requirements for the opt compiled methods.
  *
  * <p> Currently we only support 2 kinds of dependencies:
- *   The set of compiled method id's that depend on a VM_Method
+ *   The set of compiled method id's that depend on a RVMMethod
  *   not being overridden.
- *   The set of compiled method id's that depend on a VM_Class
+ *   The set of compiled method id's that depend on a RVMClass
  *   having no subclasses
  *
  * <p> Note we track by compiled method ids instead of pointers to
@@ -41,40 +41,40 @@ import org.jikesrvm.util.HashSetRVM;
 public final class InvalidationDatabase {
 
   /**
-   * A mapping from VM_Method to MethodSet: holds the set of methods which
+   * A mapping from RVMMethod to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private final HashMapRVM<VM_Method, MethodSet> nonOverriddenHash =
-    new HashMapRVM<VM_Method, MethodSet>();
+  private final HashMapRVM<RVMMethod, MethodSet> nonOverriddenHash =
+    new HashMapRVM<RVMMethod, MethodSet>();
 
   /**
-   * A mapping from VM_Class to MethodSet: holds the set of methods which
+   * A mapping from RVMClass to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private final HashMapRVM<VM_Class, MethodSet> noSubclassHash =
-    new HashMapRVM<VM_Class, MethodSet>();
+  private final HashMapRVM<RVMClass, MethodSet> noSubclassHash =
+    new HashMapRVM<RVMClass, MethodSet>();
 
   /////////////////////
-  // (1) Dependency on a particular VM_Method not being overridden.
+  // (1) Dependency on a particular RVMMethod not being overridden.
   /////////////////////
   /**
    * Return an iteration of CMID's (compiled method ids)
-   * that are dependent on the argument VM_Method not being overridden.
+   * that are dependent on the argument RVMMethod not being overridden.
    * return null if no dependent methods.
    *
    * <p> NOTE: returns null instead of EmptyIterator.EMPTY as part of
    * a delicate * dance to avoid recursive classloading. --dave.
    */
-  public Iterator<Integer> invalidatedByOverriddenMethod(VM_Method m) {
+  public Iterator<Integer> invalidatedByOverriddenMethod(RVMMethod m) {
     MethodSet s = nonOverriddenHash.get(m);
     return (s == null) ? null : s.iterator();
   }
 
   /**
-   * Record that if a particular VM_Method method is ever overridden, then
+   * Record that if a particular RVMMethod method is ever overridden, then
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
-  public void addNotOverriddenDependency(VM_Method source, int dependent_cmid) {
+  public void addNotOverriddenDependency(RVMMethod source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
     s.add(dependent_cmid);
   }
@@ -83,7 +83,7 @@ public final class InvalidationDatabase {
    * Delete a NotOverriddenDependency.
    * No effect if the dependency doesn't exist..
    */
-  public void removeNotOverriddenDependency(VM_Method source, int dependent_cmid) {
+  public void removeNotOverriddenDependency(RVMMethod source, int dependent_cmid) {
     MethodSet s = nonOverriddenHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
@@ -91,33 +91,33 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Delete all NotOverridden dependencies on the argument VM_Method
+   * Delete all NotOverridden dependencies on the argument RVMMethod
    */
-  public void removeNotOverriddenDependency(VM_Method source) {
+  public void removeNotOverriddenDependency(RVMMethod source) {
     nonOverriddenHash.remove(source);
   }
 
   /////////////////////
-  // (2) Dependency on a particular VM_Class not having any subclasses.
+  // (2) Dependency on a particular RVMClass not having any subclasses.
   /////////////////////
   /**
    * Return an iteration of CMID's of VM_CompiledMethods that are dependent
-   * on the argument VM_Class not having any subclasses.
+   * on the argument RVMClass not having any subclasses.
    * return null if no dependent methods.
    *
    * <p> NOTE: returns null instead of EmptyIterator.EMPTY as part of
    * a delicate dance to avoid recursive classloading. --dave.
    */
-  public Iterator<Integer> invalidatedBySubclass(VM_Class m) {
+  public Iterator<Integer> invalidatedBySubclass(RVMClass m) {
     MethodSet s = noSubclassHash.get(m);
     return (s == null) ? null : s.iterator();
   }
 
   /**
-   * Record that if a particular VM_Class ever has a subclass, then
+   * Record that if a particular RVMClass ever has a subclass, then
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
-  public void addNoSubclassDependency(VM_Class source, int dependent_cmid) {
+  public void addNoSubclassDependency(RVMClass source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(noSubclassHash, source);
     s.add(dependent_cmid);
   }
@@ -125,7 +125,7 @@ public final class InvalidationDatabase {
   /**
    * Delete a NoSubclassDependency. No effect if the dependency doesn't exist..
    */
-  public void removeNoSubclassDependency(VM_Class source, int dependent_cmid) {
+  public void removeNoSubclassDependency(RVMClass source, int dependent_cmid) {
     MethodSet s = noSubclassHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
@@ -133,9 +133,9 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Delete all NoSubclass dependencies on the argument VM_Class
+   * Delete all NoSubclass dependencies on the argument RVMClass
    */
-  public void removeNoSubclassDependency(VM_Class source) {
+  public void removeNoSubclassDependency(RVMClass source) {
     noSubclassHash.remove(source);
   }
 

@@ -13,11 +13,11 @@
 package org.jikesrvm.compilers.opt.hir2lir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_DynamicTypeCheck;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
@@ -323,7 +323,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    */
   static Instruction mustImplementInterface(Instruction s, IR ir) {
     Operand ref = TypeCheck.getClearRef(s);
-    VM_Class LHSClass = (VM_Class) TypeCheck.getType(s).getVMType();
+    RVMClass LHSClass = (RVMClass) TypeCheck.getType(s).getVMType();
     if (VM.VerifyAssertions) VM._assert(LHSClass != null, "Should be resolvable...");
     int interfaceIndex = LHSClass.getDoesImplementIndex();
     int interfaceMask = LHSClass.getDoesImplementBitMask();
@@ -448,11 +448,11 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     // we lost type information due to unloaded classes causing
     // imprecise meets.  This should only happen once in a blue moon,
     // so don't bother trying anything clever when it does.
-    VM_Type compType = arrayRef.getType().peekType();
+    RVMType compType = arrayRef.getType().peekType();
     if (compType != null && !compType.isJavaLangObjectType()) {
       // optionally (1) from above
       if (compType.getDimensionality() == 1) {
-        VM_Class etc = (VM_Class) compType.asArray().getElementType();
+        RVMClass etc = (RVMClass) compType.asArray().getElementType();
         if (etc.isResolved() && etc.isFinal()) {
           if (VM.VerifyAssertions) VM._assert(!etc.isInterface());
           Operand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
@@ -474,7 +474,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       // optionally (2) from above
       Operand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
       if (((arrayRef instanceof RegisterOperand) && ((RegisterOperand) arrayRef).isDeclaredType()) ||
-          compType == VM_Type.JavaLangObjectArrayType) {
+          compType == RVMType.JavaLangObjectArrayType) {
         Operand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
         curBlock.appendInstruction(IfCmp.create(REF_IFCMP,
                                                 guardResult.copyRO(),
@@ -508,7 +508,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
 
       // Optionally (3) from above
       if (compType.getDimensionality() == 1) {
-        VM_Class etc = (VM_Class) compType.asArray().getElementType();
+        RVMClass etc = (RVMClass) compType.asArray().getElementType();
         if (etc.isResolved() && !etc.isInterface() && !etc.isJavaLangObjectType()) {
           RegisterOperand lhsElemType =
               InsertUnary(curBlock.lastInstruction(),
@@ -589,7 +589,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     }
 
     // Call RuntimeEntrypoints.checkstore.
-    VM_Method target = VM_Entrypoints.checkstoreMethod;
+    RVMMethod target = VM_Entrypoints.checkstoreMethod;
     Instruction call =
         Call.create2(CALL,
                      null,
@@ -615,7 +615,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *                  a value producing type check
    * @param ir       The IR containing the instruction to be expanded.
    * @param RHSobj   The RegisterOperand containing the rhs object.
-   * @param LHStype  The VM_Type to be tested against.
+   * @param LHStype  The RVMType to be tested against.
    * @param RHStib   The Operand containing the TIB of the rhs.
    * @param result   The RegisterOperand that the result of dynamic
    *                 type check is to be stored in.
@@ -627,7 +627,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                                                  RegisterOperand result) {
     // Is LHStype a class?
     if (LHStype.isClassType()) {
-      VM_Class LHSclass = (VM_Class) LHStype.peekType();
+      RVMClass LHSclass = (RVMClass) LHStype.peekType();
       if (LHSclass != null && LHSclass.isResolved()) {
         // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a
         // resolved class or interface
@@ -729,7 +729,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
         // A non-resolved class or interface.
         // We expect these to be extremely uncommon in opt code in AOS.
         // Mutate s into a call to RuntimeEntrypoints.instanceOf
-        VM_Method target = VM_Entrypoints.instanceOfMethod;
+        RVMMethod target = VM_Entrypoints.instanceOfMethod;
         Call.mutate2(s,
                      CALL,
                      result,
@@ -742,9 +742,9 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     }
     if (LHStype.isArrayType()) {
       // Case 2 of VM_DynamicTypeCheck: LHS is an array.
-      VM_Array LHSArray = (VM_Array) LHStype.peekType();
+      RVMArray LHSArray = (RVMArray) LHStype.peekType();
       if (LHSArray != null) {
-        VM_Type innermostElementType = LHSArray.getInnermostElementType();
+        RVMType innermostElementType = LHSArray.getInnermostElementType();
         if (innermostElementType.isPrimitiveType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
@@ -840,7 +840,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     s.remove();
 
     if (LHStype.isClassType()) {
-      VM_Class LHSclass = (VM_Class) LHStype.peekType();
+      RVMClass LHSclass = (RVMClass) LHStype.peekType();
       if (LHSclass != null && LHSclass.isResolved()) {
         // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a resolved
         // class or interface
@@ -952,7 +952,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
         // Branch on the result of a call to
         // RuntimeEntrypoints.instance
         RegisterOperand result = ir.regpool.makeTempInt();
-        VM_Method target = VM_Entrypoints.instanceOfMethod;
+        RVMMethod target = VM_Entrypoints.instanceOfMethod;
         Instruction call =
             Call.create2(CALL,
                          result,
@@ -976,10 +976,10 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
 
     if (LHStype.isArrayType()) {
       // Case 2 of VM_DynamicTypeCheck: LHS is an array.
-      VM_Array LHSArray = (VM_Array) LHStype.peekType();
+      RVMArray LHSArray = (RVMArray) LHStype.peekType();
       if (LHSArray != null) {
         Operand classTIB = getTIB(continueAt, ir, LHSArray);
-        VM_Type innermostElementType = LHSArray.getInnermostElementType();
+        RVMType innermostElementType = LHSArray.getInnermostElementType();
         if (innermostElementType.isPrimitiveType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
@@ -1047,7 +1047,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       }
 
       // Not a case we want to handle inline
-      VM_Method target = VM_Entrypoints.instanceOfMethod;
+      RVMMethod target = VM_Entrypoints.instanceOfMethod;
       RegisterOperand callResult = ir.regpool.makeTempInt();
       Instruction call =
           Call.create2(CALL,

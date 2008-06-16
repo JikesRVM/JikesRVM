@@ -33,7 +33,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 
 /**
  * This class must be implemented by the VM vendor.
@@ -231,7 +231,7 @@ public class Package implements AnnotatedElement {
      * @see ClassLoader#getPackage
      */
     public static Package getPackage(String packageName) {
-	ClassLoader callerLoader = VM_Class.getClassLoaderFromStackFrame(1);
+	ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
         return callerLoader == null ?
 	    VM_BootstrapClassLoader.getBootstrapClassLoader().getPackage(packageName) :
 	    callerLoader.getPackage(packageName);
@@ -245,7 +245,7 @@ public class Package implements AnnotatedElement {
      * @see ClassLoader#getPackages
      */
     public static Package[] getPackages() {
-        ClassLoader callerLoader = VM_Class.getClassLoaderFromStackFrame(1);
+        ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
         if (callerLoader == null) {
 	    return VM_BootstrapClassLoader.getBootstrapClassLoader().getPackages();
         }

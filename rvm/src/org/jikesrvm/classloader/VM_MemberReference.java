@@ -27,7 +27,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * <li> a method name
  * <li> a descriptor
  * </ul>
- * Resolving a VM_MemberReference to a VM_Member can
+ * Resolving a VM_MemberReference to a RVMMember can
  * be an expensive operation.  Therefore we canonicalize
  * VM_MemberReference instances and cache the result of resolution.
  */
@@ -88,7 +88,7 @@ public abstract class VM_MemberReference {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
       if (tRef.isArrayType() && !tRef.isUnboxedArrayType()) {
-        tRef = VM_Type.JavaLangObjectType.getTypeRef();
+        tRef = RVMType.JavaLangObjectType.getTypeRef();
       }
       key = new VM_MethodReference(tRef, mn, md, nextId + 1);
     } else {
@@ -138,10 +138,10 @@ public abstract class VM_MemberReference {
       if (clName.equals(VM_BootstrapClassLoader.myName)) {
         cl = VM_BootstrapClassLoader.getBootstrapClassLoader();
       } else if (clName.equals(VM_ApplicationClassLoader.myName)) {
-        cl = VM_ClassLoader.getApplicationClassLoader();
+        cl = RVMClassLoader.getApplicationClassLoader();
       } else {
         try {
-          ClassLoader appCl = VM_ClassLoader.getApplicationClassLoader();
+          ClassLoader appCl = RVMClassLoader.getApplicationClassLoader();
           Class<?> cls = appCl.loadClass(clName.substring(0, clName.indexOf('@')));
           cl = (ClassLoader) cls.newInstance();
         } catch (Exception ex) {
@@ -245,10 +245,10 @@ public abstract class VM_MemberReference {
   }
 
   /**
-   * @return the VM_Member this reference resolves to if it is already known
+   * @return the RVMMember this reference resolves to if it is already known
    * or null if it cannot be resolved without risking class loading.
    */
-  public final VM_Member peekResolvedMember() {
+  public final RVMMember peekResolvedMember() {
     if (isFieldReference()) {
       return this.asFieldReference().peekResolvedField();
     } else {
@@ -260,7 +260,7 @@ public abstract class VM_MemberReference {
    * Force resolution and return the resolved member.
    * Will cause classloading if necessary
    */
-  public final VM_Member resolveMember() {
+  public final RVMMember resolveMember() {
     if (isFieldReference()) {
       return this.asFieldReference().resolve();
     } else {
@@ -272,15 +272,15 @@ public abstract class VM_MemberReference {
    * Is dynamic linking code required to access "this" member when
    * referenced from "that" method?
    */
-  public final boolean needsDynamicLink(VM_Method that) {
-    VM_Member resolvedThis = this.peekResolvedMember();
+  public final boolean needsDynamicLink(RVMMethod that) {
+    RVMMember resolvedThis = this.peekResolvedMember();
 
     if (resolvedThis == null) {
       // can't tell because we haven't resolved the member reference
       // sufficiently to even know exactly where it is declared.
       return true;
     }
-    VM_Class thisClass = resolvedThis.getDeclaringClass();
+    RVMClass thisClass = resolvedThis.getDeclaringClass();
 
     if (thisClass == that.getDeclaringClass()) {
       // Intra-class references don't need to be compiled with dynamic linking

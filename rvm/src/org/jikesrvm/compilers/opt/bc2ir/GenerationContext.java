@@ -18,9 +18,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BranchProfile;
 import org.jikesrvm.compilers.baseline.VM_BranchProfiles;
@@ -704,7 +704,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       ExceptionHandlerBasicBlock rethrow =
           new ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI,
                                              inlineSequence,
-                                             new TypeOperand(VM_Type.JavaLangThrowableType),
+                                             new TypeOperand(RVMType.JavaLangThrowableType),
                                              cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
       RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
@@ -712,7 +712,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
       Operand lockObject = getLockObject();
 
-      VM_Method target = VM_Entrypoints.unlockAndThrowMethod;
+      RVMMethod target = VM_Entrypoints.unlockAndThrowMethod;
       MethodOperand methodOp = MethodOperand.STATIC(target);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
       s =

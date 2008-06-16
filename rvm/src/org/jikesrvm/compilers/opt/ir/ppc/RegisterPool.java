@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -32,9 +32,9 @@ public abstract class RegisterPool extends GenericRegisterPool {
   /**
    * Initializes a new register pool for the method meth.
    *
-   * @param meth the VM_Method of the outermost method
+   * @param meth the RVMMethod of the outermost method
    */
-  public RegisterPool(VM_Method meth) {
+  public RegisterPool(RVMMethod meth) {
     super(meth);
   }
 

@@ -14,7 +14,7 @@
 package org.jikesrvm.tools.bootImageWriter;
 
 import java.util.concurrent.atomic.AtomicLong;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 
 /**
  * Worker for parallel compilation during bootimage writing.
@@ -24,9 +24,9 @@ public class BootImageWorker implements Runnable {
   public static final boolean verbose = false;
   public static boolean instantiationFailed = false;
   private static final AtomicLong count = new AtomicLong();
-  private final VM_Type type;
+  private final RVMType type;
 
-  BootImageWorker(VM_Type type) {
+  BootImageWorker(RVMType type) {
     this.type = type;
   }
 

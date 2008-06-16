@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * A field of a java class.
  */
-public final class VM_Field extends VM_Member {
+public final class RVMField extends RVMMember {
 
   /**
    * constant pool index of field's value (0 --> not a "static final constant")
@@ -55,8 +55,8 @@ public final class VM_Field extends VM_Member {
    * @param constantValueIndex constant pool index of constant value
    * @param annotations array of runtime visible annotations
    */
-  private VM_Field(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
-                   int constantValueIndex, VM_Annotation[] annotations) {
+  private RVMField(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
+                   int constantValueIndex, RVMAnnotation[] annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
     VM_TypeReference typeRef = memRef.asFieldReference().getFieldContentsType();
@@ -68,8 +68,8 @@ public final class VM_Field extends VM_Member {
   }
 
   /**
-   * Read and create a field. NB only {@link VM_Class} is allowed to
-   * create an instance of a VM_Field.
+   * Read and create a field. NB only {@link RVMClass} is allowed to
+   * create an instance of a RVMField.
    *
    * @param declaringClass the VM_TypeReference object of the class
    * that declared this field
@@ -78,22 +78,22 @@ public final class VM_Field extends VM_Member {
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the field's attributed from
    */
-  static VM_Field readField(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
+  static RVMField readField(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
                             short modifiers, DataInputStream input) throws IOException {
     // Read the attributes, processing the "non-boring" ones
     int cvi = 0;
     VM_Atom signature = null;
-    VM_Annotation[] annotations = null;
+    RVMAnnotation[] annotations = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
-      VM_Atom attName = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+      VM_Atom attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
-      if (attName == VM_ClassLoader.constantValueAttributeName) {
+      if (attName == RVMClassLoader.constantValueAttributeName) {
         cvi = input.readUnsignedShort();
-      } else if (attName == VM_ClassLoader.syntheticAttributeName) {
+      } else if (attName == RVMClassLoader.syntheticAttributeName) {
         modifiers |= ACC_SYNTHETIC;
-      } else if (attName == VM_ClassLoader.signatureAttributeName) {
-        signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
-      } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
+      } else if (attName == RVMClassLoader.signatureAttributeName) {
+        signature = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+      } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else {
         // all other attributes are boring...
@@ -103,7 +103,7 @@ public final class VM_Field extends VM_Member {
         }
       }
     }
-    return new VM_Field(declaringClass,
+    return new RVMField(declaringClass,
                         memRef,
                         (short) (modifiers & APPLICABLE_TO_FIELDS),
                         signature,
@@ -114,8 +114,8 @@ public final class VM_Field extends VM_Member {
   /**
    * Create a field for a synthetic annotation class
    */
-  static VM_Field createAnnotationField(VM_TypeReference annotationClass, VM_MemberReference memRef) {
-    return new VM_Field(annotationClass, memRef, (short) (ACC_PRIVATE | ACC_SYNTHETIC), null, 0, null);
+  static RVMField createAnnotationField(VM_TypeReference annotationClass, VM_MemberReference memRef) {
+    return new RVMField(annotationClass, memRef, (short) (ACC_PRIVATE | ACC_SYNTHETIC), null, 0, null);
   }
 
   /**
@@ -287,7 +287,7 @@ public final class VM_Field extends VM_Member {
    * Read one object ref from heap using RVM object model, GC safe.
    * @param obj the object whose field is to be read,
    * or null if the field is static.
-   * @return the reference described by this VM_Field from the given object.
+   * @return the reference described by this RVMField from the given object.
    */
   public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {

@@ -15,7 +15,7 @@ package org.jikesrvm.runtime;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_TIB;
@@ -642,9 +642,9 @@ public class VM_Statics implements VM_Constants {
    * @param tibOff offset of TIB in JTOC
    * @return type of TIB or null
    */
-  public static VM_Type findTypeOfTIBSlot(Offset tibOff) {
-    for (int i=0, n=VM_Type.numTypes(); i < n; i++) {
-      VM_Type type = VM_Type.getType(i);
+  public static RVMType findTypeOfTIBSlot(Offset tibOff) {
+    for (int i=0, n=RVMType.numTypes(); i < n; i++) {
+      RVMType type = RVMType.getType(i);
       if (type != null && type.getTibOffset().EQ(tibOff)) {
         return type;
       }

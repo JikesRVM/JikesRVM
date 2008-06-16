@@ -15,18 +15,18 @@ package org.jikesrvm.compilers.baseline.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_InterfaceInvocation;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BBConstants;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
@@ -2463,7 +2463,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
@@ -2521,7 +2521,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       VM_Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
@@ -2600,7 +2600,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = field.getOffset();
     if (MM_Constants.NEEDS_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
@@ -2703,7 +2703,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
-    VM_Field field = fieldRef.peekResolvedField();
+    RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     VM_TypeReference fieldType = fieldRef.getFieldContentsType();
     if (fieldType.isReferenceType()) {
@@ -2792,7 +2792,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * @param methodRef The referenced method
    * @param target    The method to invoke
    */
-  protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
+  protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, RVMMethod target) {
     if (target.isObjectInitializer()) { // invoke via method's jtoc slot
       asm.emitLAddrToc(T0, target.getOffset());
     } else { // invoke via class's tib slot
@@ -2852,7 +2852,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    */
   protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    VM_Method resolvedMethod = null;
+    RVMMethod resolvedMethod = null;
     resolvedMethod = methodRef.peekInterfaceMethod();
 
     // (1) Emit dynamic type checking sequence if required to
@@ -2943,9 +2943,9 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
 
   /**
    * Emit code to allocate a scalar object
-   * @param typeRef the VM_Class to instantiate
+   * @param typeRef the RVMClass to instantiate
    */
-  protected final void emit_resolved_new(VM_Class typeRef) {
+  protected final void emit_resolved_new(RVMClass typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
@@ -2981,9 +2981,9 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
 
   /**
    * Emit code to allocate an array
-   * @param array the VM_Array to instantiate
+   * @param array the RVMArray to instantiate
    */
-  protected final void emit_resolved_newarray(VM_Array array) {
+  protected final void emit_resolved_newarray(RVMArray array) {
     int width = array.getLogElementSize();
     Offset tibOffset = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
@@ -3022,7 +3022,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
 
   /**
    * Emit code to allocate a multi-dimensional array
-   * @param typeRef the VM_Array to instantiate
+   * @param typeRef the RVMArray to instantiate
    * @param dimensions the number of dimensions
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
@@ -3073,7 +3073,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * Emit code to implement the checkcast bytecode
    * @param type   The LHS type
    */
-  protected final void emit_checkcast_resolvedClass(VM_Type type) {
+  protected final void emit_checkcast_resolvedClass(RVMType type) {
     asm.emitLAddrToc(T0, VM_Entrypoints.checkcastResolvedClassMethod.getOffset());
     asm.emitMTCTR(T0);
     peekAddr(T0, 0); // checkcast(obj, klass) consumes obj
@@ -3085,7 +3085,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
-  protected final void emit_checkcast_final(VM_Type type) {
+  protected final void emit_checkcast_final(RVMType type) {
     asm.emitLAddrToc(T0, VM_Entrypoints.checkcastFinalMethod.getOffset());
     asm.emitMTCTR(T0);
     peekAddr(T0, 0); // checkcast(obj, klass) consumes obj
@@ -3110,7 +3110,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * Emit code to implement the instanceof bytecode
    * @param type     The LHS type
    */
-  protected final void emit_instanceof_resolvedClass(VM_Type type) {
+  protected final void emit_instanceof_resolvedClass(RVMType type) {
     asm.emitLAddrToc(T0, VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
     asm.emitMTCTR(T0);
     peekAddr(T0, 0);
@@ -3123,7 +3123,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    * Emit code to implement the instanceof bytecode
    * @param type     The LHS type
    */
-  protected final void emit_instanceof_final(VM_Type type) {
+  protected final void emit_instanceof_final(RVMType type) {
     asm.emitLAddrToc(T0, VM_Entrypoints.instanceOfFinalMethod.getOffset());
     asm.emitMTCTR(T0);
     peekAddr(T0, 0);
@@ -3477,7 +3477,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
   // Emit code to release method synchronization lock.
   //
   private void genSynchronizedMethodEpilogue() {
-    if (method.isStatic()) { // put java.lang.Class for VM_Type into T0
+    if (method.isStatic()) { // put java.lang.Class for RVMType into T0
       Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
       asm.emitLAddrToc(T0, klassOffset);
     } else { // first local is "this" pointer
@@ -4347,7 +4347,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
       generateMethodInvocation(); // call method
       pushAddr(T0);       // push result
     } else if (methodName == VM_MagicNames.addressArrayCreate) {
-      VM_Array type = methodToBeCalled.getType().resolve().asArray();
+      RVMArray type = methodToBeCalled.getType().resolve().asArray();
       emit_resolved_newarray(type);
     } else if (methodName == VM_MagicNames.addressArrayLength) {
       emit_arraylength();
@@ -4785,7 +4785,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
 
   /**
    * Indicate if the specified {@link VM_Magic} method causes a frame to be created on the runtime stack.
-   * @param methodToBeCalled   {@link VM_Method} of the magic method being called
+   * @param methodToBeCalled   {@link RVMMethod} of the magic method being called
    * @return <code>true</code> if <code>methodToBeCalled</code> causes a stackframe to be created
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
@@ -4903,7 +4903,7 @@ public abstract class VM_BaselineCompilerImpl extends VM_BaselineCompiler
    *    java conventions) but if callee saves them, they will
    *    appear in the parameter save area right to left (C conventions)
    */
-  private void generateSysCall(int parametersSize, VM_Field target) {
+  private void generateSysCall(int parametersSize, RVMField target) {
     // acquire toc and ip from bootrecord
     asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
     asm.emitLAddrOffset(S0, S0, target.getOffset());

@@ -23,7 +23,7 @@ import org.jikesrvm.Properties;
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  */
-public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
+public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
 
   private static final boolean DBG_APP_CL = false;
 
@@ -38,13 +38,13 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
    */
   public static void stashApplicationRepositories(String classpath) {
     if (DBG_APP_CL) {
-      VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: " + "applicationRepositories = ", classpath);
+      VM.sysWriteln("RVMClassLoader.stashApplicationRepositories: " + "applicationRepositories = ", classpath);
     }
     /* If mis-initialized, trash it. */
     if (appCL != null && !classpath.equals(applicationRepositories)) {
       appCL = null;
       if (DBG_APP_CL) {
-        VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: Wiping out my remembered appCL.");
+        VM.sysWriteln("RVMClassLoader.stashApplicationRepositories: Wiping out my remembered appCL.");
       }
     }
     applicationRepositories = classpath;
@@ -96,7 +96,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
    * @param klass to check against command line argument
    * @return whether assertions should be enabled on class
    */
-  static boolean getDesiredAssertionStatus(VM_Class klass) {
+  static boolean getDesiredAssertionStatus(RVMClass klass) {
     if (!assertionsEnabled) {
       // trivial - no assertions are enabled
       return false;
@@ -142,7 +142,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     System.setProperty("java.class.path", classpath);
     stashApplicationRepositories(classpath);
     if (DBG_APP_CL) {
-      VM.sysWriteln("VM_ClassLoader.setApplicationRepositories: applicationRepositories = ", applicationRepositories);
+      VM.sysWriteln("RVMClassLoader.setApplicationRepositories: applicationRepositories = ", applicationRepositories);
     }
   }
 
@@ -190,7 +190,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     // Sanity Checks:
     //    synchronized (this) {
     if (gettingAppCL > 0 || DBG_APP_CL) {
-      VM.sysWriteln("JikesRVM: VM_ClassLoader.getApplicationClassLoader(): ",
+      VM.sysWriteln("JikesRVM: RVMClassLoader.getApplicationClassLoader(): ",
                     gettingAppCL > 0 ? "Recursively " : "",
                     "invoked with ",
                     gettingAppCL,
@@ -205,7 +205,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     String r = getApplicationRepositories();
 
     if (Properties.verboseBoot >= 1 || DBG_APP_CL) {
-      VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): " +
+      VM.sysWriteln("RVMClassLoader.getApplicationClassLoader(): " +
                     "Initializing Application ClassLoader, with" +
                     " repositories: `", r, "'...");
     }
@@ -213,7 +213,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     appCL = new VM_ApplicationClassLoader(r);
 
     if (Properties.verboseBoot >= 1 || DBG_APP_CL) {
-      VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ",
+      VM.sysWriteln("RVMClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ",
                     appCL.toString());
     }
     --gettingAppCL;
@@ -302,18 +302,18 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     VM_BootstrapClassLoader.boot(bootstrapClasspath);
   }
 
-  public static VM_Type defineClassInternal(String className, byte[] classRep, int offset, int length,
+  public static RVMType defineClassInternal(String className, byte[] classRep, int offset, int length,
                                             ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
-  public static VM_Type defineClassInternal(String className, InputStream is, ClassLoader classloader)
+  public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
       throws ClassFormatError {
     VM_TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
       //       to be called, so we must read the input stream and discover it overselves
-      //       before we actually can create the VM_Class instance.
+      //       before we actually can create the RVMClass instance.
       try {
         is.mark(is.available());
         tRef = getClassTypeRef(new DataInputStream(is), classloader);
@@ -333,7 +333,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
       if (VM.TraceClassLoading && VM.runningVM) {
         VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       }
-      VM_Class ans = VM_Class.readClass(tRef, new DataInputStream(is));
+      RVMClass ans = RVMClass.readClass(tRef, new DataInputStream(is));
       tRef.setType(ans);
       return ans;
     } catch (IOException e) {
@@ -343,7 +343,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     }
   }
 
-  // Shamelessly cloned & owned from VM_Class constructor....
+  // Shamelessly cloned & owned from RVMClass constructor....
   private static VM_TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
       throws IOException, ClassFormatError {
     int magic = input.readInt();
@@ -351,7 +351,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
       throw new ClassFormatError("bad magic number " + Integer.toHexString(magic));
     }
 
-    // Drop class file version number on floor. VM_Class constructor will do the check later.
+    // Drop class file version number on floor. RVMClass constructor will do the check later.
     input.readUnsignedShort(); // minor ID
     input.readUnsignedShort(); // major ID
 

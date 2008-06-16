@@ -26,32 +26,32 @@ public class JikesRVMSupport {
 
 
 
-  public static Field createField(VM_Field f) {
+  public static Field createField(RVMField f) {
     return new Field(f);
   }
 
-  public static Method createMethod(VM_Method m) {
+  public static Method createMethod(RVMMethod m) {
     return new Method(m);
   }
 
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
-  public static <T> Constructor<T> createConstructor(VM_Method m) {
+  public static <T> Constructor<T> createConstructor(RVMMethod m) {
     return new Constructor<T>(m);
   }
 
-  public static Object createVMConstructor(VM_Method m) {
+  public static Object createVMConstructor(RVMMethod m) {
     throw new Error("Harmony doesn't provide the VMConstructor API");
   }
 
-  public static VM_Field getFieldOf(Field f) {
+  public static RVMField getFieldOf(Field f) {
     throw new Error("TODO");
   }
 
-  public static VM_Method getMethodOf(Method m) {
+  public static RVMMethod getMethodOf(Method m) {
     throw new Error("TODO");
   }
 
-  public static VM_Method getMethodOf(Constructor cons) {
+  public static RVMMethod getMethodOf(Constructor cons) {
     throw new Error("TODO");
   }
 }

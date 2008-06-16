@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
@@ -971,7 +971,7 @@ public final class SSADictionary {
     Future: this should probably def the heap variable for every
     field of the object type allocated.
     TypeOperand typeOp = New.getType(s);
-    VM_Type type = typeOp.type;
+    RVMType type = typeOp.type;
     registerUse(s,type);
     registerDef(s,b,type);
     */
@@ -992,7 +992,7 @@ public final class SSADictionary {
     Future: this should probably def the heap variable for every
     field of the object type allocated.
     TypeOperand typeOp = NewArray.getType(s);
-    VM_Type type = typeOp.type;
+    RVMType type = typeOp.type;
     if (!type.asArray().getElementType().isPrimitiveType())
     type = ClassLoaderProxy.JavaLangObjectArrayType;
     registerUse(s,type);
@@ -1087,12 +1087,12 @@ public final class SSADictionary {
       return;
     HeapOperand H = (HeapOperand)Phi.getResult(s);
     Object Htype = H.getHeapType();
-    if (Htype instanceof VM_Type) {
-      VM_Type t = (VM_Type)Htype;
+    if (Htype instanceof RVMType) {
+      RVMType t = (RVMType)Htype;
       registerDef(s, b, t);
     }
-    else if (Htype instanceof VM_Field) {
-      VM_Field f = (VM_Field)Htype;
+    else if (Htype instanceof RVMField) {
+      RVMField f = (RVMField)Htype;
       registerDef(s, b, f);
     }
     else {
@@ -1102,12 +1102,12 @@ public final class SSADictionary {
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
       HeapOperand U = (HeapOperand)Phi.getValue(s, i);
       Object Utype = U.getHeapType();
-      if (Utype instanceof VM_Type) {
-        VM_Type t = (VM_Type)Utype;
+      if (Utype instanceof RVMType) {
+        RVMType t = (RVMType)Utype;
         registerUse(s, t);
       }
-      else if (Utype instanceof VM_Field) {
-        VM_Field f = (VM_Field)Utype;
+      else if (Utype instanceof RVMField) {
+        RVMField f = (RVMField)Utype;
         registerUse(s, f);
       } else {
         String a = (String)Utype;
@@ -1207,7 +1207,7 @@ public final class SSADictionary {
    */
   private void registerUse(Instruction s, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
-    VM_Field f = fr.peekResolvedField();
+    RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
     if (f == null) {
       // can't resolve field at compile time.
@@ -1241,7 +1241,7 @@ public final class SSADictionary {
    */
   private void registerDef(Instruction s, BasicBlock b, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
-    VM_Field f = fr.peekResolvedField();
+    RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
     if (f == null) {
       // can't resolve field at compile time.
@@ -1376,7 +1376,7 @@ public final class SSADictionary {
    * If no heap variable yet exits for this type or field, create a new
    * one.
    *
-   * @param type the <code> VM_TypeReference </code> or <code> VM_Field </code>
+   * @param type the <code> VM_TypeReference </code> or <code> RVMField </code>
    * identifying the desired heap variable
    * @return the desired heap variable
    */
@@ -1408,7 +1408,7 @@ public final class SSADictionary {
    * Get the next number to be assigned to a new heap variable
    * for a given type or field.
    *
-   * @param type the <code> VM_TypeReference </code> or <code> VM_Field </code>
+   * @param type the <code> VM_TypeReference </code> or <code> RVMField </code>
    * identifying the heap variable
    * @return the next integer (monotonically increasing) to identify a new
    * name for this heap variable
@@ -1471,7 +1471,7 @@ public final class SSADictionary {
      * Create a new name for a heap variable.
      *
      * @param     number the number, a unique integer from SSA renaming
-     * @param     type   the type (a <code> VM_Field </code> or <code>
+     * @param     type   the type (a <code> RVMField </code> or <code>
      * VM_TypeReference </code>
      */
     HeapKey(int number, T type) {

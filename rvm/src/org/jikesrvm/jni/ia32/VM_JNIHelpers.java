@@ -15,7 +15,7 @@ package org.jikesrvm.jni.ia32;
 import java.lang.reflect.Constructor;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.jni.VM_JNIFunctions;
@@ -46,7 +46,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
                                          boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
-    VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     Constructor<?> constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
     if (!mth.isPublic()) {
       constMethod.setAccessible(true);
@@ -258,7 +258,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   static Object packageAndInvoke(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
                                  boolean skip4Args, boolean isVarArg) throws Exception {
 
-    VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
 
     if (VM_JNIFunctions.traceJNI) {
@@ -296,12 +296,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   /**
    * Repackage the arguments passed as a variable argument list into an array of Object,
    * used by the JNI functions CallStatic<type>MethodV
-   * @param targetMethod   The target {@link VM_Method}
+   * @param targetMethod   The target {@link RVMMethod}
    * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromVarArg(VM_Method targetMethod, Address argAddress) {
+  static Object[] packageParameterFromVarArg(RVMMethod targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -353,12 +353,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   /**
    * Repackage the arguments passed as an array of jvalue into an array of Object,
    * used by the JNI functions CallStatic<type>MethodA
-   * @param targetMethod   The target {@link VM_Method}
+   * @param targetMethod   The target {@link RVMMethod}
    * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromJValue(VM_Method targetMethod, Address argAddress) {
+  static Object[] packageParameterFromJValue(RVMMethod targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];

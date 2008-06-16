@@ -776,7 +776,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       // SJF: the loop as written is slightly more efficient than calling
       // removeAll().  However, for some reason, replacing the loop with
       // the call to removeAll breaks the compiler on OptTestHarness
-      // -oc:O2 -method VM_Method replaceCharWithString -.  This is deeply
+      // -oc:O2 -method RVMMethod replaceCharWithString -.  This is deeply
       // disturbing.  TODO: fix it.  (Hope the problem goes away if/when
       // we migrate to classpath libraries).
       // removeAll(result);

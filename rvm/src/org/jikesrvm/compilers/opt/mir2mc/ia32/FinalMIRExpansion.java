@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Label;
@@ -558,7 +558,7 @@ public class FinalMIRExpansion extends IRTools {
     }
   }
 
-  private static void expandYieldpoint(Instruction s, IR ir, VM_Method meth, IA32ConditionOperand ypCond) {
+  private static void expandYieldpoint(Instruction s, IR ir, RVMMethod meth, IA32ConditionOperand ypCond) {
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
@@ -596,7 +596,7 @@ public class FinalMIRExpansion extends IRTools {
 
   /* generate yieldpoint without checking threadSwith request
    */
-  private static void expandUnconditionalYieldpoint(Instruction s, IR ir, VM_Method meth) {
+  private static void expandUnconditionalYieldpoint(Instruction s, IR ir, RVMMethod meth) {
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)

@@ -35,13 +35,13 @@ import org.vmmagic.unboxed.Offset;
  *   or in fields/elements of class/array instances.
  * </ul>
  *
- * @see VM_Type
- * @see VM_Class
- * @see VM_Array
+ * @see RVMType
+ * @see RVMClass
+ * @see RVMArray
  */
 @NonMoving
 @SynchronizedObject
-public final class VM_Primitive extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
+public final class VM_Primitive extends RVMType implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * The pretty (external) name for this primitive.
    * For example, for a long the name is 'long'
@@ -273,7 +273,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   }
 
   /**
-   * Whether or not this is an instance of VM_Class?
+   * Whether or not this is an instance of RVMClass?
    * @return false
    */
   @Override
@@ -284,7 +284,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
   }
 
   /**
-   * Whether or not this is an instance of VM_Array?
+   * Whether or not this is an instance of RVMArray?
    * @return false
    */
   @Override
@@ -382,7 +382,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    */
   @Override
   @Pure
-  public VM_Field[] getStaticFields() {
+  public RVMField[] getStaticFields() {
     return emptyVMField;
   }
 
@@ -393,7 +393,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    */
   @Override
   @Pure
-  public VM_Field[] getInstanceFields() {
+  public RVMField[] getInstanceFields() {
     return emptyVMField;
   }
 
@@ -403,7 +403,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    */
   @Override
   @Pure
-  public VM_Method[] getStaticMethods() {
+  public RVMMethod[] getStaticMethods() {
     return emptyVMMethod;
   }
 
@@ -414,7 +414,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    */
   @Override
   @Pure
-  public VM_Method[] getVirtualMethods() {
+  public RVMMethod[] getVirtualMethods() {
     return emptyVMMethod;
   }
 

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.util.Stack;
@@ -150,7 +150,7 @@ public final class InlineSequence {
   /**
    * Does this inline sequence contain a given method?
    */
-  public boolean containsMethod(VM_Method m) {
+  public boolean containsMethod(RVMMethod m) {
     if (method == m) return true;
     if (caller == null) return false;
     return (caller.containsMethod(m));

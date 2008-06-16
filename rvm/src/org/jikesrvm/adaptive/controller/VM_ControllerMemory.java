@@ -16,7 +16,7 @@ import java.io.PrintStream;
 import java.util.LinkedList;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
@@ -29,11 +29,11 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 public final class VM_ControllerMemory implements VM_Constants {
 
   /**
-   *  This is a hashtable of controller plans indexed by VM_Method.
+   *  This is a hashtable of controller plans indexed by RVMMethod.
    *  Each method can have a list of such plans associated with.
    */
-  private static final ImmutableEntryHashMapRVM<VM_Method, LinkedList<VM_ControllerPlan>> table =
-      new ImmutableEntryHashMapRVM<VM_Method, LinkedList<VM_ControllerPlan>>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, LinkedList<VM_ControllerPlan>> table =
+      new ImmutableEntryHashMapRVM<RVMMethod, LinkedList<VM_ControllerPlan>>();
 
   /**
    * Number of times controller is awoken and did nothing.
@@ -156,7 +156,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    */
   @SuppressWarnings("unchecked")
   // until HashMapRVM becomes generic
-  private static synchronized LinkedList<VM_ControllerPlan> findPlan(VM_Method method) {
+  private static synchronized LinkedList<VM_ControllerPlan> findPlan(RVMMethod method) {
     return table.get(method);
   }
 
@@ -166,7 +166,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  @return the matching plan or null if none exists.
    */
   public static synchronized VM_ControllerPlan findMatchingPlan(VM_CompiledMethod cmpMethod) {
-    VM_Method method = cmpMethod.getMethod();
+    RVMMethod method = cmpMethod.getMethod();
 
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
@@ -195,7 +195,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  @param method the method of interest
    *  @return whether the method should be considered or not
    */
-  static synchronized boolean shouldConsiderForInitialRecompilation(VM_Method method) {
+  static synchronized boolean shouldConsiderForInitialRecompilation(RVMMethod method) {
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
       return true;
@@ -225,7 +225,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @param status the status of interest
    * @return whether or not there is plan with that status for the method
    */
-  static synchronized boolean planWithStatus(VM_Method method, byte status) {
+  static synchronized boolean planWithStatus(RVMMethod method, byte status) {
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList != null) {
       // iterate over the planList until we find a plan with status 'status'
@@ -251,7 +251,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     if (cm.getCompilerType() != VM_CompiledMethod.BASELINE) return false;
 
     // OK; now check for an OSR plan
-    VM_Method m = cm.getMethod();
+    RVMMethod m = cm.getMethod();
     if (m == null) return false;
     return planWithStatus(m, VM_ControllerPlan.OSR_BASE_2_OPT);
   }
@@ -265,7 +265,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return whether or not there is completed plan with that level
    *             for the method
    */
-  static synchronized boolean completedPlanWithOptLevel(VM_Method method, int optLevel) {
+  static synchronized boolean completedPlanWithOptLevel(RVMMethod method, int optLevel) {
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList != null) {
       // iterate over the planList until we find a completed plan with the
@@ -289,7 +289,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return The last controller plan for this method if it exists,
    *         otherwise, null
    */
-  public static synchronized VM_ControllerPlan findLatestPlan(VM_Method method) {
+  public static synchronized VM_ControllerPlan findLatestPlan(RVMMethod method) {
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
       return null;
@@ -324,7 +324,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     int totalRecompsAtLevel2 = 0;
 
     // traverse table and give a summary of all actions that have occurred
-    for (VM_Method meth : table.keys()) {
+    for (RVMMethod meth : table.keys()) {
       LinkedList<VM_ControllerPlan> planList = table.get(meth);
 
       int bitPattern = 0;

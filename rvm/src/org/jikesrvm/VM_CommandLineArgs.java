@@ -15,7 +15,7 @@ package org.jikesrvm;
 import java.io.File;
 import java.util.Arrays;
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
 import org.jikesrvm.compilers.baseline.VM_BaselineOptions;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
@@ -461,24 +461,24 @@ public class VM_CommandLineArgs {
           // We are experimentally processing this early so that we can have the
           // Application class loader complete for when
           // ClassLoader$StaticData's initializer is run.
-          VM_ClassLoader.stashApplicationRepositories(arg);
+          RVMClassLoader.stashApplicationRepositories(arg);
           i++; // skip second argument to classpath
           break;
 
         case JAR_ARG:
           // maybe also load classes on the classpath list in the manifest
-          VM_ClassLoader.stashApplicationRepositories(arg);
+          RVMClassLoader.stashApplicationRepositories(arg);
           i++; // skip second argument to jar
           break;
 
         case ENABLE_ASSERTION_ARG:
           // arguments of the form "-ea[:<packagename>...|:<classname>]"
-          VM_ClassLoader.stashEnableAssertionArg(arg);
+          RVMClassLoader.stashEnableAssertionArg(arg);
           break;
 
         case DISABLE_ASSERTION_ARG:
           // arguments of the form "-da[:<packagename>...|:<classname>]"
-          VM_ClassLoader.stashDisableAssertionArg(arg);
+          RVMClassLoader.stashDisableAssertionArg(arg);
           break;
 
         case VERBOSE_CLS_ARG:
@@ -666,7 +666,7 @@ public class VM_CommandLineArgs {
 
         case CLASSPATH_ARG:   // This is run in duplicate.
           // arguments of the form "-classpath a:b:c" or "-cp a:b:c"
-          VM_ClassLoader.setApplicationRepositories(arg);
+          RVMClassLoader.setApplicationRepositories(arg);
           i++; // skip second argument to classpath
           break;
 
@@ -691,7 +691,7 @@ public class VM_CommandLineArgs {
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           // maybe also load classes on the classpath list in the manifest
-          VM_ClassLoader.setApplicationRepositories(arg);
+          RVMClassLoader.setApplicationRepositories(arg);
 
           args[i] = s;
           arg_types[i] = PrefixType.APPLICATION_ARG;
@@ -707,8 +707,8 @@ public class VM_CommandLineArgs {
           } else {
             jarPath = arg;
           }
-          String newClassPath = VM_ClassLoader.getApplicationRepositories() + File.pathSeparator + jarPath;
-          VM_ClassLoader.setApplicationRepositories(newClassPath);
+          String newClassPath = RVMClassLoader.getApplicationRepositories() + File.pathSeparator + jarPath;
+          RVMClassLoader.setApplicationRepositories(newClassPath);
           break;
       }
     }

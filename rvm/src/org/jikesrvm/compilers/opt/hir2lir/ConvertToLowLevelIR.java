@@ -91,12 +91,12 @@ import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_INTERFACE_DISPA
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_InterfaceInvocation;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.SpecializedMethod;
@@ -824,7 +824,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));
       if (CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
         // Call to precise type can go via JTOC
-        VM_Method target = methOp.getTarget();
+        RVMMethod target = methOp.getTarget();
         Call.setAddress(v,
                         InsertLoadOffsetJTOC(v,
                                              ir,
@@ -844,7 +844,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                                          TG()));
       }
     } else if (methOp.isSpecial()) {
-      VM_Method target = methOp.getTarget();
+      RVMMethod target = methOp.getTarget();
       if (target == null || target.isObjectInitializer() || target.isStatic()) {
         // target == null => we are calling an unresolved <init> method.
         Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, VM_TypeReference.CodeArray, Call.getClearAddress(v)));
@@ -892,7 +892,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       } else {
         int itableIndex = -1;
         if (VM.BuildForITableInterfaceInvocation && methOp.hasTarget()) {
-          VM_Class I = methOp.getTarget().getDeclaringClass();
+          RVMClass I = methOp.getTarget().getDeclaringClass();
           // search ITable variant
           itableIndex =
               VM_InterfaceInvocation.getITableIndex(I,
@@ -904,7 +904,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
           // call "invokeinterface" to resolve the object and method id
           // into a method address
           RegisterOperand realAddrReg = ir.regpool.makeTemp(VM_TypeReference.CodeArray);
-          VM_Method target = VM_Entrypoints.invokeInterfaceMethod;
+          RVMMethod target = VM_Entrypoints.invokeInterfaceMethod;
           Instruction vp =
               Call.create2(CALL,
                            realAddrReg,
@@ -924,7 +924,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
           // itable address
           RegisterOperand iTable = ir.regpool.makeTemp(VM_TypeReference.ITable);
           Operand RHStib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
-          VM_Method target = VM_Entrypoints.findItableMethod;
+          RVMMethod target = VM_Entrypoints.findItableMethod;
           Instruction fi =
               Call.create2(CALL,
                            iTable,
@@ -974,7 +974,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
     s.remove();
 
-    // Get the offset from the appropriate VM_ClassLoader array
+    // Get the offset from the appropriate RVMClassLoader array
     // and check to see if it is valid
     RegisterOperand offsetTable = getStatic(testBB.lastInstruction(), ir, VM_Entrypoints.memberOffsetsField);
     testBB.appendInstruction(Load.create(INT_LOAD,
@@ -1168,7 +1168,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     if (obj.isObjectConstant()) {
       // NB Constant types must already be resolved
       try {
-        VM_Type type = obj.getType().resolve();
+        RVMType type = obj.getType().resolve();
         return new TIBConstantOperand(type);
       } catch (NoClassDefFoundError e) {
         if (VM.runningVM) throw e;
@@ -1183,14 +1183,14 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   }
 
   /** get the class tib for type */
-  static Operand getTIB(Instruction s, IR ir, VM_Type type) {
+  static Operand getTIB(Instruction s, IR ir, RVMType type) {
     return new TIBConstantOperand(type);
     //return getTIB(s, ir, new TypeOperand(type));
   }
 
   /** get the class tib for type */
   static Operand getTIB(Instruction s, IR ir, TypeOperand type) {
-    VM_Type t = type.getVMType();
+    RVMType t = type.getVMType();
     if (VM.BuildForIA32 && !MM_Constants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
       Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
       return new AddressConstantOperand(addr);
@@ -1206,7 +1206,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   /**
    * Get an instance method from a TIB
    */
-  static RegisterOperand getInstanceMethod(Instruction s, IR ir, Operand tib, VM_Method method) {
+  static RegisterOperand getInstanceMethod(Instruction s, IR ir, Operand tib, RVMMethod method) {
     return InsertLoadOffset(s, ir, REF_LOAD, VM_TypeReference.CodeArray, tib, method.getOffset());
   }
 
@@ -1217,7 +1217,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param obj
    * @param field
    */
-  public static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, VM_Field field) {
+  public static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, RVMField field) {
     return getField(s, ir, obj, field, null);
   }
 
@@ -1229,7 +1229,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param field
    * @param guard
    */
-  static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, VM_Field field,
+  static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, RVMField field,
                                       Operand guard) {
     return InsertLoadOffset(s,
                             ir,
@@ -1272,7 +1272,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     MethodOperand sysM = Call.getMethod(s);
     if (sysM.getMemberRef().isFieldReference()) {
       RegisterOperand t1 = getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-      VM_Field target = sysM.getMemberRef().asFieldReference().resolve();
+      RVMField target = sysM.getMemberRef().asFieldReference().resolve();
       Operand ip = getField(s, ir, t1, target);
       Call.setAddress(s, ip);
     }
@@ -1284,7 +1284,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param ir
    * @param field
    */
-  public static RegisterOperand getStatic(Instruction s, IR ir, VM_Field field) {
+  public static RegisterOperand getStatic(Instruction s, IR ir, RVMField field) {
     return InsertLoadOffsetJTOC(s,
                                 ir,
                                 IRTools.getLoadOp(field.getType(), field.isStatic()),

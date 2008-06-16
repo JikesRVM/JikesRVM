@@ -16,8 +16,8 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_MachineReflection;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.scheduler.VM_Processor;
@@ -41,15 +41,15 @@ public class VM_Reflection implements VM_Constants {
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
    */
-  public static Object invoke(VM_Method method, Object thisArg, Object[] otherArgs) {
+  public static Object invoke(RVMMethod method, Object thisArg, Object[] otherArgs) {
     return invoke(method, thisArg, otherArgs, false);
   }
 
-  public static Object invoke(VM_Method method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+  public static Object invoke(RVMMethod method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
 
     // the class must be initialized before we can invoke a method
     //
-    VM_Class klass = method.getDeclaringClass();
+    RVMClass klass = method.getDeclaringClass();
     if (!klass.isInitialized()) {
       RuntimeEntrypoints.initializeClassForDynamicLink(klass);
     }
@@ -91,7 +91,7 @@ public class VM_Reflection implements VM_Constants {
 
     // choose actual method to be called
     //
-    VM_Method targetMethod;
+    RVMMethod targetMethod;
     if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
       targetMethod = method;
     } else {

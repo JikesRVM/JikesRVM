@@ -13,7 +13,7 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
@@ -67,7 +67,7 @@ public class VM_FinalizerThread extends VM_Scheduler.ThreadModel {
             VM.sysWriteln();
           }
           try {
-            VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
+            RVMMethod method = VM_Magic.getObjectType(o).asClass().getFinalizer();
             if (VM.VerifyAssertions) VM._assert(method != null);
             VM_Reflection.invoke(method, o, none);
           } catch (Exception e) {

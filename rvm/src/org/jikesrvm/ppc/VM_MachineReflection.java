@@ -14,7 +14,7 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.VM_Reflection;
@@ -30,7 +30,7 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
    * Determine number/type of registers/spills required to call specified method.
    * See also: VM_Compiler.loadParameters()
    */
-  public static int countParameters(VM_Method method) {
+  public static int countParameters(RVMMethod method) {
     int GPRs = 0;
     int FPRs = 0;
     int Spills = 0;
@@ -107,7 +107,7 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
   /**
    * Collect parameters into arrays of registers/spills, as required to call specified method.
    */
-  public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs, WordArray GPRs,
+  public static void packageParameters(RVMMethod method, Object thisArg, Object[] otherArgs, WordArray GPRs,
                                        double[] FPRs, byte[] FPRmeta, WordArray Spills) {
     int GPR = GPRs.length();
     int FPR = FPRs.length;

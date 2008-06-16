@@ -16,13 +16,13 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_DynamicTypeCheck;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -112,7 +112,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
         if one is looking at it from the point of view of the "instanceof"
         operator.  */
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
-    VM_Type lhsType = tRef.peekType();
+    RVMType lhsType = tRef.peekType();
     if (lhsType == null) {
       lhsType = tRef.resolve();
     }
@@ -125,7 +125,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return false; // null is not an instance of any type
     }
 
-    VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+    RVMType rhsType = VM_ObjectModel.getObjectType(object);
     /* RHS must already be resolved, since we have a non-null object that is
        an instance of RHS  */
     if (VM.VerifyAssertions) VM._assert(rhsType.isResolved());
@@ -147,7 +147,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return false; // null is not an instance of any type
     }
 
-    VM_Class lhsType = VM_Type.getType(id).asClass();
+    RVMClass lhsType = RVMType.getType(id).asClass();
     VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
     return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
   }
@@ -187,11 +187,11 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     }
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.peekType();
+    RVMType lhsType = tRef.peekType();
     if (lhsType == null) {
       lhsType = tRef.resolve();
     }
-    VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+    RVMType rhsType = VM_ObjectModel.getObjectType(object);
     if (lhsType == rhsType) {
       return; // exact match
     }
@@ -213,13 +213,13 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   static void checkcastResolvedClass(Object object, int id) {
     if (object == null) return; // null can be cast to any type
 
-    VM_Class lhsType = VM_Type.getType(id).asClass();
+    RVMClass lhsType = RVMType.getType(id).asClass();
     VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
     }
     if (!VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
-      VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+      RVMType rhsType = VM_ObjectModel.getObjectType(object);
       raiseCheckcastException(lhsType, rhsType);
     }
   }
@@ -235,11 +235,11 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
     Object rhsTib = VM_ObjectModel.getTIB(object);
     if (lhsTib != rhsTib) {
-      VM_Type lhsType =
+      RVMType lhsType =
           VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,
                                                            Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
                                                                                     LOG_BYTES_IN_ADDRESS)));
-      VM_Type rhsType =
+      RVMType rhsType =
           VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,
                                                            Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
                                                                                     LOG_BYTES_IN_ADDRESS)));
@@ -249,7 +249,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
 
   @LogicallyUninterruptible
   @Uninterruptible
-  private static void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) {
+  private static void raiseCheckcastException(RVMType lhsType, RVMType rhsType) {
     throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
   }
 
@@ -262,14 +262,14 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return; // null may be assigned to any type
     }
 
-    VM_Type lhsType = VM_Magic.getObjectType(array);
-    VM_Type elmType = lhsType.asArray().getElementType();
+    RVMType lhsType = VM_Magic.getObjectType(array);
+    RVMType elmType = lhsType.asArray().getElementType();
 
-    if (elmType == VM_Type.JavaLangObjectType) {
+    if (elmType == RVMType.JavaLangObjectType) {
       return; // array of Object can receive anything
     }
 
-    VM_Type rhsType = VM_Magic.getObjectType(arrayElement);
+    RVMType rhsType = VM_Magic.getObjectType(arrayElement);
 
     if (elmType == rhsType) {
       return; // exact type match
@@ -294,7 +294,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    */
   @Pure
   @Inline(value=Inline.When.AllArgumentsAreConstant)
-  public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
+  public static boolean isAssignableWith(RVMType lhs, RVMType rhs) {
     if (!lhs.isResolved()) {
       lhs.resolve();
     }
@@ -318,11 +318,11 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @Entrypoint
   static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type t = tRef.peekType();
+    RVMType t = tRef.peekType();
     if (t == null) {
       t = tRef.resolve();
     }
-    VM_Class cls = t.asClass();
+    RVMClass cls = t.asClass();
     if (!cls.isInitialized()) {
       initializeClassForDynamicLink(cls);
     }
@@ -341,12 +341,12 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
 
   /**
    * Allocate something like "new Foo()".
-   * @param cls VM_Class of array to create
+   * @param cls RVMClass of array to create
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  public static Object resolvedNewScalar(VM_Class cls) {
+  public static Object resolvedNewScalar(RVMClass cls) {
 
     int allocator = MM_Interface.pickAllocator(cls);
     int site = MM_Interface.getAllocationSite(false);
@@ -402,11 +402,11 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   public static Object unresolvedNewArray(int numElements, int id, int site)
       throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type t = tRef.peekType();
+    RVMType t = tRef.peekType();
     if (t == null) {
       t = tRef.resolve();
     }
-    VM_Array array = t.asArray();
+    RVMArray array = t.asArray();
     if (!array.isInitialized()) {
       array.resolve();
       array.instantiate();
@@ -418,16 +418,16 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   /**
    * Allocate something like "new Foo[]".
    * @param numElements number of array elements
-   * @param array VM_Array of array to create
+   * @param array RVMArray of array to create
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */
-  public static Object resolvedNewArray(int numElements, VM_Array array)
+  public static Object resolvedNewArray(int numElements, RVMArray array)
       throws OutOfMemoryError, NegativeArraySizeException {
     return resolvedNewArray(numElements, array, MM_Interface.getAllocationSite(false));
   }
 
-  public static Object resolvedNewArray(int numElements, VM_Array array, int site)
+  public static Object resolvedNewArray(int numElements, RVMArray array, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
 
     return resolvedNewArray(numElements,
@@ -486,7 +486,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @return the cloned object
    */
   public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
-    VM_Type type = VM_Magic.getObjectType(obj);
+    RVMType type = VM_Magic.getObjectType(obj);
     if (type.isArrayType()) {
       return cloneArray(obj, type);
     } else {
@@ -501,8 +501,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @param type the type information for the array
    * @return the cloned object
    */
-  private static Object cloneArray(Object obj, VM_Type type) throws OutOfMemoryError {
-    VM_Array ary = type.asArray();
+  private static Object cloneArray(Object obj, RVMType type) throws OutOfMemoryError {
+    RVMArray ary = type.asArray();
     int nelts = VM_ObjectModel.getArrayLength(obj);
     Object newObj = resolvedNewArray(nelts, ary);
     System.arraycopy(obj, 0, newObj, 0, nelts);
@@ -518,7 +518,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @param type the type information for the class
    * @return the cloned object
    */
-  private static Object cloneClass(Object obj, VM_Type type) throws OutOfMemoryError, CloneNotSupportedException {
+  private static Object cloneClass(Object obj, RVMType type) throws OutOfMemoryError, CloneNotSupportedException {
     if (!(obj instanceof Cloneable)) {
       throw new CloneNotSupportedException();
     } else {
@@ -533,10 +533,10 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @param type the type information for the class
    * @return the cloned object
    */
-  private static Object cloneClass2(Object obj, VM_Type type) throws OutOfMemoryError {
-    VM_Class cls = type.asClass();
+  private static Object cloneClass2(Object obj, RVMType type) throws OutOfMemoryError {
+    RVMClass cls = type.asClass();
     Object newObj = resolvedNewScalar(cls);
-    for (VM_Field f : cls.getInstanceFields()) {
+    for (RVMField f : cls.getInstanceFields()) {
       int size = f.getSize();
       if (VM.BuildFor32Addr) {
         if (size == BYTES_IN_INT) {
@@ -624,7 +624,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
    */
-  public static void initializeClassForDynamicLink(VM_Class cls) {
+  public static void initializeClassForDynamicLink(RVMClass cls) {
     if (VM.TraceClassLoading) {
       VM.sysWrite("RuntimeEntrypoints.initializeClassForDynamicLink: (begin) " + cls + "\n");
     }
@@ -930,8 +930,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @param arrayType type of array that will result
    * @return array object
    */
-  public static Object buildMultiDimensionalArray(int methodId, int[] numElements, VM_Array arrayType) {
-    VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+  public static Object buildMultiDimensionalArray(int methodId, int[] numElements, RVMArray arrayType) {
+    RVMMethod method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
@@ -943,8 +943,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @param arrayType type of array that will result
    * @return array object
    */
-  public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, VM_Array arrayType) {
-    VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+  public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, RVMArray arrayType) {
+    RVMMethod method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
 
     if (!arrayType.isInstantiated()) {
@@ -954,7 +954,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
 
     Object[] newArray = (Object[])resolvedNewArray(dim0, arrayType);
 
-    VM_Array innerArrayType = arrayType.getElementType().asArray();
+    RVMArray innerArrayType = arrayType.getElementType().asArray();
     if (!innerArrayType.isInstantiated()) {
       innerArrayType.resolve();
       innerArrayType.instantiate();
@@ -973,7 +973,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @param dimIndex Current dimension to build
    * @param arrayType type of array that will result
    */
-  public static Object buildMDAHelper(VM_Method method, int[] numElements, int dimIndex, VM_Array arrayType) {
+  public static Object buildMDAHelper(RVMMethod method, int[] numElements, int dimIndex, RVMArray arrayType) {
 
     if (!arrayType.isInstantiated()) {
       arrayType.resolve();
@@ -988,7 +988,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     }
 
     Object[] newArray = (Object[]) newObject;
-    VM_Array newArrayType = arrayType.getElementType().asArray();
+    RVMArray newArrayType = arrayType.getElementType().asArray();
 
     for (int i = 0; i < nelts; ++i) {
       newArray[i] = buildMDAHelper(method, numElements, dimIndex, newArrayType);
@@ -1023,7 +1023,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     if (VM.TraceExceptionDelivery) {
       VM.sysWrite("Hunting for a catch block...");
     }
-    VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
+    RVMType exceptionType = VM_Magic.getObjectType(exceptionObject);
     Address fp = exceptionRegisters.getInnermostFramePointer();
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);

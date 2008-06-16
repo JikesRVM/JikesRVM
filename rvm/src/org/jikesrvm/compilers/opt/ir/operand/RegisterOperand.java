@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
 
@@ -165,7 +165,7 @@ public final class RegisterOperand extends Operand {
     temp.scratchObject = scratchObject;
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -368,7 +368,7 @@ public final class RegisterOperand extends Operand {
   /** Set this register as having a precise type */
   public void setPreciseType() {
     if (VM.VerifyAssertions && type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -402,7 +402,7 @@ public final class RegisterOperand extends Operand {
     flags |= inFlag;
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -413,7 +413,7 @@ public final class RegisterOperand extends Operand {
     flags = src.getFlags();
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -547,7 +547,7 @@ public final class RegisterOperand extends Operand {
     type = t;
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }

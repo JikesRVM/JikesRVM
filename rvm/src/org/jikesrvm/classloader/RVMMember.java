@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A field or method of a java class.
  */
-public abstract class VM_Member extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
+public abstract class RVMMember extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
 
   /** Initial value for a field offset - indicates field not laid out. */
   private static final int NO_OFFSET = Short.MIN_VALUE + 1;
@@ -49,12 +49,12 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
 
   /**
    * The member's jtoc/obj/tib offset in bytes.
-   * Set by {@link VM_Class#resolve()}
+   * Set by {@link RVMClass#resolve()}
    */
   protected int offset;
 
   /**
-   * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Member.
+   * NOTE: Only {@link RVMClass} is allowed to create an instance of a RVMMember.
    *
    * @param declaringClass the VM_TypeReference object of the class that declared this member
    * @param memRef the canonical memberReference for this member.
@@ -62,14 +62,14 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * @param signature generic type of this member
    * @param annotations array of runtime visible annotations
    */
-  protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
-                      VM_Annotation[] annotations) {
+  protected RVMMember(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
+                      RVMAnnotation[] annotations) {
     super(annotations);
     this.declaringClass = declaringClass;
     this.memRef = memRef;
     this.modifiers = modifiers;
     this.signature = signature;
-    this.offset = NO_OFFSET; // invalid value. Set to valid value during VM_Class.resolve()
+    this.offset = NO_OFFSET; // invalid value. Set to valid value during RVMClass.resolve()
   }
 
   //--------------------------------------------------------------------//
@@ -82,7 +82,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * the class is loaded.
    */
   @Uninterruptible
-  public final VM_Class getDeclaringClass() {
+  public final RVMClass getDeclaringClass() {
     return declaringClass.peekType().asClass();
   }
 

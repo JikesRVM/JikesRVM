@@ -13,8 +13,8 @@
 package org.jikesrvm;
 
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMember;
 
 /**
  * This interface is implemented by org.jikesrvm.VM_PrintContainer.  The
@@ -120,14 +120,14 @@ the bottom of the loop. */
   }
 
   /* Code related to VM_Atom.classNameFromDescriptor() */
-  public void print(VM_Class class_) {
+  public void print(RVMClass class_) {
     // getDescriptor() does no allocation.
     VM_Atom descriptor = class_.getDescriptor();
     printClassName(descriptor);
   }
 
   // A kludgy alternative:
-//     public void print(VM_Class c) {
+//     public void print(RVMClass c) {
 //       VM_Atom descriptor = c.getDescriptor();
 //       try {
 //      print(descriptor.classNameFromDescriptor());
@@ -137,15 +137,15 @@ the bottom of the loop. */
 //     }
 
   // No such method:
-  //public void print(VM_Class c) {
+  //public void print(RVMClass c) {
   //      VM.sysWrite(c);
   //    }
 
   /* Here we need to imitate the work that would normally be done by
-* VM_Member.toString() (which VM_Method.toString() inherits) */
+* RVMMember.toString() (which RVMMethod.toString() inherits) */
 
-  public void print(VM_Member m) {
-    print(m.getDeclaringClass()); // VM_Class
+  public void print(RVMMember m) {
+    print(m.getDeclaringClass()); // RVMClass
     print('.');
     print(m.getName());
     print(' ');

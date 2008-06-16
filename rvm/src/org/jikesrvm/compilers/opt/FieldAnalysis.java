@@ -13,9 +13,9 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -70,7 +70,7 @@ public final class FieldAnalysis extends CompilerPhase {
    * </ul>
    */
   private static boolean isCandidate(VM_TypeReference tref) {
-    VM_Type t = tref.peekType();
+    RVMType t = tref.peekType();
     if (t == null) return false;
     if (t.isPrimitiveType()) {
       return false;
@@ -88,7 +88,7 @@ public final class FieldAnalysis extends CompilerPhase {
    * Have we determined a single concrete type for a field? If so,
    * return the concrete type.  Else, return null.
    */
-  public static VM_TypeReference getConcreteType(VM_Field f) {
+  public static VM_TypeReference getConcreteType(RVMField f) {
     // don't bother for primitives and arrays of primitives
     // and friends
     if (!isCandidate(f.getType())) {
@@ -121,7 +121,7 @@ public final class FieldAnalysis extends CompilerPhase {
       Instruction s = e.next();
       if (PutField.conforms(s)) {
         LocationOperand l = PutField.getLocation(s);
-        VM_Field f = l.getFieldRef().peekResolvedField();
+        RVMField f = l.getFieldRef().peekResolvedField();
         if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
@@ -141,7 +141,7 @@ public final class FieldAnalysis extends CompilerPhase {
         }
       } else if (PutStatic.conforms(s)) {
         LocationOperand l = PutStatic.getLocation(s);
-        VM_Field f = l.getFieldRef().peekResolvedField();
+        RVMField f = l.getFieldRef().peekResolvedField();
         if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
@@ -171,7 +171,7 @@ public final class FieldAnalysis extends CompilerPhase {
   /**
    * Record that a method writes an unknown concrete type to a field.
    */
-  private static synchronized void recordBottom(VM_Method m, VM_Field f) {
+  private static synchronized void recordBottom(RVMMethod m, RVMField f) {
     // for now, only track private fields
     if (!f.isPrivate()) {
       return;
@@ -195,7 +195,7 @@ public final class FieldAnalysis extends CompilerPhase {
    * Record that a method stores an object of a particular concrete type
    * to a field.
    */
-  private static synchronized void recordConcreteType(VM_Method m, VM_Field f, VM_TypeReference t) {
+  private static synchronized void recordConcreteType(RVMMethod m, RVMField f, VM_TypeReference t) {
     // for now, only track private fields
     if (!f.isPrivate()) {
       return;
@@ -224,7 +224,7 @@ public final class FieldAnalysis extends CompilerPhase {
    * give up. TODO: work around this by recomputing the summary at
    * runtime?
    */
-  private static boolean isTrouble(VM_Field f) {
-    return f.getDeclaringClass() == VM_Type.JavaLangStringType;
+  private static boolean isTrouble(RVMField f) {
+    return f.getDeclaringClass() == RVMType.JavaLangStringType;
   }
 }

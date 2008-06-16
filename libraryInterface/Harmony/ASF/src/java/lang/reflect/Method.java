@@ -20,9 +20,9 @@ package java.lang.reflect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.VMCommonLibrarySupport;
 
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Member;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMember;
+import org.jikesrvm.classloader.RVMMethod;
 
 /**
  * This class must be implemented by the VM vendor. This class models a method.
@@ -31,12 +31,12 @@ import org.jikesrvm.classloader.VM_Method;
  * 
  */
 public final class Method extends AccessibleObject implements GenericDeclaration, Member {
-    private final VM_Method vmMethod;
+    private final RVMMethod vmMethod;
 
     /**
      * Constructor
      */
-    Method(VM_Method vmMethod){
+    Method(RVMMethod vmMethod){
       this.vmMethod = vmMethod;
     }
     
@@ -332,7 +332,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	public Object invoke(Object receiver, Object... args)
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
-	    return VMCommonLibrarySupport.invoke(receiver, args, vmMethod, this, VM_Class.getClassFromStackFrame(1));
+	    return VMCommonLibrarySupport.invoke(receiver, args, vmMethod, this, RVMClass.getClassFromStackFrame(1));
 	}
 
 	/**
@@ -379,7 +379,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
    * Get the VM member implementation. Package protected to stop outside use.
    */
   @Override
-  VM_Member getVMMember() {
+  RVMMember getVMMember() {
 	 return vmMethod;
   }
 
@@ -388,7 +388,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
    * stop outside use.
    */
   @Override
-  VM_Method getVMMethod() {
+  RVMMethod getVMMethod() {
 	 return vmMethod;
   }
 }

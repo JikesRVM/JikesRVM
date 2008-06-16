@@ -80,9 +80,9 @@ import org.vmmagic.pragma.Uninterruptible;
  *    array is the LHS class ID, the test succeeds.  Else, it fails.
  *
  * @see org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion
- * @see VM_Type
- * @see VM_Class
- * @see VM_Array
+ * @see RVMType
+ * @see RVMClass
+ * @see RVMArray
  */
 public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
@@ -101,12 +101,12 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   public static final int MIN_DOES_IMPLEMENT_SIZE = 5; // an int[]
 
   /**
-   * Create the superclass Id vector for a VM_Type.
+   * Create the superclass Id vector for a RVMType.
    *
-   * @param t a VM_Type to create a superclass Id vector for
+   * @param t a RVMType to create a superclass Id vector for
    * @return the superclass Id vector
    */
-  static short[] buildSuperclassIds(VM_Type t) {
+  static short[] buildSuperclassIds(RVMType t) {
     int depth = t.getTypeDepth();
     short[] tsi;
     if (t.isJavaLangObjectType()) {
@@ -115,9 +115,9 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     } else {
       int size = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth + 1 : MIN_SUPERCLASS_IDS_SIZE;
       tsi = MM_Interface.newNonMovingShortArray(size);
-      VM_Type p;
+      RVMType p;
       if (t.isArrayType() || t.asClass().isInterface()) {
-        p = VM_Type.JavaLangObjectType;
+        p = RVMType.JavaLangObjectType;
       } else {
         p = t.asClass().getSuperClass();
       }
@@ -135,39 +135,39 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   private static int[] arrayDoesImplement;
 
   /**
-   * Create the doesImplement vector for a VM_Array.
+   * Create the doesImplement vector for a RVMArray.
    * All arrays implement exactly java.io.Serializable and java.lang.Cloneable.
    *
-   * @param t a VM_Array to create a doesImplement vector for
+   * @param t a RVMArray to create a doesImplement vector for
    * @return the doesImplement vector
    */
-  static int[] buildDoesImplement(VM_Array t) {
+  static int[] buildDoesImplement(RVMArray t) {
     if (arrayDoesImplement == null) {
-      int cloneIdx = VM_Type.JavaLangCloneableType.getDoesImplementIndex();
-      int serialIdx = VM_Type.JavaIoSerializableType.getDoesImplementIndex();
+      int cloneIdx = RVMType.JavaLangCloneableType.getDoesImplementIndex();
+      int serialIdx = RVMType.JavaIoSerializableType.getDoesImplementIndex();
       int size = Math.max(cloneIdx, serialIdx);
       size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size + 1);
       int[] tmp = MM_Interface.newNonMovingIntArray(size);
-      tmp[cloneIdx] = VM_Type.JavaLangCloneableType.getDoesImplementBitMask();
-      tmp[serialIdx] |= VM_Type.JavaIoSerializableType.getDoesImplementBitMask();
+      tmp[cloneIdx] = RVMType.JavaLangCloneableType.getDoesImplementBitMask();
+      tmp[serialIdx] |= RVMType.JavaIoSerializableType.getDoesImplementBitMask();
       arrayDoesImplement = tmp;
     }
     return arrayDoesImplement;
   }
 
   /**
-   * Create the doesImplement vector for a VM_Class.
+   * Create the doesImplement vector for a RVMClass.
    *
-   * @param t a VM_Class to create a doesImplement vector for
+   * @param t a RVMClass to create a doesImplement vector for
    * @return the doesImplement vector
    */
-  static int[] buildDoesImplement(VM_Class t) {
+  static int[] buildDoesImplement(RVMClass t) {
     if (t.isJavaLangObjectType()) {
       // object implements no interfaces.
       return MM_Interface.newNonMovingIntArray(MIN_DOES_IMPLEMENT_SIZE);
     }
 
-    VM_Class[] superInterfaces = t.getDeclaredInterfaces();
+    RVMClass[] superInterfaces = t.getDeclaredInterfaces();
 
     if (!t.isInterface() && superInterfaces.length == 0) {
       // I add nothing new; share with parent.
@@ -181,7 +181,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     } else {
       size = t.getSuperClass().getDoesImplement().length;
     }
-    for (VM_Class superInterface : superInterfaces) {
+    for (RVMClass superInterface : superInterfaces) {
       size = Math.max(size, superInterface.getDoesImplement().length);
     }
 
@@ -195,7 +195,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
         mine[j] |= parent[j];
       }
     }
-    for (VM_Class superInterface : superInterfaces) {
+    for (RVMClass superInterface : superInterfaces) {
       int[] parent = superInterface.getDoesImplement();
       for (int j = 0; j < parent.length; j++) {
         mine[j] |= parent[j];
@@ -214,7 +214,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfNonArray(VM_Class LHSclass, VM_TIB rhsTIB) {
+  public static boolean instanceOfNonArray(RVMClass LHSclass, VM_TIB rhsTIB) {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
     } else {
@@ -232,7 +232,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         or <code>false</code> if it is not
    */
   @Uninterruptible
-  public static boolean instanceOfClass(VM_Class LHSclass, VM_TIB rhsTIB) {
+  public static boolean instanceOfClass(RVMClass LHSclass, VM_TIB rhsTIB) {
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
       VM._assert(rhsTIB.getSuperclassIds() != null);
@@ -253,7 +253,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfInterface(VM_Class LHSclass, VM_TIB rhsTIB) {
+  public static boolean instanceOfInterface(RVMClass LHSclass, VM_TIB rhsTIB) {
     int[] doesImplement = rhsTIB.getDoesImplement();
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
@@ -270,21 +270,21 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
-  public static boolean instanceOfResolved(VM_Type LHSType, VM_Type RHSType) {
+  public static boolean instanceOfResolved(RVMType LHSType, RVMType RHSType) {
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();
     if (LHSDimension < 0 || RHSDimension < 0) return false;
     if (LHSDimension == 0) {
       return instanceOfNonArray(LHSType.asClass(), RHSType.getTypeInformationBlock());
     }
-    VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
-    if (LHSInnermostElementType == VM_Type.JavaLangObjectType) {
+    RVMType LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
+    if (LHSInnermostElementType == RVMType.JavaLangObjectType) {
       if (RHSDimension < LHSDimension) return false;
       if (RHSDimension > LHSDimension) return true;
       return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive
     } else if (!LHSInnermostElementType.isPrimitiveType()) {
       if (RHSDimension == LHSDimension) {
-        VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
+        RVMType RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
         if (RHSInnermostElementType.isPrimitiveType()) return false;
         return instanceOfNonArray(LHSInnermostElementType.asClass(), RHSInnermostElementType.getTypeInformationBlock());
       } else {
@@ -292,8 +292,8 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
         // so if LHS is if lesser dimensionality then this check must succeed if its innermost
         // element type is one of these special interfaces.
         return (LHSDimension < RHSDimension &&
-                (LHSInnermostElementType == VM_Type.JavaLangCloneableType ||
-                 LHSInnermostElementType == VM_Type.JavaIoSerializableType));
+                (LHSInnermostElementType == RVMType.JavaLangCloneableType ||
+                 LHSInnermostElementType == RVMType.JavaIoSerializableType));
       }
     } else {
       return false;

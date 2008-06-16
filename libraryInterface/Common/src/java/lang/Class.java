@@ -69,14 +69,14 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    * Prevents this class from being instantiated, except by the
    * create method in this class.
    */
-  private Class(VM_Type type) {
+  private Class(RVMType type) {
     this.type = type;
   }
 
   /**
-   * This field holds the VM_Type object for this class.
+   * This field holds the RVMType object for this class.
    */
-  final VM_Type type;
+  final RVMType type;
 
   /**
    * This field holds the protection domain of this class.
@@ -93,7 +93,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public static Class<?> forName(String typeName) throws ClassNotFoundException {
-    ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+    ClassLoader parentCL = RVMClass.getClassLoaderFromStackFrame(1);
     return forNameInternal(typeName, true, parentCL);
   }
 
@@ -106,7 +106,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
       if (security != null) {
-        ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+        ClassLoader parentCL = RVMClass.getClassLoaderFromStackFrame(1);
         if (parentCL != null) {
           try {
             security.checkPermission(new RuntimePermission("getClassLoader"));
@@ -133,7 +133,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       if (declaredClasses != null) {
         for (VM_TypeReference declaredClass : declaredClasses) {
           if (declaredClass != null) {
-            VM_Class dc = declaredClass.resolve().asClass();
+            RVMClass dc = declaredClass.resolve().asClass();
             if (dc.isPublic()) {
               publicClasses.add(dc.getClassForType());
             }
@@ -149,7 +149,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public ClassLoader getClassLoader() {
     SecurityManager security = System.getSecurityManager();
     if (security != null) {
-      ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+      ClassLoader parentCL = RVMClass.getClassLoaderFromStackFrame(1);
       if (parentCL != null) {
         security.checkPermission(new RuntimePermission("getClassLoader"));
       }
@@ -168,8 +168,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
-    VM_Method[] methods = type.asClass().getConstructorMethods();
-    for (VM_Method method : methods) {
+    RVMMethod[] methods = type.asClass().getConstructorMethods();
+    for (RVMMethod method : methods) {
       if (method.isPublic() &&
           parametersMatch(method.getParameterTypes(), parameterTypes)) {
         return JikesRVMSupport.createConstructor(method);
@@ -183,9 +183,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Constructor[0];
 
-    VM_Method[] methods = type.asClass().getConstructorMethods();
+    RVMMethod[] methods = type.asClass().getConstructorMethods();
     Collector coll = new Collector(methods.length);
-    for (VM_Method method : methods) {
+    for (RVMMethod method : methods) {
       if (method.isPublic()) {
         coll.collect(JikesRVMSupport.createConstructor(method));
       }
@@ -197,8 +197,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Class[0];
 
-    // Get array of declared classes from VM_Class object
-    VM_Class cls = type.asClass();
+    // Get array of declared classes from RVMClass object
+    RVMClass cls = type.asClass();
     VM_TypeReference[] declaredClasses = cls.getDeclaredClasses();
 
     // The array can be null if the class has no declared inner class members
@@ -232,9 +232,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
-    VM_Method[] methods = type.asClass().getConstructorMethods();
+    RVMMethod[] methods = type.asClass().getConstructorMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
-      VM_Method method = methods[i];
+      RVMMethod method = methods[i];
       if (parametersMatch(method.getParameterTypes(), parameterTypes)) {
         return JikesRVMSupport.createConstructor(method);
       }
@@ -247,7 +247,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Constructor[0];
 
-    VM_Method[] methods = type.asClass().getConstructorMethods();
+    RVMMethod[] methods = type.asClass().getConstructorMethods();
     Constructor<?>[] ans = new Constructor[methods.length];
     for (int i = 0; i<methods.length; i++) {
       ans[i] = JikesRVMSupport.createConstructor(methods[i]);
@@ -262,8 +262,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
     if (aName == null) throw new NoSuchFieldException(name);
-    VM_Field[] fields = type.asClass().getDeclaredFields();
-    for (VM_Field field : fields) {
+    RVMField[] fields = type.asClass().getDeclaredFields();
+    for (RVMField field : fields) {
       if (field.getName() == aName) {
         return JikesRVMSupport.createField(field);
       }
@@ -276,7 +276,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Field[0];
 
-    VM_Field[] fields = type.asClass().getDeclaredFields();
+    RVMField[] fields = type.asClass().getDeclaredFields();
     Field[] ans = new Field[fields.length];
     for (int i = 0; i < fields.length; i++) {
       ans[i] = JikesRVMSupport.createField(fields[i]);
@@ -294,16 +294,16 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
     if (aName == null ||
-        aName == VM_ClassLoader.StandardClassInitializerMethodName ||
-        aName == VM_ClassLoader.StandardObjectInitializerMethodName) {
+        aName == RVMClassLoader.StandardClassInitializerMethodName ||
+        aName == RVMClassLoader.StandardObjectInitializerMethodName) {
         // null means that we don't have such an atom;
         // <init> and <clinit> are not methods.
         throw new NoSuchMethodException(name + parameterTypes);
       }
 
-    VM_Method[] methods = type.asClass().getDeclaredMethods();
+    RVMMethod[] methods = type.asClass().getDeclaredMethods();
     Method answer = null;
-    for (VM_Method meth : methods) {
+    for (RVMMethod meth : methods) {
       if (meth.getName() == aName &&
           parametersMatch(meth.getParameterTypes(), parameterTypes)) {
         if (answer == null) {
@@ -326,9 +326,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Method[0];
 
-    VM_Method[] methods = type.asClass().getDeclaredMethods();
+    RVMMethod[] methods = type.asClass().getDeclaredMethods();
     Collector coll = new Collector(methods.length);
-    for (VM_Method meth : methods) {
+    for (RVMMethod meth : methods) {
       if (!meth.isClassInitializer() && !meth.isObjectInitializer()) {
         coll.collect(JikesRVMSupport.createMethod(meth));
       }
@@ -362,15 +362,15 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Field[] getFields() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
 
-    VM_Field[] static_fields = type.getStaticFields();
-    VM_Field[] instance_fields = type.getInstanceFields();
+    RVMField[] static_fields = type.getStaticFields();
+    RVMField[] instance_fields = type.getInstanceFields();
     Collector coll = new Collector(static_fields.length + instance_fields.length);
-    for (VM_Field field : static_fields) {
+    for (RVMField field : static_fields) {
       if (field.isPublic()) {
         coll.collect(JikesRVMSupport.createField(field));
       }
     }
-    for (VM_Field field : instance_fields) {
+    for (RVMField field : instance_fields) {
       if (field.isPublic()) {
         coll.collect(JikesRVMSupport.createField(field));
       }
@@ -382,10 +382,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Class<?>[] getInterfaces() {
     if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
-      return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
-                           VM_Type.JavaIoSerializableType.getClassForType() };
+      return new Class[] { RVMType.JavaLangCloneableType.getClassForType(),
+                           RVMType.JavaIoSerializableType.getClassForType() };
     } else if (type.isClassType()) {
-      VM_Class[] interfaces  = type.asClass().getDeclaredInterfaces();
+      RVMClass[] interfaces  = type.asClass().getDeclaredInterfaces();
       Class<?>[]    jinterfaces = new Class[interfaces.length];
       for (int i = 0; i != interfaces.length; i++)
         jinterfaces[i] = interfaces[i].getClassForType();
@@ -402,17 +402,17 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
     if (aName == null ||
-        aName == VM_ClassLoader.StandardClassInitializerMethodName ||
-        aName == VM_ClassLoader.StandardObjectInitializerMethodName) {
+        aName == RVMClassLoader.StandardClassInitializerMethodName ||
+        aName == RVMClassLoader.StandardObjectInitializerMethodName) {
       // null means that we don't have such an atom; <init> and <clinit> are not methods.
       throw new NoSuchMethodException(name + parameterTypes);
     }
 
     // (1) Scan the declared public methods of this class and each of its superclasses
-    for (VM_Class current = type.asClass(); current != null; current = current.getSuperClass()) {
-      VM_Method[] methods = current.getDeclaredMethods();
+    for (RVMClass current = type.asClass(); current != null; current = current.getSuperClass()) {
+      RVMMethod[] methods = current.getDeclaredMethods();
       Method answer = null;
-      for (VM_Method meth : methods) {
+      for (RVMMethod meth : methods) {
         if (meth.getName() == aName && meth.isPublic() &&
             parametersMatch(meth.getParameterTypes(), parameterTypes)) {
           if (answer == null) {
@@ -431,9 +431,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     // (2) Now we need to consider methods inherited from interfaces.
     //     Because we inject the requisite Miranda methods, we can do this simply
     //     by looking at this class's virtual methods instead of searching interface hierarchies.
-    VM_Method[] methods = type.asClass().getVirtualMethods();
+    RVMMethod[] methods = type.asClass().getVirtualMethods();
     Method answer = null;
-    for (VM_Method meth : methods) {
+    for (RVMMethod meth : methods) {
       if (meth.getName() == aName && meth.isPublic() &&
           parametersMatch(meth.getParameterTypes(), parameterTypes)) {
         if (answer == null) {
@@ -455,15 +455,15 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Method[] getMethods() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
 
-    VM_Method[] static_methods = type.getStaticMethods();
-    VM_Method[] virtual_methods = type.getVirtualMethods();
+    RVMMethod[] static_methods = type.getStaticMethods();
+    RVMMethod[] virtual_methods = type.getVirtualMethods();
     Collector coll = new Collector(static_methods.length + virtual_methods.length);
-    for (VM_Method meth : static_methods) {
+    for (RVMMethod meth : static_methods) {
       if (meth.isPublic()) {
         coll.collect(JikesRVMSupport.createMethod(meth));
       }
     }
-    for (VM_Method meth : virtual_methods) {
+    for (RVMMethod meth : virtual_methods) {
       if (meth.isPublic()) {
         coll.collect(JikesRVMSupport.createMethod(meth));
       }
@@ -475,7 +475,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (type.isClassType()) {
       return type.asClass().getModifiers();
     } else if (type.isArrayType()) {
-      VM_Type innermostElementType = type.asArray().getInnermostElementType();
+      RVMType innermostElementType = type.asArray().getInnermostElementType();
       int result = Modifier.FINAL;
       if (innermostElementType.isClassType()) {
         int component = innermostElementType.asClass().getModifiers();
@@ -539,9 +539,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (type.isArrayType()) {
       return Object.class;
     } else if (type.isClassType()) {
-      VM_Class myClass = type.asClass();
+      RVMClass myClass = type.asClass();
       if (myClass.isInterface()) return null;
-      VM_Type supe = myClass.getSuperClass();
+      RVMType supe = myClass.getSuperClass();
       return supe == null ? null : (Class<? super T>) supe.getClassForType();
     } else {
       return null;
@@ -587,7 +587,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (!type.isClassType())
       throw new InstantiationException();
 
-    VM_Class cls = type.asClass();
+    RVMClass cls = type.asClass();
 
     if (cls.isAbstract() || cls.isInterface())
       throw new InstantiationException();
@@ -599,9 +599,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
 
     // Find the defaultConstructor
-    VM_Method defaultConstructor = null;
-    VM_Method[] methods = type.asClass().getConstructorMethods();
-    for (VM_Method method : methods) {
+    RVMMethod defaultConstructor = null;
+    RVMMethod[] methods = type.asClass().getConstructorMethods();
+    for (RVMMethod method : methods) {
       if (method.getParameterTypes().length == 0) {
         defaultConstructor = method;
         break;
@@ -612,7 +612,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     // Check that caller is allowed to access it
     if (!defaultConstructor.isPublic()) {
-      VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+      RVMClass accessingClass = RVMClass.getClassFromStackFrame(1);
       VMCommonLibrarySupport.checkAccess(defaultConstructor, accessingClass);
     }
 
@@ -653,9 +653,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    */
 
   /**
-   * Create a java.lang.Class corresponding to a given VM_Type
+   * Create a java.lang.Class corresponding to a given RVMType
    */
-  static <T> Class<T> create(VM_Type type) {
+  static <T> Class<T> create(RVMType type) {
     Class<T> c = new Class<T>(type);
     return c;
   }
@@ -680,7 +680,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
         .findOrCreateAsciiAtom(className.replace('.','/'))
         .descriptorFromClassName();
       VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
-      VM_Type ans = tRef.resolve();
+      RVMType ans = tRef.resolve();
       VM_Callbacks.notifyForName(ans);
       if (initialize && !ans.isInitialized()) {
         ans.resolve();
@@ -702,18 +702,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
 
   private Field getFieldInternal(VM_Atom name) {
-    VM_Class ctype = type.asClass();
+    RVMClass ctype = type.asClass();
     // (1) Check my public declared fields
-    VM_Field[] fields = ctype.getDeclaredFields();
-    for (VM_Field field : fields) {
+    RVMField[] fields = ctype.getDeclaredFields();
+    for (RVMField field : fields) {
       if (field.isPublic() && field.getName() == name) {
         return JikesRVMSupport.createField(field);
       }
     }
 
     // (2) Check superinterfaces
-    VM_Class[] interfaces = ctype.getDeclaredInterfaces();
-    for (VM_Class anInterface : interfaces) {
+    RVMClass[] interfaces = ctype.getDeclaredInterfaces();
+    for (RVMClass anInterface : interfaces) {
       Field ans = anInterface.getClassForType().getFieldInternal(name);
       if (ans != null) return ans;
     }
@@ -887,10 +887,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return new Type[0];
     } else if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
-      return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
-                           VM_Type.JavaIoSerializableType.getClassForType()};
+      return new Class[] { RVMType.JavaLangCloneableType.getClassForType(),
+                           RVMType.JavaIoSerializableType.getClassForType()};
     } else {
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       VM_Atom sig = klass.getSignature();
       if (sig == null) {
         return getInterfaces();
@@ -908,7 +908,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
                this == Object.class) {
       return null;
      } else {
-       VM_Class klass = type.asClass();
+       RVMClass klass = type.asClass();
        VM_Atom sig = klass.getSignature();
        if (sig == null) {
          return getSuperclass();
@@ -922,7 +922,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (!type.isClassType()) {
       return new TypeVariable[0];
     } else {
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       VM_Atom sig = klass.getSignature();
       if (sig == null) {
         return new TypeVariable[0];

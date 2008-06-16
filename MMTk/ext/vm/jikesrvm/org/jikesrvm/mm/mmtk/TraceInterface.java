@@ -16,8 +16,8 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -144,7 +144,7 @@ import org.vmmagic.unboxed.Word;
   @Interruptible // This can't be uninterruptible --- it is an IO routine
   public Address skipOwnFramesAndDump(ObjectReference typeRef) {
     VM_TIB tib = VM_Magic.addressAsTIB(typeRef.toAddress());
-    VM_Method m = null;
+    RVMMethod m = null;
     int bci = -1;
     int compiledMethodID = 0;
     Offset ipOffset = Offset.zero();
@@ -216,7 +216,7 @@ import org.vmmagic.unboxed.Word;
       VM.sysWrite(':');
       VM.writeHex(bci);
       VM.sysWrite('\t');
-      VM_Type type = tib.getType();
+      RVMType type = tib.getType();
       type.getDescriptor().sysWrite();
       VM.sysWrite('\n');
     }

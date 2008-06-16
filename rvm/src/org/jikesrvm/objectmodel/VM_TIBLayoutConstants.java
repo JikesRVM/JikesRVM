@@ -25,7 +25,7 @@ public interface VM_TIBLayoutConstants {
   //                      Type Information Block (TIB) Layout Constants                         //
   //--------------------------------------------------------------------------------------------//
   //
-  //                               Object[] (type info block)        VM_Type (class info)
+  //                               Object[] (type info block)        RVMType (class info)
   //                                  /                              /
   //          +--------------------+              +--------------+
   //          |    TIB pointer     |              |  TIB pointer |
@@ -71,7 +71,7 @@ public interface VM_TIBLayoutConstants {
   //
   int IMT_METHOD_SLOTS = VM.BuildForIMTInterfaceInvocation ? 29 : 0;
 
-  // First slot of tib points to VM_Type (slot 0 in above diagram).
+  // First slot of tib points to RVMType (slot 0 in above diagram).
   //
   int TIB_TYPE_INDEX = 0;
 
@@ -103,8 +103,8 @@ public interface VM_TIBLayoutConstants {
   int TIB_FIRST_VIRTUAL_METHOD_INDEX = TIB_FIRST_SPECIALIZED_METHOD_INDEX + VM_SpecializedMethodManager.numSpecializedMethods();
 
   /**
-   * Special value returned by VM_ClassLoader.getFieldOffset() or
-   * VM_ClassLoader.getMethodOffset() to indicate fields or methods
+   * Special value returned by RVMClassLoader.getFieldOffset() or
+   * RVMClassLoader.getMethodOffset() to indicate fields or methods
    * that must be accessed via dynamic linking code because their
    * offset is not yet known or the class's static initializer has not
    * yet been run.

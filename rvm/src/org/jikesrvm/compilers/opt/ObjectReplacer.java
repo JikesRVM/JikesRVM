@@ -17,8 +17,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ir.Empty;
@@ -76,7 +76,7 @@ public final class ObjectReplacer implements AggregateReplacer {
     if (containsUnsupportedUse(ir, r, null)) {
       return null;
     }
-    VM_Class klass = New.getType(inst).getVMType().asClass();
+    RVMClass klass = New.getType(inst).getVMType().asClass();
     return new ObjectReplacer(r, klass, ir);
   }
 
@@ -85,14 +85,14 @@ public final class ObjectReplacer implements AggregateReplacer {
    */
   public void transform() {
     // store the object's fields in a ArrayList
-    ArrayList<VM_Field> fields = getFieldsAsArrayList(klass);
+    ArrayList<RVMField> fields = getFieldsAsArrayList(klass);
     // create a scalar for each field. initialize the scalar to
     // default values before the object's def
     RegisterOperand[] scalars = new RegisterOperand[fields.size()];
     RegisterOperand def = reg.defList;
     Instruction defI = def.instruction;
     for (int i = 0; i < fields.size(); i++) {
-      VM_Field f = fields.get(i);
+      RVMField f = fields.get(i);
       Operand defaultValue = IRTools.getDefaultOperand(f.getType());
       scalars[i] = IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
       scalars[i].setType(f.getType());
@@ -100,7 +100,7 @@ public final class ObjectReplacer implements AggregateReplacer {
     transform2(this.reg, defI, scalars, fields, null);
   }
 
-  private void transform2(Register reg, Instruction defI, RegisterOperand[] scalars, ArrayList<VM_Field> fields, Set<Register> visited) {
+  private void transform2(Register reg, Instruction defI, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
     // now remove the def
     if (DEBUG) {
       System.out.println("Removing " + defI);
@@ -115,7 +115,7 @@ public final class ObjectReplacer implements AggregateReplacer {
   /**
    * type of the object
    */
-  private final VM_Class klass;
+  private final RVMClass klass;
   /**
    * the IR
    */
@@ -126,12 +126,12 @@ public final class ObjectReplacer implements AggregateReplacer {
   private final Register reg;
 
   /**
-   * Returns a ArrayList<VM_Field>, holding the fields of the object
+   * Returns a ArrayList<RVMField>, holding the fields of the object
    * @param klass the type of the object
    */
-  private static ArrayList<VM_Field> getFieldsAsArrayList(VM_Class klass) {
-    ArrayList<VM_Field> v = new ArrayList<VM_Field>();
-    for (VM_Field field : klass.getInstanceFields()) {
+  private static ArrayList<RVMField> getFieldsAsArrayList(RVMClass klass) {
+    ArrayList<RVMField> v = new ArrayList<RVMField>();
+    for (RVMField field : klass.getInstanceFields()) {
       v.add(field);
     }
     return v;
@@ -142,7 +142,7 @@ public final class ObjectReplacer implements AggregateReplacer {
    * @param _klass the type of the object to replace
    * @param i the IR
    */
-  private ObjectReplacer(Register r, VM_Class _klass, IR i) {
+  private ObjectReplacer(Register r, RVMClass _klass, IR i) {
     reg = r;
     klass = _klass;
     ir = i;
@@ -155,14 +155,14 @@ public final class ObjectReplacer implements AggregateReplacer {
    * @param scalars an array of scalar register operands to replace
    *                  the object's fields with
    */
-  private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, ArrayList<VM_Field> fields, Set<Register> visited) {
+  private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
     Instruction inst = use.instruction;
     try{
       switch (inst.getOpcode()) {
       case PUTFIELD_opcode: {
         VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
-        VM_Field f = fr.peekResolvedField();
+        RVMField f = fr.peekResolvedField();
         int index = fields.indexOf(f);
         VM_TypeReference type = scalars[index].getType();
         Operator moveOp = IRTools.getMoveOp(type);
@@ -175,7 +175,7 @@ public final class ObjectReplacer implements AggregateReplacer {
       case GETFIELD_opcode: {
         VM_FieldReference fr = GetField.getLocation(inst).getFieldRef();
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
-        VM_Field f = fr.peekResolvedField();
+        RVMField f = fr.peekResolvedField();
         int index = fields.indexOf(f);
         VM_TypeReference type = scalars[index].getType();
         Operator moveOp = IRTools.getMoveOp(type);

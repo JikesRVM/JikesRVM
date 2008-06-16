@@ -14,7 +14,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
@@ -37,7 +37,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   //
-  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, VM_Method[] targets) {
+  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(numEntries);
@@ -88,13 +88,13 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
   }
 
   // Generate a subtree covering from low to high inclusive.
-  private static void insertStubCase(VM_Assembler asm, int[] sigIds, VM_Method[] targets, int[] bcIndices, int low,
+  private static void insertStubCase(VM_Assembler asm, int[] sigIds, RVMMethod[] targets, int[] bcIndices, int low,
                                      int high) {
     int middle = (high + low) / 2;
     asm.resolveForwardReferences(bcIndices[middle]);
     if (low == middle && middle == high) {
       // a leaf case; can simply invoke the method directly.
-      VM_Method target = targets[middle];
+      RVMMethod target = targets[middle];
       if (target.isStatic()) { // an error case...
         asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(target.getOffset()));
       } else {
@@ -110,7 +110,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
         asm.emitJCC_Cond_Label(VM_Assembler.GT, bcIndices[(middle + 1 + high) / 2]);
       }
       // invoke the method for middle.
-      VM_Method target = targets[middle];
+      RVMMethod target = targets[middle];
       if (target.isStatic()) { // an error case...
         asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(target.getOffset()));
       } else {

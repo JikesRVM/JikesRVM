@@ -39,7 +39,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
-import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
@@ -496,7 +496,7 @@ public final class AnnotationAdder {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
 
     classLibrary = args[0];
-    VM_ClassLoader.init(args[1]);
+    RVMClassLoader.init(args[1]);
     destinationDir = args[2] + "/";
 
     setup();

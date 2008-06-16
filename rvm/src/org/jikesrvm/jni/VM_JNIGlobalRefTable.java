@@ -33,7 +33,7 @@ public class VM_JNIGlobalRefTable {
 
     if (free >= refs.length) {
       Object[] newrefs = new Object[refs.length * 2];
-      org.jikesrvm.classloader.VM_Array.arraycopy(refs, 0, newrefs, 0, refs.length);
+      org.jikesrvm.classloader.RVMArray.arraycopy(refs, 0, newrefs, 0, refs.length);
       refs = newrefs;
     }
 

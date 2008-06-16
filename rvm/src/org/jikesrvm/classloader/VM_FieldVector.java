@@ -23,12 +23,12 @@ final class VM_FieldVector {
   //-----------//
 
   public VM_FieldVector() {
-    array = new VM_Field[10];
+    array = new RVMField[10];
   }
 
   // Add item.
   //
-  void addElement(VM_Field item) {
+  void addElement(RVMField item) {
     if (cnt == array.length) {
       adjustLength(cnt << 1); // double size of array
     }
@@ -37,7 +37,7 @@ final class VM_FieldVector {
 
   // Add item if it is not already in the Vector.
   //
-  public void addUniqueElement(VM_Field item) {
+  public void addUniqueElement(RVMField item) {
     for (int i = 0; i < cnt; i++) {
       if (array[i] == item) return;
     }
@@ -46,13 +46,13 @@ final class VM_FieldVector {
 
   // Get item.
   //
-  VM_Field elementAt(int index) {
+  RVMField elementAt(int index) {
     return array[index];
   }
 
   // Set item.
   //
-  void setElementAt(VM_Field item, int index) {
+  void setElementAt(RVMField item, int index) {
     array[index] = item;
   }
 
@@ -64,8 +64,8 @@ final class VM_FieldVector {
 
   // Get array, trimmed to size.
   //
-  public VM_Field[] finish() {
-    VM_Field[] result = popularFVs.get(this);
+  public RVMField[] finish() {
+    RVMField[] result = popularFVs.get(this);
     if (result != null) {
       array = result;
       return result;
@@ -101,18 +101,18 @@ final class VM_FieldVector {
   // implementation //
   //----------------//
 
-  private VM_Field[] array;
+  private RVMField[] array;
   private int cnt;
 
-  private static final VM_Field[] empty = new VM_Field[0];
-  private static final WeakHashMap<VM_FieldVector, VM_Field[]>
-    popularFVs = new WeakHashMap<VM_FieldVector, VM_Field[]>();
+  private static final RVMField[] empty = new RVMField[0];
+  private static final WeakHashMap<VM_FieldVector, RVMField[]>
+    popularFVs = new WeakHashMap<VM_FieldVector, RVMField[]>();
 
   private void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {
-      VM_Field[] newElements = new VM_Field[newLength];
+      RVMField[] newElements = new RVMField[newLength];
       int n = array.length;
       if (n > newLength) {
         n = newLength;

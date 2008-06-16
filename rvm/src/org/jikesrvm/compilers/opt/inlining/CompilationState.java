@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -78,7 +78,7 @@ public final class CompilationState {
    * Obtain the target method from the compilation state.
    * If a computed target is present, use it.
    */
-  public VM_Method obtainTarget() {
+  public RVMMethod obtainTarget() {
     return Call.getMethod(call).getTarget();
   }
 

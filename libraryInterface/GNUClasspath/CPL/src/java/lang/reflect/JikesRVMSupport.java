@@ -19,44 +19,44 @@ import org.jikesrvm.classloader.*;
  */
 public class JikesRVMSupport {
 
-  public static Field createField(VM_Field f) {
+  public static Field createField(RVMField f) {
     return new Field(new VMField(f));
   }
 
-  public static Method createMethod(VM_Method m) {
+  public static Method createMethod(RVMMethod m) {
     return new Method(new VMMethod(m));
   }
 
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
-  public static <T> Constructor<T> createConstructor(VM_Method m) {
+  public static <T> Constructor<T> createConstructor(RVMMethod m) {
     return new Constructor(new VMConstructor(m));
   }
 
-  public static VMConstructor createVMConstructor(VM_Method m) {
+  public static VMConstructor createVMConstructor(RVMMethod m) {
     return new VMConstructor(m);
   }
 
-  public static VM_Field getFieldOf(Field f) {
+  public static RVMField getFieldOf(Field f) {
     return f.f.field;
   }
 
-  public static VM_Method getMethodOf(Method m) {
+  public static RVMMethod getMethodOf(Method m) {
     return m.m.method;
   }
 
-  public static VM_Method getMethodOf(Constructor<?> cons) {
+  public static RVMMethod getMethodOf(Constructor<?> cons) {
     return cons.cons.constructor;
   }
 
-  public static VM_Field getFieldOf(VMField f) {
+  public static RVMField getFieldOf(VMField f) {
     return f.field;
   }
 
-  public static VM_Method getMethodOf(VMMethod m) {
+  public static RVMMethod getMethodOf(VMMethod m) {
     return m.method;
   }
 
-  public static VM_Method getMethodOf(VMConstructor cons) {
+  public static RVMMethod getMethodOf(VMConstructor cons) {
     return cons.constructor;
   }
 }

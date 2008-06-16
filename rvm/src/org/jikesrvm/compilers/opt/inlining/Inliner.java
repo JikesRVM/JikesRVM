@@ -24,10 +24,10 @@ import java.util.Enumeration;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -150,7 +150,7 @@ public class Inliner {
       container.cfg.breakCodeOrder(container.prologue, container.epilogue);
       // Step 2: (a) Print a message (optional)
       //         (b) Generate the child GC for each target
-      VM_Method[] targets = inlDec.getTargets();
+      RVMMethod[] targets = inlDec.getTargets();
       byte[] guards = inlDec.getGuards();
       GenerationContext[] children = new GenerationContext[targets.length];
       for (int i = 0; i < targets.length; i++) {
@@ -249,9 +249,9 @@ public class Inliner {
       boolean isInterface = mo.isInterface();
       if (isInterface) {
         if (VM.BuildForIMTInterfaceInvocation) {
-          VM_Type interfaceType = mo.getTarget().getDeclaringClass();
+          RVMType interfaceType = mo.getTarget().getDeclaringClass();
           VM_TypeReference recTypeRef = receiver.getType();
-          VM_Class recType = (VM_Class) recTypeRef.peekType();
+          RVMClass recType = (RVMClass) recTypeRef.peekType();
           // Attempt to avoid inserting the check by seeing if the
           // known static type of the receiver implements the interface.
           boolean requiresImplementsTest = true;
@@ -282,11 +282,11 @@ public class Inliner {
         firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
         firstIfBlock.exceptionHandlers = ebag;
         BasicBlock lastIfBlock = firstIfBlock;
-        VM_Method target = children[i].method;
+        RVMMethod target = children[i].method;
         Instruction tmp;
 
         if (isInterface) {
-          VM_Class callDeclClass = mo.getTarget().getDeclaringClass();
+          RVMClass callDeclClass = mo.getTarget().getDeclaringClass();
           if (!callDeclClass.isInterface()) {
             // Part of ensuring that we catch IncompatibleClassChangeErrors
             // is making sure that we know that callDeclClass is an

@@ -13,7 +13,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -37,7 +37,7 @@ public class OSR_OnStackReplacementTrigger {
 
     RVMThread thread = VM_Scheduler.getCurrentThread();
     VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
-    VM_Method ypTakenInMethod = ypTakenInCM.getMethod();
+    RVMMethod ypTakenInMethod = ypTakenInCM.getMethod();
     boolean isInBootImage = ypTakenInMethod.getDeclaringClass().isInBootImage();
 
     if (isInBootImage) return;

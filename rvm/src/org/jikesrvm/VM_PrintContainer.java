@@ -15,7 +15,7 @@ package org.jikesrvm;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.RVMMember;
 
 /**
  * The subclasses of VM_PrintContainer all implement the {@link VM_PrintLN}
@@ -144,7 +144,7 @@ public final class VM_PrintContainer {
       VM.sysWrite(c);
     }
 
-    public void print(VM_Member m) {
+    public void print(RVMMember m) {
       VM.sysWrite(m);
     }
 

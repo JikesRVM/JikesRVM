@@ -19,7 +19,7 @@ package org.apache.harmony.kernel.vm;
 
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 
 /**
  * This class must be implemented by the vm vendor. Represents the running
@@ -60,7 +60,7 @@ public final class VM {
      */
     static final ClassLoader getStackClassLoader(int depth) {
 	if (org.jikesrvm.VM.runningVM) {
-	    ClassLoader ans = VM_Class.getClassLoaderFromStackFrame(depth);
+	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(depth);
 	    if (ans == VM_BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {
@@ -143,7 +143,7 @@ public final class VM {
      */
     public static ClassLoader callerClassLoader() {
 	if (org.jikesrvm.VM.runningVM) {
-	    ClassLoader ans = VM_Class.getClassLoaderFromStackFrame(1);
+	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(1);
 	    if (ans == VM_BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {

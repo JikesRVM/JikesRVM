@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -94,7 +94,7 @@ public class AdjustBranchProbabilities extends CompilerPhase {
       if (Call.conforms(s)) {
         MethodOperand op = Call.getMethod(s);
         if (op != null) {
-          VM_Method target = op.getTarget();
+          RVMMethod target = op.getTarget();
           if (target != null && target.hasNoInlinePragma()) {
             return true;
           }

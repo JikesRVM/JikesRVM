@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -255,7 +255,7 @@ public class Runtime {
    * @throws SecurityException if the library was not allowed to be loaded
    */
   public void load(String pathName) {
-    load0(pathName, VM_Class.getClassLoaderFromStackFrame(1), true);
+    load0(pathName, RVMClass.getClassLoaderFromStackFrame(1), true);
   }
 
   void load0(String filename, ClassLoader cL, boolean check) throws SecurityException, UnsatisfiedLinkError {
@@ -285,7 +285,7 @@ public class Runtime {
    * @throws SecurityException if the library was not allowed to be loaded
    */
   public void loadLibrary(String libName) {
-    loadLibrary0(libName, VM_Class.getClassLoaderFromStackFrame(1), true);
+    loadLibrary0(libName, RVMClass.getClassLoaderFromStackFrame(1), true);
   }
 
   void loadLibrary0(String libname, ClassLoader cL, boolean check) throws SecurityException, UnsatisfiedLinkError {

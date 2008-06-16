@@ -14,7 +14,7 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
@@ -43,7 +43,7 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    VM_Method callee = null;
+    RVMMethod callee = null;
     switch (tid) {
       case GETREFAT:
         callee = VM_AosEntrypoints.osrGetRefAtMethod;

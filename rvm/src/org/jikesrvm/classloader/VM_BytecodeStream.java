@@ -53,7 +53,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    * Returns the declaring class that this bytecode stream is from
    * @return method
    */
-  public final VM_Class getDeclaringClass() {
+  public final RVMClass getDeclaringClass() {
     return method.getDeclaringClass();
   }
 
@@ -477,7 +477,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
                  opcode == JBC_getfield ||
                  opcode == JBC_putfield);
     }
-    return VM_Class.getFieldRef(constantPool, readUnsignedShort());
+    return RVMClass.getFieldRef(constantPool, readUnsignedShort());
   }
   /**
    * Returns a reference to a field
@@ -506,7 +506,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
                  opcode == JBC_invokestatic ||
                  opcode == JBC_invokeinterface);
     }
-    return VM_Class.getMethodRef(constantPool, readUnsignedShort());
+    return RVMClass.getMethodRef(constantPool, readUnsignedShort());
   }
 
   /**
@@ -519,7 +519,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
 
   /**
-   * Returns the type reference (as a VM_Type)
+   * Returns the type reference (as a RVMType)
    * Used for new, anewarray, checkcast, instanceof, multianewarray
    * @return type reference
    */
@@ -548,49 +548,49 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
 
   /**
-   * Returns the type of the array of given primitive type (as a VM_Type)
+   * Returns the type of the array of given primitive type (as a RVMType)
    * Used for newarray
    * @param etype element type
    * @return array type
    * @see #getArrayElementType()
    * @see #getPrimitiveArrayType()
    */
-  public final VM_Array getPrimitiveArrayType(int etype) {
+  public final RVMArray getPrimitiveArrayType(int etype) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
-    return VM_Array.getPrimitiveArrayType(etype);
+    return RVMArray.getPrimitiveArrayType(etype);
   }
 
   /**
-   * Returns the type of the primitive array (as a VM_Type)
+   * Returns the type of the primitive array (as a RVMType)
    * Used for newarray
    * @return array type
    * @see #getArrayElementType()
    * @see #getPrimitiveArrayType(int)
    */
-  public final VM_Type getPrimitiveArrayType() {
+  public final RVMType getPrimitiveArrayType() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
     int etype = readUnsignedByte();
-    return VM_Array.getPrimitiveArrayType(etype);
+    return RVMArray.getPrimitiveArrayType(etype);
   }
 
   /**
-   * Returns the type of the array of given object type (as a VM_Type)
+   * Returns the type of the array of given object type (as a RVMType)
    * Used for anewarray
    * @param klass element type
    * @return array type
    * @see #getTypeReference()
    * @see #getObjectArrayType()
    */
-  public final VM_Type getObjectArrayType(VM_Type klass) {
+  public final RVMType getObjectArrayType(RVMType klass) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
     return klass.getArrayTypeForElementType();
   }
 
   /**
-   * Returns the type of the object array (as a VM_Type)
+   * Returns the type of the object array (as a RVMType)
    * Used for anewarray
    * @return array type
-   * @see #getObjectArrayType(VM_Type)
+   * @see #getObjectArrayType(RVMType)
    */
   public final VM_TypeReference getObjectArrayType() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
@@ -697,7 +697,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   public final int getIntConstant(int index) {
     if (VM.VerifyAssertions) {
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == VM_Class.CP_INT);
+                 getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_INT);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     int val = VM_Statics.getSlotContentsAsInt(offset);
@@ -718,7 +718,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    */
   public final long getLongConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == VM_Class.CP_LONG);
+      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_LONG);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     long val = VM_Statics.getSlotContentsAsLong(offset);
@@ -740,7 +740,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   public final float getFloatConstant(int index) {
     if (VM.VerifyAssertions) {
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == VM_Class.CP_FLOAT);
+                 getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_FLOAT);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     int val_raw = VM_Statics.getSlotContentsAsInt(offset);
@@ -762,7 +762,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    */
   public final double getDoubleConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == VM_Class.CP_DOUBLE);
+      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_DOUBLE);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     long val_raw = VM_Statics.getSlotContentsAsLong(offset);
@@ -785,7 +785,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   public final String getStringConstant(int index) {
     if (VM.VerifyAssertions) {
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == VM_Class.CP_STRING);
+                 getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_STRING);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     String val = (String) VM_Statics.getSlotContentsAsObject(offset);

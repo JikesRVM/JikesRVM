@@ -19,7 +19,6 @@ package java.lang.reflect;
 
 import java.lang.reflect.VMCommonLibrarySupport;
 
-import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**

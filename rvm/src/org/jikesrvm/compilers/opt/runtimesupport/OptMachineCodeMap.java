@@ -17,9 +17,9 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -131,7 +131,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
   }
 
   /**
-   * Get the VM_Method for a machine instruction offset.
+   * Get the RVMMethod for a machine instruction offset.
    * This method is the source method that the instruction came from.
    *
    * @param MCOffset the machine code offset of interest
@@ -195,7 +195,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
           int iei = getInlineEncodingIndex(entry);
           if (iei != -1) {
             int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-            VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+            RVMMethod caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
             if (caller != null) {
               if (ans == null) ans = new ArrayList<VM_CallSite>();
               ans.add(new VM_CallSite(caller, bcIndex));
@@ -214,12 +214,12 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
    * NOTE: This current implementation may return false even if the
    * edge actually was inlined.  This happens when no GC point occurs within
    * the inlined body.  This is less than ideal; we need to fix this at some point.
-   * @param caller caller VM_Method
+   * @param caller caller RVMMethod
    * @param bcIndex bytecode index of the caller method
-   * @param callee callee VM_Method
+   * @param callee callee RVMMethod
    * @return true if the call edge is <em>definitely</em> inlined in this compiled method.
    */
-  public boolean hasInlinedEdge(VM_Method caller, int bcIndex, VM_Method callee) {
+  public boolean hasInlinedEdge(RVMMethod caller, int bcIndex, RVMMethod callee) {
     if (MCInformation == null) return false;
     if (inlineEncoding == null) return false;
     return OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
@@ -621,7 +621,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
       boolean first = true;
       while (iei >= 0) {
         int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-        VM_Method meth = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+        RVMMethod meth = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
         if (first) {
           first = false;
           VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);
@@ -650,7 +650,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
    * @param machineCodeSize
    */
   @Interruptible
-  private void recordStats(VM_Method method, int mapSize, int machineCodeSize) {
+  private void recordStats(RVMMethod method, int mapSize, int machineCodeSize) {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double) mapSize / machineCodeSize;
       VM.sysWrite(method);
@@ -673,9 +673,9 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
    */
   int size() {
     int size = TYPE.peekType().asClass().getInstanceSize();
-    if (MCInformation != null) size += VM_Array.IntArray.getInstanceSize(MCInformation.length);
-    if (inlineEncoding != null) size += VM_Array.IntArray.getInstanceSize(inlineEncoding.length);
-    if (gcMaps != null) size += VM_Array.IntArray.getInstanceSize(gcMaps.length);
+    if (MCInformation != null) size += RVMArray.IntArray.getInstanceSize(MCInformation.length);
+    if (inlineEncoding != null) size += RVMArray.IntArray.getInstanceSize(inlineEncoding.length);
+    if (gcMaps != null) size += RVMArray.IntArray.getInstanceSize(gcMaps.length);
     return size;
   }
 

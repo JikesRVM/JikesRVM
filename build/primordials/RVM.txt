@@ -24,18 +24,18 @@
 [Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
 [Lorg/jikesrvm/VM_CommandLineArgs$PrefixType;
 
-[Lorg/jikesrvm/classloader/VM_Class;
+[Lorg/jikesrvm/classloader/RVMAnnotation;
+[Lorg/jikesrvm/classloader/RVMAnnotation$AnnotationMember;
+[Lorg/jikesrvm/classloader/RVMClass;
+[Lorg/jikesrvm/classloader/RVMField;
+[Lorg/jikesrvm/classloader/RVMMethod;
+[Lorg/jikesrvm/classloader/RVMType;
+[[Lorg/jikesrvm/classloader/RVMType;
 [Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;
-[Lorg/jikesrvm/classloader/VM_Annotation;
-[Lorg/jikesrvm/classloader/VM_Annotation$AnnotationMember;
 [Lorg/jikesrvm/classloader/VM_Atom;
 [[Lorg/jikesrvm/classloader/VM_Atom;
-[Lorg/jikesrvm/classloader/VM_Field;
-[Lorg/jikesrvm/classloader/VM_Method;
 [Lorg/jikesrvm/classloader/VM_MemberReference;
 [[Lorg/jikesrvm/classloader/VM_MemberReference;
-[Lorg/jikesrvm/classloader/VM_Type;
-[[Lorg/jikesrvm/classloader/VM_Type;
 [Lorg/jikesrvm/classloader/VM_TypeReference;
 [[Lorg/jikesrvm/classloader/VM_TypeReference;
 [Lorg/jikesrvm/classloader/VM_InterfaceInvocation$IMTDict$Link;

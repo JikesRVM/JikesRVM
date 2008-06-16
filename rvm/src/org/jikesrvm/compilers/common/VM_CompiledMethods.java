@@ -18,9 +18,9 @@ import java.util.TreeMap;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Manage pool of compiled methods. <p>
- * Original extracted from VM_ClassLoader. <p>
+ * Original extracted from RVMClassLoader. <p>
  */
 public class VM_CompiledMethods implements VM_SizeConstants {
   /**
@@ -110,7 +110,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   /**
    * Create a VM_CompiledMethod appropriate for the given compilerType
    */
-  public static synchronized VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
+  public static synchronized VM_CompiledMethod createCompiledMethod(RVMMethod m, int compilerType) {
     int id = currentCompiledMethodId + 1;
     ensureCapacity(id);
     currentCompiledMethodId++;
@@ -158,7 +158,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * following instead:
    *
    * <code>
-   * VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
+   * RVMClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    * </code>
    *
    * @param ip  instruction address
@@ -252,7 +252,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     int[] codeBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES + 1];
     int[] mapBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES + 1];
 
-    VM_Array codeArray = VM_Type.CodeArrayType.asArray();
+    RVMArray codeArray = RVMType.CodeArrayType.asArray();
     for (int i = 0; i < numCompiledMethods(); i++) {
       VM_CompiledMethod cm = getCompiledMethodUnchecked(i);
       if (cm == null || !cm.isCompiled()) continue;
@@ -292,7 +292,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       for (int i = 0; i < numCompiledMethods(); ++i) {
         VM_CompiledMethod compiledMethod = getCompiledMethodUnchecked(i);
         if (compiledMethod != null) {
-          VM_Method m = compiledMethod.getMethod();
+          RVMMethod m = compiledMethod.getMethod();
           if (m != null && compiledMethod.isCompiled()) {
             String packageName = m.getDeclaringClass().getPackageName();
             int numInstructions = compiledMethod.numberOfInstructions();

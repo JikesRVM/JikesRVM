@@ -22,7 +22,7 @@ import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
 import org.jikesrvm.adaptive.controller.VM_HotMethodEvent;
 import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
@@ -672,7 +672,7 @@ public class VM_AOSLogging {
    * @param optLevel the opt level being estimated, -1 = baseline
    * @param cost  the computed cost for this method and level
    */
-  public static void recordControllerEstimateCostDoNothing(VM_Method method, int optLevel, double cost) {
+  public static void recordControllerEstimateCostDoNothing(RVMMethod method, int optLevel, double cost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
         log.print(getTime() + "  Estimated cost of doing nothing (leaving at ");
@@ -693,7 +693,7 @@ public class VM_AOSLogging {
    * @param compilationTime the computed compilation cost for this method and level
    * @param futureTime the computed future time, including cost and execution
    */
-  public static void recordControllerEstimateCostOpt(VM_Method method, String choiceDesc, double compilationTime,
+  public static void recordControllerEstimateCostOpt(RVMMethod method, String choiceDesc, double compilationTime,
                                                      double futureTime) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
@@ -724,7 +724,7 @@ public class VM_AOSLogging {
    * @param totalLogValueMethods number of methods used in the log of rates
    * @param totalMethods total number of methods
    */
-  public static void recordUpdatedCompilationRates(byte compiler, VM_Method method, int BCLength, int totalBCLength,
+  public static void recordUpdatedCompilationRates(byte compiler, RVMMethod method, int BCLength, int totalBCLength,
                                                    int MCLength, int totalMCLength, double compTime,
                                                    double totalCompTime, double totalLogOfRates,
                                                    int totalLogValueMethods, int totalMethods) {

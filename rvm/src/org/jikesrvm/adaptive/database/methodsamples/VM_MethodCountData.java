@@ -21,7 +21,7 @@ import org.jikesrvm.adaptive.controller.VM_HotMethodEvent;
 import org.jikesrvm.adaptive.controller.VM_HotMethodRecompilationEvent;
 import org.jikesrvm.adaptive.measurements.VM_Reportable;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -124,7 +124,7 @@ public final class VM_MethodCountData implements VM_Reportable {
         if (cm.getCompilerType() == VM_CompiledMethod.TRAP) {
           VM.sysWriteln("<Hardware Trap Frame>");
         } else {
-          VM_Method m = cm.getMethod();
+          RVMMethod m = cm.getMethod();
           VM.sysWrite(m);
           if (m.getDeclaringClass().isInBootImage()) {
             VM.sysWrite("\tBOOT");

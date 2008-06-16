@@ -16,10 +16,10 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
 import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
@@ -304,7 +304,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
                              int[] stackHeights) { // the stack height if not doDFS
 
     int localsize = method.getLocalWords() - 1;
-    VM_Class declaringClass = method.getDeclaringClass();
+    RVMClass declaringClass = method.getDeclaringClass();
     bytecodes.reset(startpc);
 
     boolean found = false;
@@ -384,16 +384,16 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
           int cpoolidx = (bcode == JBC_ldc) ? bytecodes.getConstantIndex() : bytecodes.getWideConstantIndex();
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           switch (tdesc) {
-            case VM_Class.CP_INT:
+            case RVMClass.CP_INT:
               S.push(IntTypeCode);
               break;
-            case VM_Class.CP_FLOAT:
+            case RVMClass.CP_FLOAT:
               S.push(FloatTypeCode);
               break;
-            case VM_Class.CP_STRING:
+            case RVMClass.CP_STRING:
               S.push(ClassTypeCode);
               break;
-            case VM_Class.CP_CLASS:
+            case RVMClass.CP_CLASS:
               S.push(ClassTypeCode);
               break;
             default:
@@ -408,10 +408,10 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           S.push(VoidTypeCode);
           switch (tdesc) {
-            case VM_Class.CP_LONG:
+            case RVMClass.CP_LONG:
               S.push(LongTypeCode);
               break;
-            case VM_Class.CP_DOUBLE:
+            case RVMClass.CP_DOUBLE:
               S.push(DoubleTypeCode);
               break;
             default:
@@ -1324,7 +1324,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
               break;
             case PSEUDO_InvokeStatic: {
               int mid = bytecodes.readIntConst(); // get METHIDX
-              VM_Method callee = null;
+              RVMMethod callee = null;
               switch (mid) {
                 case GETREFAT:
                   callee = VM_AosEntrypoints.osrGetRefAtMethod;
@@ -1363,7 +1363,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
               int cmid = bytecodes.readIntConst(); // cmid
               bytecodes.readIntConst(); // skip bcindex
 
-              VM_Method callee = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
+              RVMMethod callee = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
               int psize = callee.getParameterWords();
 
               S.pop(psize);

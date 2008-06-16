@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
 
 /**
@@ -27,8 +27,8 @@ public final class InlineDecision {
    * @param reason a rationale for not inlining
    * @return a decision NOT to inline
    */
-  public static InlineDecision NO(VM_Method target, String reason) {
-    VM_Method[] targets = new VM_Method[1];
+  public static InlineDecision NO(RVMMethod target, String reason) {
+    RVMMethod[] targets = new RVMMethod[1];
     targets[0] = target;
     return new InlineDecision(targets, null, DECIDE_NO, reason);
   }
@@ -49,8 +49,8 @@ public final class InlineDecision {
    * @param reason a rationale for inlining
    * @return a decision YES to inline
    */
-  public static InlineDecision YES(VM_Method target, String reason) {
-    VM_Method[] targets = new VM_Method[1];
+  public static InlineDecision YES(RVMMethod target, String reason) {
+    RVMMethod[] targets = new RVMMethod[1];
     targets[0] = target;
     return new InlineDecision(targets, null, DECIDE_YES, reason);
   }
@@ -63,8 +63,8 @@ public final class InlineDecision {
    * @param reason a rationale for inlining
    * @return a decision YES to inline, but it is not always safe.
    */
-  public static InlineDecision guardedYES(VM_Method target, byte guard, String reason) {
-    VM_Method[] targets = new VM_Method[1];
+  public static InlineDecision guardedYES(RVMMethod target, byte guard, String reason) {
+    RVMMethod[] targets = new RVMMethod[1];
     byte[] guards = new byte[1];
     targets[0] = target;
     guards[0] = guard;
@@ -79,7 +79,7 @@ public final class InlineDecision {
    * @param reason   A rationale for inlining
    * @return a decision YES to inline, but it is not always safe.
    */
-  public static InlineDecision guardedYES(VM_Method[] targets, byte[] guards, String reason) {
+  public static InlineDecision guardedYES(RVMMethod[] targets, byte[] guards, String reason) {
     return new InlineDecision(targets, guards, GUARDED_YES, reason);
   }
 
@@ -107,7 +107,7 @@ public final class InlineDecision {
   /**
    * Return the methods to inline according to this decision.
    */
-  public VM_Method[] getTargets() {
+  public RVMMethod[] getTargets() {
     return targets;
   }
 
@@ -160,7 +160,7 @@ public final class InlineDecision {
   /**
    * The set of methods to inline.
    */
-  private VM_Method[] targets;
+  private RVMMethod[] targets;
   /**
    * The set of guards to use
    * (only valid when code == GUARDED_YES)
@@ -172,7 +172,7 @@ public final class InlineDecision {
    * @param code the decision code
    * @param reason a string rationale
    */
-  private InlineDecision(VM_Method[] targets, byte[] guards, short code, String reason) {
+  private InlineDecision(RVMMethod[] targets, byte[] guards, short code, String reason) {
     this(code, reason);
     this.targets = targets;
     this.guards = guards;

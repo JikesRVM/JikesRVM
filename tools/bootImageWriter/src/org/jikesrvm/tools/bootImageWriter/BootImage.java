@@ -16,8 +16,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.objectmodel.BootImageInterface;
@@ -181,10 +181,10 @@ public class BootImage extends BootImageWriterMessages
   /**
    * Allocate a scalar object.
    *
-   * @param klass VM_Class object of scalar being allocated
+   * @param klass RVMClass object of scalar being allocated
    * @return address of object within bootimage
    */
-  public Address allocateScalar(VM_Class klass) {
+  public Address allocateScalar(RVMClass klass) {
     numObjects++;
     BootImageWriter.logAllocation(klass, klass.getInstanceSize());
     return VM_ObjectModel.allocateScalar(this, klass);
@@ -193,11 +193,11 @@ public class BootImage extends BootImageWriterMessages
   /**
    * Allocate an array object.
    *
-   * @param array VM_Array object of array being allocated.
+   * @param array RVMArray object of array being allocated.
    * @param numElements number of elements
    * @return address of object within bootimage
    */
-  public Address allocateArray(VM_Array array, int numElements) {
+  public Address allocateArray(RVMArray array, int numElements) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
     return VM_ObjectModel.allocateArray(this, array, numElements);
@@ -206,11 +206,11 @@ public class BootImage extends BootImageWriterMessages
   /**
    * Allocate an array object.
    *
-   * @param array VM_Array object of array being allocated.
+   * @param array RVMArray object of array being allocated.
    * @param numElements number of elements
    * @return address of object within bootimage
    */
-  public Address allocateCode(VM_Array array, int numElements) {
+  public Address allocateCode(RVMArray array, int numElements) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
     return VM_ObjectModel.allocateCode(this, array, numElements);

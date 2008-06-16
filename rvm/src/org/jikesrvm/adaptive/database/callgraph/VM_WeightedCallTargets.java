@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.adaptive.database.callgraph;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 
 /**
  * A collection of weighted call targets.
@@ -36,7 +36,7 @@ public abstract class VM_WeightedCallTargets {
    * method.  The caller must be sure to update their backing store of
    * WeightedCallTargets accordingly to avoid losing the update.
    */
-  public final VM_WeightedCallTargets incrementCount(VM_Method target) {
+  public final VM_WeightedCallTargets incrementCount(RVMMethod target) {
     return augmentCount(target, 1);
   }
 
@@ -46,7 +46,7 @@ public abstract class VM_WeightedCallTargets {
    * method.  The caller must be sure to update their backing store of
    * WeightedCallTargets accordingly to avoid losing the update.
    */
-  public abstract VM_WeightedCallTargets augmentCount(VM_Method target, double amount);
+  public abstract VM_WeightedCallTargets augmentCount(RVMMethod target, double amount);
 
   /**
    * Decay the weights of all call targets by the specified amount
@@ -60,12 +60,12 @@ public abstract class VM_WeightedCallTargets {
   public abstract double totalWeight();
 
   /**
-   * @param goal VM_Method that is the only statically possible target
+   * @param goal RVMMethod that is the only statically possible target
    * @return the filtered call targets or null if no such target exisits
    */
-  public abstract VM_WeightedCallTargets filter(VM_Method goal);
+  public abstract VM_WeightedCallTargets filter(RVMMethod goal);
 
-  public static VM_WeightedCallTargets create(VM_Method target, double weight) {
+  public static VM_WeightedCallTargets create(RVMMethod target, double weight) {
     return new SingleTarget(target, weight);
   }
 
@@ -73,17 +73,17 @@ public abstract class VM_WeightedCallTargets {
    * Used by visitTargets
    */
   public interface Visitor {
-    void visit(VM_Method target, double weight);
+    void visit(RVMMethod target, double weight);
   }
 
   /**
    * An implementation for storing a call site distribution that has a single target.
    */
   private static final class SingleTarget extends VM_WeightedCallTargets {
-    private final VM_Method target;
+    private final RVMMethod target;
     private float weight;
 
-    SingleTarget(VM_Method t, double w) {
+    SingleTarget(RVMMethod t, double w) {
       target = t;
       weight = (float) w;
     }
@@ -92,7 +92,7 @@ public abstract class VM_WeightedCallTargets {
       func.visit(target, weight);
     }
 
-    public VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
+    public VM_WeightedCallTargets augmentCount(RVMMethod t, double v) {
       if (target.equals(t)) {
         weight += v;
         return this;
@@ -110,7 +110,7 @@ public abstract class VM_WeightedCallTargets {
 
     public double totalWeight() { return weight; }
 
-    public VM_WeightedCallTargets filter(VM_Method goal) {
+    public VM_WeightedCallTargets filter(RVMMethod goal) {
       return (goal.equals(target)) ? this : null;
     }
   }
@@ -119,14 +119,14 @@ public abstract class VM_WeightedCallTargets {
    * An implementation for storing a call site distribution that has multiple targets.
    */
   private static final class MultiTarget extends VM_WeightedCallTargets {
-    VM_Method[] methods = new VM_Method[5];
+    RVMMethod[] methods = new RVMMethod[5];
     float[] weights = new float[5];
 
     public synchronized void visitTargets(Visitor func) {
       // Typically expect elements to be "almost" sorted due to previous sorting operations.
       // When this is true, expected time for insertion sort is O(n).
       for (int i = 1; i < methods.length; i++) {
-        VM_Method m = methods[i];
+        RVMMethod m = methods[i];
         if (m != null) {
           float w = weights[i];
           int j = i;
@@ -147,7 +147,7 @@ public abstract class VM_WeightedCallTargets {
       }
     }
 
-    public synchronized VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
+    public synchronized VM_WeightedCallTargets augmentCount(RVMMethod t, double v) {
       int empty = -1;
       for (int i = 0; i < methods.length; i++) {
         if (methods[i] != null) {
@@ -164,7 +164,7 @@ public abstract class VM_WeightedCallTargets {
       if (empty == -1) {
         // must grow arrays
         empty = methods.length;
-        VM_Method[] newM = new VM_Method[methods.length * 2];
+        RVMMethod[] newM = new RVMMethod[methods.length * 2];
         System.arraycopy(methods, 0, newM, 0, methods.length);
         methods = newM;
         float[] newW = new float[weights.length * 2];
@@ -191,7 +191,7 @@ public abstract class VM_WeightedCallTargets {
       return sum;
     }
 
-    public synchronized VM_WeightedCallTargets filter(VM_Method goal) {
+    public synchronized VM_WeightedCallTargets filter(RVMMethod goal) {
       for (int i = 0; i < methods.length; i++) {
         if (goal.equals(methods[i])) {
           return VM_WeightedCallTargets.create(methods[i], weights[i]);

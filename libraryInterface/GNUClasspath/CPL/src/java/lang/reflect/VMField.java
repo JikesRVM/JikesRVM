@@ -14,8 +14,8 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
@@ -25,7 +25,7 @@ import org.jikesrvm.classloader.VM_Field;
  */
 public final class VMField {
 
-  final VM_Field field;
+  final RVMField field;
   Field f;
 
   // Prevent this class from being instantiated.
@@ -35,7 +35,7 @@ public final class VMField {
   }
 
   // For use by JikesRVMSupport
-  VMField(VM_Field f) {
+  VMField(RVMField f) {
     field = f;
   }
 
@@ -52,39 +52,39 @@ public final class VMField {
   }
 
   Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.get(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.get(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   boolean getBoolean(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getBoolean(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getBoolean(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   byte getByte(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getByte(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getByte(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   char getChar(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getChar(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getChar(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   double getDouble(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getDouble(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getDouble(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   float getFloat(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getFloat(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getFloat(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getInt(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getInt(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   long getLong(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getLong(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getLong(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   public short getShort(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getShort(object, field, f, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.getShort(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   int getModifiersInternal() {
@@ -101,47 +101,47 @@ public final class VMField {
 
   void set(Object object, Object value)
     throws IllegalAccessException, IllegalArgumentException     {
-    VMCommonLibrarySupport.set(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.set(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setBoolean(Object object, boolean value)
     throws IllegalAccessException, IllegalArgumentException    {
-    VMCommonLibrarySupport.setBoolean(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setBoolean(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
    void setByte(Object object, byte value)
      throws IllegalAccessException, IllegalArgumentException    {
-     VMCommonLibrarySupport.setByte(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+     VMCommonLibrarySupport.setByte(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setChar(Object object, char value)
     throws IllegalAccessException, IllegalArgumentException    {
-    VMCommonLibrarySupport.setChar(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setChar(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setDouble(Object object, double value)
     throws IllegalAccessException, IllegalArgumentException    {
-    VMCommonLibrarySupport.setDouble(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setDouble(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setFloat(Object object, float value)
     throws IllegalAccessException, IllegalArgumentException    {
-    VMCommonLibrarySupport.setFloat(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setFloat(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setInt(Object object, int value)
     throws IllegalAccessException, IllegalArgumentException    {
-    VMCommonLibrarySupport.setInt(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setInt(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setLong(Object object, long value)
     throws IllegalAccessException, IllegalArgumentException    {
-    VMCommonLibrarySupport.setLong(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setLong(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   void setShort(Object object, short value)
     throws IllegalAccessException, IllegalArgumentException   {
-    VMCommonLibrarySupport.setShort(object, value, field, f, VM_Class.getClassFromStackFrame(2));
+    VMCommonLibrarySupport.setShort(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
   // AnnotatedElement interface

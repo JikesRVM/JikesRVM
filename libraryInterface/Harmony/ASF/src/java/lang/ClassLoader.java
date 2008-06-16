@@ -34,9 +34,9 @@ import java.util.Vector;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.VM_DynamicLibrary;
 
 import org.apache.harmony.lang.RuntimePermissionCollection;
@@ -163,7 +163,7 @@ public abstract class ClassLoader {
             // we use VMClassRegistry.getClassLoader(...) method instead of
             // Class.getClassLoader() due to avoid redundant security
             // checking
-            ClassLoader callerLoader = VM_Class.getClassLoaderFromStackFrame(1);
+            ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
             if (callerLoader != null && callerLoader != systemClassLoader) {
                 sc.checkPermission(RuntimePermissionCollection.GET_CLASS_LOADER_PERMISSION);
             }
@@ -311,7 +311,7 @@ public abstract class ClassLoader {
      */
     private Class<?> defineClass0(String name, byte[] data, int offset, int len) 
 	throws ClassFormatError {
-	VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, this);
+	RVMType vmType = RVMClassLoader.defineClassInternal(name, data, offset, len, this);
 	Class<?> ans = vmType.getClassForType();
 	loadedClasses.put(name, ans);
 	return ans;
@@ -396,7 +396,7 @@ public abstract class ClassLoader {
     public final ClassLoader getParent() {
         SecurityManager sc = System.getSecurityManager();
         if (sc != null) {
-            ClassLoader callerLoader = VM_Class.getClassLoaderFromStackFrame(1);
+            ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
             if (callerLoader != null && !callerLoader.isSameOrAncestor(this)) {
                 sc.checkPermission(RuntimePermissionCollection.GET_CLASS_LOADER_PERMISSION);
             }
@@ -568,7 +568,7 @@ public abstract class ClassLoader {
      *             if clazz is null.
      */
     protected final void resolveClass(Class<?> clazz) {
-	VM_Type cls = JikesRVMSupport.getTypeForClass(clazz);
+	RVMType cls = JikesRVMSupport.getTypeForClass(clazz);
 	cls.resolve();
 	cls.instantiate();
 	cls.initialize();
@@ -800,7 +800,7 @@ public abstract class ClassLoader {
      * @return the ClassLoader at the specified depth
      */
     static final ClassLoader getStackClassLoader(int depth) {
-        return VM_Class.getClassLoaderFromStackFrame(depth);
+        return RVMClass.getClassLoaderFromStackFrame(depth);
     }
 
     /**
@@ -815,7 +815,7 @@ public abstract class ClassLoader {
      */
     static ClassLoader callerClassLoader() {
 	if (org.jikesrvm.VM.runningVM) {
-	    ClassLoader ans = VM_Class.getClassLoaderFromStackFrame(1);
+	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(1);
 	    if (ans == VM_BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {

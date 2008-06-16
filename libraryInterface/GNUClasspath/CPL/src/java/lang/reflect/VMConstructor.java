@@ -14,8 +14,8 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
@@ -25,7 +25,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 final class VMConstructor {
-  final VM_Method constructor;
+  final RVMMethod constructor;
   Constructor<?> cons;
 
   // Prevent this class from being instantiated.
@@ -35,7 +35,7 @@ final class VMConstructor {
   }
 
   // For use by JikesRVMSupport
-  VMConstructor(VM_Method m) {
+  VMConstructor(RVMMethod m) {
     constructor = m;
   }
 
@@ -76,7 +76,7 @@ final class VMConstructor {
                 IllegalAccessException,
                 IllegalArgumentException,
                 InvocationTargetException {
-    return VMCommonLibrarySupport.construct(constructor, cons, args, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.construct(constructor, cons, args, RVMClass.getClassFromStackFrame(2));
   }
 
   String getSignature() {

@@ -22,8 +22,8 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.VM_SpecializedScanMethod;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
@@ -101,9 +101,9 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Inline
   public void precopyChildren(TraceLocal trace, ObjectReference object) {
-    VM_Type type = VM_ObjectModel.getObjectType(object.toObject());
+    RVMType type = VM_ObjectModel.getObjectType(object.toObject());
     if (type.isClassType()) {
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       int[] offsets = klass.getReferenceOffsets();
       for(int i=0; i < offsets.length; i++) {
         trace.processPrecopyEdge(object.toAddress().plus(offsets[i]), false);

@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
@@ -22,7 +22,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * operand because: 1) TIBs don't form part of the object literals 2)
  * loads on the contents of a tib can be turned into constant moves,
  * whereas for arrays in general this isn't the case. We don't use
- * TypeOperand as the type of the operand is VM_Type, whereas a
+ * TypeOperand as the type of the operand is RVMType, whereas a
  * TIBs type is Object[].
  *
  * @see Operand
@@ -32,14 +32,14 @@ public final class TIBConstantOperand extends ConstantOperand {
   /**
    * The non-null type for this tib
    */
-  public final VM_Type value;
+  public final RVMType value;
 
   /**
    * Construct a new TIB constant operand
    *
    * @param v the type of this TIB
    */
-  public TIBConstantOperand(VM_Type v) {
+  public TIBConstantOperand(RVMType v) {
     if (VM.VerifyAssertions) VM._assert(v != null);
     value = v;
   }

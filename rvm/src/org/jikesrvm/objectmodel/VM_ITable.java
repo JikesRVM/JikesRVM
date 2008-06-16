@@ -13,8 +13,8 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Inline;
@@ -81,7 +81,7 @@ public final class VM_ITable {
    */
   @Inline
   @Uninterruptible
-  public boolean isFor(VM_Type I) {
+  public boolean isFor(RVMType I) {
     return get(0) == I;
   }
 
@@ -93,8 +93,8 @@ public final class VM_ITable {
    */
   @Inline
   @Interruptible
-  public VM_Class getInterfaceClass() {
-    return (VM_Class)get(0);
+  public RVMClass getInterfaceClass() {
+    return (RVMClass)get(0);
   }
 
 

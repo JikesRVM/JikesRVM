@@ -156,7 +156,7 @@ public interface VM_StackframeLayoutConstants {
 
   /** fp value indicating end of stack walkback */
   Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
-  /** marker for "assembler" frames that have no associated VM_Method */
+  /** marker for "assembler" frames that have no associated RVMMethod */
   int INVISIBLE_METHOD_ID = -1;
 
   // Stackframe alignment.

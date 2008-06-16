@@ -13,7 +13,7 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -56,7 +56,7 @@ public abstract class VM_MultianewarrayHelper {
       if ((dim0 < 0) || (dim1 < 0)) throw new NegativeArraySizeException();
       // create array
       VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
-      VM_Array array = tRef.resolve().asArray();
+      RVMArray array = tRef.resolve().asArray();
       return RuntimeEntrypoints.buildTwoDimensionalArray(methodId, dim0, dim1, array);
     } else {
       // fetch number of elements to be allocated for each array dimension
@@ -74,7 +74,7 @@ public abstract class VM_MultianewarrayHelper {
       }
       // create array
       VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);
-      VM_Array array = tRef.resolve().asArray();
+      RVMArray array = tRef.resolve().asArray();
       return RuntimeEntrypoints.buildMultiDimensionalArray(methodId, numElements, array);
     }
   }

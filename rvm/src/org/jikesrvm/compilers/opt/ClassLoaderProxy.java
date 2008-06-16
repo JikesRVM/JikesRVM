@@ -15,8 +15,8 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
@@ -135,16 +135,16 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
 
     // technique: push heritage of each type on a separate stack,
     // then find the highest point in the stack where they differ.
-    VM_Class c1 = (VM_Class) t1.peekType();
-    VM_Class c2 = (VM_Class) t2.peekType();
+    RVMClass c1 = (RVMClass) t1.peekType();
+    RVMClass c2 = (RVMClass) t2.peekType();
     if (c1 != null && c2 != null) {
       // The ancestor hierarchy is available, so do this exactly
-      Stack<VM_Class> s1 = new Stack<VM_Class>();
+      Stack<RVMClass> s1 = new Stack<RVMClass>();
       do {
         s1.push(c1);
         c1 = c1.getSuperClass();
       } while (c1 != null);
-      Stack<VM_Class> s2 = new Stack<VM_Class>();
+      Stack<RVMClass> s2 = new Stack<RVMClass>();
       do {
         s2.push(c2);
         c2 = c2.getSuperClass();
@@ -157,7 +157,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
       }
       VM_TypeReference best = VM_TypeReference.JavaLangObject;
       while (!s1.empty() && !s2.empty()) {
-        VM_Class temp = s1.pop();
+        RVMClass temp = s1.pop();
         if (temp == s2.pop()) {
           best = temp.getTypeRef();
         } else {
@@ -264,8 +264,8 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
             // parentType is known to not be java.lang.Object.
             return NO;
           } else {
-            VM_Class childClass = (VM_Class) childType.peekType();
-            VM_Class parentClass = (VM_Class) parentType.peekType();
+            RVMClass childClass = (RVMClass) childType.peekType();
+            RVMClass parentClass = (RVMClass) parentType.peekType();
             if (childClass != null && parentClass != null) {
               if (parentClass.isResolved() && childClass.isResolved() ||
                   (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
@@ -322,8 +322,8 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
   /**
    * Find the method of the given class that matches the given descriptor.
    */
-  public static VM_Method lookupMethod(VM_Class cls, VM_MethodReference ref) {
-    VM_Method newmeth = null;
+  public static RVMMethod lookupMethod(RVMClass cls, VM_MethodReference ref) {
+    RVMMethod newmeth = null;
     if (cls.isResolved() && !cls.isInterface()) {
       VM_Atom mn = ref.getName();
       VM_Atom md = ref.getDescriptor();
@@ -342,7 +342,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
    * Get the integer stored at a particular index of a class's constant
    * pool.
    */
-  public static IntConstantOperand getIntFromConstantPool(VM_Class klass, int index) {
+  public static IntConstantOperand getIntFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val = VM_Statics.getSlotContentsAsInt(offset);
     return new IntConstantOperand(val);
@@ -352,7 +352,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
    * Get the double stored at a particular index of a class's constant
    * pool.
    */
-  public static DoubleConstantOperand getDoubleFromConstantPool(VM_Class klass, int index) {
+  public static DoubleConstantOperand getDoubleFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
@@ -363,7 +363,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
    * Get the float stored at a particular index of a class's constant
    * pool.
    */
-  public static FloatConstantOperand getFloatFromConstantPool(VM_Class klass, int index) {
+  public static FloatConstantOperand getFloatFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
@@ -374,7 +374,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
    * Get the long stored at a particular index of a class's constant
    * pool.
    */
-  public static LongConstantOperand getLongFromConstantPool(VM_Class klass, int index) {
+  public static LongConstantOperand getLongFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val = VM_Statics.getSlotContentsAsLong(offset);
     return new LongConstantOperand(val, offset);
@@ -384,7 +384,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
    * Get the String stored at a particular index of a class's constant
    * pool.
    */
-  public static StringConstantOperand getStringFromConstantPool(VM_Class klass, int index) {
+  public static StringConstantOperand getStringFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
       String val;
@@ -399,7 +399,7 @@ public final class ClassLoaderProxy implements VM_Constants, OptConstants {
    * Get the Class stored at a particular index of a class's constant
    * pool.
    */
-  public static ClassConstantOperand getClassFromConstantPool(VM_Class klass, int index) {
+  public static ClassConstantOperand getClassFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
       Class<?> val = (Class<?>) VM_Statics.getSlotContentsAsObject(offset);

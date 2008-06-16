@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * in the class file. A method is read from a class file using the
  * {@link #readMethod} method.
  */
-public abstract class VM_Method extends VM_Member implements VM_BytecodeConstants {
+public abstract class RVMMethod extends RVMMember implements VM_BytecodeConstants {
 
   /**
    * current compiled method for this method
@@ -42,36 +42,36 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * exceptions this method might throw (null --> none)
    */
-  private static final ImmutableEntryHashMapRVM<VM_Method, VM_TypeReference[]> exceptionTypes =
-    new ImmutableEntryHashMapRVM<VM_Method, VM_TypeReference[]>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, VM_TypeReference[]> exceptionTypes =
+    new ImmutableEntryHashMapRVM<RVMMethod, VM_TypeReference[]>();
   /**
    * Method parameter annotations from the class file that are
    * described as runtime visible. These annotations are available to
    * the reflection API.
    */
-  private static final ImmutableEntryHashMapRVM<VM_Method, VM_Annotation[][]> parameterAnnotations =
-    new ImmutableEntryHashMapRVM<VM_Method, VM_Annotation[][]>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, RVMAnnotation[][]> parameterAnnotations =
+    new ImmutableEntryHashMapRVM<RVMMethod, RVMAnnotation[][]>();
   /**
    * A table mapping to values present in the method info tables of annotation
    * types. It represents the default result from an annotation method.
    */
-  private static final ImmutableEntryHashMapRVM<VM_Method, Object> annotationDefaults =
-    new ImmutableEntryHashMapRVM<VM_Method, Object>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, Object> annotationDefaults =
+    new ImmutableEntryHashMapRVM<RVMMethod, Object>();
   /**
    * The offsets of virtual methods in the jtoc, if it's been placed
    * there by constant propagation.
    */
-  private static final ImmutableEntryHashMapRVM<VM_Method, Integer> jtocOffsets =
-    new ImmutableEntryHashMapRVM<VM_Method, Integer>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, Integer> jtocOffsets =
+    new ImmutableEntryHashMapRVM<RVMMethod, Integer>();
 
   /** Cache of arrays of declared parameter annotations. */
-  private static final ImmutableEntryHashMapRVM<VM_Method, Annotation[][]> declaredParameterAnnotations =
-    new ImmutableEntryHashMapRVM<VM_Method, Annotation[][]>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, Annotation[][]> declaredParameterAnnotations =
+    new ImmutableEntryHashMapRVM<RVMMethod, Annotation[][]>();
 
   /**
    * Construct a read method
    *
-   * @param declaringClass the VM_Class object of the class that declared this field
+   * @param declaringClass the RVMClass object of the class that declared this field
    * @param memRef the canonical memberReference for this method.
    * @param modifiers modifiers associated with this method.
    * @param exceptionTypes exceptions thrown by this method.
@@ -80,18 +80,18 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
-                      VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
-                      VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
+  protected RVMMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                      VM_TypeReference[] exceptionTypes, VM_Atom signature, RVMAnnotation[] annotations,
+                      RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     if (parameterAnnotations != null) {
-      synchronized(VM_Method.parameterAnnotations) {
-        VM_Method.parameterAnnotations.put(this, parameterAnnotations);
+      synchronized(RVMMethod.parameterAnnotations) {
+        RVMMethod.parameterAnnotations.put(this, parameterAnnotations);
       }
     }
     if (exceptionTypes != null) {
-      synchronized(VM_Method.exceptionTypes) {
-        VM_Method.exceptionTypes.put(this, exceptionTypes);
+      synchronized(RVMMethod.exceptionTypes) {
+        RVMMethod.exceptionTypes.put(this, exceptionTypes);
       }
     }
     if (annotationDefault != null) {
@@ -105,7 +105,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Get the paramemter annotations for this method
    */
   @Pure
-  private VM_Annotation[][] getParameterAnnotations() {
+  private RVMAnnotation[][] getParameterAnnotations() {
     synchronized(parameterAnnotations) {
       return parameterAnnotations.get(this);
     }
@@ -122,16 +122,16 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
-   * Called from {@link VM_Class#readClass(VM_TypeReference,DataInputStream)} to create an
-   * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
+   * Called from {@link RVMClass#readClass(VM_TypeReference,DataInputStream)} to create an
+   * instance of a RVMMethod by reading the relevant data from the argument bytecode stream.
    *
    * @param declaringClass the VM_TypeReference of the class being loaded
-   * @param constantPool the constantPool of the VM_Class object that's being constructed
+   * @param constantPool the constantPool of the RVMClass object that's being constructed
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the method's attributes from
    */
-  static VM_Method readMethod(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
+  static RVMMethod readMethod(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
                               short modifiers, DataInputStream input) throws IOException {
     short tmp_localWords = 0;
     short tmp_operandWords = 0;
@@ -140,17 +140,17 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     VM_TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;
     VM_Atom tmp_signature = null;
-    VM_Annotation[] annotations = null;
-    VM_Annotation[][] parameterAnnotations = null;
+    RVMAnnotation[] annotations = null;
+    RVMAnnotation[][] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
-      VM_Atom attName = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+      VM_Atom attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
 
       // Only bother to interpret non-boring Method attributes
-      if (attName == VM_ClassLoader.codeAttributeName) {
+      if (attName == RVMClassLoader.codeAttributeName) {
         tmp_operandWords = input.readShort();
         tmp_localWords = input.readShort();
         tmp_bytecodes = new byte[input.readInt()];
@@ -159,10 +159,10 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
 
         // Read the attributes portion of the code attribute
         for (int j = 0, n2 = input.readUnsignedShort(); j < n2; j++) {
-          attName = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+          attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
           attLength = input.readInt();
 
-          if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
+          if (attName == RVMClassLoader.lineNumberTableAttributeName) {
             int cnt = input.readUnsignedShort();
             if (cnt != 0) {
               tmp_lineNumberMap = new int[cnt];
@@ -180,29 +180,29 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
             }
           }
         }
-      } else if (attName == VM_ClassLoader.exceptionsAttributeName) {
+      } else if (attName == RVMClassLoader.exceptionsAttributeName) {
         int cnt = input.readUnsignedShort();
         if (cnt != 0) {
           tmp_exceptionTypes = new VM_TypeReference[cnt];
           for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
-            tmp_exceptionTypes[j] = VM_Class.getTypeRef(constantPool, input.readUnsignedShort());
+            tmp_exceptionTypes[j] = RVMClass.getTypeRef(constantPool, input.readUnsignedShort());
           }
         }
-      } else if (attName == VM_ClassLoader.syntheticAttributeName) {
+      } else if (attName == RVMClassLoader.syntheticAttributeName) {
         modifiers |= ACC_SYNTHETIC;
-      } else if (attName == VM_ClassLoader.signatureAttributeName) {
-        tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
-      } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
+      } else if (attName == RVMClassLoader.signatureAttributeName) {
+        tmp_signature = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+      } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
-      } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
+      } else if (attName == RVMClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
         int numParameters = input.readByte() & 0xFF;
-        parameterAnnotations = new VM_Annotation[numParameters][];
+        parameterAnnotations = new RVMAnnotation[numParameters][];
         for (int a = 0; a < numParameters; ++a) {
           parameterAnnotations[a] = VM_AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
         }
-      } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
+      } else if (attName == RVMClassLoader.annotationDefaultAttributeName) {
         try {
-          tmp_annotationDefault = VM_Annotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
+          tmp_annotationDefault = RVMAnnotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
         } catch (ClassNotFoundException e) {
           throw new Error(e);
         }
@@ -214,7 +214,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
         }
       }
     }
-    VM_Method method;
+    RVMMethod method;
     if ((modifiers & ACC_NATIVE) != 0) {
       method =
           new VM_NativeMethod(declaringClass,
@@ -270,8 +270,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * returned by this method
    * @return the created method
    */
-  static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int[] constantPool,
-                                          VM_MemberReference memRef, VM_Method interfaceMethod,
+  static RVMMethod createAnnotationMethod(VM_TypeReference annotationClass, int[] constantPool,
+                                          VM_MemberReference memRef, RVMMethod interfaceMethod,
                                           int constantPoolIndex) {
     byte[] bytecodes =
         new byte[]{
@@ -307,12 +307,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param aMethods
    * @return the created method
    */
-  static VM_Method createAnnotationInit(VM_TypeReference aClass, int[] constantPool, VM_MemberReference memRef,
-                                        int objectInitIndex, VM_Field[] aFields, VM_Method[] aMethods,
+  static RVMMethod createAnnotationInit(VM_TypeReference aClass, int[] constantPool, VM_MemberReference memRef,
+                                        int objectInitIndex, RVMField[] aFields, RVMMethod[] aMethods,
                                         int[] defaultConstants) {
     byte[] bytecode = new byte[6 + (defaultConstants.length * 7)];
     bytecode[0] = (byte) JBC_aload_0; // stack[0] = this
-    bytecode[1] = (byte) JBC_aload_1; // stack[1] = instanceof VM_Annotation
+    bytecode[1] = (byte) JBC_aload_1; // stack[1] = instanceof RVMAnnotation
     bytecode[2] = (byte) JBC_invokespecial;
     bytecode[3] = (byte) (objectInitIndex >>> 8);
     bytecode[4] = (byte) objectInitIndex;
@@ -320,8 +320,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       Object value = aMethods[i].getAnnotationDefault();
       if (value != null) {
         bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
-        byte literalType = VM_Class.getLiteralDescription(constantPool, defaultConstants[j]);
-        if (literalType != VM_Class.CP_LONG && literalType != VM_Class.CP_DOUBLE) {
+        byte literalType = RVMClass.getLiteralDescription(constantPool, defaultConstants[j]);
+        if (literalType != RVMClass.CP_LONG && literalType != RVMClass.CP_DOUBLE) {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc_w; // stack[1] = value
         } else {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc2_w;// stack[1&2] = value
@@ -360,17 +360,17 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       return JBC_areturn;
     } else {
       VM_Primitive pt = (VM_Primitive) tr.peekType();
-      if ((pt == VM_Type.BooleanType) ||
-          (pt == VM_Type.ByteType) ||
-          (pt == VM_Type.ShortType) ||
-          (pt == VM_Type.CharType) ||
-          (pt == VM_Type.IntType)) {
+      if ((pt == RVMType.BooleanType) ||
+          (pt == RVMType.ByteType) ||
+          (pt == RVMType.ShortType) ||
+          (pt == RVMType.CharType) ||
+          (pt == RVMType.IntType)) {
         return JBC_ireturn;
-      } else if (pt == VM_Type.LongType) {
+      } else if (pt == RVMType.LongType) {
         return JBC_lreturn;
-      } else if (pt == VM_Type.FloatType) {
+      } else if (pt == RVMType.FloatType) {
         return JBC_freturn;
-      } else if (pt == VM_Type.DoubleType) {
+      } else if (pt == RVMType.DoubleType) {
         return JBC_dreturn;
       } else {
         VM._assert(false);
@@ -384,7 +384,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   @Uninterruptible
   public final boolean isClassInitializer() {
-    return getName() == VM_ClassLoader.StandardClassInitializerMethodName;
+    return getName() == RVMClassLoader.StandardClassInitializerMethodName;
   }
 
   /**
@@ -392,7 +392,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   @Uninterruptible
   public final boolean isObjectInitializer() {
-    return getName() == VM_ClassLoader.StandardObjectInitializerMethodName;
+    return getName() == RVMClassLoader.StandardObjectInitializerMethodName;
   }
 
   /**
@@ -400,7 +400,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   @Uninterruptible
   public final boolean isObjectInitializerHelper() {
-    return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName;
+    return getName() == RVMClassLoader.StandardObjectInitializerHelperMethodName;
   }
 
   /**
@@ -621,7 +621,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * @return true if the method may write to a given field
    */
-  public boolean mayWrite(VM_Field field) {
+  public boolean mayWrite(RVMField field) {
     return true; // be conservative.  native methods can write to anything
   }
 
@@ -659,7 +659,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Get the code array that corresponds to the entry point (prologue) for the method.
    */
   public final synchronized CodeArray getCurrentEntryCodeArray() {
-    VM_Class declaringClass = getDeclaringClass();
+    RVMClass declaringClass = getDeclaringClass();
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
       return currentCompiledMethod.getEntryCodeArray();
@@ -696,7 +696,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
     if (isCompiled()) return;
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("RVMMethod: (begin) compiling " + this + "\n");
 
     VM_CompiledMethod cm = genCode();
 
@@ -709,7 +709,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       }
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("RVMMethod: (end)   compiling " + this + "\n");
   }
 
   protected abstract VM_CompiledMethod genCode();
@@ -810,7 +810,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       result = declaredParameterAnnotations.get(this);
     }
     if (result == null) {
-      VM_Annotation[][] parameterAnnotations = getParameterAnnotations();
+      RVMAnnotation[][] parameterAnnotations = getParameterAnnotations();
       result = new Annotation[parameterAnnotations.length][];
       for (int a = 0; a < result.length; ++a) {
         result[a] = toAnnotations(parameterAnnotations[a]);

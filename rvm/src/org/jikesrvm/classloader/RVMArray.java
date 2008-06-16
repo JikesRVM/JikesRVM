@@ -37,42 +37,42 @@ import org.vmmagic.unboxed.Offset;
  * This description is not read from a ".class" file, but rather
  * is manufactured by the vm as execution proceeds.
  *
- * @see VM_Type
- * @see VM_Class
+ * @see RVMType
+ * @see RVMClass
  * @see VM_Primitive
  */
 @NonMoving
-public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
+public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoaderConstants {
 
   /*
    * We hold on to a number of commonly used arrays for easy access.
    */
-  public static final VM_Array BooleanArray;
-  public static final VM_Array ByteArray;
-  public static final VM_Array CharArray;
-  public static final VM_Array ShortArray;
-  public static final VM_Array IntArray;
-  public static final VM_Array LongArray;
-  public static final VM_Array FloatArray;
-  public static final VM_Array DoubleArray;
-  public static final VM_Array JavaLangObjectArray;
+  public static final RVMArray BooleanArray;
+  public static final RVMArray ByteArray;
+  public static final RVMArray CharArray;
+  public static final RVMArray ShortArray;
+  public static final RVMArray IntArray;
+  public static final RVMArray LongArray;
+  public static final RVMArray FloatArray;
+  public static final RVMArray DoubleArray;
+  public static final RVMArray JavaLangObjectArray;
 
   static {
-    BooleanArray = (VM_Array) VM_TypeReference.BooleanArray.resolve();
-    CharArray = (VM_Array) VM_TypeReference.CharArray.resolve();
-    FloatArray = (VM_Array) VM_TypeReference.FloatArray.resolve();
-    DoubleArray = (VM_Array) VM_TypeReference.DoubleArray.resolve();
-    ByteArray = (VM_Array) VM_TypeReference.ByteArray.resolve();
-    ShortArray = (VM_Array) VM_TypeReference.ShortArray.resolve();
-    IntArray = (VM_Array) VM_TypeReference.IntArray.resolve();
-    LongArray = (VM_Array) VM_TypeReference.LongArray.resolve();
-    JavaLangObjectArray = (VM_Array) VM_TypeReference.JavaLangObjectArray.resolve();
+    BooleanArray = (RVMArray) VM_TypeReference.BooleanArray.resolve();
+    CharArray = (RVMArray) VM_TypeReference.CharArray.resolve();
+    FloatArray = (RVMArray) VM_TypeReference.FloatArray.resolve();
+    DoubleArray = (RVMArray) VM_TypeReference.DoubleArray.resolve();
+    ByteArray = (RVMArray) VM_TypeReference.ByteArray.resolve();
+    ShortArray = (RVMArray) VM_TypeReference.ShortArray.resolve();
+    IntArray = (RVMArray) VM_TypeReference.IntArray.resolve();
+    LongArray = (RVMArray) VM_TypeReference.LongArray.resolve();
+    JavaLangObjectArray = (RVMArray) VM_TypeReference.JavaLangObjectArray.resolve();
   }
 
   /**
-   * The VM_Type object for elements of this array type.
+   * The RVMType object for elements of this array type.
    */
-  private final VM_Type elementType;
+  private final RVMType elementType;
 
   /**
    * The log of the element size for this array type.
@@ -80,9 +80,9 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   private final int logElementSize;
 
   /**
-   * The VM_Type object for the innermost element of this array type.
+   * The RVMType object for the innermost element of this array type.
    */
-  private final VM_Type innermostElementType;
+  private final RVMType innermostElementType;
 
   /**
    * The dimension of the innermost element of this array type.
@@ -151,7 +151,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @return element type.
    */
   @Uninterruptible
-  public VM_Type getElementType() {
+  public RVMType getElementType() {
     return elementType;
   }
 
@@ -159,7 +159,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @return innermost element type
    */
   @Uninterruptible
-  public VM_Type getInnermostElementType() {
+  public RVMType getInnermostElementType() {
     return innermostElementType;
   }
 
@@ -241,8 +241,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Override
   @Pure
-  public VM_Field[] getStaticFields() {
-    return VM_Type.JavaLangObjectType.getStaticFields();
+  public RVMField[] getStaticFields() {
+    return RVMType.JavaLangObjectType.getStaticFields();
   }
 
   /**
@@ -250,8 +250,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Override
   @Pure
-  public VM_Field[] getInstanceFields() {
-    return VM_Type.JavaLangObjectType.getInstanceFields();
+  public RVMField[] getInstanceFields() {
+    return RVMType.JavaLangObjectType.getInstanceFields();
   }
 
   /**
@@ -259,8 +259,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Override
   @Pure
-  public VM_Method[] getStaticMethods() {
-    return VM_Type.JavaLangObjectType.getStaticMethods();
+  public RVMMethod[] getStaticMethods() {
+    return RVMType.JavaLangObjectType.getStaticMethods();
   }
 
   /**
@@ -268,8 +268,8 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Override
   @Pure
-  public VM_Method[] getVirtualMethods() {
-    return VM_Type.JavaLangObjectType.getVirtualMethods();
+  public RVMMethod[] getVirtualMethods() {
+    return RVMType.JavaLangObjectType.getVirtualMethods();
   }
 
   /**
@@ -372,7 +372,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   }
 
   /**
-   * Whether or not this is an instance of VM_Class?
+   * Whether or not this is an instance of RVMClass?
    * @return false
    */
   @Override
@@ -383,7 +383,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   }
 
   /**
-   * Whether or not this is an instance of VM_Array?
+   * Whether or not this is an instance of RVMArray?
    * @return true
    */
   @Override
@@ -419,7 +419,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @param typeRef
    * @param elementType
    */
-  VM_Array(VM_TypeReference typeRef, VM_Type elementType) {
+  RVMArray(VM_TypeReference typeRef, RVMType elementType) {
     super(typeRef, typeRef.getDimensionality(), null);
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();
@@ -431,7 +431,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
       innermostElementType = elementType;
     }
     innermostElementTypeDimension = innermostElementType.dimension;
-    if (VM.BuildForIA32 && this == VM_Array.CodeArrayType) {
+    if (VM.BuildForIA32 && this == RVMArray.CodeArrayType) {
       this.alignment = 16;
     } else if (BYTES_IN_DOUBLE != BYTES_IN_ADDRESS) {
       // Desired alignment on 32bit architectures
@@ -469,7 +469,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     // build a type information block for this new array type by copying the
     // virtual method fields and substituting an appropriate type field.
     //
-    VM_TIB javaLangObjectTIB = VM_Type.JavaLangObjectType.getTypeInformationBlock();
+    VM_TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
     VM_TIB allocatedTib = MM_Interface.newTIB(javaLangObjectTIB.numVirtualMethods());
     superclassIds = VM_DynamicTypeCheck.buildSuperclassIds(this);
     doesImplement = VM_DynamicTypeCheck.buildDoesImplement(this);
@@ -514,11 +514,11 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
 
     if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
     if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWrite("VM_Array: instantiate " + this + "\n");
+      VM.sysWrite("RVMArray: instantiate " + this + "\n");
     }
 
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
-    VM_Type objectType = VM_Type.JavaLangObjectType;
+    RVMType objectType = RVMType.JavaLangObjectType;
     while(!objectType.isInstantiated()) {
       try {
         Thread.sleep(10);
@@ -552,7 +552,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    * @return array description
    */
   @Pure
-  public static VM_Array getPrimitiveArrayType(int atype) {
+  public static RVMArray getPrimitiveArrayType(int atype) {
     switch (atype) {
       case 4:
         return BooleanArray;
@@ -975,9 +975,9 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      VM_Type lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
-      VM_Type rhs = VM_Magic.getObjectType(src).asArray().getElementType();
-      if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType) || RuntimeEntrypoints.isAssignableWith(lhs, rhs)) {
+      RVMType lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
+      RVMType rhs = VM_Magic.getObjectType(src).asArray().getElementType();
+      if ((lhs == rhs) || (lhs == RVMType.JavaLangObjectType) || RuntimeEntrypoints.isAssignableWith(lhs, rhs)) {
         fastArrayCopy(src, srcIdx, dst, dstIdx, len);
       } else {
         slowArrayCopy(src, srcIdx, dst, dstIdx, len);
@@ -1068,7 +1068,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
       }
     } else {
       // the arrays overlap: must use temp array
-      VM_Array ary = VM_Magic.getObjectType(src).asArray();
+      RVMArray ary = VM_Magic.getObjectType(src).asArray();
       Object[] temp = (Object[]) RuntimeEntrypoints.resolvedNewArray(len, ary);
       int cnt = len;
       int tempIdx = 0;

@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A native method of a java class.
  */
-public final class VM_NativeMethod extends VM_Method {
+public final class VM_NativeMethod extends RVMMethod {
 
   /**
    * the IP of the native procedure
@@ -44,7 +44,7 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Construct native method information
    *
-   * @param declaringClass the VM_Class object of the class that
+   * @param declaringClass the RVMClass object of the class that
    *                       declared this method.
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
@@ -55,8 +55,8 @@ public final class VM_NativeMethod extends VM_Method {
    * @param annotationDefault value for this annotation that appears
    */
   VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
-                  VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
-                  VM_Annotation[][] parameterAnnotations, Object annotationDefault) {
+                  VM_TypeReference[] exceptionTypes, VM_Atom signature, RVMAnnotation[] annotations,
+                  RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass,
           memRef,
           modifiers,

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
@@ -21,7 +21,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  *
  * <p> This database holds summaries:
  *  <ul>
- *   <li>MethodSummary, indexed by VM_Method
+ *   <li>MethodSummary, indexed by RVMMethod
  *  </ul>
  */
 public class SummaryDatabase {
@@ -30,11 +30,11 @@ public class SummaryDatabase {
    *
    * @return MethodSummary instance representing method
    */
-  public static synchronized MethodSummary findMethodSummary(VM_Method m) {
+  public static synchronized MethodSummary findMethodSummary(RVMMethod m) {
     return hash.get(m);
   }
 
-  public static synchronized MethodSummary findOrCreateMethodSummary(VM_Method m) {
+  public static synchronized MethodSummary findOrCreateMethodSummary(RVMMethod m) {
     MethodSummary result = findMethodSummary(m);
     if (result == null) {
       result = new MethodSummary(m);
@@ -44,6 +44,6 @@ public class SummaryDatabase {
   }
 
   /** Implementation */
-  private static final ImmutableEntryHashMapRVM<VM_Method, MethodSummary> hash =
-    new ImmutableEntryHashMapRVM<VM_Method, MethodSummary>();
+  private static final ImmutableEntryHashMapRVM<RVMMethod, MethodSummary> hash =
+    new ImmutableEntryHashMapRVM<RVMMethod, MethodSummary>();
 }

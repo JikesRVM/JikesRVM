@@ -12,17 +12,17 @@
  */
 package org.jikesrvm.adaptive.database.callgraph;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 
 /**
- * A call site is a pair: <VM_Method, bcIndex>
+ * A call site is a pair: <RVMMethod, bcIndex>
  */
 public final class VM_CallSite {
 
   /**
    * Caller method
    */
-  private final VM_Method method;
+  private final RVMMethod method;
 
   /**
    * bytecode index of callsite in caller method
@@ -30,10 +30,10 @@ public final class VM_CallSite {
   private final int bcIndex;
 
   /**
-   * @param m the VM_Method containing the callsite
+   * @param m the RVMMethod containing the callsite
    * @param bci the bytecode index of the callsite within m
    */
-  public VM_CallSite(VM_Method m, int bci) {
+  public VM_CallSite(RVMMethod m, int bci) {
     if (org.jikesrvm.VM.VerifyAssertions) org.jikesrvm.VM._assert(m != null);
     method = m;
     bcIndex = bci;
@@ -42,7 +42,7 @@ public final class VM_CallSite {
   /**
    * @return method containing the callsite
    */
-  public VM_Method getMethod() { return method; }
+  public RVMMethod getMethod() { return method; }
 
   /**
    * @return call site's bytecode index in its method

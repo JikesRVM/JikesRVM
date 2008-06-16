@@ -21,9 +21,9 @@ import java.util.Vector;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
@@ -86,17 +86,17 @@ class OptTestHarness {
 
   // Keep baseline and opt methods separate in list of methods
   // to be compiled
-  static Vector<VM_Method> optMethodVector = null;
+  static Vector<RVMMethod> optMethodVector = null;
   static Vector<OptOptions> optOptionsVector = null;
-  static Vector<VM_Method> baselineMethodVector = null;
+  static Vector<RVMMethod> baselineMethodVector = null;
 
   static java.lang.reflect.Method reflectoid;
   static Object[] reflectMethodArgs;
   static Vector<Method> reflectoidVector;
-  static Vector<VM_Method> reflectMethodVector;
+  static Vector<RVMMethod> reflectMethodVector;
   static Vector<Object[]> reflectMethodArgsVector;
 
-  static VM_Class mainClass;
+  static RVMClass mainClass;
   static String[] mainArgs;
 
   static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
@@ -142,12 +142,12 @@ class OptTestHarness {
 
   // if "methdesc" is "-", find the first method with "methname" in "klass",
   // otherwise, find the method whose signature matches "methdesc"
-  static VM_Method findDeclaredOrFirstMethod(VM_Class klass, String methname, String methdesc) {
+  static RVMMethod findDeclaredOrFirstMethod(RVMClass klass, String methname, String methdesc) {
     if (klass == null) return null;
     VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methname);
     VM_Atom methodDesc = methdesc.equals("-") ? null : VM_Atom.findOrCreateAsciiAtom(methdesc);
 
-    for (VM_Method method : klass.getDeclaredMethods()) {
+    for (RVMMethod method : klass.getDeclaredMethods()) {
       if (method.getName() == methodName && ((methodDesc == null) || (methodDesc == method.getDescriptor()))) {
         return method;
       }
@@ -160,7 +160,7 @@ class OptTestHarness {
     return null;
   }
 
-  static VM_Class loadClass(String s) throws ClassNotFoundException {
+  static RVMClass loadClass(String s) throws ClassNotFoundException {
     if (s.startsWith("./")) s = s.substring(2, s.length());
     if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
     if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
@@ -172,16 +172,16 @@ class OptTestHarness {
 
     s = s.replace('.', '/');
 
-    return (VM_Class) java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
+    return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
   }
 
   static void printFormatString() {
     System.err.println("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
   }
 
-  private static void processClass(VM_Class klass, OptOptions opts) {
-    VM_Method[] methods = klass.getDeclaredMethods();
-    for (VM_Method method : methods) {
+  private static void processClass(RVMClass klass, OptOptions opts) {
+    RVMMethod[] methods = klass.getDeclaredMethods();
+    for (RVMMethod method : methods) {
       if (!method.isAbstract() && !method.isNative()) {
         processMethod(method, opts);
       }
@@ -189,11 +189,11 @@ class OptTestHarness {
   }
 
   // Wrapper applying default decision regarding opt/baseline
-  private static void processMethod(VM_Method method, OptOptions opts) {
+  private static void processMethod(RVMMethod method, OptOptions opts) {
     processMethod(method, opts, BASELINE);
   }
 
-  private static void processMethod(VM_Method method, OptOptions opts, boolean isBaseline) {
+  private static void processMethod(RVMMethod method, OptOptions opts, boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
@@ -244,7 +244,7 @@ class OptTestHarness {
         } else if (arg.equals("-load")) {
           loadClass(args[++i]);
         } else if (arg.equals("-class")) {
-          VM_Class klass = loadClass(args[++i]);
+          RVMClass klass = loadClass(args[++i]);
           processClass(klass, options);
           options = options.dup();
         } else if (arg.equals("-method") || arg.equals("-methodOpt") || arg.equals("-methodBase")) {
@@ -258,7 +258,7 @@ class OptTestHarness {
             isBaseline = true;
           }
 
-          VM_Class klass = null;
+          RVMClass klass = null;
           try {
             klass = loadClass(args[++i]);
           } catch (Exception e) {
@@ -267,7 +267,7 @@ class OptTestHarness {
           if (klass == null) continue;
           String name = args[++i];
           String desc = args[++i];
-          VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
+          RVMMethod method = findDeclaredOrFirstMethod(klass, name, desc);
           if (method == null || method.isAbstract() || method.isNative()) {
             System.err.println("WARNING: Skipping method " + args[i - 2] + "." + name);
           } else {
@@ -280,7 +280,7 @@ class OptTestHarness {
           DISABLE_CLASS_LOADING = true;
         } else if (arg.equals("-er")) {
           EXECUTE_WITH_REFLECTION = true;
-          VM_Class klass = loadClass(args[++i]);
+          RVMClass klass = loadClass(args[++i]);
           String name = args[++i];
           String desc = args[++i];
           VM_NormalMethod method = (VM_NormalMethod) findDeclaredOrFirstMethod(klass, name, desc);
@@ -384,14 +384,14 @@ class OptTestHarness {
     if (EXECUTE_WITH_REFLECTION) {
 
       if (DISABLE_CLASS_LOADING) {
-        VM_Class.classLoadingDisabled = true;
+        RVMClass.classLoadingDisabled = true;
       }
 
       int size = reflectoidVector.size();
       for (int i = 0; i < size; i++) {
         reflectoid = reflectoidVector.elementAt(i);
         reflectMethodArgs = reflectMethodArgsVector.elementAt(i);
-        VM_Method method = reflectMethodVector.elementAt(i);
+        RVMMethod method = reflectMethodVector.elementAt(i);
         VM.sysWrite("**** START OF EXECUTION of " + method + " ****.\n");
         Object result = null;
         if (perf != null) perf.reset();
@@ -404,7 +404,7 @@ class OptTestHarness {
     }
 
     if (EXECUTE_MAIN) {
-      VM_Method mainMethod = mainClass.findMainMethod();
+      RVMMethod mainMethod = mainClass.findMainMethod();
       if (mainMethod == null) {
         // no such method
         System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
@@ -417,12 +417,12 @@ class OptTestHarness {
   }
 
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
-    cl = VM_ClassLoader.getApplicationClassLoader();
-    optMethodVector = new Vector<VM_Method>(50);
+    cl = RVMClassLoader.getApplicationClassLoader();
+    optMethodVector = new Vector<RVMMethod>(50);
     optOptionsVector = new Vector<OptOptions>(50);
-    baselineMethodVector = new Vector<VM_Method>(50);
+    baselineMethodVector = new Vector<RVMMethod>(50);
     reflectoidVector = new Vector<Method>(10);
-    reflectMethodVector = new Vector<VM_Method>(10);
+    reflectMethodVector = new Vector<RVMMethod>(10);
     reflectMethodArgsVector = new Vector<Object[]>(10);
     if (!OptimizingCompiler.isInitialized()) {
       OptimizingCompiler.init(options);

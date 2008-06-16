@@ -21,9 +21,9 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.VM_CommandLineArgs;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Reflection;
 import org.vmmagic.pragma.Entrypoint;
@@ -34,7 +34,7 @@ import org.vmmagic.pragma.Entrypoint;
 public final class VM_MainThread extends Thread {
   private final String[] args;
   private final String[] agents;
-  private VM_Method mainMethod;
+  private RVMMethod mainMethod;
   protected boolean launched = false;
 
   private static final boolean dbg = false;
@@ -122,7 +122,7 @@ public final class VM_MainThread extends Thread {
     }
   }
 
-  VM_Method getMainMethod() {
+  RVMMethod getMainMethod() {
     return mainMethod;
   }
 
@@ -145,7 +145,7 @@ public final class VM_MainThread extends Thread {
     if (dbg) VM.sysWriteln("VM_MainThread.run() starting ");
 
     // Set up application class loader
-    ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
+    ClassLoader cl = RVMClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl);
 
     runAgents(cl);
@@ -153,7 +153,7 @@ public final class VM_MainThread extends Thread {
     if (dbg) VM.sysWrite("[VM_MainThread.run() loading class to run... ");
     // find method to run
     // load class specified by args[0]
-    VM_Class cls = null;
+    RVMClass cls = null;
     try {
       VM_Atom mainAtom = VM_Atom.findOrCreateUnicodeAtom(args[0].replace('.', '/'));
       VM_TypeReference mainClass = VM_TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());

@@ -13,8 +13,8 @@
 package org.jikesrvm.jni.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NativeMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
@@ -302,7 +302,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *
    * </pre>
    */
-  static void prepareStackHeader(VM_Assembler asm, VM_Method method, int compiledMethodId) {
+  static void prepareStackHeader(VM_Assembler asm, RVMMethod method, int compiledMethodId) {
 
     // set 2nd word of header = return address already pushed by CALL
     asm.emitPUSH_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
@@ -358,8 +358,8 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *        low address          low address
    * </pre>
    */
-  static void storeParametersForLintel(VM_Assembler asm, VM_Method method) {
-    VM_Class klass = method.getDeclaringClass();
+  static void storeParametersForLintel(VM_Assembler asm, RVMMethod method) {
+    RVMClass klass = method.getDeclaringClass();
     int parameterWords = method.getParameterWords();
     int savedRegistersSize = SAVED_GPRS << LG_WORDSIZE;
     int firstLocalOffset = STACKFRAME_BODY_OFFSET - savedRegistersSize;
@@ -459,7 +459,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     // Insert the JNI arg at the second entry: class or object as a jref index
     if (method.isStatic()) {
-      // For static method, push on arg stack the VM_Class object
+      // For static method, push on arg stack the RVMClass object
       //    jtoc[tibOffset] -> class TIB ptr -> first TIB entry -> class object -> classForType
       Offset klassOffset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass.getClassForType()));
       // push java.lang.Class object for klass
@@ -834,7 +834,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitNOP(); // end of prologue marker
   }
 
-  public static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {
+  public static void generateEpilogForJNIMethod(VM_Assembler asm, RVMMethod method) {
     // assume RVM PR regs still valid. potentially T1 & T0 contain return
     // values and should not be modified. we use regs saved in prolog and restored
     // before return to do whatever needs to be done.

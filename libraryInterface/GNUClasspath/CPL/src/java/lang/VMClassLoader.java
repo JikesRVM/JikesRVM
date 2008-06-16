@@ -35,8 +35,8 @@ import java.util.Vector;
 import java.util.zip.ZipFile;
 
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMType;
 
 import org.jikesrvm.util.HashMapRVM;
 
@@ -90,7 +90,7 @@ final class VMClassLoader {
                               byte[] data, int offset, int len,
                               ProtectionDomain pd)
                               throws ClassFormatError {
-    VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
+    RVMType vmType = RVMClassLoader.defineClassInternal(name, data, offset, len, cl);
     Class<?> ans = vmType.getClassForType();
     JikesRVMSupport.setClassProtectionDomain(ans, pd);
     HashMapRVM<String,Class<?>> mapForCL = loadedClasses.get(cl);
@@ -103,7 +103,7 @@ final class VMClassLoader {
   }
 
   static void resolveClass(Class<?> c) {
-    VM_Type cls = JikesRVMSupport.getTypeForClass(c);
+    RVMType cls = JikesRVMSupport.getTypeForClass(c);
     cls.resolve();
     cls.instantiate();
     cls.initialize();
@@ -211,34 +211,34 @@ final class VMClassLoader {
   }
 
   static Class<?> getPrimitiveClass(char type) {
-    VM_Type t;
+    RVMType t;
     switch (type) {
     case 'Z':
-      t = VM_Type.BooleanType;
+      t = RVMType.BooleanType;
       break;
     case 'B':
-      t = VM_Type.ByteType;
+      t = RVMType.ByteType;
       break;
     case 'C':
-      t = VM_Type.CharType;
+      t = RVMType.CharType;
       break;
     case 'D':
-      t = VM_Type.DoubleType;
+      t = RVMType.DoubleType;
       break;
     case 'F':
-      t = VM_Type.FloatType;
+      t = RVMType.FloatType;
       break;
     case 'I':
-      t = VM_Type.IntType;
+      t = RVMType.IntType;
       break;
     case 'J':
-      t = VM_Type.LongType;
+      t = RVMType.LongType;
       break;
     case 'S':
-      t = VM_Type.ShortType;
+      t = RVMType.ShortType;
       break;
     case 'V':
-      t = VM_Type.VoidType;
+      t = RVMType.VoidType;
       break;
     default:
       throw new NoClassDefFoundError("Invalid type specifier: " + type);
@@ -261,7 +261,7 @@ final class VMClassLoader {
   }
 
   static ClassLoader getSystemClassLoader() {
-    return VM_ClassLoader.getApplicationClassLoader();
+    return RVMClassLoader.getApplicationClassLoader();
   }
 
   static Class<?>[] getAllLoadedClasses() {

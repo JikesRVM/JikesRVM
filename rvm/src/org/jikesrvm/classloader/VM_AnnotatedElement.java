@@ -28,8 +28,8 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   /**
    * Annotations from the class file that are described as runtime
    * visible. These annotations are available to the reflection API.
-   * This is either null, a VM_Annotation if a single annotation is
-   * present, or an array of VM_Annotation if there is &gt;1
+   * This is either null, a RVMAnnotation if a single annotation is
+   * present, or an array of RVMAnnotation if there is &gt;1
    */
   protected final Object declaredAnnotationDatas;
   /** Cached array of declared annotations. */
@@ -42,7 +42,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    *
    * @param annotations array of runtime visible annotations
    */
-  protected VM_AnnotatedElement(VM_Annotation[] annotations) {
+  protected VM_AnnotatedElement(RVMAnnotation[] annotations) {
     if (annotations == null) {
       declaredAnnotationDatas = null;
       declaredAnnotations = emptyAnnotationArray;
@@ -52,7 +52,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
       this.declaredAnnotationDatas = annotations;
     }
     if (annotations != null) {
-      for (VM_Annotation ann : annotations) {
+      for (RVMAnnotation ann : annotations) {
         if (ann == null)  throw new Error("null annotation in " + toString());
       }
     }
@@ -60,19 +60,19 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
 
   /**
    * Read annotations from a class file and package in an array
-   * @param constantPool the constantPool of the VM_Class object
+   * @param constantPool the constantPool of the RVMClass object
    * that's being constructed
    * @param input the DataInputStream to read the method's attributes
    * from
    * @return an array of read annotations
    */
-  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input,
+  protected static RVMAnnotation[] readAnnotations(int[] constantPool, DataInputStream input,
                                                    ClassLoader classLoader) throws IOException {
     try {
       int numAnnotations = input.readUnsignedShort();
-      final VM_Annotation[] annotations = new VM_Annotation[numAnnotations];
+      final RVMAnnotation[] annotations = new RVMAnnotation[numAnnotations];
       for (int j = 0; j < numAnnotations; j++) {
-        annotations[j] = VM_Annotation.readAnnotation(constantPool, input, classLoader);
+        annotations[j] = RVMAnnotation.readAnnotation(constantPool, input, classLoader);
       }
       return annotations;
     } catch (ClassNotFoundException e) {
@@ -130,12 +130,12 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   final Annotation[] toAnnotations(final Object datas) {
     if (null == datas) {
       return emptyAnnotationArray;
-    } else if (datas instanceof VM_Annotation) {
+    } else if (datas instanceof RVMAnnotation) {
       final Annotation[] copy = new Annotation[1];
-      copy[0] = ((VM_Annotation)datas).getValue();
+      copy[0] = ((RVMAnnotation)datas).getValue();
       return copy;
     } else {
-      VM_Annotation[] annotations = (VM_Annotation[])datas;
+      RVMAnnotation[] annotations = (RVMAnnotation[])datas;
       final Annotation[] copy = new Annotation[annotations.length];
       for (int i = 0; i < copy.length; i++) {
         copy[i] = annotations[i].getValue();
@@ -190,11 +190,11 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
     if (declaredAnnotationDatas == null) {
       return false;
-    } else if (declaredAnnotationDatas instanceof VM_Annotation) {
-      VM_Annotation annotation = (VM_Annotation)declaredAnnotationDatas;
+    } else if (declaredAnnotationDatas instanceof RVMAnnotation) {
+      RVMAnnotation annotation = (RVMAnnotation)declaredAnnotationDatas;
       return annotation.annotationType() == annotationTypeRef;
     } else {
-      for (VM_Annotation annotation : (VM_Annotation[])declaredAnnotationDatas) {
+      for (RVMAnnotation annotation : (RVMAnnotation[])declaredAnnotationDatas) {
         if (annotation.annotationType() == annotationTypeRef) {
           return true;
         }

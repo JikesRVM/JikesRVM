@@ -20,9 +20,9 @@ import java.util.StringTokenizer;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.database.callgraph.VM_PartialCallGraph;
-import org.jikesrvm.classloader.VM_ClassLoader;
+import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 
 /**
@@ -89,8 +89,8 @@ public class VM_DynamicCallFileInfoReader {
       VM_MemberReference callerKey = VM_MemberReference.parse(parser, boot);
       if (callerKey == null) return;
       VM_MethodReference callerRef = callerKey.asMethodReference();
-      VM_Method caller, callee;
-      if (callerRef.getType().getClassLoader() == VM_ClassLoader.getApplicationClassLoader()) {
+      RVMMethod caller, callee;
+      if (callerRef.getType().getClassLoader() == RVMClassLoader.getApplicationClassLoader()) {
         caller = callerRef.resolve();
       } else {
         caller = callerRef.getResolvedMember();
@@ -103,7 +103,7 @@ public class VM_DynamicCallFileInfoReader {
       if (calleeKey == null) return;
       VM_MethodReference calleeRef = calleeKey.asMethodReference();
       //if (callee == null) continue;
-      if (calleeRef.getType().getClassLoader() == VM_ClassLoader.getApplicationClassLoader()) {
+      if (calleeRef.getType().getClassLoader() == RVMClassLoader.getApplicationClassLoader()) {
         callee = calleeRef.resolve();
       } else {
         callee = calleeRef.getResolvedMember();

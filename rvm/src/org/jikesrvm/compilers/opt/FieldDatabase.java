@@ -13,23 +13,23 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
  * database to hold field-level information
- * this is a mapping from VM_Field -> FieldDatabaseEntry
+ * this is a mapping from RVMField -> FieldDatabaseEntry
  */
 final class FieldDatabase {
   private static final boolean DEBUG = false;
 
-  private final ImmutableEntryHashMapRVM<VM_Field, FieldDatabase.FieldDatabaseEntry> db =
-    new ImmutableEntryHashMapRVM<VM_Field, FieldDatabase.FieldDatabaseEntry>();
+  private final ImmutableEntryHashMapRVM<RVMField, FieldDatabase.FieldDatabaseEntry> db =
+    new ImmutableEntryHashMapRVM<RVMField, FieldDatabase.FieldDatabaseEntry>();
 
-  FieldDatabaseEntry findOrCreateEntry(VM_Field f) {
+  FieldDatabaseEntry findOrCreateEntry(RVMField f) {
     FieldDatabaseEntry e = db.get(f);
     if (e == null) {
       e = new FieldDatabaseEntry(f);
@@ -41,7 +41,7 @@ final class FieldDatabase {
   /**
    * return the concrete type of a field, or null if none determined
    */
-  public VM_TypeReference getConcreteType(VM_Field f) {
+  public VM_TypeReference getConcreteType(RVMField f) {
     FieldDatabaseEntry e = db.get(f);
     if (e == null) return null;
 
@@ -54,11 +54,11 @@ final class FieldDatabase {
 
   // a data structure holding information about a field
   static final class FieldDatabaseEntry {
-    private final ImmutableEntryHashMapRVM<VM_Method, FieldWriterInfo> summaries;
+    private final ImmutableEntryHashMapRVM<RVMMethod, FieldWriterInfo> summaries;
     boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
     VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
 
-    FieldWriterInfo findMethodInfo(VM_Method m) {
+    FieldWriterInfo findMethodInfo(RVMMethod m) {
       return summaries.get(m);
     }
 
@@ -96,15 +96,15 @@ final class FieldDatabase {
 
     // create a new FieldDatabaseEntry, with a FieldWriterInfo
     // for each method that may write this field
-    FieldDatabaseEntry(VM_Field f) {
+    FieldDatabaseEntry(RVMField f) {
       if (VM.VerifyAssertions) VM._assert(f.isPrivate());
 
-      VM_Class klass = f.getDeclaringClass();
-      summaries = new ImmutableEntryHashMapRVM<VM_Method, FieldWriterInfo>(1);
+      RVMClass klass = f.getDeclaringClass();
+      summaries = new ImmutableEntryHashMapRVM<RVMMethod, FieldWriterInfo>(1);
 
       // walk thru each method of the declaring class.
       // If a method m may write to f, then create a FieldWriterInfo for m
-      for (VM_Method m : klass.getDeclaredMethods()) {
+      for (RVMMethod m : klass.getDeclaredMethods()) {
         if (m.mayWrite(f)) {
           FieldWriterInfo info = new FieldWriterInfo();
           if (DEBUG) debug("New summary METHOD " + m + " FIELD " + f + " INFO " + info);

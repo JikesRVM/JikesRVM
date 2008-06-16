@@ -50,7 +50,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
   }
 
   /**
-   * Cause dynamic linking of the VM_Member whose member reference id is given.
+   * Cause dynamic linking of the RVMMember whose member reference id is given.
    * Invoked directly from (baseline) compiled code.
    * @param memberId the dynamicLinkingId of the method to link.
    * @return returns the offset of the member.
@@ -67,8 +67,8 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * @return returns the offset of the member.
    */
   public static int resolveMember(VM_MemberReference ref) throws NoClassDefFoundError {
-    VM_Member resolvedMember = ref.resolveMember();
-    VM_Class declaringClass = resolvedMember.getDeclaringClass();
+    RVMMember resolvedMember = ref.resolveMember();
+    RVMClass declaringClass = resolvedMember.getDeclaringClass();
     RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
     int offset = resolvedMember.getOffset().toInt();
     if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);

@@ -31,7 +31,7 @@ import org.jikesrvm.compilers.opt.liveness.LiveSet;
 public final class ExceptionHandlerBasicBlock extends BasicBlock {
 
   /**
-   * The VM_Type(s) of the exception(s) caught by this block.
+   * The RVMType(s) of the exception(s) caught by this block.
    */
   private TypeOperand[] exceptionTypes;
 

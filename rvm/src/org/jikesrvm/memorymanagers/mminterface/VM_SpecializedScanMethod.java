@@ -16,10 +16,10 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_SpecializedMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.objectmodel.VM_JavaHeaderConstants;
@@ -87,9 +87,9 @@ public final class VM_SpecializedScanMethod extends VM_SpecializedMethod impleme
 
     if (!VM.BuildWithBaseBootImageCompiler) {
       /* Compile our specialized methods when we are opt compiling */
-      VM_Class myClass = specializedScanMethodType.peekType().asClass();
+      RVMClass myClass = specializedScanMethodType.peekType().asClass();
       for(int i=0; i < PATTERNS; i++) {
-        VM_Method method = myClass.findStaticMethod(templateMethodName(i), specializedMethodDescriptor);
+        RVMMethod method = myClass.findStaticMethod(templateMethodName(i), specializedMethodDescriptor);
         specializedMethods[i] = compileSpecializedMethod(method, specializedSignature);
       }
     }
@@ -99,7 +99,7 @@ public final class VM_SpecializedScanMethod extends VM_SpecializedMethod impleme
    * Get the pattern index for a given type
    */
   @Interruptible
-  private static int getPattern(VM_Type type) {
+  private static int getPattern(RVMType type) {
     /* Handle array types */
     if (type.isArrayType()) {
       if (type.asArray().getElementType().isReferenceType()) {
@@ -142,7 +142,7 @@ public final class VM_SpecializedScanMethod extends VM_SpecializedMethod impleme
    * TODO: Lazily compile specialized methods?
    */
   @Interruptible
-  public synchronized CodeArray specializeMethod(VM_Type type) {
+  public synchronized CodeArray specializeMethod(RVMType type) {
     /* Work out which pattern this type uses */
     int pattern = getPattern(type);
 
@@ -195,9 +195,9 @@ public final class VM_SpecializedScanMethod extends VM_SpecializedMethod impleme
   /** Fallback */
   public static void fallback(Object object, TransitiveClosure trace) {
     ObjectReference objectRef = ObjectReference.fromObject(object);
-    VM_Type type = VM_ObjectModel.getObjectType(objectRef.toObject());
+    RVMType type = VM_ObjectModel.getObjectType(objectRef.toObject());
     if (type.isClassType()) {
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       int[] offsets = klass.getReferenceOffsets();
       for(int i=0; i < offsets.length; i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(offsets[i]));

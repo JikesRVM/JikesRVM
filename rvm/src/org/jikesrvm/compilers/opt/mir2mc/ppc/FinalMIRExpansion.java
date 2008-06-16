@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Binary;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
@@ -310,7 +310,7 @@ public abstract class FinalMIRExpansion extends IRTools {
    * BACKEDGE?
    */
   static BasicBlock findOrCreateYieldpointBlock(IR ir, int whereFrom) {
-    VM_Method meth = null;
+    RVMMethod meth = null;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register zero = phys.getGPR(0);
 

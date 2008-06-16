@@ -18,11 +18,11 @@ import java.lang.ref.WeakReference;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_HeapLayoutConstants;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_SpecializedMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
@@ -360,7 +360,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       if (Space.isMovable(ref)) {
         VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
         VM.sysWriteln("  obj = ", ref);
-        VM_Type t = VM_Magic.getObjectType(object);
+        RVMType t = VM_Magic.getObjectType(object);
         VM.sysWrite(" type = ");
         VM.sysWriteln(t.getDescriptor());
         VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
@@ -506,7 +506,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
 
   /**
    * Returns the appropriate allocation scheme/area for the given
-   * type.  This form is deprecated.  Without the VM_Method argument,
+   * type.  This form is deprecated.  Without the RVMMethod argument,
    * it is possible that the wrong allocator is chosen which may
    * affect correctness. The prototypical example is that JMTk
    * meta-data must generally be in immortal or at least non-moving
@@ -517,7 +517,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return the identifier of the appropriate allocator
    */
   @Interruptible
-  public static int pickAllocator(VM_Type type) {
+  public static int pickAllocator(RVMType type) {
     return pickAllocator(type, null);
   }
 
@@ -555,10 +555,10 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return the identifier of the appropriate allocator
    */
   @Interruptible
-  public static int pickAllocator(VM_Type type, VM_Method method) {
+  public static int pickAllocator(RVMType type, RVMMethod method) {
     if (method != null) {
       // We should strive to be allocation-free here.
-      VM_Class cls = method.getDeclaringClass();
+      RVMClass cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
       if (Selected.Constraints.get().withGCspy()) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
@@ -584,7 +584,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * <code>type</code>.
    */
   @Interruptible
-  private static int pickAllocatorForType(VM_Type type) {
+  private static int pickAllocatorForType(RVMType type) {
     int allocator = Plan.ALLOC_DEFAULT;
     if (type.isArrayType() && type.asArray().getElementType().isPrimitiveType()) {
       allocator = Plan.ALLOC_NON_REFERENCE;
@@ -787,7 +787,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static CodeArray allocateCode(int numInstrs, boolean isHot) {
-    VM_Array type = VM_Type.CodeArrayType;
+    RVMArray type = RVMType.CodeArrayType;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
     int align = VM_ObjectModel.getAlignment(type);
     int offset = VM_ObjectModel.getOffsetForAlignment(type);
@@ -810,7 +810,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     if (!VM.runningVM) {
       return new byte[bytes];
     } else {
-      VM_Array stackType = VM_Array.ByteArray;
+      RVMArray stackType = RVMArray.ByteArray;
       int headerSize = VM_ObjectModel.computeArrayHeaderSize(stackType);
       int align = VM_ObjectModel.getAlignment(stackType);
       int offset = VM_ObjectModel.getOffsetForAlignment(stackType);
@@ -840,7 +840,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return WordArray.create(size);
     }
 
-    VM_Array arrayType = VM_Type.WordArrayType;
+    RVMArray arrayType = RVMType.WordArrayType;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
     int align = VM_ObjectModel.getAlignment(arrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
@@ -870,7 +870,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return new double[size];
     }
 
-    VM_Array arrayType = VM_Array.DoubleArray;
+    RVMArray arrayType = RVMArray.DoubleArray;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
     int align = VM_ObjectModel.getAlignment(arrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
@@ -900,7 +900,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return new int[size];
     }
 
-    VM_Array arrayType = VM_Array.IntArray;
+    RVMArray arrayType = RVMArray.IntArray;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
     int align = VM_ObjectModel.getAlignment(arrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
@@ -930,7 +930,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return new short[size];
     }
 
-    VM_Array arrayType = VM_Array.ShortArray;
+    RVMArray arrayType = RVMArray.ShortArray;
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
     int align = VM_ObjectModel.getAlignment(arrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
@@ -963,7 +963,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return VM_TIB.allocate(size);
     }
 
-    return (VM_TIB)newRuntimeTable(size, VM_Type.TIBType);
+    return (VM_TIB)newRuntimeTable(size, RVMType.TIBType);
   }
 
   /**
@@ -979,7 +979,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return VM_ProcessorTable.allocate(size);
     }
 
-    return (VM_ProcessorTable)newRuntimeTable(size, VM_Type.ProcessorTableType);
+    return (VM_ProcessorTable)newRuntimeTable(size, RVMType.ProcessorTableType);
   }
 
   /**
@@ -994,7 +994,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return VM_IMT.allocate();
     }
 
-    return (VM_IMT)newRuntimeTable(VM_TIBLayoutConstants.IMT_METHOD_SLOTS, VM_Type.IMTType);
+    return (VM_IMT)newRuntimeTable(VM_TIBLayoutConstants.IMT_METHOD_SLOTS, RVMType.IMTType);
   }
 
   /**
@@ -1010,7 +1010,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return VM_ITable.allocate(size);
     }
 
-    return (VM_ITable)newRuntimeTable(size, VM_Type.ITableType);
+    return (VM_ITable)newRuntimeTable(size, RVMType.ITableType);
   }
 
   /**
@@ -1026,7 +1026,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return VM_ITableArray.allocate(size);
     }
 
-    return (VM_ITableArray)newRuntimeTable(size, VM_Type.ITableArrayType);
+    return (VM_ITableArray)newRuntimeTable(size, RVMType.ITableArrayType);
   }
 
   /**
@@ -1037,11 +1037,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static Object newRuntimeTable(int size, VM_Type type) {
+  public static Object newRuntimeTable(int size, RVMType type) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
 
     VM_TIB realTib = type.getTypeInformationBlock();
-    VM_Array fakeType = VM_Type.WordArrayType;
+    RVMArray fakeType = RVMType.WordArrayType;
     VM_TIB fakeTib = fakeType.getTypeInformationBlock();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(fakeType);
     int align = VM_ObjectModel.getAlignment(fakeType);
@@ -1171,7 +1171,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param vmType The newly resolved type
    */
   @Interruptible
-  public static void notifyClassResolved(VM_Type vmType) {
+  public static void notifyClassResolved(RVMType vmType) {
     vmType.setMMAllocator(pickAllocatorForType(vmType));
   }
 

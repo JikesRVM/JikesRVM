@@ -14,8 +14,8 @@ package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
@@ -103,7 +103,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
    * If the located site is within the scope of a jsr subroutine
    *  the index value returned is a negative number
    */
-  public int locateGCPoint(Offset machCodeOffset, VM_Method method) {
+  public int locateGCPoint(Offset machCodeOffset, RVMMethod method) {
 
     machCodeOffset = machCodeOffset.minus(1 << LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
@@ -378,10 +378,10 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
   @Interruptible
   public int size() {
     int size = VM_TypeReference.VM_ReferenceMaps.peekType().asClass().getInstanceSize();
-    if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
-    if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);
+    if (MCSites != null) size += RVMArray.IntArray.getInstanceSize(MCSites.length);
+    if (referenceMaps != null) size += RVMArray.ByteArray.getInstanceSize(referenceMaps.length);
     if (jsrInfo != null && jsrInfo.unusualReferenceMaps != null) {
-      size += VM_Array.JavaLangObjectArray.getInstanceSize(jsrInfo.unusualReferenceMaps.length);
+      size += RVMArray.JavaLangObjectArray.getInstanceSize(jsrInfo.unusualReferenceMaps.length);
     }
     return size;
   }
@@ -1460,7 +1460,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
   }
 
   @Interruptible
-  public int showReferenceMapStatistics(VM_Method method) {
+  public int showReferenceMapStatistics(RVMMethod method) {
     int index = 0;
     int totalCount = 0;
     int count;
@@ -1511,7 +1511,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
    * @return true, if it is a reference type
    *         false, otherwise
    */
-  public boolean isLocalRefType(VM_Method method, Offset mcoff, int lidx) {
+  public boolean isLocalRefType(RVMMethod method, Offset mcoff, int lidx) {
     int bytenum, bitnum;
     byte[] maps;
 

@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -458,7 +458,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             currBBStkTop++;
             int cpi = bcodes.getConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == VM_Class.CP_STRING || type == VM_Class.CP_CLASS) {
+            if (type == RVMClass.CP_STRING || type == RVMClass.CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;
@@ -469,7 +469,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             currBBStkTop++;
             int cpi = bcodes.getWideConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == VM_Class.CP_STRING || type == VM_Class.CP_CLASS) {
+            if (type == RVMClass.CP_STRING || type == RVMClass.CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;

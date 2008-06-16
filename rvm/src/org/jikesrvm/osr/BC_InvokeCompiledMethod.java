@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -47,7 +47,7 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
 
   public int stackChanges() {
     VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-    VM_Method callee = cm.getMethod();
+    RVMMethod callee = cm.getMethod();
 
     int psize = callee.getParameterWords();
     int schanges = -psize;

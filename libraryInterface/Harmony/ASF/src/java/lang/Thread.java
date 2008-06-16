@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.apache.harmony.lang.RuntimePermissionCollection;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 
@@ -445,7 +445,7 @@ public class Thread implements Runnable {
       SecurityManager securityManager = System.getSecurityManager();
       if (securityManager != null) {
         //the first condition is satisfied
-        ClassLoader callerClassLoader = VM_Class.getClassLoaderFromStackFrame(1);
+        ClassLoader callerClassLoader = RVMClass.getClassLoaderFromStackFrame(1);
         if (callerClassLoader != null) {
           //the second condition is satisfied
           ClassLoader classLoader = contextClassLoader;

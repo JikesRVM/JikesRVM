@@ -42,7 +42,7 @@ import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
 import org.jikesrvm.ArchitectureSpecificOpt.ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecificOpt.ConvertALUOperators;
 import org.jikesrvm.ArchitectureSpecificOpt.NormalizeConstants;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.NullCheckCombining;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -161,7 +161,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
             break;
 
           case GET_CLASS_TIB_opcode: {
-            VM_Type type = ((TypeOperand) Unary.getVal(s)).getVMType();
+            RVMType type = ((TypeOperand) Unary.getVal(s)).getVMType();
             Offset offset = type.getTibOffset();
             Load.mutate(s,
                         REF_LOAD,

@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 
 /**
@@ -43,7 +43,7 @@ public final class VM_RecompilationManager {
           VM.sysWrite("Not recompiling method ID ", cmid, " because it has no compiledMethod\n");
         }
       } else {
-        VM_Method meth = cpMeth.getMethod();
+        RVMMethod meth = cpMeth.getMethod();
         if (DEBUG) {
           VM.sysWrite("numMethods: " +
                       numMethods +

@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_StackBrowser;
@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
 @SynchronizedObject
 final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
 
-  public VM_HardwareTrapCompiledMethod(int id, VM_Method m) {
+  public VM_HardwareTrapCompiledMethod(int id, RVMMethod m) {
     super(id, m);
   }
 
@@ -52,7 +52,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return null;
   }
 
-  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     return -1;
   }
 

@@ -17,9 +17,9 @@ import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
@@ -64,8 +64,8 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
       //VM.sysWriteln("checking one");
 
       VM_TypeReference tRef =
-          VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), value.getClassName());
-      VM_Class cls = (VM_Class) tRef.peekType();
+          VM_TypeReference.findOrCreate(RVMClassLoader.getApplicationClassLoader(), value.getClassName());
+      RVMClass cls = (RVMClass) tRef.peekType();
       if (cls == null) {
         try {
           cls = tRef.resolve().asClass();
@@ -79,7 +79,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
 
       if (cls != null) {
         // Find the method
-        VM_Method method = cls.findDeclaredMethod(value.getMethodName(), value.getMethodSig());
+        RVMMethod method = cls.findDeclaredMethod(value.getMethodName(), value.getMethodSig());
 
         // If found, compile it
         if ((method != null) &&

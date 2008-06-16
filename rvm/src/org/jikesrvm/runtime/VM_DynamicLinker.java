@@ -16,8 +16,8 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_DynamicLinkerHelper;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
@@ -41,7 +41,7 @@ public class VM_DynamicLinker implements VM_Constants {
   @Entrypoint
   static void lazyMethodInvoker() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
-    VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
+    RVMMethod targMethod = DL_Helper.resolveMethodRef(dl);
     DL_Helper.compileMethod(dl, targMethod);
     CodeArray code = targMethod.getCurrentEntryCodeArray();
     VM_Magic.dynamicBridgeTo(code);                   // restore parameters and invoke
@@ -56,7 +56,7 @@ public class VM_DynamicLinker implements VM_Constants {
   @Entrypoint
   static void unimplementedNativeMethod() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
-    VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
+    RVMMethod targMethod = DL_Helper.resolveMethodRef(dl);
     throw new UnsatisfiedLinkError(targMethod.toString());
   }
 
@@ -66,7 +66,7 @@ public class VM_DynamicLinker implements VM_Constants {
   @Entrypoint
   static void sysCallMethod() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
-    VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
+    RVMMethod targMethod = DL_Helper.resolveMethodRef(dl);
     throw new UnsatisfiedLinkError(targMethod.toString() + " which is a SysCall");
   }
 
@@ -106,13 +106,13 @@ public class VM_DynamicLinker implements VM_Constants {
     }
 
     /**
-     * Resolve method ref into appropriate VM_Method
+     * Resolve method ref into appropriate RVMMethod
      *
      * Taken:       VM_DynamicLink that describes call site.
-     * Returned:    VM_Method that should be invoked.
+     * Returned:    RVMMethod that should be invoked.
      */
     @NoInline
-    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) {
+    static RVMMethod resolveMethodRef(VM_DynamicLink dynamicLink) {
       // resolve symbolic method reference into actual method
       //
       VM_MethodReference methodRef = dynamicLink.methodRef();
@@ -125,8 +125,8 @@ public class VM_DynamicLinker implements VM_Constants {
         VM.disableGC();
         Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
         VM.enableGC();
-        VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
-        VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
+        RVMClass targetClass = VM_Magic.getObjectType(targetObject).asClass();
+        RVMMethod targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
         if (targetMethod == null) {
           throw new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor());
         }
@@ -136,12 +136,12 @@ public class VM_DynamicLinker implements VM_Constants {
 
     /**
      * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
-     * @param targetMethod the VM_Method to compile (if not already compiled)
+     * @param targetMethod the RVMMethod to compile (if not already compiled)
      */
     @NoInline
-    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) {
+    static void compileMethod(VM_DynamicLink dynamicLink, RVMMethod targetMethod) {
 
-      VM_Class targetClass = targetMethod.getDeclaringClass();
+      RVMClass targetClass = targetMethod.getDeclaringClass();
 
       // if necessary, compile method
       //
@@ -165,7 +165,7 @@ public class VM_DynamicLinker implements VM_Constants {
         VM.disableGC();
         Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
         VM.enableGC();
-        VM_Class recvClass = (VM_Class) VM_Magic.getObjectType(targetObject);
+        RVMClass recvClass = (RVMClass) VM_Magic.getObjectType(targetObject);
         recvClass.updateTIBEntry(targetMethod);
       }
     }

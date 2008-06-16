@@ -14,7 +14,7 @@ package org.jikesrvm.adaptive.controller;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
@@ -34,7 +34,7 @@ public abstract class VM_HotMethodEvent {
 
   public final VM_CompiledMethod getCompiledMethod() { return cm; }
 
-  public final VM_Method getMethod() { return cm.getMethod(); }
+  public final RVMMethod getMethod() { return cm.getMethod(); }
 
   public final boolean isOptCompiled() {
     return cm.getCompilerType() == VM_CompiledMethod.OPT;

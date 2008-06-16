@@ -23,12 +23,12 @@ final class VM_MethodVector {
   //-----------//
 
   public VM_MethodVector() {
-    array = new VM_Method[10];
+    array = new RVMMethod[10];
   }
 
   // Add item.
   //
-  void addElement(VM_Method item) {
+  void addElement(RVMMethod item) {
     if (cnt == array.length) {
       adjustLength(cnt << 1); // double size of array
     }
@@ -37,7 +37,7 @@ final class VM_MethodVector {
 
   // Add item if it is not already in the Vector.
   //
-  public void addUniqueElement(VM_Method item) {
+  public void addUniqueElement(RVMMethod item) {
     for (int i = 0; i < cnt; i++) {
       if (array[i] == item) return;
     }
@@ -46,13 +46,13 @@ final class VM_MethodVector {
 
   // Get item.
   //
-  VM_Method elementAt(int index) {
+  RVMMethod elementAt(int index) {
     return array[index];
   }
 
   // Set item.
   //
-  void setElementAt(VM_Method item, int index) {
+  void setElementAt(RVMMethod item, int index) {
     array[index] = item;
   }
 
@@ -64,8 +64,8 @@ final class VM_MethodVector {
 
   // Get array, trimmed to size.
   //
-  public VM_Method[] finish() {
-    VM_Method[] result = popularMVs.get(this);
+  public RVMMethod[] finish() {
+    RVMMethod[] result = popularMVs.get(this);
     if (result != null) {
       array = result;
       return result;
@@ -101,18 +101,18 @@ final class VM_MethodVector {
   // implementation //
   //----------------//
 
-  private VM_Method[] array;
+  private RVMMethod[] array;
   private int cnt;
 
-  private static final VM_Method[] empty = new VM_Method[0];
-  private static final WeakHashMap<VM_MethodVector, VM_Method[]>
-    popularMVs = new WeakHashMap<VM_MethodVector, VM_Method[]>();
+  private static final RVMMethod[] empty = new RVMMethod[0];
+  private static final WeakHashMap<VM_MethodVector, RVMMethod[]>
+    popularMVs = new WeakHashMap<VM_MethodVector, RVMMethod[]>();
 
   private void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {
-      VM_Method[] newElements = new VM_Method[newLength];
+      RVMMethod[] newElements = new RVMMethod[newLength];
       int n = array.length;
       if (n > newLength) {
         n = newLength;

@@ -14,9 +14,9 @@ package org.jikesrvm;
 
 import java.util.Enumeration;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
@@ -34,10 +34,10 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  * The following events are currently implemented.  See code for exact
  * invocation syntax.
  * <ul>
- * <li> ClassLoaded       - called after a VM_Class is loaded
- * <li> ClassResolved     - called after a VM_Class is resolved
- * <li> ClassInstantiated - called after a VM_Class is instantiated
- * <li> ClassInitialized  - called after a VM_Class is initialized
+ * <li> ClassLoaded       - called after a RVMClass is loaded
+ * <li> ClassResolved     - called after a RVMClass is resolved
+ * <li> ClassInstantiated - called after a RVMClass is instantiated
+ * <li> ClassInitialized  - called after a RVMClass is initialized
  * <li> MethodOverride    - called when a method in a newly loaded class
  *                          overrides a method in an existing class
  * <li> MethodCompile     - called before a method is compiled
@@ -78,7 +78,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been loaded.
      * @param klass the class that was loaded
      */
-    void notifyClassLoaded(VM_Class klass);
+    void notifyClassLoaded(RVMClass klass);
   }
 
   /**
@@ -107,7 +107,7 @@ public final class VM_Callbacks {
    * Notify the callback manager that a class has been loaded.
    * @param klass the class that was loaded
    */
-  public static void notifyClassLoaded(VM_Class klass) {
+  public static void notifyClassLoaded(RVMClass klass) {
     // NOTE: will need synchronization if allowing unregistering
     if (!classLoadedEnabled) return;
     classLoadedEnabled = false;
@@ -138,7 +138,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been resolved.
      * @param klass the class that was resolved
      */
-    void notifyClassResolved(VM_Class klass);
+    void notifyClassResolved(RVMClass klass);
   }
 
   /**
@@ -167,7 +167,7 @@ public final class VM_Callbacks {
    * Notify the callback manager that a class has been resolved.
    * @param klass the class that was resolved
    */
-  public static void notifyClassResolved(VM_Class klass) {
+  public static void notifyClassResolved(RVMClass klass) {
     // NOTE: will need synchronization if allowing unregistering
     if (!classResolvedEnabled) return;
     classResolvedEnabled = false;
@@ -198,7 +198,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been instantiated.
      * @param klass the class that was instantiated
      */
-    void notifyClassInstantiated(VM_Class klass);
+    void notifyClassInstantiated(RVMClass klass);
   }
 
   /**
@@ -227,7 +227,7 @@ public final class VM_Callbacks {
    * Notify the callback manager that a class has been instantiated.
    * @param klass the class that was instantiated
    */
-  public static void notifyClassInstantiated(VM_Class klass) {
+  public static void notifyClassInstantiated(RVMClass klass) {
     // NOTE: will need synchronization if allowing unregistering
     if (!classInstantiatedEnabled) return;
     classInstantiatedEnabled = false;
@@ -258,7 +258,7 @@ public final class VM_Callbacks {
      * Notify the monitor that a class has been initialized.
      * @param klass the class that was initialized
      */
-    void notifyClassInitialized(VM_Class klass);
+    void notifyClassInitialized(RVMClass klass);
   }
 
   /**
@@ -287,7 +287,7 @@ public final class VM_Callbacks {
    * Notify the callback manager that a class has been initialized.
    * @param klass the class that was initialized
    */
-  public static void notifyClassInitialized(VM_Class klass) {
+  public static void notifyClassInitialized(RVMClass klass) {
     // NOTE: will need synchronization if allowing unregistering
     if (!classInitializedEnabled) return;
     classInitializedEnabled = false;
@@ -319,7 +319,7 @@ public final class VM_Callbacks {
      * @param method the method that was loaded
      * @param parent the method that it overrides (null if none)
      */
-    void notifyMethodOverride(VM_Method method, VM_Method parent);
+    void notifyMethodOverride(RVMMethod method, RVMMethod parent);
   }
 
   /**
@@ -349,7 +349,7 @@ public final class VM_Callbacks {
    * @param method the method that was loaded
    * @param parent the method that it overrides (null if none)
    */
-  public static void notifyMethodOverride(VM_Method method, VM_Method parent) {
+  public static void notifyMethodOverride(RVMMethod method, RVMMethod parent) {
     // NOTE: will need synchronization if allowing unregistering
     if (!methodOverrideEnabled) return;
     methodOverrideEnabled = false;
@@ -390,7 +390,7 @@ public final class VM_Callbacks {
      * @param compiler the compiler that will be invoked.
      *        Values are constants in VM_CompiledMethod
      */
-    void notifyMethodCompile(VM_Method method, int compiler);
+    void notifyMethodCompile(RVMMethod method, int compiler);
   }
 
   /**
@@ -423,7 +423,7 @@ public final class VM_Callbacks {
    * @param compiler the compiler that will be invoked
    *        Values are constants in VM_CompiledMethod
    */
-  public static void notifyMethodCompile(VM_Method method, int compiler) {
+  public static void notifyMethodCompile(RVMMethod method, int compiler) {
     // NOTE: will need synchronization if allowing unregistering
     if (!methodCompileEnabled) return;
     methodCompileEnabled = false;
@@ -456,7 +456,7 @@ public final class VM_Callbacks {
      * Notify the monitor that java.lang.Class.forName was called.
      * @param type the type that will be returned
      */
-    void notifyForName(VM_Type type);
+    void notifyForName(RVMType type);
   }
 
   /**
@@ -485,7 +485,7 @@ public final class VM_Callbacks {
    * Notify the monitor that java.lang.Class.forName was called.
    * @param type the type that will be returned
    */
-  public static void notifyForName(VM_Type type) {
+  public static void notifyForName(RVMType type) {
     // NOTE: will need synchronization if allowing unregistering
     if (!forNameEnabled) return;
     forNameEnabled = false;
@@ -516,7 +516,7 @@ public final class VM_Callbacks {
      * Notify the monitor that java.lang.Class.defineclass was called.
      * @param type the type that will be returned
      */
-    void notifyDefineClass(VM_Type type);
+    void notifyDefineClass(RVMType type);
   }
 
   /**
@@ -545,7 +545,7 @@ public final class VM_Callbacks {
    * Notify the monitor that java.lang.Class.defineclass was called.
    * @param type the type that will be returned
    */
-  public static void notifyDefineClass(VM_Type type) {
+  public static void notifyDefineClass(RVMType type) {
     // NOTE: will need synchronization if allowing unregistering
     if (!defineClassEnabled) return;
     defineClassEnabled = false;
@@ -576,7 +576,7 @@ public final class VM_Callbacks {
      * Notify the monitor that java.lang.Class.loadclass was called.
      * @param type the type that will be returned
      */
-    void notifyLoadClass(VM_Type type);
+    void notifyLoadClass(RVMType type);
   }
 
   /**
@@ -605,7 +605,7 @@ public final class VM_Callbacks {
    * Notify the monitor that java.lang.Class.loadclass was called.
    * @param type the type that will be returned
    */
-  public static void notifyLoadClass(VM_Type type) {
+  public static void notifyLoadClass(RVMType type) {
     // NOTE: will need synchronization if allowing unregistering
     if (!loadClassEnabled) return;
     loadClassEnabled = false;

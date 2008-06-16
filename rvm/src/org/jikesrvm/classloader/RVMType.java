@@ -34,13 +34,13 @@ import org.vmmagic.unboxed.Offset;
  * To the three kinds of java objects
  * (class-instances, array-instances, primitive-instances)
  * there are three corresponding
- * subclasses of VM_Type: VM_Class, VM_Array, VM_Primitive.
+ * subclasses of RVMType: RVMClass, RVMArray, VM_Primitive.
  * <p>
- * A VM_Class is constructed in four phases:
+ * A RVMClass is constructed in four phases:
  * <ul>
  * <li> A "load" phase reads the ".class" file but does not attempt to
  *      examine any of the symbolic references present there. This is done
- *      by the VM_Class constructor as a result of a VM_TypeReference being
+ *      by the RVMClass constructor as a result of a VM_TypeReference being
  *      resolved.
  *
  * <li> A "resolve" phase follows symbolic references as needed to discover
@@ -53,14 +53,14 @@ import org.vmmagic.unboxed.Offset;
  * <li> An "initialize" phase runs the class's static initializer.
  * </ul>
  *
- * VM_Array's are constructed in a similar fashion.
+ * RVMArray's are constructed in a similar fashion.
  *
  * VM_Primitive's are constructed ab initio.
  * Their "resolution", "instantiation", and "initialization" phases
  * are no-ops.
  */
 @NonMoving
-public abstract class VM_Type extends VM_AnnotatedElement
+public abstract class RVMType extends VM_AnnotatedElement
     implements VM_ClassLoaderConstants, VM_SizeConstants, VM_Constants {
 
   /** Next space in the the type array */
@@ -75,14 +75,14 @@ public abstract class VM_Type extends VM_AnnotatedElement
    */
   private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
   /** All types */
-  private static VM_Type[][] types = new VM_Type[1][1 << LOG_ROW_SIZE];
+  private static RVMType[][] types = new RVMType[1][1 << LOG_ROW_SIZE];
 
   /** Canonical representation of no fields */
-  protected static final VM_Field[] emptyVMField = new VM_Field[0];
+  protected static final RVMField[] emptyVMField = new RVMField[0];
   /** Canonical representation of no methods */
-  protected static final VM_Method[] emptyVMMethod = new VM_Method[0];
+  protected static final RVMMethod[] emptyVMMethod = new RVMMethod[0];
   /** Canonical representation of no VM classes */
-  protected static final VM_Class[] emptyVMClass = new VM_Class[0];
+  protected static final RVMClass[] emptyVMClass = new RVMClass[0];
 
   /*
    * We hold on to a number of special types here for easy access.
@@ -96,32 +96,32 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public static final VM_Primitive FloatType;
   public static final VM_Primitive DoubleType;
   public static final VM_Primitive CharType;
-  public static final VM_Class JavaLangObjectType;
-  public static final VM_Array JavaLangObjectArrayType;
-  public static final VM_Class JavaLangClassType;
-  public static final VM_Class JavaLangThrowableType;
-  public static final VM_Class JavaLangStringType;
-  public static final VM_Class JavaLangCloneableType;
-  public static final VM_Class JavaIoSerializableType;
-  public static final VM_Class MagicType;
+  public static final RVMClass JavaLangObjectType;
+  public static final RVMArray JavaLangObjectArrayType;
+  public static final RVMClass JavaLangClassType;
+  public static final RVMClass JavaLangThrowableType;
+  public static final RVMClass JavaLangStringType;
+  public static final RVMClass JavaLangCloneableType;
+  public static final RVMClass JavaIoSerializableType;
+  public static final RVMClass MagicType;
   public static final VM_Primitive WordType;
-  public static final VM_Array WordArrayType;
+  public static final RVMArray WordArrayType;
   public static final VM_Primitive AddressType;
-  public static final VM_Array AddressArrayType;
-  public static final VM_Class ObjectReferenceType;
-  public static final VM_Array ObjectReferenceArrayType;
+  public static final RVMArray AddressArrayType;
+  public static final RVMClass ObjectReferenceType;
+  public static final RVMArray ObjectReferenceArrayType;
   public static final VM_Primitive OffsetType;
-  public static final VM_Array OffsetArrayType;
+  public static final RVMArray OffsetArrayType;
   public static final VM_Primitive ExtentType;
-  public static final VM_Array ExtentArrayType;
+  public static final RVMArray ExtentArrayType;
   public static final VM_Primitive CodeType;
-  public static final VM_Array CodeArrayType;
-  public static final VM_Class TIBType;
-  public static final VM_Class ITableType;
-  public static final VM_Class ITableArrayType;
-  public static final VM_Class IMTType;
-  public static final VM_Class ProcessorTableType;
-  public static final VM_Class FunctionTableType;
+  public static final RVMArray CodeArrayType;
+  public static final RVMClass TIBType;
+  public static final RVMClass ITableType;
+  public static final RVMClass ITableArrayType;
+  public static final RVMClass IMTType;
+  public static final RVMClass ProcessorTableType;
+  public static final RVMClass FunctionTableType;
 
   static {
     // Primitive types
@@ -168,7 +168,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   }
 
   /**
-   * Canonical type reference for this VM_Type instance
+   * Canonical type reference for this RVMType instance
    */
   protected final VM_TypeReference typeRef;
 
@@ -179,7 +179,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected final int id;
 
   /**
-   * index of jtoc slot that has type information block for this VM_Type
+   * index of jtoc slot that has type information block for this RVMType
    */
   protected final int tibOffset;
 
@@ -204,10 +204,10 @@ public abstract class VM_Type extends VM_AnnotatedElement
   @Entrypoint
   protected int depth;
   /**
-   * cached VM_Array that corresponds to arrays of this type.
+   * cached RVMArray that corresponds to arrays of this type.
    * (null ->> not created yet).
    */
-  private VM_Array cachedElementType;
+  private RVMArray cachedElementType;
 
   /**
    * The superclass ids for this type.
@@ -220,13 +220,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected int[] doesImplement;
 
   /**
-   * Create an instance of a {@link VM_Type}
+   * Create an instance of a {@link RVMType}
    * @param typeRef The canonical type reference for this type.
    * @param classForType The java.lang.Class representation
    * @param dimension The dimensionality
    * @param annotations array of runtime visible annotations
    */
-  protected VM_Type(VM_TypeReference typeRef, Class<?> classForType, int dimension, VM_Annotation[] annotations) {
+  protected RVMType(VM_TypeReference typeRef, Class<?> classForType, int dimension, RVMAnnotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
@@ -241,12 +241,12 @@ public abstract class VM_Type extends VM_AnnotatedElement
   }
 
   /**
-   * Create an instance of a {@link VM_Type}
+   * Create an instance of a {@link RVMType}
    * @param typeRef The canonical type reference for this type.
    * @param dimension The dimensionality
    * @param annotations array of runtime visible annotations
    */
-  protected VM_Type(VM_TypeReference typeRef, int dimension, VM_Annotation[] annotations) {
+  protected RVMType(VM_TypeReference typeRef, int dimension, RVMAnnotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
@@ -340,7 +340,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * get number of superclasses to Object
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
-   *   1 for VM_Arrays and classes that extend Object directly
+   *   1 for RVMArrays and classes that extend Object directly
    */
   @Uninterruptible
   public abstract int getTypeDepth();
@@ -359,19 +359,19 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract int getDimensionality();
 
   /**
-   * @return this cast to a VM_Class
+   * @return this cast to a RVMClass
    */
   @Uninterruptible
-  public final VM_Class asClass() {
-    return (VM_Class) this;
+  public final RVMClass asClass() {
+    return (RVMClass) this;
   }
 
   /**
-   * @return this cast to a VM_Array
+   * @return this cast to a RVMArray
    */
   @Uninterruptible
-  public final VM_Array asArray() {
-    return (VM_Array) this;
+  public final RVMArray asArray() {
+    return (RVMArray) this;
   }
 
   /**
@@ -468,7 +468,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * Get array type corresponding to "this" array element type.
    */
-  public final VM_Array getArrayTypeForElementType() {
+  public final RVMArray getArrayTypeForElementType() {
     if (cachedElementType == null) {
       VM_TypeReference tr = typeRef.getArrayTypeForElementType();
       cachedElementType = tr.resolve().asArray();
@@ -499,15 +499,15 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Allocate entry in types array and add it (NB resize array if it's
    * not long enough)
    */
-  private static synchronized int nextId(VM_Type it) {
+  private static synchronized int nextId(RVMType it) {
     int ans = nextId++;
     int column = ans >> LOG_ROW_SIZE;
     if (column >= types.length) {
-      VM_Type[][] newTypes = new VM_Type[column+1][];
+      RVMType[][] newTypes = new RVMType[column+1][];
       for (int i = 0; i < types.length; i++) {
         newTypes[i] = types[i];
       }
-      newTypes[column] = new VM_Type[1<<LOG_ROW_SIZE];
+      newTypes[column] = new RVMType[1<<LOG_ROW_SIZE];
       types = newTypes;
     }
     types[ans >> LOG_ROW_SIZE][ans & ROW_MASK] = it;
@@ -527,7 +527,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Get the type for the given id
    */
   @Uninterruptible
-  public static VM_Type getType(int id) {
+  public static RVMType getType(int id) {
     return types[id >> LOG_ROW_SIZE][id & ROW_MASK];
   }
 
@@ -535,7 +535,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Utility to create a java.lang.Class for the given type using the
    * given type reference
    */
-  protected static Class<?> createClassForType(VM_Type type, VM_TypeReference typeRef) {
+  protected static Class<?> createClassForType(RVMType type, VM_TypeReference typeRef) {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.createClass(type);
     } else {
@@ -543,9 +543,9 @@ public abstract class VM_Type extends VM_AnnotatedElement
       try {
         VM_Atom className = typeRef.getName();
         if (className.isAnnotationClass()) {
-          return Class.forName(className.annotationClassToAnnotationInterface(), false, VM_Type.class.getClassLoader());
+          return Class.forName(className.annotationClassToAnnotationInterface(), false, RVMType.class.getClassLoader());
         } else if (className.isClassDescriptor()) {
-          return Class.forName(className.classNameFromDescriptor(), false, VM_Type.class.getClassLoader());
+          return Class.forName(className.classNameFromDescriptor(), false, RVMType.class.getClassLoader());
         } else {
           String classNameString = className.toString();
           if (classNameString.equals("V")) {
@@ -567,7 +567,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
           } else if(classNameString.equals("B")){
             return byte.class;
           } else {
-            return Class.forName(classNameString.replace('/', '.'), false, VM_Type.class.getClassLoader());
+            return Class.forName(classNameString.replace('/', '.'), false, RVMType.class.getClassLoader());
           }
         }
       } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
@@ -592,11 +592,11 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * @param memberDescriptor method descriptor - something like "I" or "()I"
    * @return method description (null --> not found)
    */
-  public final VM_Method findVirtualMethod(VM_Atom memberName, VM_Atom memberDescriptor) {
+  public final RVMMethod findVirtualMethod(VM_Atom memberName, VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    VM_Method[] methods = getVirtualMethods();
+    RVMMethod[] methods = getVirtualMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
-      VM_Method method = methods[i];
+      RVMMethod method = methods[i];
       if (method.getName() == memberName && method.getDescriptor() == memberDescriptor) {
         return method;
       }
@@ -609,13 +609,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * @param slot the slot that contains the method
    * @return the method at that slot
    */
-  public final VM_Method getTIBMethodAtSlot(int slot) {
+  public final RVMMethod getTIBMethodAtSlot(int slot) {
     int index = VM_TIB.getVirtualMethodIndex(slot);
-    VM_Method[] methods = getVirtualMethods();
+    RVMMethod[] methods = getVirtualMethods();
     if (VM.VerifyAssertions) VM._assert(methods[index].getOffset().toInt() == slot << LOG_BYTES_IN_ADDRESS);
     return methods[index];
   }
-  // Methods implemented in VM_Primitive, VM_Array or VM_Class
+  // Methods implemented in VM_Primitive, RVMArray or RVMClass
 
   /**
    * Get the annotation implementing the specified class or null during boot
@@ -677,13 +677,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract Offset getThinLockOffset();
 
   /**
-   * @return whether or not this is an instance of VM_Class?
+   * @return whether or not this is an instance of RVMClass?
    */
   @Uninterruptible
   public abstract boolean isClassType();
 
   /**
-   * @return whether or not this is an instance of VM_Array?
+   * @return whether or not this is an instance of RVMArray?
    */
   @Uninterruptible
   public abstract boolean isArrayType();
@@ -758,24 +758,24 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * Static fields of this class/array type.
    */
-  public abstract VM_Field[] getStaticFields();
+  public abstract RVMField[] getStaticFields();
 
   /**
    * Non-static fields of this class/array type
    * (composed with supertypes, if any).
    */
-  public abstract VM_Field[] getInstanceFields();
+  public abstract RVMField[] getInstanceFields();
 
   /**
    * Statically dispatched methods of this class/array type.
    */
-  public abstract VM_Method[] getStaticMethods();
+  public abstract RVMMethod[] getStaticMethods();
 
   /**
    * Virtually dispatched methods of this class/array type
    * (composed with supertypes, if any).
    */
-  public abstract VM_Method[] getVirtualMethods();
+  public abstract RVMMethod[] getVirtualMethods();
 
   /**
    * Runtime type information for this class/array type.
@@ -807,8 +807,8 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /**
    * This returns the allocator id as supplied by the memory manager.
-   * The method is located here as this is the only common superclass of VM_Array
-   * and VM_Class, and due to performance reasons this needs to be a non-abstract
+   * The method is located here as this is the only common superclass of RVMArray
+   * and RVMClass, and due to performance reasons this needs to be a non-abstract
    * method. For VM_Primitive this field is unused.
    *
    * @return the allocator id previously recorded.

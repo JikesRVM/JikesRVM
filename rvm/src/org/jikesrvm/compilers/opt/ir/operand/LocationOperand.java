@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
@@ -34,11 +34,11 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * In the process, also switch to using synthetic VM_Fields
    * for the various pieces of the object header
    * (something like the following might work):
-   *   (VM_Field) VM.getMember("[I", "length", "I");   .
+   *   (RVMField) VM.getMember("[I", "length", "I");   .
    *      . . .                                        } all primitive types
-   * (VM_Field) VM.getMember("[J", "length", "I");   '
-   * (VM_Field) VM.getMember("[Ljava/lang/Object;", "length", "I");
-   * (VM_Field) VM.getMember("Ljava/lang/Object;", "TIB", "[I");
+   * (RVMField) VM.getMember("[J", "length", "I");   '
+   * (RVMField) VM.getMember("[Ljava/lang/Object;", "length", "I");
+   * (RVMField) VM.getMember("Ljava/lang/Object;", "TIB", "[I");
    */
 
   /** Enumeration of Access type */
@@ -102,7 +102,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * Constructs a new location operand with the given field
    * @param loc location
    */
-  public LocationOperand(VM_Field loc) {
+  public LocationOperand(RVMField loc) {
     type = FIELD_ACCESS;
     fieldRef = loc.getMemberRef().asFieldReference();
   }
@@ -199,7 +199,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    */
   public boolean mayBeVolatile() {
     if (!isFieldAccess()) return false;
-    VM_Field f = fieldRef.peekResolvedField();
+    RVMField f = fieldRef.peekResolvedField();
     return f == null || f.isVolatile();
   }
 

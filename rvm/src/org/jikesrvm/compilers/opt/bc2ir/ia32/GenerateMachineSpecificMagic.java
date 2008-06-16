@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.bc2ir.ia32;
 
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
@@ -53,7 +53,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, VM_Stac
    *
    * @param bc2ir the bc2ir object generating the ir containing this magic
    * @param gc == bc2ir.gc
-   * @param meth the VM_Method that is the magic method
+   * @param meth the RVMMethod that is the magic method
    */
   public static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, VM_MethodReference meth)
       throws MagicNotImplementedException {
@@ -76,7 +76,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, VM_Stac
     } else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      VM_Field f = VM_ArchEntrypoints.framePointerField;
+      RVMField f = VM_ArchEntrypoints.framePointerField;
       RegisterOperand pr = new RegisterOperand(phys.getESI(), VM_TypeReference.Int);
       bc2ir.appendInstruction(GetField.create(GETFIELD,
                                               val,

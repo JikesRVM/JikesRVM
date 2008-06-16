@@ -23,9 +23,9 @@ import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
@@ -717,7 +717,7 @@ public abstract class Simplifier extends IRTools {
       else
         return DefUseEffect.MOVE_REDUCED;
     } else if (ans == OptConstants.NO) {
-      VM_Type rType = rhsType.peekType();
+      RVMType rType = rhsType.peekType();
       if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
         // only final (or precise) rhs types can be optimized since rhsType may be conservative
         Trap.mutate(s, TRAP, null, TrapCodeOperand.CheckCast());
@@ -743,7 +743,7 @@ public abstract class Simplifier extends IRTools {
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       // NOTE: Constants.YES doesn't help because ref may be null and null instanceof T is false
       if (ans == OptConstants.NO) {
-        VM_Type rType = rhsType.peekType();
+        RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
           Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
@@ -767,7 +767,7 @@ public abstract class Simplifier extends IRTools {
         Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(1));
         return DefUseEffect.MOVE_FOLDED;
       } else if (ans == OptConstants.NO) {
-        VM_Type rType = rhsType.peekType();
+        RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
           Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
@@ -791,9 +791,9 @@ public abstract class Simplifier extends IRTools {
         // Caused by inlining new and type propogation
         return DefUseEffect.UNCHANGED;
       }
-      VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
+      RVMType typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
       if (typeOfIMElem != null) {
-        VM_Type typeOfVal = val.getType().peekType();
+        RVMType typeOfVal = val.getType().peekType();
         if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
           // Writing something of a final type to an array of that
           // final type is safe
@@ -834,9 +834,9 @@ public abstract class Simplifier extends IRTools {
       // Caused by inlining new and type propogation
       return DefUseEffect.UNCHANGED;
     }
-    VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
+    RVMType typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
     if (typeOfIMElem != null) {
-      VM_Type typeOfVal = val.getType().peekType();
+      RVMType typeOfVal = val.getType().peekType();
       if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
         // Writing something of a final type to an array of that
         // final type is safe
@@ -886,7 +886,7 @@ public abstract class Simplifier extends IRTools {
         else
           return DefUseEffect.MOVE_REDUCED;
       } else if (ans == OptConstants.NO) {
-        VM_Type rType = rhsType.peekType();
+        RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
           Trap.mutate(s, TRAP, null, TrapCodeOperand.MustImplement());
@@ -3171,8 +3171,8 @@ public abstract class Simplifier extends IRTools {
           }
         }
       } else if (methOp.isStatic() && methOp.hasPreciseTarget() && HIR) {
-        VM_Method containingMethod = s.position.getMethod();
-        VM_Method method = methOp.getTarget();
+        RVMMethod containingMethod = s.position.getMethod();
+        RVMMethod method = methOp.getTarget();
         // Can we remove the need for Class.forName to walk the stack?
         if (method == VM_Entrypoints.java_lang_Class_forName) {
           methOp = MethodOperand.STATIC(VM_Entrypoints.java_lang_Class_forName_withLoader.getMemberRef().asMethodReference(),
@@ -3184,7 +3184,7 @@ public abstract class Simplifier extends IRTools {
                        new IntConstantOperand(1), // true
                        new ObjectConstantOperand(containingMethod.getDeclaringClass().getClassLoader(), Offset.zero()));
           return DefUseEffect.REDUCED;
-        // Can we remove the need for VM_Class.getClass...FromStackFrame to walk the stack?
+        // Can we remove the need for RVMClass.getClass...FromStackFrame to walk the stack?
         } else if (method == VM_Entrypoints.getClassLoaderFromStackFrame ||
                    method == VM_Entrypoints.getClassFromStackFrame) {
           Operand frameOp = Call.getParam(s, 0);
@@ -3211,7 +3211,7 @@ public abstract class Simplifier extends IRTools {
       }
       if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
         // Look for a precise method call to a pure method with all constant arguments
-        VM_Method method = methOp.getTarget();
+        RVMMethod method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);
         for(int i=0; i < n; i++) {
           Operand param = Call.getParam(s,i);
@@ -3354,7 +3354,7 @@ public abstract class Simplifier extends IRTools {
         // final. As the reference is final the constructor
         // of the referred object MUST have already completed.
         // This also implies that the type MUST have been resolved.
-        VM_Field field = GetField.getLocation(s).getFieldRef().resolve();
+        RVMField field = GetField.getLocation(s).getFieldRef().resolve();
         if (field.isFinal() && field.getDeclaringClass().isInitialized()) {
           try {
             ConstantOperand op = StaticFieldReader.getFieldValueAsConstant(field, ref.asObjectConstant().value);
@@ -3501,13 +3501,13 @@ public abstract class Simplifier extends IRTools {
           ConstantOperand result;
           VM_TIB tibArray = tib.value.getTypeInformationBlock();
           if (tibArray.slotContainsTib(intSlot)) {
-            VM_Type typeOfTIB = ((VM_TIB)tibArray.get(intSlot)).getType();
+            RVMType typeOfTIB = ((VM_TIB)tibArray.get(intSlot)).getType();
             result = new TIBConstantOperand(typeOfTIB);
           } else if (tibArray.slotContainsCode(intSlot)) {
             // Only generate code constants when we want to make
             // some virtual calls go via the JTOC
             if (ConvertToLowLevelIR.CALL_VIA_JTOC) {
-              VM_Method method = tib.value.getTIBMethodAtSlot(intSlot);
+              RVMMethod method = tib.value.getTIBMethodAtSlot(intSlot);
               result = new CodeConstantOperand(method);
             } else {
               return DefUseEffect.UNCHANGED;

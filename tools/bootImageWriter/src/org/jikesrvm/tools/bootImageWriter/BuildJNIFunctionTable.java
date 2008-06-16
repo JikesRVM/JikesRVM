@@ -13,8 +13,8 @@
 package org.jikesrvm.tools.bootImageWriter;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.jni.VM_FunctionTable;
 import org.jikesrvm.jni.VM_JNIFunctions;
@@ -275,9 +275,9 @@ public class BuildJNIFunctionTable {
     String[] names = initNames();
     VM_FunctionTable functions = VM_FunctionTable.allocate(VM_JNIFunctions.FUNCTIONCOUNT);
 
-    VM_Class cls = VM_TypeReference.VM_JNIFunctions.peekType().asClass();
+    RVMClass cls = VM_TypeReference.VM_JNIFunctions.peekType().asClass();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
-    for (VM_Method mth : cls.getDeclaredMethods()) {
+    for (RVMMethod mth : cls.getDeclaredMethods()) {
       String methodName = mth.getName().toString();
       int jniIndex = indexOf(names, methodName);
       if (jniIndex != -1) {

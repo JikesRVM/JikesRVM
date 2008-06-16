@@ -13,7 +13,7 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_NormalMethod;
 
 /**
@@ -24,43 +24,43 @@ public interface VM_ArchEntrypoints {
       VM_EntrypointHelper.getMethod("Lorg/jikesrvm/" + VM_ArchEntrypoints.arch + "/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
   String arch = VM.BuildForIA32 ? "ia32" : "ppc";
   String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$CodeArray;";
-  VM_Field reflectiveMethodInvokerInstructionsField =
+  RVMField reflectiveMethodInvokerInstructionsField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
                "reflectiveMethodInvokerInstructions",
                ArchCodeArrayName);
-  VM_Field saveThreadStateInstructionsField =
+  RVMField saveThreadStateInstructionsField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", ArchCodeArrayName);
-  VM_Field threadSwitchInstructionsField =
+  RVMField threadSwitchInstructionsField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;", "threadSwitchInstructions", ArchCodeArrayName);
-  VM_Field restoreHardwareExceptionStateInstructionsField =
+  RVMField restoreHardwareExceptionStateInstructionsField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
                "restoreHardwareExceptionStateInstructions",
                ArchCodeArrayName);
-  VM_Field registersIPField =
+  RVMField registersIPField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "ip", "Lorg/vmmagic/unboxed/Address;");
-  VM_Field registersFPRsField = VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "fprs", "[D");
-  VM_Field registersGPRsField =
+  RVMField registersFPRsField = VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "fprs", "[D");
+  RVMField registersGPRsField =
       VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
-  VM_Field registersInUseField = VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "inuse", "Z");
-  VM_Field registersLRField =
+  RVMField registersInUseField = VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "inuse", "Z");
+  RVMField registersLRField =
       (VM.BuildForPowerPC) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
                                       "lr",
                                       "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field toSyncProcessorsField =
+  RVMField toSyncProcessorsField =
       (VM.BuildForPowerPC) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "toSyncProcessors", "I") : null;
-  VM_Field registersFPField =
+  RVMField registersFPField =
       (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
                                    "fp",
                                    "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field framePointerField =
+  RVMField framePointerField =
       (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/scheduler/VM_Processor;",
                                    "framePointer",
                                    "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field hiddenSignatureIdField =
+  RVMField hiddenSignatureIdField =
       (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/scheduler/VM_Processor;", "hiddenSignatureId", "I") : null;
-  VM_Field arrayIndexTrapParamField =
+  RVMField arrayIndexTrapParamField =
       (VM.BuildForIA32) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/scheduler/VM_Processor;", "arrayIndexTrapParam", "I") : null;
-  VM_Field JNIEnvSavedJTOCField =
+  RVMField JNIEnvSavedJTOCField =
       (VM.BuildForPowerPC) ? VM_EntrypointHelper.getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;",
                                       "savedJTOC",
                                       "Lorg/vmmagic/unboxed/Address;") : null;

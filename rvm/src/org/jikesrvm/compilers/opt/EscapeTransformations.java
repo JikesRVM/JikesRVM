@@ -17,7 +17,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEW_opcode;
 
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
@@ -206,7 +206,7 @@ public class EscapeTransformations extends CompilerPhase {
    */
   private AggregateReplacer getAggregateReplacer(Instruction inst, IR ir) {
     OptOptions options = ir.options;
-    VM_Type t = null;
+    RVMType t = null;
     if (inst.getOpcode() == NEW_opcode) {
       t = New.getType(inst).getVMType();
     } else if (inst.getOpcode() == NEWARRAY_opcode) {

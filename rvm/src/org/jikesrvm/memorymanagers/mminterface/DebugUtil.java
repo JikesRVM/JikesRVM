@@ -14,8 +14,8 @@ package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_TIB;
 import org.jikesrvm.runtime.VM_BootRecord;
@@ -41,16 +41,16 @@ public class DebugUtil implements VM_Constants, Constants {
 
   @Interruptible
   static void boot(VM_BootRecord theBootRecord) {
-    // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
-    VM_Type t = VM_Array.IntArray;
+    // get addresses of TIBs for RVMArray & RVMClass used for testing Type ptrs
+    RVMType t = RVMArray.IntArray;
     tibForArrayType = VM_ObjectModel.getTIB(t);
-    tibForPrimitiveType = VM_ObjectModel.getTIB(VM_Type.IntType);
+    tibForPrimitiveType = VM_ObjectModel.getTIB(RVMType.IntType);
     t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);
     tibForClassType = VM_ObjectModel.getTIB(t);
   }
 
   /**
-   * Check if an address appears to point to an instance of VM_Type
+   * Check if an address appears to point to an instance of RVMType
    *
    * @param typeAddress the address to check
    */
@@ -166,7 +166,7 @@ public class DebugUtil implements VM_Constants, Constants {
       VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
       return;
     }
-    VM_Type type = VM_Magic.getObjectType(ref.toObject());
+    RVMType type = VM_Magic.getObjectType(ref.toObject());
     ObjectReference itype = ObjectReference.fromObject(type);
     VM.sysWrite(" TYPE=");
     VM.sysWrite(itype);

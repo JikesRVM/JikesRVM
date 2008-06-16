@@ -136,7 +136,7 @@ public abstract class VM_RuntimeMeasurements {
 
       // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
       // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
-      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
+      //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
       //    Caller is a native method
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
       if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
@@ -227,7 +227,7 @@ public abstract class VM_RuntimeMeasurements {
 
       // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
       // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
-      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
+      //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
       //    Caller is a native method
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
       if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
@@ -264,7 +264,7 @@ public abstract class VM_RuntimeMeasurements {
 
       // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
       // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
-      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
+      //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
       //    Caller is a native method
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
       if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||

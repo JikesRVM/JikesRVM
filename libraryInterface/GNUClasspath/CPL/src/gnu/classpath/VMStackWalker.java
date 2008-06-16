@@ -26,7 +26,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Entrypoints;
 
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 
 
 public final class VMStackWalker {
@@ -88,7 +88,7 @@ public final class VMStackWalker {
     VM.enableGC();
 
 
-    VM_Type[] iclasses = new VM_Type[ frames ];
+    RVMType[] iclasses = new RVMType[ frames ];
 
     int i = 0;
     b = new VM_StackBrowser();
@@ -150,7 +150,7 @@ public final class VMStackWalker {
     b.up();
 
     /* OK, we're there at getClassContext()[1] now.  Return it. */
-    VM_Type ret = b.getCurrentClass();
+    RVMType ret = b.getCurrentClass();
     VM.enableGC();
 
     return ret.getClassForType();

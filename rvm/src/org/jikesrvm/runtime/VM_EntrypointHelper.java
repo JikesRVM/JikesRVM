@@ -16,9 +16,9 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Member;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 
@@ -36,19 +36,19 @@ public class VM_EntrypointHelper {
    * @param classDescriptor  class  descriptor - something like "Lorg/jikesrvm/RuntimeEntrypoints;"
    * @param memberName       member name       - something like "invokestatic"
    * @param memberDescriptor member descriptor - something like "()V"
-   * @return corresponding VM_Member object
+   * @return corresponding RVMMember object
    */
-  private static VM_Member getMember(String classDescriptor, String memberName, String memberDescriptor) {
+  private static RVMMember getMember(String classDescriptor, String memberName, String memberDescriptor) {
     VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
     VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
       VM_TypeReference tRef =
           VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), clsDescriptor);
-      VM_Class cls = (VM_Class) tRef.resolve();
+      RVMClass cls = (RVMClass) tRef.resolve();
       cls.resolve();
 
-      VM_Member member;
+      RVMMember member;
       if ((member = cls.findDeclaredField(memName, memDescriptor)) != null) {
         return member;
       }
@@ -83,8 +83,8 @@ public class VM_EntrypointHelper {
     return getMethod(klass, member, descriptor, true);
   }
 
-  public static VM_Field getField(String klass, String member, String descriptor) {
-    return (VM_Field) getMember(klass, member, descriptor);
+  public static RVMField getField(String klass, String member, String descriptor) {
+    return (RVMField) getMember(klass, member, descriptor);
   }
 
   /**
@@ -92,19 +92,19 @@ public class VM_EntrypointHelper {
    * @param klass class containing field
    * @param memberName member name - something like "invokestatic"
    * @param type of field
-   * @return corresponding VM_Field
+   * @return corresponding RVMField
    */
-  static VM_Field getField(Class<?> klass, String member, Class<?> type) {
+  static RVMField getField(Class<?> klass, String member, Class<?> type) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       try {
         VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
-        VM_Class cls = klassTRef.resolve().asClass();
+        RVMClass cls = klassTRef.resolve().asClass();
         cls.resolve();
 
         VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);
         VM_Atom typeName = VM_TypeReference.findOrCreate(type).getName();
 
-        VM_Field field = cls.findDeclaredField(memName, typeName);
+        RVMField field = cls.findDeclaredField(memName, typeName);
         if (field != null) {
           return field;
         }
@@ -122,21 +122,21 @@ public class VM_EntrypointHelper {
    * @param klass class containing field
    * @param memberName member name - something like "invokestatic"
    * @param type of field
-   * @return corresponding VM_Field
+   * @return corresponding RVMField
    */
-  static VM_Field getField(String klass, String member, Class<?> type) {
+  static RVMField getField(String klass, String member, Class<?> type) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(klass);
       try {
         VM_TypeReference tRef =
           VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), clsDescriptor);
-        VM_Class cls = tRef.resolve().asClass();
+        RVMClass cls = tRef.resolve().asClass();
         cls.resolve();
 
         VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);
         VM_Atom typeName = VM_TypeReference.findOrCreate(type).getName();
 
-        VM_Field field = cls.findDeclaredField(memName, typeName);
+        RVMField field = cls.findDeclaredField(memName, typeName);
         if (field != null) {
           return field;
         }
@@ -154,13 +154,13 @@ public class VM_EntrypointHelper {
    * @param klass class  containing method
    * @param memberName member name - something like "invokestatic"
    * @param memberDescriptor member descriptor - something like "()V"
-   * @return corresponding VM_Method
+   * @return corresponding RVMMethod
    */
   static VM_NormalMethod getMethod(Class<?> klass, String member, String descriptor) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       try {
         VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
-        VM_Class cls = klassTRef.resolve().asClass();
+        RVMClass cls = klassTRef.resolve().asClass();
         cls.resolve();
 
         VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);

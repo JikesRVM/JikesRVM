@@ -32,7 +32,7 @@ public class HeapVariable<T> {
   private final VM_BitVector definedIn;
   /**
    * The type of this heap variable.  Must be either a
-   * VM_TypeReference, VM_FieldReference, VM_Field or a String
+   * VM_TypeReference, VM_FieldReference, RVMField or a String
    */
   private final T type;
 
@@ -61,7 +61,7 @@ public class HeapVariable<T> {
 
   /**
    * Return the type representing this heap object.
-   * @return either a VM_TypeReference, VM_FieldReference, VM_Field or
+   * @return either a VM_TypeReference, VM_FieldReference, RVMField or
    * String object
    */
   public T getHeapType() {

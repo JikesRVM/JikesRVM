@@ -47,7 +47,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, VM_Stac
    * @param bc2ir the bc2ir object that is generating the
    *              ir containing this magic
    * @param gc == bc2ir.gc
-   * @param meth the VM_Method that is the magic method
+   * @param meth the RVMMethod that is the magic method
    */
   public static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, VM_MethodReference meth)
       throws MagicNotImplementedException {

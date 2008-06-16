@@ -29,7 +29,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 
@@ -261,7 +261,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
         VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      VM_Method method = compiledMethod.getMethod();
+      RVMMethod method = compiledMethod.getMethod();
       VM_Atom cls = method.getDeclaringClass().getDescriptor();
       VM_Atom name = method.getName();
       if (name == runAtom && cls == collectorThreadAtom) {

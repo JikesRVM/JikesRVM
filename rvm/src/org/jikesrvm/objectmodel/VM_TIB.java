@@ -14,7 +14,7 @@ package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampoline;
@@ -158,14 +158,14 @@ public final class VM_TIB implements VM_TIBLayoutConstants, VM_SizeConstants {
    * Get the type for this TIB.
    */
   @Inline
-  public VM_Type getType() {
+  public RVMType getType() {
     return VM_Magic.objectAsType(get(TIB_TYPE_INDEX));
   }
 
   /**
    * Set the type for this TIB.
    */
-  public void setType(VM_Type type) {
+  public void setType(RVMType type) {
     set(TIB_TYPE_INDEX, type);
   }
 

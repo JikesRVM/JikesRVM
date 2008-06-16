@@ -14,7 +14,7 @@ package org.jikesrvm.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
@@ -29,7 +29,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   //
-  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, VM_Method[] targets) {
+  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(numEntries); // pretend each entry is a bytecode
@@ -85,13 +85,13 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
   }
 
   // Generate a subtree covering from low to high inclusive.
-  private static void insertStubCase(VM_Assembler asm, int[] sigIds, VM_Method[] targets, int[] bcIndices, int low,
+  private static void insertStubCase(VM_Assembler asm, int[] sigIds, RVMMethod[] targets, int[] bcIndices, int low,
                                      int high) {
     int middle = (high + low) / 2;
     asm.resolveForwardReferences(bcIndices[middle]);
     if (low == middle && middle == high) {
       // a leaf case; can simply invoke the method directly.
-      VM_Method target = targets[middle];
+      RVMMethod target = targets[middle];
       if (target.isStatic()) {
         // an error case.
         asm.emitLAddrToc(S0, target.getOffset());
@@ -109,7 +109,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
         asm.emitShortBC(GT, 0, bcIndices[(middle + 1 + high) / 2]);
       }
       // invoke the method for middle.
-      VM_Method target = targets[middle];
+      RVMMethod target = targets[middle];
       if (target.isStatic()) {
         // an error case.
         asm.emitLAddrToc(S0, target.getOffset());

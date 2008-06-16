@@ -40,7 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_FieldReference;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -347,7 +347,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * Given a value number, return the temporary register allocated
    * for that value number.  Create one if necessary.
    *
-   * @param heapType a VM_TypeReference or VM_Field identifying the array SSA
+   * @param heapType a VM_TypeReference or RVMField identifying the array SSA
    *                    heap type
    * @param valueNumber
    * @param registers a mapping from value number to temporary register
@@ -392,7 +392,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   // A UseRecord represents a load that will be eliminated
   static class UseRecord {
-    final Object type;        // may be either a VM_TypeReference or a VM_Field
+    final Object type;        // may be either a VM_TypeReference or a RVMField
     final int v1;             // first value number (object pointer)
     final int v2;             // second value number (array index)
     static final int NONE = -2;
@@ -476,7 +476,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    *    1) there's a load L(i) of type T
    *    2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
    *
-   * The result contains objects of type VM_Field and VM_TypeReference, whose
+   * The result contains objects of type RVMField and VM_TypeReference, whose
    * narrowest common ancestor is Object.
    */
   @SuppressWarnings("unchecked")
@@ -485,7 +485,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     // which types have we seen loads for?
     HashSet<Object> seenLoad = new HashSet<Object>(10);
     // which static fields have we seen stores for?
-    HashSet<VM_Field> seenStore = new HashSet<VM_Field>(10);
+    HashSet<RVMField> seenStore = new HashSet<RVMField>(10);
     HashSet<Object> resultSet = new HashSet<Object>(10);
     HashSet<VM_FieldReference> forbidden = new HashSet<VM_FieldReference>(10);
     // for each type T, indices(T) gives the set of value number (pairs)
@@ -501,7 +501,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             case GETFIELD_opcode: {
               Operand ref = GetField.getRef(s);
               VM_FieldReference fr = GetField.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -520,7 +520,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             case PUTFIELD_opcode: {
               Operand ref = PutField.getRef(s);
               VM_FieldReference fr = PutField.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -539,7 +539,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             break;
             case GETSTATIC_opcode: {
               VM_FieldReference fr = GetStatic.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -552,7 +552,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             break;
             case PUTSTATIC_opcode: {
               VM_FieldReference fr = PutStatic.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -640,8 +640,8 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     for (final VM_FieldReference fieldReference : forbidden) {
       for (Iterator i2 = resultSet.iterator(); i2.hasNext();) {
         Object it = i2.next();
-        if (it instanceof VM_Field) {
-          final VM_Field field = (VM_Field) it;
+        if (it instanceof RVMField) {
+          final RVMField field = (RVMField) it;
           if (!fieldReference.definitelyDifferent(field.getMemberRef().asFieldReference())) {
             i2.remove();
           }

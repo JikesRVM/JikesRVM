@@ -18,8 +18,8 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
@@ -245,13 +245,13 @@ public class GenerateInterfaceDeclarations {
 
   }
 
-  static void emitCDeclarationsForJavaType(String Cname, VM_Class cls) {
+  static void emitCDeclarationsForJavaType(String Cname, RVMClass cls) {
 
     // How many instance fields are there?
     //
-    VM_Field[] allFields = cls.getDeclaredFields();
+    RVMField[] allFields = cls.getDeclaredFields();
     int fieldCount = 0;
-    for (VM_Field field : allFields) {
+    for (RVMField field : allFields) {
       if (!field.isStatic()) {
         fieldCount++;
       }
@@ -285,7 +285,7 @@ public class GenerateInterfaceDeclarations {
     }
 
     for (int i = 0; i < fields.length; i++) {
-      VM_Field field = fields[i].f;
+      RVMField field = fields[i].f;
       VM_TypeReference t = field.getType();
       Offset offset = field.getOffset();
       String name = field.getName().toString();
@@ -328,20 +328,20 @@ public class GenerateInterfaceDeclarations {
   }
 
   static void emitBootRecordDeclarations() {
-    VM_Class bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
+    RVMClass bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
     emitCDeclarationsForJavaType("VM_BootRecord", bootRecord);
   }
 
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordInitialization() {
-    VM_Class bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
-    VM_Field[] fields = bootRecord.getDeclaredFields();
+    RVMClass bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
+    RVMField[] fields = bootRecord.getDeclaredFields();
 
     // emit function declarations
     //
     for (int i = fields.length; --i >= 0;) {
-      VM_Field field = fields[i];
+      RVMField field = fields[i];
       if (field.isStatic()) {
         continue;
       }
@@ -362,7 +362,7 @@ public class GenerateInterfaceDeclarations {
     //
     p("extern \"C\" void setLinkage(VM_BootRecord* br){\n");
     for (int i = fields.length; --i >= 0;) {
-      VM_Field field = fields[i];
+      RVMField field = fields[i];
       if (field.isStatic()) {
         continue;
       }

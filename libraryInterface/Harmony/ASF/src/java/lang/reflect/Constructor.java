@@ -19,9 +19,9 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Member;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMember;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.VM_Reflection;
@@ -36,12 +36,12 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
   /**
 	* Data being wrapped by the Constructor API
 	*/
-  private final VM_Method vmConstructor;
+  private final RVMMethod vmConstructor;
 
   /**
 	* Constructor
 	*/
-  Constructor(VM_Method vmConstructor){
+  Constructor(RVMMethod vmConstructor){
 	 this.vmConstructor = vmConstructor;
   }
 
@@ -272,7 +272,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	*/
   public T newInstance(Object... args) throws InstantiationException, IllegalAccessException,
 															 IllegalArgumentException, InvocationTargetException {
-	 return (T)VMCommonLibrarySupport.construct(vmConstructor, this, args, VM_Class.getClassFromStackFrame(1));
+	 return (T)VMCommonLibrarySupport.construct(vmConstructor, this, args, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -326,7 +326,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
    * Get the VM member implementation. Package protected to stop outside use.
    */
   @Override
-  VM_Member getVMMember() {
+  RVMMember getVMMember() {
 	 return vmConstructor;
   }
 
@@ -335,7 +335,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
    * stop outside use.
    */
   @Override
-  VM_Method getVMMethod() {
+  RVMMethod getVMMethod() {
 	 return vmConstructor;
   }
 }

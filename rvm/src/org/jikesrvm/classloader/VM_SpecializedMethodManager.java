@@ -30,7 +30,7 @@ public final class VM_SpecializedMethodManager {
   public static int numSpecializedMethods() { return numSpecializedMethods; }
 
   /** Set up the specialized methods for the given type */
-  public static void notifyTypeInstantiated(VM_Type type) {
+  public static void notifyTypeInstantiated(RVMType type) {
     for(int i=0; i < numSpecializedMethods; i++) {
       if (methods[i] == null) {
         initializeSpecializedMethod(i);

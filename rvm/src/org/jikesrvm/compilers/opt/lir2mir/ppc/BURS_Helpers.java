@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
@@ -249,7 +249,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
    * @param RT
    * @param field
    */
-  private void emitLFtoc(Operator operator, Register RT, VM_Field field) {
+  private void emitLFtoc(Operator operator, Register RT, RVMField field) {
     Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     Offset offset = field.getOffset();
     int valueLow = Bits.PPCMaskLower16(offset);
@@ -1969,17 +1969,17 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     TrapCodeOperand tc = Trap.getClearTCode(s);
     switch (tc.getTrapCode()) {
       case RuntimeEntrypoints.TRAP_NULL_POINTER: {
-        VM_Method target = VM_Entrypoints.raiseNullPointerException;
+        RVMMethod target = VM_Entrypoints.raiseNullPointerException;
         mutateTrapToCall(s, target);
       }
       break;
       case RuntimeEntrypoints.TRAP_ARRAY_BOUNDS: {
-        VM_Method target = VM_Entrypoints.raiseArrayBoundsException;
+        RVMMethod target = VM_Entrypoints.raiseArrayBoundsException;
         mutateTrapToCall(s, target);
       }
       break;
       case RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO: {
-        VM_Method target = VM_Entrypoints.raiseArithmeticException;
+        RVMMethod target = VM_Entrypoints.raiseArithmeticException;
         mutateTrapToCall(s, target);
       }
       break;
@@ -2018,7 +2018,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     }
   }
 
-  private void mutateTrapToCall(Instruction s, VM_Method target) {
+  private void mutateTrapToCall(Instruction s, RVMMethod target) {
     Offset offset = target.getOffset();
     RegisterOperand tmp = regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();

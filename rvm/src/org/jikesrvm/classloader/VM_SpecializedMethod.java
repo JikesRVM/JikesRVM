@@ -42,7 +42,7 @@ public abstract class VM_SpecializedMethod {
   /**
    * Return the specialized method for the given type.
    */
-  public abstract CodeArray specializeMethod(VM_Type type);
+  public abstract CodeArray specializeMethod(RVMType type);
 
   /**
    * Return the method signature of the specialized method's invoke.
@@ -66,7 +66,7 @@ public abstract class VM_SpecializedMethod {
    * @param specializedParams The known types of the parameters, possibly more refined than in the template
    * @return The compiled code array.
    */
-  protected VM_CompiledMethod compileSpecializedMethod(VM_Method template, VM_TypeReference[] specializedParams) {
+  protected VM_CompiledMethod compileSpecializedMethod(RVMMethod template, VM_TypeReference[] specializedParams) {
     VM_NormalMethod normalMethod = (VM_NormalMethod)template;
     /* Currently only support eagerly compiled methods */
     if (VM.VerifyAssertions) VM._assert(VM.writingBootImage);

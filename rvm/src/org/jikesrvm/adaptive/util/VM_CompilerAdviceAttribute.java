@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
@@ -161,7 +161,7 @@ public class VM_CompilerAdviceAttribute {
 
   /**
    * Use a list of compiler advice attributes to create an advice map
-   * keyed on <code>VM_Method</code> instances.  This map is used by
+   * keyed on <code>RVMMethod</code> instances.  This map is used by
    * <code>getCompilerAdviceInfo()</code>.
    *
    * @param compilerAdviceList A list of compiler advice attributes
@@ -190,7 +190,7 @@ public class VM_CompilerAdviceAttribute {
    * @param method The method containing the site in question
    * @return Attribute advice for that site or null if none is found.
    */
-  public static VM_CompilerAdviceAttribute getCompilerAdviceInfo(VM_Method method) {
+  public static VM_CompilerAdviceAttribute getCompilerAdviceInfo(RVMMethod method) {
     tempAttr.className = method.getDeclaringClass().getDescriptor();
     tempAttr.methodName = method.getName();
     tempAttr.methodSig = method.getDescriptor();

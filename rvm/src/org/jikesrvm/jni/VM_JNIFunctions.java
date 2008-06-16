@@ -20,15 +20,15 @@ import org.jikesrvm.ArchitectureSpecific.VM_JNIHelpers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Properties;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_NativeMethod;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.classloader.VM_UTF8Convert;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
@@ -58,7 +58,7 @@ import org.vmmagic.unboxed.Offset;
  * The first argument for all the functions is the VM_JNIEnvironment object
  * of the thread. <br>
  *
- * The second argument is a JREF index for either the VM_Class object
+ * The second argument is a JREF index for either the RVMClass object
  * or the object instance itself.  To get the actual object, we use
  * the access method in VM_JNIEnvironment and cast the reference as
  * needed. <br>
@@ -147,13 +147,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       }
       ClassLoader cl;
       if (classLoader == 0) {
-        cl = VM_Class.getClassLoaderFromStackFrame(1);
+        cl = RVMClass.getClassLoaderFromStackFrame(1);
       } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
       }
       VM_AddressInputStream reader = new VM_AddressInputStream(data, Offset.fromIntZeroExtend(dataLen));
 
-      final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, reader, cl);
+      final RVMType vmType = RVMClassLoader.defineClassInternal(classString, reader, cl);
       return env.pushJNIRef(vmType.getClassForType());
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -164,7 +164,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   /**
-   * FindClass:  given a class name, find its VM_Class, or 0 if not found
+   * FindClass:  given a class name, find its RVMClass, or 0 if not found
    * @param env A JREF index for the JNI environment object
    * @param classNameAddress a raw address to a null-terminated string in C for the class name
    * @return a JREF index for the Java Class object, or 0 if not found
@@ -182,7 +182,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       classString = VM_JNIHelpers.createStringFromC(classNameAddress);
       if (traceJNI) VM.sysWriteln(classString);
-      ClassLoader cl = VM_Class.getClassLoaderFromStackFrame(1);
+      ClassLoader cl = RVMClass.getClassLoaderFromStackFrame(1);
       Class<?> matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
       return env.pushJNIRef(matchedClass);
     } catch (ClassNotFoundException e) {
@@ -285,7 +285,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       Class<?> cls = (Class<?>) env.getJNIRef(throwableClassJREF);
       // find the constructor that has a string as a parameter
       Class<?>[] argClasses = new Class[1];
-      argClasses[0] = VM_Type.JavaLangStringType.getClassForType();
+      argClasses[0] = RVMType.JavaLangStringType.getClassForType();
       Constructor<?> constMethod = cls.getConstructor(argClasses);
       // prepare the parameter list for reflective invocation
       Object[] argObjs = new Object[1];
@@ -461,12 +461,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Class<?> javaCls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(javaCls);
+      RVMType type = java.lang.JikesRVMSupport.getTypeForClass(javaCls);
       if (type.isArrayType() || type.isPrimitiveType()) {
         env.recordException(new InstantiationException());
         return 0;
       }
-      VM_Class cls = type.asClass();
+      RVMClass cls = type.asClass();
       if (cls.isAbstract() || cls.isInterface()) {
         env.recordException(new InstantiationException());
         return 0;
@@ -497,7 +497,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
+      RVMClass vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
 
       if (vmcls.isAbstract() || vmcls.isInterface()) {
         env.recordException(new InstantiationException());
@@ -532,7 +532,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
+      RVMClass vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
       if (vmcls.isAbstract() || vmcls.isInterface()) {
         env.recordException(new InstantiationException());
         return 0;
@@ -566,7 +566,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
+      RVMClass vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
 
       if (vmcls.isAbstract() || vmcls.isInterface()) {
         env.recordException(new InstantiationException());
@@ -618,8 +618,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       Object obj = env.getJNIRef(objJREF);
       if (obj == null) return 0; // null instanceof T is always false
-      VM_Type RHStype = VM_ObjectModel.getObjectType(obj);
-      VM_Type LHStype = java.lang.JikesRVMSupport.getTypeForClass(cls);
+      RVMType RHStype = VM_ObjectModel.getObjectType(obj);
+      RVMType LHStype = java.lang.JikesRVMSupport.getTypeForClass(cls);
       return (LHStype == RHStype || RuntimeEntrypoints.isAssignableWith(LHStype, RHStype)) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -653,19 +653,19 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      RVMType type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
         return 0;
       }
 
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       if (!klass.isInitialized()) {
         RuntimeEntrypoints.initializeClassForDynamicLink(klass);
       }
 
       // Find the target method
-      final VM_Method meth;
+      final RVMMethod meth;
       if (methodString.equals("<init>")) {
         meth = klass.findInitializerMethod(sigName);
       } else {
@@ -2211,7 +2211,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetFieldID:  return a field id, which can be cached in native code and reused
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
+   * @param classJREF a JREF index for the RVMClass object
    * @param fieldNameAddress a raw address to a null-terminated string in C for the field name
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
    * @return the fieldID of an instance field given the class, field name
@@ -2234,8 +2234,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       VM_Atom descriptor = VM_Atom.findOrCreateAsciiAtom(descriptorString);
 
       // list of all instance fields including superclasses
-      VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
-      for (VM_Field f : fields) {
+      RVMField[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
+      for (RVMField f : fields) {
         if (f.getName() == fieldName && f.getDescriptor() == descriptor) {
           return f.getId();
         }
@@ -2255,7 +2255,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetObjectField: read a instance field of type Object
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the Object field, converted to a JREF index
    *         or 0 if the fieldID is incorrect
    */
@@ -2265,7 +2265,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       Object objVal = field.getObjectUnchecked(obj);
       return env.pushJNIRef(objVal);
     } catch (Throwable unexpected) {
@@ -2279,7 +2279,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetBooleanField: read an instance field of type boolean
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the boolean field, or 0 if the fieldID is incorrect
    */
   private static int GetBooleanField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2288,7 +2288,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getBooleanValueUnchecked(obj) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2301,7 +2301,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetByteField:  read an instance field of type byte
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the byte field, or 0 if the fieldID is incorrect
    */
   private static int GetByteField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2310,7 +2310,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getByteValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2323,7 +2323,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetCharField:  read an instance field of type character
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the character field, or 0 if the fieldID is incorrect
    */
   private static int GetCharField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2332,7 +2332,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getCharValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2345,7 +2345,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetShortField:  read an instance field of type short
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the short field, or 0 if the fieldID is incorrect
    */
   private static int GetShortField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2354,7 +2354,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getShortValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2367,7 +2367,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetIntField:  read an instance field of type integer
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the integer field, or 0 if the fieldID is incorrect
    */
   private static int GetIntField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2376,7 +2376,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getIntValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2389,7 +2389,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetLongField:  read an instance field of type long
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the long field or 0 if the fieldID is incorrect
    */
   private static long GetLongField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2398,7 +2398,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getLongValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2411,7 +2411,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetFloatField:  read an instance field of type float
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the float field or 0 if the fieldID is incorrect
    */
   private static float GetFloatField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2420,7 +2420,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getFloatValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2433,7 +2433,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetDoubleField:  read an instance field of type double
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the double field or 0 if the fieldID is incorrect
    */
   private static double GetDoubleField(VM_JNIEnvironment env, int objJREF, int fieldID) {
@@ -2442,7 +2442,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getDoubleValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2455,7 +2455,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetObjectField: set a instance field of type Object
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param valueJREF a JREF index for the value to assign
    */
   private static void SetObjectField(VM_JNIEnvironment env, int objJREF, int fieldID, int valueJREF) {
@@ -2465,7 +2465,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       Object obj = env.getJNIRef(objJREF);
       Object value = env.getJNIRef(valueJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setObjectValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2477,7 +2477,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetBooleanField: set an instance field of type boolean
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   boolean value to assign
    */
   private static void SetBooleanField(VM_JNIEnvironment env, int objJREF, int fieldID, boolean value) {
@@ -2486,7 +2486,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setBooleanValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2498,7 +2498,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetByteField: set an instance field of type byte
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   byte value to assign
    */
   private static void SetByteField(VM_JNIEnvironment env, int objJREF, int fieldID, byte value) {
@@ -2507,7 +2507,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setByteValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2519,7 +2519,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetCharField: set an instance field of type char
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   char value to assign
    */
   private static void SetCharField(VM_JNIEnvironment env, int objJREF, int fieldID, char value) {
@@ -2528,7 +2528,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setCharValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2540,7 +2540,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetShortField: set an instance field of type short
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   short value to assign
    */
   private static void SetShortField(VM_JNIEnvironment env, int objJREF, int fieldID, short value) {
@@ -2549,7 +2549,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setShortValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2561,7 +2561,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetIntField: set an instance field of type integer
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   integer value to assign
    */
   private static void SetIntField(VM_JNIEnvironment env, int objJREF, int fieldID, int value) {
@@ -2570,7 +2570,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setIntValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2582,7 +2582,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetLongField: set an instance field of type long
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   long value to assign
    */
   private static void SetLongField(VM_JNIEnvironment env, int objJREF, int fieldID, long value) {
@@ -2591,7 +2591,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setLongValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2603,7 +2603,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetFloatField: set an instance field of type float
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   float value to assign
    */
   private static void SetFloatField(VM_JNIEnvironment env, int objJREF, int fieldID, float value) {
@@ -2612,7 +2612,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setFloatValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2624,7 +2624,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * SetDoubleField: set an instance field of type double
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param fieldID the id for the RVMField that describes this field
    * @param value   double value to assign
    */
   private static void SetDoubleField(VM_JNIEnvironment env, int objJREF, int fieldID, double value) {
@@ -2633,7 +2633,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setDoubleValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2666,19 +2666,19 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      RVMType type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
         return 0;
       }
 
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       if (!klass.isInitialized()) {
         RuntimeEntrypoints.initializeClassForDynamicLink(klass);
       }
 
       // Find the target method
-      VM_Method meth = klass.findStaticMethod(methodName, sigName);
+      RVMMethod meth = klass.findStaticMethod(methodName, sigName);
       if (meth == null) {
         env.recordException(new NoSuchMethodError());
         return 0;
@@ -3407,7 +3407,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticFieldID:  return a field id which can be cached in native code and reused
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
+   * @param classJREF a JREF index for the RVMClass object
    * @param fieldNameAddress a raw address to a null-terminated string in C for the field name
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
    * @return the offset of a static field given the class, field name
@@ -3430,8 +3430,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       VM_Atom descriptor = VM_Atom.findOrCreateAsciiAtom(descriptorString);
 
       // list of all instance fields including superclasses
-      VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getStaticFields();
-      for (VM_Field field : fields) {
+      RVMField[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getStaticFields();
+      for (RVMField field : fields) {
         if (field.getName() == fieldName && field.getDescriptor() == descriptor) {
           return field.getId();
         }
@@ -3449,8 +3449,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticObjectField: read a static field of type Object
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the Object field, converted to a JREF index
    *         or 0 if the fieldID is incorrect
    */
@@ -3459,7 +3459,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       Object value = field.getObjectUnchecked(null);
       return env.pushJNIRef(value);
     } catch (Throwable unexpected) {
@@ -3472,8 +3472,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticBooleanField: read a static field of type boolean
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the boolean field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticBooleanField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3481,7 +3481,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getBooleanValueUnchecked(null) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3493,8 +3493,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticByteField:  read a static field of type byte
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the byte field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticByteField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3502,7 +3502,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getByteValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3514,8 +3514,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticCharField:  read a static field of type character
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the character field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticCharField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3523,7 +3523,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getCharValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3535,8 +3535,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticShortField:  read a static field of type short
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the short field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticShortField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3544,7 +3544,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getShortValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3556,8 +3556,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticIntField:  read a static field of type integer
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the integer field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticIntField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3565,7 +3565,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getIntValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3577,8 +3577,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticLongField:  read a static field of type long
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the long field or 0 if the fieldID is incorrect
    */
   private static long GetStaticLongField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3586,7 +3586,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getLongValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3598,8 +3598,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticFloatField:  read a static field of type float
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the float field or 0 if the fieldID is incorrect
    */
   private static float GetStaticFloatField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3607,7 +3607,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getFloatValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3619,8 +3619,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetStaticDoubleField:  read a static field of type double
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @return the value of the double field or 0 if the fieldID is incorrect
    */
   private static double GetStaticDoubleField(VM_JNIEnvironment env, int classJREF, int fieldID) {
@@ -3628,7 +3628,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getDoubleValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3640,8 +3640,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticObjectField:  set a static field of type Object
    * @param env         A JREF index for the JNI environment object
-   * @param classJREF   A JREF index for the {@link VM_Class} object
-   * @param fieldID     The id for the {@link VM_Field} that describes this
+   * @param classJREF   A JREF index for the {@link RVMClass} object
+   * @param fieldID     The id for the {@link RVMField} that describes this
    *                    field
    * @param objectJREF  A JREF index of the value to assign
    */
@@ -3650,7 +3650,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       Object ref = env.getJNIRef(objectJREF);
       field.setObjectValueUnchecked(null, ref);
     } catch (Throwable unexpected) {
@@ -3662,8 +3662,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticBooleanField:  set a static field of type boolean
    * @param env A JREF index for the JNI environment object
-   * @param classJREF A JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF A JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticBooleanField(VM_JNIEnvironment env, int classJREF, int fieldID, boolean fieldValue) {
@@ -3671,7 +3671,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setBooleanValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3682,8 +3682,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticByteField:  set a static field of type byte
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue the value to assign
    */
   private static void SetStaticByteField(VM_JNIEnvironment env, int classJREF, int fieldID, byte fieldValue) {
@@ -3691,7 +3691,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setByteValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3702,8 +3702,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticCharField:  set a static field of type char
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticCharField(VM_JNIEnvironment env, int classJREF, int fieldID, char fieldValue) {
@@ -3711,7 +3711,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setCharValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3722,8 +3722,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticShortField:  set a static field of type short
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticShortField(VM_JNIEnvironment env, int classJREF, int fieldID, short fieldValue) {
@@ -3731,7 +3731,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setShortValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3742,8 +3742,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticIntField:  set a static field of type integer
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticIntField(VM_JNIEnvironment env, int classJREF, int fieldID, int fieldValue) {
@@ -3751,7 +3751,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setIntValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3762,8 +3762,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticLongField:  set a static field of type long
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticLongField(VM_JNIEnvironment env, int classJREF, int fieldID, long fieldValue) {
@@ -3771,7 +3771,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setLongValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3782,8 +3782,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticFloatField:  set a static field of type float
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticFloatField(VM_JNIEnvironment env, int classJREF, int fieldID, float fieldValue) {
@@ -3791,7 +3791,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setFloatValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3802,8 +3802,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetStaticDoubleField:  set a static field of type float
    * @param env A JREF index for the JNI environment object
-   * @param classJREF a JREF index for the VM_Class object
-   * @param fieldID the id for the VM_Field that describes this field
+   * @param classJREF a JREF index for the RVMClass object
+   * @param fieldID the id for the RVMField that describes this field
    * @param fieldValue  The value to assign
    */
   private static void SetStaticDoubleField(VM_JNIEnvironment env, int classJREF, int fieldID, double fieldValue) {
@@ -3811,7 +3811,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       field.setDoubleValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4030,7 +4030,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       Object theArray = env.getJNIRef(arrayJREF);
-      VM_Type arrayType = VM_Magic.getObjectType(theArray);
+      RVMType arrayType = VM_Magic.getObjectType(theArray);
       return arrayType.isArrayType() ? VM_Magic.getArrayLength(theArray) : -1;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4063,7 +4063,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         throw new NegativeArraySizeException();
       }
 
-      VM_Array arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
+      RVMArray arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
       if (!arrayType.isInitialized()) {
         arrayType.resolve();
         arrayType.instantiate();
@@ -4104,7 +4104,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         return 0;
       }
 
-      VM_Array arrayType = VM_Magic.getObjectType(sourceArray).asArray();
+      RVMArray arrayType = VM_Magic.getObjectType(sourceArray).asArray();
       if (arrayType.getElementType().isPrimitiveType()) {
         return 0;
       }
@@ -5475,13 +5475,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     try {
       // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      RVMType type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
         return 0;
       }
 
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       if (!klass.isInitialized()) {
         RuntimeEntrypoints.initializeClassForDynamicLink(klass);
       }
@@ -5499,7 +5499,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_Atom sigName = VM_Atom.findOrCreateAsciiAtom(sigString);
 
         // Find the target method
-        VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
+        RVMMethod meth = klass.findDeclaredMethod(methodName, sigName);
 
         if (meth == null || !meth.isNative()) {
           env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
@@ -5537,13 +5537,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
-      VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
+      RVMType type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
         env.recordException(new NoClassDefFoundError());
         return -1;
       }
 
-      VM_Class klass = type.asClass();
+      RVMClass klass = type.asClass();
       if (!klass.isInitialized()) {
         return 0;
       }
@@ -5629,7 +5629,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     Object methodObj = env.getJNIRef(methodJREF);
-    VM_Method meth;
+    RVMMethod meth;
     if (methodObj instanceof Constructor) {
       meth = java.lang.reflect.JikesRVMSupport.getMethodOf((Constructor<?>) methodObj);
     } else {
@@ -5651,7 +5651,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     Field fieldObj = (Field) env.getJNIRef(fieldJREF);
-    VM_Field f = java.lang.reflect.JikesRVMSupport.getFieldOf(fieldObj);
+    RVMField f = java.lang.reflect.JikesRVMSupport.getFieldOf(fieldObj);
     if (traceJNI) VM.sysWrite("got field " + f + "\n");
     return f.getId();
   }
@@ -5675,7 +5675,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
-    VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     Object ret;
     if (targetMethod.isObjectInitializer()) {
       ret = java.lang.reflect.JikesRVMSupport.createConstructor(targetMethod);
@@ -5704,7 +5704,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
-    VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+    RVMField field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
     return env.pushJNIRef(java.lang.reflect.JikesRVMSupport.createField(field));
   }
 

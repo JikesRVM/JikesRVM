@@ -14,7 +14,7 @@ package org.jikesrvm;
 
 import org.vmmagic.unboxed.WordArray;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -63,7 +63,7 @@ public class ArchitectureSpecificOpt {
   public static final class PhysicalDefUse extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalDefUse {}
   public static final class PhysicalRegisterSet extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.PhysicalRegisterSet {}
   public static final class RegisterPool extends org.jikesrvm.compilers.opt.ir.@_ARCH_@.RegisterPool {
-    public RegisterPool(VM_Method meth) {
+    public RegisterPool(RVMMethod meth) {
       super(meth);
     }}
   public static final class OSR_BaselineExecStateExtractor extends org.jikesrvm.osr.@_ARCH_@.OSR_BaselineExecStateExtractor {}

@@ -23,7 +23,7 @@ import org.jikesrvm.runtime.Memory;
  *
  * Machine code is an array of "instructions", declared formally as integers,
  * produced by VM_Compiler, typically by translating the bytecodes
- * of a VM_Method. The code entrypoint is the first word in the array.
+ * of a RVMMethod. The code entrypoint is the first word in the array.
  */
 public abstract class VM_MachineCode {
 

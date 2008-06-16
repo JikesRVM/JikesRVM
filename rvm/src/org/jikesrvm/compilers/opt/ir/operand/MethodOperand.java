@@ -12,23 +12,23 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.VM_MethodReference;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.SpecializedMethod;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * Refers to a method. Used for method call instructions.
- * Contains a VM_Method (which may or may not have been resolved yet.)
+ * Contains a RVMMethod (which may or may not have been resolved yet.)
  *
  * TODO: Create subclasses of MethodOperand for internal & specialized
  * targets.
  *
  * @see Operand
- * @see VM_Method
+ * @see RVMMethod
  */
 public final class MethodOperand extends Operand {
 
@@ -47,9 +47,9 @@ public final class MethodOperand extends Operand {
   final VM_MemberReference memRef;
 
   /**
-   * Target VM_Method of invocation.
+   * Target RVMMethod of invocation.
    */
-  VM_Method target;
+  RVMMethod target;
 
   /**
    * Is target exactly the method being invoked by this call, or is it
@@ -77,10 +77,10 @@ public final class MethodOperand extends Operand {
 
   /**
    * @param ref VM_MemberReference of method to call
-   * @param tar the VM_Method to call (may be null)
+   * @param tar the RVMMethod to call (may be null)
    * @param t the type of invoke used to call it (STATIC, SPECIAL, VIRTUAL, INTERFACE)
    */
-  private MethodOperand(VM_MemberReference ref, VM_Method tar, byte t) {
+  private MethodOperand(VM_MemberReference ref, RVMMethod tar, byte t) {
     memRef = ref;
     target = tar;
     type = t;
@@ -102,7 +102,7 @@ public final class MethodOperand extends Operand {
    * @param offset designated jtop offset of compiled method of callee
    * @return the method operand
    */
-  public static MethodOperand COMPILED(VM_Method callee, Offset offset) {
+  public static MethodOperand COMPILED(RVMMethod callee, Offset offset) {
     byte type = callee.isStatic() ? STATIC : VIRTUAL;
     MethodOperand op = new MethodOperand(callee.getMemberRef(), callee, type);
     op.jtocOffset = offset;
@@ -119,10 +119,10 @@ public final class MethodOperand extends Operand {
    * create a method operand for an INVOKE_SPECIAL bytecode
    *
    * @param ref VM_MemberReference of method to call
-   * @param target the VM_Method to call (may be null)
+   * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand SPECIAL(VM_MethodReference ref, VM_Method target) {
+  public static MethodOperand SPECIAL(VM_MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, SPECIAL);
   }
 
@@ -130,10 +130,10 @@ public final class MethodOperand extends Operand {
    * create a method operand for an INVOKE_STATIC bytecode
    *
    * @param ref VM_MemberReference of method to call
-   * @param target the VM_Method to call (may be null)
+   * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand STATIC(VM_MethodReference ref, VM_Method target) {
+  public static MethodOperand STATIC(VM_MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, STATIC);
   }
 
@@ -141,10 +141,10 @@ public final class MethodOperand extends Operand {
    * create a method operand for an INVOKE_STATIC bytecode
    * where the target method is known at compile time.
    *
-   * @param target the VM_Method to call
+   * @param target the RVMMethod to call
    * @return the newly created method operand
    */
-  public static MethodOperand STATIC(VM_Method target) {
+  public static MethodOperand STATIC(RVMMethod target) {
     MethodOperand ans = new MethodOperand(target.getMemberRef(), target, STATIC);
     return ans;
   }
@@ -153,10 +153,10 @@ public final class MethodOperand extends Operand {
    * create a method operand for an INVOKE_STATIC bytecode
    * where the target method is known at compile time.
    *
-   * @param target the VM_Method to call
+   * @param target the RVMMethod to call
    * @return the newly created method operand
    */
-  public static MethodOperand STATIC(VM_Field target) {
+  public static MethodOperand STATIC(RVMField target) {
     return new MethodOperand(target.getMemberRef(), null, STATIC);
   }
 
@@ -164,10 +164,10 @@ public final class MethodOperand extends Operand {
    * create a method operand for an INVOKE_VIRTUAL bytecode
    *
    * @param ref VM_MemberReference of method to call
-   * @param target the VM_Method to call (may be null)
+   * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand VIRTUAL(VM_MethodReference ref, VM_Method target) {
+  public static MethodOperand VIRTUAL(VM_MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, VIRTUAL);
   }
 
@@ -175,10 +175,10 @@ public final class MethodOperand extends Operand {
    * create a method operand for an INVOKE_INTERFACE bytecode
    *
    * @param ref VM_MemberReference of method to call
-   * @param target the VM_Method to call (may be null)
+   * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand INTERFACE(VM_MethodReference ref, VM_Method target) {
+  public static MethodOperand INTERFACE(VM_MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, INTERFACE);
   }
 
@@ -206,7 +206,7 @@ public final class MethodOperand extends Operand {
     return target != null && isPreciseTarget;
   }
 
-  public VM_Method getTarget() {
+  public RVMMethod getTarget() {
     return target;
   }
 
@@ -250,7 +250,7 @@ public final class MethodOperand extends Operand {
    * Refine the target information. Used to reduce the set of
    * targets for an invokevirtual.
    */
-  public void refine(VM_Method target) {
+  public void refine(RVMMethod target) {
     this.target = target;
     setPreciseTarget();
   }
@@ -259,7 +259,7 @@ public final class MethodOperand extends Operand {
    * Refine the target information. Used to reduce the set of
    * targets for an invokevirtual.
    */
-  public void refine(VM_Type targetClass) {
+  public void refine(RVMType targetClass) {
     this.target = targetClass.findVirtualMethod(memRef.getName(), memRef.getDescriptor());
     setPreciseTarget();
   }
@@ -268,7 +268,7 @@ public final class MethodOperand extends Operand {
    * Refine the target information. Used to reduce the set of
    * targets for an invokevirtual.
    */
-  public void refine(VM_Method target, boolean isPreciseTarget) {
+  public void refine(RVMMethod target, boolean isPreciseTarget) {
     this.target = target;
     if (isPreciseTarget) {
       this.isPreciseTarget = isPreciseTarget;

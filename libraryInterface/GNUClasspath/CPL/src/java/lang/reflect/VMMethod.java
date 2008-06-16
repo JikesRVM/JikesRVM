@@ -23,7 +23,7 @@ import org.jikesrvm.classloader.*;
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 final class VMMethod {
-  final VM_Method method;
+  final RVMMethod method;
   Method m;
 
    // Prevent this class from being instantiated.
@@ -33,7 +33,7 @@ final class VMMethod {
   }
 
   // For use by JikesRVMSupport
-  VMMethod(VM_Method m) {
+  VMMethod(RVMMethod m) {
     method = m;
   }
 
@@ -77,7 +77,7 @@ final class VMMethod {
   Object invoke(Object receiver, Object[] args)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
-    return VMCommonLibrarySupport.invoke(receiver, args, method, m, VM_Class.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.invoke(receiver, args, method, m, RVMClass.getClassFromStackFrame(2));
   }
 
   // AnnotatedElement interface

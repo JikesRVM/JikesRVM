@@ -15,7 +15,7 @@ package java.lang;
 import java.security.ProtectionDomain;
 import java.lang.instrument.Instrumentation;
 
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 
 import org.vmmagic.pragma.*;
 
@@ -39,17 +39,17 @@ public class JikesRVMSupport {
     return VMClassLoader.getInitiatedClasses(classLoader);
   }
 
-  public static Class<?> createClass(VM_Type type) {
+  public static Class<?> createClass(RVMType type) {
     return Class.create(type);
   }
 
-  public static Class<?> createClass(VM_Type type, ProtectionDomain pd) {
+  public static Class<?> createClass(RVMType type, ProtectionDomain pd) {
     Class<?> c = Class.create(type);
     setClassProtectionDomain(c, pd);
     return c;
   }
 
-  public static VM_Type getTypeForClass(Class<?> c) {
+  public static RVMType getTypeForClass(Class<?> c) {
     return c.type;
   }
 

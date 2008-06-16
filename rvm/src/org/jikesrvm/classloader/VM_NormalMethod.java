@@ -23,7 +23,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A method of a java class that has bytecodes.
  */
-public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConstants {
+public final class VM_NormalMethod extends RVMMethod implements VM_BytecodeConstants {
 
   /* As we read the bytecodes for the method, we compute
    * a simple summary of some interesting properties of the method.
@@ -155,7 +155,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    */
   VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr, short mo, VM_TypeReference[] et, short lw, short ow,
                   byte[] bc, VM_ExceptionHandlerMap eMap, int[] lm, int[] constantPool, VM_Atom sig,
-                  VM_Annotation[] annotations, VM_Annotation[][] parameterAnnotations, Object ad) {
+                  RVMAnnotation[] annotations, RVMAnnotation[][] parameterAnnotations, Object ad) {
     super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
     localWords = lw;
     operandWords = ow;
@@ -502,7 +502,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   /**
    * @return true if the method may write to a given field
    */
-  public boolean mayWrite(VM_Field field) {
+  public boolean mayWrite(RVMField field) {
     if (!hasFieldWrite()) return false;
     VM_FieldReference it = field.getMemberRef().asFieldReference();
     VM_BytecodeStream bcodes = getBytecodes();
@@ -519,7 +519,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   }
 
   /**
-   * For use by {@link VM_Class#allBootImageTypesResolved()} only.
+   * For use by {@link RVMClass#allBootImageTypesResolved()} only.
    */
   void recomputeSummary(int[] constantPool) {
     if (hasFieldRead()) {
@@ -707,7 +707,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
           // time the opt compiler compiles the method.
           VM_FieldReference fldRef = bcodes.getFieldReference(constantPool);
           if (fldRef.getFieldContentsType().isPrimitiveType()) {
-            VM_Field fld = fldRef.peekResolvedField();
+            RVMField fld = fldRef.peekResolvedField();
             if (fld == null || !fld.isFinal()){
               calleeSize += SIMPLE_OPERATION_COST;
             }

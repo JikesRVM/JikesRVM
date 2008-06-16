@@ -20,7 +20,7 @@ import org.mmtk.vm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
@@ -192,7 +192,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public Object createDataArray(Object templ, int numElements) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
-      VM_Array array = VM_Magic.getObjectType(templ).asArray();
+      RVMArray array = VM_Magic.getObjectType(templ).asArray();
       return RuntimeEntrypoints.resolvedNewArray(numElements,
                               array.getLogElementSize(),
                               VM_ObjectModel.computeArrayHeaderSize(array),
