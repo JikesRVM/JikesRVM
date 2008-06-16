@@ -85,7 +85,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount, boolean doubleAlign) {
     int bytes = (HEADER_WORDS + refCount + dataCount) << SimulatedMemory.LOG_BYTES_IN_WORD;
     int align = (doubleAlign ? 2 : 1) * SimulatedMemory.BYTES_IN_WORD;
-    int allocator = context.checkAllocator(bytes, SimulatedMemory.LOG_BYTES_IN_WORD, Plan.ALLOC_DEFAULT);
+    int allocator = context.checkAllocator(bytes, align, Plan.ALLOC_DEFAULT);
 
     // Allocate the raw memory
     Address region = context.alloc(bytes, align, 0, allocator, 0);

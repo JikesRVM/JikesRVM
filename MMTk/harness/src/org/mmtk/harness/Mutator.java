@@ -428,7 +428,7 @@ public class Mutator extends Thread {
    * @param bytes the size of the object in bytes.
    */
   public void muAlloc(String toVar, int bytes) {
-    muAlloc(toVar, 0, false);
+    muAlloc(toVar, bytes, false);
   }
 
   /**
