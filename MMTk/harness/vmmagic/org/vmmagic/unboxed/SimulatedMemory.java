@@ -16,6 +16,17 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public final class SimulatedMemory {
+  /** Set to true to print debug information */
+  private static final boolean VERBOSE = false;
+
+  /**
+   * Print a debug message (provided verbose output is enabled)
+   */
+  private static void log(String message, Object...args) {
+    if (VERBOSE) {
+      System.err.printf("Mem: " + message, args);
+    }
+  }
 
   public static final int LOG_BYTES_IN_PAGE = 12;
   public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
@@ -151,6 +162,7 @@ public final class SimulatedMemory {
    * <code>false</code>
    */
   public static boolean map(Address start, int size) {
+    log("map(%s,%d)\n", start.toString(), size);
     int first = start.toInt() >>> LOG_BYTES_IN_PAGE;
     int last = (size >>> LOG_BYTES_IN_PAGE) + first;
 
@@ -172,6 +184,7 @@ public final class SimulatedMemory {
    * <code>false</code>
    */
   public static boolean protect(Address start, int size) {
+    log("protect(%s,%d)\n", start.toString(), size);
     int first = start.toInt() >> LOG_BYTES_IN_PAGE;
     int last = first + size >> LOG_BYTES_IN_PAGE;
     for(int p=first; p < last; p++) {
@@ -193,6 +206,7 @@ public final class SimulatedMemory {
    * <code>false</code>
    */
   public static boolean unprotect(Address start, int size) {
+    log("unprotect(%s,%d)\n", start.toString(), size);
     int first = start.toInt() >> LOG_BYTES_IN_PAGE;
     int last = first + size >> LOG_BYTES_IN_PAGE;
     for(int p=first; p < last; p++) {
@@ -212,6 +226,7 @@ public final class SimulatedMemory {
    * Returned: nothing
    */
   public static void zero(Address start, Extent size) {
+    log("zero(%s,%s)\n", start.toString(), size.toString());
     zero(start, size.toInt());
   }
 
@@ -222,6 +237,7 @@ public final class SimulatedMemory {
    * Returned: nothing
    */
   public static void zero(Address start, int size) {
+    log("zero(%s,%d)\n", start.toString(), size);
     assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
     for(int i=0; i < size; i += BYTES_IN_WORD) {
       Address cur = start.plus(i);
@@ -235,6 +251,7 @@ public final class SimulatedMemory {
    * @param len Length in bytes of range (must be multiple of page size)
    */
   public static void zeroPages(Address start, int size) {
+    log("zeroPages(%s,%d)\n", start.toString(), size);
     int first = start.toInt() >>> LOG_BYTES_IN_PAGE;
     int last = (first + size) >>> LOG_BYTES_IN_PAGE;
     for(int p=first; p < last; p++) {
