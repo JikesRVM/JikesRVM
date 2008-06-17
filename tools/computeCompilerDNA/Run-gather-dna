@@ -66,8 +66,8 @@ EOF
 exit 1
 fi
 
-if [[ $RROOT = "" ]]; then
-   echo "$0: please set your RROOT environment variable (eg. $HOME/jvmShadow)"
+if [[ $RVM_ROOT = "" ]]; then
+   echo "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
    exit 1
 fi
 if [[ $RSPECJVM98 = "" ]]; then
@@ -75,14 +75,14 @@ if [[ $RSPECJVM98 = "" ]]; then
    RSPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
 fi
 
-rvm="$RROOT/bin/rvm"
+rvm="$RVM_ROOT/bin/rvm"
 # parent of build diectories is command line argument to the script
 BUILDDIR=$1
 
 # Generate SPECjvm98 profile data
-mkdir -p $RROOT/support/profileData
-PROFILE_FILE=$RROOT/support/profileData/edgeCounts.SPECjvm98
-$RROOT/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE $BUILDDIR
+mkdir -p $RVM_ROOT/support/profileData
+PROFILE_FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
+$RVM_ROOT/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE $BUILDDIR
 PROFILE_ARG="-X:vm:edgeCounterFile=$PROFILE_FILE"
 cp="-classpath $RSPECJVM98"
 

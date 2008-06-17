@@ -23,9 +23,9 @@
 FILE=$1
 BUILDDIR=$2
 
-if [[ $RROOT = "" ]]; then
-   echo "\n***$0: please set your RROOT environment variable (eg. $HOME/jvmShadow)***\n"
+if [[ $RVM_ROOT = "" ]]; then
+   echo "\n***$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)***\n"
    exit 1
 fi
 
-$RROOT/bin/RunSanityTests -measureCompilation -configuration FastBaseAdaptiveGenMS -images $BUILDDIR -test SPECjvm98 -nobuild -rc-args "-X:aos:final_report_level=2 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base -X:base:edge_counter_file=$FILE"
+$RVM_ROOT/bin/RunSanityTests -measureCompilation -configuration FastBaseAdaptiveGenMS -images $BUILDDIR -test SPECjvm98 -nobuild -rc-args "-X:aos:final_report_level=2 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base -X:base:edge_counter_file=$FILE"
