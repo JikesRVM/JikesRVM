@@ -1,5 +1,4 @@
 #! /bin/bash
-#
 #  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
 #  This file is licensed to You under the Common Public License (CPL);
@@ -70,9 +69,9 @@ if [[ $RVM_ROOT = "" ]]; then
    echo "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
    exit 1
 fi
-if [[ $RSPECJVM98 = "" ]]; then
-   echo "$0: RSPECJVM98 environment variable  is not set.  Setting to /homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98."
-   RSPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
+if [[ $RVM_SPECJVM98 = "" ]]; then
+   echo "$0: RVM_SPECJVM98 environment variable  is not set.  Setting to /homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98."
+   RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
 fi
 
 rvm="$RVM_ROOT/bin/rvm"
@@ -84,7 +83,7 @@ mkdir -p $RVM_ROOT/support/profileData
 PROFILE_FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
 $RVM_ROOT/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE $BUILDDIR
 PROFILE_ARG="-X:vm:edgeCounterFile=$PROFILE_FILE"
-cp="-classpath $RSPECJVM98"
+cp="-classpath $RVM_SPECJVM98"
 
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
