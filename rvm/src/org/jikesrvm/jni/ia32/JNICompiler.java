@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  *  -C to Java:  all JNI functions in JNIFunctions.java
  * </pre>
  *
- * If this code is being used, then we assume RWITH_SVR4_ABI is set.
+ * If this code is being used, then we assume RVM_WITH_SVR4_ABI is set.
  */
 public abstract class JNICompiler implements BaselineConstants {
 

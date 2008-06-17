@@ -773,7 +773,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         if (*(unsigned char *)(localInstructionAddress) == 0xCD) {
             // is INT imm instruction
             unsigned char code = *(unsigned char*)(localInstructionAddress+1);
-            code -= Constants_RTRAP_BASE;
+            code -= Constants_RVM_TRAP_BASE;
             *(int *) sp = code;
         }
     }

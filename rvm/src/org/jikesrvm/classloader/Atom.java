@@ -746,7 +746,7 @@ public final class Atom {
    * The set of class prefixes for core RVM classes.
    * @see #isRVMDescriptor()
    */
-  private static final byte[][] RCLASS_PREFIXES =
+  private static final byte[][] RVM_CLASS_PREFIXES =
       {"Lorg/jikesrvm/".getBytes(), "Lorg/vmmagic/".getBytes(), "Lorg/mmtk/".getBytes()};
 
   /**
@@ -786,7 +786,7 @@ public final class Atom {
   @Pure
   public boolean isRVMDescriptor() {
     outer:
-    for (final byte[] test : RCLASS_PREFIXES) {
+    for (final byte[] test : RVM_CLASS_PREFIXES) {
       if (test.length > val.length) continue;
       for (int j = 0; j < test.length; j++) {
         if (val[j] != test[j]) {

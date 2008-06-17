@@ -107,7 +107,7 @@ public abstract class JNICompiler
    *   |ENV       | JNIEnvironment                       <- JNI_ENV_OFFSET
    *   |RVM nonvol| save RVM nonvolatile GPRs for updating by GC stack mapper
    *   | ...      |
-   *   |RVM nonvol|                                         <- JNI_RNONVOLATILE_OFFSET
+   *   |RVM nonvol|                                         <- JNI_RVM_NONVOLATILE_OFFSET
    *   |----------|
    *   |  fp      | <- Java caller frame
    *   | mid      |
@@ -173,7 +173,7 @@ public abstract class JNICompiler
     asm.emitSTAddrOffset(PROCESSOR_REGISTER, S0, Entrypoints.JNITopJavaFPField.getOffset());
 
     // save the RVM nonvolatile GPRs, to be scanned by GC stack mapper
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RNONVOLATILE_OFFSET;
+    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
          i >= FIRST_NONVOLATILE_GPR;
          --i, offset += BYTES_IN_STACKSLOT) {
       asm.emitSTAddr(i, frameSize - offset, FP);
@@ -276,7 +276,7 @@ public abstract class JNICompiler
     asm.emitLWZ(T2, frameSize - JNI_GC_FLAG_OFFSET, FP);
     asm.emitCMPI(T2, 0);
     ForwardReference fr1 = asm.emitForwardBC(EQ);
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RNONVOLATILE_OFFSET;
+    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
          i >= FIRST_NONVOLATILE_GPR;
          --i, offset += BYTES_IN_STACKSLOT) {
       asm.emitLAddr(i, frameSize - offset, FP);
@@ -1271,7 +1271,7 @@ public abstract class JNICompiler
     // Save AIX non-volatile GPRs that will not be saved and restored by RVM.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_RRESERVED_NV_GPR; i <= LAST_RRESERVED_NV_GPR; i++) {
+    for (int i = FIRST_RVM_RESERVED_NV_GPR; i <= LAST_RVM_RESERVED_NV_GPR; i++) {
       asm.emitSTAddr(i, offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
@@ -1434,7 +1434,7 @@ public abstract class JNICompiler
     // Here we only save & restore ONLY those registers not restored by RVM
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_RRESERVED_NV_GPR; i <= LAST_RRESERVED_NV_GPR; i++) {
+    for (int i = FIRST_RVM_RESERVED_NV_GPR; i <= LAST_RVM_RESERVED_NV_GPR; i++) {
       asm.emitLAddr(i, offset, FP);                     // 4 instructions
       offset += BYTES_IN_ADDRESS;
     }

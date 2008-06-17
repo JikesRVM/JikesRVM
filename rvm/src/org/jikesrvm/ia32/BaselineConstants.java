@@ -40,7 +40,7 @@ public interface BaselineConstants extends Constants, ArchConstants {
   // Mnemonics corresponding to the above constants.
   // These are some alternate names that can be used in the debugger
   //
-  String[] RGPR_NAMES = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "PR", "JT"};
+  String[] RVM_GPR_NAMES = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "PR", "JT"};
 
   // Constants describing baseline compiler conventions for
   // saving registers in stackframes.

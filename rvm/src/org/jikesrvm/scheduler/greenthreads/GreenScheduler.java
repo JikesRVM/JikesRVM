@@ -678,7 +678,7 @@ public final class GreenScheduler extends Scheduler {
   protected RVMThread setupBootThreadInternal() {
     int initProc = PRIMORDIAL_PROCESSOR_ID;
     byte[] stack = new byte[ArchitectureSpecific.ArchConstants.STACK_SIZE_BOOT];
-    GreenThread startupThread = new Scheduler.ThreadModel(stack, "Jikes_RBoot_Thread");
+    GreenThread startupThread = new Scheduler.ThreadModel(stack, "Jikes_RVM_Boot_Thread");
     numDaemons++;
     getProcessor(initProc).activeThread = startupThread;
     return startupThread;

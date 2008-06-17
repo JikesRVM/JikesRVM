@@ -1090,7 +1090,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr1 = asm.forwardJcc(Assembler.NE);
-    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + RTRAP_BASE);    // trap if divisor is 0
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
     fr1.resolve(asm);
     // (2) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
@@ -1129,7 +1129,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr1 = asm.forwardJcc(Assembler.NE);
-    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + RTRAP_BASE);    // trap if divisor is 0
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
     fr1.resolve(asm);
     // (2) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
@@ -3229,7 +3229,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);      // space left after this expression stack
         asm.emitBranchLikelyNextInstruction();
         ForwardReference fr = asm.forwardJcc(Assembler.LT);        // Jmp around trap if OK
-        asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RTRAP_BASE);     // trap
+        asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE);     // trap
         fr.resolve(asm);
       } else {
         // TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page
@@ -3266,7 +3266,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);  // spa
       asm.emitBranchLikelyNextInstruction();
       ForwardReference fr = asm.forwardJcc(Assembler.LT);    // Jmp around trap if
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RTRAP_BASE); // tra
+      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE); // tra
       fr.resolve(asm);
     } else {
       // TODO!! make sure stackframe of uninterruptible method doesn't overflow
@@ -3340,7 +3340,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitBranchLikelyNextInstruction();
       ForwardReference fr = asm.forwardJcc(Assembler.NE);
       // trap
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RTRAP_BASE);
+      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
       fr.resolve(asm);
     }
   }
@@ -3367,7 +3367,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       ProcessorLocalState.emitMoveRegToField(asm,
           ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
       // trap
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + RTRAP_BASE);
+      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
       fr.resolve(asm);
     }
   }

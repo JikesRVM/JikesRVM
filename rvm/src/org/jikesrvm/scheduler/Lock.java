@@ -433,7 +433,7 @@ public abstract class Lock implements Constants {
    * Transfers free heavy-weight locks from a processor local
    * structure to a global one.
    *
-   * Only used if RWITH_FREE_LOCK_BALANCING preprocessor
+   * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
    * directive is set for the current build.
    */
   protected static void globalizeFreeLocks(Processor mine) {
@@ -471,7 +471,7 @@ public abstract class Lock implements Constants {
    * Transfers free heavy-weight locks from a global structure to a
    * processor local one.
    *
-   * Only used if RWITH_FREE_LOCK_BALANCING preprocessor
+   * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
    * directive is set for the current build.
    */
   private static void localizeFreeLocks(Processor mine) {

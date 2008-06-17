@@ -47,9 +47,9 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   // Java to Native glue frame, relative to the Java caller frame.
   // The contents of this part of the stack frame are:
   // saved RNONVOLATILE_GPRs (for updating by GC) + JNIEnv + GCflag + standard RVM stackframe header
-  int JNI_RNONVOLATILE_OFFSET = BYTES_IN_ADDRESS;
+  int JNI_RVM_NONVOLATILE_OFFSET = BYTES_IN_ADDRESS;
   int JNI_ENV_OFFSET =
-      JNI_RNONVOLATILE_OFFSET + ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
+      JNI_RVM_NONVOLATILE_OFFSET + ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
   int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_ENV_OFFSET + BYTES_IN_ADDRESS;
 
   int JNI_GC_FLAG_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
@@ -69,7 +69,7 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
       (LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1) * BYTES_IN_ADDRESS +
       (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * BYTES_IN_DOUBLE;
 
-  int JNI_GLUE_REXTRA_GPRS_SIZE = (LAST_RRESERVED_NV_GPR - FIRST_RRESERVED_NV_GPR + 1) * BYTES_IN_ADDRESS;
+  int JNI_GLUE_RVM_EXTRA_GPRS_SIZE = (LAST_RVM_RESERVED_NV_GPR - FIRST_RVM_RESERVED_NV_GPR + 1) * BYTES_IN_ADDRESS;
 
   // offset to previous to java frame 1 (* BYTES_IN_ADDRESS)
   int JNI_GLUE_FRAME_OTHERS = 1 * BYTES_IN_ADDRESS;
@@ -77,7 +77,7 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   int JNI_GLUE_FRAME_SIZE =
       Memory.alignUp(STACKFRAME_HEADER_SIZE +
                         JNI_GLUE_SAVED_VOL_SIZE +
-                        JNI_GLUE_REXTRA_GPRS_SIZE +
+                        JNI_GLUE_RVM_EXTRA_GPRS_SIZE +
                         JNI_GLUE_FRAME_OTHERS, STACKFRAME_ALIGNMENT);
 
   // offset to caller, where to store offset to previous java frame

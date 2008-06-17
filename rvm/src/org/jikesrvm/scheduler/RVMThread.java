@@ -474,7 +474,7 @@ public abstract class RVMThread {
    */
   @Interruptible
   public final void setupBootThread() {
-    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RBoot_Thread");
+    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RVM_Boot_Thread");
   }
 
   /**

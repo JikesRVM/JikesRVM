@@ -48,7 +48,7 @@ final class GenArch_ia32 extends GenArch {
       StackframeLayoutConstants
           .STACKFRAME_RETURN_ADDRESS_OFFSET +
                                             ";\n");
-    p("static const int Constants_RTRAP_BASE  = " + TrapConstants.RTRAP_BASE + ";\n");
+    p("static const int Constants_RVM_TRAP_BASE  = " + TrapConstants.RVM_TRAP_BASE + ";\n");
 
     offset = ArchEntrypoints.framePointerField.getOffset();
     pln("Processor_framePointer_offset = ", offset);

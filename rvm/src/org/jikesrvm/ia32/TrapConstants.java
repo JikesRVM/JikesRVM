@@ -21,6 +21,6 @@ public interface TrapConstants {
    * This base is added to the numeric trap codes in RuntimeEntrypoints.java
    * to yield the intel trap number that is given to INT instructions
    */
-  byte RTRAP_BASE = (byte) 0x40;
+  byte RVM_TRAP_BASE = (byte) 0x40;
 
 }

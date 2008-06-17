@@ -129,7 +129,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator
 
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
-    Address registerLocation = this.framePtr.loadAddress().minus(JNI_RNONVOLATILE_OFFSET);
+    Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
 
     for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR - 1; --i) {
       registerLocations.set(i, registerLocation.toWord());

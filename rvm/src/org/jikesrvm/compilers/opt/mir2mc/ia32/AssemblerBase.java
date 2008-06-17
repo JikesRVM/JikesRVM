@@ -169,7 +169,7 @@ abstract class AssemblerBase extends Assembler
       // used by ImmOrLabel stuff
       return op.asBranch().target.getmcOffset();
     } else {
-      return ((TrapCodeOperand) op).getTrapCode() + TrapConstants.RTRAP_BASE;
+      return ((TrapCodeOperand) op).getTrapCode() + TrapConstants.RVM_TRAP_BASE;
     }
   }
 
