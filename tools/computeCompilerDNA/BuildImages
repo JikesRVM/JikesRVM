@@ -34,7 +34,7 @@ IMAGES='FastBaseAdaptiveGenMS FastOpt0GenMS FastOpt1GenMS FastAdaptiveGenMS'
 for image in $IMAGES
 do
    rm -rf $BUILDDIR/$image
-   export RBUILD=$BUILDDIR/$image
+   export RVM_BUILD=$BUILDDIR/$image
    echo "Configuring $image"
    $RVM_ROOT/bin/jconfigure $image
    cd $BUILDDIR/$image

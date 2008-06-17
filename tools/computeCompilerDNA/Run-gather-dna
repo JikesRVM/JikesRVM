@@ -104,7 +104,7 @@ for benchmark in $all
 do
 
 # Compilation rates first
-  export RBUILD=$BUILDDIR/FastAdaptiveGenMS
+  export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
   $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appcompoptions -a $benchmark
 
   for optLevel in $OPTLEVELS
@@ -117,16 +117,16 @@ done
 for benchmark in $all
 do
 # Performance next
-   export RBUILD=$BUILDDIR/FastBaseAdaptiveGenMS
+   export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveGenMS
     $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RBUILD=$BUILDDIR/FastOpt0GenMS
+   export RVM_BUILD=$BUILDDIR/FastOpt0GenMS
    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O0 $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RBUILD=$BUILDDIR/FastOpt1GenMS
+   export RVM_BUILD=$BUILDDIR/FastOpt1GenMS
    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O1 $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RBUILD=$BUILDDIR/FastAdaptiveGenMS
+   export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2 $cp SpecApplication $appperfoptions  -a $benchmark
 
 done
