@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
@@ -485,7 +485,7 @@ public abstract class Operand {
    * Does the operand represent a value of an int-like data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
+   *         is int-like as defined by {@link TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
   public boolean isIntLike() {
@@ -497,7 +497,7 @@ public abstract class Operand {
    * Does the operand represent a value of the int data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is an int as defined by {@link VM_TypeReference#isIntType}
+   *         is an int as defined by {@link TypeReference#isIntType}
    *         or <code>false</code> if it is not.
    */
   public boolean isInt() {
@@ -509,7 +509,7 @@ public abstract class Operand {
    * Does the operand represent a value of the long data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a long as defined by {@link VM_TypeReference#isLongType}
+   *         is a long as defined by {@link TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
   public boolean isLong() {
@@ -521,7 +521,7 @@ public abstract class Operand {
    * Does the operand represent a value of the float data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a float as defined by {@link VM_TypeReference#isFloatType}
+   *         is a float as defined by {@link TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
   public boolean isFloat() {
@@ -533,7 +533,7 @@ public abstract class Operand {
    * Does the operand represent a value of the double data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a double as defined by {@link VM_TypeReference#isDoubleType}
+   *         is a double as defined by {@link TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
   public boolean isDouble() {
@@ -545,7 +545,7 @@ public abstract class Operand {
    * Does the operand represent a value of the reference data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
+   *         is a reference as defined by {@link TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
   public boolean isRef() {
@@ -557,7 +557,7 @@ public abstract class Operand {
    * Does the operand represent a value of the address data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is an address as defined by {@link VM_TypeReference#isWordType}
+   *         is an address as defined by {@link TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */
   public boolean isAddress() {
@@ -594,11 +594,11 @@ public abstract class Operand {
   public abstract boolean similar(Operand op);
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
    * @return the type of the value represented by the operand
    */
-  public VM_TypeReference getType() {
+  public TypeReference getType() {
     // by default throw OptimizingCompilerException as not all
     // operands have a type.
     throw new OptimizingCompilerException("Getting the type for this operand has no defined meaning: " + this);
@@ -681,10 +681,10 @@ public abstract class Operand {
     // various Flag bits are considered as well....
     if (op1.isRegister()) {
       RegisterOperand rop1 = op1.asRegister();
-      VM_TypeReference type1 = rop1.getType();
+      TypeReference type1 = rop1.getType();
       if (op2.isRegister()) {
         RegisterOperand rop2 = op2.asRegister();
-        VM_TypeReference type2 = rop2.getType();
+        TypeReference type2 = rop2.getType();
         if (type1 == type2) {
           if (rop1.hasLessConservativeFlags(rop2)) {
             if (IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -736,7 +736,7 @@ public abstract class Operand {
           return false;
         }
 
-        VM_TypeReference type2 = op2.getType();
+        TypeReference type2 = op2.getType();
         if (type1 == type2 ||
             compatiblePrimitives(type1, type2) ||
             (ClassLoaderProxy.includesType(type1, type2) == OptConstants.YES)) {
@@ -748,7 +748,7 @@ public abstract class Operand {
             return false;
           }
           if ((rop1.scratchObject instanceof Operand) &&
-              ((type2 == VM_TypeReference.NULL_TYPE) ||
+              ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
@@ -863,7 +863,7 @@ public abstract class Operand {
           }
           return null; // bottom
         }
-        VM_TypeReference type2 = op2.getType();
+        TypeReference type2 = op2.getType();
         if (type2.isReferenceType()) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("op1 is <null>, but op2 is other ref type\n");
@@ -886,7 +886,7 @@ public abstract class Operand {
         }
         return op1;
       } else {
-        VM_TypeReference superType = ClassLoaderProxy.findCommonSuperclass(op1.getType(), op2.getType());
+        TypeReference superType = ClassLoaderProxy.findCommonSuperclass(op1.getType(), op2.getType());
         if (superType == null) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("op1 and op2 have incompatible types\n");
@@ -903,10 +903,10 @@ public abstract class Operand {
     // the various Flag bits are considered as well....
     if (op1.isRegister()) {
       RegisterOperand rop1 = op1.asRegister();
-      VM_TypeReference type1 = rop1.getType();
+      TypeReference type1 = rop1.getType();
       if (op2.isRegister()) {
         RegisterOperand rop2 = op2.asRegister();
-        VM_TypeReference type2 = rop2.getType();
+        TypeReference type2 = rop2.getType();
         if (type1 == type2) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Identically typed register operands, checking flags...");
@@ -972,7 +972,7 @@ public abstract class Operand {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatibly typed register operands...(" + type1 + ", " + type2 + ")...");
           }
-          VM_TypeReference resType = ClassLoaderProxy.findCommonSuperclass(type1, type2);
+          TypeReference resType = ClassLoaderProxy.findCommonSuperclass(type1, type2);
           if (resType == null) {
             if (IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("no common supertype, returning bottom\n");
@@ -1002,7 +1002,7 @@ public abstract class Operand {
           }
           return null; // bottom
         }
-        VM_TypeReference type2 = op2.getType();
+        TypeReference type2 = op2.getType();
         if (type1 == type2 ||
             compatiblePrimitives(type1, type2) ||
             (ClassLoaderProxy.includesType(type1, type2) == OptConstants.YES)) {
@@ -1015,7 +1015,7 @@ public abstract class Operand {
             res.clearPreciseType();
           }
           if ((rop1.scratchObject instanceof Operand) &&
-              ((type2 == VM_TypeReference.NULL_TYPE) ||
+              ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordType() && op2.asAddressConstant().value.isZero()) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
@@ -1034,7 +1034,7 @@ public abstract class Operand {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatibly typed register & other operand...(" + type1 + ", " + type2 + ")...");
           }
-          VM_TypeReference resType = ClassLoaderProxy.findCommonSuperclass(type1, type2);
+          TypeReference resType = ClassLoaderProxy.findCommonSuperclass(type1, type2);
           if (resType == null) {
             if (IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("no common supertype, returning bottom\n");
@@ -1064,7 +1064,7 @@ public abstract class Operand {
     }
   }
 
-  private static boolean compatiblePrimitives(VM_TypeReference type1, VM_TypeReference type2) {
+  private static boolean compatiblePrimitives(TypeReference type1, TypeReference type2) {
     if (type1.isIntLikeType() && type2.isIntLikeType()) {
       if (type1.isIntType()) {
         return type2.isBooleanType() || type2.isByteType() || type2.isShortType() || type2.isIntType();

@@ -12,7 +12,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 
 /**
  * Float <==> int bit transfer for Jikes RVM.
@@ -22,15 +22,15 @@ final class VMFloat {
   static int floatToIntBits(float value) {
     // Check for NaN and return canonical NaN value
     if (value != value) return 0x7fc00000;
-    else return VM_Magic.floatAsIntBits(value);
+    else return Magic.floatAsIntBits(value);
   }
 
   static int floatToRawIntBits(float value) {
-    return VM_Magic.floatAsIntBits(value);
+    return Magic.floatAsIntBits(value);
   }
 
   static float intBitsToFloat(int bits) {
-    return VM_Magic.intBitsAsFloat(bits);
+    return Magic.intBitsAsFloat(bits);
   }
 
   static String toString(float f) {

@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -43,7 +43,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 
 /**
@@ -158,7 +158,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       for (Enumeration<GraphNode> e = lst.enumerateNodes(); e.hasMoreElements();) {
         LSTNode node = (LSTNode) e.nextElement();
         BasicBlock header = node.getHeader();
-        VM_BitVector loop = node.getLoop();
+        BitVector loop = node.getLoop();
         if (loop == null) continue;
 
         // First split live ranges on edges coming into the loop header.
@@ -274,7 +274,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
               s = Unary.create(SPLIT, lhs2, rhs2);
               // fix up types: only split live ranges when the type is
               // consistent at all defs
-              VM_TypeReference t2 = null;
+              TypeReference t2 = null;
               RegisterOperandEnumeration e2 = DefUse.defs(r);
               if (!e2.hasMoreElements()) {
                 s = null;
@@ -299,7 +299,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
               s = Unary.create(SPLIT, lhs, rhs);
               // fix up types: only split live ranges when the type is
               // consistent at all defs
-              VM_TypeReference t = null;
+              TypeReference t = null;
               RegisterOperandEnumeration e = DefUse.defs(r);
               if (!e.hasMoreElements()) {
                 s = null;

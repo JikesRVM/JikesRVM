@@ -12,15 +12,12 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.alloc.Allocator;
 
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_JavaHeaderConstants;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.objectmodel.JavaHeaderConstants;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
@@ -31,9 +28,10 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants {
+@Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements org.mmtk.utility.Constants,
+                                                                                           org.jikesrvm.Constants {
 
-  protected Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }
+  protected Offset getArrayBaseOffset() { return JavaHeaderConstants.ARRAY_BASE_OFFSET; }
 
   /**
    * Copy an object using a plan's allocCopy to get space and install
@@ -48,8 +46,8 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public ObjectReference copy(ObjectReference from, int allocator) {
-    VM_TIB tib = VM_ObjectModel.getTIB(from);
-    RVMType type = VM_Magic.objectAsType(tib.getType());
+    TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(from);
+    RVMType type = Magic.objectAsType(tib.getType());
 
     if (type.isClassType())
       return copyScalar(from, tib, type.asClass(), allocator);
@@ -58,37 +56,37 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  private ObjectReference copyScalar(ObjectReference from, VM_TIB tib, RVMClass type, int allocator) {
-    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type);
-    int align = VM_ObjectModel.getAlignment(type, from.toObject());
-    int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
+  private ObjectReference copyScalar(ObjectReference from, TIB tib, RVMClass type, int allocator) {
+    int bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), type);
+    int align = org.jikesrvm.objectmodel.ObjectModel.getAlignment(type, from.toObject());
+    int offset = org.jikesrvm.objectmodel.ObjectModel.getOffsetForAlignment(type, from);
     Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
+    Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     return to;
   }
 
   @Inline
-  private ObjectReference copyArray(ObjectReference from, VM_TIB tib, RVMArray type, int allocator) {
-    int elements = VM_Magic.getArrayLength(from.toObject());
-    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type, elements);
-    int align = VM_ObjectModel.getAlignment(type, from.toObject());
-    int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
+  private ObjectReference copyArray(ObjectReference from, TIB tib, RVMArray type, int allocator) {
+    int elements = Magic.getArrayLength(from.toObject());
+    int bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), type, elements);
+    int align = org.jikesrvm.objectmodel.ObjectModel.getAlignment(type, from.toObject());
+    int offset = org.jikesrvm.objectmodel.ObjectModel.getOffsetForAlignment(type, from);
     Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
+    Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     if (type == RVMType.CodeArrayType) {
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.
-      int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
+      int dataSize = bytes - org.jikesrvm.objectmodel.ObjectModel.computeHeaderSize(Magic.getObjectType(toObj));
       org.jikesrvm.runtime.Memory.sync(to.toAddress(), dataSize);
     }
     return to;
@@ -101,13 +99,13 @@ import org.vmmagic.pragma.*;
    * @return The size (in bytes) of the given object.
    */
   static int getObjectSize(ObjectReference object) {
-    VM_TIB tib = VM_ObjectModel.getTIB(object);
-    RVMType type = VM_Magic.objectAsType(tib.getType());
+    TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
+    RVMType type = Magic.objectAsType(tib.getType());
 
     if (type.isClassType())
-      return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asClass());
+      return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asClass());
     else
-      return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asArray(), VM_Magic.getArrayLength(object.toObject()));
+      return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asArray(), Magic.getArrayLength(object.toObject()));
   }
 
   /**
@@ -124,7 +122,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public Address copyTo(ObjectReference from, ObjectReference to, Address region) {
-    VM_TIB tib = VM_ObjectModel.getTIB(from);
+    TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(from);
     RVMType type = tib.getType();
     int bytes;
 
@@ -133,19 +131,19 @@ import org.vmmagic.pragma.*;
     if (copy) {
       if (type.isClassType()) {
         RVMClass classType = type.asClass();
-        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), classType);
-        VM_ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, classType);
+        bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), classType);
+        org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, classType);
       } else {
       RVMArray arrayType = type.asArray();
-        int elements = VM_Magic.getArrayLength(from.toObject());
-        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), arrayType, elements);
-        VM_ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, arrayType);
+        int elements = Magic.getArrayLength(from.toObject());
+        bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), arrayType, elements);
+        org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, arrayType);
       }
     } else {
       bytes = getCurrentSize(to);
     }
 
-    Address start = VM_ObjectModel.objectStartRef(to);
+    Address start = org.jikesrvm.objectmodel.ObjectModel.objectStartRef(to);
     Allocator.fillAlignmentGap(region, start);
 
     return start.plus(bytes);
@@ -161,7 +159,7 @@ import org.vmmagic.pragma.*;
    * @return The resulting reference.
    */
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
-    return ObjectReference.fromObject(VM_ObjectModel.getReferenceWhenCopiedTo(from.toObject(), to));
+    return ObjectReference.fromObject(org.jikesrvm.objectmodel.ObjectModel.getReferenceWhenCopiedTo(from.toObject(), to));
   }
 
   /**
@@ -170,7 +168,7 @@ import org.vmmagic.pragma.*;
    * @param object The objecty.
    */
   public Address getObjectEndAddress(ObjectReference object) {
-    return VM_ObjectModel.getObjectEndAddress(object.toObject());
+    return org.jikesrvm.objectmodel.ObjectModel.getObjectEndAddress(object.toObject());
   }
 
   /**
@@ -180,7 +178,7 @@ import org.vmmagic.pragma.*;
    * @return The size required to copy <code>obj</code>
    */
   public int getSizeWhenCopied(ObjectReference object) {
-    return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject());
+    return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject());
   }
 
   /**
@@ -190,12 +188,12 @@ import org.vmmagic.pragma.*;
    * @return The alignment required for a copy of <code>obj</code>
    */
   public int getAlignWhenCopied(ObjectReference object) {
-    VM_TIB tib = VM_ObjectModel.getTIB(object);
+    TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
     RVMType type = tib.getType();
     if (type.isArrayType()) {
-      return VM_ObjectModel.getAlignment(type.asArray(), object.toObject());
+      return org.jikesrvm.objectmodel.ObjectModel.getAlignment(type.asArray(), object.toObject());
     } else {
-      return VM_ObjectModel.getAlignment(type.asClass(), object.toObject());
+      return org.jikesrvm.objectmodel.ObjectModel.getAlignment(type.asClass(), object.toObject());
     }
   }
 
@@ -206,12 +204,12 @@ import org.vmmagic.pragma.*;
    * @return The alignment offset required for a copy of <code>obj</code>
    */
   public int getAlignOffsetWhenCopied(ObjectReference object) {
-    VM_TIB tib = VM_ObjectModel.getTIB(object);
+    TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
     RVMType type = tib.getType();
     if (type.isArrayType()) {
-      return VM_ObjectModel.getOffsetForAlignment(type.asArray(), object);
+      return org.jikesrvm.objectmodel.ObjectModel.getOffsetForAlignment(type.asArray(), object);
     } else {
-      return VM_ObjectModel.getOffsetForAlignment(type.asClass(), object);
+      return org.jikesrvm.objectmodel.ObjectModel.getOffsetForAlignment(type.asClass(), object);
     }
   }
 
@@ -222,21 +220,21 @@ import org.vmmagic.pragma.*;
    * @return The size of <code>obj</code>
    */
   public int getCurrentSize(ObjectReference object) {
-    return VM_ObjectModel.bytesUsed(object.toObject());
+    return org.jikesrvm.objectmodel.ObjectModel.bytesUsed(object.toObject());
   }
 
   /**
    * Return the next object in the heap under contiguous allocation
    */
   public ObjectReference getNextObject(ObjectReference object) {
-    return VM_ObjectModel.getNextObject(object);
+    return org.jikesrvm.objectmodel.ObjectModel.getNextObject(object);
   }
 
   /**
    * Return an object reference from knowledge of the low order word
    */
   public ObjectReference getObjectFromStartAddress(Address start) {
-    return VM_ObjectModel.getObjectFromStartAddress(start);
+    return org.jikesrvm.objectmodel.ObjectModel.getObjectFromStartAddress(start);
   }
 
   /**
@@ -246,13 +244,13 @@ import org.vmmagic.pragma.*;
    * @return byte array with the type descriptor
    */
   public byte [] getTypeDescriptor(ObjectReference ref) {
-    VM_Atom descriptor = VM_Magic.getObjectType(ref).getDescriptor();
+    Atom descriptor = Magic.getObjectType(ref).getDescriptor();
     return descriptor.toByteArray();
   }
 
   @Inline
   public int getArrayLength(ObjectReference object) {
-    return VM_Magic.getArrayLength(object.toObject());
+    return Magic.getArrayLength(object.toObject());
   }
 
   /**
@@ -261,7 +259,7 @@ import org.vmmagic.pragma.*;
    * @param object address of the object
    */
   public boolean isArray(ObjectReference object) {
-    return VM_ObjectModel.getObjectType(object.toObject()).isArrayType();
+    return org.jikesrvm.objectmodel.ObjectModel.getObjectType(object.toObject()).isArrayType();
   }
 
   /**
@@ -286,7 +284,7 @@ import org.vmmagic.pragma.*;
    * @param idx the index of the bit
    */
   public boolean testAvailableBit(ObjectReference object, int idx) {
-    return VM_ObjectModel.testAvailableBit(object.toObject(), idx);
+    return org.jikesrvm.objectmodel.ObjectModel.testAvailableBit(object.toObject(), idx);
   }
 
   /**
@@ -299,7 +297,7 @@ import org.vmmagic.pragma.*;
    */
   public void setAvailableBit(ObjectReference object, int idx,
                                      boolean flag) {
-    VM_ObjectModel.setAvailableBit(object.toObject(), idx, flag);
+    org.jikesrvm.objectmodel.ObjectModel.setAvailableBit(object.toObject(), idx, flag);
   }
 
   /**
@@ -317,7 +315,7 @@ import org.vmmagic.pragma.*;
    */
   public boolean attemptAvailableBits(ObjectReference object,
                                              Word oldVal, Word newVal) {
-    return VM_ObjectModel.attemptAvailableBits(object.toObject(), oldVal,
+    return org.jikesrvm.objectmodel.ObjectModel.attemptAvailableBits(object.toObject(), oldVal,
                                                newVal);
   }
 
@@ -329,7 +327,7 @@ import org.vmmagic.pragma.*;
    * @return the value of the bits
    */
   public Word prepareAvailableBits(ObjectReference object) {
-    return VM_ObjectModel.prepareAvailableBits(object.toObject());
+    return org.jikesrvm.objectmodel.ObjectModel.prepareAvailableBits(object.toObject());
   }
 
   /**
@@ -339,7 +337,7 @@ import org.vmmagic.pragma.*;
    * @param val the new value of the byte
    */
   public void writeAvailableByte(ObjectReference object, byte val) {
-    VM_ObjectModel.writeAvailableByte(object.toObject(), val);
+    org.jikesrvm.objectmodel.ObjectModel.writeAvailableByte(object.toObject(), val);
   }
 
   /**
@@ -349,7 +347,7 @@ import org.vmmagic.pragma.*;
    * @return the value of the byte
    */
   public byte readAvailableByte(ObjectReference object) {
-    return VM_ObjectModel.readAvailableByte(object.toObject());
+    return org.jikesrvm.objectmodel.ObjectModel.readAvailableByte(object.toObject());
   }
 
   /**
@@ -359,7 +357,7 @@ import org.vmmagic.pragma.*;
    * @param val the new value of the bits
    */
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
-    VM_ObjectModel.writeAvailableBitsWord(object.toObject(), val);
+    org.jikesrvm.objectmodel.ObjectModel.writeAvailableBitsWord(object.toObject(), val);
   }
 
   /**
@@ -369,7 +367,7 @@ import org.vmmagic.pragma.*;
    * @return the value of the bits
    */
   public Word readAvailableBitsWord(ObjectReference object) {
-    return VM_ObjectModel.readAvailableBitsWord(object.toObject());
+    return org.jikesrvm.objectmodel.ObjectModel.readAvailableBitsWord(object.toObject());
   }
 
   /**
@@ -382,7 +380,7 @@ import org.vmmagic.pragma.*;
    */
   /* AJG: Should this be a variable rather than method? */
   public Offset GC_HEADER_OFFSET() {
-    return VM_ObjectModel.GC_HEADER_OFFSET;
+    return org.jikesrvm.objectmodel.ObjectModel.GC_HEADER_OFFSET;
   }
 
   /**
@@ -393,7 +391,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public Address objectStartRef(ObjectReference object) {
-    return VM_ObjectModel.objectStartRef(object);
+    return org.jikesrvm.objectmodel.ObjectModel.objectStartRef(object);
   }
 
   /**
@@ -404,7 +402,7 @@ import org.vmmagic.pragma.*;
    * @return an address inside the object
    */
   public Address refToAddress(ObjectReference object) {
-    return VM_ObjectModel.getPointerInMemoryRegion(object);
+    return org.jikesrvm.objectmodel.ObjectModel.getPointerInMemoryRegion(object);
   }
 
   /**
@@ -416,7 +414,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public boolean isAcyclic(ObjectReference typeRef) {
-    VM_TIB tib = VM_Magic.addressAsTIB(typeRef.toAddress());
+    TIB tib = Magic.addressAsTIB(typeRef.toAddress());
     RVMType type = tib.getType();
     return type.isAcyclicReference();
   }

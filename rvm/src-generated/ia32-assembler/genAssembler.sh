@@ -590,10 +590,10 @@ function emitCall() {
    * </PRE>
    *
    *  This emit method is expecting only a forward branch (that is
-   * what the Label operand means); it creates a VM_ForwardReference
+   * what the Label operand means); it creates a ForwardReference
    * to the given label, and puts it into the assembler's list of
    * references to resolve.  This emitter knows the branch is
-   * unconditional, so it uses VM_ForwardReference.UnconditionalBranch
+   * unconditional, so it uses ForwardReference.UnconditionalBranch
    * as the forward reference type to create.
    *
    *  All forward branches have a label as the branch target; clients
@@ -601,11 +601,11 @@ function emitCall() {
    * consistent in giving the chosen label as the target of branches
    * to an instruction and calling resolveForwardBranches with the
    * given label immediately before emitting the target instruction.
-   * See the header comments of VM_ForwardReference for more details.
+   * See the header comments of ForwardReference for more details.
    *
    * @param label the label associated with the branch target instrucion
    *
-   * @see VM_ForwardReference.UnconditionalBranch
+   * @see ForwardReference.UnconditionalBranch
    */
   @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emit${acronym}_Label(int label) {
@@ -618,9 +618,9 @@ function emitCall() {
       }
 
       int miStart = mi;
-      VM_ForwardReference r =
-        new VM_ForwardReference.UnconditionalBranch(mi, label);
-      forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
+      ForwardReference r =
+        new ForwardReference.UnconditionalBranch(mi, label);
+      forwardRefs = ForwardReference.enqueue(forwardRefs, r);
       setMachineCodes(mi++, (byte) ${rel32Code});
       mi += 4; // leave space for displacement
       if (lister != null) lister.I(miStart, "${acronym}", label);

@@ -15,8 +15,8 @@ package org.jikesrvm.compilers.opt.driver;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.Time;
+import org.jikesrvm.scheduler.Scheduler;
 
 /**
  * An element in the opt compiler's optimization plan
@@ -82,14 +82,14 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
     long start = 0;
     try {
       if (VM.MeasureCompilationPhases && VM.runningVM) {
-        start = VM_Scheduler.getCurrentThread().startTimedInterval();
+        start = Scheduler.getCurrentThread().startTimedInterval();
       }
       CompilerPhase cmpPhase = myPhase.newExecution(ir);
       cmpPhase.setContainer(this);
       cmpPhase.performPhase(ir);
     } finally {
       if (VM.MeasureCompilationPhases && VM.runningVM) {
-        long end = VM_Scheduler.getCurrentThread().endTimedInterval();
+        long end = Scheduler.getCurrentThread().endTimedInterval();
         phaseNanos += end - start;
       }
     }
@@ -127,7 +127,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
       VM.sysWrite(" ");
       curCol++;
     }
-    double myTime = VM_Time.nanosToMillis(phaseNanos);
+    double myTime = Time.nanosToMillis(phaseNanos);
     prettyPrintTime(myTime, totalTime);
     myPhase.reportAdditionalStats();
     VM.sysWriteln();
@@ -138,6 +138,6 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    * @return time spend in the plan (in ms)
    */
   public double elapsedTime() {
-    return VM_Time.nanosToMillis(phaseNanos);
+    return Time.nanosToMillis(phaseNanos);
   }
 }

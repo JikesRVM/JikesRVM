@@ -17,8 +17,8 @@
 
 package org.apache.harmony.kernel.vm;
 
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 
 /**
@@ -61,7 +61,7 @@ public final class VM {
     static final ClassLoader getStackClassLoader(int depth) {
 	if (org.jikesrvm.VM.runningVM) {
 	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(depth);
-	    if (ans == VM_BootstrapClassLoader.getBootstrapClassLoader()) {
+	    if (ans == BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {
 		return ans;
@@ -112,7 +112,7 @@ public final class VM {
      * @return the interned string equal to the specified String
      */
     public static final String intern(String string) {
-	return VM_Atom.internString(string);
+	return Atom.internString(string);
     }
 
     /**
@@ -144,7 +144,7 @@ public final class VM {
     public static ClassLoader callerClassLoader() {
 	if (org.jikesrvm.VM.runningVM) {
 	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(1);
-	    if (ans == VM_BootstrapClassLoader.getBootstrapClassLoader()) {
+	    if (ans == BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {
 		return ans;
@@ -171,7 +171,7 @@ public final class VM {
      * @throws SecurityException when called from a non-bootstrap Class
      */
     public static ClassLoader bootCallerClassLoader() {
-	return VM_BootstrapClassLoader.getBootstrapClassLoader();
+	return BootstrapClassLoader.getBootstrapClassLoader();
     }
 
     /**

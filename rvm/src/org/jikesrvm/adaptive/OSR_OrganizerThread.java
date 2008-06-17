@@ -12,18 +12,18 @@
  */
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThreadQueue;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.Synchronization;
+import org.jikesrvm.scheduler.greenthreads.GreenThread;
+import org.jikesrvm.scheduler.greenthreads.GreenThreadQueue;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Organizer thread collects OSR requests and inserted in controller queue
  * The producers are application threads, and the consumer thread is the
- * organizer. The buffer is VM_Scheduler.threads array. The producer set
+ * organizer. The buffer is Scheduler.threads array. The producer set
  * it is own flag "requesting_osr" and notify the consumer. The consumer
  * scans the threads array and collect requests. To work with concurrency,
  * we use following scheme:
@@ -54,7 +54,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * enqueue.
  */
 
-public final class OSR_OrganizerThread extends VM_GreenThread {
+public final class OSR_OrganizerThread extends GreenThread {
   /** Constructor */
   public OSR_OrganizerThread() {
     super("OSR_Organizer");
@@ -77,12 +77,12 @@ public final class OSR_OrganizerThread extends VM_GreenThread {
 
   // lock = 0, free , 1 owned by someone
   @SuppressWarnings("unused")
-  // Accessed via VM_EntryPoints
+  // Accessed via EntryPoints
   private int queueLock = 0;
-  private final VM_GreenThreadQueue tq = new VM_GreenThreadQueue();
+  private final GreenThreadQueue tq = new GreenThreadQueue();
 
   private void passivate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = Synchronization.testAndSet(this, Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
 
       // we cannot release lock before enqueue the organizer.
@@ -113,9 +113,9 @@ public final class OSR_OrganizerThread extends VM_GreenThread {
    */
   @Uninterruptible
   public void activate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = Synchronization.testAndSet(this, Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
-      VM_GreenThread org = tq.dequeue();
+      GreenThread org = tq.dequeue();
       // release lock
       this.queueLock = 0;
 
@@ -128,13 +128,13 @@ public final class OSR_OrganizerThread extends VM_GreenThread {
 
   // proces osr request
   private void processOsrRequest() {
-    // scanning VM_Scheduler.threads
-    for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-      VM_GreenThread thread = (VM_GreenThread)VM_Scheduler.threads[i];
+    // scanning Scheduler.threads
+    for (int i = 0, n = Scheduler.threads.length; i < n; i++) {
+      GreenThread thread = (GreenThread)Scheduler.threads[i];
       if (thread != null) {
         if (thread.requesting_osr) {
           thread.requesting_osr = false;
-          VM_Controller.controllerInputQueue.insert(5.0, thread.onStackReplacementEvent);
+          Controller.controllerInputQueue.insert(5.0, thread.onStackReplacementEvent);
         }
       }
     }

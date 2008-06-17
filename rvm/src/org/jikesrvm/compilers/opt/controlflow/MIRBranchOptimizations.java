@@ -182,7 +182,7 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
         // g: if (...) goto L
         // ...
         // L: goto L
-        // This happens in VM_GCUtil in some systems due to a while(true) {}
+        // This happens in GCUtil in some systems due to a while(true) {}
         return false;
       }
       MIR_CondBranch.setTarget(cb, (BranchOperand) (MIR_Branch.getTarget(targetInst).copy()));

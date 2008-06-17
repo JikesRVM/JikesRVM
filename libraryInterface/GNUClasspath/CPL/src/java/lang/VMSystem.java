@@ -17,9 +17,9 @@ import java.io.PrintStream;
 import java.util.List;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_UnimplementedError;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.UnimplementedError;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.runtime.Time;
 
 /**
  * Library support interface of Jikes RVM
@@ -31,7 +31,7 @@ public final class VMSystem {
   }
 
   static int identityHashCode(Object o) {
-    return o == null ? 0 : VM_ObjectModel.getObjectHashCode(o);
+    return o == null ? 0 : ObjectModel.getObjectHashCode(o);
   }
 
   static boolean isWordsBigEndian() {
@@ -39,11 +39,11 @@ public final class VMSystem {
   }
 
   public static long currentTimeMillis() {
-    return VM_Time.currentTimeMillis();
+    return Time.currentTimeMillis();
   }
 
   public static long nanoTime() {
-    return VM_Time.nanoTime();
+    return Time.nanoTime();
   }
 
   static void setIn(InputStream in) {
@@ -72,6 +72,6 @@ public final class VMSystem {
   }
 
   static List<?> environ() {
-    throw new VM_UnimplementedError();
+    throw new UnimplementedError();
   }
 }

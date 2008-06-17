@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
@@ -238,7 +238,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
             }
           } else if (op instanceof BURSManagedFPROperand) {
             int regNum = ((BURSManagedFPROperand) op).regNum;
-            s.replaceOperand(op, new RegisterOperand(phys.getFPR(regNum), VM_TypeReference.Double));
+            s.replaceOperand(op, new RegisterOperand(phys.getFPR(regNum), TypeReference.Double));
           }
         }
         // account for any effect s has on the floating point stack

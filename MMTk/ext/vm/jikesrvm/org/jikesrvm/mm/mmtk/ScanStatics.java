@@ -14,10 +14,10 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.jikesrvm.runtime.Statics;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -30,7 +30,7 @@ public final class ScanStatics implements Constants {
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
    * 64bit addresses =2)
    */
-  private static final int refSlotSize = VM_Statics.getReferenceSlotSize();
+  private static final int refSlotSize = Statics.getReferenceSlotSize();
   /**
    * Mask used when calculating the chunkSize to ensure chunks are
    * 64bit aligned on 64bit architectures
@@ -45,14 +45,14 @@ public final class ScanStatics implements Constants {
   @Uninterruptible
   public static void scanStatics(TraceLocal trace) {
     // The address of the statics table
-    // equivalent to VM_Statics.getSlots()
-    final Address slots = VM_Magic.getJTOC();
+    // equivalent to Statics.getSlots()
+    final Address slots = Magic.getJTOC();
     // The number of collector threads
-    final int numberOfCollectors = VM_CollectorThread.numCollectors();
+    final int numberOfCollectors = CollectorThread.numCollectors();
     // This thread as a collector
-    final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    final CollectorThread ct = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
     // The number of static references
-    final int numberOfReferences = VM_Statics.getNumberOfReferenceSlots();
+    final int numberOfReferences = Statics.getNumberOfReferenceSlots();
     // The size to give each thread
     final int chunkSize = (numberOfReferences / numberOfCollectors) & chunkSizeMask;
     // The number of this collector thread (1...n)

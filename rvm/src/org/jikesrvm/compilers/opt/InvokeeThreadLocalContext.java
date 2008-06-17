@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
@@ -33,7 +33,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
    * Find or create a specialized method in this context.
    * @param source
    */
-  public SpecializedMethod findOrCreateSpecializedVersion(VM_NormalMethod source) {
+  public SpecializedMethod findOrCreateSpecializedVersion(NormalMethod source) {
     // first check if the specialization database contains
     // a specialized version from this context.
     java.util.Iterator<SpecializedMethod> versions = SpecializationDatabase.getSpecialVersions(source);
@@ -58,7 +58,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
    * Create specialized method in this context.
    * @param method
    */
-  private SpecializedMethod createSpecializedMethod(VM_NormalMethod method) {
+  private SpecializedMethod createSpecializedMethod(NormalMethod method) {
     return (new SpecializedMethod(method, this));
   }
 
@@ -67,7 +67,7 @@ public class InvokeeThreadLocalContext implements SpecializationContext {
    * the opt compiler with the INVOKEE_THREAD_LOCAL option.
    * @param source
    */
-  public VM_CompiledMethod specialCompile(VM_NormalMethod source) {
+  public CompiledMethod specialCompile(NormalMethod source) {
     CompilationPlan plan = new CompilationPlan(source, optimizationPlan, null, options);
     return OptimizingCompiler.compile(plan);
   }

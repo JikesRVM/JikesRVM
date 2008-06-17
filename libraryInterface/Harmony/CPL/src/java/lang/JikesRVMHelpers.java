@@ -12,7 +12,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.Atom;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -22,15 +22,15 @@ import java.lang.reflect.TypeVariable;
  * class library independent code in java.lang.
  */
 class JikesRVMHelpers {
-  static Type[] getInterfaceTypesFromSignature(Class<?> clazz, VM_Atom sig) {
+  static Type[] getInterfaceTypesFromSignature(Class<?> clazz, Atom sig) {
     throw new Error("TODO");
   }
 
-  static Type getSuperclassType(Class<?> clazz, VM_Atom sig) {
+  static Type getSuperclassType(Class<?> clazz, Atom sig) {
     throw new Error("TODO");
   }
 
-  static <T> TypeVariable<Class<T>>[] getTypeParameters(Class<T> clazz, VM_Atom sig) {
+  static <T> TypeVariable<Class<T>>[] getTypeParameters(Class<T> clazz, Atom sig) {
     throw new Error("TODO");
   }
 }

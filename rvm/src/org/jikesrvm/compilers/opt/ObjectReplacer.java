@@ -19,8 +19,8 @@ import java.util.Set;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.Move;
@@ -160,11 +160,11 @@ public final class ObjectReplacer implements AggregateReplacer {
     try{
       switch (inst.getOpcode()) {
       case PUTFIELD_opcode: {
-        VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
+        FieldReference fr = PutField.getLocation(inst).getFieldRef();
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
         RVMField f = fr.peekResolvedField();
         int index = fields.indexOf(f);
-        VM_TypeReference type = scalars[index].getType();
+        TypeReference type = scalars[index].getType();
         Operator moveOp = IRTools.getMoveOp(type);
         Instruction i = Move.create(moveOp, scalars[index].copyRO(), PutField.getClearValue(inst));
         inst.insertBefore(i);
@@ -173,11 +173,11 @@ public final class ObjectReplacer implements AggregateReplacer {
       }
       break;
       case GETFIELD_opcode: {
-        VM_FieldReference fr = GetField.getLocation(inst).getFieldRef();
+        FieldReference fr = GetField.getLocation(inst).getFieldRef();
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
         RVMField f = fr.peekResolvedField();
         int index = fields.indexOf(f);
-        VM_TypeReference type = scalars[index].getType();
+        TypeReference type = scalars[index].getType();
         Operator moveOp = IRTools.getMoveOp(type);
         Instruction i = Move.create(moveOp, GetField.getClearResult(inst), scalars[index].copyRO());
         inst.insertBefore(i);

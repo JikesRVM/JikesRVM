@@ -13,9 +13,9 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Offset;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
@@ -67,24 +67,24 @@ public class ObjectConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
    * @return type reference for type of object
    */
-  public VM_TypeReference getType() {
+  public TypeReference getType() {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.getTypeForClass(value.getClass()).getTypeRef();
     } else {
       Class<?> rc = value.getClass();
       String className = rc.getName();
-      VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
+      Atom classAtom = Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
       if (className.startsWith("[")) {
         // an array
-        return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
+        return TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
       } else {
         // a class
-        VM_Atom classDescriptor = classAtom.descriptorFromClassName();
-        return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
+        Atom classDescriptor = classAtom.descriptorFromClassName();
+        return TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
       }
     }
   }

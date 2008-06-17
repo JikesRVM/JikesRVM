@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 /**
  * DominatorInfo.java
@@ -22,9 +22,9 @@ import org.jikesrvm.util.VM_BitVector;
  */
 public class DominatorInfo {
   /**
-   * A VM_BitVector which represents the dominators of the basic block
+   * A BitVector which represents the dominators of the basic block
    */
-  final VM_BitVector dominators;
+  final BitVector dominators;
   /**
    * The basic block's immediate dominator.
    */
@@ -36,7 +36,7 @@ public class DominatorInfo {
    *
    * @param  dominators the bit set
    */
-  DominatorInfo(VM_BitVector dominators) {
+  DominatorInfo(BitVector dominators) {
     this.dominators = dominators;
   }
 

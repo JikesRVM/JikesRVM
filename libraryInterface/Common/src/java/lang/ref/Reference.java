@@ -14,7 +14,7 @@ package java.lang.ref;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -86,7 +86,7 @@ public abstract class Reference<T> {
   @Uninterruptible
   @Inline
   private Object getInternal(Address tmp) {
-    Object ref = VM_Magic.addressAsObject(tmp);
+    Object ref = Magic.addressAsObject(tmp);
 
     if (MM_Constants.NEEDS_REFTYPE_READ_BARRIER) {
       ref = MM_Interface.referenceTypeReadBarrier(ref);

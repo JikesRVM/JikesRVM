@@ -66,7 +66,7 @@ typedef unsigned int u_int32_t;
 #define NEED_MM_INTERFACE_DECLARATIONS
 #include <InterfaceDeclarations.h>
 
-extern "C" void setLinkage(VM_BootRecord*);
+extern "C" void setLinkage(BootRecord*);
 
 #include "../bootImageRunner.h" // In tools/bootImageRunner
 
@@ -98,19 +98,19 @@ int lib_verbose = 0;
 /* Location of jtoc within virtual machine image. */
 static unsigned VmToc;
 
-/* TOC offset of VM_Scheduler.dumpStackAndDie */
-static VM_Offset DumpStackAndDieOffset;
+/* TOC offset of Scheduler.dumpStackAndDie */
+static Offset DumpStackAndDieOffset;
 
-/* TOC offset of VM_Scheduler.processors[] */
-static VM_Offset ProcessorsOffset;
+/* TOC offset of Scheduler.processors[] */
+static Offset ProcessorsOffset;
 
-/* TOC offset of VM_Scheduler.debugRequested */
-static VM_Offset DebugRequestedOffset;
+/* TOC offset of Scheduler.debugRequested */
+static Offset DebugRequestedOffset;
 
 /* name of program that will load and run RVM */
 char *Me;
 
-static VM_BootRecord *bootRecord;
+static BootRecord *bootRecord;
 
 static void vwriteFmt(int fd, const char fmt[], va_list ap)
     NONNULL(2) __attribute__((format (printf, 2, 0)));
@@ -197,15 +197,15 @@ getInstOpcode(unsigned int faultingInstructionAddress, char MnemonicBuffer[256])
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
 static int
-inRVMAddressSpace(VM_Address addr)
+inRVMAddressSpace(Address addr)
 {
     /* get the boot record */
-    VM_Address *heapRanges = bootRecord->heapRanges;
+    Address *heapRanges = bootRecord->heapRanges;
     for (int which = 0; which < MAXHEAPS; which++) {
-        VM_Address start = heapRanges[2 * which];
-        VM_Address end = heapRanges[2 * which + 1];
+        Address start = heapRanges[2 * which];
+        Address end = heapRanges[2 * which + 1];
         // Test against sentinel.
-        if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
+        if (start == ~(Address) 0 && end == ~ (Address) 0) break;
         if (start <= addr  && addr < end) {
             return true;
         }
@@ -626,7 +626,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     /* get the frame pointer from processor object  */
     localFrameAddress =
-        *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
+        *(unsigned *) (localVirtualProcessorAddress + Processor_framePointer_offset);
 
     /* test validity of frame address */
     {
@@ -653,18 +653,18 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     /* get the active thread id */
     unsigned int threadObjectAddress =
-        *(unsigned int*) (localVirtualProcessorAddress + VM_Processor_activeThread_offset);
+        *(unsigned int*) (localVirtualProcessorAddress + Processor_activeThread_offset);
 
     /* then get its hardware exception registers */
     unsigned int registers =
         *(unsigned int *) (threadObjectAddress +
                            RVMThread_exceptionRegisters_offset);
 
-    /* get the addresses of the gps and other fields in the VM_Registers object */
-    unsigned *vmr_gprs  = *(unsigned **) ((char *) registers + VM_Registers_gprs_offset);
-    unsigned *vmr_ip    =  (unsigned *)  ((char *) registers + VM_Registers_ip_offset);
-    unsigned *vmr_fp    =  (unsigned *)  ((char *) registers + VM_Registers_fp_offset);
-    unsigned *vmr_inuse =  (unsigned *)  ((char *) registers + VM_Registers_inuse_offset);
+    /* get the addresses of the gps and other fields in the Registers object */
+    unsigned *vmr_gprs  = *(unsigned **) ((char *) registers + Registers_gprs_offset);
+    unsigned *vmr_ip    =  (unsigned *)  ((char *) registers + Registers_ip_offset);
+    unsigned *vmr_fp    =  (unsigned *)  ((char *) registers + Registers_fp_offset);
+    unsigned *vmr_inuse =  (unsigned *)  ((char *) registers + Registers_inuse_offset);
 
     long unsigned int *sp;
     long unsigned int *fp;
@@ -678,7 +678,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                     " hardware exception registers (exiting)\n", Me);
         /*
          * Things went badly wrong, so attempt to generate a useful error dump
-         * before exiting by returning to VM_Scheduler.dumpStackAndDie passing
+         * before exiting by returning to Scheduler.dumpStackAndDie passing
          * it the fp of the offending thread.
          *
          * We could try to continue, but sometimes doing so results
@@ -701,7 +701,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         sp = (long unsigned int *) IA32_ESP(context);
         *sp = 0;
 
-        /* set up to goto dumpStackAndDie routine ( in VM_Scheduler) as if called */
+        /* set up to goto dumpStackAndDie routine ( in Scheduler) as if called */
         IA32_EIP(context) = dumpStack;
         *vmr_inuse = false;
 
@@ -711,15 +711,15 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     *vmr_inuse = 1;                     /* mark in use to avoid infinite loop */
 
-    /* move gp registers to VM_Registers object */
-    vmr_gprs[VM_Constants_EAX] = IA32_EAX(context);
-    vmr_gprs[VM_Constants_ECX] = IA32_ECX(context);
-    vmr_gprs[VM_Constants_EDX] = IA32_EDX(context);
-    vmr_gprs[VM_Constants_EBX] = IA32_EBX(context);
-    vmr_gprs[VM_Constants_ESP] = IA32_ESP(context);
-    vmr_gprs[VM_Constants_EBP] = IA32_EBP(context);
-    vmr_gprs[VM_Constants_ESI] = IA32_ESI(context);
-    vmr_gprs[VM_Constants_EDI] = IA32_EDI(context);
+    /* move gp registers to Registers object */
+    vmr_gprs[Constants_EAX] = IA32_EAX(context);
+    vmr_gprs[Constants_ECX] = IA32_ECX(context);
+    vmr_gprs[Constants_EDX] = IA32_EDX(context);
+    vmr_gprs[Constants_EBX] = IA32_EBX(context);
+    vmr_gprs[Constants_ESP] = IA32_ESP(context);
+    vmr_gprs[Constants_EBP] = IA32_EBP(context);
+    vmr_gprs[Constants_ESI] = IA32_ESI(context);
+    vmr_gprs[Constants_EDI] = IA32_EDI(context);
 
     /* set the next instruction for the failing frame */
     instructionFollowing = getInstructionFollowing(localInstructionAddress);
@@ -731,7 +731,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
      * other than the bottom of the frame at a PEI (see bug 2570).
      *
      * We'll execute the entire code sequence for
-     * VM_Runtime.deliverHardwareException et al. in the guard region of the
+     * Runtime.deliverHardwareException et al. in the guard region of the
      * stack to avoid bashing stuff in the bottom opt-frame.
      */
     sp = (long unsigned int *) IA32_ESP(context);
@@ -745,45 +745,45 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
     sp = (long unsigned int *)stackLimit - 384;
-    stackLimit -= VM_Constants_STACK_SIZE_GUARD;
+    stackLimit -= Constants_STACK_SIZE_GUARD;
     *(unsigned *)(threadObjectAddress + RVMThread_stackLimit_offset) = stackLimit;
-    *(unsigned *)(IA32_ESI(context) + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+    *(unsigned *)(IA32_ESI(context) + Processor_activeThreadStackLimit_offset) = stackLimit;
 
     /* Insert artificial stackframe at site of trap. */
     /* This frame marks the place where "hardware exception registers" were saved. */
-    sp = (long unsigned int *) ((char *) sp - VM_Constants_STACKFRAME_HEADER_SIZE);
-    fp = (long unsigned int *) ((char *) sp - 4 - VM_Constants_STACKFRAME_BODY_OFFSET); /*  4 = wordsize  */
+    sp = (long unsigned int *) ((char *) sp - Constants_STACKFRAME_HEADER_SIZE);
+    fp = (long unsigned int *) ((char *) sp - 4 - Constants_STACKFRAME_BODY_OFFSET); /*  4 = wordsize  */
 
     /* fill in artificial stack frame */
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)
+    *(int *) ((char *) fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET)
         = localFrameAddress;
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET)
+    *(int *) ((char *) fp + Constants_STACKFRAME_METHOD_ID_OFFSET)
         = HardwareTrapMethodId;
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET)
+    *(int *) ((char *) fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET)
         = instructionFollowing;
 
     /* fill in call to "deliverHardwareException" */
     sp = (long unsigned int *) ((char *) sp - 4);       /* first parameter is type of trap */
 
     if (signo == SIGSEGV) {
-        *(int *) sp = VM_Runtime_TRAP_NULL_POINTER;
+        *(int *) sp = Runtime_TRAP_NULL_POINTER;
 
         /* an int immediate instruction produces a SIGSEGV signal.
            An int 3 instruction a trap fault */
         if (*(unsigned char *)(localInstructionAddress) == 0xCD) {
             // is INT imm instruction
             unsigned char code = *(unsigned char*)(localInstructionAddress+1);
-            code -= VM_Constants_RVM_TRAP_BASE;
+            code -= Constants_RTRAP_BASE;
             *(int *) sp = code;
         }
     }
 
     else if (signo == SIGFPE) {
-        *(int *) sp = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
+        *(int *) sp = Runtime_TRAP_DIVIDE_BY_ZERO;
     }
 
     else if (signo == SIGTRAP) {
-        *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
+        *(int *) sp = Runtime_TRAP_UNKNOWN;
 
         //fprintf(SysTraceFile, "op code is 0x%x",*(unsigned char *)(localInstructionAddress));
         //fprintf(SysTraceFile, "next code is 0x%x",*(unsigned char *)(localInstructionAddress+1));
@@ -793,7 +793,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     }
 
     else {
-        *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
+        *(int *) sp = Runtime_TRAP_UNKNOWN;
     }
 
     IA32_EAX(context) = *(int *)sp; // also pass first param in EAX.
@@ -801,12 +801,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         fprintf(SysTraceFile, "Trap code is 0x%x\n", IA32_EAX(context));
 
     sp = (long unsigned int *) ((char *) sp - 4);       /* next parameter is info for array bounds trap */
-    *(int *) sp = *(unsigned *) (localVirtualProcessorAddress + VM_Processor_arrayIndexTrapParam_offset);
+    *(int *) sp = *(unsigned *) (localVirtualProcessorAddress + Processor_arrayIndexTrapParam_offset);
     IA32_EDX(context) = *(int *)sp; // also pass second param in EDX.
     sp = (long unsigned int *) ((char *) sp - 4);       /* return address - looks like called from failing instruction */
     *(int *) sp = instructionFollowing;
 
-    /* store instructionFollowing and fp in VM_Registers,ip and VM_Registers.fp */
+    /* store instructionFollowing and fp in Registers,ip and Registers.fp */
     *vmr_ip = instructionFollowing;
     *vmr_fp = localFrameAddress;
 
@@ -817,7 +817,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
      * returning  */
     IA32_ESP(context) = (int) sp;
     IA32_EBP(context) = (int) fp;
-    *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
+    *(unsigned int *) (localVirtualProcessorAddress + Processor_framePointer_offset) = (int) fp;
 
     /* setup to return to deliver hardware exception routine */
     IA32_EIP(context) = javaExceptionHandlerAddress;
@@ -879,7 +879,7 @@ softwareSignalHandler(int signo,
         /* get the frame pointer from processor object  */
         unsigned int localVirtualProcessorAddress       = IA32_ESI(context);
         unsigned int localFrameAddress =
-            *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
+            *(unsigned *) (localVirtualProcessorAddress + Processor_framePointer_offset);
 
         /* setup stack frame to contain the frame pointer */
         long unsigned int *sp = (long unsigned int *) IA32_ESP(context);
@@ -896,7 +896,7 @@ softwareSignalHandler(int signo,
         sp = (long unsigned int *) IA32_ESP(context);
         *sp = 0;
 
-        /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
+        /* goto dumpStackAndDie routine (in Scheduler) as if called */
         IA32_EIP(context) = dumpStack;
         return;
     }
@@ -999,7 +999,7 @@ createVM(int UNUSED vmInSeparateThread)
 
 
     /* validate contents of boot record */
-    bootRecord = (VM_BootRecord *) bootDataRegion;
+    bootRecord = (BootRecord *) bootDataRegion;
 
     if (bootRecord->bootImageDataStart != (unsigned) bootDataRegion) {
         fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
@@ -1041,10 +1041,10 @@ createVM(int UNUSED vmInSeparateThread)
     /* remember jtoc location for later use by trap handler */
     VmToc = bootRecord->tocRegister;
 
-    /* get and remember JTOC offset of VM_Scheduler.processors[] */
+    /* get and remember JTOC offset of Scheduler.processors[] */
     ProcessorsOffset = bootRecord->greenProcessorsOffset;
 
-    // remember JTOC offset of VM_Scheduler.DebugRequested
+    // remember JTOC offset of Scheduler.DebugRequested
     //
     DebugRequestedOffset = bootRecord->debugRequestedOffset;
 
@@ -1182,21 +1182,21 @@ createVM(int UNUSED vmInSeparateThread)
         unsigned *processors
             = *(unsigned **) (bootRecord->tocRegister
                               + bootRecord->greenProcessorsOffset);
-        pr      = processors[VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
+        pr      = processors[GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
 
         /* initialize the thread id jtoc, and framepointer fields in the primordial
          * processor object.
          */
-        *(unsigned int *) (pr + VM_Processor_threadId_offset)
-            = VM_Scheduler_PRIMORDIAL_THREAD_INDEX
-                << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
-        *(unsigned int *) (pr + VM_Processor_framePointer_offset)
+        *(unsigned int *) (pr + Processor_threadId_offset)
+            = Scheduler_PRIMORDIAL_THREAD_INDEX
+                << ThinLockConstants_TL_THREAD_ID_SHIFT;
+        *(unsigned int *) (pr + Processor_framePointer_offset)
             = (int)sp - 8;
     }
 
     *--sp = 0xdeadbabe;         /* STACKFRAME_RETURN_ADDRESS_OFFSET */
-    *--sp = VM_Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
-    *--sp = VM_Constants_INVISIBLE_METHOD_ID; /* STACKFRAME_METHOD_ID_OFFSET */
+    *--sp = Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
+    *--sp = Constants_INVISIBLE_METHOD_ID; /* STACKFRAME_METHOD_ID_OFFSET */
     *--sp = 0; /* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
 
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
@@ -1214,8 +1214,8 @@ getJTOC(void)
     return (void*) VmToc;
 }
 
-// Get offset of VM_Scheduler.processors in JTOC.
-extern "C" VM_Offset
+// Get offset of Scheduler.processors in JTOC.
+extern "C" Offset
 getProcessorsOffset(void)
 {
     return ProcessorsOffset;

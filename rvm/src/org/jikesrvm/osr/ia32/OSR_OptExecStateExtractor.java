@@ -13,22 +13,22 @@
 package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_MethodReference;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.Constants;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.ia32.VM_ArchConstants;
+import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_MapIterator;
 import org.jikesrvm.osr.OSR_VariableElement;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.WordArray;
  * It extracts the execution state from an optimized activation.
  */
 public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
-    implements VM_Constants, VM_ArchConstants, OSR_Constants, PhysicalRegisterConstants {
+    implements Constants, ArchConstants, OSR_Constants, PhysicalRegisterConstants {
 
   public OSR_ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
@@ -68,18 +68,18 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     OSR_TempRegisters registers = new OSR_TempRegisters(thread.contextRegisters);
 
     if (VM.VerifyAssertions) {
-      int foocmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      int foocmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       if (foocmid != cmid) {
-        VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+        CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
         VM.sysWriteln("unmatch method, it should be " + cm.getMethod());
-        VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foocmid);
+        CompiledMethod foo = CompiledMethods.getCompiledMethod(foocmid);
         VM.sysWriteln("but now it is " + foo.getMethod());
         walkOnStack(stack, osrFPoff);
       }
       VM._assert(foocmid == cmid);
     }
 
-    OptCompiledMethod fooCM = (OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    OptCompiledMethod fooCM = (OptCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
     /* Following code get the machine code offset to the
      * next instruction. All operation of the stack frame
@@ -95,8 +95,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     // get the next machine code offset of the real method
     VM.disableGC();
-    Address osrFP = VM_Magic.objectAsAddress(stack).plus(osrFPoff);
-    Address nextIP = VM_Magic.getReturnAddress(osrFP);
+    Address osrFP = Magic.objectAsAddress(stack).plus(osrFPoff);
+    Address nextIP = Magic.getReturnAddress(osrFP);
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
@@ -109,8 +109,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     int regmap = fooOSRMap.getRegisterMapForMCOffset(ipOffset);
 
     {
-      int bufCMID = VM_Magic.getIntAtOffset(stack, osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
-      VM_CompiledMethod bufCM = VM_CompiledMethods.getCompiledMethod(bufCMID);
+      int bufCMID = Magic.getIntAtOffset(stack, osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      CompiledMethod bufCM = CompiledMethods.getCompiledMethod(bufCMID);
 
       // offset in bytes, convert it to stack words from fpIndex
       // SaveVolatile can only be compiled by OPT compiler
@@ -164,7 +164,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     *    |__________|  ___ FP
   */
   private void restoreValuesFromOptSaveVolatile(byte[] stack, Offset osrFPoff, OSR_TempRegisters registers, int regmap,
-                                                VM_CompiledMethod cm) {
+                                                CompiledMethod cm) {
 
     OptCompiledMethod tsfromCM = (OptCompiledMethod) cm;
 
@@ -185,14 +185,14 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     // recover nonvolatile GPRs
     for (int i = firstNonVolatile + nonVolatiles - 1; i >= firstNonVolatile; i--) {
-      gprs.set(NONVOLATILE_GPRS[i].value(), VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
+      gprs.set(NONVOLATILE_GPRS[i].value(), Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
       nonVolatileOffset -= BYTES_IN_STACKSLOT;
     }
 
     // restore with VOLATILES yet
     int volatileOffset = nonVolatileOffset;
     for (int i = NUM_VOLATILE_GPRS - 1; i >= 0; i--) {
-      gprs.set(VOLATILE_GPRS[i].value(), VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
+      gprs.set(VOLATILE_GPRS[i].value(), Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
       volatileOffset -= BYTES_IN_STACKSLOT;
     }
 
@@ -203,7 +203,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     // powerPC starts from register 1
     for (int i = 0; i < NUM_GPRS; i++) {
       if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
-        registers.objs[i] = VM_Magic.addressAsObject(registers.gprs.get(i).toAddress());
+        registers.objs[i] = Magic.addressAsObject(registers.gprs.get(i).toAddress());
       }
     }
 
@@ -253,8 +253,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     if (VM.VerifyAssertions) VM._assert(iterator != null);
 
     OSR_ExecutionState state = new OSR_ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
-    VM_MethodReference mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
-    state.setMethod((VM_NormalMethod) mref.peekResolvedMethod());
+    MethodReference mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+    state.setMethod((NormalMethod) mref.peekResolvedMethod());
     // this is not caller, but the callee, reverse it when outside
     // of this function.
     state.callerState = null;
@@ -267,8 +267,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
       if (iterator.getMethodId() != state.meth.getId()) {
         OSR_ExecutionState newstate = new OSR_ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
-        mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
-        newstate.setMethod((VM_NormalMethod) mref.peekResolvedMethod());
+        mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+        newstate.setMethod((NormalMethod) mref.peekResolvedMethod());
         // this is not caller, but the callee, reverse it when outside
         // of this function.
         newstate.callerState = state;
@@ -315,7 +315,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         }
         case FLOAT: {
           float fv = (float) getDoubleFrom(vtype, value, stack, fpOffset, registers);
-          int ibits = VM_Magic.floatAsIntBits(fv);
+          int ibits = Magic.floatAsIntBits(fv);
           state.add(new OSR_VariableElement(kind, num, tcode, ibits));
           break;
         }
@@ -334,7 +334,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         }
         case DOUBLE: {
           double dv = getDoubleFrom(vtype, value, stack, fpOffset, registers);
-          long lbits = VM_Magic.doubleAsLongBits(dv);
+          long lbits = Magic.doubleAsLongBits(dv);
           state.add(new OSR_VariableElement(kind, num, tcode, lbits));
           break;
         }
@@ -385,7 +385,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       // ASSUMING, spill offset is offset to FP in bytes.
     } else if (vtype == SPILL) {
 
-      return VM_Magic.getIntAtOffset(stack, fpOffset.minus(value));
+      return Magic.getIntAtOffset(stack, fpOffset.minus(value));
 
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -411,13 +411,13 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       if (vtypeLow == PHYREG) {
         lowPart = ((long)registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL;
       } else {
-        lowPart = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL;
+        lowPart = ((long)Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL;
       }
 
       if (vtypeHigh == PHYREG) {
         highPart = ((long)registers.gprs.get(valueHigh).toInt());
       } else {
-        highPart = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh)));
+        highPart = ((long)Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh)));
       }
 
       return (highPart << 32) | lowPart;
@@ -432,7 +432,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         // it is on FOO's stackframe.
         // ASSUMING, spill offset is offset to FP in bytes.
       } else if (vtypeLow == SPILL) {
-        return VM_Magic.getLongAtOffset(stack, fpOffset.minus(valueLow));
+        return Magic.getLongAtOffset(stack, fpOffset.minus(valueLow));
       }
     }
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -446,8 +446,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     } else if (vtype == SPILL) {
 
-      long lbits = VM_Magic.getLongAtOffset(stack, fpOffset.minus(value));
-      return VM_Magic.longBitsAsDouble(lbits);
+      long lbits = Magic.getLongAtOffset(stack, fpOffset.minus(value));
+      return Magic.longBitsAsDouble(lbits);
       //KV:TODO: why not use getDoubleAtOffset ???
 
     } else {
@@ -461,13 +461,13 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     if (vtype == ICONST) { //kv:todo : to become ACONST
       // the only constant object for 64bit addressing is NULL
       if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr || value == 0);
-      return VM_Magic.addressAsObject(Address.fromIntSignExtend(value));
+      return Magic.addressAsObject(Address.fromIntSignExtend(value));
 
     } else if (vtype == PHYREG) {
       return registers.objs[value];
 
     } else if (vtype == SPILL) {
-      return VM_Magic.getObjectAtOffset(stack, fpOffset.minus(value));
+      return Magic.getObjectAtOffset(stack, fpOffset.minus(value));
 
     } else {
       VM.sysWrite("fatal error : ( vtype = " + vtype + " )\n");
@@ -478,8 +478,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
   @SuppressWarnings("unused")
   private static void dumpStackContent(byte[] stack, Offset fpOffset) {
-    int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
-    OptCompiledMethod cm = (OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    int cmid = Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
+    OptCompiledMethod cm = (OptCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
     int firstNonVolatile = cm.getFirstNonVolatileGPR();
     int nonVolatiles = cm.getNumberOfNonvolatileGPRs();
@@ -490,7 +490,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     VM.sysWriteln(" NV area offset ", nonVolatileOffset);
     VM.sysWriteln("   first NV GPR ", firstNonVolatile);
 
-    Address aFP = VM_Magic.objectAsAddress(stack).plus(fpOffset);
+    Address aFP = Magic.objectAsAddress(stack).plus(fpOffset);
     for (Address a = aFP.plus(nonVolatileOffset); a.GE(aFP); a = a.minus(BYTES_IN_STACKSLOT)) {
       Word content = a.loadWord();
       VM.sysWriteHex(a);
@@ -514,28 +514,28 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   private static void walkOnStack(byte[] stack, Offset fpOffset) {
     VM.disableGC();
 
-    Address fp = VM_Magic.objectAsAddress(stack).plus(fpOffset);
+    Address fp = Magic.objectAsAddress(stack).plus(fpOffset);
 
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int cmid = VM_Magic.getCompiledMethodID(fp);
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int cmid = Magic.getCompiledMethodID(fp);
 
       if (cmid == INVISIBLE_METHOD_ID) {
         VM.sysWriteln(" invisible method ");
       } else {
-        VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-        fpOffset = fp.diff(VM_Magic.objectAsAddress(stack));
+        CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
+        fpOffset = fp.diff(Magic.objectAsAddress(stack));
         VM.enableGC();
 
         VM.sysWriteln(cm.getMethod().toString());
 
         VM.disableGC();
-        fp = VM_Magic.objectAsAddress(stack).plus(fpOffset);
+        fp = Magic.objectAsAddress(stack).plus(fpOffset);
         if (cm.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
           fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
         }
       }
 
-      fp = VM_Magic.getCallerFramePointer(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
 
     VM.enableGC();

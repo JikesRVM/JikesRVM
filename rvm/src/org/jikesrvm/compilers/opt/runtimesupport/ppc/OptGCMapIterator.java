@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
-import org.jikesrvm.ppc.VM_ArchConstants;
+import org.jikesrvm.ppc.ArchConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for the PowerPC
  */
 @Uninterruptible
-public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements VM_ArchConstants {
+public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements ArchConstants {
 
   private static final boolean DEBUG = false;
 

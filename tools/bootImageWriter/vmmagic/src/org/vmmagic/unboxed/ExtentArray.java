@@ -16,7 +16,7 @@ import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
 
 /**
- * The VM front end is not capable of correct handling an array of Address, VM_Word, ....
+ * The VM front end is not capable of correct handling an array of Address, Word, ....
  * For now, we provide special types to handle these situations.
  */
 @Uninterruptible public final class ExtentArray {

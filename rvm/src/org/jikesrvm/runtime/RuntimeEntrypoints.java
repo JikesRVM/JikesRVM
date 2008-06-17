@@ -13,23 +13,23 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
+import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.VM_DynamicTypeCheck;
+import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
@@ -44,13 +44,13 @@ import org.vmmagic.unboxed.Offset;
  * Entrypoints into the runtime of the virtual machine.
  *
  * <p> These are "helper functions" called from machine code
- * emitted by VM_BaselineCompilerImpl.
+ * emitted by BaselineCompilerImpl.
  * They implement functionality that cannot be mapped directly
  * into a small inline
- * sequence of machine instructions. See also: VM_Linker.
+ * sequence of machine instructions. See also: Linker.
  *
  * <p> Note #1: If you add, remove, or change the signature of
- * any of these methods you may need to change VM_Entrypoints to match.
+ * any of these methods you may need to change Entrypoints to match.
  *
  * <p> Note #2: Code here must be carefully written to be gc-safe
  * while manipulating
@@ -74,7 +74,7 @@ import org.vmmagic.unboxed.Offset;
  *   <li> "fp" values that point to interior of "stack" objects
  * </ul>
  */
-public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM_StackframeLayoutConstants {
+public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.StackframeLayoutConstants {
 
   // Trap codes for communication with C trap handler.
   //
@@ -111,7 +111,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
         the operation "lhs = rhs" would succeed.   This of course is backwards
         if one is looking at it from the point of view of the "instanceof"
         operator.  */
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
+    TypeReference tRef = TypeReference.getTypeRef(targetID);
     RVMType lhsType = tRef.peekType();
     if (lhsType == null) {
       lhsType = tRef.resolve();
@@ -125,13 +125,13 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return false; // null is not an instance of any type
     }
 
-    RVMType rhsType = VM_ObjectModel.getObjectType(object);
+    RVMType rhsType = ObjectModel.getObjectType(object);
     /* RHS must already be resolved, since we have a non-null object that is
        an instance of RHS  */
     if (VM.VerifyAssertions) VM._assert(rhsType.isResolved());
     if (VM.VerifyAssertions) VM._assert(lhsType.isResolved());
 
-    return lhsType == rhsType || VM_DynamicTypeCheck.instanceOfResolved(lhsType, rhsType);
+    return lhsType == rhsType || DynamicTypeCheck.instanceOfResolved(lhsType, rhsType);
   }
 
   /**
@@ -148,8 +148,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     }
 
     RVMClass lhsType = RVMType.getType(id).asClass();
-    VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
-    return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
+    TIB rhsTIB = ObjectModel.getTIB(object);
+    return DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
   }
 
   /**
@@ -169,8 +169,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return false; // null is not an instance of any type
     }
 
-    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
-    Object rhsTib = VM_ObjectModel.getTIB(object);
+    Object lhsTib = Magic.getObjectAtOffset(Magic.getJTOC(), targetTibOffset);
+    Object rhsTib = ObjectModel.getTIB(object);
     return lhsTib == rhsTib;
   }
 
@@ -186,12 +186,12 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return; // null may be cast to any type
     }
 
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    TypeReference tRef = TypeReference.getTypeRef(id);
     RVMType lhsType = tRef.peekType();
     if (lhsType == null) {
       lhsType = tRef.resolve();
     }
-    RVMType rhsType = VM_ObjectModel.getObjectType(object);
+    RVMType rhsType = ObjectModel.getObjectType(object);
     if (lhsType == rhsType) {
       return; // exact match
     }
@@ -214,12 +214,12 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     if (object == null) return; // null can be cast to any type
 
     RVMClass lhsType = RVMType.getType(id).asClass();
-    VM_TIB rhsTIB = VM_ObjectModel.getTIB(object);
+    TIB rhsTIB = ObjectModel.getTIB(object);
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
     }
-    if (!VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
-      RVMType rhsType = VM_ObjectModel.getObjectType(object);
+    if (!DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
+      RVMType rhsType = ObjectModel.getObjectType(object);
       raiseCheckcastException(lhsType, rhsType);
     }
   }
@@ -232,15 +232,15 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   static void checkcastFinal(Object object, Offset targetTibOffset) {
     if (object == null) return; // null can be cast to any type
 
-    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
-    Object rhsTib = VM_ObjectModel.getTIB(object);
+    Object lhsTib = Magic.getObjectAtOffset(Magic.getJTOC(), targetTibOffset);
+    Object rhsTib = ObjectModel.getTIB(object);
     if (lhsTib != rhsTib) {
       RVMType lhsType =
-          VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,
+          Magic.objectAsType(Magic.getObjectAtOffset(lhsTib,
                                                            Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
                                                                                     LOG_BYTES_IN_ADDRESS)));
       RVMType rhsType =
-          VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,
+          Magic.objectAsType(Magic.getObjectAtOffset(rhsTib,
                                                            Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
                                                                                     LOG_BYTES_IN_ADDRESS)));
       raiseCheckcastException(lhsType, rhsType);
@@ -262,14 +262,14 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       return; // null may be assigned to any type
     }
 
-    RVMType lhsType = VM_Magic.getObjectType(array);
+    RVMType lhsType = Magic.getObjectType(array);
     RVMType elmType = lhsType.asArray().getElementType();
 
     if (elmType == RVMType.JavaLangObjectType) {
       return; // array of Object can receive anything
     }
 
-    RVMType rhsType = VM_Magic.getObjectType(arrayElement);
+    RVMType rhsType = Magic.getObjectType(arrayElement);
 
     if (elmType == rhsType) {
       return; // exact type match
@@ -301,7 +301,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     if (!rhs.isResolved()) {
       rhs.resolve();
     }
-    return VM_DynamicTypeCheck.instanceOfResolved(lhs, rhs);
+    return DynamicTypeCheck.instanceOfResolved(lhs, rhs);
   }
 
   //---------------------------------------------------------------//
@@ -317,7 +317,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    */
   @Entrypoint
   static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    TypeReference tRef = TypeReference.getTypeRef(id);
     RVMType t = tRef.peekType();
     if (t == null) {
       t = tRef.resolve();
@@ -328,8 +328,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     }
 
     int allocator = MM_Interface.pickAllocator(cls);
-    int align = VM_ObjectModel.getAlignment(cls);
-    int offset = VM_ObjectModel.getOffsetForAlignment(cls);
+    int align = ObjectModel.getAlignment(cls);
+    int offset = ObjectModel.getOffsetForAlignment(cls);
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -350,8 +350,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
 
     int allocator = MM_Interface.pickAllocator(cls);
     int site = MM_Interface.getAllocationSite(false);
-    int align = VM_ObjectModel.getAlignment(cls);
-    int offset = VM_ObjectModel.getOffsetForAlignment(cls);
+    int align = ObjectModel.getAlignment(cls);
+    int offset = ObjectModel.getOffsetForAlignment(cls);
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -375,7 +375,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * See also: bytecode 0xbb ("new")
    */
   @Entrypoint
-  public static Object resolvedNewScalar(int size, VM_TIB tib, boolean hasFinalizer, int allocator, int align,
+  public static Object resolvedNewScalar(int size, TIB tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
@@ -401,7 +401,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @Entrypoint
   public static Object unresolvedNewArray(int numElements, int id, int site)
       throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException {
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    TypeReference tRef = TypeReference.getTypeRef(id);
     RVMType t = tRef.peekType();
     if (t == null) {
       t = tRef.resolve();
@@ -432,11 +432,11 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
 
     return resolvedNewArray(numElements,
                             array.getLogElementSize(),
-                            VM_ObjectModel.computeArrayHeaderSize(array),
+                            ObjectModel.computeArrayHeaderSize(array),
                             array.getTypeInformationBlock(),
                             MM_Interface.pickAllocator(array),
-                            VM_ObjectModel.getAlignment(array),
-                            VM_ObjectModel.getOffsetForAlignment(array),
+                            ObjectModel.getAlignment(array),
+                            ObjectModel.getOffsetForAlignment(array),
                             site);
   }
 
@@ -454,7 +454,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Entrypoint
-  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, VM_TIB tib,
+  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, TIB tib,
                                         int allocator, int align, int offset, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
 
@@ -486,7 +486,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @return the cloned object
    */
   public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
-    RVMType type = VM_Magic.getObjectType(obj);
+    RVMType type = Magic.getObjectType(obj);
     if (type.isArrayType()) {
       return cloneArray(obj, type);
     } else {
@@ -503,7 +503,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    */
   private static Object cloneArray(Object obj, RVMType type) throws OutOfMemoryError {
     RVMArray ary = type.asArray();
-    int nelts = VM_ObjectModel.getArrayLength(obj);
+    int nelts = ObjectModel.getArrayLength(obj);
     Object newObj = resolvedNewArray(nelts, ary);
     System.arraycopy(obj, 0, newObj, 0, nelts);
     return newObj;
@@ -547,14 +547,14 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
             f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
           } else {
             Offset offset = f.getOffset();
-            int bits = VM_Magic.getIntAtOffset(obj, offset);
-            VM_Magic.setIntAtOffset(newObj, offset, bits);
+            int bits = Magic.getIntAtOffset(obj, offset);
+            Magic.setIntAtOffset(newObj, offset, bits);
           }
           continue;
         } else if (size == BYTES_IN_LONG) {
           Offset offset = f.getOffset();
-          long bits = VM_Magic.getLongAtOffset(obj, offset);
-          VM_Magic.setLongAtOffset(newObj, offset, bits);
+          long bits = Magic.getLongAtOffset(obj, offset);
+          Magic.setLongAtOffset(newObj, offset, bits);
           continue;
         }
       } else {
@@ -567,26 +567,26 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
             f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
           } else {
             Offset offset = f.getOffset();
-            long bits = VM_Magic.getLongAtOffset(obj, offset);
-            VM_Magic.setLongAtOffset(newObj, offset, bits);
+            long bits = Magic.getLongAtOffset(obj, offset);
+            Magic.setLongAtOffset(newObj, offset, bits);
           }
           continue;
         } else if (size == BYTES_IN_INT) {
           Offset offset = f.getOffset();
-          int bits = VM_Magic.getIntAtOffset(obj, offset);
-          VM_Magic.setIntAtOffset(newObj, offset, bits);
+          int bits = Magic.getIntAtOffset(obj, offset);
+          Magic.setIntAtOffset(newObj, offset, bits);
           continue;
         }
       }
       if (size == BYTES_IN_CHAR) {
         Offset offset = f.getOffset();
-        char bits = VM_Magic.getCharAtOffset(obj, offset);
-        VM_Magic.setCharAtOffset(newObj, offset, bits);
+        char bits = Magic.getCharAtOffset(obj, offset);
+        Magic.setCharAtOffset(newObj, offset, bits);
       } else {
         if (VM.VerifyAssertions) VM._assert(size == BYTES_IN_BYTE);
         Offset offset = f.getOffset();
-        byte bits = VM_Magic.getByteAtOffset(obj, offset);
-        VM_Magic.setByteAtOffset(newObj, offset, bits);
+        byte bits = Magic.getByteAtOffset(obj, offset);
+        Magic.setByteAtOffset(newObj, offset, bits);
       }
     }
     return newObj;
@@ -611,7 +611,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @see java.lang.Object#hashCode().
    */
   public static int getObjectHashCode(Object object) {
-    return VM_ObjectModel.getObjectHashCode(object);
+    return ObjectModel.getObjectHashCode(object);
   }
 
   //---------------------------------------------------------------//
@@ -622,7 +622,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * Prepare a class for use prior to first allocation,
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
-   * @see VM_MemberReference#needsDynamicLink
+   * @see MemberReference#needsDynamicLink
    */
   public static void initializeClassForDynamicLink(RVMClass cls) {
     if (VM.TraceClassLoading) {
@@ -675,10 +675,10 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @NoInline
   @Entrypoint
   public static void athrow(Throwable exceptionObject) {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
-    VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
+    RVMThread myThread = Scheduler.getCurrentThread();
+    Registers exceptionRegisters = myThread.getExceptionRegisters();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
-    VM_Magic.saveThreadState(exceptionRegisters);
+    Magic.saveThreadState(exceptionRegisters);
     exceptionRegisters.inuse = true;
     deliverException(exceptionObject, exceptionRegisters);
   }
@@ -698,16 +698,16 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    *           external "C" signal handler
    *           which saves the register state of the trap site into the
    *           "exceptionRegisters" field of the current
-   *           VM_Thread object.
+   *           Thread object.
    *           The signal handler also inserts a <hardware trap> frame
    *           onto the stack immediately above this frame, for use by
-   *           VM_HardwareTrapGCMapIterator during garbage collection.
+   *           HardwareTrapGCMapIterator during garbage collection.
    */
   @Entrypoint
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
-    VM_Registers exceptionRegisters = myThread.getExceptionRegisters();
+    RVMThread myThread = Scheduler.getCurrentThread();
+    Registers exceptionRegisters = myThread.getExceptionRegisters();
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
@@ -722,7 +722,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse);
       exceptionRegisters.inuse = false;
-      VM_Magic.restoreHardwareExceptionState(exceptionRegisters);
+      Magic.restoreHardwareExceptionState(exceptionRegisters);
 
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
@@ -737,9 +737,9 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     // Hardware traps in uninterruptible code should be considered hard failures.
     if (!VM.sysFailInProgress()) {
       Address fp = exceptionRegisters.getInnermostFramePointer();
-      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      int compiledMethodId = Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
         Address ip = exceptionRegisters.getInnermostInstructionAddress();
         Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
         if (compiledMethod.isWithinUninterruptibleCode(instructionOffset)) {
@@ -801,7 +801,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
         break;
       default:
         exceptionObject = new java.lang.UnknownError();
-        VM_Scheduler.traceback("UNKNOWN ERROR");
+        Scheduler.traceback("UNKNOWN ERROR");
         break;
     }
 
@@ -820,7 +820,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @NoInline
   @Entrypoint
   static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) {
-    VM_ObjectModel.genericUnlock(objToUnlock);
+    ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
 
@@ -913,14 +913,14 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     // "RuntimeEntrypoints.deliverHardwareException()"
     // whenever the host operating system detects a hardware trap
     //
-    VM_BootRecord.the_boot_record.hardwareTrapMethodId = VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
-    VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset =
-        VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
+    BootRecord.the_boot_record.hardwareTrapMethodId = CompiledMethods.createHardwareTrapCompiledMethod().getId();
+    BootRecord.the_boot_record.deliverHardwareExceptionOffset =
+        Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
-    // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
+    // tell "RunBootImage.C" to set "Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
-    VM_BootRecord.the_boot_record.debugRequestedOffset = VM_Entrypoints.debugRequestedField.getOffset();
+    BootRecord.the_boot_record.debugRequestedOffset = Entrypoints.debugRequestedField.getOffset();
   }
 
   /**
@@ -931,7 +931,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @return array object
    */
   public static Object buildMultiDimensionalArray(int methodId, int[] numElements, RVMArray arrayType) {
-    RVMMethod method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
@@ -944,7 +944,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    * @return array object
    */
   public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, RVMArray arrayType) {
-    RVMMethod method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
 
     if (!arrayType.isInstantiated()) {
@@ -1013,7 +1013,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    *  <li> <em> or </em> current thread is terminated if no catch block is found
    * </ul>
    */
-  private static void deliverException(Throwable exceptionObject, VM_Registers exceptionRegisters) {
+  private static void deliverException(Throwable exceptionObject, Registers exceptionRegisters) {
     if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("RuntimeEntrypoints.deliverException() entered; just got an exception object.");
     }
@@ -1023,13 +1023,13 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     if (VM.TraceExceptionDelivery) {
       VM.sysWrite("Hunting for a catch block...");
     }
-    RVMType exceptionType = VM_Magic.getObjectType(exceptionObject);
+    RVMType exceptionType = Magic.getObjectType(exceptionObject);
     Address fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
+        CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
+        ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
         Address ip = exceptionRegisters.getInnermostInstructionAddress();
         Offset ipOffset = compiledMethod.getInstructionOffset(ip);
         int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
@@ -1057,7 +1057,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     }
     /* No appropriate catch block found. */
 
-    VM_Scheduler.getCurrentThread().handleUncaughtException(exceptionObject);
+    Scheduler.getCurrentThread().handleUncaughtException(exceptionObject);
   }
 
 
@@ -1075,7 +1075,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     // Remembered address of previous FP
     Address callee_fp;
     // Address of native frame
-    Address fp = VM_Magic.getCallerFramePointer(currfp);
+    Address fp = Magic.getCallerFramePointer(currfp);
     // Instruction pointer for current native frame
     Address ip;
 
@@ -1083,8 +1083,8 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
     // in one of our heaps
     do {
       callee_fp = fp;
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = Magic.getReturnAddress(fp);
+      fp = Magic.getCallerFramePointer(fp);
     } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
@@ -1111,7 +1111,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
 
   /**
    * Unwind stack frame for an <invisible method>.
-   * See also: VM_ExceptionDeliverer.unwindStackFrame()
+   * See also: ExceptionDeliverer.unwindStackFrame()
    *
    * !!TODO: Could be a reflective method invoker frame.
    *        Does it clobber any non-volatiles?
@@ -1120,7 +1120,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    *  invokers save/restore any nonvolatiles, so we're probably ok.
    *  --dave 6/29/01
    */
-  private static void unwindInvisibleStackFrame(VM_Registers registers) {
+  private static void unwindInvisibleStackFrame(Registers registers) {
     registers.unwindStackFrame();
   }
 
@@ -1141,7 +1141,7 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
   @Inline
   public static void checkJNICountDownToGC() {
     // Temporarily disabled as it will causes nightly to take too long to run
-    // There should be a mechanism to optionally enable this countdown in VM_Configuration
+    // There should be a mechanism to optionally enable this countdown in Configuration
     if (false && canForceGC()) {
       if (jniCountDownToGC-- <= 0) {
         jniCountDownToGC = VM.StressGCAllocationInterval;
@@ -1170,6 +1170,6 @@ public class RuntimeEntrypoints implements VM_Constants, ArchitectureSpecific.VM
    */
   @Inline
   private static boolean canForceGC() {
-    return VM.ForceFrequentGC && VM_Scheduler.safeToForceGCs();
+    return VM.ForceFrequentGC && Scheduler.safeToForceGCs();
   }
 }

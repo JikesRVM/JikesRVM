@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.
  */
-public interface OSR_Constants extends VM_SizeConstants {
+public interface OSR_Constants extends SizeConstants {
 
   ////////////////////////////////////////////
   // Part I  constants used for opt compilation with OSR points
@@ -121,7 +121,7 @@ public interface OSR_Constants extends VM_SizeConstants {
    *   PSEUDO_instruction, values
    *
    * LoadConst takes encoded value and push on the top of stack.
-   * Compiler should construct constant values, and use VM_Magic to
+   * Compiler should construct constant values, and use Magic to
    * convert INT to FLOAT, or LONG to DOUBLE.
    *
    * LoadRetAddrConst followed by offset from the PC of this instruction.

@@ -13,12 +13,12 @@
 package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ppc.VM_BaselineCompilerImpl;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.Constants;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
@@ -26,9 +26,9 @@ import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_VariableElement;
-import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.ppc.VM_Registers;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.ppc.Registers;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.WordArray;
  */
 
 public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtractor
-    implements VM_Constants, OSR_Constants, VM_BaselineConstants, PhysicalRegisterConstants {
+    implements Constants, OSR_Constants, BaselineConstants, PhysicalRegisterConstants {
 
   /**
    * Implements OSR_ExecStateExtractor.extractState.
@@ -74,21 +74,21 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       VM.sysWriteln("BASE execStateExtractor starting ...");
     }
 
-    VM_Registers contextRegisters = (VM_Registers)thread.getContextRegisters();
+    Registers contextRegisters = (Registers)thread.getContextRegisters();
     byte[] stack = thread.getStack();
 
     if (VM.VerifyAssertions) {
-      int fooCmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      int fooCmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       VM._assert(fooCmid == cmid);
     }
 
-    VM_BaselineCompiledMethod fooCM = (VM_BaselineCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    BaselineCompiledMethod fooCM = (BaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
-    VM_NormalMethod fooM = (VM_NormalMethod) fooCM.getMethod();
+    NormalMethod fooM = (NormalMethod) fooCM.getMethod();
 
     // get the next bc index
     VM.disableGC();
-    Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
+    Address rowIP = Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
     Offset ipOffset = fooCM.getInstructionOffset(rowIP);
     VM.enableGC();
 
@@ -147,9 +147,9 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     // L0, L1, ..., S0, S1, ....
 
     // adjust local offset and stack offset
-    // NOTE: donot call VM_BaselineCompilerImpl.getFirstLocalOffset(method)
-    int bufCMID = VM_Magic.getIntAtOffset(stack, tsFromFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
-    VM_CompiledMethod bufCM = VM_CompiledMethods.getCompiledMethod(bufCMID);
+    // NOTE: donot call BaselineCompilerImpl.getFirstLocalOffset(method)
+    int bufCMID = Magic.getIntAtOffset(stack, tsFromFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+    CompiledMethod bufCM = CompiledMethods.getCompiledMethod(bufCMID);
     int cType = bufCM.getCompilerType();
 
     //restore non-volatile registers that could contain locals; saved by yieldpointfrom methods
@@ -162,26 +162,26 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     VM.disableGC();
     // method fooCM is always baseline, otherwise we wouldn't be in this code.
     // the threadswitchfrom... method on the other hand can be baseline or opt!
-    if (cType == VM_CompiledMethod.BASELINE) {
+    if (cType == CompiledMethod.BASELINE) {
       if (VM.VerifyAssertions) {
         VM._assert(bufCM.getMethod().hasBaselineSaveLSRegistersAnnotation());
-        VM._assert(methFPoff.EQ(tsFromFPoff.plus(VM_BaselineCompilerImpl.getFrameSize((VM_BaselineCompiledMethod) bufCM))));
+        VM._assert(methFPoff.EQ(tsFromFPoff.plus(BaselineCompilerImpl.getFrameSize((BaselineCompiledMethod) bufCM))));
       }
 
-      Offset currentRegisterLocation = tsFromFPoff.plus(VM_BaselineCompilerImpl.getFrameSize((VM_BaselineCompiledMethod) bufCM));
+      Offset currentRegisterLocation = tsFromFPoff.plus(BaselineCompilerImpl.getFrameSize((BaselineCompiledMethod) bufCM));
 
       for (int i = LAST_FLOAT_STACK_REGISTER; i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
         currentRegisterLocation = currentRegisterLocation.minus(BYTES_IN_DOUBLE);
-        long lbits = VM_Magic.getLongAtOffset(stack, currentRegisterLocation);
-        fprs[i] = VM_Magic.longBitsAsDouble(lbits);
+        long lbits = Magic.getLongAtOffset(stack, currentRegisterLocation);
+        fprs[i] = Magic.longBitsAsDouble(lbits);
       }
       for (int i = LAST_FIXED_STACK_REGISTER; i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
         currentRegisterLocation = currentRegisterLocation.minus(BYTES_IN_ADDRESS);
-        Word w = VM_Magic.objectAsAddress(stack).loadWord(currentRegisterLocation);
+        Word w = Magic.objectAsAddress(stack).loadWord(currentRegisterLocation);
         gprs.set(i, w);
       }
 
-    } else { //(cType == VM_CompiledMethod.OPT)
+    } else { //(cType == CompiledMethod.OPT)
       //KV: this code needs to be modified. We need the tsFrom methods to save all NON-VOLATILES in their prolog (as is the case for baseline)
       //This is because we don't know at compile time which registers might be in use and wich not by the caller method at runtime!!
       //For now we disallow tsFrom methods to be opt compiled when the caller is baseline compiled
@@ -199,7 +199,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       int firstGPR = fooOpt.getFirstNonVolatileGPR();
       if (firstGPR != -1) {
         for (int i = firstGPR; i <= LAST_NONVOLATILE_GPR; i++) {
-          Word w = VM_Magic.objectAsAddress(stack).loadWord(offset);
+          Word w = Magic.objectAsAddress(stack).loadWord(offset);
           gprs.set(i, w);
           offset = offset.plus(BYTES_IN_ADDRESS);
         }
@@ -209,8 +209,8 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       int firstFPR = fooOpt.getFirstNonVolatileFPR();
       if (firstFPR != -1) {
         for (int i = firstFPR; i <= LAST_NONVOLATILE_FPR; i++) {
-          long lbits = VM_Magic.getLongAtOffset(stack, offset);
-          fprs[i] = VM_Magic.longBitsAsDouble(lbits);
+          long lbits = Magic.getLongAtOffset(stack, offset);
+          fprs[i] = Magic.longBitsAsDouble(lbits);
           offset = offset.plus(BYTES_IN_DOUBLE);
         }
       }
@@ -221,8 +221,8 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     for (int i = 0; i < size; i++) {
       if ((localTypes[i] == ClassTypeCode) || (localTypes[i] == ArrayTypeCode)) {
         int loc = fooCM.getGeneralLocalLocation(i);
-        if (VM_BaselineCompilerImpl.isRegister(loc)) {
-          objs[loc] = VM_Magic.addressAsObject(gprs.get(loc).toAddress());
+        if (BaselineCompilerImpl.isRegister(loc)) {
+          objs[loc] = Magic.addressAsObject(gprs.get(loc).toAddress());
         }
       }
     }
@@ -248,7 +248,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
   /** go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValueFromLocations(byte[] stack, Offset methFPoff, byte[] types,
-                                                    VM_BaselineCompiledMethod compiledMethod, boolean kind,
+                                                    BaselineCompiledMethod compiledMethod, boolean kind,
                                                     OSR_TempRegisters registers, OSR_ExecutionState state) {
     int start = 0;
     if (kind == LOCAL) {
@@ -269,10 +269,10 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case IntTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           int value;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
+          if (BaselineCompilerImpl.isRegister(loc)) {
             value = registers.gprs.get(loc).toInt();
           } else {
-            value = VM_Magic.getIntAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_INT));
+            value = Magic.getIntAtOffset(stack, methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_INT));
           }
 
           state.add(new OSR_VariableElement(kind, i, INT, value));
@@ -281,7 +281,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case LongTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           long lvalue;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
+          if (BaselineCompilerImpl.isRegister(loc)) {
             if (VM.BuildFor32Addr) {
               lvalue =
                   ((((long) registers.gprs.get(loc).toInt()) << 32) |
@@ -290,7 +290,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
               lvalue = registers.gprs.get(loc).toLong();
             }
           } else {
-            lvalue = VM_Magic.getLongAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_LONG));
+            lvalue = Magic.getLongAtOffset(stack, methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_LONG));
           }
 
           state.add(new OSR_VariableElement(kind, i, LONG, lvalue));
@@ -303,10 +303,10 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case FloatTypeCode: {
           int loc = compiledMethod.getFloatLocalLocation(i);
           int value;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
-            value = VM_Magic.floatAsIntBits((float) registers.fprs[loc]);
+          if (BaselineCompilerImpl.isRegister(loc)) {
+            value = Magic.floatAsIntBits((float) registers.fprs[loc]);
           } else {
-            value = VM_Magic.getIntAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_FLOAT));
+            value = Magic.getIntAtOffset(stack, methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_FLOAT));
           }
 
           state.add(new OSR_VariableElement(kind, i, FLOAT, value));
@@ -315,11 +315,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case DoubleTypeCode: {
           int loc = compiledMethod.getFloatLocalLocation(i);
           long lvalue;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
-            lvalue = VM_Magic.doubleAsLongBits(registers.fprs[loc]);
+          if (BaselineCompilerImpl.isRegister(loc)) {
+            lvalue = Magic.doubleAsLongBits(registers.fprs[loc]);
           } else {
             lvalue =
-                VM_Magic.getLongAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_DOUBLE));
+                Magic.getLongAtOffset(stack, methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_DOUBLE));
           }
 
           state.add(new OSR_VariableElement(kind, i, DOUBLE, lvalue));
@@ -333,11 +333,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           int loc = compiledMethod.getGeneralLocalLocation(i);
           VM.disableGC();
           Address rowIP;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
+          if (BaselineCompilerImpl.isRegister(loc)) {
             rowIP = registers.gprs.get(loc).toAddress();
           } else {
             rowIP =
-                VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) -
+                Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) -
                                                                            BYTES_IN_ADDRESS));
           }
           Offset ipOffset = compiledMethod.getInstructionOffset(rowIP);
@@ -362,11 +362,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case ArrayTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           Object ref;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
+          if (BaselineCompilerImpl.isRegister(loc)) {
             ref = registers.objs[loc];
           } else {
             ref =
-                VM_Magic.getObjectAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_ADDRESS));
+                Magic.getObjectAtOffset(stack, methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_ADDRESS));
           }
 
           state.add(new OSR_VariableElement(kind, i, REF, ref));
@@ -375,11 +375,11 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case WordTypeCode: {
           int loc = compiledMethod.getGeneralLocalLocation(i);
           Word value;
-          if (VM_BaselineCompilerImpl.isRegister(loc)) {
+          if (BaselineCompilerImpl.isRegister(loc)) {
             value = registers.gprs.get(loc);
           } else {
             value =
-                VM_Magic.getWordAtOffset(stack, methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_ADDRESS));
+                Magic.getWordAtOffset(stack, methFPoff.plus(BaselineCompilerImpl.locationToOffset(loc) - BYTES_IN_ADDRESS));
           }
 
           state.add(new OSR_VariableElement(kind, i, WORD, value));
@@ -394,7 +394,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
   /* go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       VM_BaselineCompiledMethod compiledMethod, boolean kind, OSR_ExecutionState state) {
+                                       BaselineCompiledMethod compiledMethod, boolean kind, OSR_ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
@@ -409,7 +409,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case CharTypeCode:
         case IntTypeCode:
         case FloatTypeCode: {
-          int value = VM_Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
+          int value = Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
           byte tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
@@ -423,7 +423,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           Offset memoff =
               (kind == LOCAL) ? vOffset.minus(BYTES_IN_DOUBLE) : VM.BuildFor64Addr ? vOffset : vOffset.minus(
                   BYTES_IN_STACKSLOT);
-          long value = VM_Magic.getLongAtOffset(stack, memoff);
+          long value = Magic.getLongAtOffset(stack, memoff);
 
           byte tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
 
@@ -440,7 +440,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         }
         case ReturnAddressTypeCode: {
           VM.disableGC();
-          Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset.minus(BYTES_IN_ADDRESS));
+          Address rowIP = Magic.objectAsAddress(stack).loadAddress(vOffset.minus(BYTES_IN_ADDRESS));
           Offset ipOffset = compiledMethod.getInstructionOffset(rowIP);
           VM.enableGC();
 
@@ -464,7 +464,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case ClassTypeCode:
         case ArrayTypeCode: {
           VM.disableGC();
-          Object ref = VM_Magic.getObjectAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
+          Object ref = Magic.getObjectAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
           VM.enableGC();
 
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
@@ -473,7 +473,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           break;
         }
         case WordTypeCode: {
-          Word value = VM_Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
+          Word value = Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
           state.add(new OSR_VariableElement(kind, i, WORD, value));

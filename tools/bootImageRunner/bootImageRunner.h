@@ -32,9 +32,9 @@ extern "C" {
 #include "../../include/jni.h"
 
 #ifdef RVM_FOR_32_ADDR
-#define VM_Offset int32_t
+#define Offset int32_t
 #else
-#define VM_Offset int64_t
+#define Offset int64_t
 #endif
 // Sink for messages relating to serious errors detected by C runtime.
 extern FILE *SysErrorFile;    // sink for serious error messages
@@ -96,7 +96,7 @@ extern int bootThread(int ti_or_ip, int pr, int sp); // assembler routine
 
 // These are defined in libvm.C.
 extern void *getJTOC(void);
-extern VM_Offset getProcessorsOffset(void);
+extern Offset getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
 extern jint GetEnv(JavaVM *, void **, jint);

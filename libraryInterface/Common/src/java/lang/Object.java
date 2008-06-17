@@ -12,7 +12,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Pure;
@@ -40,12 +40,12 @@ public class Object {
 
   @Pure
   public final Class<?> getClass() {
-    return VM_ObjectModel.getObjectType(this).getClassForType();
+    return ObjectModel.getObjectType(this).getClassForType();
   }
 
   @Pure
   public int hashCode() {
-    return VM_ObjectModel.getObjectHashCode(this);
+    return ObjectModel.getObjectHashCode(this);
   }
 
   public final void notify() throws IllegalMonitorStateException {

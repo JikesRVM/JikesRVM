@@ -58,7 +58,7 @@ import org.jikesrvm.VM;
   @Inline
   public Object getBacking() {
     if (!VM.writingImage)
-      VM.sysFail("VM_OffsetArray.getBacking called when not writing boot image");
+      VM.sysFail("OffsetArray.getBacking called when not writing boot image");
     return data;
   }
 

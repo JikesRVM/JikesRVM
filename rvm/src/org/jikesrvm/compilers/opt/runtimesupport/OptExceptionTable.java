@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_ExceptionTable;
+import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.
  */
-final class OptExceptionTable extends VM_ExceptionTable {
+final class OptExceptionTable extends ExceptionTable {
 
   /**
    * Encode an exception table

@@ -183,7 +183,7 @@ public class RCMutator extends RCBaseMutator implements Constants {
     } else {
       boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
 
-      if (result && !Space.isInSpace(RCBase.VM_SPACE, src)) {
+      if (result && !Space.isInSpace(RCBase.SPACE, src)) {
         if (RC.isRCObject(old)) decBuffer.pushOOL(old);
         if (RC.isRCObject(tgt)) RCHeader.incRCOOL(tgt);
       }
@@ -237,7 +237,7 @@ public class RCMutator extends RCBaseMutator implements Constants {
     } else {
       ObjectReference old = VM.barriers.performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
 
-      if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
+      if (Space.isInSpace(RCBase.SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.pushOOL(old);
       if (RC.isRCObject(tgt)) RCHeader.incRCOOL(tgt);
     }
@@ -269,7 +269,7 @@ public class RCMutator extends RCBaseMutator implements Constants {
     } else {
       ObjectReference old = VM.barriers.performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
 
-      if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
+      if (Space.isInSpace(RCBase.SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.push(old);
       if (RC.isRCObject(tgt)) RCHeader.incRC(tgt);
     }
@@ -310,7 +310,7 @@ public class RCMutator extends RCBaseMutator implements Constants {
         coalescingWriteBarrierSlow(dst);
       return false;
     } else {
-      if (Space.isInSpace(RCBase.VM_SPACE, dst)) return false;
+      if (Space.isInSpace(RCBase.SPACE, dst)) return false;
       Address s = src.toAddress().plus(srcOffset);
       Address d = dst.toAddress().plus(dstOffset);
       while (bytes > 0) {

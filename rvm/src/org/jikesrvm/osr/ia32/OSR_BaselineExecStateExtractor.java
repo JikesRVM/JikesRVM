@@ -13,19 +13,19 @@
 package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ia32.VM_BaselineCompilerImpl;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.Constants;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
-import org.jikesrvm.ia32.VM_ArchConstants;
+import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.osr.OSR_Constants;
 import org.jikesrvm.osr.OSR_ExecStateExtractor;
 import org.jikesrvm.osr.OSR_ExecutionState;
 import org.jikesrvm.osr.OSR_VariableElement;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Word;
  */
 
 public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtractor
-    implements VM_Constants, VM_ArchConstants, OSR_Constants, PhysicalRegisterConstants {
+    implements Constants, ArchConstants, OSR_Constants, PhysicalRegisterConstants {
 
   /**
    * Implements OSR_ExecStateExtractor.extractState.
@@ -81,7 +81,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     byte[] stack = thread.getStack();
 
     if (VM.VerifyAssertions) {
-      int fooCmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      int fooCmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
 
       if (VM.TraceOnStackReplacement) {
         VM.sysWriteln("fooCmid = " + fooCmid);
@@ -91,12 +91,12 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       VM._assert(fooCmid == cmid);
     }
 
-    VM_BaselineCompiledMethod fooCM = (VM_BaselineCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    BaselineCompiledMethod fooCM = (BaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
-    VM_NormalMethod fooM = (VM_NormalMethod) fooCM.getMethod();
+    NormalMethod fooM = (NormalMethod) fooCM.getMethod();
 
     VM.disableGC();
-    Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(osrFPoff.plus(STACKFRAME_RETURN_ADDRESS_OFFSET));
+    Address rowIP = Magic.objectAsAddress(stack).loadAddress(osrFPoff.plus(STACKFRAME_RETURN_ADDRESS_OFFSET));
     Offset ipOffset = fooCM.getInstructionOffset(rowIP);
     VM.enableGC();
 
@@ -108,7 +108,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       if (bcIndex == -1) {
 
         VM.sysWriteln("osrFPoff = ", osrFPoff);
-        VM.sysWriteln("instr_beg = ", VM_Magic.objectAsAddress(fooCM.getEntryCodeArray()));
+        VM.sysWriteln("instr_beg = ", Magic.objectAsAddress(fooCM.getEntryCodeArray()));
 
         for (int i = (osrFPoff.toInt()) - 10; i < (osrFPoff.toInt()) + 10; i++) {
           VM.sysWriteln("  stack[" + i + "] = " + stack[i]);
@@ -166,8 +166,8 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     // L0, L1, ..., S0, S1, ....
 
     // adjust local offset and stack offset
-    // NOTE: do not call VM_BaselineCompilerImpl.getFirstLocalOffset(method)
-    Offset startLocalOffset = methFPoff.plus(VM_BaselineCompilerImpl.locationToOffset(fooCM.getGeneralLocalLocation(0)));
+    // NOTE: do not call BaselineCompilerImpl.getFirstLocalOffset(method)
+    Offset startLocalOffset = methFPoff.plus(BaselineCompilerImpl.locationToOffset(fooCM.getGeneralLocalLocation(0)));
 
     Offset stackOffset = methFPoff.plus(fooCM.getEmptyStackOffset());
 
@@ -189,12 +189,12 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
   /* go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       VM_BaselineCompiledMethod compiledMethod, boolean kind, OSR_ExecutionState state) {
+                                       BaselineCompiledMethod compiledMethod, boolean kind, OSR_ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
       if (VM.TraceOnStackReplacement) {
-        Word content = VM_Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
+        Word content = Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
         VM.sysWrite("0x", vOffset.minus(BYTES_IN_ADDRESS), "    0x");
         VM.sysWriteln(content);
       }
@@ -210,7 +210,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case CharTypeCode:
         case IntTypeCode:
         case FloatTypeCode: {
-          int value = VM_Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
+          int value = Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
           byte tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
@@ -224,7 +224,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           Offset memoff =
               (kind == LOCAL) ? vOffset.minus(BYTES_IN_DOUBLE) : VM.BuildFor64Addr ? vOffset : vOffset.minus(
                   BYTES_IN_STACKSLOT);
-          long value = VM_Magic.getLongAtOffset(stack, memoff);
+          long value = Magic.getLongAtOffset(stack, memoff);
 
           byte tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
 
@@ -241,7 +241,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         }
         case ReturnAddressTypeCode: {
           VM.disableGC();
-          Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset);
+          Address rowIP = Magic.objectAsAddress(stack).loadAddress(vOffset);
           Offset ipOffset = compiledMethod.getInstructionOffset(rowIP);
           VM.enableGC();
 
@@ -265,7 +265,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
         case ClassTypeCode:
         case ArrayTypeCode: {
           VM.disableGC();
-          Object ref = VM_Magic.getObjectAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
+          Object ref = Magic.getObjectAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
           VM.enableGC();
 
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
@@ -274,7 +274,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
           break;
         }
         case WordTypeCode: {
-          Word value = VM_Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
+          Word value = Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
           state.add(new OSR_VariableElement(kind, i, WORD, value));

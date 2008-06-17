@@ -13,14 +13,14 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * A field or method of a java class.
  */
-public abstract class RVMMember extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
+public abstract class RVMMember extends AnnotatedElement implements Constants, ClassLoaderConstants {
 
   /** Initial value for a field offset - indicates field not laid out. */
   private static final int NO_OFFSET = Short.MIN_VALUE + 1;
@@ -29,12 +29,12 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
    * The class that declared this member, available by calling
    * getDeclaringClass once the class is loaded.
    */
-  private final VM_TypeReference declaringClass;
+  private final TypeReference declaringClass;
 
   /**
-   * The canonical VM_MemberReference for this member
+   * The canonical MemberReference for this member
    */
-  protected final VM_MemberReference memRef;
+  protected final MemberReference memRef;
 
   /**
    * The modifiers associated with this member.
@@ -45,7 +45,7 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
    * The signature is a string representing the generic type for this
    * field or method declaration, may be null
    */
-  private final VM_Atom signature;
+  private final Atom signature;
 
   /**
    * The member's jtoc/obj/tib offset in bytes.
@@ -56,13 +56,13 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
   /**
    * NOTE: Only {@link RVMClass} is allowed to create an instance of a RVMMember.
    *
-   * @param declaringClass the VM_TypeReference object of the class that declared this member
+   * @param declaringClass the TypeReference object of the class that declared this member
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param signature generic type of this member
    * @param annotations array of runtime visible annotations
    */
-  protected RVMMember(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
+  protected RVMMember(TypeReference declaringClass, MemberReference memRef, short modifiers, Atom signature,
                       RVMAnnotation[] annotations) {
     super(annotations);
     this.declaringClass = declaringClass;
@@ -90,7 +90,7 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
    * Canonical member reference for this member.
    */
   @Uninterruptible
-  public final VM_MemberReference getMemberRef() {
+  public final MemberReference getMemberRef() {
     return memRef;
   }
 
@@ -98,7 +98,7 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
    * Name of this member.
    */
   @Uninterruptible
-  public final VM_Atom getName() {
+  public final Atom getName() {
     return memRef.getName();
   }
 
@@ -107,20 +107,20 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
    * something like "I" for a field or "(I)V" for a method.
    */
   @Uninterruptible
-  public final VM_Atom getDescriptor() {
+  public final Atom getDescriptor() {
     return memRef.getDescriptor();
   }
 
   /**
    * Generic type for member
    */
-  public final VM_Atom getSignature() {
+  public final Atom getSignature() {
     return signature;
   }
 
   /**
    * Get a unique id for this member.
-   * The id is the id of the canonical VM_MemberReference for this member
+   * The id is the id of the canonical MemberReference for this member
    * and thus may be used to find the member by first finding the member reference.
    */
   @Uninterruptible
@@ -129,7 +129,7 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
   }
 
   /*
-   * Define hashcode in terms of VM_Atom.hashCode to enable
+   * Define hashcode in terms of Atom.hashCode to enable
    * consistent hash codes during bootImage writing and run-time.
    */
   @Override
@@ -202,7 +202,7 @@ public abstract class RVMMember extends VM_AnnotatedElement implements VM_Consta
   }
 
   /**
-   * Only meant to be used by VM_ObjectModel.layoutInstanceFields.
+   * Only meant to be used by ObjectModel.layoutInstanceFields.
    * TODO: refactor system so this functionality is in the classloader package
    * and this method doesn't have to be final.
    */

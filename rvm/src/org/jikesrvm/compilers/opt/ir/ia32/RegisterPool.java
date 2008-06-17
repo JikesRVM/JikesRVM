@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -51,7 +51,7 @@ public abstract class RegisterPool extends GenericRegisterPool implements Operat
    * @return a register operand that holds the JTOC
    */
   public Operand makeJTOCOp(IR ir, Instruction s) {
-    Address jtoc = VM_Magic.getTocPointer();
+    Address jtoc = Magic.getTocPointer();
     return new IntConstantOperand(jtoc.toInt());
   }
 }

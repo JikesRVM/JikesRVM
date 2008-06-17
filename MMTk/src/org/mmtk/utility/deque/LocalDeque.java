@@ -93,7 +93,7 @@ import org.vmmagic.pragma.*;
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.plus(BYTES_IN_ADDRESS);
-    // if (VM_Interface.VerifyAssertions) enqueued++;
+    // if (Interface.VerifyAssertions) enqueued++;
   }
 
   /****************************************************************************

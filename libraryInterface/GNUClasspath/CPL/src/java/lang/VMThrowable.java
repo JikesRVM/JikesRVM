@@ -14,7 +14,7 @@ package java.lang;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.StackTrace;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 /**
  * Implementation of throwables for JikesRVM.
  */
@@ -40,9 +40,9 @@ public final class VMThrowable {
   static VMThrowable fillInStackTrace(Throwable parent){
     if (!VM.fullyBooted) {
       return null;
-    } else if (VM_Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+    } else if (Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
       VM.sysWriteln("Exception in GC thread");
-      VM_Scheduler.dumpVirtualMachine();
+      Scheduler.dumpVirtualMachine();
       return null;
     }
     try {
@@ -60,9 +60,9 @@ public final class VMThrowable {
   StackTraceElement[] getStackTrace(Throwable parent) {
     if (stackTrace == null) {
       return zeroLengthStackTrace;
-    } else if (VM_Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+    } else if (Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
       VM.sysWriteln("VMThrowable.getStackTrace called from GC thread: dumping stack using scheduler");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
       return zeroLengthStackTrace;
     }
 
@@ -71,12 +71,12 @@ public final class VMThrowable {
       vmElements = stackTrace.getStackTrace(parent);
     } catch (Throwable t) {
       VM.sysWriteln("Error calling StackTrace.getStackTrace: dumping stack using scheduler");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
       return zeroLengthStackTrace;
     }
     if (vmElements == null) {
       VM.sysWriteln("Error calling StackTrace.getStackTrace returned null");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
       return zeroLengthStackTrace;
     }
     if (VM.fullyBooted) {
@@ -101,7 +101,7 @@ public final class VMThrowable {
     for (StackTrace.Element vmElement : vmElements) {
       if (vmElement == null) {
         VM.sysWriteln("Error stack trace with null entry");
-        VM_Scheduler.dumpStack();
+        Scheduler.dumpStack();
         return zeroLengthStackTrace;
       }
       String fileName = vmElement.getFileName();

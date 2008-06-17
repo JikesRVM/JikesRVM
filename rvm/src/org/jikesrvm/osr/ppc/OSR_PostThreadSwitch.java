@@ -13,8 +13,8 @@
 package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  */
 
 @Uninterruptible
-public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
+public abstract class OSR_PostThreadSwitch implements BaselineConstants {
 
   /* This method must be inlined to keep the correctness
    * This method is called at the end of threadSwitch, the caller
@@ -42,10 +42,10 @@ public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
     // add branch instruction from CTR.
     ArchitectureSpecific.CodeArray bridge = myThread.bridgeInstructions;
 
-    Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
+    Address bridgeaddr = Magic.objectAsAddress(bridge);
 
     Offset offset = myThread.fooFPOffset.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET);
-    VM_Magic.objectAsAddress(myThread.getStack()).store(bridgeaddr, offset);
+    Magic.objectAsAddress(myThread.getStack()).store(bridgeaddr, offset);
 
     myThread.fooFPOffset = Offset.zero();
 

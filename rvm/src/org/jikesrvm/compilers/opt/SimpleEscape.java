@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.Set;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -795,7 +795,7 @@ class SimpleEscape extends CompilerPhase {
         return;
       }
     }
-    CompilationPlan plan = new CompilationPlan((VM_NormalMethod) m, escapePlan, null, options);
+    CompilationPlan plan = new CompilationPlan((NormalMethod) m, escapePlan, null, options);
     plan.analyzeOnly = true;
     try {
       OptimizingCompiler.compile(plan);

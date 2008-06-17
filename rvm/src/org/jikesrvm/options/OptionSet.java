@@ -26,8 +26,8 @@ import org.vmutil.options.PagesOption;
 import org.vmutil.options.StringOption;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_CommandLineArgs;
+import org.jikesrvm.Constants;
+import org.jikesrvm.CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for GC.
@@ -93,15 +93,15 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         }
         return false;
       case Option.INT_OPTION:
-        int ival = VM_CommandLineArgs.primitiveParseInt(value);
+        int ival = CommandLineArgs.primitiveParseInt(value);
         ((IntOption)o).setValue(ival);
         return true;
       case Option.ADDRESS_OPTION:
-        ival = VM_CommandLineArgs.primitiveParseInt(value);
+        ival = CommandLineArgs.primitiveParseInt(value);
         ((AddressOption)o).setValue(ival);
         return true;
       case Option.FLOAT_OPTION:
-        float fval = VM_CommandLineArgs.primitiveParseFloat(value);
+        float fval = CommandLineArgs.primitiveParseFloat(value);
         ((FloatOption)o).setValue(fval);
         return true;
       case Option.STRING_OPTION:
@@ -111,12 +111,12 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         ((EnumOption)o).setValue(value);
         return true;
       case Option.PAGES_OPTION:
-        long pval = VM_CommandLineArgs.parseMemorySize(o.getName(), name, "b", 1, arg, value);
+        long pval = CommandLineArgs.parseMemorySize(o.getName(), name, "b", 1, arg, value);
         if (pval < 0) return false;
         ((PagesOption)o).setBytes(Extent.fromIntSignExtend((int)pval));
         return true;
       case Option.MICROSECONDS_OPTION:
-        int mval = VM_CommandLineArgs.primitiveParseInt(value);
+        int mval = CommandLineArgs.primitiveParseInt(value);
         ((MicrosecondsOption)o).setMicroseconds(mval);
         return true;
     }
@@ -367,7 +367,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    */
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(VM_Constants.BYTES_IN_PAGE-1).toWord().rshl(VM_Constants.LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(Constants.BYTES_IN_PAGE-1).toWord().rshl(Constants.LOG_BYTES_IN_PAGE).toInt();
   }
 
   /**
@@ -377,6 +377,6 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    */
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
-    return Word.fromIntZeroExtend(pages).lsh(VM_Constants.LOG_BYTES_IN_PAGE).toExtent();
+    return Word.fromIntZeroExtend(pages).lsh(Constants.LOG_BYTES_IN_PAGE).toExtent();
   }
 }

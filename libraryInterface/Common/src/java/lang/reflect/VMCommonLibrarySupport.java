@@ -18,12 +18,12 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Reflection;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
@@ -199,7 +199,7 @@ final class VMCommonLibrarySupport {
 
     // Invoke method
     try {
-      return VM_Reflection.invoke(method, receiver, args);
+      return Reflection.invoke(method, receiver, args);
     } catch (Throwable t) {
       throw new InvocationTargetException(t);
     }
@@ -224,12 +224,12 @@ final class VMCommonLibrarySupport {
     }
 
     // find the right method to call
-    RVMClass C = VM_Magic.getObjectType(receiver).asClass();
+    RVMClass C = Magic.getObjectType(receiver).asClass();
     method = C.findVirtualMethod(method.getName(), method.getDescriptor());
 
     // Invoke method
     try {
-      return VM_Reflection.invoke(method, receiver, args);
+      return Reflection.invoke(method, receiver, args);
     } catch (Throwable t) {
       throw new InvocationTargetException(t);
     }
@@ -237,7 +237,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   private static boolean checkArguments(Object[] args, RVMMethod method) throws IllegalArgumentException {
-    VM_TypeReference[] parameterTypes = method.getParameterTypes();
+    TypeReference[] parameterTypes = method.getParameterTypes();
     if (((args == null) && (parameterTypes.length != 0)) ||
         ((args != null) && (args.length != parameterTypes.length))) {
       throwNewIllegalArgumentException("argument count mismatch");
@@ -281,7 +281,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   private static Object[] makeArgumentsCompatible(Object[] args, RVMMethod method) {
-    VM_TypeReference[] parameterTypes = method.getParameterTypes();
+    TypeReference[] parameterTypes = method.getParameterTypes();
     int length = parameterTypes.length;
     Object[] newArgs = new Object[length];
     switch(length) {
@@ -355,7 +355,7 @@ final class VMCommonLibrarySupport {
       return isPrimitiveArgumentCompatible(expectedType, arg);
     } else {
       if (arg == null) return true; // null is always ok
-      RVMType actualType = VM_ObjectModel.getObjectType(arg);
+      RVMType actualType = ObjectModel.getObjectType(arg);
       if (expectedType == actualType ||
           expectedType == RVMType.JavaLangObjectType ||
           RuntimeEntrypoints.isAssignableWith(expectedType, actualType)) {
@@ -432,7 +432,7 @@ final class VMCommonLibrarySupport {
     Object obj = RuntimeEntrypoints.resolvedNewScalar(cls);
     // Run the constructor on the instance.
     try {
-      VM_Reflection.invoke(constructor, obj, args);
+      Reflection.invoke(constructor, obj, args);
     } catch (Throwable e) {
       throw new InvocationTargetException(e);
     }
@@ -442,7 +442,7 @@ final class VMCommonLibrarySupport {
   /**
    * Convert from "vm" type system to "jdk" type system.
    */
-  static Class<?>[] typesToClasses(VM_TypeReference[] types) {
+  static Class<?>[] typesToClasses(TypeReference[] types) {
     Class<?>[] classes = new Class[types.length];
     for (int i = 0; i < types.length; i++) {
       classes[i] = types[i].resolve().getClassForType();
@@ -463,7 +463,7 @@ final class VMCommonLibrarySupport {
         throwNewNullPointerException();
       }
 
-      RVMType objType = VM_ObjectModel.getObjectType(obj);
+      RVMType objType = ObjectModel.getObjectType(obj);
       if (objType != declaringClass && !RuntimeEntrypoints.isAssignableWith(declaringClass, objType)) {
         throwNewIllegalArgumentException();
       }
@@ -492,7 +492,7 @@ final class VMCommonLibrarySupport {
         throwNewNullPointerException();
       }
 
-      RVMType objType = VM_ObjectModel.getObjectType(obj);
+      RVMType objType = ObjectModel.getObjectType(obj);
       if (objType != declaringClass && !RuntimeEntrypoints.isAssignableWith(declaringClass, objType)) {
         throwNewIllegalArgumentException();
       }
@@ -527,7 +527,7 @@ final class VMCommonLibrarySupport {
     if (field.isReferenceType()) {
       return field.getObjectValueUnchecked(object);
     }
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isIntType()) {
       return field.getIntValueUnchecked(object);
     } else if (type.isCharType()) {
@@ -551,7 +551,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static boolean getBoolean(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (!type.isBooleanType()) throwNewIllegalArgumentException("field type mismatch");
     return field.getBooleanValueUnchecked(object);
   }
@@ -559,7 +559,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static byte getByte(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (!type.isByteType()) throwNewIllegalArgumentException("field type mismatch");
     return field.getByteValueUnchecked(object);
   }
@@ -567,7 +567,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static char getChar(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (!type.isCharType()) throwNewIllegalArgumentException("field type mismatch");
     return field.getCharValueUnchecked(object);
   }
@@ -575,7 +575,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static double getDouble(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isDoubleType()) {
       return field.getDoubleValueUnchecked(object);
     } else if (type.isFloatType()) {
@@ -599,7 +599,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static float getFloat(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isFloatType()) {
       return field.getFloatValueUnchecked(object);
     } else if (type.isLongType()) {
@@ -621,7 +621,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static int getInt(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isIntType()) {
       return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
@@ -639,7 +639,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static long getLong(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isLongType()) {
       return field.getLongValueUnchecked(object);
     } else if (type.isIntType()) {
@@ -659,7 +659,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   static short getShort(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isShortType()) {
       return field.getShortValueUnchecked(object);
     } else if (type.isByteType()) {
@@ -677,7 +677,7 @@ final class VMCommonLibrarySupport {
 
     if (field.isReferenceType()) {
       if (value != null) {
-        RVMType valueType = VM_ObjectModel.getObjectType(value);
+        RVMType valueType = ObjectModel.getObjectType(value);
         RVMType fieldType = null;
         try {
           fieldType = field.getType().resolve();
@@ -770,7 +770,7 @@ final class VMCommonLibrarySupport {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setBooleanInternal(Object object, boolean value, RVMField field)
   throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isBooleanType())
       field.setBooleanValueUnchecked(object, value);
     else
@@ -779,7 +779,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setByteInternal(Object object, byte value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isByteType())
       field.setByteValueUnchecked(object, value);
     else if (type.isLongType())
@@ -800,7 +800,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setCharInternal(Object object, char value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isCharType())
       field.setCharValueUnchecked(object, value);
     else if (type.isLongType())
@@ -819,7 +819,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setDoubleInternal(Object object, double value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, value);
     else
@@ -828,7 +828,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setFloatInternal(Object object, float value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isFloatType())
       field.setFloatValueUnchecked(object, value);
     else if (type.isDoubleType())
@@ -839,7 +839,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setIntInternal(Object object, int value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isIntType())
       field.setIntValueUnchecked(object, value);
     else if (type.isLongType())
@@ -854,7 +854,7 @@ final class VMCommonLibrarySupport {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   private static void setLongInternal(Object object, long value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isLongType())
       field.setLongValueUnchecked(object, value);
     else if (type.isDoubleType())
@@ -866,7 +866,7 @@ final class VMCommonLibrarySupport {
   }
 
   private static void setShortInternal(Object object, short value, RVMField field) throws IllegalArgumentException {
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (type.isShortType())
       field.setShortValueUnchecked(object, value);
     else if (type.isLongType())

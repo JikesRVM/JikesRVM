@@ -17,34 +17,34 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_PrintLN;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_ExceptionTable;
+import org.jikesrvm.PrintLN;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
-import org.jikesrvm.runtime.VM_DynamicLink;
-import org.jikesrvm.runtime.VM_ExceptionDeliverer;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.DynamicLink;
+import org.jikesrvm.runtime.ExceptionDeliverer;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
-import org.jikesrvm.runtime.VM_StackBrowser;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.jikesrvm.runtime.StackBrowser;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * An implementation of VM_CompiledMethod for the OPT compiler.
+ * An implementation of CompiledMethod for the OPT compiler.
  *
  * <p> NOTE: OptCompiledMethod live as long as their corresponding
  * compiled machine code.  Therefore, they should only contain
@@ -53,9 +53,9 @@ import org.vmmagic.unboxed.Offset;
  */
 @SynchronizedObject
 @Uninterruptible
-public final class OptCompiledMethod extends VM_CompiledMethod {
+public final class OptCompiledMethod extends CompiledMethod {
 
-  public OptCompiledMethod(int id, VM_Method m) {
+  public OptCompiledMethod(int id, RVMMethod m) {
     super(id, m);
   }
 
@@ -63,7 +63,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    * Get compiler that generated this method's machine code.
    */
   public int getCompilerType() {
-    return VM_CompiledMethod.OPT;
+    return CompiledMethod.OPT;
   }
 
   /**
@@ -77,7 +77,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    * Get handler to deal with stack unwinding and exception delivery
    * for this method's stackframes.
    */
-  public VM_ExceptionDeliverer getExceptionDeliverer() {
+  public ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
 
@@ -85,11 +85,11 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    * Find "catch" block for a machine instruction of this method.
    */
   @Interruptible
-  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
-      return VM_ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      return ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
     }
   }
 
@@ -100,9 +100,9 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    * @param instructionOffset offset of machine instruction that issued
    *                          the call
    */
-  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
+  public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
-    VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+    NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null) {
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
     }
@@ -117,7 +117,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
-    VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+    NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     return realMethod.isUninterruptible();
   }
 
@@ -130,14 +130,14 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
     if (bci < 0) {
       return 0;
     }
-    return ((VM_NormalMethod) method).getLineNumberForBCIndex(bci);
+    return ((NormalMethod) method).getLineNumberForBCIndex(bci);
   }
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
   @Interruptible
-  public void set(VM_StackBrowser browser, Offset instr) {
+  public void set(StackBrowser browser, Offset instr) {
     OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
@@ -147,7 +147,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
       browser.setCompiledMethod(this);
-      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
+      browser.setMethod(MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
         VM.sysWrite("setting stack to frame (opt): ");
@@ -161,10 +161,10 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
   }
 
   /**
-   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   * Advance the StackBrowser up one internal stack frame, if possible
    */
   @Interruptible
-  public boolean up(VM_StackBrowser browser) {
+  public boolean up(StackBrowser browser) {
     OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -175,7 +175,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
 
       browser.setInlineEncodingIndex(next);
       browser.setBytecodeIndex(bci);
-      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
+      browser.setMethod(MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
         VM.sysWrite("up within frame stack (opt): ");
@@ -197,7 +197,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    * @param out    The PrintStream to print the stack trace to.
    */
   @Interruptible
-  public void printStackTrace(Offset instructionOffset, VM_PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, PrintLN out) {
     OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -205,8 +205,8 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
       int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
       for (int j = iei; j >= 0; j = OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_NormalMethod m =
-            (VM_NormalMethod) VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+        NormalMethod m =
+            (NormalMethod) MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
         out.print("\tat ");
         out.print(m.getDeclaringClass());
@@ -238,10 +238,10 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
 
   @Interruptible
   public int size() {
-    int size = VM_TypeReference.VM_ExceptionTable.peekType().asClass().getInstanceSize();
+    int size = TypeReference.ExceptionTable.peekType().asClass().getInstanceSize();
     size += _mcMap.size();
-    if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
-    if (patchMap != null) size += VM_Array.IntArray.getInstanceSize(patchMap.length);
+    if (eTable != null) size += RVMArray.IntArray.getInstanceSize(eTable.length);
+    if (patchMap != null) size += RVMArray.IntArray.getInstanceSize(patchMap.length);
     return size;
   }
 
@@ -378,9 +378,9 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC) {
-      return ArchitectureSpecific.VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
+      return ArchitectureSpecific.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     } else if (VM.BuildForIA32) {
-      return ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
+      return ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -392,9 +392,9 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC) {
-      return ArchitectureSpecific.VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
+      return ArchitectureSpecific.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     } else if (VM.BuildForIA32) {
-      return ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
+      return ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -406,9 +406,9 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC) {
-      setFirstNonVolatileGPR(ArchitectureSpecific.VM_RegisterConstants.NUM_GPRS - n);
+      setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_GPRS - n);
     } else if (VM.BuildForIA32) {
-      setFirstNonVolatileGPR(ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_GPRS - n);
+      setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_GPRS - n);
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -419,9 +419,9 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC) {
-      setFirstNonVolatileFPR(ArchitectureSpecific.VM_RegisterConstants.NUM_FPRS - n);
+      setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_FPRS - n);
     } else if (VM.BuildForIA32) {
-      setFirstNonVolatileFPR(ArchitectureSpecific.VM_RegisterConstants.NUM_NONVOLATILE_FPRS - n);
+      setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_FPRS - n);
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -432,7 +432,7 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    */
   @Interruptible
   public void printExceptionTable() {
-    if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
+    if (eTable != null) ExceptionTable.printExceptionTable(eTable);
   }
 
   /**
@@ -492,13 +492,13 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
             patchMap[idx++] = newTarget - patchPoint;
           } else if (VM.BuildForPowerPC) {
 
-            // otherwise, it must be RVM_FOR_POWERPC
+            // otherwise, it must be RFOR_POWERPC
             /* since currently we use only one NOP scheme, the offset
             * is adjusted for one word
             */
-            patchMap[idx++] = (patchPoint >> ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH) - 1;
+            patchMap[idx++] = (patchPoint >> ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) - 1;
             patchMap[idx++] =
-                (newTarget - patchPoint + (1 << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
+                (newTarget - patchPoint + (1 << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH));
           } else if (VM.VerifyAssertions) {
             VM._assert(VM.NOT_REACHED);
           }
@@ -511,12 +511,12 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
    * Apply the code patches to the INSTRUCTION array of cm
    */
   @Interruptible
-  public void applyCodePatches(VM_CompiledMethod cm) {
+  public void applyCodePatches(CompiledMethod cm) {
     if (patchMap != null) {
       for (int idx = 0; idx < patchMap.length; idx += 2) {
         ArchitectureSpecific.CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
         if (VM.BuildForIA32) {
-          ArchitectureSpecific.VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          ArchitectureSpecific.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
           ArchitectureSpecificOpt.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.VerifyAssertions) {
@@ -535,41 +535,41 @@ public final class OptCompiledMethod extends VM_CompiledMethod {
         // let other processors see changes; although really physical processors
         // need synchronization, we set each virtual processor to execute
         // isync at thread switch point.
-        VM_Magic.sync();
+        Magic.sync();
 
-        if (VM_Scheduler.syncObj == null) {
-          VM_Scheduler.syncObj = new Object();
+        if (Scheduler.syncObj == null) {
+          Scheduler.syncObj = new Object();
         }
 
         // how may processors to be synchronized
         // no current process, no the first dummy processor
-        VM_Scheduler.toSyncProcessors = VM_GreenScheduler.numProcessors - 1;
+        Scheduler.toSyncProcessors = GreenScheduler.numProcessors - 1;
 
-        synchronized (VM_Scheduler.syncObj) {
-          for (int i = VM_Scheduler.getFirstProcessorId(); i <= VM_Scheduler.getLastProcessorId(); i++) {
-            VM_Processor proc = VM_GreenScheduler.getProcessor(i);
+        synchronized (Scheduler.syncObj) {
+          for (int i = Scheduler.getFirstProcessorId(); i <= Scheduler.getLastProcessorId(); i++) {
+            Processor proc = GreenScheduler.getProcessor(i);
             // do not sync the current processor
-            if (proc != VM_Processor.getCurrentProcessor()) {
+            if (proc != Processor.getCurrentProcessor()) {
               proc.requestPostCodePatchSync();
             }
           }
         }
 
         if (DEBUG_CODE_PATCH) {
-          VM.sysWriteln("processors to be synchronized : ", VM_Scheduler.toSyncProcessors);
+          VM.sysWriteln("processors to be synchronized : ", Scheduler.toSyncProcessors);
         }
 
         // do sync only when necessary
-        while (VM_Scheduler.toSyncProcessors > 0) {
-          VM_Scheduler.yield();
+        while (Scheduler.toSyncProcessors > 0) {
+          Scheduler.yield();
         }
 
         // All other processors now will see the patched code in their data cache.
         // We now need to force everyone's instruction caches to be in synch with their
         // data caches.  Some of the work of this call is redundant (since we already have
         // forced the data caches to be in synch), but we need the icbi instructions
-        Memory.sync(VM_Magic.objectAsAddress(instructions),
-                       instructions.length() << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+        Memory.sync(Magic.objectAsAddress(instructions),
+                       instructions.length() << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
 
         if (DEBUG_CODE_PATCH) {
           VM.sysWrite("all processors get synchronized!\n");

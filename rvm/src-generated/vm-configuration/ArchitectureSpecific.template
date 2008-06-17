@@ -14,25 +14,25 @@ package org.jikesrvm;
 
 import org.vmmagic.unboxed.WordArray;
 
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 
 public class ArchitectureSpecific {
-  public static class VM_Assembler extends org.jikesrvm.compilers.common.assembler.@_ARCH_@.VM_Assembler {
-    public VM_Assembler (int bytecodeSize) {
+  public static class Assembler extends org.jikesrvm.compilers.common.assembler.@_ARCH_@.Assembler {
+    public Assembler (int bytecodeSize) {
       super(bytecodeSize, false);
     }
-    public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_BaselineCompilerImpl compiler) {
+    public Assembler (int bytecodeSize, boolean shouldPrint, BaselineCompilerImpl compiler) {
       super(bytecodeSize, shouldPrint, compiler);
     }
-    public VM_Assembler (int bytecodeSize, boolean shouldPrint) {
+    public Assembler (int bytecodeSize, boolean shouldPrint) {
       super(bytecodeSize, shouldPrint);
     }
   }
-  public interface VM_ArchConstants extends org.jikesrvm.@_ARCH_@.VM_ArchConstants {}
-  public interface VM_BaselineConstants extends org.jikesrvm.@_ARCH_@.VM_BaselineConstants {}
-  public static final class VM_BaselineExceptionDeliverer extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineExceptionDeliverer {}
-  public static final class VM_BaselineGCMapIterator extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineGCMapIterator {
-    public VM_BaselineGCMapIterator(WordArray registerLocations) {
+  public interface ArchConstants extends org.jikesrvm.@_ARCH_@.ArchConstants {}
+  public interface BaselineConstants extends org.jikesrvm.@_ARCH_@.BaselineConstants {}
+  public static final class BaselineExceptionDeliverer extends org.jikesrvm.compilers.baseline.@_ARCH_@.BaselineExceptionDeliverer {}
+  public static final class BaselineGCMapIterator extends org.jikesrvm.compilers.baseline.@_ARCH_@.BaselineGCMapIterator {
+    public BaselineGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
   public static final class CodeArray extends org.jikesrvm.@_ARCH_@.CodeArray {
@@ -43,32 +43,32 @@ public class ArchitectureSpecific {
       return new CodeArray(size);
     }
   }
-  public static final class VM_BaselineCompilerImpl extends org.jikesrvm.compilers.baseline.@_ARCH_@.VM_BaselineCompilerImpl {
-    public VM_BaselineCompilerImpl(VM_BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+  public static final class BaselineCompilerImpl extends org.jikesrvm.compilers.baseline.@_ARCH_@.BaselineCompilerImpl {
+    public BaselineCompilerImpl(BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
       super(cm @_IA32_QUOTE_@, genLocLoc, floatLocLoc @_PPC_QUOTE_@ */);
     }}
-  public static final class VM_DynamicLinkerHelper extends org.jikesrvm.@_ARCH_@.VM_DynamicLinkerHelper {}
-  public static final class VM_InterfaceMethodConflictResolver extends org.jikesrvm.@_ARCH_@.VM_InterfaceMethodConflictResolver {}
-  public static final class VM_LazyCompilationTrampoline extends org.jikesrvm.@_ARCH_@.VM_LazyCompilationTrampoline {}
-  public static final class VM_MachineCode extends org.jikesrvm.@_ARCH_@.VM_MachineCode {
+  public static final class DynamicLinkerHelper extends org.jikesrvm.@_ARCH_@.DynamicLinkerHelper {}
+  public static final class InterfaceMethodConflictResolver extends org.jikesrvm.@_ARCH_@.InterfaceMethodConflictResolver {}
+  public static final class LazyCompilationTrampoline extends org.jikesrvm.@_ARCH_@.LazyCompilationTrampoline {}
+  public static final class MachineCode extends org.jikesrvm.@_ARCH_@.MachineCode {
   @_PPC_QUOTE_@
-    public VM_MachineCode(ArchitectureSpecific.CodeArray array, int[] bm) {
+    public MachineCode(ArchitectureSpecific.CodeArray array, int[] bm) {
       super(array, bm);
     }
   //*/
   }
-  public static final class VM_MachineReflection extends org.jikesrvm.@_ARCH_@.VM_MachineReflection {}
-  public static final class VM_MultianewarrayHelper extends org.jikesrvm.@_ARCH_@.VM_MultianewarrayHelper {}
-  public static final class VM_OutOfLineMachineCode extends org.jikesrvm.@_ARCH_@.VM_OutOfLineMachineCode {}
-  public static final class VM_ProcessorLocalState extends org.jikesrvm.@_ARCH_@.VM_ProcessorLocalState {}
-  public interface VM_RegisterConstants extends org.jikesrvm.@_ARCH_@.VM_RegisterConstants {}
-  public static final class VM_Registers extends org.jikesrvm.@_ARCH_@.VM_Registers {}
-  public interface VM_StackframeLayoutConstants extends org.jikesrvm.@_ARCH_@.VM_StackframeLayoutConstants {}
-  public interface VM_TrapConstants extends org.jikesrvm.@_ARCH_@.VM_TrapConstants {}
-  public static final class VM_JNICompiler extends org.jikesrvm.jni.@_ARCH_@.VM_JNICompiler {}
-  public static final class VM_JNIGCMapIterator extends org.jikesrvm.jni.@_ARCH_@.VM_JNIGCMapIterator {
-    public VM_JNIGCMapIterator(WordArray registerLocations) {
+  public static final class MachineReflection extends org.jikesrvm.@_ARCH_@.MachineReflection {}
+  public static final class MultianewarrayHelper extends org.jikesrvm.@_ARCH_@.MultianewarrayHelper {}
+  public static final class OutOfLineMachineCode extends org.jikesrvm.@_ARCH_@.OutOfLineMachineCode {}
+  public static final class ProcessorLocalState extends org.jikesrvm.@_ARCH_@.ProcessorLocalState {}
+  public interface RegisterConstants extends org.jikesrvm.@_ARCH_@.RegisterConstants {}
+  public static final class Registers extends org.jikesrvm.@_ARCH_@.Registers {}
+  public interface StackframeLayoutConstants extends org.jikesrvm.@_ARCH_@.StackframeLayoutConstants {}
+  public interface TrapConstants extends org.jikesrvm.@_ARCH_@.TrapConstants {}
+  public static final class JNICompiler extends org.jikesrvm.jni.@_ARCH_@.JNICompiler {}
+  public static final class JNIGCMapIterator extends org.jikesrvm.jni.@_ARCH_@.JNIGCMapIterator {
+    public JNIGCMapIterator(WordArray registerLocations) {
       super(registerLocations);
     }}
-  public static final class VM_JNIHelpers extends org.jikesrvm.jni.@_ARCH_@.VM_JNIHelpers {}
+  public static final class JNIHelpers extends org.jikesrvm.jni.@_ARCH_@.JNIHelpers {}
 }

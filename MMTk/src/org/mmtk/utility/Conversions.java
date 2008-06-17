@@ -20,17 +20,17 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /*
- import org.jikesrvm.VM_Offset;
+ import org.jikesrvm.Offset;
  * Conversions between different units.
  */
 @Uninterruptible public class Conversions implements Constants {
 
   // public static Address roundDownVM(Address addr) {
-  //   return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
+  //   return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_REGION).toAddress();
   // }
 
   // public static Extent roundDownVM(Extent bytes) {
-  //   return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
+  //   return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_REGION).toExtent();
   // }
 
   public static Address roundDownMB(Address addr) {

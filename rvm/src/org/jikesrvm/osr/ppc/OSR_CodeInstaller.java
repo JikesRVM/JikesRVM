@@ -14,19 +14,19 @@ package org.jikesrvm.osr.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ppc.VM_BaselineCompilerImpl;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
+import org.jikesrvm.adaptive.util.AOSLogging;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.ppc.VM_BaselineConstants;
-import org.jikesrvm.ppc.VM_MachineCode;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.ppc.MachineCode;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -37,10 +37,10 @@ import org.vmmagic.unboxed.Offset;
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
  */
-public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
+public abstract class OSR_CodeInstaller implements BaselineConstants {
 
   /* install the newly compiled instructions. */
-  public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
+  public static boolean install(OSR_ExecutionState state, CompiledMethod cm) {
 
     RVMThread thread = state.getThread();
     byte[] stack = thread.getStack();
@@ -49,19 +49,19 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
     // we are going to dynamically generate some code recover
     // register values from the stack frame.
-    int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
+    int foomid = Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
 
-    VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
+    CompiledMethod foo = CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
 
-    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0, VM.TraceOnStackReplacement);
+    Assembler asm = new ArchitectureSpecific.Assembler(0, VM.TraceOnStackReplacement);
 
     /////////////////////////////////////
     ////// recover saved registers.
     /////////////////////////////////////
-    if (cType == VM_CompiledMethod.BASELINE) {
-      VM_BaselineCompiledMethod bcm = (VM_BaselineCompiledMethod) foo;
-      int offset = VM_BaselineCompilerImpl.getFrameSize(bcm);
+    if (cType == CompiledMethod.BASELINE) {
+      BaselineCompiledMethod bcm = (BaselineCompiledMethod) foo;
+      int offset = BaselineCompilerImpl.getFrameSize(bcm);
       for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
         offset -= BYTES_IN_DOUBLE;
         asm.emitLFD(i, offset, FP);
@@ -70,7 +70,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
         offset -= BYTES_IN_ADDRESS;
         asm.emitLAddr(i, offset, FP);
       }
-    } else if (cType == VM_CompiledMethod.OPT) {
+    } else if (cType == CompiledMethod.OPT) {
       OptCompiledMethod fooOpt = (OptCompiledMethod) foo;
 
       // foo definitely not save volatile.
@@ -101,7 +101,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     }
 
     if (VM.VerifyAssertions) {
-      Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset());
+      Object jtocContent = Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset());
       VM._assert(jtocContent == cm.getEntryCodeArray());
     }
 
@@ -118,18 +118,18 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     // bctr
     asm.emitBCCTR();
 
-    VM_MachineCode mc = asm.makeMachineCode();
+    MachineCode mc = asm.makeMachineCode();
 
     // mark the thread as waiting for on stack replacement.
     thread.isWaitingForOsr = true;
     thread.bridgeInstructions = mc.getInstructions();
     thread.fooFPOffset = fooFPOffset;
 
-    Address bridgeaddr = VM_Magic.objectAsAddress(thread.bridgeInstructions);
+    Address bridgeaddr = Magic.objectAsAddress(thread.bridgeInstructions);
 
     Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
-    VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
+    AOSLogging.logOsrEvent("OSR code installation succeeded");
 
     return true;
   }

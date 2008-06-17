@@ -13,8 +13,8 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.scheduler.Synchronization;
+import org.jikesrvm.runtime.Entrypoints;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
@@ -28,16 +28,16 @@ public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
   private static Offset offset = Offset.max();
 
   public static void boot() {
-    offset = VM_Entrypoints.synchronizedCounterField.getOffset();
+    offset = Entrypoints.synchronizedCounterField.getOffset();
   }
 
   @Entrypoint
   private int count = 0;
 
   public int reset() {
-    //    int offset = VM_Interface.synchronizedCounterOffset;
+    //    int offset = Interface.synchronizedCounterOffset;
     int oldValue = count;
-    int actualOldValue = VM_Synchronization.fetchAndAdd(this, offset, -oldValue);
+    int actualOldValue = Synchronization.fetchAndAdd(this, offset, -oldValue);
     if (actualOldValue != oldValue) {
       VM.sysWriteln("oldValue = ", oldValue);
       VM.sysWriteln("actualOldValue = ", actualOldValue);
@@ -50,7 +50,7 @@ public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
   //
   public int increment() {
     if (VM.VerifyAssertions) VM._assert(!offset.isMax());
-    return VM_Synchronization.fetchAndAdd(this, offset, 1);
+    return Synchronization.fetchAndAdd(this, offset, 1);
   }
 
   public int peek() {

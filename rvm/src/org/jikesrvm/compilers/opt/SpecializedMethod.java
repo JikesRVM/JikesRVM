@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
 
 /**
  * This is the top-level class to support specialized versions of Java methods
@@ -22,12 +22,12 @@ public class SpecializedMethod {
   /**
    * The method that was specialized
    */
-  VM_NormalMethod method;
+  NormalMethod method;
 
   /**
    * Corresponding compiled method
    */
-  VM_CompiledMethod compiledMethod;
+  CompiledMethod compiledMethod;
 
   /**
    * Specialized Method index into the SpecializedMethods table
@@ -42,7 +42,7 @@ public class SpecializedMethod {
   /**
    * constructor for OPT compiler.
    */
-  SpecializedMethod(VM_NormalMethod source, SpecializationContext context) {
+  SpecializedMethod(NormalMethod source, SpecializationContext context) {
     this.method = source;
     this.context = context;
     this.smid = SpecializedMethodPool.createSpecializedMethodID();
@@ -55,7 +55,7 @@ public class SpecializedMethod {
     compiledMethod = context.specialCompile(method);
   }
 
-  public VM_NormalMethod getMethod() {
+  public NormalMethod getMethod() {
     return method;
   }
 
@@ -63,11 +63,11 @@ public class SpecializedMethod {
     return context;
   }
 
-  public VM_CompiledMethod getCompiledMethod() {
+  public CompiledMethod getCompiledMethod() {
     return compiledMethod;
   }
 
-  public void setCompiledMethod(VM_CompiledMethod cm) {
+  public void setCompiledMethod(CompiledMethod cm) {
     compiledMethod = cm;
   }
 

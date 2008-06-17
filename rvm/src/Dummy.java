@@ -10,10 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.compilers.common.VM_RecompilationManager;
-import org.jikesrvm.runtime.VM_DynamicLinker;
+import org.jikesrvm.compilers.common.RecompilationManager;
+import org.jikesrvm.runtime.DynamicLinker;
 import org.jikesrvm.runtime.MathConstants;
-import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.scheduler.greenthreads.VMProcess;
 
 /**
@@ -25,15 +25,15 @@ import org.jikesrvm.scheduler.greenthreads.VMProcess;
  */
 class Dummy {
   static org.jikesrvm.VM a;
-  static org.jikesrvm.classloader.VM_TableBasedDynamicLinker b;
-  static VM_DynamicLinker c;
-  static org.jikesrvm.jni.VM_JNIFunctions d;
-  static VM_Reflection e;
+  static org.jikesrvm.classloader.TableBasedDynamicLinker b;
+  static DynamicLinker c;
+  static org.jikesrvm.jni.JNIFunctions d;
+  static Reflection e;
   static VMProcess f;
   static org.vmmagic.pragma.SaveVolatile i;
   static org.jikesrvm.memorymanagers.mminterface.MM_Interface l;
-  static VM_RecompilationManager o;
-  static org.jikesrvm.ArchitectureSpecific.VM_MultianewarrayHelper r;
+  static RecompilationManager o;
+  static org.jikesrvm.ArchitectureSpecific.MultianewarrayHelper r;
   static org.vmmagic.unboxed.Address s;
   static MathConstants t;
   static org.vmmagic.unboxed.WordArray x;

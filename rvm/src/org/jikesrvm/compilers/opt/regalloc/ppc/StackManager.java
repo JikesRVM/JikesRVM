@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.regalloc.ppc;
 import java.util.Enumeration;
 import java.util.Iterator;
 import org.jikesrvm.VM;
-import static org.jikesrvm.VM_Constants.NOT_REACHED;
+import static org.jikesrvm.Constants.NOT_REACHED;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Binary;
 import org.jikesrvm.compilers.opt.ir.MIR_Load;
@@ -82,11 +82,11 @@ import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.util.Bits;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACK_SIZE_GUARD;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACK_SIZE_GUARD;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -500,7 +500,7 @@ public abstract class StackManager extends GenericStackManager {
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0), A(phys.getLR()))); // 1
 
     if (yp) {
-      Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+      Offset offset = Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR), IC(Bits.PPCMaskLower16(offset)))); // 2
     }
@@ -508,7 +508,7 @@ public abstract class StackManager extends GenericStackManager {
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize))); // 3
 
     if (stackOverflow) {
-      Offset offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
+      Offset offset = Entrypoints.activeThreadStackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getPR()), IC(Bits.PPCMaskLower16(offset)))); // 4
     }
@@ -578,7 +578,7 @@ public abstract class StackManager extends GenericStackManager {
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
       ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
-      Offset offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
+      Offset offset = Entrypoints.activeThreadStackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
@@ -621,7 +621,7 @@ public abstract class StackManager extends GenericStackManager {
 
     // Threadswitch
     if (yp) {
-      Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+      Offset offset = Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
@@ -634,7 +634,7 @@ public abstract class StackManager extends GenericStackManager {
    *
    * Side effects:
    * <ul>
-   * <li> updates the VM_OptCompiler structure
+   * <li> updates the OptCompiler structure
    * <li> updates the <code>frameSize</code> field of this object
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
@@ -714,7 +714,7 @@ public abstract class StackManager extends GenericStackManager {
           numFprNv++;
         }
       }
-      // Update the VM_OptCompiledMethod object.
+      // Update the OptCompiledMethod object.
       ir.compiledMethod.setNumberOfNonvolatileGPRs((short) numGprNv);
       ir.compiledMethod.setNumberOfNonvolatileFPRs((short) numFprNv);
       if (numGprNv > 0 || numFprNv > 0) {

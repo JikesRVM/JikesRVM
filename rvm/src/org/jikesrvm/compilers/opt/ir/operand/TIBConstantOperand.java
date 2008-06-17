@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Represents a constant TIB operand, found for example, from an
@@ -54,12 +54,12 @@ public final class TIBConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
-   * @return VM_TypeReference.JavaLangObjectArray
+   * @return TypeReference.JavaLangObjectArray
    */
-  public VM_TypeReference getType() {
-    return VM_TypeReference.TIB;
+  public TypeReference getType() {
+    return TypeReference.TIB;
   }
 
   /**

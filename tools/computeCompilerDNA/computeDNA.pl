@@ -15,7 +15,7 @@
 # This script takes the result file from running Run-gather-DNA and
 # produces a simple text table of the compilation rates and speedups
 # of the various compilers.  These geometric mean lines can then be
-# fed into the VM_CompilerDNA.java file in the adaptive system.
+# fed into the CompilerDNA.java file in the adaptive system.
 
 # Note:  I am a Perl novice.  Feel free to improve the quality of this code!
 #

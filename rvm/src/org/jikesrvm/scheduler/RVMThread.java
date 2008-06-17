@@ -13,27 +13,27 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD;
+import org.jikesrvm.ArchitectureSpecific.Registers;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.VM_Services;
-import org.jikesrvm.VM_UnimplementedError;
+import org.jikesrvm.Configuration;
+import org.jikesrvm.Services;
+import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
-import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.jni.VM_JNIEnvironment;
+import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_ThinLockConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.ThinLockConstants;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.Time;
 import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
 import org.vmmagic.pragma.Entrypoint;
@@ -50,11 +50,11 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A generic java thread's execution context.
  *
- * @see org.jikesrvm.scheduler.greenthreads.VM_GreenThread
- * @see org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread
- * @see VM_DebuggerThread
- * @see VM_FinalizerThread
- * @see org.jikesrvm.adaptive.measurements.organizers.VM_Organizer
+ * @see org.jikesrvm.scheduler.greenthreads.GreenThread
+ * @see org.jikesrvm.memorymanagers.mminterface.CollectorThread
+ * @see DebuggerThread
+ * @see FinalizerThread
+ * @see org.jikesrvm.adaptive.measurements.organizers.Organizer
  */
 @Uninterruptible
 @NonMoving
@@ -69,7 +69,7 @@ public abstract class RVMThread {
   /** Trace adjustments to stack size */
   private static final boolean traceAdjustments = false;
   /** Generate statistics? */
-  private static final boolean STATS = VM_Lock.STATS;
+  private static final boolean STATS = Lock.STATS;
   /** Number of wait operations */
   static int waitOperations;
   /** Number of timed wait operations */
@@ -91,7 +91,7 @@ public abstract class RVMThread {
      */
     NEW,
     /**
-     * The thread is scheduled to run on a VM_Processor. This state is the same
+     * The thread is scheduled to run on a Processor. This state is the same
      * as {@link Thread.State#RUNNABLE}
      */
     RUNNABLE,
@@ -164,7 +164,7 @@ public abstract class RVMThread {
   protected State state;
 
   /**
-   * java.lang.Thread wrapper for this VM_Thread. Not final so it may be
+   * java.lang.Thread wrapper for this Thread. Not final so it may be
    * assigned during booting
    */
   private Thread thread;
@@ -199,7 +199,7 @@ public abstract class RVMThread {
   private int priority;
 
   /**
-   * Index of this thread in {@link VM_Scheduler#threads}[].
+   * Index of this thread in {@link Scheduler#threads}[].
    * This value must be non-zero because it is shifted
    * and used in {@link Object} lock ownership tests.
    */
@@ -255,7 +255,7 @@ public abstract class RVMThread {
    */
   @Entrypoint
   @Untraced
-  public final VM_Registers contextRegisters;
+  public final Registers contextRegisters;
 
   /**
    * Place to save register state during hardware(C signal trap handler) or
@@ -263,7 +263,7 @@ public abstract class RVMThread {
    */
   @Entrypoint
   @Untraced
-  private final VM_Registers exceptionRegisters;
+  private final Registers exceptionRegisters;
 
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
   private int uncaughtExceptionCount = 0;
@@ -315,7 +315,7 @@ public abstract class RVMThread {
    */
   @Entrypoint
   @Untraced
-  public VM_JNIEnvironment jniEnv;
+  public JNIEnvironment jniEnv;
 
   /*
    * Timing fields
@@ -327,13 +327,13 @@ public abstract class RVMThread {
 
 
   /**
-   * Value returned from {@link VM_Time#nanoTime()} when this thread
+   * Value returned from {@link Time#nanoTime()} when this thread
    * started running. If not currently running, then it has the value 0.
    */
   private long startNano = 0;
 
   /**
-   * Accumulated nanoTime as measured by {@link VM_Time#nanoTime()}
+   * Accumulated nanoTime as measured by {@link Time#nanoTime()}
    * used by this thread.
    */
   private long totalNanos = 0;
@@ -407,14 +407,14 @@ public abstract class RVMThread {
     this.daemon = daemon;
     this.priority = priority;
 
-    contextRegisters   = new VM_Registers();
-    exceptionRegisters = new VM_Registers();
+    contextRegisters   = new Registers();
+    exceptionRegisters = new Registers();
 
     if(VM.VerifyAssertions) VM._assert(stack != null);
     // put self in list of threads known to scheduler and garbage collector
     if (!VM.runningVM) {
       // create primordial thread (in boot image)
-      threadSlot = VM_Scheduler.assignThreadSlot(this);
+      threadSlot = Scheduler.assignThreadSlot(this);
       // Remember the boot thread
       if (VM.VerifyAssertions) VM._assert(bootThread == null);
       bootThread = this;
@@ -424,9 +424,9 @@ public abstract class RVMThread {
       onStackReplacementEvent = null;
     } else {
       // create a normal (ie. non-primordial) thread
-      if (trace) VM_Scheduler.trace("VM_Thread create: ", name);
-      if (trace) VM_Scheduler.trace("daemon: ", daemon ? "true" : "false");
-      if (trace) VM_Scheduler.trace("VM_Thread", "create");
+      if (trace) Scheduler.trace("Thread create: ", name);
+      if (trace) Scheduler.trace("daemon: ", daemon ? "true" : "false");
+      if (trace) Scheduler.trace("Thread", "create");
       // set up wrapper Thread if one exists
       this.thread = thread;
       // Set thread type
@@ -434,27 +434,27 @@ public abstract class RVMThread {
 
       this.state = State.NEW;
 
-      stackLimit = VM_Magic.objectAsAddress(stack).plus(STACK_SIZE_GUARD);
+      stackLimit = Magic.objectAsAddress(stack).plus(STACK_SIZE_GUARD);
 
       // get instructions for method to be executed as thread startoff
-      CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentEntryCodeArray();
+      CodeArray instructions = Entrypoints.threadStartoffMethod.getCurrentEntryCodeArray();
 
       VM.disableGC();
 
       // initialize thread registers
-      Address ip = VM_Magic.objectAsAddress(instructions);
-      Address sp = VM_Magic.objectAsAddress(stack).plus(stack.length);
+      Address ip = Magic.objectAsAddress(instructions);
+      Address sp = Magic.objectAsAddress(stack).plus(stack.length);
 
       // Initialize the a thread stack as if "startoff" method had been called
       // by an empty baseline-compiled "sentinel" frame with one local variable.
-      VM_Configuration.archHelper.initializeStack(contextRegisters, ip, sp);
+      Configuration.archHelper.initializeStack(contextRegisters, ip, sp);
 
-      threadSlot = VM_Scheduler.assignThreadSlot(this);
+      threadSlot = Scheduler.assignThreadSlot(this);
       VM.enableGC();
 
-      // only do this at runtime because it will call VM_Magic;
+      // only do this at runtime because it will call Magic;
       // we set this explicitly for the boot thread as part of booting.
-      jniEnv = VM_JNIEnvironment.allocateEnvironment();
+      jniEnv = JNIEnvironment.allocateEnvironment();
 
       if (VM.BuildForAdaptiveSystem) {
         onStackReplacementEvent = new OSR_OnStackReplacementEvent();
@@ -474,7 +474,7 @@ public abstract class RVMThread {
    */
   @Interruptible
   public final void setupBootThread() {
-    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RVM_Boot_Thread");
+    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RBoot_Thread");
   }
 
   /**
@@ -483,7 +483,7 @@ public abstract class RVMThread {
   @Override
   @Interruptible
   public String toString() {
-    return (name == null) ? "VM_Thread-" + getIndex() : name;
+    return (name == null) ? "Thread-" + getIndex() : name;
   }
 
   /**
@@ -497,7 +497,7 @@ public abstract class RVMThread {
   /**
    * Get current thread's JNI environment.
    */
-  public final VM_JNIEnvironment getJNIEnv() {
+  public final JNIEnvironment getJNIEnv() {
     return jniEnv;
   }
 
@@ -531,11 +531,11 @@ public abstract class RVMThread {
    */
   @Interruptible
   public final void initializeJNIEnv() {
-    jniEnv = VM_JNIEnvironment.allocateEnvironment();
+    jniEnv = JNIEnvironment.allocateEnvironment();
   }
 
   /**
-   * Indicate whether the stack of this VM_Thread contains any C frame
+   * Indicate whether the stack of this Thread contains any C frame
    * (used in RuntimeEntrypoints.deliverHardwareException for stack resize)
    * @return false during the prolog of the first Java to C transition
    *        true afterward
@@ -556,7 +556,7 @@ public abstract class RVMThread {
   @Entrypoint
   protected final void changeThreadState(State oldState, State newState) {
     if (trace) {
-      VM.sysWrite("VM_Thread.changeThreadState: thread=", threadSlot, name);
+      VM.sysWrite("Thread.changeThreadState: thread=", threadSlot, name);
       VM.sysWrite(" current=", java.lang.JikesRVMSupport.getEnumName(state));
       VM.sysWrite(" old=", java.lang.JikesRVMSupport.getEnumName(oldState));
       VM.sysWriteln(" new=", java.lang.JikesRVMSupport.getEnumName(newState));
@@ -607,16 +607,16 @@ public abstract class RVMThread {
   @SuppressWarnings({"unused", "UnusedDeclaration"})
   // Called by back-door methods.
   private static void startoff() {
-    RVMThread currentThread = VM_Scheduler.getCurrentThread();
+    RVMThread currentThread = Scheduler.getCurrentThread();
     if (trace) {
-      VM.sysWriteln("VM_Thread.startoff(): about to call ", currentThread.toString(), ".run()");
+      VM.sysWriteln("Thread.startoff(): about to call ", currentThread.toString(), ".run()");
     }
 
     try {
       currentThread.run();
     } finally {
       if (trace) {
-        VM.sysWriteln("VM_Thread.startoff(): finished ", currentThread.toString(), ".run()");
+        VM.sysWriteln("Thread.startoff(): finished ", currentThread.toString(), ".run()");
       }
       currentThread.terminate();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -626,7 +626,7 @@ public abstract class RVMThread {
   /**
    * Put this thread on ready queue for subsequent execution on a future
    * timeslice.
-   * Assumption: VM_Thread.contextRegisters are ready to pick up execution
+   * Assumption: Thread.contextRegisters are ready to pick up execution
    *             ie. return to a yield or begin thread startup code
    */
   public abstract void schedule();
@@ -661,34 +661,34 @@ public abstract class RVMThread {
    */
   @Interruptible
   public final void terminate() {
-    if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == this);
+    if (VM.VerifyAssertions) VM._assert(Scheduler.getCurrentThread() == this);
     boolean terminateSystem = false;
-    if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
+    if (trace) Scheduler.trace("Thread", "terminate");
     if (traceTermination) {
       VM.disableGC();
       VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of thread termination");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
       VM.sysWriteln("END Verbosely dumping stack at time of creating thread termination ]");
       VM.enableGC();
     }
 
     if (VM.BuildForAdaptiveSystem) {
-      VM_RuntimeMeasurements.monitorThreadExit();
+      RuntimeMeasurements.monitorThreadExit();
     }
 
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     java.lang.JikesRVMSupport.threadDied(thread);
 
     if (VM.VerifyAssertions) {
-      if (VM_Lock.countLocksHeldByThread(getLockingId()) > 0) {
+      if (Lock.countLocksHeldByThread(getLockingId()) > 0) {
         VM.sysWriteln("Error, thread terminating holding a lock");
-        VM_Scheduler.dumpVirtualMachine();
+        Scheduler.dumpVirtualMachine();
       }
     }
     // begin critical section
     //
-    VM_Scheduler.threadCreationMutex.lock("thread termination");
-    VM_Processor.getCurrentProcessor().disableThreadSwitching("disabled for thread termination");
+    Scheduler.threadCreationMutex.lock("thread termination");
+    Processor.getCurrentProcessor().disableThreadSwitching("disabled for thread termination");
 
     //
     // if the thread terminated because of an exception, remove
@@ -696,11 +696,11 @@ public abstract class RVMThread {
     // garbage collector will attempt to relocate its ip field.
     exceptionRegisters.inuse = false;
 
-    VM_Scheduler.numActiveThreads -= 1;
+    Scheduler.numActiveThreads -= 1;
     if (daemon) {
-      VM_Scheduler.numDaemons -= 1;
+      Scheduler.numDaemons -= 1;
     }
-    if ((VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) &&
+    if ((Scheduler.numDaemons == Scheduler.numActiveThreads) &&
         (VM.mainThread != null) &&
         VM.mainThread.launched) {
       // no non-daemon thread remains and the main thread was launched
@@ -714,19 +714,19 @@ public abstract class RVMThread {
       }
     }
     if (traceTermination) {
-      VM.sysWriteln("VM_Thread.terminate: myThread.daemon = ", daemon);
-      VM.sysWriteln("  VM_Scheduler.numActiveThreads = ", VM_Scheduler.numActiveThreads);
-      VM.sysWriteln("  VM_Scheduler.numDaemons = ", VM_Scheduler.numDaemons);
+      VM.sysWriteln("Thread.terminate: myThread.daemon = ", daemon);
+      VM.sysWriteln("  Scheduler.numActiveThreads = ", Scheduler.numActiveThreads);
+      VM.sysWriteln("  Scheduler.numDaemons = ", Scheduler.numDaemons);
       VM.sysWriteln("  terminateSystem = ", terminateSystem);
     }
     // end critical section
     //
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
-    VM_Scheduler.threadCreationMutex.unlock();
+    Processor.getCurrentProcessor().enableThreadSwitching();
+    Scheduler.threadCreationMutex.unlock();
 
     if (VM.VerifyAssertions) {
       if (VM.fullyBooted || !terminateSystem) {
-        VM_Processor.getCurrentProcessor().failIfThreadSwitchingDisabled();
+        Processor.getCurrentProcessor().failIfThreadSwitchingDisabled();
       }
     }
     if (terminateSystem) {
@@ -736,8 +736,8 @@ public abstract class RVMThread {
           VM.sysWriteln("Calling sysExit due to uncaught exception.");
         }
         System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-      } else if (thread instanceof VM_MainThread) {
-        VM_MainThread mt = (VM_MainThread) thread;
+      } else if (thread instanceof MainThread) {
+        MainThread mt = (MainThread) thread;
         if (!mt.launched) {
           /* Use System.exit so that any shutdown hooks are run.  It is
            * possible that shutdown hooks may be installed by static
@@ -756,7 +756,7 @@ public abstract class RVMThread {
     }
 
     if (jniEnv != null) {
-      VM_JNIEnvironment.deallocateEnvironment(jniEnv);
+      JNIEnvironment.deallocateEnvironment(jniEnv);
       jniEnv = null;
     }
 
@@ -768,10 +768,10 @@ public abstract class RVMThread {
     }
     // become another thread
     //
-    VM_Scheduler.releaseThreadSlot(threadSlot, this);
+    Scheduler.releaseThreadSlot(threadSlot, this);
 
     beingDispatched = true;
-    VM_Processor.getCurrentProcessor().dispatch(false);
+    Processor.getCurrentProcessor().dispatch(false);
 
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
@@ -798,8 +798,8 @@ public abstract class RVMThread {
   //todo fix this -- related to SaveVolatile
   @Entrypoint
   public static void yieldpointFromPrologue() {
-    Address fp = VM_Magic.getFramePointer();
-    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(PROLOGUE, fp);
+    Address fp = Magic.getFramePointer();
+    org.jikesrvm.scheduler.greenthreads.GreenThread.yieldpoint(PROLOGUE, fp);
   }
 
   /**
@@ -813,8 +813,8 @@ public abstract class RVMThread {
   // TODO fix this -- related to SaveVolatile
   @Entrypoint
   public static void yieldpointFromBackedge() {
-    Address fp = VM_Magic.getFramePointer();
-    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(BACKEDGE, fp);
+    Address fp = Magic.getFramePointer();
+    org.jikesrvm.scheduler.greenthreads.GreenThread.yieldpoint(BACKEDGE, fp);
   }
 
   /**
@@ -828,8 +828,8 @@ public abstract class RVMThread {
   // TODO fix this -- related to SaveVolatile
   @Entrypoint
   public static void yieldpointFromEpilogue() {
-    Address fp = VM_Magic.getFramePointer();
-    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(EPILOGUE, fp);
+    Address fp = Magic.getFramePointer();
+    org.jikesrvm.scheduler.greenthreads.GreenThread.yieldpoint(EPILOGUE, fp);
   }
 
   /*
@@ -851,13 +851,13 @@ public abstract class RVMThread {
     changeThreadState(State.RUNNABLE, State.SUSPENDED);
     try {
       // let go of outer lock
-      VM_ObjectModel.genericUnlock(thread);
+      ObjectModel.genericUnlock(thread);
       suspendInternal();
     } catch (Throwable t) {
       rethrow = t;
     }
     // regain outer lock
-    VM_ObjectModel.genericLock(thread);
+    ObjectModel.genericLock(thread);
     if (rethrow != null) {
       RuntimeEntrypoints.athrow(rethrow);
     }
@@ -875,7 +875,7 @@ public abstract class RVMThread {
   @Interruptible
   public final void resume() {
     changeThreadState(State.SUSPENDED, State.RUNNABLE);
-    if (trace) VM_Scheduler.trace("VM_Thread", "resume() scheduleThread ", getIndex());
+    if (trace) Scheduler.trace("Thread", "resume() scheduleThread ", getIndex());
     resumeInternal();
   }
 
@@ -907,7 +907,7 @@ public abstract class RVMThread {
    */
   @Interruptible
   public static void sleep(long millis, int ns) throws InterruptedException {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     myThread.changeThreadState(State.RUNNABLE, State.SLEEPING);
     try {
       myThread.sleepInternal(millis, ns);
@@ -950,7 +950,7 @@ public abstract class RVMThread {
   /* only loses control at expected points -- I think -dave */
   public static void wait(Object o) {
     if (STATS) waitOperations++;
-    RVMThread t = VM_Scheduler.getCurrentThread();
+    RVMThread t = Scheduler.getCurrentThread();
     Throwable rethrow = t.waitInternal(o);
     if (rethrow != null) {
       RuntimeEntrypoints.athrow(rethrow); // doesn't return
@@ -967,7 +967,7 @@ public abstract class RVMThread {
   /* only loses control at expected points -- I think -dave */
   public static void wait(Object o, long millis) {
     if (STATS) timedWaitOperations++;
-    RVMThread t = VM_Scheduler.getCurrentThread();
+    RVMThread t = Scheduler.getCurrentThread();
     Throwable rethrow = t.waitInternal(o, millis);
     if (rethrow != null) {
       RuntimeEntrypoints.athrow(rethrow);
@@ -979,14 +979,14 @@ public abstract class RVMThread {
    *
    * @param o the object synchronized on
    */
-  protected abstract void notifyInternal(Object o, VM_Lock l);
+  protected abstract void notifyInternal(Object o, Lock l);
 
   /**
    * Support for Java {@link java.lang.Object#notifyAll()} synchronization primitive.
    *
    * @param o the object synchronized on
    */
-  protected abstract void notifyAllInternal(Object o, VM_Lock l);
+  protected abstract void notifyAllInternal(Object o, Lock l);
 
   @LogicallyUninterruptible
   private static void raiseIllegalMonitorStateException(String msg, Object o) {
@@ -999,13 +999,13 @@ public abstract class RVMThread {
    */
   public static void notify(Object o) {
     if (STATS) notifyOperations++;
-    VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
+    Lock l = ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
-    VM_Processor proc = VM_Processor.getCurrentProcessor();
+    Processor proc = Processor.getCurrentProcessor();
     if (l.getOwnerId() != proc.threadId) {
       raiseIllegalMonitorStateException("notifying", o);
     }
-    VM_Scheduler.getCurrentThread().notifyInternal(o, l);
+    Scheduler.getCurrentThread().notifyInternal(o, l);
   }
 
   /**
@@ -1016,13 +1016,13 @@ public abstract class RVMThread {
    */
   public static void notifyAll(Object o) {
     if (STATS) notifyAllOperations++;
-    VM_Scheduler.LockModel l = (VM_Scheduler.LockModel)VM_ObjectModel.getHeavyLock(o, false);
+    Scheduler.LockModel l = (Scheduler.LockModel)ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
-    VM_Processor proc = VM_Processor.getCurrentProcessor();
+    Processor proc = Processor.getCurrentProcessor();
     if (l.getOwnerId() != proc.threadId) {
       raiseIllegalMonitorStateException("notifyAll", o);
     }
-    VM_Scheduler.getCurrentThread().notifyAllInternal(o, l);
+    Scheduler.getCurrentThread().notifyAllInternal(o, l);
   }
 
   /*
@@ -1061,7 +1061,7 @@ public abstract class RVMThread {
   @Interruptible
   public final void park(boolean isAbsolute, long time) throws Throwable {
     if (VM.VerifyAssertions) {
-      RVMThread curThread = VM_Scheduler.getCurrentThread();
+      RVMThread curThread = Scheduler.getCurrentThread();
       VM._assert(curThread == this);
     }
     // Has the thread already been unparked? (ie the permit is available?)
@@ -1090,7 +1090,7 @@ public abstract class RVMThread {
         if (isAbsolute) {
           // if it's an absolute amount of time then remove the current time as
           // we will adjust up by this much in the sleep
-          millis -= (VM_Time.nanoTime() / ((long)1e6));
+          millis -= (Time.nanoTime() / ((long)1e6));
         }
         ns = (int)time % 1000000;
       } else {
@@ -1102,7 +1102,7 @@ public abstract class RVMThread {
       if (holdsLock) {
         // If someone locked the java.lang.Thread, release before going to sleep
         // to allow interruption
-        VM_ObjectModel.genericUnlock(thread);
+        ObjectModel.genericUnlock(thread);
       }
       try {
         sleepInternal(millis, ns);
@@ -1110,7 +1110,7 @@ public abstract class RVMThread {
         // swallow thread interruptions
       }
       if (holdsLock) {
-        VM_ObjectModel.genericLock(thread);
+        ObjectModel.genericLock(thread);
       }
       if (state != State.RUNNABLE) {
         // change thread to runnable unless already performed by athrow
@@ -1135,11 +1135,11 @@ public abstract class RVMThread {
   }
 
   /**
-   * Get this thread's index in {@link VM_Scheduler#threads}[].
+   * Get this thread's index in {@link Scheduler#threads}[].
    */
   @LogicallyUninterruptible
   public final int getIndex() {
-    if (VM.VerifyAssertions) VM._assert((state == State.TERMINATED) || VM_Scheduler.threads[threadSlot] == this);
+    if (VM.VerifyAssertions) VM._assert((state == State.TERMINATED) || Scheduler.threads[threadSlot] == this);
     return threadSlot;
   }
 
@@ -1149,8 +1149,8 @@ public abstract class RVMThread {
    * shifted appropriately so it can be directly used in the ownership tests.
    */
   public final int getLockingId() {
-    if (VM.VerifyAssertions) VM._assert(VM_Scheduler.threads[threadSlot] == this);
-    return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT;
+    if (VM.VerifyAssertions) VM._assert(Scheduler.threads[threadSlot] == this);
+    return threadSlot << ThinLockConstants.TL_THREAD_ID_SHIFT;
   }
 
   /**
@@ -1160,18 +1160,18 @@ public abstract class RVMThread {
    * was encountered (null --> normal method call, not a trap)
    */
   @Interruptible
-  public static void resizeCurrentStack(int newSize, VM_Registers exceptionRegisters) {
-    if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
+  public static void resizeCurrentStack(int newSize, Registers exceptionRegisters) {
+    if (traceAdjustments) VM.sysWrite("Thread: resizeCurrentStack\n");
     if (MM_Interface.gcInProgress()) {
       VM.sysFail("system error: resizing stack while GC is in progress");
     }
     byte[] newStack = MM_Interface.newStack(newSize, false);
-    VM_Processor.getCurrentProcessor().disableThreadSwitching("disabled for stack resizing");
+    Processor.getCurrentProcessor().disableThreadSwitching("disabled for stack resizing");
     transferExecutionToNewStack(newStack, exceptionRegisters);
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    Processor.getCurrentProcessor().enableThreadSwitching();
     if (traceAdjustments) {
-      RVMThread t = VM_Scheduler.getCurrentThread();
-      VM.sysWrite("VM_Thread: resized stack ", t.getIndex());
+      RVMThread t = Scheduler.getCurrentThread();
+      VM.sysWrite("Thread: resized stack ", t.getIndex());
       VM.sysWrite(" to ", t.stack.length / 1024);
       VM.sysWrite("k\n");
     }
@@ -1180,11 +1180,11 @@ public abstract class RVMThread {
   @NoInline
   @BaselineNoRegisters
   //this method does not do a normal return and hence does not execute epilogue --> non-volatiles not restored!
-  private static void transferExecutionToNewStack(byte[] newStack, VM_Registers exceptionRegisters) {
+  private static void transferExecutionToNewStack(byte[] newStack, Registers exceptionRegisters) {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     byte[] myStack = myThread.stack;
 
     // initialize new stack with live portion of stack we're
@@ -1202,10 +1202,10 @@ public abstract class RVMThread {
     //       +-------------------+---------------+
     //        ^newStack           ^newFP          ^newTop
     //
-    Address myTop = VM_Magic.objectAsAddress(myStack).plus(myStack.length);
-    Address newTop = VM_Magic.objectAsAddress(newStack).plus(newStack.length);
+    Address myTop = Magic.objectAsAddress(myStack).plus(myStack.length);
+    Address newTop = Magic.objectAsAddress(newStack).plus(newStack.length);
 
-    Address myFP = VM_Magic.getFramePointer();
+    Address myFP = Magic.getFramePointer();
     Offset myDepth = myTop.diff(myFP);
     Address newFP = newTop.minus(myDepth);
 
@@ -1231,16 +1231,16 @@ public abstract class RVMThread {
     // install new stack
     //
     myThread.stack = newStack;
-    myThread.stackLimit = VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD);
-    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
+    myThread.stackLimit = Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD);
+    Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
 
     // return to caller, resuming execution on new stack
     // (original stack now abandoned)
     //
     if (VM.BuildForPowerPC) {
-      VM_Magic.returnToNewStack(VM_Magic.getCallerFramePointer(newFP));
+      Magic.returnToNewStack(Magic.getCallerFramePointer(newFP));
     } else if (VM.BuildForIA32) {
-      VM_Magic.returnToNewStack(newFP);
+      Magic.returnToNewStack(newFP);
     }
 
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1252,7 +1252,7 @@ public abstract class RVMThread {
    * @param delta displacement to be applied to all interior references
    */
   public final void fixupMovedStack(Offset delta) {
-    if (traceAdjustments) VM.sysWrite("VM_Thread: fixupMovedStack\n");
+    if (traceAdjustments) VM.sysWrite("Thread: fixupMovedStack\n");
 
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustRegisters(contextRegisters, delta);
@@ -1274,8 +1274,8 @@ public abstract class RVMThread {
    * @param registers registers to be adjusted
    * @param delta     displacement to be applied
    */
-  private static void adjustRegisters(VM_Registers registers, Offset delta) {
-    if (traceAdjustments) VM.sysWrite("VM_Thread: adjustRegisters\n");
+  private static void adjustRegisters(Registers registers, Offset delta) {
+    if (traceAdjustments) VM.sysWrite("Thread: adjustRegisters\n");
 
     // adjust FP
     //
@@ -1289,13 +1289,13 @@ public abstract class RVMThread {
 
     // additional architecture specific adjustments
     //  (1) frames from all compilers on IA32 need to update ESP
-    int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
+    int compiledMethodId = Magic.getCompiledMethodID(registers.getInnermostFramePointer());
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
       if (VM.BuildForIA32) {
-        VM_Configuration.archHelper.adjustESP(registers, delta, traceAdjustments);
+        Configuration.archHelper.adjustESP(registers, delta, traceAdjustments);
       }
       if (traceAdjustments) {
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
         VM.sysWrite(" method=");
         VM.sysWrite(compiledMethod.getMethod());
         VM.sysWrite("\n");
@@ -1312,19 +1312,19 @@ public abstract class RVMThread {
    * @param delta displacement to be applied to all its interior references
    */
   private static void adjustStack(byte[] stack, Address fp, Offset delta) {
-    if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
+    if (traceAdjustments) VM.sysWrite("Thread: adjustStack\n");
 
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       // adjust FP save area
       //
-      VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).plus(delta));
+      Magic.setCallerFramePointer(fp, Magic.getCallerFramePointer(fp).plus(delta));
       if (traceAdjustments) {
         VM.sysWrite(" fp=", fp.toWord());
       }
 
       // advance to next frame
       //
-      fp = VM_Magic.getCallerFramePointer(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
   }
 
@@ -1347,19 +1347,19 @@ public abstract class RVMThread {
    *  </pre>
    */
   private static Offset copyStack(byte[] newStack) {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     byte[] myStack = myThread.stack;
 
-    Address myTop = VM_Magic.objectAsAddress(myStack).plus(myStack.length);
-    Address newTop = VM_Magic.objectAsAddress(newStack).plus(newStack.length);
-    Address myFP = VM_Magic.getFramePointer();
+    Address myTop = Magic.objectAsAddress(myStack).plus(myStack.length);
+    Address newTop = Magic.objectAsAddress(newStack).plus(newStack.length);
+    Address myFP = Magic.getFramePointer();
     Offset myDepth = myTop.diff(myFP);
     Address newFP = newTop.minus(myDepth);
 
     // before copying, make sure new stack isn't too small
     //
     if (VM.VerifyAssertions) {
-      VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD)));
+      VM._assert(newFP.GE(Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD)));
     }
 
     Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
@@ -1370,7 +1370,7 @@ public abstract class RVMThread {
   /**
    * Set the "isDaemon" status of this thread.
    * Although a java.lang.Thread can only have setDaemon invoked on it
-   * before it is started, VM_Threads can become daemons at any time.
+   * before it is started, Threads can become daemons at any time.
    * Note: making the last non daemon a daemon will terminate the VM.
    *
    * Note: This method might need to be uninterruptible so it is final,
@@ -1386,13 +1386,13 @@ public abstract class RVMThread {
       if (state == State.NEW) {
         // thread will start as a daemon
       } else {
-        VM_Scheduler.threadCreationMutex.lock("daemon creation mutex");
-        VM_Scheduler.numDaemons += on ? 1 : -1;
-        VM_Scheduler.threadCreationMutex.unlock();
+        Scheduler.threadCreationMutex.lock("daemon creation mutex");
+        Scheduler.numDaemons += on ? 1 : -1;
+        Scheduler.threadCreationMutex.unlock();
 
-        if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
+        if (Scheduler.numDaemons == Scheduler.numActiveThreads) {
           if (VM.TraceThreads) {
-            VM_Scheduler.trace("VM_Thread", "last non Daemon demonized");
+            Scheduler.trace("Thread", "last non Daemon demonized");
           }
           VM.sysExit(0);
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1408,13 +1408,13 @@ public abstract class RVMThread {
    * @param verbosity Ignored.
    */
   public static void dumpAll(int verbosity) {
-    for (int i = 0; i < VM_Scheduler.threads.length; i++) {
-      RVMThread t = VM_Scheduler.threads[i];
+    for (int i = 0; i < Scheduler.threads.length; i++) {
+      RVMThread t = Scheduler.threads[i];
       if (t == null) continue;
       VM.sysWrite("Thread ");
       VM.sysWriteInt(i);
       VM.sysWrite(":  ");
-      VM.sysWriteHex(VM_Magic.objectAsAddress(t));
+      VM.sysWriteHex(Magic.objectAsAddress(t));
       VM.sysWrite("   ");
       t.dump(verbosity);
       // Compensate for t.dump() not newline-terminating info.
@@ -1434,7 +1434,7 @@ public abstract class RVMThread {
    * @return the current value of {@link #totalNanos}.
    */
   public final long startTimedInterval() {
-    long now = VM_Time.nanoTime();
+    long now = Time.nanoTime();
     if (timingDepth == 0) {
       timingDepth = 1;
       startNano = now;
@@ -1451,7 +1451,7 @@ public abstract class RVMThread {
    * End a possibly nested timing interval
    */
   public final long endTimedInterval() {
-    long now = VM_Time.nanoTime();
+    long now = Time.nanoTime();
     timingDepth--;
     totalNanos += now - startNano;
     startNano = now;
@@ -1459,7 +1459,7 @@ public abstract class RVMThread {
   }
 
   /**
-   * Called from  VM_Processor.dispatch when a thread is about to
+   * Called from  Processor.dispatch when a thread is about to
    * start executing.
    */
   public final void resumeInterval(long now) {
@@ -1468,7 +1468,7 @@ public abstract class RVMThread {
   }
 
   /**
-   * Called from {@link VM_Processor#dispatch} when a thread is about to stop
+   * Called from {@link Processor#dispatch} when a thread is about to stop
    * executing.
    */
   public final void suspendInterval(long now) {
@@ -1483,7 +1483,7 @@ public abstract class RVMThread {
 
   /** @return Is this the MainThread ? */
   private boolean isMainThread() {
-    return thread instanceof VM_MainThread;
+    return thread instanceof MainThread;
   }
 
   /**
@@ -1549,8 +1549,8 @@ public abstract class RVMThread {
    * @see java.lang.Thread#holdsLock(Object)
    */
   public final boolean holdsLock(Object obj) {
-    RVMThread mine = VM_Scheduler.getCurrentThread();
-    return VM_ObjectModel.holdsLock(obj, mine);
+    RVMThread mine = Scheduler.getCurrentThread();
+    return ObjectModel.holdsLock(obj, mine);
   }
 
   /**
@@ -1664,7 +1664,7 @@ public abstract class RVMThread {
    */
   @Interruptible
   public final void join(long ms, int ns) throws InterruptedException {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     if (VM.VerifyAssertions) VM._assert(myThread != this);
     synchronized(this) {
       myThread.changeThreadState(State.RUNNABLE, State.JOINING);
@@ -1676,11 +1676,11 @@ public abstract class RVMThread {
           wait(this);
         }
       } else {
-        long startNano = VM_Time.nanoTime();
+        long startNano = Time.nanoTime();
         long timeLeft;
         if (isAlive()) {
           do {
-            long elapsedMillis = (VM_Time.nanoTime()-startNano)/((long) 1e6);
+            long elapsedMillis = (Time.nanoTime()-startNano)/((long) 1e6);
             timeLeft = ms - elapsedMillis;
             wait(this, timeLeft);
           } while (isAlive() && timeLeft > 0);
@@ -1698,7 +1698,7 @@ public abstract class RVMThread {
     if (state != State.SUSPENDED) {
       throw new IllegalThreadStateException("Thread.countStackFrames called on non-suspended thread");
     }
-    throw new VM_UnimplementedError();
+    throw new UnimplementedError();
   }
 
   /**
@@ -1718,7 +1718,7 @@ public abstract class RVMThread {
   /**
    * @return the thread's exception registers
    */
-  public final VM_Registers getExceptionRegisters() {
+  public final Registers getExceptionRegisters() {
     return exceptionRegisters;
   }
 
@@ -1726,7 +1726,7 @@ public abstract class RVMThread {
    * @return the thread's context registers (saved registers when thread is suspended
    *         by green-thread scheduler).
    */
-  public final VM_Registers getContextRegisters() {
+  public final Registers getContextRegisters() {
     return contextRegisters;
   }
 
@@ -1796,7 +1796,7 @@ public abstract class RVMThread {
 
   /**
    * Get the thread to use for building stack traces.
-   * NB overridden by {@link org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread}
+   * NB overridden by {@link org.jikesrvm.memorymanagers.mminterface.CollectorThread}
    */
   @Uninterruptible
   public RVMThread getThreadForStackTrace() {
@@ -1835,7 +1835,7 @@ public abstract class RVMThread {
     if (VM.fullyBooted) {
       exceptionObject.printStackTrace();
     }
-    VM_Scheduler.getCurrentThread().terminate();
+    Scheduler.getCurrentThread().terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -1853,7 +1853,7 @@ public abstract class RVMThread {
       VM.sysWriteln(".");
     }
     if (uncaughtExceptionCount > VM.maxSystemTroubleRecursionDepth) {
-      VM_Scheduler.dumpVirtualMachine();
+      Scheduler.dumpVirtualMachine();
       VM.dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
@@ -1880,13 +1880,13 @@ public abstract class RVMThread {
    * extra characters being spaces.
    */
   public void dumpWithPadding(int leftJustify) {
-    char[] buf = VM_Services.grabDumpBuffer();
+    char[] buf = Services.grabDumpBuffer();
     int len = dump(buf);
     VM.sysWrite(buf, len);
     for (int i = leftJustify - len; i > 0; i--) {
       VM.sysWrite(" ");
     }
-    VM_Services.releaseDumpBuffer();
+    Services.releaseDumpBuffer();
   }
 
   /**
@@ -1900,10 +1900,10 @@ public abstract class RVMThread {
    * @param verbosity Ignored.
    */
   public void dump(int verbosity) {
-    char[] buf = VM_Services.grabDumpBuffer();
+    char[] buf = Services.grabDumpBuffer();
     int len = dump(buf);
     VM.sysWrite(buf, len);
-    VM_Services.releaseDumpBuffer();
+    Services.releaseDumpBuffer();
   }
 
   /**
@@ -1933,35 +1933,35 @@ public abstract class RVMThread {
    *         -1 if <code>offset</code> is negative.
    */
   public int dump(char[] dest, int offset) {
-    offset = VM_Services.sprintf(dest, offset, getIndex());   // id
+    offset = Services.sprintf(dest, offset, getIndex());   // id
     if (daemon) {
-      offset = VM_Services.sprintf(dest, offset, "-daemon");     // daemon thread?
+      offset = Services.sprintf(dest, offset, "-daemon");     // daemon thread?
     }
     if (isBootThread()) {
-      offset = VM_Services.sprintf(dest, offset, "-Boot");    // Boot (Primordial) thread
+      offset = Services.sprintf(dest, offset, "-Boot");    // Boot (Primordial) thread
     }
     if (isMainThread()) {
-      offset = VM_Services.sprintf(dest, offset, "-main");    // Main Thread
+      offset = Services.sprintf(dest, offset, "-main");    // Main Thread
     }
     if (isIdleThread()) {
-      offset = VM_Services.sprintf(dest, offset, "-idle");       // idle thread?
+      offset = Services.sprintf(dest, offset, "-idle");       // idle thread?
     }
     if (isGCThread()) {
-      offset = VM_Services.sprintf(dest, offset, "-collector");  // gc thread?
+      offset = Services.sprintf(dest, offset, "-collector");  // gc thread?
     }
     if (beingDispatched) {
-      offset = VM_Services.sprintf(dest, offset, "-being_dispatched");
+      offset = Services.sprintf(dest, offset, "-being_dispatched");
     }
-    offset = VM_Services.sprintf(dest, offset, "-");
-    offset = VM_Services.sprintf(dest, offset, java.lang.JikesRVMSupport.getEnumName(state));
+    offset = Services.sprintf(dest, offset, "-");
+    offset = Services.sprintf(dest, offset, java.lang.JikesRVMSupport.getEnumName(state));
     if (state == State.TIMED_WAITING || state == State.TIMED_PARK) {
-      offset = VM_Services.sprintf(dest, offset, "(");
-      long timeLeft = wakeupNanoTime - VM_Time.nanoTime();
-      offset = VM_Services.sprintf(dest, offset, (long)VM_Time.nanosToMillis(timeLeft));
-      offset = VM_Services.sprintf(dest, offset, "ms)");
+      offset = Services.sprintf(dest, offset, "(");
+      long timeLeft = wakeupNanoTime - Time.nanoTime();
+      offset = Services.sprintf(dest, offset, (long)Time.nanosToMillis(timeLeft));
+      offset = Services.sprintf(dest, offset, "ms)");
     }
     if (throwInterruptWhenScheduled) {
-      offset = VM_Services.sprintf(dest, offset, "-interrupted");
+      offset = Services.sprintf(dest, offset, "-interrupted");
     }
     return offset;
   }

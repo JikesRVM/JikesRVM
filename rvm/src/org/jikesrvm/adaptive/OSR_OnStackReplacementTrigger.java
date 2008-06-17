@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -35,8 +35,8 @@ public class OSR_OnStackReplacementTrigger {
   @Uninterruptible
   public static void trigger(int ypTakenInCMID, Offset tsFromFPoff, Offset ypTakenFPoff, int whereFrom) {
 
-    RVMThread thread = VM_Scheduler.getCurrentThread();
-    VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
+    RVMThread thread = Scheduler.getCurrentThread();
+    CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
     RVMMethod ypTakenInMethod = ypTakenInCM.getMethod();
     boolean isInBootImage = ypTakenInMethod.getDeclaringClass().isInBootImage();
 
@@ -50,19 +50,19 @@ public class OSR_OnStackReplacementTrigger {
 
     // make sure that the above stores don't get ordered after the flagging
     // this thread is requesting OSR.
-    VM_Magic.sync();
+    Magic.sync();
 
     // consumer:
     thread.requesting_osr = true;
 
     // make sure that the flag is set to activate the OSR organizer after
     // this thread has flagged its request for OSR.
-    VM_Magic.sync();
+    Magic.sync();
 
     // osr organizer must be initialized already
-    if (!VM_Controller.osrOrganizer.osr_flag) {
-      VM_Controller.osrOrganizer.osr_flag = true;
-      VM_Controller.osrOrganizer.activate();
+    if (!Controller.osrOrganizer.osr_flag) {
+      Controller.osrOrganizer.osr_flag = true;
+      Controller.osrOrganizer.activate();
     }
 
     thread.osrPark();

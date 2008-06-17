@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.harmony.lang.RuntimePermissionCollection;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -259,7 +259,7 @@ public class Thread implements Runnable {
       }
     }
     if (vmt == null) {
-      vmThread = new org.jikesrvm.scheduler.greenthreads.VM_GreenThread(this, stacksize,  threadName, false, NORM_PRIORITY);
+      vmThread = new org.jikesrvm.scheduler.greenthreads.GreenThread(this, stacksize,  threadName, false, NORM_PRIORITY);
     } else {
       vmThread = vmt;
     }
@@ -325,7 +325,7 @@ public class Thread implements Runnable {
    * @return Number of Threads
    */
   public static int activeCount() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -340,7 +340,7 @@ public class Thread implements Runnable {
    * @see java.lang.SecurityManager
    */
   public final void checkAccess() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -365,7 +365,7 @@ public class Thread implements Runnable {
    *         <code>currentThread()</code>
    */
   public static Thread currentThread() {
-    return VM_Scheduler.getCurrentThread().getJavaLangThread();
+    return Scheduler.getCurrentThread().getJavaLangThread();
   }
 
   /**
@@ -375,7 +375,7 @@ public class Thread implements Runnable {
    */
   @Deprecated
   public void destroy() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -384,7 +384,7 @@ public class Thread implements Runnable {
    * 
    */
   public static void dumpStack() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -402,7 +402,7 @@ public class Thread implements Runnable {
    * @see java.lang.SecurityManager
    */
   public static int enumerate(Thread[] threads) {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -423,7 +423,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public static Map<Thread, StackTraceElement[]> getAllStackTraces() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -475,7 +475,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -491,7 +491,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public long getId() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -530,7 +530,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public StackTraceElement[] getStackTrace() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -650,7 +650,7 @@ public class Thread implements Runnable {
    * @see Thread#isInterrupted
    */
   public static boolean interrupted() {
-    RVMThread current = VM_Scheduler.getCurrentThread();
+    RVMThread current = Scheduler.getCurrentThread();
     if (current.isInterrupted()) {
       current.clearInterrupted();
       return true;
@@ -815,7 +815,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler handler) {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -859,7 +859,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public void setUncaughtExceptionHandler(UncaughtExceptionHandler handler) {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
     throw new Error("TODO");
   }
 
@@ -972,7 +972,7 @@ public class Thread implements Runnable {
    * 
    */
   public static void yield() {
-    VM_Scheduler.yield();
+    Scheduler.yield();
   }
 
   /**
@@ -984,7 +984,7 @@ public class Thread implements Runnable {
    *         object
    */
   public static boolean holdsLock(Object object) {
-    return VM_Scheduler.getCurrentThread().holdsLock(object);
+    return Scheduler.getCurrentThread().holdsLock(object);
   }
 
   /**

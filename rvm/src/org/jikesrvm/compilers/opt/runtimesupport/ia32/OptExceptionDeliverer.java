@@ -14,14 +14,14 @@ package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.Constants;
+import org.jikesrvm.ArchitectureSpecific.Registers;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.runtime.VM_ExceptionDeliverer;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.ExceptionDeliverer;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -30,19 +30,19 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods
  *  compiled by optimizing Compiler
  */
-public abstract class OptExceptionDeliverer extends VM_ExceptionDeliverer
-    implements ArchitectureSpecific.VM_ArchConstants {
+public abstract class OptExceptionDeliverer extends ExceptionDeliverer
+    implements ArchitectureSpecific.ArchConstants {
 
   private static final boolean TRACE = false;
 
   /**
    * Pass control to a catch block.
    */
-  public void deliverException(VM_CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
-                               Throwable exceptionObject, VM_Registers registers) {
+  public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
+                               Throwable exceptionObject, Registers registers) {
     OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
     Address fp = registers.getInnermostFramePointer();
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
 
     if (TRACE) {
       VM.sysWrite("Frame size of ");
@@ -62,10 +62,10 @@ public abstract class OptExceptionDeliverer extends VM_ExceptionDeliverer
       // only put the exception object in the stackframe if the catch block is expecting it.
       // (if the method hasn't allocated a stack slot for caught exceptions, then we can safely
       //  drop the exceptionObject on the floor).
-      VM_Magic.setObjectAtOffset(VM_Magic.addressAsObject(fp), Offset.fromIntSignExtend(-offset), exceptionObject);
+      Magic.setObjectAtOffset(Magic.addressAsObject(fp), Offset.fromIntSignExtend(-offset), exceptionObject);
       if (TRACE) {
         VM.sysWrite("Storing exception object ");
-        VM.sysWrite(VM_Magic.objectAsAddress(exceptionObject));
+        VM.sysWrite(Magic.objectAsAddress(exceptionObject));
         VM.sysWrite(" at offset ");
         VM.sysWrite(offset);
         VM.sysWrite(" from framepoint ");
@@ -105,18 +105,18 @@ public abstract class OptExceptionDeliverer extends VM_ExceptionDeliverer
     // If this was a straight software trap (athrow) then setting
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
-    myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
-    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
+    myThread.stackLimit = Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
+    Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
 
     // "branches" to catchBlockInstructionAddress
-    VM_Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM._assert(VM_Constants.NOT_REACHED);
+    Magic.restoreHardwareExceptionState(registers);
+    if (VM.VerifyAssertions) VM._assert(Constants.NOT_REACHED);
   }
 
   /**
    * Unwind a stackframe.
    */
-  public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
+  public void unwindStackFrame(CompiledMethod compiledMethod, Registers registers) {
     Address fp = registers.getInnermostFramePointer();
     OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
 

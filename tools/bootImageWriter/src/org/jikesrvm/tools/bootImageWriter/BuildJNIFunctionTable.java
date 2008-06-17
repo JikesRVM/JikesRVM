@@ -15,14 +15,14 @@ package org.jikesrvm.tools.bootImageWriter;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.jni.VM_FunctionTable;
-import org.jikesrvm.jni.VM_JNIFunctions;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.jni.FunctionTable;
+import org.jikesrvm.jni.JNIFunctions;
 
 /**
  * This class is responsible for constructing the JNIFuctions
  * array at bootimage writing time.  It uses "internal reflection" to
- * inspect the methods of VM_JNIFunctions and construct
+ * inspect the methods of JNIFunctions and construct
  * a CodeArray[] that contains pointers to the compiled code
  * of the appropriate JNI function implementation.
  * <p>
@@ -271,11 +271,11 @@ public class BuildJNIFunctionTable {
    * This is not very efficient, but is done at bootImageWriting time,
    * so we just don't worry about it.
    */
-  public static VM_FunctionTable buildTable() {
+  public static FunctionTable buildTable() {
     String[] names = initNames();
-    VM_FunctionTable functions = VM_FunctionTable.allocate(VM_JNIFunctions.FUNCTIONCOUNT);
+    FunctionTable functions = FunctionTable.allocate(JNIFunctions.FUNCTIONCOUNT);
 
-    RVMClass cls = VM_TypeReference.VM_JNIFunctions.peekType().asClass();
+    RVMClass cls = TypeReference.JNIFunctions.peekType().asClass();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
     for (RVMMethod mth : cls.getDeclaredMethods()) {
       String methodName = mth.getName().toString();
@@ -301,7 +301,7 @@ public class BuildJNIFunctionTable {
   }
 
   private static String[] initNames() {
-    String[] names = new String[VM_JNIFunctions.FUNCTIONCOUNT];
+    String[] names = new String[JNIFunctions.FUNCTIONCOUNT];
     names[0]                             = "undefined";
     names[RESERVED0]                     = "reserved0";
     names[RESERVED1]                     = "reserved1";

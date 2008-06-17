@@ -24,7 +24,7 @@ public class PriorityQueueRVM {
   /**
    * the queue, we use elements 1..queue.length
    */
-  private VM_PriorityQueueNode[] queue;
+  private PriorityQueueNode[] queue;
 
   /**
    * the number of elements actually in the queue
@@ -32,11 +32,11 @@ public class PriorityQueueRVM {
   private int numElements = 0;
 
   protected PriorityQueueRVM() {
-    queue = new VM_PriorityQueueNode[20];
+    queue = new PriorityQueueNode[20];
 
     // We don't use element #0
     for (int i = 1; i < queue.length; i++) {
-      queue[i] = new VM_PriorityQueueNode();
+      queue[i] = new PriorityQueueNode();
     }
   }
 
@@ -69,7 +69,7 @@ public class PriorityQueueRVM {
       //        System.out.println("Parent: "+ parent +", Current: "+ current);
       //        System.out.println("Contents before: "+ this);
       // exchange parrent and current values
-      VM_PriorityQueueNode tmp = queue[parent];
+      PriorityQueueNode tmp = queue[parent];
       queue[parent] = queue[current];
       queue[current] = tmp;
 
@@ -89,10 +89,10 @@ public class PriorityQueueRVM {
     numElements++;
 
     if (numElements == queue.length) {
-      VM_PriorityQueueNode[] tmp = new VM_PriorityQueueNode[(int) (queue.length * 1.5)];
+      PriorityQueueNode[] tmp = new PriorityQueueNode[(int) (queue.length * 1.5)];
       System.arraycopy(queue, 0, tmp, 0, queue.length);
       for (int i = queue.length; i < tmp.length; i++) {
-        tmp[i] = new VM_PriorityQueueNode();
+        tmp[i] = new PriorityQueueNode();
       }
       queue = tmp;
     }
@@ -137,7 +137,7 @@ public class PriorityQueueRVM {
         break;
       } else {
         // exchange parrent and current values
-        VM_PriorityQueueNode tmp = queue[smaller];
+        PriorityQueueNode tmp = queue[smaller];
         queue[smaller] = queue[current];
         queue[current] = tmp;
 
@@ -180,7 +180,7 @@ public class PriorityQueueRVM {
   /**
    * A local class that holds the nodes of the priority tree
    */
-  private static class VM_PriorityQueueNode {
+  private static class PriorityQueueNode {
 
     /**
      * the value to compare on, larger is better

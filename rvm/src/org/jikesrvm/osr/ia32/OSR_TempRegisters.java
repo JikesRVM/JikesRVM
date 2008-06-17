@@ -13,16 +13,16 @@
 package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ia32.VM_ArchConstants;
-import org.jikesrvm.ia32.VM_Registers;
+import org.jikesrvm.ia32.ArchConstants;
+import org.jikesrvm.ia32.Registers;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
 /**
  * Temporary register set.
- * see: VM_Registers
+ * see: Registers
  */
-public class OSR_TempRegisters implements VM_ArchConstants {
+public class OSR_TempRegisters implements ArchConstants {
 
   final Address ip;        // next instruction address
   final WordArray gprs;
@@ -35,7 +35,7 @@ public class OSR_TempRegisters implements VM_ArchConstants {
    */
   final Object[] objs;
 
-  public OSR_TempRegisters(VM_Registers contextRegisters) {
+  public OSR_TempRegisters(Registers contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     objs = new Object[NUM_GPRS];

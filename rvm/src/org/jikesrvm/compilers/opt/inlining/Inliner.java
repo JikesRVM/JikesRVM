@@ -22,13 +22,13 @@ import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE;
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.database.AOSDatabase;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -154,7 +154,7 @@ public class Inliner {
       byte[] guards = inlDec.getGuards();
       GenerationContext[] children = new GenerationContext[targets.length];
       for (int i = 0; i < targets.length; i++) {
-        VM_NormalMethod callee = (VM_NormalMethod) targets[i];
+        NormalMethod callee = (NormalMethod) targets[i];
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.IG_CLASS_TEST ? " (class test) " : " (method test) ";
@@ -198,7 +198,7 @@ public class Inliner {
       call.bcIndex = callSite.bcIndex;
       call.position = callSite.position;
 
-      if (COUNT_FAILED_GUARDS && VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
+      if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
         // Need a name for the event to count.  In this example, a
         // separate counter for each method by using the method name
@@ -207,7 +207,7 @@ public class Inliner {
         String eventName = "Guarded inline failed: " + callSite.position.getMethod().toString();
         // Create instruction that will increment the counter
         // corresponding to the named event.
-        Instruction counterInst = VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
+        Instruction counterInst = AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
         testFailed.appendInstruction(counterInst);
       }
 
@@ -250,7 +250,7 @@ public class Inliner {
       if (isInterface) {
         if (VM.BuildForIMTInterfaceInvocation) {
           RVMType interfaceType = mo.getTarget().getDeclaringClass();
-          VM_TypeReference recTypeRef = receiver.getType();
+          TypeReference recTypeRef = receiver.getType();
           RVMClass recType = (RVMClass) recTypeRef.peekType();
           // Attempt to avoid inserting the check by seeing if the
           // known static type of the receiver implements the interface.
@@ -433,7 +433,7 @@ public class Inliner {
       return container;
     } else {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
-      VM_NormalMethod callee = (VM_NormalMethod) inlDec.getTargets()[0];
+      NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " +
                     callee +

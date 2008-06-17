@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
 
 public interface SpecializationContext {
 
@@ -22,13 +22,13 @@ public interface SpecializationContext {
    * context.  Do NOT compile it immediately.  However, DO
    * allocate an spmd if needed
    */
-  SpecializedMethod findOrCreateSpecializedVersion(VM_NormalMethod source);
+  SpecializedMethod findOrCreateSpecializedVersion(NormalMethod source);
 
   /**
    * Generate code for a specialized version of source in this
    * context.
    */
-  VM_CompiledMethod specialCompile(VM_NormalMethod source);
+  CompiledMethod specialCompile(NormalMethod source);
 }
 
 

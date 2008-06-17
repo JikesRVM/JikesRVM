@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.Load;
@@ -32,8 +32,8 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StringConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -74,31 +74,31 @@ public abstract class NormalizeConstants implements Operators {
                   } else if (use instanceof ClassConstantOperand) {
                     throw new OptimizingCompilerException("Class constant w/o valid JTOC offset");
                   }
-                  offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(oc.value));
+                  offset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(oc.value));
                 }
                 LocationOperand loc = new LocationOperand(offset);
                 s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
                 s.putOperand(idx, rop.copyD2U());
               } else {
-                s.putOperand(idx, new IntConstantOperand(VM_Magic.objectAsAddress(oc.value).toInt()));
+                s.putOperand(idx, new IntConstantOperand(Magic.objectAsAddress(oc.value).toInt()));
               }
             } else if (use instanceof DoubleConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Double);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               DoubleConstantOperand dc = (DoubleConstantOperand) use.copy();
               if (dc.offset.isZero()) {
                 dc.offset =
-                    Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(dc.value)));
+                    Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(dc.value)));
               }
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof FloatConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Float);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               FloatConstantOperand fc = (FloatConstantOperand) use.copy();
               if (fc.offset.isZero()) {
                 fc.offset =
-                    Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(fc.value)));
+                    Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(fc.value)));
               }
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());
@@ -108,14 +108,14 @@ public abstract class NormalizeConstants implements Operators {
               int v = ((AddressConstantOperand) use).value.toInt();
               s.putOperand(idx, new IntConstantOperand(v));
             } else if (use instanceof TIBConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.TIB);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.TIB);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((TIBConstantOperand) use).value.getTibOffset();
               LocationOperand loc = new LocationOperand(offset);
               s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof CodeConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.CodeArray);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.CodeArray);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((CodeConstantOperand) use).value.findOrCreateJtocOffset();
               LocationOperand loc = new LocationOperand(offset);

@@ -17,7 +17,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -225,7 +225,7 @@ public final class DefUse {
     } else {
       // just copy the register
       origRegOp.setRegister(newRegOp.getRegister());
-      if (newRegOp.getType() != VM_TypeReference.ObjectReference &&
+      if (newRegOp.getType() != TypeReference.ObjectReference &&
           !newRegOp.getType().isUnboxedType() && !origRegOp.isPreciseType()) {
         // copy type information from new to orig unless its an unboxed type
         // (we don't want to copy type information for unboxed types as it is

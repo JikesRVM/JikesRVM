@@ -19,23 +19,23 @@ import java.lang.reflect.Method;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.Callbacks;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.baseline.BaselineCompiler;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.Time;
 
 /**
  * A test harness for the optimizing compiler.
@@ -99,7 +99,7 @@ class OptTestHarness {
   static RVMClass mainClass;
   static String[] mainArgs;
 
-  static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
+  static int parseMethodArgs(TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
         if (argDesc[argNum].isBooleanType()) {
@@ -122,8 +122,8 @@ class OptTestHarness {
           // TODO
           System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
         } else if (argDesc[argNum].isArrayType()) {
-          VM_TypeReference element = argDesc[argNum].getArrayElementType();
-          if (element.equals(VM_TypeReference.JavaLangString)) {
+          TypeReference element = argDesc[argNum].getArrayElementType();
+          if (element.equals(TypeReference.JavaLangString)) {
             String[] array = new String[args.length - i - 1];
             for (int j = 0; j < array.length; j++) {
               array[j] = args[++i];
@@ -144,8 +144,8 @@ class OptTestHarness {
   // otherwise, find the method whose signature matches "methdesc"
   static RVMMethod findDeclaredOrFirstMethod(RVMClass klass, String methname, String methdesc) {
     if (klass == null) return null;
-    VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methname);
-    VM_Atom methodDesc = methdesc.equals("-") ? null : VM_Atom.findOrCreateAsciiAtom(methdesc);
+    Atom methodName = Atom.findOrCreateAsciiAtom(methname);
+    Atom methodDesc = methdesc.equals("-") ? null : Atom.findOrCreateAsciiAtom(methdesc);
 
     for (RVMMethod method : klass.getDeclaredMethods()) {
       if (method.getName() == methodName && ((methodDesc == null) || (methodDesc == method.getDescriptor()))) {
@@ -283,10 +283,10 @@ class OptTestHarness {
           RVMClass klass = loadClass(args[++i]);
           String name = args[++i];
           String desc = args[++i];
-          VM_NormalMethod method = (VM_NormalMethod) findDeclaredOrFirstMethod(klass, name, desc);
-          VM_CompiledMethod cm = null;
+          NormalMethod method = (NormalMethod) findDeclaredOrFirstMethod(klass, name, desc);
+          CompiledMethod cm = null;
           if (BASELINE) {
-            cm = VM_BaselineCompiler.compile(method);
+            cm = BaselineCompiler.compile(method);
           } else {
             CompilationPlan cp =
                 new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(options), null, options);
@@ -299,9 +299,9 @@ class OptTestHarness {
           if (cm != null) {
             method.replaceCompiledMethod(cm);
             if (PRINT_CODE_ADDRESS)
-              VM.sysWriteln("Method: " + method + " compiled code: ", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
+              VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
           }
-          VM_TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
+          TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
           Object[] reflectMethodArgs = new Object[argDesc.length];
           i = parseMethodArgs(argDesc, args, i, reflectMethodArgs);
           java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method);
@@ -342,28 +342,28 @@ class OptTestHarness {
     VM.sysWrite("Compiling " + size + " methods baseline\n");
     // Compile all methods in baseline vector
     for (int i = 0; i < size; i++) {
-      VM_NormalMethod method = (VM_NormalMethod) baselineMethodVector.elementAt(i);
-      VM_CompiledMethod cm = null;
-      cm = VM_BaselineCompiler.compile(method);
+      NormalMethod method = (NormalMethod) baselineMethodVector.elementAt(i);
+      CompiledMethod cm = null;
+      cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
       if (PRINT_CODE_ADDRESS)
-        VM.sysWriteln("Method: " + method + " compiled code: ", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
+        VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
     }
 
     // Now compile all methods in opt vector
     size = optMethodVector.size();
     VM.sysWrite("Compiling " + size + " methods opt\n");
     for (int i = 0; i < size; i++) {
-      VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i);
+      NormalMethod method = (NormalMethod) optMethodVector.elementAt(i);
       OptOptions opts = optOptionsVector.elementAt(i);
       try {
-        VM_CompiledMethod cm = null;
+        CompiledMethod cm = null;
         CompilationPlan cp =
             new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
         if (PRINT_CODE_ADDRESS)
-          VM.sysWriteln("Method: " + method + " compiled code: ", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
+          VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
@@ -411,7 +411,7 @@ class OptTestHarness {
         return;
       }
       VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");
-      VM_Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);
+      Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);
       VM.sysWrite("**** END OF EXECUTION of " + mainMethod + " ****.\n");
     }
   }
@@ -429,7 +429,7 @@ class OptTestHarness {
     }
     processOptionString(args);
     if (perf != null) {
-      VM_Callbacks.addExitMonitor(perf);
+      Callbacks.addExitMonitor(perf);
     }
     executeCommand();
     if (perf != null) {
@@ -437,13 +437,13 @@ class OptTestHarness {
     }
   }
 
-  private static class Performance implements VM_Callbacks.ExitMonitor {
+  private static class Performance implements Callbacks.ExitMonitor {
     private long start = 0;
     private long end = 0;
 
-    void reset() { start = VM_Time.nanoTime(); }
+    void reset() { start = Time.nanoTime(); }
 
-    void stop() { if (end == 0) end = VM_Time.nanoTime(); }
+    void stop() { if (end == 0) end = Time.nanoTime(); }
 
     void show() {
       stop();  // In case we got here due to a System.exit
@@ -451,7 +451,7 @@ class OptTestHarness {
       System.out.println("Performance of executed method");
       System.out.println("------------------------------");
       System.out.print("Elapsed wallclock time: ");
-      System.out.print(VM_Time.nanosToMillis(end - start));
+      System.out.print(Time.nanosToMillis(end - start));
       System.out.println(" msec");
     }
 

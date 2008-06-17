@@ -13,19 +13,19 @@
 package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
+import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A synchronization barrier used to synchronize collector threads,
- * and the VM_Processors they are running on, during parallel collections.
+ * and the Processors they are running on, during parallel collections.
  *
  * The core barrier functionality is implemented by a barrier object.
  * The code in this class is in charge of VM-related idiosyncrasies like
@@ -60,10 +60,10 @@ public final class SynchronizationBarrier {
 
     barrier.arrive(where);
 
-    VM_Magic.isync(); // so subsequent instructions won't see stale values
+    Magic.isync(); // so subsequent instructions won't see stale values
 
     // XXX This should be changed to return ordinal of current rendezvous rather than the one at the beginning
-    return VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getGCOrdinal();
+    return Magic.threadAsCollectorThread(Scheduler.getCurrentThread()).getGCOrdinal();
   }
 
   /**
@@ -77,8 +77,8 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   public void startupRendezvous() {
 
-    int myProcessorId = VM_Processor.getCurrentProcessorId();
-    VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    int myProcessorId = Processor.getCurrentProcessorId();
+    CollectorThread th = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
     int myNumber = th.getGCOrdinal();
 
     if (verbose > 0) {
@@ -91,9 +91,9 @@ public final class SynchronizationBarrier {
     if (myNumber > 1) {
       initReached.increment();
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  has incremented for ", myNumber);
-      VM_Magic.sync();
+      Magic.sync();
       while (!initGoAhead) waitABit(5);
-      VM_Magic.sync();
+      Magic.sync();
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  ack received by ", myNumber);
       barrier.arrive(8888);
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
@@ -104,11 +104,11 @@ public final class SynchronizationBarrier {
     // disappear.
 
     initReached.increment();
-    int numParticipating=VM_GreenScheduler.numProcessors;
-    while (initReached.peek()<VM_GreenScheduler.numProcessors) {
+    int numParticipating=GreenScheduler.numProcessors;
+    while (initReached.peek()<GreenScheduler.numProcessors) {
       waitABit(5);
-      for (int i = 1; i <= VM_GreenScheduler.numProcessors; i++) {
-        if (VM_GreenScheduler.getProcessor(i).lockInCIfInC()) { // can't be true for self
+      for (int i = 1; i <= GreenScheduler.numProcessors; i++) {
+        if (GreenScheduler.getProcessor(i).lockInCIfInC()) { // can't be true for self
           if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
           removeProcessor(i);
           initReached.increment();
@@ -122,9 +122,9 @@ public final class SynchronizationBarrier {
     // we blocked out some threads that got stuck in C, and all other threads
     // are now waiting for me to give them the go-ahead.
 
-    VM_Magic.sync();
+    Magic.sync();
     initGoAhead=true;
-    VM_Magic.sync();
+    Magic.sync();
 
     // now we set the target for the Barrier and perform an 'arrive', as a
     // silly hack to make it easy to reset our counters.
@@ -137,8 +137,8 @@ public final class SynchronizationBarrier {
     initReached.reset();
     initGoAhead=false;
 
-    VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
-    VM_Magic.isync();  // so subsequent instructions won't see stale values
+    Magic.sync();   // update main memory so other processors will see it in "while" loop
+    Magic.isync();  // so subsequent instructions won't see stale values
     if (verbose > 0) {
       VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
     }
@@ -152,7 +152,7 @@ public final class SynchronizationBarrier {
   public void resetRendezvous() {
     numRealProcessors = sysCall.sysNumProcessors();
     barrier.clearTarget();
-    VM_Magic.sync();      // make other threads/processors see the update
+    Magic.sync();      // make other threads/processors see the update
   }
 
   /**
@@ -167,7 +167,7 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   private int waitABit(int x) {
     int sum = 0;
-    if (VM_GreenScheduler.numProcessors < numRealProcessors) {
+    if (GreenScheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
       for (int i = 0; i < (x * 100); i++) {
         sum = sum + i;
@@ -188,9 +188,9 @@ public final class SynchronizationBarrier {
   @Uninterruptible
   private void removeProcessor(int id) {
 
-    VM_GreenProcessor vp = VM_GreenScheduler.getProcessor(id);
+    GreenProcessor vp = GreenScheduler.getProcessor(id);
 
-    VM_GreenThread ct=null;
+    GreenThread ct=null;
 
     // get processor's collector thread off its transfer queue, waiting if
     // necessary for it to show up
@@ -214,14 +214,14 @@ public final class SynchronizationBarrier {
     }
 
     // put it back on the global collector thread queue
-    VM_GreenScheduler.collectorMutex.lock("collector mutex for processor removal");
-    VM_GreenScheduler.collectorQueue.enqueue(ct);
-    VM_GreenScheduler.collectorMutex.unlock();
+    GreenScheduler.collectorMutex.lock("collector mutex for processor removal");
+    GreenScheduler.collectorQueue.enqueue(ct);
+    GreenScheduler.collectorMutex.unlock();
 
     // set VPs CollectorThread ordinal number negative to indicate not participating
-    VM_CollectorThread.collectorThreads[id].setGCOrdinal(-1);
+    CollectorThread.collectorThreads[id].setGCOrdinal(-1);
 
-    VM_Magic.sync();      // make other threads/processors see the update
+    Magic.sync();      // make other threads/processors see the update
 
   }  // removeProcessor
 

@@ -14,14 +14,14 @@ package org.jikesrvm.osr;
 
 import java.util.LinkedList;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_BytecodeConstants;
-import org.jikesrvm.classloader.VM_BytecodeStream;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.classloader.BytecodeConstants;
+import org.jikesrvm.classloader.BytecodeStream;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
-public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
+public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
 
   /** the caller's state if this method is an inlinee */
   public OSR_ExecutionState callerState = null;
@@ -30,7 +30,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   public int callee_cmid = -1;
 
   /** the method of which the execution state belongs to */
-  public VM_NormalMethod meth;
+  public NormalMethod meth;
 
   /** the program pointer (bytecode index) */
   public int bcIndex;
@@ -73,7 +73,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     this.tsFPOffset = tsFPOffset;
 
     this.varElms = new LinkedList<OSR_VariableElement>();
-    this.meth = (VM_NormalMethod) VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
+    this.meth = (NormalMethod) CompiledMethods.getCompiledMethod(cmid).getMethod();
   }
 
   /////////////////////////////
@@ -100,11 +100,11 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     return this.fpOffset;
   }
 
-  public void setMethod(VM_NormalMethod m) {
+  public void setMethod(NormalMethod m) {
     this.meth = m;
   }
 
-  public VM_NormalMethod getMethod() {
+  public NormalMethod getMethod() {
     return this.meth;
   }
 
@@ -206,7 +206,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
 
       // if this method needs a call, than we must jump to
       // the instruction after the call.
-      VM_BytecodeStream bcodes = this.meth.getBytecodes();
+      BytecodeStream bcodes = this.meth.getBytecodes();
       bcodes.reset(this.bcIndex);
 
       int code = bcodes.nextInstruction();

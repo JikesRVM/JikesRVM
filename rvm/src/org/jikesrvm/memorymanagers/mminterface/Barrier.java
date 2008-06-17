@@ -14,8 +14,8 @@ package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Time;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -40,7 +40,7 @@ final class Barrier {
   SynchronizedCounter currentCounter;
 
   // Debugging constants
-  private static final long WARN_PERIOD =  VM_Time.secsToNanos(20); // Print msg every WARN_PERIOD seconds
+  private static final long WARN_PERIOD =  Time.secsToNanos(20); // Print msg every WARN_PERIOD seconds
   private static final long TIME_OUT =  3 * WARN_PERIOD; // Die after TIME_OUT seconds;
 
   public Barrier() {
@@ -54,23 +54,23 @@ final class Barrier {
   // Set target to appropriate value
   //
   public void setTarget(int t) {
-    VM_Magic.isync();
+    Magic.isync();
     if (VM.VerifyAssertions) VM._assert(t >= 0);
     target = t + 1;
-    VM_Magic.sync();
+    Magic.sync();
   }
 
   public void clearTarget() {
-    VM_Magic.isync();
+    Magic.isync();
     target = -1;
-    VM_Magic.sync();
+    Magic.sync();
   }
 
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
   public int arrive(int where) {
-    VM_Magic.isync();
+    Magic.isync();
     int cur = currentCounter.peek();
     SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
@@ -90,22 +90,22 @@ final class Barrier {
         currentCounter.increment();
       }
       c.increment(); // now safe to let others past barrier
-      VM_Magic.sync();
+      Magic.sync();
       return myValue;
     } else {
       // everyone else
       long startNano = 0;
       long lastElapsedNano = 0;
       while (true) {
-        long startCycles = VM_Time.cycles();
+        long startCycles = Time.cycles();
         long endCycles = startCycles + ((long) 1e9); // a few hundred milliseconds more or less.
         long nowCycles;
         do {
           if (target != -1 && c.peek() == target) {
-            VM_Magic.sync();
+            Magic.sync();
             return myValue;
           }
-          nowCycles = VM_Time.cycles();
+          nowCycles = Time.cycles();
         } while (startCycles < nowCycles && nowCycles < endCycles); /* check against both ends to guard against CPU migration */
 
         /*
@@ -113,12 +113,12 @@ final class Barrier {
          * Time to check nanoTime and see if we should print a warning and/or sysFail.
          */
         if (startNano == 0) {
-          startNano = VM_Time.nanoTime();
+          startNano = Time.nanoTime();
         } else {
-          long nowNano = VM_Time.nanoTime();
+          long nowNano = Time.nanoTime();
           long elapsedNano = nowNano - startNano;
           if (elapsedNano - lastElapsedNano > WARN_PERIOD) {
-            VM.sysWrite("GC Warning: Barrier wait has reached ",VM_Time.nanosToSecs(elapsedNano),
+            VM.sysWrite("GC Warning: Barrier wait has reached ",Time.nanosToSecs(elapsedNano),
                         " seconds.  Called from ");
             VM.sysWrite(where,".  myOrder = ",myValue,"  count is ");
             VM.sysWriteln(c.peek()," waiting for ",target - 1);

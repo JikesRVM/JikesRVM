@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -42,12 +42,12 @@ public final class StringConstantOperand extends ObjectConstantOperand {
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
-   * @return VM_TypeReference.JavaLangString
+   * @return TypeReference.JavaLangString
    */
-  public VM_TypeReference getType() {
-    return VM_TypeReference.JavaLangString;
+  public TypeReference getType() {
+    return TypeReference.JavaLangString;
   }
 
   /**

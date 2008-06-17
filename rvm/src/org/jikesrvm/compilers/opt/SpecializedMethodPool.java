@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
 
 /**
  * This class holds the static array of pointers to instructions
@@ -36,14 +36,14 @@ public class SpecializedMethodPool {
    */
   static void registerCompiledMethod(SpecializedMethod m) {
     int smid = m.getSpecializedMethodIndex();
-    VM_CompiledMethod cm = m.getCompiledMethod();
+    CompiledMethod cm = m.getCompiledMethod();
     storeSpecializedMethod(cm, smid);
   }
 
   /**
    * Associate a particular compiled method with a specialized method id.
    */
-  public static void storeSpecializedMethod(VM_CompiledMethod cm, int smid) {
+  public static void storeSpecializedMethod(CompiledMethod cm, int smid) {
     specializedMethods[smid] = cm.getEntryCodeArray();
   }
 

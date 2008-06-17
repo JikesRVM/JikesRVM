@@ -13,10 +13,10 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.measurements.instrumentation.VM_YieldpointCounterData;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.database.AOSDatabase;
+import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
+import org.jikesrvm.adaptive.measurements.instrumentation.YieldpointCounterData;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -31,7 +31,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 /**
  * An opt compiler phase that inserts yieldpoint counters.  Searches
  * for all yieldpoint instructions and inserts an increment after
- * them, using the VM_CounterArrayManager counter manager to implement
+ * them, using the CounterArrayManager counter manager to implement
  * the counters.
  */
 public class InsertYieldpointCounters extends CompilerPhase {
@@ -49,7 +49,7 @@ public class InsertYieldpointCounters extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    return VM_Controller.options.INSERT_YIELDPOINT_COUNTERS;
+    return Controller.options.INSERT_YIELDPOINT_COUNTERS;
   }
 
   public final String getName() { return "InsertYieldpointCounters"; }
@@ -65,11 +65,11 @@ public class InsertYieldpointCounters extends CompilerPhase {
     // the boot image, or when instrumentation is disabled
     if (!ir.method.isInterruptible() ||
         ir.method.getDeclaringClass().isInBootImage() ||
-        !VM_Instrumentation.instrumentationEnabled()) {
+        !Instrumentation.instrumentationEnabled()) {
       return;
     }
 
-    VM_YieldpointCounterData data = VM_AOSDatabase.yieldpointCounterData;
+    YieldpointCounterData data = AOSDatabase.yieldpointCounterData;
 
     if (InsertYieldpointCounters.DEBUG) {
       VM.sysWrite("InsertYieldpointCounters.perform() " + ir.method + "\n");

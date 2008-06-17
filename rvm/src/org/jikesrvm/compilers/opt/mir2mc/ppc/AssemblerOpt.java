@@ -16,8 +16,8 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Services;
+import org.jikesrvm.Constants;
+import org.jikesrvm.Services;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
@@ -48,13 +48,13 @@ import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import org.jikesrvm.ppc.VM_ArchConstants;
-import org.jikesrvm.ppc.VM_Disassembler;
+import org.jikesrvm.ppc.ArchConstants;
+import org.jikesrvm.ppc.Disassembler;
 
 /**
  * Assemble PowerPC MIR into binary code.
  */
-public abstract class AssemblerOpt implements Operators, VM_Constants, VM_ArchConstants {
+public abstract class AssemblerOpt implements Operators, Constants, ArchConstants {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_CODE_PATCH = false;
@@ -1218,9 +1218,9 @@ public abstract class AssemblerOpt implements Operators, VM_Constants, VM_ArchCo
     if (shouldPrint) {
       OptimizingCompiler.header("Final machine code", ir.method);
       for (int i = 0; i < machinecodes.length(); i++) {
-        System.out.print(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true) +
+        System.out.print(Services.getHexString(i << LG_INSTRUCTION_WIDTH, true) +
                          " : " +
-                         VM_Services.getHexString(machinecodes.get(i), false));
+                         Services.getHexString(machinecodes.get(i), false));
         System.out.print("  ");
         System.out.print(disasm(machinecodes.get(i), i << LG_INSTRUCTION_WIDTH));
         System.out.println();
@@ -1293,7 +1293,7 @@ public abstract class AssemblerOpt implements Operators, VM_Constants, VM_ArchCo
    * @param offset the mcoffset (in bytes) of the instruction
    */
   private String disasm(int instr, int offset) {
-    return VM_Disassembler.disasm(instr, offset);
+    return Disassembler.disasm(instr, offset);
   }
 
   /** Apply a patch.

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM
@@ -20,7 +20,7 @@ import org.jikesrvm.VM_SizeConstants;
  * MM-neutral way.  It is separate from MM_Interface to break
  * cyclic class-loading dependencies.
  */
-public class MM_Constants implements VM_SizeConstants {
+public class MM_Constants implements SizeConstants {
   /** True if the selected plan needs support for linearly scanning the heap */
   public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
   /** Number of bits in the GC header required by the selected plan */

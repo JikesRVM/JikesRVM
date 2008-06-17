@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.VM_SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_DOUBLE;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
 
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
@@ -95,12 +95,12 @@ public class Memory {
    */
   public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (USE_NATIVE && len > NATIVE_THRESHOLD) {
-      memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos), VM_Magic.objectAsAddress(src).plus(srcPos), len);
+      memcopy(Magic.objectAsAddress(dst).plus(dstPos), Magic.objectAsAddress(src).plus(srcPos), len);
     } else {
       if (len >= BYTES_IN_COPY && (srcPos & (BYTES_IN_COPY - 1)) == (dstPos & (BYTES_IN_COPY - 1))) {
         // relative alignment is the same
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos);
+        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos);
+        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos);
         Address endPtr = srcPtr.plus(len);
         Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
 
@@ -167,8 +167,8 @@ public class Memory {
           }
         }
       } else {
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos);
+        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos);
+        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos);
         Address endPtr = srcPtr.plus(len);
         while (srcPtr.LT(endPtr)) {
           dstPtr.store(srcPtr.loadByte());
@@ -192,16 +192,16 @@ public class Memory {
    */
   public static void arraycopy16Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
-      memcopy(VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT),
-              VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT),
+      memcopy(Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT),
+              Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT),
               len << LOG_BYTES_IN_SHORT);
     } else {
       if (len >= (BYTES_IN_COPY >>> LOG_BYTES_IN_SHORT) &&
           (srcPos & ((BYTES_IN_COPY - 1) >>> LOG_BYTES_IN_SHORT)) ==
           (dstPos & ((BYTES_IN_COPY - 1) >>> LOG_BYTES_IN_SHORT))) {
         // relative alignment is the same
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
+        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
+        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
         Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_SHORT);
         Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
 
@@ -248,8 +248,8 @@ public class Memory {
           }
         }
       } else {
-        Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
-        Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
+        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
+        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
         Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_SHORT);
         while (srcPtr.LT(endPtr)) {
           copy2Bytes(dstPtr, srcPtr);
@@ -272,8 +272,8 @@ public class Memory {
    * @param len     number of array elements to copy
    */
   public static void arraycopy32Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) {
-    Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_INT);
-    Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_INT);
+    Address srcPtr = Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_INT);
+    Address dstPtr = Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_INT);
     int copyBytes = len << LOG_BYTES_IN_INT;
     if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_INT)) {
       memcopy(dstPtr, srcPtr, copyBytes);
@@ -303,8 +303,8 @@ public class Memory {
    * @param len     number of array elements to copy
    */
   public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) {
-    Address srcPtr = VM_Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_DOUBLE);
-    Address dstPtr = VM_Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_DOUBLE);
+    Address srcPtr = Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_DOUBLE);
+    Address dstPtr = Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_DOUBLE);
     int copyBytes = len << LOG_BYTES_IN_DOUBLE;
     if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_DOUBLE)) {
       memcopy(dstPtr, srcPtr, copyBytes);
@@ -403,11 +403,11 @@ public class Memory {
    * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(Address dst, Address src, Extent cnt) {
-    VM_SysCall.sysCall.sysCopy(dst, src, cnt);
+    SysCall.sysCall.sysCopy(dst, src, cnt);
   }
 
   public static void memcopy(Address dst, Address src, int cnt) {
-    VM_SysCall.sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
+    SysCall.sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
 
   /**
@@ -416,7 +416,7 @@ public class Memory {
    * @param len extent to zero.
    */
   public static void zero(Address start, Extent len) {
-    VM_SysCall.sysCall.sysZero(start, len);
+    SysCall.sysCall.sysZero(start, len);
   }
 
   /**
@@ -426,7 +426,7 @@ public class Memory {
    */
   public static void zeroPages(Address start, int len) {
     if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
-    VM_SysCall.sysCall.sysZeroPages(start, len);
+    SysCall.sysCall.sysZeroPages(start, len);
   }
 
   ////////////////////////
@@ -440,7 +440,7 @@ public class Memory {
    * @param size     Size of address range (bytes)
    */
   public static void sync(Address address, int size) {
-    VM_SysCall.sysCall.sysSyncCache(address, size);
+    SysCall.sysCall.sysSyncCache(address, size);
   }
 
   ////////////////////////
@@ -489,7 +489,7 @@ public class Memory {
     if (VM.VerifyAssertions) {
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     }
-    return VM_SysCall.sysCall.sysMMapErrno(address, size, prot, flags, -1, Offset.zero());
+    return SysCall.sysCall.sysMMapErrno(address, size, prot, flags, -1, Offset.zero());
   }
 
   /**
@@ -518,7 +518,7 @@ public class Memory {
     if (VM.VerifyAssertions) {
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     }
-    return VM_SysCall.sysCall.sysMProtect(address, size, prot) == 0;
+    return SysCall.sysCall.sysMProtect(address, size, prot) == 0;
   }
 
   private static int pagesize = -1;
@@ -530,7 +530,7 @@ public class Memory {
    */
   public static int getPagesize() {
     if (pagesize == -1) {
-      pagesize = VM_SysCall.sysCall.sysGetPageSize();
+      pagesize = SysCall.sysCall.sysGetPageSize();
       pagesizeLog = -1;
       int temp = pagesize;
       while (temp > 0) {

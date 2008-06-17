@@ -14,13 +14,13 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.memorymanagers.mminterface.GCMapIterator;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -33,8 +33,8 @@ import org.vmmagic.unboxed.WordArray;
  * @see org.jikesrvm.ArchitectureSpecific.OptGCMapIterator
  */
 @Uninterruptible
-public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
-    implements OptGCMapIteratorConstants, VM_Constants {
+public abstract class OptGenericGCMapIterator extends GCMapIterator
+    implements OptGCMapIteratorConstants, Constants {
 
   /**
    * The compiled method
@@ -94,7 +94,7 @@ public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
    * @param instructionOffset The place in the method where we currently are
    * @param framePtr          The current frame pointer
    */
-  public final void setupIterator(VM_CompiledMethod cm, Offset instructionOffset, Address framePtr) {
+  public final void setupIterator(CompiledMethod cm, Offset instructionOffset, Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
       VM.sysWrite("Reference map request made");
@@ -119,7 +119,7 @@ public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
                       instructionOffset);
       } else {
         Offset possibleLen =
-            Offset.fromIntZeroExtend(cm.numberOfInstructions() << ArchitectureSpecific.VM_RegisterConstants
+            Offset.fromIntZeroExtend(cm.numberOfInstructions() << ArchitectureSpecific.RegisterConstants
                 .LG_INSTRUCTION_WIDTH);
         if (possibleLen.sLT(instructionOffset)) {
           VM.sysWriteln("OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
@@ -137,10 +137,10 @@ public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
       }
       VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
+      VM.sysWriteln("\nBase of its code array", Magic.objectAsAddress(cm.getEntryCodeArray()));
       Address ra = cm.getInstructionAddress(instructionOffset);
       VM.sysWriteln("Calculated actual return address is ", ra);
-      VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
+      CompiledMethod realCM = CompiledMethods.findMethodForInstruction(ra);
       if (realCM == null) {
         VM.sysWriteln("Unable to find compiled method corresponding to this return address");
       } else {
@@ -312,7 +312,7 @@ public abstract class OptGenericGCMapIterator extends VM_GCMapIterator
    * cause an allocation
    */
   public final int getType() {
-    return VM_CompiledMethod.OPT;
+    return CompiledMethod.OPT;
   }
 
   /**

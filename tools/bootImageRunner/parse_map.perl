@@ -90,7 +90,7 @@ while(<MAPFH>) {
   # have a smaller set of allowable chars
   # than JikesRVM method names
   # See info:as "Symbol Names" for full details
-  # See rvm/src/org/jikesrvm/classloader/VM_NativeMethod.java
+  # See rvm/src/org/jikesrvm/classloader/NativeMethod.java
   # for details of mangling algorithm
   # Note that we only mangle args, not classname/methodname
   my $sig = "$args\__$ret";

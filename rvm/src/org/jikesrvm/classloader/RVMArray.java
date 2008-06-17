@@ -14,15 +14,15 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
@@ -39,10 +39,10 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see RVMType
  * @see RVMClass
- * @see VM_Primitive
+ * @see Primitive
  */
 @NonMoving
-public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoaderConstants {
+public final class RVMArray extends RVMType implements Constants, ClassLoaderConstants {
 
   /*
    * We hold on to a number of commonly used arrays for easy access.
@@ -58,15 +58,15 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
   public static final RVMArray JavaLangObjectArray;
 
   static {
-    BooleanArray = (RVMArray) VM_TypeReference.BooleanArray.resolve();
-    CharArray = (RVMArray) VM_TypeReference.CharArray.resolve();
-    FloatArray = (RVMArray) VM_TypeReference.FloatArray.resolve();
-    DoubleArray = (RVMArray) VM_TypeReference.DoubleArray.resolve();
-    ByteArray = (RVMArray) VM_TypeReference.ByteArray.resolve();
-    ShortArray = (RVMArray) VM_TypeReference.ShortArray.resolve();
-    IntArray = (RVMArray) VM_TypeReference.IntArray.resolve();
-    LongArray = (RVMArray) VM_TypeReference.LongArray.resolve();
-    JavaLangObjectArray = (RVMArray) VM_TypeReference.JavaLangObjectArray.resolve();
+    BooleanArray = (RVMArray) TypeReference.BooleanArray.resolve();
+    CharArray = (RVMArray) TypeReference.CharArray.resolve();
+    FloatArray = (RVMArray) TypeReference.FloatArray.resolve();
+    DoubleArray = (RVMArray) TypeReference.DoubleArray.resolve();
+    ByteArray = (RVMArray) TypeReference.ByteArray.resolve();
+    ShortArray = (RVMArray) TypeReference.ShortArray.resolve();
+    IntArray = (RVMArray) TypeReference.IntArray.resolve();
+    LongArray = (RVMArray) TypeReference.LongArray.resolve();
+    JavaLangObjectArray = (RVMArray) TypeReference.JavaLangObjectArray.resolve();
   }
 
   /**
@@ -106,7 +106,7 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
   /**
    * The TIB for this type, created when the array is resolved.
    */
-  private VM_TIB typeInformationBlock;
+  private TIB typeInformationBlock;
 
   /**
    * current class-loading stage (loaded, resolved or initialized)
@@ -185,8 +185,8 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
    * @return log base 2 of array element size
    */
   private int computeLogElementSize() {
-    if (elementType.getTypeRef().equals(VM_TypeReference.Code)) {
-      return ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH;
+    if (elementType.getTypeRef().equals(TypeReference.Code)) {
+      return ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
       case ClassTypeCode:
@@ -223,7 +223,7 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
   @Pure
   @Uninterruptible
   public int getInstanceSize(int numelts) {
-    return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
+    return ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
   /**
@@ -278,7 +278,7 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
   @Override
   @Pure
   @Uninterruptible
-  public VM_TIB getTypeInformationBlock() {
+  public TIB getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
@@ -368,7 +368,7 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
   @Override
   @Uninterruptible
   public Offset getThinLockOffset() {
-    return VM_ObjectModel.defaultThinLockOffset();
+    return ObjectModel.defaultThinLockOffset();
   }
 
   /**
@@ -419,7 +419,7 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
    * @param typeRef
    * @param elementType
    */
-  RVMArray(VM_TypeReference typeRef, RVMType elementType) {
+  RVMArray(TypeReference typeRef, RVMType elementType) {
     super(typeRef, typeRef.getDimensionality(), null);
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();
@@ -469,10 +469,10 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
     // build a type information block for this new array type by copying the
     // virtual method fields and substituting an appropriate type field.
     //
-    VM_TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
-    VM_TIB allocatedTib = MM_Interface.newTIB(javaLangObjectTIB.numVirtualMethods());
-    superclassIds = VM_DynamicTypeCheck.buildSuperclassIds(this);
-    doesImplement = VM_DynamicTypeCheck.buildDoesImplement(this);
+    TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
+    TIB allocatedTib = MM_Interface.newTIB(javaLangObjectTIB.numVirtualMethods());
+    superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
+    doesImplement = DynamicTypeCheck.buildDoesImplement(this);
     publishResolved(allocatedTib, superclassIds, doesImplement);
 
     MM_Interface.notifyClassResolved(this);
@@ -487,8 +487,8 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
    * @param doesImplement The calculated does implement array
    */
   @Uninterruptible
-  private void publishResolved(VM_TIB allocatedTib, short[] superclassIds, int[] doesImplement) {
-    VM_Statics.setSlotContents(getTibOffset(), allocatedTib);
+  private void publishResolved(TIB allocatedTib, short[] superclassIds, int[] doesImplement) {
+    Statics.setSlotContents(getTibOffset(), allocatedTib);
     allocatedTib.setType(this);
     allocatedTib.setSuperclassIds(superclassIds);
     allocatedTib.setDoesImplement(doesImplement);
@@ -525,13 +525,13 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
       } catch (InterruptedException e) {}
     }
     if (VM.VerifyAssertions) VM._assert(objectType.isInstantiated());
-    VM_TIB javaLangObjectTIB = objectType.getTypeInformationBlock();
+    TIB javaLangObjectTIB = objectType.getTypeInformationBlock();
 
     for(int i=0; i < javaLangObjectTIB.numVirtualMethods(); i++) {
       typeInformationBlock.setVirtualMethod(i, javaLangObjectTIB.getVirtualMethod(i));
     }
 
-    VM_SpecializedMethodManager.notifyTypeInstantiated(this);
+    SpecializedMethodManager.notifyTypeInstantiated(this);
 
     state = CLASS_INITIALIZED; // arrays have no "initialize" phase
   }
@@ -975,8 +975,8 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      RVMType lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
-      RVMType rhs = VM_Magic.getObjectType(src).asArray().getElementType();
+      RVMType lhs = Magic.getObjectType(dst).asArray().getElementType();
+      RVMType rhs = Magic.getObjectType(src).asArray().getElementType();
       if ((lhs == rhs) || (lhs == RVMType.JavaLangObjectType) || RuntimeEntrypoints.isAssignableWith(lhs, rhs)) {
         fastArrayCopy(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -1011,8 +1011,8 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
     if (!MM_Constants.NEEDS_READ_BARRIER && ((src != dst) || loToHi)) {
       if (!MM_Constants.NEEDS_WRITE_BARRIER ||
           !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, bytes)) {
-        Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).plus(dstOffset),
-                                  VM_Magic.objectAsAddress(src).plus(srcOffset),
+        Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset),
+                                  Magic.objectAsAddress(src).plus(srcOffset),
                                   bytes);
       }
     } else {
@@ -1032,12 +1032,12 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
         if (MM_Constants.NEEDS_READ_BARRIER) {
           value = MM_Interface.arrayLoadReadBarrier(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
         } else {
-          value = VM_Magic.getObjectAtOffset(src, srcOffset);
+          value = Magic.getObjectAtOffset(src, srcOffset);
         }
         if (MM_Constants.NEEDS_WRITE_BARRIER) {
           MM_Interface.arrayStoreWriteBarrier(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
         } else {
-          VM_Magic.setObjectAtOffset(dst, dstOffset, value);
+          Magic.setObjectAtOffset(dst, dstOffset, value);
         }
         srcOffset = srcOffset.plus(increment);
         dstOffset = dstOffset.plus(increment);
@@ -1068,7 +1068,7 @@ public final class RVMArray extends RVMType implements VM_Constants, VM_ClassLoa
       }
     } else {
       // the arrays overlap: must use temp array
-      RVMArray ary = VM_Magic.getObjectType(src).asArray();
+      RVMArray ary = Magic.getObjectType(src).asArray();
       Object[] temp = (Object[]) RuntimeEntrypoints.resolvedNewArray(len, ary);
       int cnt = len;
       int tempIdx = 0;

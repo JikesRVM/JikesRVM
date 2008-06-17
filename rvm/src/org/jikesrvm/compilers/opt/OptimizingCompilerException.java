@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Use this exception if we encounter a runtime error in the dynamic
@@ -33,9 +33,9 @@ public class OptimizingCompilerException extends RuntimeException {
     /** Support for exception serialization */
     static final long serialVersionUID = -847866659938089530L;
     /** Unboxed type that was attempted to convert to an Object */
-    final transient VM_TypeReference magicType;
+    final transient TypeReference magicType;
 
-    public IllegalUpcast(VM_TypeReference type) {
+    public IllegalUpcast(TypeReference type) {
       super("Illegal upcast from " + type + " to java.lang.Object");
       magicType = type;
     }

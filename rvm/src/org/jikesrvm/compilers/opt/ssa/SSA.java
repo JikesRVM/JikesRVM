@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ssa;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -181,7 +181,7 @@ class SSA {
    * @param r2 the source
    * @param t the type of r1 and r2.
    */
-  static Instruction makeMoveInstruction(IR ir, Register r1, Register r2, VM_TypeReference t) {
+  static Instruction makeMoveInstruction(IR ir, Register r1, Register r2, TypeReference t) {
     Operator mv = IRTools.getMoveOp(t);
     RegisterOperand o1 = new RegisterOperand(r1, t);
     RegisterOperand o2 = new RegisterOperand(r2, t);

@@ -50,7 +50,7 @@ final class VMMethod {
   }
 
   Class<?>[] getExceptionTypes() {
-    VM_TypeReference[] exceptionTypes = method.getExceptionTypes();
+    TypeReference[] exceptionTypes = method.getExceptionTypes();
     if (exceptionTypes == null) {
       return new Class[0];
     } else {

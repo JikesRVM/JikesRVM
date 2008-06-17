@@ -14,21 +14,21 @@ package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Services;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.Services;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
-import org.jikesrvm.objectmodel.VM_MiscHeader;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.objectmodel.MiscHeader;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
@@ -42,7 +42,7 @@ import org.vmmagic.unboxed.Word;
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
  */
-@Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements ArchitectureSpecific.VM_ArchConstants {
+@Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements ArchitectureSpecific.ArchConstants {
 
   /***********************************************************************
    *
@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.Word;
    * @return True if the RVM is ready for GC, false otherwise.
    */
   public boolean gcEnabled() {
-    return VM_Scheduler.gcEnabled();
+    return Scheduler.gcEnabled();
   }
 
   /**
@@ -91,13 +91,13 @@ import org.vmmagic.unboxed.Word;
    */
   private boolean isAllocCall(byte[] name) {
     for (int i = 0; i < allocCallMethods.length; i++) {
-      byte[] funcName = VM_Services.getArrayNoBarrier(allocCallMethods, i);
-      if (VM_Magic.getArrayLength(name) == VM_Magic.getArrayLength(funcName)) {
+      byte[] funcName = Services.getArrayNoBarrier(allocCallMethods, i);
+      if (Magic.getArrayLength(name) == Magic.getArrayLength(funcName)) {
         /* Compare the letters in the allocCallMethod */
-        int j = VM_Magic.getArrayLength(funcName) - 1;
+        int j = Magic.getArrayLength(funcName) - 1;
         while (j >= 0) {
-          if (VM_Services.getArrayNoBarrier(name, j) !=
-              VM_Services.getArrayNoBarrier(funcName, j))
+          if (Services.getArrayNoBarrier(name, j) !=
+              Services.getArrayNoBarrier(funcName, j))
             break;
           j--;
         }
@@ -143,25 +143,25 @@ import org.vmmagic.unboxed.Word;
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
   public Address skipOwnFramesAndDump(ObjectReference typeRef) {
-    VM_TIB tib = VM_Magic.addressAsTIB(typeRef.toAddress());
+    TIB tib = Magic.addressAsTIB(typeRef.toAddress());
     RVMMethod m = null;
     int bci = -1;
     int compiledMethodID = 0;
     Offset ipOffset = Offset.zero();
-    Address fp = VM_Magic.getFramePointer();
-    Address ip = VM_Magic.getReturnAddress(fp);
-    fp = VM_Magic.getCallerFramePointer(fp);
-    // This code borrows heavily from VM_Scheduler.dumpStack
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      compiledMethodID = VM_Magic.getCompiledMethodID(fp);
+    Address fp = Magic.getFramePointer();
+    Address ip = Magic.getReturnAddress(fp);
+    fp = Magic.getCallerFramePointer(fp);
+    // This code borrows heavily from Scheduler.dumpStack
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      compiledMethodID = Magic.getCompiledMethodID(fp);
       if (compiledMethodID != INVISIBLE_METHOD_ID) {
         // normal java frame(s)
-        VM_CompiledMethod compiledMethod =
-          VM_CompiledMethods.getCompiledMethod(compiledMethodID);
-        if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+        CompiledMethod compiledMethod =
+          CompiledMethods.getCompiledMethod(compiledMethodID);
+        if (compiledMethod.getCompilerType() != CompiledMethod.TRAP) {
           ipOffset = compiledMethod.getInstructionOffset(ip);
           m = compiledMethod.getMethod();
-          if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+          if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == CompiledMethod.OPT) {
             OptCompiledMethod optInfo = (OptCompiledMethod)compiledMethod;
             /* Opt stack frames may contain multiple inlined methods. */
             OptMachineCodeMap map = optInfo.getMCMap();
@@ -173,7 +173,7 @@ import org.vmmagic.unboxed.Word;
               for (int j = iei; j >= 0 && allocCall;
                    j = OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
                 int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-                m = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                m = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
                 if (!isAllocCall(m.getName().getBytes()))
                   allocCall = false;
                 if (j > 0)
@@ -185,16 +185,16 @@ import org.vmmagic.unboxed.Word;
             }
           } else {
             if (!isAllocCall(m.getName().getBytes())) {
-              VM_BaselineCompiledMethod baseInfo =
-                (VM_BaselineCompiledMethod)compiledMethod;
+              BaselineCompiledMethod baseInfo =
+                (BaselineCompiledMethod)compiledMethod;
               bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toWord().lsh(INSTRUCTION_WIDTH).toOffset());
               break;
             }
           }
         }
       }
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = Magic.getReturnAddress(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
     if (m != null) {
       int allocid = (((compiledMethodID & 0x0000ffff) << 15) ^
@@ -230,61 +230,61 @@ import org.vmmagic.unboxed.Word;
 
   @Inline
   public void updateDeathTime(ObjectReference obj) {
-    VM_MiscHeader.updateDeathTime(obj.toObject());
+    MiscHeader.updateDeathTime(obj.toObject());
   }
 
   @Inline
   public void setDeathTime(ObjectReference ref, Word time_) {
-    VM_MiscHeader.setDeathTime(ref.toObject(), time_);
+    MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
   @Inline
   public void setLink(ObjectReference ref, ObjectReference link) {
-    VM_MiscHeader.setLink(ref.toObject(), link);
+    MiscHeader.setLink(ref.toObject(), link);
   }
 
   @Inline
   public void updateTime(Word time_) {
-    VM_MiscHeader.updateTime(time_);
+    MiscHeader.updateTime(time_);
   }
 
   @Inline
   public Word getOID(ObjectReference ref) {
-    return VM_MiscHeader.getOID(ref.toObject());
+    return MiscHeader.getOID(ref.toObject());
   }
 
   @Inline
   public Word getDeathTime(ObjectReference ref) {
-    return VM_MiscHeader.getDeathTime(ref.toObject());
+    return MiscHeader.getDeathTime(ref.toObject());
   }
 
   @Inline
   public ObjectReference getLink(ObjectReference ref) {
-    return VM_MiscHeader.getLink(ref.toObject());
+    return MiscHeader.getLink(ref.toObject());
   }
 
   @Inline
   public Address getBootImageLink() {
-    return VM_MiscHeader.getBootImageLink();
+    return MiscHeader.getBootImageLink();
   }
 
   @Inline
   public Word getOID() {
-    return VM_MiscHeader.getOID();
+    return MiscHeader.getOID();
   }
 
   @Inline
   public void setOID(Word oid) {
-    VM_MiscHeader.setOID(oid);
+    MiscHeader.setOID(oid);
   }
 
   @Inline
   public int getHeaderSize() {
-    return VM_MiscHeader.getHeaderSize();
+    return MiscHeader.getHeaderSize();
   }
 
   @Inline
   public int getHeaderEndOffset() {
-    return VM_ObjectModel.getHeaderEndOffset();
+    return ObjectModel.getHeaderEndOffset();
   }
 }

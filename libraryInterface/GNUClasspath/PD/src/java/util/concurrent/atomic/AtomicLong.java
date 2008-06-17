@@ -6,7 +6,7 @@
 
 package java.util.concurrent.atomic;
 import sun.misc.Unsafe;
-import org.jikesrvm.VM_Configuration;
+import org.jikesrvm.Configuration;
 
 /**
  * A <tt>long</tt> value that may be updated atomically.  See the
@@ -34,7 +34,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * method works in either case, some constructions should be
      * handled at Java level to avoid locking user-visible locks.
      */
-    static final boolean VM_SUPPORTS_LONG_CAS = VM_Configuration.BuildForIA32;
+    static final boolean SUPPORTS_LONG_CAS = Configuration.BuildForIA32;
 
     static {
       try {

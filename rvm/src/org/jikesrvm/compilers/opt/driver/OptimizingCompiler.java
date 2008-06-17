@@ -13,14 +13,14 @@
 package org.jikesrvm.compilers.opt.driver;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.Callbacks;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.InvokeeThreadLocalContext;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -37,8 +37,8 @@ import org.jikesrvm.compilers.opt.ir.IR;
  * Currently, this class is invoked from four clients:
  * <ul>
  *  <li> (1) Command line: ExecuteOptCode
- *  <li> (2) BootImageWriting: VM_BootImageCompiler.compile (optimizing version)
- *  <li> (3) RuntimeCompiler: VM_RuntimeCompiler.compile (optimizing version)
+ *  <li> (2) BootImageWriting: BootImageCompiler.compile (optimizing version)
+ *  <li> (3) RuntimeCompiler: RuntimeCompiler.compile (optimizing version)
  *  <li> (4) AOS: Compilation threads execute controller plans by invoking
  *      the opt compiler.
  * </ul>
@@ -51,7 +51,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
  *
  * <p> This class is not meant to be instantiated.
  */
-public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
+public final class OptimizingCompiler implements Callbacks.StartupMonitor {
 
   ////////////////////////////////////////////
   // Initialization
@@ -81,7 +81,7 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
 
       }
       // want to be notified when VM boot is done and ready to start application
-      VM_Callbacks.addStartupMonitor(new OptimizingCompiler());
+      Callbacks.addStartupMonitor(new OptimizingCompiler());
       isInitialized = true;
     } catch (OptimizingCompilerException e) {
       // failures during initialization can't be ignored
@@ -137,17 +137,17 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * @param options compiler options for compiling the class
    */
   private static void loadSpecialClass(String klassName, OptOptions options) {
-    VM_TypeReference tRef =
-        VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                      VM_Atom.findOrCreateAsciiAtom(klassName));
+    TypeReference tRef =
+        TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(),
+                                      Atom.findOrCreateAsciiAtom(klassName));
     RVMClass klass = (RVMClass) tRef.peekType();
     for (RVMMethod meth : klass.getDeclaredMethods()) {
       if (meth.isClassInitializer()) {
         continue;
       }
-      if (!meth.isCompiled() || meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
+      if (!meth.isCompiled() || meth.getCurrentCompiledMethod().getCompilerType() != CompiledMethod.OPT) {
         CompilationPlan cp =
-            new CompilationPlan((VM_NormalMethod) meth,
+            new CompilationPlan((NormalMethod) meth,
                                     OptimizationPlanner.createOptimizationPlan(options),
                                     null,
                                     options);
@@ -213,10 +213,10 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * Invoke the opt compiler to execute a compilation plan.
    *
    * @param cp the compilation plan to be executed
-   * @return the VM_CompiledMethod object that is the result of compilation
+   * @return the CompiledMethod object that is the result of compilation
    */
-  public static VM_CompiledMethod compile(CompilationPlan cp) {
-    VM_NormalMethod method = cp.method;
+  public static CompiledMethod compile(CompilationPlan cp) {
+    NormalMethod method = cp.method;
     OptOptions options = cp.options;
     checkSupported(method, options);
     try {
@@ -269,7 +269,7 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void header(String what, VM_NormalMethod method) {
+  public static void header(String what, NormalMethod method) {
     System.out.println("********* START OF:  " + what + "   FOR " + method);
   }
 
@@ -278,7 +278,7 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void bottom(String what, VM_NormalMethod method) {
+  public static void bottom(String what, NormalMethod method) {
     System.out.println("*********   END OF:  " + what + "   FOR " + method);
   }
 
@@ -298,7 +298,7 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * @param method
    * @param options
    */
-  private static void printMethodMessage(VM_NormalMethod method, OptOptions options) {
+  private static void printMethodMessage(NormalMethod method, OptOptions options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT) {
       VM.sysWrite("-methodOpt " +
                   method.getDeclaringClass() +
@@ -315,7 +315,7 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * @param e The exception thrown by a compiler phase
    * @param method The method being compiled
    */
-  private static void fail(Throwable e, VM_NormalMethod method) {
+  private static void fail(Throwable e, NormalMethod method) {
     OptimizingCompilerException optExn =
         new OptimizingCompilerException("Compiler", "failure during compilation of", method.toString());
     if (e instanceof OutOfMemoryError) {
@@ -332,7 +332,7 @@ public final class OptimizingCompiler implements VM_Callbacks.StartupMonitor {
    * Check whether opt compilation of a particular method is supported.
    * If not, throw a non-fatal run-time exception.
    */
-  private static void checkSupported(VM_NormalMethod method, OptOptions options) {
+  private static void checkSupported(NormalMethod method, OptOptions options) {
     if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       String msg = "Dynamic Bridge register save protocol not implemented";
       throw MagicNotImplementedException.EXPECTED(msg);

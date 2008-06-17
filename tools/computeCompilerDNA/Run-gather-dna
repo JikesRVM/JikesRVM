@@ -66,25 +66,25 @@ EOF
 exit 1
 fi
 
-if [[ $RVM_ROOT = "" ]]; then
-   echo "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
+if [[ $RROOT = "" ]]; then
+   echo "$0: please set your RROOT environment variable (eg. $HOME/jvmShadow)"
    exit 1
 fi
-if [[ $RVM_SPECJVM98 = "" ]]; then
-   echo "$0: RVM_SPECJVM98 environment variable  is not set.  Setting to /homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98."
-   RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
+if [[ $RSPECJVM98 = "" ]]; then
+   echo "$0: RSPECJVM98 environment variable  is not set.  Setting to /homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98."
+   RSPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
 fi
 
-rvm="$RVM_ROOT/bin/rvm"
+rvm="$RROOT/bin/rvm"
 # parent of build diectories is command line argument to the script
 BUILDDIR=$1
 
 # Generate SPECjvm98 profile data
-mkdir -p $RVM_ROOT/support/profileData
-PROFILE_FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
-$RVM_ROOT/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE $BUILDDIR
+mkdir -p $RROOT/support/profileData
+PROFILE_FILE=$RROOT/support/profileData/edgeCounts.SPECjvm98
+$RROOT/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE $BUILDDIR
 PROFILE_ARG="-X:vm:edgeCounterFile=$PROFILE_FILE"
-cp="-classpath $RVM_SPECJVM98"
+cp="-classpath $RSPECJVM98"
 
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
@@ -104,7 +104,7 @@ for benchmark in $all
 do
 
 # Compilation rates first
-  export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
+  export RBUILD=$BUILDDIR/FastAdaptiveGenMS
   $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appcompoptions -a $benchmark
 
   for optLevel in $OPTLEVELS
@@ -117,16 +117,16 @@ done
 for benchmark in $all
 do
 # Performance next
-   export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveGenMS
+   export RBUILD=$BUILDDIR/FastBaseAdaptiveGenMS
     $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RVM_BUILD=$BUILDDIR/FastOpt0GenMS
+   export RBUILD=$BUILDDIR/FastOpt0GenMS
    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O0 $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RVM_BUILD=$BUILDDIR/FastOpt1GenMS
+   export RBUILD=$BUILDDIR/FastOpt1GenMS
    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O1 $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
+   export RBUILD=$BUILDDIR/FastAdaptiveGenMS
    $rvm $rvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2 $cp SpecApplication $appperfoptions  -a $benchmark
 
 done

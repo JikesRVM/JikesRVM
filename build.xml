@@ -711,8 +711,8 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${generated.java}/org/jikesrvm/adaptive/util"/>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/VM_Options.template"/>
-        <arg value="${generated.java}/org/jikesrvm/VM_Options.java"/>
+        <arg value="${options.dir}/Options.template"/>
+        <arg value="${generated.java}/org/jikesrvm/Options.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.vm.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.vm.dat"/>
       </args>
@@ -720,12 +720,12 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/baseline"/>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/VM_BaselineOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/compilers/baseline/VM_BaselineOptions.java"/>
+        <arg value="${options.dir}/BaselineOptions.template"/>
+        <arg value="${generated.java}/org/jikesrvm/compilers/baseline/BaselineOptions.java"/>
         <arg
             value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.baseline.dat ${options.dir}/SharedBooleanOptions.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.baseline.dat ${options.dir}/SharedValueOptions.dat"/>
-        <arg value="MYTYPE=VM_BaselineOptions"/>
+        <arg value="MYTYPE=BaselineOptions"/>
       </args>
     </GenerateFromTemplate>
     <GenerateFromTemplate>
@@ -739,11 +739,11 @@ Check to make sure all required properties are specified. This includes properti
     </GenerateFromTemplate>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/VM_AOSOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/adaptive/util/VM_AOSExternalOptions.java"/>
+        <arg value="${options.dir}/AOSOptions.template"/>
+        <arg value="${generated.java}/org/jikesrvm/adaptive/util/AOSExternalOptions.java"/>
         <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.aos.dat"/>
         <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.aos.dat"/>
-        <arg value="MYTYPE=VM_AOSExternalOptions"/>
+        <arg value="MYTYPE=AOSExternalOptions"/>
       </args>
     </GenerateFromTemplate>
   </target>
@@ -753,8 +753,8 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
       <arg value="genAssembler.sh"/>
-      <arg value="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/VM_Assembler.java"/>
-      <arg value="VM_Assembler.in"/>
+      <arg value="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
+      <arg value="Assembler.in"/>
     </exec>
 
     <property name="build.ia32-assembler-opt.dir" location="${build.dir}/ia32-assembler-opt"/>
@@ -778,8 +778,8 @@ Check to make sure all required properties are specified. This includes properti
     </GenerateFromTemplate>
     <copy todir="${build.ia32-assembler-opt.dir}">
       <fileset dir="${main.java}">
-        <include name="org/jikesrvm/ia32/VM_RegisterConstants.java"/>
-        <include name="org/jikesrvm/compilers/common/assembler/ia32/VM_AssemblerConstants.java"/>
+        <include name="org/jikesrvm/ia32/RegisterConstants.java"/>
+        <include name="org/jikesrvm/compilers/common/assembler/ia32/AssemblerConstants.java"/>
       </fileset>
     </copy>
     <copy todir="${build.ia32-assembler-opt.dir}">
@@ -790,12 +790,12 @@ Check to make sure all required properties are specified. This includes properti
         <include name="JikesRVMSupport.fake"/>
       </fileset>
     </copy>
-    <copy file="${main.java}/org/jikesrvm/compilers/common/assembler/VM_ForwardReference.java"
-          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/VM_ForwardReference.java"/>
-    <copy file="${main.java}/org/jikesrvm/compilers/common/assembler/VM_AbstractAssembler.java"
-          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/VM_AbstractAssembler.java"/>
-    <copy file="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/VM_Assembler.java"
-          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ia32/VM_Assembler.java"/>
+    <copy file="${main.java}/org/jikesrvm/compilers/common/assembler/ForwardReference.java"
+          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ForwardReference.java"/>
+    <copy file="${main.java}/org/jikesrvm/compilers/common/assembler/AbstractAssembler.java"
+          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/AbstractAssembler.java"/>
+    <copy file="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"
+          tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
 
     <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
@@ -818,12 +818,12 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface"/>
 
     <condition property="pp_RVM_ARCH_HELPER"
-               value="org.jikesrvm.ppc.VM_MachineSpecificPowerPC.PPC${target.address.size}">
+               value="org.jikesrvm.ppc.MachineSpecificPowerPC.PPC${target.address.size}">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
     <condition property="pp_RVM_ARCH_HELPER"
-               value="org.jikesrvm.ia32.VM_MachineSpecificIA.IA32"
-               else="org.jikesrvm.ia32.VM_MachineSpecificIA.EM64T">
+               value="org.jikesrvm.ia32.MachineSpecificIA.IA32"
+               else="org.jikesrvm.ia32.MachineSpecificIA.EM64T">
       <and>
         <equals arg1="${target.arch}" arg2="ia32"/>
         <equals arg1="${target.address.size}" arg2="32"/>
@@ -876,8 +876,8 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
 
-    <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.template"
-          tofile="${generated.config.java}/org/jikesrvm/VM_Configuration.java">
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
+          tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
       <filterset>
         <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
@@ -914,8 +914,8 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_address.method" value="fromIntZeroExtend" else="fromLong">
       <equals arg1="${target.address.size}" arg2="32"/>
     </condition>
-    <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_HeapLayoutConstants.template"
-          tofile="${generated.config.java}/org/jikesrvm/VM_HeapLayoutConstants.java">
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/HeapLayoutConstants.template"
+          tofile="${generated.config.java}/org/jikesrvm/HeapLayoutConstants.java">
       <filterset>
         <filter token="_BOOTIMAGE_DATA_ADDRESS_" value="${target.bootimage.data.address}"/>
         <filter token="_BOOTIMAGE_CODE_ADDRESS_" value="${target.bootimage.code.address}"/>
@@ -1006,8 +1006,8 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="arch-helper-class"
-               value="org/jikesrvm/ia32/VM_MachineSpecificIA.java"
-               else="org/jikesrvm/ppc/VM_MachineSpecificPowerPC.java">
+               value="org/jikesrvm/ia32/MachineSpecificIA.java"
+               else="org/jikesrvm/ppc/MachineSpecificPowerPC.java">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
@@ -1105,7 +1105,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${tasks.classes}:${build.vmmagic-stub.classes}:${build.classes}"/>
       <arg value="-s"/>
       <arg value="${build.base}/syscall/java"/>
-      <arg value="${main.java}/org/jikesrvm/runtime/VM_SysCall.java"/>
+      <arg value="${main.java}/org/jikesrvm/runtime/SysCall.java"/>
     </exec>
 
     <echo message="second compile (from ${generated.java})"/>
@@ -1418,9 +1418,9 @@ Check to make sure all required properties are specified. This includes properti
   <!-- Generate JNI headers for booter -->
   <target name="gen-jni-headers" depends="gen-asm">
     <mkdir dir="${build.native}"/>
-    <javah outputFile="${build.native}/org_jikesrvm_runtime_VM_0005fDynamicLibrary.h" 
+    <javah outputFile="${build.native}/org_jikesrvm_runtime_DynamicLibrary.h" 
            classpath="${build.vm.jar}">
-      <class name="org.jikesrvm.runtime.VM_DynamicLibrary"/>
+      <class name="org.jikesrvm.runtime.DynamicLibrary"/>
     </javah>
     <javah outputFile="${build.native}/org_jikesrvm_scheduler_greenthreads_VMProcess.h"
            classpath="${build.vm.jar}">
@@ -1603,7 +1603,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
       <arg value="-lrvm"/>
-      <arg value="${bl.dir}/org_jikesrvm_runtime_VM_0005fDynamicLibrary.c"/>
+      <arg value="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
     </exec>
 
     <condition property="perfctr.lib" value="-lperfctr" else="">

@@ -19,10 +19,10 @@ import java.util.Iterator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.VM_ClassLoadingListener;
+import org.jikesrvm.classloader.ClassLoadingListener;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
@@ -33,7 +33,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
  * for identifying and performing all necessary invalidations of
  * opt compiler code.
  */
-public final class ClassLoadingDependencyManager implements VM_ClassLoadingListener {
+public final class ClassLoadingDependencyManager implements ClassLoadingListener {
 
   ////////////////////////
   // Entrypoints from RVMClass
@@ -58,7 +58,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
    * Record that the code currently being compiled (cm) must be
    * invalidated if source is overridden.
    */
-  public synchronized void addNotOverriddenDependency(RVMMethod source, VM_CompiledMethod cm) {
+  public synchronized void addNotOverriddenDependency(RVMMethod source, CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG) {
       report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not being overridden\n");
@@ -70,7 +70,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
    * Record that the code currently being compiled (cm) must be
    * invalidated if source ever has a subclass.
    */
-  public synchronized void addNoSubclassDependency(RVMClass source, VM_CompiledMethod cm) {
+  public synchronized void addNoSubclassDependency(RVMClass source, CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG) {
       report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not having a subclass\n");
@@ -112,7 +112,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = invalidatedMethods.next();
-        VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
+        CompiledMethod im = CompiledMethods.getCompiledMethod(cmid);
         if (im != null) { // im == null implies that the code has been GCed already
           invalidate(im);
         }
@@ -128,7 +128,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = invalidatedMethods.next();
-        VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
+        CompiledMethod im = CompiledMethods.getCompiledMethod(cmid);
         if (im != null) { // im == null implies that the code has been GCed already
           invalidate(im);
         }
@@ -140,7 +140,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
   /**
    * helper method to invalidate a particular compiled method
    */
-  private void invalidate(VM_CompiledMethod cm) {
+  private void invalidate(CompiledMethod cm) {
     RVMMethod m = cm.getMethod();
     if (TRACE || DEBUG) {
       report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");

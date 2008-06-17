@@ -12,17 +12,17 @@
  */
 package org.jikesrvm.osr.ppc;
 
-import org.jikesrvm.ppc.VM_RegisterConstants;
-import org.jikesrvm.ppc.VM_Registers;
+import org.jikesrvm.ppc.RegisterConstants;
+import org.jikesrvm.ppc.Registers;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
  * Temporary resiter set.
- * see: VM_Registers
+ * see: Registers
  */
-public class OSR_TempRegisters implements VM_RegisterConstants {
+public class OSR_TempRegisters implements RegisterConstants {
   /** next instruction address */
   final Address ip;
   final WordArray gprs;
@@ -40,7 +40,7 @@ public class OSR_TempRegisters implements VM_RegisterConstants {
    */
   Object[] objs;
 
-  public OSR_TempRegisters(VM_Registers contextRegisters) {
+  public OSR_TempRegisters(Registers contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     objs = new Object[NUM_GPRS];

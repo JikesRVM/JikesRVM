@@ -15,9 +15,9 @@ package java.lang;
 import java.io.File;
 
 import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.scheduler.greenthreads.VMProcess;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
 
 /**
@@ -31,7 +31,7 @@ public final class VMRuntime {
   private VMRuntime() { }
 
   static int availableProcessors() {
-    return VM_Scheduler.availableProcessors();
+    return Scheduler.availableProcessors();
   }
 
   static long freeMemory() {
@@ -59,7 +59,7 @@ public final class VMRuntime {
   static void runFinalizationForExit() {
     if (runFinalizersOnExit) {
       // TODO: talk to Steve B & Perry and figure out what to do.
-      throw new VM_UnimplementedError();
+      throw new UnimplementedError();
     }
   }
 
@@ -84,7 +84,7 @@ public final class VMRuntime {
    * @param loader Ignored.  null means the bootstrap class loader.
    * @return nonzero on success, zero on failure. */
   static int nativeLoad(String libName, ClassLoader loader) {
-    return VM_DynamicLibrary.load(libName);
+    return DynamicLibrary.load(libName);
   }
 
 

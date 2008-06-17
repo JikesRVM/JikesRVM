@@ -23,8 +23,8 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.VM;
 

@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
@@ -117,7 +117,7 @@ public final class ShortArrayReplacer implements AggregateReplacer {
     // first set up temporary scalars for the array elements
     // initialize them before the def.
     RegisterOperand[] scalars = new RegisterOperand[size];
-    VM_TypeReference elementType = vmArray.getElementType().getTypeRef();
+    TypeReference elementType = vmArray.getElementType().getTypeRef();
     RegisterOperand def = reg.defList;
     Instruction defI = def.instruction;
     Operand defaultValue = IRTools.getDefaultOperand(elementType);

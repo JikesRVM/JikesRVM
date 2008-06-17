@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -69,7 +69,7 @@ public final class FieldAnalysis extends CompilerPhase {
    *    <li> it's an array of final
    * </ul>
    */
-  private static boolean isCandidate(VM_TypeReference tref) {
+  private static boolean isCandidate(TypeReference tref) {
     RVMType t = tref.peekType();
     if (t == null) return false;
     if (t.isPrimitiveType()) {
@@ -88,7 +88,7 @@ public final class FieldAnalysis extends CompilerPhase {
    * Have we determined a single concrete type for a field? If so,
    * return the concrete type.  Else, return null.
    */
-  public static VM_TypeReference getConcreteType(RVMField f) {
+  public static TypeReference getConcreteType(RVMField f) {
     // don't bother for primitives and arrays of primitives
     // and friends
     if (!isCandidate(f.getType())) {
@@ -102,7 +102,7 @@ public final class FieldAnalysis extends CompilerPhase {
       return null;
     }
     if (DEBUG) {
-      VM_TypeReference t = db.getConcreteType(f);
+      TypeReference t = db.getConcreteType(f);
       if (t != null) VM.sysWriteln("CONCRETE TYPE " + f + " IS " + t);
     }
     return db.getConcreteType(f);
@@ -133,7 +133,7 @@ public final class FieldAnalysis extends CompilerPhase {
         Operand value = PutField.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
-            VM_TypeReference type = value.asRegister().getType();
+            TypeReference type = value.asRegister().getType();
             recordConcreteType(ir.method, f, type);
           } else {
             recordBottom(ir.method, f);
@@ -153,7 +153,7 @@ public final class FieldAnalysis extends CompilerPhase {
         Operand value = PutStatic.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
-            VM_TypeReference type = value.asRegister().getType();
+            TypeReference type = value.asRegister().getType();
             recordConcreteType(ir.method, f, type);
           } else {
             recordBottom(ir.method, f);
@@ -195,7 +195,7 @@ public final class FieldAnalysis extends CompilerPhase {
    * Record that a method stores an object of a particular concrete type
    * to a field.
    */
-  private static synchronized void recordConcreteType(RVMMethod m, RVMField f, VM_TypeReference t) {
+  private static synchronized void recordConcreteType(RVMMethod m, RVMField f, TypeReference t) {
     // for now, only track private fields
     if (!f.isPrivate()) {
       return;
@@ -206,7 +206,7 @@ public final class FieldAnalysis extends CompilerPhase {
     if (info.isBottom()) {
       return;
     }
-    VM_TypeReference oldType = info.concreteType;
+    TypeReference oldType = info.concreteType;
     if (oldType == null) {
       // set a new concrete type for this field.
       info.concreteType = t;

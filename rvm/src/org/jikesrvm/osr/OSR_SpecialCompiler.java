@@ -12,14 +12,14 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.ArchitectureSpecific.VM_BaselineCompilerImpl;
+import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
-import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
-import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import org.jikesrvm.adaptive.controller.ControllerMemory;
+import org.jikesrvm.adaptive.controller.ControllerPlan;
+import org.jikesrvm.classloader.ExceptionHandlerMap;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
@@ -37,10 +37,10 @@ public class OSR_SpecialCompiler {
    * @param invalidate Is this an invalidation?
    * @return the compiled method for the root state
    */
-  public static VM_CompiledMethod recompileState(OSR_ExecutionState state, boolean invalidate) {
+  public static CompiledMethod recompileState(OSR_ExecutionState state, boolean invalidate) {
 
     // compile from callee to caller
-    VM_CompiledMethod newCM = null;
+    CompiledMethod newCM = null;
     do {
       if (!invalidate) {
         newCM = optCompile(state);
@@ -66,7 +66,7 @@ public class OSR_SpecialCompiler {
   * 1. generate  prologue (PSEUDO_bytecode) from the state.
   * 2. make up new byte code with prologue.
   * 3. set method's bytecode to the specilizaed byte code.
-  * 4. call VM_BaselineCompilerImpl.compile,
+  * 4. call BaselineCompilerImpl.compile,
   *    the 'compile' method is customized to process pseudo instructions,
   *    and it will reset the byte code to the original one, and adjust
   *    the map from bytecode to the generated machine code. then the
@@ -76,8 +76,8 @@ public class OSR_SpecialCompiler {
   *    bytecode after compilation. I believe this minimizes the
   *    work to change both compilers.
   */
-  public static VM_CompiledMethod baselineCompile(OSR_ExecutionState state) {
-    VM_NormalMethod method = state.getMethod();
+  public static CompiledMethod baselineCompile(OSR_ExecutionState state) {
+    NormalMethod method = state.getMethod();
 
     if (VM.TraceOnStackReplacement) {VM.sysWriteln("BASE : starts compiling " + method); }
 
@@ -96,9 +96,9 @@ public class OSR_SpecialCompiler {
     * because the compiler will generate maps after compilation.
     * Any necessary adjustment should be made during the compilation
     */
-    VM_CompiledMethod newCompiledMethod = VM_BaselineCompilerImpl.compile(method);
+    CompiledMethod newCompiledMethod = BaselineCompilerImpl.compile(method);
 
-    // compiled method was already set by VM_BaselineCompilerImpl.compile
+    // compiled method was already set by BaselineCompilerImpl.compile
     // the call here does nothing
 //    method.finalizeOsrSpecialization();
 
@@ -106,7 +106,7 @@ public class OSR_SpecialCompiler {
     newCompiledMethod.setSpecialForOSR();
 
     if (VM.TraceOnStackReplacement) {
-//        ((VM_BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
+//        ((BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
       VM.sysWriteln("BASE : done, CMID 0x" +
                     Integer.toHexString(newCompiledMethod.getId()) +
                     "(" + newCompiledMethod.getId() + ") JTOC offset " +
@@ -124,12 +124,12 @@ public class OSR_SpecialCompiler {
    *     5. compile the method.
    *     6. restore bytecode, exception, linenumber map to the original one.
    */
-  public static VM_CompiledMethod optCompile(OSR_ExecutionState state) {
+  public static CompiledMethod optCompile(OSR_ExecutionState state) {
 
-    VM_NormalMethod method = state.getMethod();
+    NormalMethod method = state.getMethod();
     if (VM.TraceOnStackReplacement) { VM.sysWriteln("OPT : starts compiling " + method); }
 
-    VM_ControllerPlan latestPlan = VM_ControllerMemory.findLatestPlan(method);
+    ControllerPlan latestPlan = ControllerMemory.findLatestPlan(method);
 
     OptOptions _options = null;
     if (latestPlan != null) {
@@ -145,7 +145,7 @@ public class OSR_SpecialCompiler {
 
     CompilationPlan compPlan =
         new CompilationPlan(method,
-                                (OptimizationPlanElement[]) VM_RuntimeCompiler.optimizationPlan,
+                                (OptimizationPlanElement[]) RuntimeCompiler.optimizationPlan,
                                 null,
                                 _options);
 
@@ -166,7 +166,7 @@ public class OSR_SpecialCompiler {
     {
       // if (VM.TraceOnStackReplacement) { VM.sysWrite("OPT adjust exception table.\n"); }
 
-      VM_ExceptionHandlerMap exceptionHandlerMap = method.getExceptionHandlerMap();
+      ExceptionHandlerMap exceptionHandlerMap = method.getExceptionHandlerMap();
 
       if (exceptionHandlerMap != null) {
 
@@ -196,13 +196,13 @@ public class OSR_SpecialCompiler {
       }
     }
 
-    VM_CompiledMethod newCompiledMethod = VM_RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
+    CompiledMethod newCompiledMethod = RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
 
     // restore original bytecode, exception table, and line number table
     method.finalizeOsrSpecialization();
 
     {
-      VM_ExceptionHandlerMap exceptionHandlerMap = method.getExceptionHandlerMap();
+      ExceptionHandlerMap exceptionHandlerMap = method.getExceptionHandlerMap();
 
       if (exceptionHandlerMap != null) {
         exceptionHandlerMap.setStartPC(oldStartPCs);

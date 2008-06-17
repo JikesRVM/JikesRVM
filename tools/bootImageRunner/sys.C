@@ -13,7 +13,7 @@
 
 /**
  * O/S support services required by the java class libraries.
- * See also: VM_BootRecord.java
+ * See also: BootRecord.java
  */
 
 // Aix and Linux version.  PowerPC and IA32.
@@ -253,16 +253,16 @@ extern "C" void sysReportAlignmentChecking() { }
 // Static fields offset from the JTOC. Not generated as part of generate
 // interface declarations to avoid races causing different static field
 // layouts
-VM_Offset GCStatusOffset;
-VM_Offset TimerTicksOffset;
-VM_Offset ReportedTimerTicksOffset;
+Offset GCStatusOffset;
+Offset TimerTicksOffset;
+Offset ReportedTimerTicksOffset;
 
 extern "C" void
 sysRegisterStaticFieldOffsets(int gcOffset, int ttOffset, int rttOffset)
 {
-	GCStatusOffset = (VM_Offset)gcOffset;
-	ReportedTimerTicksOffset = (VM_Offset)rttOffset;
-	TimerTicksOffset = (VM_Offset)ttOffset;
+	GCStatusOffset = (Offset)gcOffset;
+	ReportedTimerTicksOffset = (Offset)rttOffset;
+	TimerTicksOffset = (Offset)ttOffset;
 }
 
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
@@ -448,7 +448,7 @@ sysPerfCtrRead(char *str)
 
 // Get file status.
 // Taken:    null terminated filename
-//           kind of info desired (see VM_FileSystem.STAT_XXX)
+//           kind of info desired (see FileSystem.STAT_XXX)
 // Returned: status (-1=error)
 //
 // As of August 2003, this is never used. --Steve Augart
@@ -465,19 +465,19 @@ sysStat(char *name, int kind)
         return -1; // does not exist, or other trouble
 
     switch (kind) {
-    case VM_FileSystem_STAT_EXISTS:
+    case FileSystem_STAT_EXISTS:
         return 1;                              // exists
-    case VM_FileSystem_STAT_IS_FILE:
+    case FileSystem_STAT_IS_FILE:
         return S_ISREG(info.st_mode) != 0; // is file
-    case VM_FileSystem_STAT_IS_DIRECTORY:
+    case FileSystem_STAT_IS_DIRECTORY:
         return S_ISDIR(info.st_mode) != 0; // is directory
-    case VM_FileSystem_STAT_IS_READABLE:
+    case FileSystem_STAT_IS_READABLE:
         return (info.st_mode & S_IREAD) != 0; // is readable by owner
-    case VM_FileSystem_STAT_IS_WRITABLE:
+    case FileSystem_STAT_IS_WRITABLE:
         return (info.st_mode & S_IWRITE) != 0; // is writable by owner
-    case VM_FileSystem_STAT_LAST_MODIFIED:
+    case FileSystem_STAT_LAST_MODIFIED:
         return info.st_mtime;   // time of last modification
-    case VM_FileSystem_STAT_LENGTH:
+    case FileSystem_STAT_LENGTH:
         return info.st_size;    // length
     }
     return -1; // unrecognized request
@@ -485,7 +485,7 @@ sysStat(char *name, int kind)
 
 // Check user's perms.
 // Taken:    null terminated filename
-//           kind of access perm to check for (see VM_FileSystem.ACCESS_W_OK)
+//           kind of access perm to check for (see FileSystem.ACCESS_W_OK)
 // Returned: 0 on success (-1=error)
 //
 extern "C" int
@@ -500,7 +500,7 @@ sysAccess(char *name, int kind)
 
 // How many bytes can be read from file/socket without blocking?
 // Taken:    file/socket descriptor
-// Returned: >=0: count, VM_ThreadIOConstants_FD_INVALID: bad file descriptor,
+// Returned: >=0: count, ThreadIOConstants_FD_INVALID: bad file descriptor,
 //          -1: other error
 //
 extern "C" int
@@ -511,7 +511,7 @@ sysBytesAvailable(int fd)
     {
         bool badFD = (errno == EBADF);
         fprintf(SysErrorFile, "%s: FIONREAD ioctl on %d failed: %s (errno=%d)\n", Me, fd, strerror( errno ), errno);
-        return badFD ? VM_ThreadIOConstants_FD_INVALID : -1;
+        return badFD ? ThreadIOConstants_FD_INVALID : -1;
     }
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
@@ -724,10 +724,10 @@ timeSlicerThreadMain(void *arg)
  */
 extern "C" void processTimerTick(void) {
 
-    VM_Address VmToc = (VM_Address) getJTOC();
+    Address VmToc = (Address) getJTOC();
 
     /*
-     * Increment VM_Processor.timerTicks
+     * Increment Processor.timerTicks
      */
     if (TimerTicksOffset == 0) return; // static field offsets not yet known
     int* ttp = (int *) ((char *) VmToc + TimerTicksOffset);
@@ -741,7 +741,7 @@ extern "C" void processTimerTick(void) {
     if (gcStatus != 0) return;
 
     /*
-     * Increment VM_Processor.reportedTimerTicks
+     * Increment Processor.reportedTimerTicks
      */
     int* rttp = (int *) ((char *) VmToc + ReportedTimerTicksOffset);
     *rttp = *rttp + 1;
@@ -752,14 +752,14 @@ extern "C" void processTimerTick(void) {
      * interrupted C-library code, so we use boot image
      * jtoc address (== VmToc) instead.
      */
-    VM_Address *processors = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
+    Address *processors = *(Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
-    for (unsigned i = VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
+    for (unsigned i = GreenScheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
         // Set takeYieldpoint field to 1; decrement timeSliceExpired field;
         // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
-        *(int *)((char *)processors[i] + VM_Processor_takeYieldpoint_offset) = 1;
-        int val = (*(int *)((char *)processors[i] + VM_Processor_timeSliceExpired_offset))--;
+        *(int *)((char *)processors[i] + Processor_takeYieldpoint_offset) = 1;
+        int val = (*(int *)((char *)processors[i] + Processor_timeSliceExpired_offset))--;
 
         if (longest_stuck_ticks < (unsigned) -val)
             longest_stuck_ticks = -val;
@@ -1032,18 +1032,18 @@ sysNumProcessors()
 // Taken:    register values to use for pthread startup
 // Returned: virtual processor's o/s handle
 //
-extern "C" VM_Address
-sysVirtualProcessorCreate(VM_Address pr, VM_Address ip, VM_Address fp)
+extern "C" Address
+sysVirtualProcessorCreate(Address pr, Address ip, Address fp)
 {
 
-    VM_Address    *sysVirtualProcessorArguments;
+    Address    *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
     pthread_t      sysVirtualProcessorHandle;
     int            rc;
 
     // create arguments
     //
-    sysVirtualProcessorArguments = new VM_Address[3];
+    sysVirtualProcessorArguments = new Address[3];
     sysVirtualProcessorArguments[0] = pr;
     sysVirtualProcessorArguments[1] = ip;
     sysVirtualProcessorArguments[2] = fp;
@@ -1071,17 +1071,17 @@ sysVirtualProcessorCreate(VM_Address pr, VM_Address ip, VM_Address fp)
     }
 
     if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (VM_Address) sysVirtualProcessorHandle);
+        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (Address) sysVirtualProcessorHandle);
 
-    return (VM_Address)sysVirtualProcessorHandle;
+    return (Address)sysVirtualProcessorHandle;
 }
 
 static void *
 sysVirtualProcessorStartup(void *args)
 {
-    VM_Address pr       = ((VM_Address *)args)[0];
-    VM_Address ip       = ((VM_Address *)args)[1];
-    VM_Address fp       = ((VM_Address *)args)[2];
+    Address pr       = ((Address *)args)[0];
+    Address ip       = ((Address *)args)[1];
+    Address fp       = ((Address *)args)[2];
 
     if (VERBOSE_PTHREAD)
 #ifndef RVM_FOR_32_ADDR
@@ -1093,12 +1093,12 @@ sysVirtualProcessorStartup(void *args)
     //
 #ifndef RVM_FOR_POWERPC
     {
-        *(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
-        VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
+        *(Address *) (pr + Processor_framePointer_offset) = fp;
+        Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
         bootThread(ip, pr, sp);
     }
 #else
-    bootThread((int)(VM_Word)getJTOC(), pr, ip, fp);
+    bootThread((int)(Word)getJTOC(), pr, ip, fp);
 #endif
 
     // not reached
@@ -1159,8 +1159,8 @@ int VirtualProcessorsLeftToStart;
 int VirtualProcessorsLeftToWait;
 
 // Thread-specific data key in which to stash the id of
-// the pthread's VM_Processor.  This allows the system call library
-// to find the VM_Processor object at runtime.
+// the pthread's Processor.  This allows the system call library
+// to find the Processor object at runtime.
 extern pthread_key_t VmProcessorKey;
 extern pthread_key_t IsVmProcessorKey;
 
@@ -1171,7 +1171,7 @@ sysCreateThreadSpecificDataKeys(void)
     int rc1, rc2;
 
     // Create a key for thread-specific data so we can associate
-    // the id of the VM_Processor object with the pthread it is running on.
+    // the id of the Processor object with the pthread it is running on.
     rc1 = pthread_key_create(&VmProcessorKey, 0);
     if (rc1 != 0) {
         fprintf(SysErrorFile, "%s: pthread_key_create(&VMProcessorKey,0) failed (err=%d)\n", Me, rc1);
@@ -1389,19 +1389,19 @@ sysPthreadSigWait( int * lockwordAddress,
     // if status has been changed to BLOCKED_IN_SIGWAIT (because of GC)
     // sysYield until unblocked
     //
-    while ( *lockwordAddress == 5 /*VM_Processor.BLOCKED_IN_SIGWAIT*/ )
+    while ( *lockwordAddress == 5 /*Processor.BLOCKED_IN_SIGWAIT*/ )
         sysVirtualProcessorYield();
 
     return 0;
 }
 
-// Stash address of the VM_Processor object in the thread-specific
+// Stash address of the Processor object in the thread-specific
 // data for the current pthread.  This allows us to get a handle
-// on the VM_Processor (and its associated state) from arbitrary
+// on the Processor (and its associated state) from arbitrary
 // native code.
 //
 extern "C" int
-sysStashVmProcessorInPthread(VM_Address vmProcessor)
+sysStashVmProcessorInPthread(Address vmProcessor)
 {
     //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
     int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
@@ -1607,7 +1607,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 // Memory to memory copy.
 //
 extern "C" void
-sysCopy(void *dst, const void *src, VM_Extent cnt)
+sysCopy(void *dst, const void *src, Extent cnt)
 {
     memcpy(dst, src, cnt);
 }
@@ -1637,7 +1637,7 @@ sysFree(void *location)
 // Zero a range of memory bytes.
 //
 extern "C" void
-sysZero(void *dst, VM_Extent cnt)
+sysZero(void *dst, Extent cnt)
 {
     memset(dst, 0x00, cnt);
 }
@@ -1773,7 +1773,7 @@ sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 extern "C" void *
 sysMMap(char *start , size_t length ,
         int protection , int flags ,
-        int fd , VM_Offset offset)
+        int fd , Offset offset)
 {
    return mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
 }
@@ -1784,16 +1784,16 @@ sysMMap(char *start , size_t length ,
 extern "C" void *
 sysMMapErrno(char *start , size_t length ,
         int protection , int flags ,
-        int fd , VM_Offset offset)
+        int fd , Offset offset)
 {
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
     fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %ld) failed with %d: ",
-       (VM_Address) start, (unsigned) length, protection, flags, fd, offset, errno);
+       (Address) start, (unsigned) length, protection, flags, fd, offset, errno);
 #else
     fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
-       (VM_Address) start, (unsigned) length, protection, flags, errno);
+       (Address) start, (unsigned) length, protection, flags, errno);
 #endif
     return (void *) errno;
   }else{
@@ -1840,9 +1840,9 @@ findMappable()
         void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
         int fail = (result == (void *) -1);
 #if RVM_FOR_32_ADDR
-        printf("0x%x: ", (VM_Address) start);
+        printf("0x%x: ", (Address) start);
 #else
-        printf("0x%llx: ", (VM_Address) start);
+        printf("0x%llx: ", (Address) start);
 #endif
         if (fail) {
             printf("FAILED with errno %d: %s\n", errno, strerror(errno));
@@ -1885,7 +1885,7 @@ sysDlopen(char *libname)
 // Returned:
 //
 extern "C" void*
-sysDlsym(VM_Address libHandler, char *symbolName)
+sysDlsym(Address libHandler, char *symbolName)
 {
     return dlsym((void *) libHandler, symbolName);
 }
@@ -2444,7 +2444,7 @@ addFileDescriptors(
 {
     //fprintf ( SysTraceFile, "%d descriptors in set\n", count );
     for (int i = 0; i < count; ++i) {
-        int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
+        int fd = fdArray[i] & ThreadIOConstants_FD_MASK;
 #ifdef DEBUG_SYS
         fprintf ( SysTraceFile, "select on fd %d\n", fd );
 #endif
@@ -2473,9 +2473,9 @@ static void
 updateStatus(int *fdArray, int count, fd_set *ready)
 {
     for (int i = 0; i < count; ++i) {
-        int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
+        int fd = fdArray[i] & ThreadIOConstants_FD_MASK;
         if (FD_ISSET(fd, ready))
-            fdArray[i] = VM_ThreadIOConstants_FD_READY;
+            fdArray[i] = ThreadIOConstants_FD_READY;
     }
 }
 
@@ -2495,10 +2495,10 @@ checkInvalid(int *fdArray, int count, fd_set *exceptFdSet)
 {
     int numInvalid = 0;
     for (int i = 0; i < count; ++i) {
-        int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
+        int fd = fdArray[i] & ThreadIOConstants_FD_MASK;
         if (FD_ISSET(fd, exceptFdSet)) {
             //fprintf(SysErrorFile, "%s: fd %d in sysNetSelect() is invalid\n", Me, fd);
-            fdArray[i] = VM_ThreadIOConstants_FD_INVALID;
+            fdArray[i] = ThreadIOConstants_FD_INVALID;
             ++numInvalid;
         }
     }
@@ -2512,7 +2512,7 @@ checkInvalid(int *fdArray, int count, fd_set *exceptFdSet)
 // Returned:    1: some sockets can proceed with i/o operation
 //              0: no sockets can proceed with i/o operation
 //             -1: error
-// Side effect: readFds[i] is set to "VM_ThreadIOConstants.FD_READY" iff i/o can proceed on that socket
+// Side effect: readFds[i] is set to "ThreadIOConstants.FD_READY" iff i/o can proceed on that socket
 extern "C" int
 sysNetSelect(
     int *allFds,           // all fds being polled: read, write, and exception
@@ -2532,9 +2532,9 @@ sysNetSelect(
         fd_set writeReady; FD_ZERO(&writeReady);
         fd_set exceptReady; FD_ZERO(&exceptReady);
 
-        if (!addFileDescriptors(&readReady, allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &maxfd, &exceptReady)
-            || !addFileDescriptors(&writeReady, allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &maxfd, &exceptReady)
-            || !addFileDescriptors(&exceptReady, allFds + VM_ThreadIOQueue_EXCEPT_OFFSET, ec, &maxfd))
+        if (!addFileDescriptors(&readReady, allFds + ThreadIOQueue_READ_OFFSET, rc, &maxfd, &exceptReady)
+            || !addFileDescriptors(&writeReady, allFds + ThreadIOQueue_WRITE_OFFSET, wc, &maxfd, &exceptReady)
+            || !addFileDescriptors(&exceptReady, allFds + ThreadIOQueue_EXCEPT_OFFSET, ec, &maxfd))
             return -1;
 
         // Ensure that select() call below
@@ -2561,9 +2561,9 @@ sysNetSelect(
 
         if (ret > 0)
         { // some ready
-            updateStatus(allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &readReady);
-            updateStatus(allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &writeReady);
-            updateStatus(allFds + VM_ThreadIOQueue_EXCEPT_OFFSET, ec, &exceptReady);
+            updateStatus(allFds + ThreadIOQueue_READ_OFFSET, rc, &readReady);
+            updateStatus(allFds + ThreadIOQueue_WRITE_OFFSET, wc, &writeReady);
+            updateStatus(allFds + ThreadIOQueue_EXCEPT_OFFSET, ec, &exceptReady);
 
             if (interruptsThisTime > maxSelectInterrupts)
                 maxSelectInterrupts = interruptsThisTime;
@@ -2578,8 +2578,8 @@ sysNetSelect(
             // Check the read and write file descriptors against the exception
             // fd set, so we can find the culprit(s).
             int numInvalid = 0;
-            numInvalid += checkInvalid(allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &exceptReady);
-            numInvalid += checkInvalid(allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &exceptReady);
+            numInvalid += checkInvalid(allFds + ThreadIOQueue_READ_OFFSET, rc, &exceptReady);
+            numInvalid += checkInvalid(allFds + ThreadIOQueue_WRITE_OFFSET, wc, &exceptReady);
             if (numInvalid == 0) {
                 // This is bad.
                 fprintf(SysErrorFile,
@@ -2620,7 +2620,7 @@ sysWaitPids(int pidArray[], int exitStatusArray[], int numPids)
                 exitStatus = WEXITSTATUS(status);
 
             // Mark process as finished, and record its exit status
-            pidArray[i] = VM_ThreadProcessWaitQueue_PROCESS_FINISHED;
+            pidArray[i] = ThreadProcessWaitQueue_PROCESS_FINISHED;
             exitStatusArray[i] = exitStatus;
         }
     }
@@ -2629,7 +2629,7 @@ sysWaitPids(int pidArray[], int exitStatusArray[], int numPids)
 extern "C" int
 getArrayLength(void* ptr)
 {
-    return *(int*)(((char *)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
+    return *(int*)(((char *)ptr) + ObjectModel_ARRAY_LENGTH_OFFSET);
 }
 
 // VMMath
@@ -2846,7 +2846,7 @@ gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long 
 }
 
 extern "C" void
-gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, VM_Address start, VM_Address end) {
+gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, Address start, Address end) {
   char name[256];
 #ifndef RVM_FOR_32_ADDR
   snprintf(name, sizeof name, "   [%016llx-%016llx)", start, end);

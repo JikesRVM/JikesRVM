@@ -12,21 +12,21 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Options;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.Options;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -63,8 +63,8 @@ public class StackTrace {
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
-    RVMThread stackTraceThread = VM_Scheduler.getCurrentThread().getThreadForStackTrace();
-    if (stackTraceThread != VM_Scheduler.getCurrentThread()) {
+    RVMThread stackTraceThread = Scheduler.getCurrentThread().getThreadForStackTrace();
+    if (stackTraceThread != Scheduler.getCurrentThread()) {
       // (1) Count the number of frames comprising the stack.
       int numFrames = countFramesNoGC(stackTraceThread);
       // (2) Construct arrays to hold raw data
@@ -85,7 +85,7 @@ public class StackTrace {
     if (isVerbose) {
       VM.disableGC();
       VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating StackTrace # ", traceIndex);
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
       VM.sysWriteln("END Verbosely dumping stack at time of creating StackTrace # ", traceIndex, " ]");
       VM.enableGC();
     }
@@ -104,12 +104,12 @@ public class StackTrace {
     /* Stack trace for a sleeping thread */
     fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
     ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod =
-          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if ((compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) &&
+        CompiledMethod compiledMethod =
+          CompiledMethods.getCompiledMethod(compiledMethodId);
+        if ((compiledMethod.getCompilerType() != CompiledMethod.TRAP) &&
             compiledMethod.hasBridgeFromNativeAnnotation()) {
           // skip native frames, stopping at last native frame preceeding the
           // Java To C transition frame
@@ -117,8 +117,8 @@ public class StackTrace {
         }
       }
       stackFrameCount++;
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = Magic.getReturnAddress(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
     VM.enableGC();
     return stackFrameCount;
@@ -136,13 +136,13 @@ public class StackTrace {
     /* Stack trace for a sleeping thread */
     fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
     ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = Magic.getCompiledMethodID(fp);
       compiledMethods[stackFrameCount] = compiledMethodId;
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod =
-          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+        CompiledMethod compiledMethod =
+          CompiledMethods.getCompiledMethod(compiledMethodId);
+        if (compiledMethod.getCompilerType() != CompiledMethod.TRAP) {
           instructionOffsets[stackFrameCount] =
             compiledMethod.getInstructionOffset(ip).toInt();
           if (compiledMethod.hasBridgeFromNativeAnnotation()) {
@@ -153,8 +153,8 @@ public class StackTrace {
         }
       }
       stackFrameCount++;
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = Magic.getReturnAddress(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
     VM.enableGC();
   }
@@ -171,15 +171,15 @@ public class StackTrace {
     Address fp;
     Address ip;
     /* Stack trace for the current thread */
-    fp = VM_Magic.getFramePointer();
-    ip = VM_Magic.getReturnAddress(fp);
-    fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+    fp = Magic.getFramePointer();
+    ip = Magic.getReturnAddress(fp);
+    fp = Magic.getCallerFramePointer(fp);
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod =
-          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if ((compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) &&
+        CompiledMethod compiledMethod =
+          CompiledMethods.getCompiledMethod(compiledMethodId);
+        if ((compiledMethod.getCompilerType() != CompiledMethod.TRAP) &&
             compiledMethod.hasBridgeFromNativeAnnotation()) {
           // skip native frames, stopping at last native frame preceeding the
           // Java To C transition frame
@@ -187,8 +187,8 @@ public class StackTrace {
         }
       }
       stackFrameCount++;
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = Magic.getReturnAddress(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
     return stackFrameCount;
   }
@@ -204,16 +204,16 @@ public class StackTrace {
     Address fp;
     Address ip;
     /* Stack trace for the current thread */
-    fp = VM_Magic.getFramePointer();
-    ip = VM_Magic.getReturnAddress(fp);
-    fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+    fp = Magic.getFramePointer();
+    ip = Magic.getReturnAddress(fp);
+    fp = Magic.getCallerFramePointer(fp);
+    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      int compiledMethodId = Magic.getCompiledMethodID(fp);
       compiledMethods[stackFrameCount] = compiledMethodId;
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod =
-          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+        CompiledMethod compiledMethod =
+          CompiledMethods.getCompiledMethod(compiledMethodId);
+        if (compiledMethod.getCompilerType() != CompiledMethod.TRAP) {
           instructionOffsets[stackFrameCount] =
             compiledMethod.getInstructionOffset(ip).toInt();
           if (compiledMethod.hasBridgeFromNativeAnnotation()) {
@@ -224,15 +224,15 @@ public class StackTrace {
         }
       }
       stackFrameCount++;
-      ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = Magic.getReturnAddress(fp);
+      fp = Magic.getCallerFramePointer(fp);
     }
   }
 
   /** Class to wrap up a stack frame element */
   public static class Element {
     /** Stack trace's method, null => invisible or trap */
-    private final VM_Method method;
+    private final RVMMethod method;
     /** Line number of element */
     private final int lineNumber;
     /** Is this an invisible method? */
@@ -240,10 +240,10 @@ public class StackTrace {
     /** Is this a hardware trap method? */
     private final boolean isTrap;
     /** Constructor for non-opt compiled methods */
-    Element(VM_CompiledMethod cm, int off) {
+    Element(CompiledMethod cm, int off) {
       isInvisible = (cm == null);
       if (!isInvisible) {
-        isTrap = cm.getCompilerType() == VM_CompiledMethod.TRAP;
+        isTrap = cm.getCompilerType() == CompiledMethod.TRAP;
         if (!isTrap) {
           method = cm.getMethod();
           lineNumber = cm.findLineNumberForInstruction(Offset.fromIntSignExtend(off));
@@ -258,7 +258,7 @@ public class StackTrace {
       }
     }
     /** Constructor for opt compiled methods */
-    Element(VM_Method method, int ln) {
+    Element(RVMMethod method, int ln) {
       this.method = method;
       lineNumber = ln;
       isTrap = false;
@@ -269,7 +269,7 @@ public class StackTrace {
       if (isInvisible || isTrap) {
         return null;
       } else {
-        VM_Atom fn = method.getDeclaringClass().getSourceName();
+        Atom fn = method.getDeclaringClass().getSourceName();
         return (fn != null)  ? fn.toString() : null;
       }
     }
@@ -307,11 +307,11 @@ public class StackTrace {
   /**
    * Get the compiled method at element
    */
-  private VM_CompiledMethod getCompiledMethod(int element) {
+  private CompiledMethod getCompiledMethod(int element) {
     if ((element > 0) && (element < compiledMethods.length)) {
       int mid = compiledMethods[element];
       if (mid != INVISIBLE_METHOD_ID) {
-        return VM_CompiledMethods.getCompiledMethod(mid);
+        return CompiledMethods.getCompiledMethod(mid);
       }
     }
     return null;
@@ -331,9 +331,9 @@ public class StackTrace {
     } else {
       int element = 0;
       for (int i=first; i <= last; i++) {
-        VM_CompiledMethod compiledMethod = getCompiledMethod(i);
+        CompiledMethod compiledMethod = getCompiledMethod(i);
         if ((compiledMethod == null) ||
-            (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
+            (compiledMethod.getCompilerType() != CompiledMethod.OPT)) {
           // Invisible or non-opt compiled method
           elements[element] = new Element(compiledMethod, instructionOffsets[i]);
           element++;
@@ -350,8 +350,8 @@ public class StackTrace {
             int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
             for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
               int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-              VM_Method method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
-              int lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
+              RVMMethod method = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+              int lineNumber = ((NormalMethod)method).getLineNumberForBCIndex(bci);
               elements[element] = new Element(method, lineNumber);
               element++;
             }
@@ -373,9 +373,9 @@ public class StackTrace {
       numElements = last - first + 1;
     } else {
       for (int i=first; i <= last; i++) {
-        VM_CompiledMethod compiledMethod = getCompiledMethod(i);
+        CompiledMethod compiledMethod = getCompiledMethod(i);
         if ((compiledMethod == null) ||
-            (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
+            (compiledMethod.getCompilerType() != CompiledMethod.OPT)) {
           // Invisible or non-opt compiled method
           numElements++;
         } else {
@@ -431,18 +431,18 @@ public class StackTrace {
      * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:75)
      *
      * and an OutOfMemoryError to look like:
-     * at org.jikesrvm.scheduler.VM_Processor.dispatch(VM_Processor.java:211)
+     * at org.jikesrvm.scheduler.Processor.dispatch(Processor.java:211)
      * at org.jikesrvm.scheduler.RVMThread.morph(RVMThread.java:1125)
      * ...
      * at org.jikesrvm.memorymanagers.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
      * ...
      * at org.jikesrvm.runtime.RuntimeEntrypoints.unresolvedNewArray(RuntimeEntrypoints.java:401)
      */
-    if (VM_Options.stackTraceFull) {
+    if (Options.stackTraceFull) {
       return 0;
     } else {
       int element = 0;
-      VM_CompiledMethod compiledMethod = getCompiledMethod(element);
+      CompiledMethod compiledMethod = getCompiledMethod(element);
 
       // Deal with OutOfMemoryError
       if (cause instanceof OutOfMemoryError) {
@@ -510,7 +510,7 @@ public class StackTrace {
       if (element < compiledMethods.length - 2) {
         compiledMethod = getCompiledMethod(element+1);
         if ((compiledMethod != null) &&
-            compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+            compiledMethod.getCompilerType() == CompiledMethod.TRAP) {
           element+=2;
         }
       }
@@ -526,8 +526,8 @@ public class StackTrace {
   private int lastRealMethod(int first) {
     /* We expect an exception on the main thread to look like:
      * at <invisible method>(Unknown Source:0)
-     * at org.jikesrvm.runtime.VM_Reflection.invoke(VM_Reflection.java:132)
-     * at org.jikesrvm.scheduler.VM_MainThread.run(VM_MainThread.java:195)
+     * at org.jikesrvm.runtime.Reflection.invoke(Reflection.java:132)
+     * at org.jikesrvm.scheduler.MainThread.run(MainThread.java:195)
      * at org.jikesrvm.scheduler.RVMThread.run(RVMThread.java:534)
      * at org.jikesrvm.scheduler.RVMThread.startoff(RVMThread.java:1113
      *
@@ -536,7 +536,7 @@ public class StackTrace {
      * at org.jikesrvm.scheduler.RVMThread.startoff(RVMThread.java:1113)
      */
     int max = compiledMethods.length-1;
-    if (VM_Options.stackTraceFull) {
+    if (Options.stackTraceFull) {
       return max;
     } else {
       // Start at end of array and elide a frame unless we find a place to stop
@@ -549,15 +549,15 @@ public class StackTrace {
             return max; // not sane => return max
           }
         }
-        VM_CompiledMethod compiledMethod = getCompiledMethod(i);
-        if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+        CompiledMethod compiledMethod = getCompiledMethod(i);
+        if (compiledMethod.getCompilerType() == CompiledMethod.TRAP) {
           // looks like we've gone too low
           return max;
         }
         Class<?> frameClass = compiledMethod.getMethod().getDeclaringClass().getClassForType();
-        if ((frameClass != org.jikesrvm.scheduler.VM_MainThread.class) &&
+        if ((frameClass != org.jikesrvm.scheduler.MainThread.class) &&
             (frameClass != org.jikesrvm.scheduler.RVMThread.class) &&
-            (frameClass != org.jikesrvm.runtime.VM_Reflection.class)){
+            (frameClass != org.jikesrvm.runtime.Reflection.class)){
           // Found a non-VM method
           return i;
         }

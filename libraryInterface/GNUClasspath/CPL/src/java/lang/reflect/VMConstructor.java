@@ -16,7 +16,7 @@ import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Implementation of java.lang.reflect.VMConstructor for JikesRVM.
@@ -52,7 +52,7 @@ final class VMConstructor {
   }
 
   Class<?>[] getExceptionTypes() {
-    VM_TypeReference[] exceptionTypes = constructor.getExceptionTypes();
+    TypeReference[] exceptionTypes = constructor.getExceptionTypes();
     if (exceptionTypes == null) {
       return new Class[0];
     } else {

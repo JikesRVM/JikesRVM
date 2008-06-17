@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.measurements.instrumentation.VM_MethodInvocationCounterData;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.database.AOSDatabase;
+import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
+import org.jikesrvm.adaptive.measurements.instrumentation.MethodInvocationCounterData;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -25,10 +25,10 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 /**
  * An CompilerPhase that inserts a method invocation counter on the first
  * basic block of the method.  It uses a
- * VM_InstrumentedEventCounterManager to obtain the space to put the
+ * InstrumentedEventCounterManager to obtain the space to put the
  * counters.
  *
- * Note: one counter data, (VM_MethodInvocationCounterData) is shared
+ * Note: one counter data, (MethodInvocationCounterData) is shared
  * across all methods, and is initialized at boot time.  This is
  * unlike other kinds of instrumentation (such as basic block
  * counters) where a separate data object is maintained for each
@@ -47,7 +47,7 @@ public class InsertMethodInvocationCounter extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    return VM_Controller.options.INSERT_METHOD_COUNTERS_OPT;
+    return Controller.options.INSERT_METHOD_COUNTERS_OPT;
   }
 
   public final String getName() { return "InsertMethodInvocationCounters"; }
@@ -61,19 +61,19 @@ public class InsertMethodInvocationCounter extends CompilerPhase {
     // Don't insert counters in uninterruptible or
     // save volatile methods, or when instrumentation is disabled
     if (!ir.method.isInterruptible() ||
-        !VM_Instrumentation.instrumentationEnabled() ||
+        !Instrumentation.instrumentationEnabled() ||
         ir.method.getDeclaringClass().hasSaveVolatileAnnotation()) {
       return;
     }
 
     BasicBlock firstBB = ir.cfg.entry();
 
-    VM_MethodInvocationCounterData data = VM_AOSDatabase.methodInvocationCounterData;
+    MethodInvocationCounterData data = AOSDatabase.methodInvocationCounterData;
 
     int cmid = ir.compiledMethod.getId();
 
     // Create a dummy instruction that is later converted into an
-    // increment of the appropriate VM_CounterArray element.
+    // increment of the appropriate CounterArray element.
     Instruction c = data.createEventCounterInstruction(cmid);
 
     // Insert it at the beginning of the basic block

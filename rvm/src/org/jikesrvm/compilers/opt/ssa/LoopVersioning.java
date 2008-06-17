@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -486,7 +486,7 @@ public final class LoopVersioning extends CompilerPhase {
       }
       // 2) Determine the registers defined in the loop.
       ArrayList<Register> registersDefinedInOriginalLoop = new ArrayList<Register>();
-      ArrayList<VM_TypeReference> typesOfRegistersDefinedInOriginalLoop = new ArrayList<VM_TypeReference>();
+      ArrayList<TypeReference> typesOfRegistersDefinedInOriginalLoop = new ArrayList<TypeReference>();
       ArrayList<Instruction> definingInstructionsInOriginalLoop = new ArrayList<Instruction>();
       getRegistersDefinedInLoop(loop,
                                 registersDefinedInOriginalLoop,
@@ -630,7 +630,7 @@ public final class LoopVersioning extends CompilerPhase {
    * @param registers - vector to which defined registers are added
    */
   private void getRegistersDefinedInLoop(AnnotatedLSTNode loop, ArrayList<Register> registers,
-                                         ArrayList<VM_TypeReference> types,
+                                         ArrayList<TypeReference> types,
                                          ArrayList<Instruction> definingInstructions) {
     BasicBlockEnumeration blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
@@ -671,14 +671,14 @@ public final class LoopVersioning extends CompilerPhase {
    * newly created destination for the optimized loop
    */
   private void generatePhiNodes(AnnotatedLSTNode loop, ArrayList<Register> registers,
-                                ArrayList<VM_TypeReference> types, ArrayList<Instruction> phiInstructions,
+                                ArrayList<TypeReference> types, ArrayList<Instruction> phiInstructions,
                                 HashMap<Register, Register> subOptimalRegMap,
                                 HashMap<Register, Register> optimalRegMap) {
     // Get the carried loop iterator's register
     Register carriedLoopIteratorRegister = ((RegisterOperand) loop.getCarriedLoopIterator()).getRegister();
     for (int i = 0; i < registers.size(); i++) {
       Register register = registers.get(i);
-      VM_TypeReference type = types.get(i);
+      TypeReference type = types.get(i);
       Instruction phi = Phi.create(PHI, new RegisterOperand(register, type), 2);
       phi.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
 

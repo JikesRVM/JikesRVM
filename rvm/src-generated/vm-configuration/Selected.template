@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.Processor;
 
 import org.vmmagic.pragma.*;
 
@@ -39,20 +39,20 @@ public class Selected {
   @Uninterruptible
   public static class Collector extends @_PLAN_@Collector
   {
-    private VM_Processor processor;
-    public Collector(VM_Processor parent) { processor = parent; }
+    private Processor processor;
+    public Collector(Processor parent) { processor = parent; }
     @Inline
-    public final VM_Processor getProcessor() { return processor; }
+    public final Processor getProcessor() { return processor; }
     @Inline
-    public static Collector get() { return VM_Processor.getCurrentProcessor().collectorContext; }
+    public static Collector get() { return Processor.getCurrentProcessor().collectorContext; }
   }
 
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
     @Inline
-    public final VM_Processor getProcessor() { return (VM_Processor) this; }
+    public final Processor getProcessor() { return (Processor) this; }
     @Inline
-    public static Mutator get() { return VM_Processor.getCurrentProcessor(); }
+    public static Mutator get() { return Processor.getCurrentProcessor(); }
   }
 }

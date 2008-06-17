@@ -14,11 +14,11 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.VM_BytecodeConstants;
-import org.jikesrvm.classloader.VM_BytecodeStream;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TableBasedDynamicLinker;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.BytecodeConstants;
+import org.jikesrvm.classloader.BytecodeStream;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TableBasedDynamicLinker;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -28,9 +28,9 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see org.jikesrvm.ArchitectureSpecific.FinalMIRExpansion
  * @see OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
- * @see VM_TableBasedDynamicLinker
+ * @see TableBasedDynamicLinker
  */
-public final class OptLinker implements VM_BytecodeConstants {
+public final class OptLinker implements BytecodeConstants {
 
   /**
    * Given an opt compiler info and a machine code offset in that method's
@@ -39,16 +39,16 @@ public final class OptLinker implements VM_BytecodeConstants {
    * <p>
    * We do this by mapping back to the source RVMMethod and bytecode offset,
    * then examining the bytecodes to see what field/method was being
-   * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
+   * referenced, then calling TableBasedDynamicLinker to do the real work.
    */
   public static void resolveDynamicLink(OptCompiledMethod cm, Offset offset) throws NoClassDefFoundError {
     OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
-    VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
+    NormalMethod realMethod = map.getMethodForMCOffset(offset);
     if (bci == -1 || realMethod == null) {
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
     }
-    VM_BytecodeStream bcodes = realMethod.getBytecodes();
+    BytecodeStream bcodes = realMethod.getBytecodes();
     bcodes.reset(bci);
     int opcode = bcodes.nextInstruction();
     switch (opcode) {
@@ -56,12 +56,12 @@ public final class OptLinker implements VM_BytecodeConstants {
       case JBC_putfield:
       case JBC_getstatic:
       case JBC_putstatic:
-        VM_TableBasedDynamicLinker.resolveMember(bcodes.getFieldReference());
+        TableBasedDynamicLinker.resolveMember(bcodes.getFieldReference());
         break;
       case JBC_invokevirtual:
       case JBC_invokestatic:
       case JBC_invokespecial:
-        VM_TableBasedDynamicLinker.resolveMember(bcodes.getMethodReference());
+        TableBasedDynamicLinker.resolveMember(bcodes.getMethodReference());
         break;
       case JBC_invokeinterface:
       default:
@@ -73,7 +73,7 @@ public final class OptLinker implements VM_BytecodeConstants {
   }
 
   /*
-   * Method referenced from VM_Entrypoints
+   * Method referenced from Entrypoints
    */
   public static Object newArrayArray(int methodId, int[] dimensions, int typeId)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
@@ -83,7 +83,7 @@ public final class OptLinker implements VM_BytecodeConstants {
     }
     // create array
     //
-    RVMArray aType = (RVMArray) VM_TypeReference.getTypeRef(typeId).resolve();
+    RVMArray aType = (RVMArray) TypeReference.getTypeRef(typeId).resolve();
     return RuntimeEntrypoints.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
 
@@ -94,7 +94,7 @@ public final class OptLinker implements VM_BytecodeConstants {
 
     // create array
     //
-    RVMArray aType = (RVMArray) VM_TypeReference.getTypeRef(typeId).resolve();
+    RVMArray aType = (RVMArray) TypeReference.getTypeRef(typeId).resolve();
     return RuntimeEntrypoints.buildTwoDimensionalArray(methodId, dim0, dim1, aType);
   }
 }

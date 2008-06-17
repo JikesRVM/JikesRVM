@@ -14,11 +14,11 @@ package gnu.classpath;
 
 import java.util.Properties;
 import org.jikesrvm.VM;     // for VM.sysWrite()
-import org.jikesrvm.VM_CommandLineArgs;
-import org.jikesrvm.VM_Configuration;
+import org.jikesrvm.CommandLineArgs;
+import org.jikesrvm.Configuration;
 
 import org.jikesrvm.classloader.RVMClassLoader;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 
 /**
  * Jikes RVM implementation of GNU Classpath's gnu.classpath.VMSystemProperties.
@@ -65,11 +65,11 @@ public class VMSystemProperties {
     p.put("java.vm.name", "JikesRVM");
     p.put("file.encoding", "8859_1");
     p.put("java.io.tmpdir", "/tmp");
-    p.put("gnu.cpu.endian", VM_Configuration.LittleEndian ? "little" : "big");
+    p.put("gnu.cpu.endian", Configuration.LittleEndian ? "little" : "big");
 
 
     String s;
-    s = VM_BootstrapClassLoader.getBootstrapRepositories();
+    s = BootstrapClassLoader.getBootstrapRepositories();
     p.put("java.boot.class.path", s);
     /* sun.boot.class.path is not necessary, yes, but possibly useful; Steve
      * Augart has seen at least one piece of code on the web that reads
@@ -87,11 +87,11 @@ public class VMSystemProperties {
        spec, and it's the empty string in Blackdown 1.4.2.
 
        We have to do this here, because otherwise it wouldn't be set until
-       VM_CommandLineArgs.lateProcessCommandLineArguments().  That won't occur
+       CommandLineArgs.lateProcessCommandLineArguments().  That won't occur
        until the VM is fully booted; too late for java.util.TimeZone, which
        reads this value when it runs its initializer.
     */
-    s = VM_CommandLineArgs.getEnvironmentArg("user.timezone");
+    s = CommandLineArgs.getEnvironmentArg("user.timezone");
     s = (s == null) ? "" : s;   // Maybe it's silly to set it to the empty
                                 // string.  Well, this should never succeed
                                 // anyway, since we're always called by
@@ -114,7 +114,7 @@ public class VMSystemProperties {
        the extensions stored with the other bits of the JDK.   So, this would
        really need to be prepended to the list of VM classes, wouldn't it?  Or
        appended, perhaps? */
-    s = VM_CommandLineArgs.getEnvironmentArg("java.ext.dirs");
+    s = CommandLineArgs.getEnvironmentArg("java.ext.dirs");
     if (s == null) {
       s = "";
     } else {
@@ -126,7 +126,7 @@ public class VMSystemProperties {
     /* We also set java.class.path in setApplicationRepositories().
      *  We'll treat setting the java.class.path property as essentially
      * equivalent to using the -classpath argument. */
-    s = VM_CommandLineArgs.getEnvironmentArg("java.class.path");
+    s = CommandLineArgs.getEnvironmentArg("java.class.path");
     if (s != null) {
       p.put("java.class.path", s);
       RVMClassLoader.stashApplicationRepositories(s);
@@ -142,11 +142,11 @@ public class VMSystemProperties {
     /* Now the rest of the special ones that we set on the command line.   Do
      * this just in case later revisions of GNU Classpath start to require
      * some of them in the boot process; otherwise, we could wait for them to
-     * be set in VM_CommandLineArgs.lateProcessCommandLineArguments() */
+     * be set in CommandLineArgs.lateProcessCommandLineArguments() */
     final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home"};
 
     for (final String prop : clProps) {
-      s = VM_CommandLineArgs.getEnvironmentArg(prop);
+      s = CommandLineArgs.getEnvironmentArg(prop);
       if (s != null) {
         p.put(prop, s);
       }
@@ -161,8 +161,8 @@ public class VMSystemProperties {
    * java.library.path.  --Steve Augart, 3/23/2004 XXX
    */
   private static void insertLibraryPath(Properties p) {
-    String jlp = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
-    String snp = VM_CommandLineArgs.getEnvironmentArg("java.home");
+    String jlp = CommandLineArgs.getEnvironmentArg("java.library.path");
+    String snp = CommandLineArgs.getEnvironmentArg("java.home");
     if (jlp == null) jlp = ".";
     p.put("java.library.path", snp + p.get("path.separator") +jlp);
   }
@@ -179,10 +179,10 @@ public class VMSystemProperties {
    * gnu.classpath.vm.shortname, gnu.classpath.home.url,
    * java.home,
    *
-   * We can look at them here via VM_CommandLineArgs.getEnvironmentArg().
+   * We can look at them here via CommandLineArgs.getEnvironmentArg().
    *
    * They will be automatically set for us by
-   * VM_CommandLineArgs.lateProcessCommandLineArguments() if we do not handle
+   * CommandLineArgs.lateProcessCommandLineArguments() if we do not handle
    * them here.  That won't occur until the VM is fully booted.  That's too
    * late for some classes, such as java.util.TimeZone, which will already be
    * initialized.

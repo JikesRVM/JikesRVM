@@ -17,28 +17,28 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_HeapLayoutConstants;
+import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_SpecializedMethod;
+import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.objectmodel.VM_IMT;
-import org.jikesrvm.objectmodel.VM_ITable;
-import org.jikesrvm.objectmodel.VM_ITableArray;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.objectmodel.IMT;
+import org.jikesrvm.objectmodel.ITable;
+import org.jikesrvm.objectmodel.ITableArray;
+import org.jikesrvm.objectmodel.JavaHeader;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.options.OptionSet;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_ProcessorTable;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.ProcessorTable;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.WordArray;
  * research virtual machine.
  */
 @Uninterruptible
-public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
+public final class MM_Interface implements HeapLayoutConstants, Constants {
 
   /***********************************************************************
    *
@@ -100,8 +100,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void init() {
     if (VM.VerifyAssertions) VM._assert(!Selected.Constraints.get().needsStaticReadBarrier());
-    VM_CollectorThread.init();
-    VM_ConcurrentCollectorThread.init();
+    CollectorThread.init();
+    ConcurrentCollectorThread.init();
     org.jikesrvm.mm.mmtk.Collection.init();
   }
 
@@ -113,7 +113,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * the heap size.
    */
   @Interruptible
-  public static void boot(VM_BootRecord theBootRecord) {
+  public static void boot(BootRecord theBootRecord) {
     Mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
@@ -212,7 +212,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Inline
   @Entrypoint
   public static void putstaticWriteBarrier(Offset offset, Object value, int locationMetadata) {
-    ObjectReference src = ObjectReference.fromObject(VM_Magic.getJTOC());
+    ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
                                         ObjectReference.fromObject(value),
@@ -324,7 +324,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Inline
   @Entrypoint
   public static Object getstaticReadBarrier(Offset offset, int locationMetadata) {
-    ObjectReference src = ObjectReference.fromObject(VM_Magic.getJTOC());
+    ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
     return Selected.Mutator.get().readBarrier(src,
                                               src.toAddress().plus(offset),
                                               offset,
@@ -360,7 +360,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       if (Space.isMovable(ref)) {
         VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
         VM.sysWriteln("  obj = ", ref);
-        RVMType t = VM_Magic.getObjectType(object);
+        RVMType t = Magic.getObjectType(object);
         VM.sysWrite(" type = ");
         VM.sysWriteln(t.getDescriptor());
         VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
@@ -379,7 +379,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return The number of collections that have occured.
    */
   public static int getCollectionCount() {
-    return VM_CollectorThread.collectionCount;
+    return CollectorThread.collectionCount;
   }
 
   /***********************************************************************
@@ -485,7 +485,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   public static boolean mightBeFP(Address address) {
     return Space.isInSpace(Plan.LOS, address) ||
     Space.isInSpace(Plan.IMMORTAL, address) ||
-    Space.isInSpace(Plan.VM_SPACE, address);
+    Space.isInSpace(Plan.SPACE, address);
   }
   /***********************************************************************
    *
@@ -569,7 +569,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
         return Plan.ALLOC_DEFAULT;
       if (isPrefix("Lorg/mmtk/", clsBA) ||
           isPrefix("Lorg/jikesrvm/mm/", clsBA) ||
-          isPrefix("Lorg/jikesrvm/memorymanagers/mminterface/VM_GCMapIteratorGroup", clsBA)) {
+          isPrefix("Lorg/jikesrvm/memorymanagers/mminterface/GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
@@ -601,9 +601,9 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     if (isPrefix("Lorg/mmtk/", typeBA) ||
         isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/memorymanagers/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/scheduler/VM_Processor;", typeBA) ||
-        isPrefix("Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;", typeBA) ||
-        isPrefix("Lorg/jikesrvm/jni/VM_JNIEnvironment;", typeBA)) {
+        isPrefix("Lorg/jikesrvm/scheduler/Processor;", typeBA) ||
+        isPrefix("Lorg/jikesrvm/scheduler/greenthreads/GreenProcessor;", typeBA) ||
+        isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
       allocator = Plan.ALLOC_IMMORTAL;
     }
     return allocator;
@@ -629,11 +629,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @return the initialized Object
    */
   @Inline
-  public static Object allocateScalar(int size, VM_TIB tib, int allocator, int align, int offset, int site) {
+  public static Object allocateScalar(int size, TIB tib, int allocator, int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = VM_ObjectModel.initializeScalar(region, tib, size);
+    Object result = ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
@@ -656,7 +656,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static Object allocateArray(int numElements, int logElementSize, int headerSize, VM_TIB tib, int allocator,
+  public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
                                      int align, int offset, int site) {
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
@@ -694,12 +694,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Inline
-  private static Object allocateArrayInternal(int numElements, int size, VM_TIB tib, int allocator,
+  private static Object allocateArrayInternal(int numElements, int size, TIB tib, int allocator,
                                               int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    Object result = ObjectModel.initializeArray(region, tib, numElements, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
@@ -788,11 +788,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static CodeArray allocateCode(int numInstrs, boolean isHot) {
     RVMArray type = RVMType.CodeArrayType;
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
-    int align = VM_ObjectModel.getAlignment(type);
-    int offset = VM_ObjectModel.getOffsetForAlignment(type);
+    int headerSize = ObjectModel.computeArrayHeaderSize(type);
+    int align = ObjectModel.getAlignment(type);
+    int offset = ObjectModel.getOffsetForAlignment(type);
     int width = type.getLogElementSize();
-    VM_TIB tib = type.getTypeInformationBlock();
+    TIB tib = type.getTypeInformationBlock();
     int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
 
     return (CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
@@ -811,11 +811,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       return new byte[bytes];
     } else {
       RVMArray stackType = RVMArray.ByteArray;
-      int headerSize = VM_ObjectModel.computeArrayHeaderSize(stackType);
-      int align = VM_ObjectModel.getAlignment(stackType);
-      int offset = VM_ObjectModel.getOffsetForAlignment(stackType);
+      int headerSize = ObjectModel.computeArrayHeaderSize(stackType);
+      int align = ObjectModel.getAlignment(stackType);
+      int offset = ObjectModel.getOffsetForAlignment(stackType);
       int width = stackType.getLogElementSize();
-      VM_TIB stackTib = stackType.getTypeInformationBlock();
+      TIB stackTib = stackType.getTypeInformationBlock();
 
       return (byte[]) allocateArray(bytes,
                                     width,
@@ -841,11 +841,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     }
 
     RVMArray arrayType = RVMType.WordArrayType;
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = VM_ObjectModel.getAlignment(arrayType);
-    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType);
     int width = arrayType.getLogElementSize();
-    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (WordArray) allocateArray(size,
                                  width,
@@ -871,11 +871,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     }
 
     RVMArray arrayType = RVMArray.DoubleArray;
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = VM_ObjectModel.getAlignment(arrayType);
-    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType);
     int width = arrayType.getLogElementSize();
-    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (double[]) allocateArray(size,
                                  width,
@@ -901,11 +901,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     }
 
     RVMArray arrayType = RVMArray.IntArray;
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = VM_ObjectModel.getAlignment(arrayType);
-    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType);
     int width = arrayType.getLogElementSize();
-    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (int[]) allocateArray(size,
                                  width,
@@ -931,11 +931,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     }
 
     RVMArray arrayType = RVMArray.ShortArray;
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = VM_ObjectModel.getAlignment(arrayType);
-    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType);
     int width = arrayType.getLogElementSize();
-    VM_TIB arrayTib = arrayType.getTypeInformationBlock();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (short[]) allocateArray(size,
                                  width,
@@ -956,14 +956,14 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static VM_TIB newTIB(int numVirtualMethods) {
-    int size = VM_TIB.computeSize(numVirtualMethods);
+  public static TIB newTIB(int numVirtualMethods) {
+    int size = TIB.computeSize(numVirtualMethods);
 
     if (!VM.runningVM) {
-      return VM_TIB.allocate(size);
+      return TIB.allocate(size);
     }
 
-    return (VM_TIB)newRuntimeTable(size, RVMType.TIBType);
+    return (TIB)newRuntimeTable(size, RVMType.TIBType);
   }
 
   /**
@@ -974,12 +974,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static VM_ProcessorTable newProcessorTable(int size) {
+  public static ProcessorTable newProcessorTable(int size) {
     if (!VM.runningVM) {
-      return VM_ProcessorTable.allocate(size);
+      return ProcessorTable.allocate(size);
     }
 
-    return (VM_ProcessorTable)newRuntimeTable(size, RVMType.ProcessorTableType);
+    return (ProcessorTable)newRuntimeTable(size, RVMType.ProcessorTableType);
   }
 
   /**
@@ -989,12 +989,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static VM_IMT newIMT() {
+  public static IMT newIMT() {
     if (!VM.runningVM) {
-      return VM_IMT.allocate();
+      return IMT.allocate();
     }
 
-    return (VM_IMT)newRuntimeTable(VM_TIBLayoutConstants.IMT_METHOD_SLOTS, RVMType.IMTType);
+    return (IMT)newRuntimeTable(TIBLayoutConstants.IMT_METHOD_SLOTS, RVMType.IMTType);
   }
 
   /**
@@ -1005,12 +1005,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static VM_ITable newITable(int size) {
+  public static ITable newITable(int size) {
     if (!VM.runningVM) {
-      return VM_ITable.allocate(size);
+      return ITable.allocate(size);
     }
 
-    return (VM_ITable)newRuntimeTable(size, RVMType.ITableType);
+    return (ITable)newRuntimeTable(size, RVMType.ITableType);
   }
 
   /**
@@ -1021,12 +1021,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Interruptible
-  public static VM_ITableArray newITableArray(int size) {
+  public static ITableArray newITableArray(int size) {
     if (!VM.runningVM) {
-      return VM_ITableArray.allocate(size);
+      return ITableArray.allocate(size);
     }
 
-    return (VM_ITableArray)newRuntimeTable(size, RVMType.ITableArrayType);
+    return (ITableArray)newRuntimeTable(size, RVMType.ITableArrayType);
   }
 
   /**
@@ -1040,12 +1040,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   public static Object newRuntimeTable(int size, RVMType type) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
 
-    VM_TIB realTib = type.getTypeInformationBlock();
+    TIB realTib = type.getTypeInformationBlock();
     RVMArray fakeType = RVMType.WordArrayType;
-    VM_TIB fakeTib = fakeType.getTypeInformationBlock();
-    int headerSize = VM_ObjectModel.computeArrayHeaderSize(fakeType);
-    int align = VM_ObjectModel.getAlignment(fakeType);
-    int offset = VM_ObjectModel.getOffsetForAlignment(fakeType);
+    TIB fakeTib = fakeType.getTypeInformationBlock();
+    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
+    int align = ObjectModel.getAlignment(fakeType);
+    int offset = ObjectModel.getOffsetForAlignment(fakeType);
     int width = fakeType.getLogElementSize();
 
     /* Allocate a word array */
@@ -1059,7 +1059,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
                                  Plan.DEFAULT_SITE);
 
     /* Now we replace the TIB */
-    VM_ObjectModel.setTIB(array, realTib);
+    ObjectModel.setTIB(array, realTib);
     return array;
   }
 
@@ -1187,7 +1187,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     return !obj.isNull() &&
            Space.isMappedObject(obj) &&
            Space.isImmortal(obj) &&
-           Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
+           Space.isMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
   }
 
   /**
@@ -1218,7 +1218,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * Return the number of specialized methods.
    */
   public static int numSpecializedMethods() {
-    return VM_SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
+    return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
   }
 
   /**
@@ -1227,9 +1227,9 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param id the specializedMethod
    */
   @Interruptible
-  public static VM_SpecializedMethod createSpecializedMethod(int id) {
+  public static SpecializedMethod createSpecializedMethod(int id) {
     if (VM.VerifyAssertions) {
-      VM._assert(VM_SpecializedScanMethod.ENABLED);
+      VM._assert(SpecializedScanMethod.ENABLED);
       VM._assert(id < Selected.Constraints.get().numSpecializedScans());
     }
 
@@ -1237,7 +1237,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
 
     /* Create the specialized method */
-    return new VM_SpecializedScanMethod(id, VM_TypeReference.findOrCreate(traceClass));
+    return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
   }
 
   /***********************************************************************
@@ -1251,11 +1251,11 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * BootImageInterface type.
    */
   @Interruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref, VM_TIB tib, int size,
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
-    //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
+    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
     Word status = Selected.Plan.get().setBootTimeGCBits(ref, ObjectReference.fromObject(tib), size, Word.zero());
-    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
+    JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
   /**

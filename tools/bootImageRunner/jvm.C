@@ -23,8 +23,8 @@
 #include <pthread.h>
 
 // Thread-specific data key in which to stash the id of
-// the pthread's VM_Processor.  This allows the system call library
-// to find the VM_Processor object at runtime.
+// the pthread's Processor.  This allows the system call library
+// to find the Processor object at runtime.
 pthread_key_t VmProcessorKey;
 pthread_key_t IsVmProcessorKey;
 
@@ -36,7 +36,7 @@ getFieldAsAddress(void *objPtr, int fieldOffset)
     return *((void**) fieldAddress);
 }
 
-// Get the JNI environment object from the VM_Processor.
+// Get the JNI environment object from the Processor.
 static JNIEnv *
 getJniEnvFromVmProcessor(void *vmProcessorPtr)
 {
@@ -44,14 +44,14 @@ getJniEnvFromVmProcessor(void *vmProcessorPtr)
         return 0; // oops
 
     // Follow chain of pointers:
-    // VM_Processor -> RVMThread -> VM_JNIEnvironment -> thread's native JNIEnv
+    // Processor -> RVMThread -> JNIEnvironment -> thread's native JNIEnv
     void *vmThreadPtr =
-        getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
+        getFieldAsAddress(vmProcessorPtr, Processor_activeThread_offset);
     void *jniEnvironment =
         getFieldAsAddress(vmThreadPtr, RVMThread_jniEnv_offset);
-    // Convert VM_JNIEnvironment to JNIEnv* expected by native code
+    // Convert JNIEnvironment to JNIEnv* expected by native code
     // by creating the appropriate interior pointer.
-    void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);
+    void *jniEnv = ((char*)jniEnvironment + JNIEnvironment_JNIExternalFunctions_offset);
 
     return (JNIEnv*) jniEnv;
 }
@@ -137,9 +137,9 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
         return JNI_EDETACHED;
     }
 
-    // Get VM_Processor id.
+    // Get Processor id.
     void *vmProcessor = pthread_getspecific(VmProcessorKey);
-    // Get the JNIEnv from the VM_Processor object
+    // Get the JNIEnv from the Processor object
     JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
 
     *penv = env;

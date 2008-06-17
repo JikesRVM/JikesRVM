@@ -17,13 +17,13 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.jikesrvm.Properties;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  */
-public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
+public class RVMClassLoader implements Constants, ClassLoaderConstants {
 
   private static final boolean DBG_APP_CL = false;
 
@@ -180,7 +180,7 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
      * to use this class loader to load classes and resources.
      */
     if (!appCLReady) {
-      return VM_BootstrapClassLoader.getBootstrapClassLoader();
+      return BootstrapClassLoader.getBootstrapClassLoader();
     }
 
     if (appCL != null) {
@@ -210,7 +210,7 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
                     " repositories: `", r, "'...");
     }
 
-    appCL = new VM_ApplicationClassLoader(r);
+    appCL = new ApplicationClassLoader(r);
 
     if (Properties.verboseBoot >= 1 || DBG_APP_CL) {
       VM.sysWriteln("RVMClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ",
@@ -231,60 +231,60 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
   // Names of special methods.
   //
   /** "<clinit>" */
-  public static final VM_Atom StandardClassInitializerMethodName = VM_Atom.findOrCreateAsciiAtom("<clinit>");
+  public static final Atom StandardClassInitializerMethodName = Atom.findOrCreateAsciiAtom("<clinit>");
   /** "()V" */
-  public static final VM_Atom StandardClassInitializerMethodDescriptor = VM_Atom.findOrCreateAsciiAtom("()V");
+  public static final Atom StandardClassInitializerMethodDescriptor = Atom.findOrCreateAsciiAtom("()V");
 
   /** "<init>" */
-  public static final VM_Atom StandardObjectInitializerMethodName = VM_Atom.findOrCreateAsciiAtom("<init>");
+  public static final Atom StandardObjectInitializerMethodName = Atom.findOrCreateAsciiAtom("<init>");
   /** "()V" */
-  public static final VM_Atom StandardObjectInitializerMethodDescriptor = VM_Atom.findOrCreateAsciiAtom("()V");
+  public static final Atom StandardObjectInitializerMethodDescriptor = Atom.findOrCreateAsciiAtom("()V");
   /** "this" */
-  public static final VM_Atom StandardObjectInitializerHelperMethodName = VM_Atom.findOrCreateAsciiAtom("this");
+  public static final Atom StandardObjectInitializerHelperMethodName = Atom.findOrCreateAsciiAtom("this");
 
   /** "finalize" */
-  public static final VM_Atom StandardObjectFinalizerMethodName = VM_Atom.findOrCreateAsciiAtom("finalize");
+  public static final Atom StandardObjectFinalizerMethodName = Atom.findOrCreateAsciiAtom("finalize");
   /** "()V" */
-  public static final VM_Atom StandardObjectFinalizerMethodDescriptor = VM_Atom.findOrCreateAsciiAtom("()V");
+  public static final Atom StandardObjectFinalizerMethodDescriptor = Atom.findOrCreateAsciiAtom("()V");
 
   // Names of .class file attributes.
   //
   /** "Code" */
-  static final VM_Atom codeAttributeName = VM_Atom.findOrCreateAsciiAtom("Code");
+  static final Atom codeAttributeName = Atom.findOrCreateAsciiAtom("Code");
   /** "ConstantValue" */
-  static final VM_Atom constantValueAttributeName = VM_Atom.findOrCreateAsciiAtom("ConstantValue");
+  static final Atom constantValueAttributeName = Atom.findOrCreateAsciiAtom("ConstantValue");
   /** "LineNumberTable" */
-  static final VM_Atom lineNumberTableAttributeName = VM_Atom.findOrCreateAsciiAtom("LineNumberTable");
+  static final Atom lineNumberTableAttributeName = Atom.findOrCreateAsciiAtom("LineNumberTable");
   /** "Exceptions" */
-  static final VM_Atom exceptionsAttributeName = VM_Atom.findOrCreateAsciiAtom("Exceptions");
+  static final Atom exceptionsAttributeName = Atom.findOrCreateAsciiAtom("Exceptions");
   /** "SourceFile" */
-  static final VM_Atom sourceFileAttributeName = VM_Atom.findOrCreateAsciiAtom("SourceFile");
+  static final Atom sourceFileAttributeName = Atom.findOrCreateAsciiAtom("SourceFile");
   /** "LocalVariableTable" */
-  static final VM_Atom localVariableTableAttributeName = VM_Atom.findOrCreateAsciiAtom("LocalVariableTable");
+  static final Atom localVariableTableAttributeName = Atom.findOrCreateAsciiAtom("LocalVariableTable");
   /** "Deprecated" */
-  static final VM_Atom deprecatedAttributeName = VM_Atom.findOrCreateAsciiAtom("Deprecated");
+  static final Atom deprecatedAttributeName = Atom.findOrCreateAsciiAtom("Deprecated");
   /** "InnerClasses" */
-  static final VM_Atom innerClassesAttributeName = VM_Atom.findOrCreateAsciiAtom("InnerClasses");
+  static final Atom innerClassesAttributeName = Atom.findOrCreateAsciiAtom("InnerClasses");
   /** "Synthetic" */
-  static final VM_Atom syntheticAttributeName = VM_Atom.findOrCreateAsciiAtom("Synthetic");
+  static final Atom syntheticAttributeName = Atom.findOrCreateAsciiAtom("Synthetic");
   /** "EnclosingMethod" */
-  static final VM_Atom enclosingMethodAttributeName = VM_Atom.findOrCreateAsciiAtom("EnclosingMethod");
+  static final Atom enclosingMethodAttributeName = Atom.findOrCreateAsciiAtom("EnclosingMethod");
   /** "Signature" */
-  static final VM_Atom signatureAttributeName = VM_Atom.findOrCreateAsciiAtom("Signature");
+  static final Atom signatureAttributeName = Atom.findOrCreateAsciiAtom("Signature");
   /** "RuntimeVisibleAnnotations" */
-  static final VM_Atom runtimeVisibleAnnotationsAttributeName =
-      VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleAnnotations");
+  static final Atom runtimeVisibleAnnotationsAttributeName =
+      Atom.findOrCreateAsciiAtom("RuntimeVisibleAnnotations");
   /** "RuntimeInvisibleAnnotations" */
-  static final VM_Atom runtimeInvisibleAnnotationsAttributeName =
-      VM_Atom.findOrCreateAsciiAtom("RuntimeInvisibleAnnotations");
+  static final Atom runtimeInvisibleAnnotationsAttributeName =
+      Atom.findOrCreateAsciiAtom("RuntimeInvisibleAnnotations");
   /** "RuntimeVisibleParameterAnnotations" */
-  static final VM_Atom runtimeVisibleParameterAnnotationsAttributeName =
-      VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleParameterAnnotations");
+  static final Atom runtimeVisibleParameterAnnotationsAttributeName =
+      Atom.findOrCreateAsciiAtom("RuntimeVisibleParameterAnnotations");
   /** "RuntimeInvisibleParameterAnnotations" */
-  static final VM_Atom runtimeInvisibleParameterAnnotationsAttributeName =
-      VM_Atom.findOrCreateAsciiAtom("RuntimeInvisibleParameterAnnotations");
+  static final Atom runtimeInvisibleParameterAnnotationsAttributeName =
+      Atom.findOrCreateAsciiAtom("RuntimeInvisibleParameterAnnotations");
   /** "AnnotationDefault" */
-  static final VM_Atom annotationDefaultAttributeName = VM_Atom.findOrCreateAsciiAtom("AnnotationDefault");
+  static final Atom annotationDefaultAttributeName = Atom.findOrCreateAsciiAtom("AnnotationDefault");
 
   /** Initialize at boot time.
    */
@@ -299,7 +299,7 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     // specify where the VM's core classes and resources live
     //
     applicationRepositories = "."; // Carried over.
-    VM_BootstrapClassLoader.boot(bootstrapClasspath);
+    BootstrapClassLoader.boot(bootstrapClasspath);
   }
 
   public static RVMType defineClassInternal(String className, byte[] classRep, int offset, int length,
@@ -309,7 +309,7 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
 
   public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
       throws ClassFormatError {
-    VM_TypeReference tRef;
+    TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
       //       to be called, so we must read the input stream and discover it overselves
@@ -324,8 +324,8 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
         throw cfe;
       }
     } else {
-      VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
-      tRef = VM_TypeReference.findOrCreate(classloader, classDescriptor);
+      Atom classDescriptor = Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
+      tRef = TypeReference.findOrCreate(classloader, classDescriptor);
     }
 
     try {
@@ -344,7 +344,7 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
   }
 
   // Shamelessly cloned & owned from RVMClass constructor....
-  private static VM_TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
+  private static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
       throws IOException, ClassFormatError {
     int magic = input.readInt();
     if (magic != 0xCAFEBABE) {
@@ -368,7 +368,7 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
         case TAG_UTF: {
           byte[] utf = new byte[input.readUnsignedShort()];
           input.readFully(utf);
-          constantPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
+          constantPool[i] = Atom.findOrCreateUtf8Atom(utf).getId();
           break;
         }
 
@@ -415,8 +415,8 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
           break;
 
         case TAG_TYPEREF: { // in: utf index
-          VM_Atom typeName = VM_Atom.getAtom(constantPool[constantPool[i]]);
-          constantPool[i] = VM_TypeReference.findOrCreate(cl, typeName.descriptorFromClassName()).getId();
+          Atom typeName = Atom.getAtom(constantPool[constantPool[i]]);
+          constantPool[i] = TypeReference.findOrCreate(cl, typeName.descriptorFromClassName()).getId();
           break;
         } // out: type reference id
       }
@@ -426,6 +426,6 @@ public class RVMClassLoader implements VM_Constants, VM_ClassLoaderConstants {
     input.readUnsignedShort();
 
     int myTypeIndex = input.readUnsignedShort();
-    return VM_TypeReference.getTypeRef(constantPool[myTypeIndex]);
+    return TypeReference.getTypeRef(constantPool[myTypeIndex]);
   }
 }

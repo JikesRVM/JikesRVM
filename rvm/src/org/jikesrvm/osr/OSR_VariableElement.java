@@ -13,7 +13,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -46,8 +46,8 @@ public class OSR_VariableElement implements OSR_Constants {
    * For type LONG and DOUBLE and WORD(64-bit), 64 bits are valid.
    * For REF type, next field 'ref' is valid.
    *
-   * For FLOAT, and DOUBLE, use VM_Magic.intBitsAsFloat
-   *                         or VM_Magic.longBitsAsDouble
+   * For FLOAT, and DOUBLE, use Magic.intBitsAsFloat
+   *                         or Magic.longBitsAsDouble
    * to convert bits to floating-point value.
    */
   private final long value;
@@ -246,7 +246,7 @@ public class OSR_VariableElement implements OSR_Constants {
         if (ref == null) {
           buf.append("null");
         } else {
-          buf.append(VM.addressAsHexString(VM_Magic.objectAsAddress(ref)));
+          buf.append(VM.addressAsHexString(Magic.objectAsAddress(ref)));
           buf.append(" ");
 //      buf.append(ref.toString());
         }
@@ -261,13 +261,13 @@ public class OSR_VariableElement implements OSR_Constants {
         buf.append(" ");
         break;
       case FLOAT:
-        buf.append(VM_Magic.intBitsAsFloat((int) (value & 0x0FFFFFFFF)));
+        buf.append(Magic.intBitsAsFloat((int) (value & 0x0FFFFFFFF)));
         break;
       case LONG:
         buf.append(value);
         break;
       case DOUBLE:
-        buf.append(VM_Magic.longBitsAsDouble(value));
+        buf.append(Magic.longBitsAsDouble(value));
         break;
       default:
         buf.append((int) (value & 0x0FFFFFFFF));

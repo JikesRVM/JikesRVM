@@ -22,15 +22,15 @@ import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
 import org.jikesrvm.compilers.opt.util.EmptyEnumerator;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
-import org.jikesrvm.ia32.VM_ArchConstants;
-import org.jikesrvm.ia32.VM_RegisterConstants;
+import org.jikesrvm.ia32.ArchConstants;
+import org.jikesrvm.ia32.RegisterConstants;
 
 /**
  * This class represents a set of Registers corresponding to the
  * IA32 register set.
  */
 public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
-    implements VM_RegisterConstants, PhysicalRegisterConstants {
+    implements RegisterConstants, PhysicalRegisterConstants {
 
   /**
    * This array holds a pool of objects representing physical registers
@@ -385,14 +385,14 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    */
   public Register getST0() {
     if (VM.VerifyAssertions) VM._assert(NUM_RETURN_FPRS == 1);
-    if (VM.VerifyAssertions) VM._assert(VM_ArchConstants.SSE2_FULL);
+    if (VM.VerifyAssertions) VM._assert(ArchConstants.SSE2_FULL);
     return reg[ST0];
   }
   /**
    * @return the special ST1 x87 register
    */
   public Register getST1() {
-    if (VM.VerifyAssertions) VM._assert(VM_ArchConstants.SSE2_FULL);
+    if (VM.VerifyAssertions) VM._assert(ArchConstants.SSE2_FULL);
     return reg[ST1];
   }
 
@@ -460,7 +460,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     for (GPR r : GPR.values()) {
       regName[r.ordinal() + FIRST_INT] = r.toString();
     }
-    if (VM_ArchConstants.SSE2_FULL) {
+    if (ArchConstants.SSE2_FULL) {
       for (XMM r : XMM.values()) {
         regName[r.ordinal() + FIRST_DOUBLE] = r.toString();
       }

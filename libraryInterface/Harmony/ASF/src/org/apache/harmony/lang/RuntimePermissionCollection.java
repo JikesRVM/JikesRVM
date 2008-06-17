@@ -31,7 +31,7 @@ public interface RuntimePermissionCollection {
     RuntimePermission CREATE_CLASS_LOADER_PERMISSION = new RuntimePermission(
         "createClassLoader");
 
-    RuntimePermission EXIT_VM_PERMISSION = new RuntimePermission("exitVM");
+    RuntimePermission EXIT_PERMISSION = new RuntimePermission("exitVM");
 
     RuntimePermission GET_CLASS_LOADER_PERMISSION = new RuntimePermission(
         "getClassLoader");

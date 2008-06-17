@@ -12,15 +12,15 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_BytecodeConstants;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.classloader.BytecodeConstants;
 import org.vmmagic.unboxed.Word;
 
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  */
 
-public abstract class OSR_PseudoBytecode implements VM_BytecodeConstants, OSR_Constants, VM_SizeConstants {
+public abstract class OSR_PseudoBytecode implements BytecodeConstants, OSR_Constants, SizeConstants {
 
   public OSR_PseudoBytecode next;
 

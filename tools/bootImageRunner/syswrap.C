@@ -142,8 +142,8 @@ updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
         jint *elements = env->GetIntArrayElements(fdArray, 0);
         for (jsize i = 0; i < length; ++i) {
             int fd = elements[i];
-            if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
-                fd &= VM_ThreadIOConstants_FD_MASK;
+            if ((fd & ThreadIOConstants_FD_READY_BIT) != 0) {
+                fd &= ThreadIOConstants_FD_MASK;
                 FD_SET(fd, fdSet);
                 ++readyCount;
             }
@@ -174,7 +174,7 @@ getLibcSelect(void)
 
 // Wrapper for the select() system call.
 // If the call might block for a long time, puts the Java thread on
-// the VM_ThreadIOQueue, to avoid blocking the entire virtual processor.
+// the ThreadIOQueue, to avoid blocking the entire virtual processor.
 //
 // Taken:
 // maxFd - value of highest-numbered file descriptor passed in,
@@ -201,7 +201,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
         return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
     }
 
-    // Get the JNIEnv from the VM_Processor object
+    // Get the JNIEnv from the Processor object
     JNIEnv *env;
     GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
 
@@ -213,14 +213,14 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
     // Figure out how many seconds to wait
     double totalWaitTime;
     if (timeout == NULL)
-        totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
+        totalWaitTime = ThreadEventConstants_WAIT_INFINITE;
     else {
         totalWaitTime = ((double) timeout->tv_sec);
         totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
     }
 
     // Call RVMThread.ioWaitSelect()
-    jclass vmWaitClass = env->FindClass("org/jikesrvm/scheduler/greenthreads/VM_Wait");
+    jclass vmWaitClass = env->FindClass("org/jikesrvm/scheduler/greenthreads/Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
                                                           "ioWaitSelect", "([I[I[IDZ)V");
     env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,

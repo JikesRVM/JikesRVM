@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
@@ -81,12 +81,12 @@ public final class AddressConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
-   * @return VM_TypeReference.Address
+   * @return TypeReference.Address
    */
-  public VM_TypeReference getType() {
-    return VM_TypeReference.Address;
+  public TypeReference getType() {
+    return TypeReference.Address;
   }
 
   /**
@@ -115,7 +115,7 @@ public final class AddressConstantOperand extends ConstantOperand {
   }
 
   public int hashCode() {
-    return value.toWord().rshl(VM_SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+    return value.toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
   }
 
   /**

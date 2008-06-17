@@ -16,21 +16,21 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 
-import org.jikesrvm.jni.VM_JNIEnvironment;
+import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
-import org.jikesrvm.memorymanagers.mminterface.VM_SpecializedScanMethod;
+import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
+import org.jikesrvm.memorymanagers.mminterface.SpecializedScanMethod;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -71,7 +71,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Inline
   public void scanObject(TransitiveClosure trace, ObjectReference object) {
-    VM_SpecializedScanMethod.fallback(object.toObject(), trace);
+    SpecializedScanMethod.fallback(object.toObject(), trace);
   }
 
   /**
@@ -84,10 +84,10 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Inline
   public void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object) {
-    if (VM_SpecializedScanMethod.ENABLED) {
-      VM_SpecializedScanMethod.invoke(id, object.toObject(), trace);
+    if (SpecializedScanMethod.ENABLED) {
+      SpecializedScanMethod.invoke(id, object.toObject(), trace);
     } else {
-      VM_SpecializedScanMethod.fallback(object.toObject(), trace);
+      SpecializedScanMethod.fallback(object.toObject(), trace);
     }
   }
 
@@ -101,7 +101,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Inline
   public void precopyChildren(TraceLocal trace, ObjectReference object) {
-    RVMType type = VM_ObjectModel.getObjectType(object.toObject());
+    RVMType type = ObjectModel.getObjectType(object.toObject());
     if (type.isClassType()) {
       RVMClass klass = type.asClass();
       int[] offsets = klass.getReferenceOffsets();
@@ -109,7 +109,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
         trace.processPrecopyEdge(object.toAddress().plus(offsets[i]), false);
       }
     } else if (type.isArrayType() && type.asArray().getElementType().isReferenceType()) {
-      for(int i=0; i < VM_ObjectModel.getArrayLength(object.toObject()); i++) {
+      for(int i=0; i < ObjectModel.getArrayLength(object.toObject()); i++) {
         trace.processPrecopyEdge(object.toAddress().plus(i << LOG_BYTES_IN_ADDRESS), false);
       }
     }
@@ -149,17 +149,17 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   public void preCopyGCInstances(TraceLocal trace) {
     int chunkSize = 2;
     int threadIndex, start, end, stride;
-    VM_CollectorThread ct;
+    CollectorThread ct;
 
-    stride = chunkSize * VM_CollectorThread.numCollectors();
-    ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    stride = chunkSize * CollectorThread.numCollectors();
+    ct = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
     start = (ct.getGCOrdinal() - 1) * chunkSize;
 
-    int numThreads = VM_Scheduler.getThreadHighWatermark()+1;
+    int numThreads = Scheduler.getThreadHighWatermark()+1;
     if (TRACE_PRECOPY)
       VM.sysWriteln(ct.getGCOrdinal()," preCopying ",numThreads," threads");
 
-    ObjectReference threadTable = ObjectReference.fromObject(VM_Scheduler.threads);
+    ObjectReference threadTable = ObjectReference.fromObject(Scheduler.threads);
     while (start < numThreads) {
       end = start + chunkSize;
       if (end > numThreads)
@@ -169,7 +169,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
         VM.sysWriteln(ct.getGCOrdinal()," Chunk end  ",end);
       }
       for (threadIndex = start; threadIndex < end; threadIndex++) {
-        RVMThread thread = VM_Scheduler.threads[threadIndex];
+        RVMThread thread = Scheduler.threads[threadIndex];
         if (thread != null) {
           /* Copy the thread object - use address arithmetic to get the address
            * of the array entry */
@@ -185,7 +185,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
             VM._assert(a.EQ(b), "Thread table address arithmetic is wrong!");
           }
           trace.processPrecopyEdge(threadTableSlot, false);
-          thread = VM_Scheduler.threads[threadIndex];  // reload  it - it just moved!
+          thread = Scheduler.threads[threadIndex];  // reload  it - it just moved!
           if (TRACE_PRECOPY) {
             VM.sysWrite(ct.getGCOrdinal()," New address ");
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
@@ -193,18 +193,18 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
           precopyChildren(trace, ObjectReference.fromObject(thread));
 
           /* Registers */
-          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadContextRegistersField.getOffset()), true);
+          trace.processPrecopyEdge(Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()), true);
 
-          trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadExceptionRegistersField.getOffset()), true);
+          trace.processPrecopyEdge(Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()), true);
 
           if (thread.getJNIEnv() != null) {
             // Right now, jniEnv are Java-visible objects (not C-visible)
             // if (VM.VerifyAssertions)
-            //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
-            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.jniEnvField.getOffset()), true);
-            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIRefsField.getOffset()), true);
-            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIEnvSavedPRField.getOffset()), true);
-            trace.processPrecopyEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIPendingExceptionField.getOffset()), true);
+            //   VM._assert(Plan.willNotMove(Magic.objectAsAddress(thread.jniEnv)));
+            trace.processPrecopyEdge(Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()), true);
+            trace.processPrecopyEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()), true);
+            trace.processPrecopyEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIEnvSavedPRField.getOffset()), true);
+            trace.processPrecopyEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()), true);
           }
         }
       } // end of for loop
@@ -249,10 +249,10 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   public void computeGlobalRoots(TraceLocal trace) {
     /* scan jni functions */
-    VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
-    Address jniFunctions = VM_Magic.objectAsAddress(VM_JNIEnvironment.JNIFunctions);
-    int threads = VM_CollectorThread.numCollectors();
-    int size = VM_JNIEnvironment.JNIFunctions.length();
+    CollectorThread ct = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
+    Address jniFunctions = Magic.objectAsAddress(JNIEnvironment.JNIFunctions);
+    int threads = CollectorThread.numCollectors();
+    int size = JNIEnvironment.JNIFunctions.length();
     int chunkSize = size / threads;
     int start = (ct.getGCOrdinal() - 1) * chunkSize;
     int end = (ct.getGCOrdinal() == threads) ? size : ct.getGCOrdinal() * chunkSize;
@@ -287,34 +287,34 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
     threadStacksScanned = true;
 
     /* scan (small) set of processor roots */
-    VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    CollectorThread ct = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
     if (ct.getGCOrdinal() == 1) {
-      Address processors = VM_Magic.objectAsAddress(VM_GreenScheduler.processors);
-      for(int i = VM_Scheduler.getFirstProcessorId(); i < VM_Scheduler.getLastProcessorId(); i++) {
+      Address processors = Magic.objectAsAddress(GreenScheduler.processors);
+      for(int i = Scheduler.getFirstProcessorId(); i < Scheduler.getLastProcessorId(); i++) {
         trace.reportDelayedRootEdge(processors.plus(i << LOG_BYTES_IN_ADDRESS));
-        VM_Processor processorObject = VM_Scheduler.getProcessor(i);
-        Address processorAddress = VM_Magic.objectAsAddress(processorObject);
-        trace.reportDelayedRootEdge(processorAddress.plus(VM_Entrypoints.activeThreadField.getOffset()));
+        Processor processorObject = Scheduler.getProcessor(i);
+        Address processorAddress = Magic.objectAsAddress(processorObject);
+        trace.reportDelayedRootEdge(processorAddress.plus(Entrypoints.activeThreadField.getOffset()));
       }
     }
 
     /* scan all threads */
     while (true) {
       int threadIndex = threadCounter.increment();
-      if (threadIndex > VM_Scheduler.getThreadHighWatermark()) break;
+      if (threadIndex > Scheduler.getThreadHighWatermark()) break;
 
-      RVMThread thread = VM_Scheduler.threads[threadIndex];
+      RVMThread thread = Scheduler.threads[threadIndex];
       if (thread == null) continue;
 
       /* scan the thread (stack etc.) */
       ScanThread.scanThread(thread, trace, processCodeLocations);
 
       /* identify this thread as a root */
-      trace.processRootEdge(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS), false);
+      trace.processRootEdge(Magic.objectAsAddress(Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS), false);
     }
     /* flush out any remset entries generated during the above activities */
     ActivePlan.flushRememberedSets();
-    VM_CollectorThread.gcBarrier.rendezvous(4200);
+    CollectorThread.gcBarrier.rendezvous(4200);
   }
 
   /**

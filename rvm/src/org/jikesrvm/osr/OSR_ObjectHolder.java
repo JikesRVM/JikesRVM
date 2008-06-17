@@ -13,10 +13,10 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
  */
 
 @Uninterruptible
-public class OSR_ObjectHolder implements VM_SizeConstants {
+public class OSR_ObjectHolder implements SizeConstants {
 
   // initialize pool size
   private static final int POOLSIZE = 8;
@@ -97,7 +97,7 @@ public class OSR_ObjectHolder implements VM_SizeConstants {
     if (MM_Constants.NEEDS_WRITE_BARRIER) {
       MM_Interface.arrayStoreWriteBarrier(refs, h, null);
     } else {
-      VM_Magic.setObjectAtOffset(refs, Offset.fromIntSignExtend(h << LOG_BYTES_IN_ADDRESS), null);
+      Magic.setObjectAtOffset(refs, Offset.fromIntSignExtend(h << LOG_BYTES_IN_ADDRESS), null);
     }
   }
 }

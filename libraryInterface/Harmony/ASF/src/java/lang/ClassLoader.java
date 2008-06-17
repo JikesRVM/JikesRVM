@@ -33,11 +33,11 @@ import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.DynamicLibrary;
 
 import org.apache.harmony.lang.RuntimePermissionCollection;
 
@@ -168,7 +168,7 @@ public abstract class ClassLoader {
                 sc.checkPermission(RuntimePermissionCollection.GET_CLASS_LOADER_PERMISSION);
             }
         }
-        return VM_BootstrapClassLoader.getBootstrapClassLoader();
+        return BootstrapClassLoader.getBootstrapClassLoader();
     }
 
     /**
@@ -417,7 +417,7 @@ public abstract class ClassLoader {
     public URL getResource(String resName) {
         String nm = resName.toString(); // NPE if null
         URL foundResource = (parentClassLoader == null)
-            ? VM_BootstrapClassLoader.getBootstrapClassLoader().findResource(nm)
+            ? BootstrapClassLoader.getBootstrapClassLoader().findResource(nm)
             : parentClassLoader.getResource(nm);
         return foundResource == null ? findResource(nm) : foundResource;
     }
@@ -445,7 +445,7 @@ public abstract class ClassLoader {
                 foundResources.add(resourcesEnum);
             }            
         } while ((cl = cl.parentClassLoader) != null);
-        resourcesEnum = VM_BootstrapClassLoader.getBootstrapClassLoader().findResources(resName);
+        resourcesEnum = BootstrapClassLoader.getBootstrapClassLoader().findResources(resName);
         if (resourcesEnum != null && resourcesEnum.hasMoreElements()) {
             foundResources.add(resourcesEnum);
         }
@@ -534,7 +534,7 @@ public abstract class ClassLoader {
         Class<?> clazz = findLoadedClass(className);
         if (clazz == null) {
             if (parentClassLoader == null) {
-                clazz = VM_BootstrapClassLoader.getBootstrapClassLoader().loadClass(className, false);
+                clazz = BootstrapClassLoader.getBootstrapClassLoader().loadClass(className, false);
             } else {
                 try {
                     clazz = parentClassLoader.loadClass(className);
@@ -591,7 +591,7 @@ public abstract class ClassLoader {
      * @see Class#getClassLoaderImpl()
      */
     final boolean isSystemClassLoader() {
-        return VM_BootstrapClassLoader.getBootstrapClassLoader() == this;
+        return BootstrapClassLoader.getBootstrapClassLoader() == this;
     }
 
     /**
@@ -681,8 +681,8 @@ public abstract class ClassLoader {
         }
         if (pkg == null) {
             if (parentClassLoader == null) {
-		if (this != VM_BootstrapClassLoader.getBootstrapClassLoader()) {
-		    pkg = VM_BootstrapClassLoader.getBootstrapClassLoader().getPackage(name);
+		if (this != BootstrapClassLoader.getBootstrapClassLoader()) {
+		    pkg = BootstrapClassLoader.getBootstrapClassLoader().getPackage(name);
                 } else {
                     pkg = null;
 		}
@@ -816,7 +816,7 @@ public abstract class ClassLoader {
     static ClassLoader callerClassLoader() {
 	if (org.jikesrvm.VM.runningVM) {
 	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(1);
-	    if (ans == VM_BootstrapClassLoader.getBootstrapClassLoader()) {
+	    if (ans == BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {
 		return ans;
@@ -875,7 +875,7 @@ public abstract class ClassLoader {
         for (int i = 0; i < l; i++) {
 	    // TODO: support loader argument
 	    org.jikesrvm.VM.sysWriteln("load(" + st[i]+ fileSeparator + libName + ")");
-	    if (VM_DynamicLibrary.load(st[i] + fileSeparator + libName) != 0) {
+	    if (DynamicLibrary.load(st[i] + fileSeparator + libName) != 0) {
 		return;
 	    }
         }

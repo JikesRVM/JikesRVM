@@ -14,8 +14,8 @@ package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.ia32.BaselineConstants;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
  * because it deals with row instruction address.
  */
 @Uninterruptible
-public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
+public abstract class OSR_PostThreadSwitch implements BaselineConstants {
 
   /**
    * This method must not be inlined to keep the correctness
@@ -45,14 +45,14 @@ public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
     // add branch instruction from CTR.
     ArchitectureSpecific.CodeArray bridge = myThread.bridgeInstructions;
 
-    Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
+    Address bridgeaddr = Magic.objectAsAddress(bridge);
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("osr post processing\n");
     }
 
     Offset offset = myThread.tsFPOffset.plus(STACKFRAME_RETURN_ADDRESS_OFFSET);
-    VM_Magic.objectAsAddress(myThread.getStack()).store(bridgeaddr, offset);
+    Magic.objectAsAddress(myThread.getStack()).store(bridgeaddr, offset);
 
     myThread.tsFPOffset = Offset.zero();
 

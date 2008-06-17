@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
@@ -41,7 +41,7 @@ final class FieldDatabase {
   /**
    * return the concrete type of a field, or null if none determined
    */
-  public VM_TypeReference getConcreteType(RVMField f) {
+  public TypeReference getConcreteType(RVMField f) {
     FieldDatabaseEntry e = db.get(f);
     if (e == null) return null;
 
@@ -56,7 +56,7 @@ final class FieldDatabase {
   static final class FieldDatabaseEntry {
     private final ImmutableEntryHashMapRVM<RVMMethod, FieldWriterInfo> summaries;
     boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
-    VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
+    TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
 
     FieldWriterInfo findMethodInfo(RVMMethod m) {
       return summaries.get(m);
@@ -75,13 +75,13 @@ final class FieldDatabase {
 
     // return the concrete type of the field; null if no consistent
     // concrete type has yet been determined.
-    VM_TypeReference getConcreteType() {
+    TypeReference getConcreteType() {
       if (cachedConcreteType != null) return cachedConcreteType;
-      VM_TypeReference result = null;
+      TypeReference result = null;
       for (FieldWriterInfo info : summaries.values()) {
         if (!info.isAnalyzed()) return null;
         if (info.isBottom()) return null;
-        VM_TypeReference t = info.concreteType;
+        TypeReference t = info.concreteType;
         if (result != null) {
           // make sure that all methods set the same concrete type.
           if (result != t) return null;
@@ -120,7 +120,7 @@ final class FieldDatabase {
     static final int BOTTOM = 0x1;
     static final int ANALYZED = 0x2;
     int status;
-    VM_TypeReference concreteType;
+    TypeReference concreteType;
 
     void setBottom() { status |= BOTTOM; }
 

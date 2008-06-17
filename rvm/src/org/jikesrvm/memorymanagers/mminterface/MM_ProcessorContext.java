@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.Processor;
 
 /**
- * VM_Processor must extend this class to associate appropriate context with processor.
+ * Processor must extend this class to associate appropriate context with processor.
  */
 public abstract class MM_ProcessorContext extends Selected.Mutator {
-  public final Selected.Collector collectorContext = new Selected.Collector((VM_Processor) this);
+  public final Selected.Collector collectorContext = new Selected.Collector((Processor) this);
 }

@@ -40,7 +40,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import org.jikesrvm.classloader.RVMClassLoader;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Pure;
@@ -566,7 +566,7 @@ public final class AnnotationAdder {
 
     // gets an input stream to read the bytecode of the class
     String resource = fromName.replace('.', '/') + ".class";
-    InputStream is = VM_BootstrapClassLoader.getBootstrapClassLoader().getResourceAsStream(resource);
+    InputStream is = BootstrapClassLoader.getBootstrapClassLoader().getResourceAsStream(resource);
     byte[] b;
 
     // adapts the class on the fly

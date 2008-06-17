@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.vmmagic.unboxed.Address;
 
 /**
  * Manifest constants for bootimage writer.
  */
-public interface BootImageWriterConstants extends VM_Constants {
+public interface BootImageWriterConstants extends Constants {
 
   /**
    * Address to associate with objects that haven't yet been placed into image.
@@ -33,7 +33,7 @@ public interface BootImageWriterConstants extends VM_Constants {
   Address OBJECT_NOT_PRESENT = Address.fromIntSignExtend(0xeeeeeee2);
 
   /**
-   * Starting index for objects in VM_TypeDictionary.
+   * Starting index for objects in TypeDictionary.
    * = 1, since slot 0 is reserved for null
    */
   int FIRST_TYPE_DICTIONARY_INDEX = 1;

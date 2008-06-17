@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 
 /**
@@ -233,7 +233,7 @@ public class Package implements AnnotatedElement {
     public static Package getPackage(String packageName) {
 	ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
         return callerLoader == null ?
-	    VM_BootstrapClassLoader.getBootstrapClassLoader().getPackage(packageName) :
+	    BootstrapClassLoader.getBootstrapClassLoader().getPackage(packageName) :
 	    callerLoader.getPackage(packageName);
     }
 
@@ -247,7 +247,7 @@ public class Package implements AnnotatedElement {
     public static Package[] getPackages() {
         ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
         if (callerLoader == null) {
-	    return VM_BootstrapClassLoader.getBootstrapClassLoader().getPackages();
+	    return BootstrapClassLoader.getBootstrapClassLoader().getPackages();
         }
         return callerLoader.getPackages();
     }

@@ -17,14 +17,14 @@ import java.util.Stack;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.pragma.Inline;
 
 /**
@@ -112,7 +112,7 @@ public abstract class InlineTools implements OptConstants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate(VM_NormalMethod callee, CompilationState state) {
+  public static int inlinedSizeEstimate(NormalMethod callee, CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations
     // that are typically enabled by constant parameters.
@@ -123,7 +123,7 @@ public abstract class InlineTools implements OptConstants {
       Operand op = Call.getParam(callInstr, i);
       if (op instanceof RegisterOperand) {
         RegisterOperand rop = (RegisterOperand)op;
-        VM_TypeReference type = rop.getType();
+        TypeReference type = rop.getType();
         if (type.isReferenceType()) {
           if (type.isArrayType()) {
             // Reductions only come from optimization of dynamic type checks; all virtual methods on arrays are defined on Object.
@@ -211,9 +211,9 @@ public abstract class InlineTools implements OptConstants {
     // TODO: clean this hack up
     // Hack to inline java.lang.VMSystem.arraycopy in the case that
     // arg 0 isn't an Object
-    if (callee == VM_Entrypoints.sysArrayCopy) {
+    if (callee == Entrypoints.sysArrayCopy) {
       Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return src.getType() != VM_TypeReference.JavaLangObject;
+      return src.getType() != TypeReference.JavaLangObject;
     }
     return false;
   }

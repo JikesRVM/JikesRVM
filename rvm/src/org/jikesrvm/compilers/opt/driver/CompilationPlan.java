@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.inlining.DefaultInlineOracle;
 import org.jikesrvm.compilers.opt.inlining.InlineOracle;
@@ -30,16 +30,16 @@ public final class CompilationPlan {
   /**
    * The method to be compiled.
    */
-  public VM_NormalMethod method;
+  public NormalMethod method;
 
-  public VM_NormalMethod getMethod() {
+  public NormalMethod getMethod() {
     return method;
   }
 
   /**
    * The specialized parameters to use in place of those defined in method.
    */
-  public VM_TypeReference[] params;
+  public TypeReference[] params;
 
   /**
    * The OptimizationPlanElements to be invoked during compilation.
@@ -68,13 +68,13 @@ public final class CompilationPlan {
   /**
    * Construct a compilation plan
    *
-   * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param m    The NormalMethod representing the source method to be compiled
    * @param pms  The specialized parameters to use in place of those defined in method
    * @param op   The optimization plan to be executed on m
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The Options to be used for compiling m
    */
-  public CompilationPlan(VM_NormalMethod m, VM_TypeReference[] pms, OptimizationPlanElement[] op, InstrumentationPlan mp,
+  public CompilationPlan(NormalMethod m, TypeReference[] pms, OptimizationPlanElement[] op, InstrumentationPlan mp,
                              OptOptions opts) {
     method = m;
     params = pms;
@@ -87,24 +87,24 @@ public final class CompilationPlan {
   /**
    * Construct a compilation plan
    *
-   * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param m    The NormalMethod representing the source method to be compiled
    * @param op   The optimization plan to be executed on m
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The Options to be used for compiling m
    */
-  public CompilationPlan(VM_NormalMethod m, OptimizationPlanElement[] op, InstrumentationPlan mp,
+  public CompilationPlan(NormalMethod m, OptimizationPlanElement[] op, InstrumentationPlan mp,
                              OptOptions opts) {
     this(m, null, op, mp, opts);
   }
 
   /**
    * Construct a compilation plan
-   * @param m    The VM_NormalMethod representing the source method to be compiled
+   * @param m    The NormalMethod representing the source method to be compiled
    * @param op   A single optimization pass to execute on m
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The Options to be used for compiling m
    */
-  public CompilationPlan(VM_NormalMethod m, OptimizationPlanElement op, InstrumentationPlan mp,
+  public CompilationPlan(NormalMethod m, OptimizationPlanElement op, InstrumentationPlan mp,
                              OptOptions opts) {
     this(m, new OptimizationPlanElement[]{op}, mp, opts);
   }

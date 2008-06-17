@@ -21,7 +21,7 @@ import org.vmmagic.Pragma;
 /**
  * The entrypoint annotation indicates that the method or field is
  * directly accessed by the compiler. We cache resolved values for
- * these elements in VM_Entrypoints.
+ * these elements in Entrypoints.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

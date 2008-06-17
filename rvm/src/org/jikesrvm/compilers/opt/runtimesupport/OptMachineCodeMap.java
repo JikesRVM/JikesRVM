@@ -15,13 +15,13 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 import java.util.ArrayList;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.adaptive.database.callgraph.VM_CallSite;
+import org.jikesrvm.Constants;
+import org.jikesrvm.adaptive.database.callgraph.CallSite;
 import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.Offset;
  *         2) methods called at GC time (no allocation allowed!)
  */
 @Uninterruptible
-public final class OptMachineCodeMap implements VM_Constants, OptConstants {
+public final class OptMachineCodeMap implements Constants, OptConstants {
 
   /**
    * Private constructor, object should be created via create
@@ -103,7 +103,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
     if (DUMP_MAP_SIZES) {
       map.recordStats(ir.method,
                       map.size(),
-                      machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+                      machineCodeSize << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
 
     if (DUMP_MAPS) {
@@ -137,7 +137,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
-  public VM_NormalMethod getMethodForMCOffset(Offset MCOffset) {
+  public NormalMethod getMethodForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) {
       return null;
@@ -147,7 +147,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
       return null;
     }
     int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return (VM_NormalMethod) VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+    return (NormalMethod) MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
   }
 
   /**
@@ -180,12 +180,12 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
   }
 
   /**
-   * @return an arraylist of VM_CallSite objects representing all non-inlined
+   * @return an arraylist of CallSite objects representing all non-inlined
    *         callsites in the method. Returns null if there are no such callsites.
    */
   @Interruptible
-  public ArrayList<VM_CallSite> getNonInlinedCallSites() {
-    ArrayList<VM_CallSite> ans = null;
+  public ArrayList<CallSite> getNonInlinedCallSites() {
+    ArrayList<CallSite> ans = null;
     if (MCInformation == null) return ans;
     for (int entry = 0; entry < MCInformation.length;) {
       int callInfo = getCallInfo(entry);
@@ -195,10 +195,10 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
           int iei = getInlineEncodingIndex(entry);
           if (iei != -1) {
             int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-            RVMMethod caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+            RVMMethod caller = MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
             if (caller != null) {
-              if (ans == null) ans = new ArrayList<VM_CallSite>();
-              ans.add(new VM_CallSite(caller, bcIndex));
+              if (ans == null) ans = new ArrayList<CallSite>();
+              ans.add(new CallSite(caller, bcIndex));
             }
           }
         }
@@ -621,7 +621,7 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
       boolean first = true;
       while (iei >= 0) {
         int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-        RVMMethod meth = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+        RVMMethod meth = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
         if (first) {
           first = false;
           VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);
@@ -802,5 +802,5 @@ public final class OptMachineCodeMap implements VM_Constants, OptConstants {
    */
   private static final OptMachineCodeMap emptyMachineCodeMap = new OptMachineCodeMap();
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(OptMachineCodeMap.class);
+  private static final TypeReference TYPE = TypeReference.findOrCreate(OptMachineCodeMap.class);
 }

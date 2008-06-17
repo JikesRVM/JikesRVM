@@ -14,19 +14,19 @@ package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
-import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
-import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIteratorGroup;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.memorymanagers.mminterface.GCMapIterator;
+import org.jikesrvm.memorymanagers.mminterface.GCMapIteratorGroup;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
@@ -77,7 +77,7 @@ import org.vmmagic.unboxed.Offset;
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
  */
-@Uninterruptible public final class ScanThread implements VM_Constants {
+@Uninterruptible public final class ScanThread implements Constants {
 
   /***********************************************************************
    *
@@ -98,13 +98,13 @@ import org.vmmagic.unboxed.Offset;
    *
    * Instance variables
    */
-  private final VM_GCMapIteratorGroup iteratorGroup = new VM_GCMapIteratorGroup();
-  private VM_GCMapIterator iterator;
+  private final GCMapIteratorGroup iteratorGroup = new GCMapIteratorGroup();
+  private GCMapIterator iterator;
   private TraceLocal trace;
   private boolean processCodeLocations;
   private RVMThread thread;
   private Address ip, fp, prevFp, initialIPLoc, topFrame;
-  private VM_CompiledMethod compiledMethod;
+  private CompiledMethod compiledMethod;
   private int compiledMethodType;
   private boolean failed;
 
@@ -123,7 +123,7 @@ import org.vmmagic.unboxed.Offset;
   public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations) {
     /* get the gprs associated with this thread */
-    Address gprs = VM_Magic.objectAsAddress(thread.getContextRegisters().gprs);
+    Address gprs = Magic.objectAsAddress(thread.getContextRegisters().gprs);
     scanThread(thread, trace, processCodeLocations, gprs, Address.zero());
   }
 
@@ -150,25 +150,25 @@ import org.vmmagic.unboxed.Offset;
       fp = thread.getContextRegisters().getInnermostFramePointer();
       initialIPLoc = thread.getContextRegisters().getIPLocation();
     } else {                 /* top frame explicitly defined */
-      ip = VM_Magic.getReturnAddress(topFrame);
-      fp = VM_Magic.getCallerFramePointer(topFrame);
+      ip = Magic.getReturnAddress(topFrame);
+      fp = Magic.getCallerFramePointer(topFrame);
       initialIPLoc = thread.getContextRegisters().getIPLocation(); // FIXME
     }
 
     /* Registers */
-    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadContextRegistersField.getOffset()));
-    trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.threadExceptionRegistersField.getOffset()));
+    trace.reportDelayedRootEdge(Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
+    trace.reportDelayedRootEdge(Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
 
     /* Scan the JNI Env field */
     if (thread.getJNIEnv() != null) {
-      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread).plus(VM_Entrypoints.jniEnvField.getOffset()));
-      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIRefsField.getOffset()));
-      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIEnvSavedPRField.getOffset()));
-      trace.reportDelayedRootEdge(VM_Magic.objectAsAddress(thread.getJNIEnv()).plus(VM_Entrypoints.JNIPendingExceptionField.getOffset()));
+      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
+      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
+      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIEnvSavedPRField.getOffset()));
+      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
     }
 
     /* Grab the ScanThread instance associated with this thread */
-    ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getThreadScanner();
+    ScanThread scanner = Magic.threadAsCollectorThread(Scheduler.getCurrentThread()).getThreadScanner();
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
@@ -185,7 +185,7 @@ import org.vmmagic.unboxed.Offset;
    * instance variables of this type, which are initialized here.
    *
    * @param trace The trace instance to use for reporting locations.
-   * @param thread VM_Thread for the thread whose stack is being scanned
+   * @param thread Thread for the thread whose stack is being scanned
    * @param gprs The general purpose registers associated with the
    * stack being scanned (normally extracted from the thread).
    * @param ip The instruction pointer for the top frame of the stack
@@ -239,15 +239,15 @@ import org.vmmagic.unboxed.Offset;
     if (verbosity >= 1) dumpTopFrameInfo(verbosity);
 
     /* scan each frame if a non-empty stack */
-    if (fp.NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+    if (fp.NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
       prevFp = Address.zero();
       /* At start of loop:
          fp -> frame for method invocation being processed
          ip -> instruction pointer in the method (normally a call site) */
-      while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+      while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
         prevFp = scanFrame(verbosity);
-        ip = VM_Magic.getReturnAddress(fp);
-        fp = VM_Magic.getCallerFramePointer(fp);
+        ip = Magic.getReturnAddress(fp);
+        fp = Magic.getCallerFramePointer(fp);
       }
     }
 
@@ -266,17 +266,17 @@ import org.vmmagic.unboxed.Offset;
    *
    * Dave G:  The contents of the GPRs of the exceptionRegisters
    * are handled during normal stack scanning
-   * (@see org.jikesrvm.runtime.compilers.common.VM_HardwareTrapCompiledMethod.
+   * (@see org.jikesrvm.runtime.compilers.common.HardwareTrapCompiledMethod.
    * It looks to me like the main goal of this method is to ensure that the
    * method in which the trap happened isn't treated as dead code and collected
    * (if it's been marked as obsolete, we are setting its activeOnStackFlag below).
    *
    */
   private void getHWExceptionRegisters() {
-    ArchitectureSpecific.VM_Registers exReg = thread.getExceptionRegisters();
+    ArchitectureSpecific.Registers exReg = thread.getExceptionRegisters();
     if (processCodeLocations && exReg.inuse) {
       Address ip = exReg.ip;
-      VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
+      CompiledMethod compiledMethod = CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) {
         VM._assert(compiledMethod != null);
         VM._assert(compiledMethod.containsReturnAddress(ip));
@@ -339,13 +339,13 @@ import org.vmmagic.unboxed.Offset;
     scanFrameForObjects(verbosity);
 
     /* scan the frame for pointers to code */
-    if (processCodeLocations && compiledMethodType != VM_CompiledMethod.TRAP)
+    if (processCodeLocations && compiledMethodType != CompiledMethod.TRAP)
       processFrameForCode(verbosity);
 
     iterator.cleanupPointers();
 
     /* skip preceeding native frames if this frame is a native bridge */
-    if (compiledMethodType != VM_CompiledMethod.TRAP &&
+    if (compiledMethodType != CompiledMethod.TRAP &&
         compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       fp = RuntimeEntrypoints.unwindNativeStackFrameForGC(fp);
       if (verbosity >= 1) Log.write("scanFrame skipping native C frames\n");
@@ -366,16 +366,16 @@ import org.vmmagic.unboxed.Offset;
    */
   private boolean setUpFrame(int verbosity) {
     /* get the compiled method ID for this frame */
-    int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+    int compiledMethodId = Magic.getCompiledMethodID(fp);
 
     /* skip "invisible" transition frames generated by reflection and JNI) */
-    if (compiledMethodId == ArchitectureSpecific.VM_ArchConstants.INVISIBLE_METHOD_ID) {
+    if (compiledMethodId == ArchitectureSpecific.ArchConstants.INVISIBLE_METHOD_ID) {
       if (verbosity >= 1) Log.writeln("\n--- METHOD <invisible method>");
       return false;
     }
 
     /* establish the compiled method */
-    compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+    compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
     compiledMethod.setActiveOnStack();  // prevents code from being collected
 
     compiledMethodType = compiledMethod.getCompilerType();
@@ -481,13 +481,13 @@ import org.vmmagic.unboxed.Offset;
         Log.writeln(thread.getContextRegisters().getIPLocation().loadAddress());
       }
       /* skip native code, as it is not (cannot be) moved */
-      if (compiledMethodType != VM_CompiledMethod.JNI)
+      if (compiledMethodType != CompiledMethod.JNI)
         processCodeLocation(code, initialIPLoc);
       else if (verbosity >=3) {
         Log.writeln("GC Warning: SKIPPING return address for JNI code");
       }
     } else {  /* below top of stack: IP is return address, in prev frame */
-      Address returnAddressLoc = VM_Magic.getReturnAddressLocation(prevFp);
+      Address returnAddressLoc = Magic.getReturnAddressLocation(prevFp);
       Address returnAddress = returnAddressLoc.loadAddress();
       if (verbosity >= 3) {
         Log.write("--- Processing return address "); Log.write(returnAddress);
@@ -533,7 +533,7 @@ import org.vmmagic.unboxed.Offset;
    */
   private void checkJNIBase() {
     if (VM.BuildForAix) {
-      VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
+      GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
       while(!refaddr.isZero()) {
         trace.reportDelayedRootEdge(refaddr);
@@ -622,12 +622,12 @@ import org.vmmagic.unboxed.Offset;
       dumpStackFrame(verbosity);
       Log.writeln();
       Log.writeln("Dumping stack starting at frame with bad ref:");
-      VM_Scheduler.dumpStack(ip, fp);
+      Scheduler.dumpStack(ip, fp);
       /* dump stack starting at top */
       Address top_ip = thread.getContextRegisters().getInnermostInstructionAddress();
       Address top_fp = thread.getContextRegisters().getInnermostFramePointer();
-      VM_Scheduler.dumpStack(top_ip, top_fp);
-      VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
+      Scheduler.dumpStack(top_ip, top_fp);
+      VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
 
@@ -650,7 +650,7 @@ import org.vmmagic.unboxed.Offset;
     RVMMethod method = compiledMethod.getMethod();
 
     Log.write("\n--- METHOD (");
-    Log.write(VM_CompiledMethod.compilerTypeToString(compiledMethodType));
+    Log.write(CompiledMethod.compilerTypeToString(compiledMethodType));
     Log.write(") ");
     if (method == null)
         Log.write("null method");

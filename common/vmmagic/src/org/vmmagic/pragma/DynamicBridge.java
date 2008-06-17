@@ -27,9 +27,9 @@ import org.vmmagic.Pragma;
  * code to save *all* GPR and FPR registers except GPR0, FPR0, JTOC, and FP.
  *
  * <p>Methods of a class that implement this interface may not return.
- *    (it is assumed that execution is resumed via a call to VM_Magic.dynamicBridgeTo)
+ *    (it is assumed that execution is resumed via a call to Magic.dynamicBridgeTo)
  *
- * @see org.jikesrvm.runtime.VM_Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.CodeArray)
+ * @see org.jikesrvm.runtime.Magic#dynamicBridgeTo(org.jikesrvm.ArchitectureSpecific.CodeArray)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

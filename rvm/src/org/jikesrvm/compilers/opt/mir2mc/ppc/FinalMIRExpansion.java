@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
+import org.jikesrvm.classloader.InterfaceMethodSignature;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Binary;
@@ -70,7 +70,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
 import org.jikesrvm.compilers.opt.util.Bits;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
@@ -143,7 +143,7 @@ public abstract class FinalMIRExpansion extends IRTools {
             if (MIR_Call.hasMethod(p)) {
               MethodOperand mo = MIR_Call.getMethod(p);
               if (mo.isInterface()) {
-                VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
+                InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
                 int signatureId = sig.getId();
                 Instruction s;
                 if (Bits.fits(signatureId, 16)) {
@@ -183,7 +183,7 @@ public abstract class FinalMIRExpansion extends IRTools {
           if (VM.VerifyAssertions) {
             VM._assert(p.bcIndex >= 0 && p.position != null);
           }
-          Offset offset = VM_Entrypoints.optResolveMethod.getOffset();
+          Offset offset = Entrypoints.optResolveMethod.getOffset();
           if (Bits.fits(offset, 16)) {
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(Bits.PPCMaskLower16(offset))));
           } else {
@@ -222,7 +222,7 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
           Register PR = phys.getPR();
-          Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+          Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
           p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
@@ -246,7 +246,7 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
           Register PR = phys.getPR();
-          Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+          Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
           p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
@@ -320,25 +320,25 @@ public abstract class FinalMIRExpansion extends IRTools {
       if (ir.MIRInfo.prologueYieldpointBlock != null) {
         return ir.MIRInfo.prologueYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
+        meth = Entrypoints.optThreadSwitchFromPrologueMethod;
       }
     } else if (whereFrom == RVMThread.BACKEDGE) {
       if (ir.MIRInfo.backedgeYieldpointBlock != null) {
         return ir.MIRInfo.backedgeYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
+        meth = Entrypoints.optThreadSwitchFromBackedgeMethod;
       }
     } else if (whereFrom == RVMThread.EPILOGUE) {
       if (ir.MIRInfo.epilogueYieldpointBlock != null) {
         return ir.MIRInfo.epilogueYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
+        meth = Entrypoints.optThreadSwitchFromEpilogueMethod;
       }
     } else if (whereFrom == RVMThread.OSROPT) {
       if (ir.MIRInfo.osrYieldpointBlock != null) {
         return ir.MIRInfo.osrYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
+        meth = Entrypoints.optThreadSwitchFromOsrOptMethod;
       }
     }
 

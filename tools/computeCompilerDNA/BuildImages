@@ -22,8 +22,8 @@
 
 # parent of build directories is command line argument to the script
 
-if [[ $RVM_ROOT = "" ]]; then
-   echo "\n***$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)***\n"
+if [[ $RROOT = "" ]]; then
+   echo "\n***$0: please set your RROOT environment variable (eg. $HOME/jvmShadow)***\n"
    exit 1
 fi
 
@@ -34,9 +34,9 @@ IMAGES='FastBaseAdaptiveGenMS FastOpt0GenMS FastOpt1GenMS FastAdaptiveGenMS'
 for image in $IMAGES
 do
    rm -rf $BUILDDIR/$image
-   export RVM_BUILD=$BUILDDIR/$image
+   export RBUILD=$BUILDDIR/$image
    echo "Configuring $image"
-   $RVM_ROOT/bin/jconfigure $image
+   $RROOT/bin/jconfigure $image
    cd $BUILDDIR/$image
    echo "Building $image"
    ./jbuild >RVM.trace 2>&1

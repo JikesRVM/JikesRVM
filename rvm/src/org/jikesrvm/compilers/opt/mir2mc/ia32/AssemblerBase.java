@@ -13,12 +13,12 @@
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import java.util.ArrayList;
-import static org.jikesrvm.ia32.VM_ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
-import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
+import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.Constants;
+import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
@@ -45,7 +45,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
-import org.jikesrvm.ia32.VM_TrapConstants;
+import org.jikesrvm.ia32.TrapConstants;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
 
@@ -59,8 +59,8 @@ import org.vmmagic.unboxed.Offset;
  * not meant to be used in isolation, but rather to provide support
  * from the Assembler.
  */
-abstract class AssemblerBase extends VM_Assembler
-    implements Operators, VM_Constants, PhysicalRegisterConstants {
+abstract class AssemblerBase extends Assembler
+    implements Operators, Constants, PhysicalRegisterConstants {
 
   private static final boolean DEBUG_ESTIMATE = false;
 
@@ -114,7 +114,7 @@ abstract class AssemblerBase extends VM_Assembler
 
   /**
    * Construct Assembler object
-   * @see VM_Assembler
+   * @see Assembler
    */
   AssemblerBase(int bytecodeSize, boolean shouldPrint, IR ir) {
     super(bytecodeSize, shouldPrint);
@@ -169,7 +169,7 @@ abstract class AssemblerBase extends VM_Assembler
       // used by ImmOrLabel stuff
       return op.asBranch().target.getmcOffset();
     } else {
-      return ((TrapCodeOperand) op).getTrapCode() + VM_TrapConstants.RVM_TRAP_BASE;
+      return ((TrapCodeOperand) op).getTrapCode() + TrapConstants.RTRAP_BASE;
     }
   }
 
@@ -265,7 +265,7 @@ abstract class AssemblerBase extends VM_Assembler
    * Given a register operand, return the 3 bit IA32 ISA encoding
    * of that register.  This function translates an optimizing
    * compiler register operand into the 3 bit IA32 ISA encoding that
-   * can be passed to the VM_Assembler.  This function assumes its
+   * can be passed to the Assembler.  This function assumes its
    * operand is a register operand, and will blow up if it is not;
    * use isReg to check operands passed to this method.
    *
@@ -300,7 +300,7 @@ abstract class AssemblerBase extends VM_Assembler
    * of its base regsiter.  This function translates the optimizing
    * compiler register operand representing the base of the given
    * memory operand into the 3 bit IA32 ISA encoding that
-   * can be passed to the VM_Assembler.  This function assumes its
+   * can be passed to the Assembler.  This function assumes its
    * operand is a memory operand, and will blow up if it is not;
    * one should confirm an operand really has a base register before
    * invoking this method on it.
@@ -321,7 +321,7 @@ abstract class AssemblerBase extends VM_Assembler
    * of its index regsiter.  This function translates the optimizing
    * compiler register operand representing the index of the given
    * memory operand into the 3 bit IA32 ISA encoding that
-   * can be passed to the VM_Assembler.  This function assumes its
+   * can be passed to the Assembler.  This function assumes its
    * operand is a memory operand, and will blow up if it is not;
    * one should confirm an operand really has an index register before
    * invoking this method on it.
@@ -338,7 +338,7 @@ abstract class AssemblerBase extends VM_Assembler
 
   /**
    *  Given a memory operand, return the 2 bit IA32 ISA encoding
-   * of its scale, suitable for passing to the VM_Assembler to mask
+   * of its scale, suitable for passing to the Assembler to mask
    * into a SIB byte.  This function assumes its operand is a memory
    * operand, and will blow up if it is not; one should confirm an
    * operand really has a scale before invoking this method on it.
@@ -355,7 +355,7 @@ abstract class AssemblerBase extends VM_Assembler
 
   /**
    *  Given a memory operand, return the 2 bit IA32 ISA encoding
-   * of its scale, suitable for passing to the VM_Assembler to mask
+   * of its scale, suitable for passing to the Assembler to mask
    * into a SIB byte.  This function assumes its operand is a memory
    * operand, and will blow up if it is not; one should confirm an
    * operand really has a scale before invoking this method on it.
@@ -477,10 +477,10 @@ abstract class AssemblerBase extends VM_Assembler
    *  Return the condition bits of a given optimizing compiler
    * condition operand.  This method returns the IA32 ISA bits
    * representing a given condition operand, suitable for passing to
-   * the VM_Assembler to encode into the opcode of a SET, Jcc or
+   * the Assembler to encode into the opcode of a SET, Jcc or
    * CMOV instruction.  This being IA32, there are of course
    * exceptions in the binary encoding of conditions (see FCMOV),
-   * but the VM_Assembler handles that.  This function assumes its
+   * but the Assembler handles that.  This function assumes its
    * argument is an IA32ConditionOperand, and will blow up if it
    * is not.
    *
@@ -673,7 +673,7 @@ abstract class AssemblerBase extends VM_Assembler
         // these generate no code
         return 0;
       }
-      // Generated from the same case in VM_Assembler
+      // Generated from the same case in Assembler
       case IA32_ADC_opcode:
       case IA32_ADD_opcode:
       case IA32_AND_opcode:
@@ -918,8 +918,8 @@ abstract class AssemblerBase extends VM_Assembler
       if (VM.VerifyAssertions) VM._assert(delta >= 0);
       if (delta < 10 || (delta < 90 && targetIsClose(inst, -targetLabel))) {
         int miStart = mi;
-        VM_ForwardReference r = new VM_ForwardReference.ShortBranch(mi, targetLabel);
-        forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
+        ForwardReference r = new ForwardReference.ShortBranch(mi, targetLabel);
+        forwardRefs = ForwardReference.enqueue(forwardRefs, r);
         setMachineCodes(mi++, (byte) (0x70 + cond));
         mi += 1; // leave space for displacement
         if (lister != null) lister.I(miStart, "J" + CONDITION[cond], 0);
@@ -946,8 +946,8 @@ abstract class AssemblerBase extends VM_Assembler
       if (VM.VerifyAssertions) VM._assert(delta >= 0);
       if (delta < 10 || (delta < 90 && targetIsClose(inst, -targetLabel))) {
         int miStart = mi;
-        VM_ForwardReference r = new VM_ForwardReference.ShortBranch(mi, targetLabel);
-        forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
+        ForwardReference r = new ForwardReference.ShortBranch(mi, targetLabel);
+        forwardRefs = ForwardReference.enqueue(forwardRefs, r);
         setMachineCodes(mi++, (byte) 0xEB);
         mi += 1; // leave space for displacement
         if (lister != null) lister.I(miStart, "JMP", 0);

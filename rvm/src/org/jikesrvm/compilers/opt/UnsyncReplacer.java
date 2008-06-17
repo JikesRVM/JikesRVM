@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.New;
@@ -90,7 +90,7 @@ public final class UnsyncReplacer {
           // unsynchronized type
           MethodOperand mop = Call.getMethod(inst);
           if (mop.getTarget().isSynchronized()) {
-            mop.spMethod = context.findOrCreateSpecializedVersion((VM_NormalMethod) mop.getTarget());
+            mop.spMethod = context.findOrCreateSpecializedVersion((NormalMethod) mop.getTarget());
             if (DEBUG) {
               VM.sysWrite("Identified call " + inst + " for unsynchronization\n");
             }

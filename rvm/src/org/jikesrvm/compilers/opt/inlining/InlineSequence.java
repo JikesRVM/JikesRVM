@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.inlining;
 
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.util.Stack;
 
@@ -27,7 +27,7 @@ public final class InlineSequence {
   /**
    * Current method.
    */
-  public final VM_NormalMethod method;
+  public final NormalMethod method;
 
   /**
    * Caller info.  null if none.
@@ -47,7 +47,7 @@ public final class InlineSequence {
   /**
    * @return contents of {@link #method}
    */
-  public VM_NormalMethod getMethod() {
+  public NormalMethod getMethod() {
     return method;
   }
 
@@ -73,7 +73,7 @@ public final class InlineSequence {
    *
    * @param method current method
    */
-  public InlineSequence(VM_NormalMethod method) {
+  public InlineSequence(NormalMethod method) {
     this(method, null, -1);
   }
 
@@ -84,7 +84,7 @@ public final class InlineSequence {
    * @param caller caller info
    * @param bcIndex bytecode index of call site
    */
-  InlineSequence(VM_NormalMethod method, InlineSequence caller, int bcIndex) {
+  InlineSequence(NormalMethod method, InlineSequence caller, int bcIndex) {
     this.method = method;
     this.caller = caller;
     this.callSite = null;
@@ -98,7 +98,7 @@ public final class InlineSequence {
    * @param caller caller info
    * @param callsite the call site instruction of this callee
    */
-  public InlineSequence(VM_NormalMethod method, InlineSequence caller, Instruction callsite) {
+  public InlineSequence(NormalMethod method, InlineSequence caller, Instruction callsite) {
     this.method = method;
     this.caller = caller;
     this.callSite = callsite;
@@ -139,7 +139,7 @@ public final class InlineSequence {
   /**
    * Return the root method of this inline sequence
    */
-  public VM_NormalMethod getRootMethod() {
+  public NormalMethod getRootMethod() {
     InlineSequence parent = this;
     while (parent.caller != null) {
       parent = parent.caller;

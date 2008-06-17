@@ -14,8 +14,8 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.vmmagic.unboxed.Offset;
@@ -31,7 +31,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * TODO: Now that we don't pay a large penalty for dynamic type checks
    * of non-final classes, redesign this mess to have separate subclasses
    * of location operands for each type of memory access.
-   * In the process, also switch to using synthetic VM_Fields
+   * In the process, also switch to using synthetic Fields
    * for the various pieces of the object header
    * (something like the following might work):
    *   (RVMField) VM.getMember("[I", "length", "I");   .
@@ -63,7 +63,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * Field that corresponds to this location;
    * null if this is not a field access.
    */
-  VM_FieldReference fieldRef;
+  FieldReference fieldRef;
 
   /**
    * Method operand that corresponds to this location;
@@ -75,7 +75,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * Array element type that corresponds to the type of the array that contains
    * this location; null if this is not an array access.
    */
-  VM_TypeReference arrayElementType;
+  TypeReference arrayElementType;
 
   /**
    * JTOC index that corresponds to this location.
@@ -93,7 +93,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * Constructs a new location operand with the given field.
    * @param loc location
    */
-  public LocationOperand(VM_FieldReference loc) {
+  public LocationOperand(FieldReference loc) {
     type = FIELD_ACCESS;
     fieldRef = loc;
   }
@@ -122,7 +122,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    *
    * @param t    Array element type
    */
-  public LocationOperand(VM_TypeReference t) {
+  public LocationOperand(TypeReference t) {
     type = ARRAY_ACCESS;
     arrayElementType = t;
   }
@@ -152,12 +152,12 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
    * @return this method shouldn't be called and will throw an {@link
    * OptimizingCompilerException}
    */
-  public VM_TypeReference getType() {
+  public TypeReference getType() {
     throw new OptimizingCompilerException("Getting the type for this operand has no defined meaning");
   }
 
@@ -173,9 +173,9 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
 
   public LocationOperand asMethodAccess() { return this; }
 
-  public VM_FieldReference getFieldRef() { return fieldRef; }
+  public FieldReference getFieldRef() { return fieldRef; }
 
-  public VM_TypeReference getElementType() { return arrayElementType; }
+  public TypeReference getElementType() { return arrayElementType; }
 
   //public final int getIndex() { return JTOCoffset; }
   public Offset getJTOCoffset() { return JTOCoffset; }
@@ -237,7 +237,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
   }
 
   // NOTE: not checking for (t1==null xor t2==null) for efficiency
-  private static boolean arrayMayBeAliased(VM_TypeReference t1, VM_TypeReference t2) {
+  private static boolean arrayMayBeAliased(TypeReference t1, TypeReference t2) {
     return ((t1 == t2) ||
             (ClassLoaderProxy.includesType(t1, t2) != NO) ||
             (ClassLoaderProxy.includesType(t2, t1) != NO));

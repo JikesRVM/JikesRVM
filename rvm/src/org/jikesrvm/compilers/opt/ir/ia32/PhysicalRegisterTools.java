@@ -24,7 +24,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
 
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.ia32.VM_ArchConstants;
+import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * This abstract class provides a set of useful methods for
@@ -50,7 +50,7 @@ public abstract class PhysicalRegisterTools extends GenericPhysicalRegisterTools
       if (VM.VerifyAssertions) {
         VM._assert(lhs.getRegister().isFloatingPoint());
       }
-      if (VM_ArchConstants.SSE2_FULL) {
+      if (ArchConstants.SSE2_FULL) {
         if (rhs.getRegister().isFloat()) {
           return MIR_Move.create(IA32_MOVSS, lhs, rhs);
         } else {

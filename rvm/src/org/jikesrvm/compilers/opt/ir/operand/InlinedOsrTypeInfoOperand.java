@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import java.util.Arrays;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.MemberReference;
 /*
  * An InlinedOsrTypeInfoOperand object keeps necessary information
  * to recover non-inlined status for an inlined method.
@@ -96,7 +96,7 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
     StringBuffer buf = new StringBuffer("(");
 
     for (int i = 0, n = methodids.length; i < n; i++) {
-      buf.append(bcindexes[i]).append("@").append(VM_MemberReference.getMemberRef(methodids[i]).getName()).append(" : ");
+      buf.append(bcindexes[i]).append("@").append(MemberReference.getMemberRef(methodids[i]).getName()).append(" : ");
 
       for (int j = 0, m = localTypeCodes[i].length; j < m; j++) {
         buf.append((char) localTypeCodes[i][j]);

@@ -21,8 +21,8 @@ import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.Scheduler;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -226,7 +226,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     while (growingTable || maxIndex >= references.length()) {
       if (growingTable) {
         lock.release();
-        VM_Scheduler.yield(); // (1) Allow another thread to grow the table
+        Scheduler.yield(); // (1) Allow another thread to grow the table
         lock.acquire();
       } else {
         growingTable = true;  // Prevent other threads from growing table while lock is released
@@ -496,7 +496,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @return the referent object reference.
    */
   protected ObjectReference getReferent(ObjectReference object) {
-    return object.toAddress().loadObjectReference(VM_Entrypoints.referenceReferentField.getOffset());
+    return object.toAddress().loadObjectReference(Entrypoints.referenceReferentField.getOffset());
   }
 
   /**
@@ -506,7 +506,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param referent the referent object reference.
    */
   protected void setReferent(ObjectReference ref, ObjectReference referent) {
-    ref.toAddress().store(referent, VM_Entrypoints.referenceReferentField.getOffset());
+    ref.toAddress().store(referent, Entrypoints.referenceReferentField.getOffset());
   }
 
   /***********************************************************************

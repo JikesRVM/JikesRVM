@@ -12,16 +12,16 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.VM_Services;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.Services;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.runtime.Magic;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
+public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of the write barrier.
    *
@@ -37,7 +37,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
                                            ObjectReference target, Offset offset,
                                            int locationMetadata, int mode) {
     Object obj = ref.toObject();
-    VM_Magic.setObjectAtOffset(obj, offset, target.toObject(), locationMetadata);
+    Magic.setObjectAtOffset(obj, offset, target.toObject(), locationMetadata);
   }
 
   /**
@@ -55,7 +55,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
                                              Word rawTarget, Offset offset,
                                              int locationMetadata, int mode) {
     Object obj = ref.toObject();
-    VM_Magic.setWordAtOffset(obj, offset, rawTarget, locationMetadata);
+    Magic.setWordAtOffset(obj, offset, rawTarget, locationMetadata);
   }
 
   /**
@@ -72,7 +72,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
   public final ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
                                                     Offset offset, int locationMetadata, int mode) {
     Object obj = ref.toObject();
-    return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(obj, offset, locationMetadata));
+    return ObjectReference.fromObject(Magic.getObjectAtOffset(obj, offset, locationMetadata));
   }
 
   /**
@@ -89,7 +89,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
   public final Word performRawReadInBarrier(ObjectReference ref, Address slot,
                                             Offset offset, int locationMetadata, int mode) {
     Object obj = ref.toObject();
-    return VM_Magic.getWordAtOffset(obj, offset, locationMetadata);
+    return Magic.getWordAtOffset(obj, offset, locationMetadata);
   }
 
   /**
@@ -113,8 +113,8 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
     Object newObject = target.toObject();
     Object oldObject;
     do {
-      oldObject = VM_Magic.prepareObject(obj, offset);
-    } while (!VM_Magic.attemptObject(obj, offset, oldObject, newObject));
+      oldObject = Magic.prepareObject(obj, offset);
+    } while (!Magic.attemptObject(obj, offset, oldObject, newObject));
     return ObjectReference.fromObject(oldObject);
   }
 
@@ -139,8 +139,8 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
     Object obj = ref.toObject();
     Word oldValue;
     do {
-      oldValue = VM_Magic.prepareWord(obj, offset);
-    } while (!VM_Magic.attemptWord(obj, offset, oldValue, rawTarget));
+      oldValue = Magic.prepareWord(obj, offset);
+    } while (!Magic.attemptWord(obj, offset, oldValue, rawTarget));
     return oldValue;
   }
 
@@ -162,9 +162,9 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
                                                        Offset offset, int locationMetadata, int mode) {
     Object oldValue;
     do {
-      oldValue = VM_Magic.prepareObject(ref, offset);
+      oldValue = Magic.prepareObject(ref, offset);
       if (oldValue != old) return false;
-    } while (!VM_Magic.attemptObject(ref, offset, oldValue, target));
+    } while (!Magic.attemptObject(ref, offset, oldValue, target));
     return true;
   }
 
@@ -186,9 +186,9 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
                                                           Word rawOld, Word rawTarget, Offset offset,
                                                           int locationMetadata, int mode) {
     do {
-      Word currentValue = VM_Magic.prepareWord(ref, offset);
+      Word currentValue = Magic.prepareWord(ref, offset);
       if (currentValue != rawOld) return false;
-    } while (!VM_Magic.attemptObject(ref, offset, rawOld, rawTarget));
+    } while (!Magic.attemptObject(ref, offset, rawOld, rawTarget));
     return true;
   }
 
@@ -202,7 +202,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    */
   @Override
   public final void setArrayUninterruptible(Object [] dst, int index, Object value) {
-    VM_Services.setArrayUninterruptible(dst, index, value);
+    Services.setArrayUninterruptible(dst, index, value);
   }
 
   /**
@@ -237,7 +237,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @param value the new value for the element
    */
   public final void setArrayNoBarrier(char [] dst, int index, char value) {
-    VM_Services.setArrayNoBarrier(dst, index, value);
+    Services.setArrayNoBarrier(dst, index, value);
   }
 
   /**
@@ -249,7 +249,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @return the new value of element
    */
   public final char getArrayNoBarrier(char [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
+    return Services.getArrayNoBarrier(src, index);
   }
 
   /**
@@ -261,7 +261,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @return the new value of element
    */
   public final byte getArrayNoBarrier(byte [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
+    return Services.getArrayNoBarrier(src, index);
   }
   /**
    * Gets an element of an int array without invoking any read barrier
@@ -272,7 +272,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @return the new value of element
    */
   public final int getArrayNoBarrier(int [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
+    return Services.getArrayNoBarrier(src, index);
   }
 
   /**
@@ -284,7 +284,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @return the new value of element
    */
   public final Object getArrayNoBarrier(Object [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
+    return Services.getArrayNoBarrier(src, index);
   }
 
 
@@ -297,6 +297,6 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @return the new value of element
    */
   public final byte[] getArrayNoBarrier(byte[][] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
+    return Services.getArrayNoBarrier(src, index);
   }
 }

@@ -463,13 +463,13 @@ SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal2(P(p)), consumeMO());
 stm: LONG_ASTORE(load64, OTHER_OPERAND(riv, riv))
 32
 EMIT_INSTRUCTION
-RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+RegisterOperand temp = regpool.makeTemp(TypeReference.Double); \
 EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, consumeMO())); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_AS(P(p), QW_S, QW), temp.copyRO()));
 
 stm: LONG_STORE(load64, OTHER_OPERAND(riv, riv))
 32
 EMIT_INSTRUCTION
-RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Double); \
+RegisterOperand temp = regpool.makeTemp(TypeReference.Double); \
 EMIT(MIR_Move.mutate(PL(p), IA32_MOVQ, temp, consumeMO())); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOVQ, MO_S(P(p), QW), temp.copyRO()));

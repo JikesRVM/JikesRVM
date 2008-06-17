@@ -15,15 +15,15 @@ package org.jikesrvm.tools.bootImageWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.objectmodel.JavaHeader;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Word;
  * "booted".
  */
 public class BootImage extends BootImageWriterMessages
-  implements BootImageWriterConstants, BootImageInterface, VM_SizeConstants {
+  implements BootImageWriterConstants, BootImageInterface, SizeConstants {
 
   /**
    * Talk while we work?
@@ -111,7 +111,7 @@ public class BootImage extends BootImageWriterMessages
       say((numAddresses / 1024) + "k non-null object references");
       say(numNulledReferences + " references nulled because they are "+
           "non-jdk fields or point to non-bootimage objects");
-      say(((VM_Statics.getNumberOfReferenceSlots()+ VM_Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
+      say(((Statics.getNumberOfReferenceSlots()+ Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
       say((getDataSize() / 1024) + "k data in image");
       say((getCodeSize() / 1024) + "k code in image");
       say("writing " + imageDataFileName);
@@ -187,7 +187,7 @@ public class BootImage extends BootImageWriterMessages
   public Address allocateScalar(RVMClass klass) {
     numObjects++;
     BootImageWriter.logAllocation(klass, klass.getInstanceSize());
-    return VM_ObjectModel.allocateScalar(this, klass);
+    return ObjectModel.allocateScalar(this, klass);
   }
 
   /**
@@ -200,7 +200,7 @@ public class BootImage extends BootImageWriterMessages
   public Address allocateArray(RVMArray array, int numElements) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
-    return VM_ObjectModel.allocateArray(this, array, numElements);
+    return ObjectModel.allocateArray(this, array, numElements);
   }
 
   /**
@@ -213,7 +213,7 @@ public class BootImage extends BootImageWriterMessages
   public Address allocateCode(RVMArray array, int numElements) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
-    return VM_ObjectModel.allocateCode(this, array, numElements);
+    return ObjectModel.allocateCode(this, array, numElements);
   }
 
   /**
@@ -237,7 +237,7 @@ public class BootImage extends BootImageWriterMessages
     if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
-    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset),
+    ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
     return BOOT_IMAGE_DATA_START.plus(lowAddr);
   }
@@ -246,7 +246,7 @@ public class BootImage extends BootImageWriterMessages
    * Round a size in bytes up to the next value of MIN_ALIGNMENT
    */
   private int roundAllocationSize(int size) {
-    return size + ((-size) & ((1 << VM_JavaHeader.LOG_MIN_ALIGNMENT) - 1));
+    return size + ((-size) & ((1 << JavaHeader.LOG_MIN_ALIGNMENT) - 1));
   }
 
   /**
@@ -270,7 +270,7 @@ public class BootImage extends BootImageWriterMessages
     if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for code)");
 
-    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset),
+    ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
 
     return BOOT_IMAGE_CODE_START.plus(lowAddr);

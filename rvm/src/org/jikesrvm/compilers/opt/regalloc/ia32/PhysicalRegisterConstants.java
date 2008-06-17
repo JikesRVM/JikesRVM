@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
-import org.jikesrvm.ia32.VM_RegisterConstants;
+import org.jikesrvm.ia32.RegisterConstants;
 
 /**
  * This class holds constants that describe IA32 physical register set.
  */
-public interface PhysicalRegisterConstants extends VM_RegisterConstants {
+public interface PhysicalRegisterConstants extends RegisterConstants {
 
   /*
    * Types of values stored in physical registers;

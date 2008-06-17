@@ -27,8 +27,8 @@ import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPreferences;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
 import org.jikesrvm.VM;
-import static org.jikesrvm.VM_Constants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.VM_Constants.NOT_REACHED;
+import static org.jikesrvm.Constants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.Constants.NOT_REACHED;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -138,7 +138,7 @@ public abstract class GenericStackManager extends IRTools {
    *
    * Side effects:
    * <ul>
-   * <li> updates the VM_OptCompiler structure
+   * <li> updates the OptCompiler structure
    * <li> updates the <code>frameSize</code> field of this object
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
@@ -1156,7 +1156,7 @@ public abstract class GenericStackManager extends IRTools {
    * Spill pointer (in bytes) relative to the beginning of the
    * stack frame (starts after the header).
    */
-  protected int spillPointer = ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE;
+  protected int spillPointer = ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE;
 
   /**
    * Have we decided that a stack frame is required for this method?

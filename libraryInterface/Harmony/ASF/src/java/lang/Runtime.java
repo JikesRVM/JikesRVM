@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_DynamicLibrary;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.DynamicLibrary;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.greenthreads.VMProcess;
 
 /**
@@ -270,7 +270,7 @@ public class Runtime {
         currentSecurity.checkLink(filename);
       }
     }
-    if (VM_DynamicLibrary.load(filename) == 0) {
+    if (DynamicLibrary.load(filename) == 0) {
       // TODO: make use of cL
       throw new UnsatisfiedLinkError("Can not find the library: " +
           filename);
@@ -478,7 +478,7 @@ public class Runtime {
    * Return the number of processors, always at least one.
    */
   public int availableProcessors() {
-    return VM_Scheduler.availableProcessors();
+    return Scheduler.availableProcessors();
   }
 
   /**

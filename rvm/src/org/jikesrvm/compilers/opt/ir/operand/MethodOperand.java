@@ -13,9 +13,9 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_MethodReference;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.SpecializedMethod;
 import org.vmmagic.unboxed.Offset;
@@ -40,11 +40,11 @@ public final class MethodOperand extends Operand {
 
   /**
    * Member reference for target.
-   * Usually a VM_MethodReference, but may be a VM_FieldReference for
+   * Usually a MethodReference, but may be a FieldReference for
    * internal methods that don't have 'real' Java method but come from
-   * VM_OutOfLineMachineCode.
+   * OutOfLineMachineCode.
    */
-  final VM_MemberReference memRef;
+  final MemberReference memRef;
 
   /**
    * Target RVMMethod of invocation.
@@ -76,11 +76,11 @@ public final class MethodOperand extends Operand {
   public Offset jtocOffset;
 
   /**
-   * @param ref VM_MemberReference of method to call
+   * @param ref MemberReference of method to call
    * @param tar the RVMMethod to call (may be null)
    * @param t the type of invoke used to call it (STATIC, SPECIAL, VIRTUAL, INTERFACE)
    */
-  private MethodOperand(VM_MemberReference ref, RVMMethod tar, byte t) {
+  private MethodOperand(MemberReference ref, RVMMethod tar, byte t) {
     memRef = ref;
     target = tar;
     type = t;
@@ -118,22 +118,22 @@ public final class MethodOperand extends Operand {
   /**
    * create a method operand for an INVOKE_SPECIAL bytecode
    *
-   * @param ref VM_MemberReference of method to call
+   * @param ref MemberReference of method to call
    * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand SPECIAL(VM_MethodReference ref, RVMMethod target) {
+  public static MethodOperand SPECIAL(MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, SPECIAL);
   }
 
   /**
    * create a method operand for an INVOKE_STATIC bytecode
    *
-   * @param ref VM_MemberReference of method to call
+   * @param ref MemberReference of method to call
    * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand STATIC(VM_MethodReference ref, RVMMethod target) {
+  public static MethodOperand STATIC(MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, STATIC);
   }
 
@@ -163,22 +163,22 @@ public final class MethodOperand extends Operand {
   /**
    * create a method operand for an INVOKE_VIRTUAL bytecode
    *
-   * @param ref VM_MemberReference of method to call
+   * @param ref MemberReference of method to call
    * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand VIRTUAL(VM_MethodReference ref, RVMMethod target) {
+  public static MethodOperand VIRTUAL(MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, VIRTUAL);
   }
 
   /**
    * create a method operand for an INVOKE_INTERFACE bytecode
    *
-   * @param ref VM_MemberReference of method to call
+   * @param ref MemberReference of method to call
    * @param target the RVMMethod to call (may be null)
    * @return the newly created method operand
    */
-  public static MethodOperand INTERFACE(VM_MethodReference ref, RVMMethod target) {
+  public static MethodOperand INTERFACE(MethodReference ref, RVMMethod target) {
     return new MethodOperand(ref, target, INTERFACE);
   }
 
@@ -210,7 +210,7 @@ public final class MethodOperand extends Operand {
     return target;
   }
 
-  public VM_MemberReference getMemberRef() {
+  public MemberReference getMemberRef() {
     return memRef;
   }
 

@@ -11,12 +11,12 @@
  *  regarding copyright ownership.
  */
 package java.net;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 
 /**
  * Library support interface of Jikes RVM
  */
-public class JikesRVMSupport implements VM_SizeConstants {
+public class JikesRVMSupport implements SizeConstants {
 
   private static byte[] toArrayForm(int address) {
     byte[] addr = new byte[4];
@@ -41,7 +41,7 @@ public class JikesRVMSupport implements VM_SizeConstants {
     } else if (inetaddress instanceof Inet6Address) {
       return 10;
     } else {
-      throw new org.jikesrvm.VM_UnimplementedError("Unknown InetAddress family");
+      throw new org.jikesrvm.UnimplementedError("Unknown InetAddress family");
     }
   }
 

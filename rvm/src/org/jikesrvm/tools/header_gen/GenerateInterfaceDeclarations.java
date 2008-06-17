@@ -20,19 +20,19 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_ThinLockConstants;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.ThinLockConstants;
+import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOConstants;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOQueue;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadProcessWaitQueue;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.greenthreads.FileSystem;
+import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.ThreadEventConstants;
+import org.jikesrvm.scheduler.greenthreads.ThreadIOConstants;
+import org.jikesrvm.scheduler.greenthreads.ThreadIOQueue;
+import org.jikesrvm.scheduler.greenthreads.ThreadProcessWaitQueue;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -75,11 +75,11 @@ public class GenerateInterfaceDeclarations {
   }
 
   static void pln(String s, Address addr) {
-    out.print("const VM_Address " + s + VM.addressAsHexString(addr) + ";\n");
+    out.print("const Address " + s + VM.addressAsHexString(addr) + ";\n");
   }
 
   static void pln(String s, Offset off) {
-    out.print("const VM_Offset " + s + VM.addressAsHexString(off.toWord().toAddress()) + ";\n");
+    out.print("const Offset " + s + VM.addressAsHexString(off.toWord().toAddress()) + ";\n");
   }
 
   static void pln() {
@@ -194,16 +194,16 @@ public class GenerateInterfaceDeclarations {
     pln("#if defined NEED_BOOT_RECORD_DECLARATIONS || defined NEED_VIRTUAL_MACHINE_DECLARATIONS");
     pln("#include <inttypes.h>");
     if (VM.BuildFor32Addr) {
-      pln("#define VM_Address uint32_t");
-      pln("#define VM_Offset int32_t");
-      pln("#define VM_Extent uint32_t");
-      pln("#define VM_Word uint32_t");
+      pln("#define Address uint32_t");
+      pln("#define Offset int32_t");
+      pln("#define Extent uint32_t");
+      pln("#define Word uint32_t");
       pln("#define JavaObject_t uint32_t");
     } else {
-      pln("#define VM_Address uint64_t");
-      pln("#define VM_Offset int64_t");
-      pln("#define VM_Extent uint64_t");
-      pln("#define VM_Word uint64_t");
+      pln("#define Address uint64_t");
+      pln("#define Offset int64_t");
+      pln("#define Extent uint64_t");
+      pln("#define Word uint64_t");
       pln("#define JavaObject_t uint64_t");
     }
     pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS */");
@@ -277,7 +277,7 @@ public class GenerateInterfaceDeclarations {
     int addrSize = VM.BuildFor32Addr ? 4 : 8;
 
     // Header Space for objects
-    int startOffset = VM_ObjectModel.objectStartOffset(cls);
+    int startOffset = ObjectModel.objectStartOffset(cls);
     Offset current = Offset.fromIntSignExtend(startOffset);
     for (int i = 0; current.sLT(fields[0].f.getOffset()); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
@@ -286,7 +286,7 @@ public class GenerateInterfaceDeclarations {
 
     for (int i = 0; i < fields.length; i++) {
       RVMField field = fields[i].f;
-      VM_TypeReference t = field.getType();
+      TypeReference t = field.getType();
       Offset offset = field.getOffset();
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
@@ -307,10 +307,10 @@ public class GenerateInterfaceDeclarations {
         current = current.plus(8);
         p("   uint64_t " + name + ";\n");
       } else if (t.isWordType()) {
-        p("   VM_Address " + name + ";\n");
+        p("   Address " + name + ";\n");
         current = current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
-        p("   VM_Address * " + name + ";\n");
+        p("   Address * " + name + ";\n");
         current = current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
         p("   unsigned int * " + name + ";\n");
@@ -328,14 +328,14 @@ public class GenerateInterfaceDeclarations {
   }
 
   static void emitBootRecordDeclarations() {
-    RVMClass bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
-    emitCDeclarationsForJavaType("VM_BootRecord", bootRecord);
+    RVMClass bootRecord = TypeReference.findOrCreate(org.jikesrvm.runtime.BootRecord.class).resolve().asClass();
+    emitCDeclarationsForJavaType("BootRecord", bootRecord);
   }
 
-  // Emit declarations for VM_BootRecord object.
+  // Emit declarations for BootRecord object.
   //
   static void emitBootRecordInitialization() {
-    RVMClass bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
+    RVMClass bootRecord = TypeReference.findOrCreate(org.jikesrvm.runtime.BootRecord.class).resolve().asClass();
     RVMField[] fields = bootRecord.getDeclaredFields();
 
     // emit function declarations
@@ -354,13 +354,13 @@ public class GenerateInterfaceDeclarations {
         // extern "C" void sysFOOf();
         p("extern \"C\" int " + functionName + "();\n");
       } else if (fieldName.equals("sysJavaVM")) {
-        p("extern struct JavaVM_ " + fieldName + ";\n");
+        p("extern struct Java " + fieldName + ";\n");
       }
     }
 
     // emit field initializers
     //
-    p("extern \"C\" void setLinkage(VM_BootRecord* br){\n");
+    p("extern \"C\" void setLinkage(BootRecord* br){\n");
     for (int i = fields.length; --i >= 0;) {
       RVMField field = fields[i];
       if (field.isStatic()) {
@@ -403,164 +403,164 @@ public class GenerateInterfaceDeclarations {
       Integer.toHexString(bootImageRMapAddress) +
       ";\n");
 
-    // values in VM_Constants, from VM_Configuration
+    // values in Constants, from Configuration
     //
-    p("static const int VM_Constants_STACK_SIZE_GUARD          = " +
-      ArchitectureSpecific.VM_StackframeLayoutConstants
+    p("static const int Constants_STACK_SIZE_GUARD          = " +
+      ArchitectureSpecific.StackframeLayoutConstants
           .STACK_SIZE_GUARD +
                             ";\n");
 
-    p("static const int VM_Constants_INVISIBLE_METHOD_ID       = " +
-      ArchitectureSpecific.VM_StackframeLayoutConstants
+    p("static const int Constants_INVISIBLE_METHOD_ID       = " +
+      ArchitectureSpecific.StackframeLayoutConstants
           .INVISIBLE_METHOD_ID +
                                ";\n");
-    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= " + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
-    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE    = " +
-      ArchitectureSpecific.VM_StackframeLayoutConstants
+    p("static const int ThinLockConstants_TL_THREAD_ID_SHIFT= " + ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
+    p("static const int Constants_STACKFRAME_HEADER_SIZE    = " +
+      ArchitectureSpecific.StackframeLayoutConstants
           .STACKFRAME_HEADER_SIZE +
                                   ";\n");
-    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET = " +
-      ArchitectureSpecific.VM_StackframeLayoutConstants
+    p("static const int Constants_STACKFRAME_METHOD_ID_OFFSET = " +
+      ArchitectureSpecific.StackframeLayoutConstants
           .STACKFRAME_METHOD_ID_OFFSET +
                                        ";\n");
-    p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = " +
-      ArchitectureSpecific.VM_StackframeLayoutConstants
+    p("static const int Constants_STACKFRAME_FRAME_POINTER_OFFSET    = " +
+      ArchitectureSpecific.StackframeLayoutConstants
           .STACKFRAME_FRAME_POINTER_OFFSET +
                                            ";\n");
-    pln("VM_Constants_STACKFRAME_SENTINEL_FP             = ",
-        ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
+    pln("Constants_STACKFRAME_SENTINEL_FP             = ",
+        ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
     p("\n");
 
-    // values in VM_ObjectModel
+    // values in ObjectModel
     //
-    pln("VM_ObjectModel_ARRAY_LENGTH_OFFSET = ", VM_ObjectModel.getArrayLengthOffset());
+    pln("ObjectModel_ARRAY_LENGTH_OFFSET = ", ObjectModel.getArrayLengthOffset());
     pln();
 
-    // values in VM_Scheduler
+    // values in Scheduler
     //
-    p("static const int VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID = " + VM_GreenScheduler.PRIMORDIAL_PROCESSOR_ID + ";\n");
-    p("static const int VM_Scheduler_PRIMORDIAL_THREAD_INDEX = " + VM_Scheduler.PRIMORDIAL_THREAD_INDEX + ";\n");
+    p("static const int GreenScheduler_PRIMORDIAL_PROCESSOR_ID = " + GreenScheduler.PRIMORDIAL_PROCESSOR_ID + ";\n");
+    p("static const int Scheduler_PRIMORDIAL_THREAD_INDEX = " + Scheduler.PRIMORDIAL_THREAD_INDEX + ";\n");
     p("\n");
 
-    // values in VM_ThreadEventConstants
+    // values in ThreadEventConstants
     //
-    p("static const double VM_ThreadEventConstants_WAIT_INFINITE = " + VM_ThreadEventConstants.WAIT_INFINITE + ";\n");
+    p("static const double ThreadEventConstants_WAIT_INFINITE = " + ThreadEventConstants.WAIT_INFINITE + ";\n");
 
-    // values in VM_ThreadIOQueue
+    // values in ThreadIOQueue
     //
-    p("static const int VM_ThreadIOQueue_READ_OFFSET = " + VM_ThreadIOQueue.READ_OFFSET + ";\n");
-    p("static const int VM_ThreadIOQueue_WRITE_OFFSET = " + VM_ThreadIOQueue.WRITE_OFFSET + ";\n");
-    p("static const int VM_ThreadIOQueue_EXCEPT_OFFSET = " + VM_ThreadIOQueue.EXCEPT_OFFSET + ";\n");
+    p("static const int ThreadIOQueue_READ_OFFSET = " + ThreadIOQueue.READ_OFFSET + ";\n");
+    p("static const int ThreadIOQueue_WRITE_OFFSET = " + ThreadIOQueue.WRITE_OFFSET + ";\n");
+    p("static const int ThreadIOQueue_EXCEPT_OFFSET = " + ThreadIOQueue.EXCEPT_OFFSET + ";\n");
     p("\n");
 
-    // values in VM_ThreadIOConstants
+    // values in ThreadIOConstants
     //
-    p("static const int VM_ThreadIOConstants_FD_READY = " + VM_ThreadIOConstants.FD_READY + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_READY_BIT = " + VM_ThreadIOConstants.FD_READY_BIT + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_INVALID = " + VM_ThreadIOConstants.FD_INVALID + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_INVALID_BIT = " + VM_ThreadIOConstants.FD_INVALID_BIT + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_MASK = " + VM_ThreadIOConstants.FD_MASK + ";\n");
+    p("static const int ThreadIOConstants_FD_READY = " + ThreadIOConstants.FD_READY + ";\n");
+    p("static const int ThreadIOConstants_FD_READY_BIT = " + ThreadIOConstants.FD_READY_BIT + ";\n");
+    p("static const int ThreadIOConstants_FD_INVALID = " + ThreadIOConstants.FD_INVALID + ";\n");
+    p("static const int ThreadIOConstants_FD_INVALID_BIT = " + ThreadIOConstants.FD_INVALID_BIT + ";\n");
+    p("static const int ThreadIOConstants_FD_MASK = " + ThreadIOConstants.FD_MASK + ";\n");
     p("\n");
 
-    // values in VM_ThreadProcessWaitQueue
+    // values in ThreadProcessWaitQueue
     //
-    p("static const int VM_ThreadProcessWaitQueue_PROCESS_FINISHED = " +
-      VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
+    p("static const int ThreadProcessWaitQueue_PROCESS_FINISHED = " +
+      ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
 
     // values in RuntimeEntrypoints
     //
-    p("static const int VM_Runtime_TRAP_UNKNOWN        = " + RuntimeEntrypoints.TRAP_UNKNOWN + ";\n");
-    p("static const int VM_Runtime_TRAP_NULL_POINTER   = " + RuntimeEntrypoints.TRAP_NULL_POINTER + ";\n");
-    p("static const int VM_Runtime_TRAP_ARRAY_BOUNDS   = " + RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + ";\n");
-    p("static const int VM_Runtime_TRAP_DIVIDE_BY_ZERO = " + RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + ";\n");
-    p("static const int VM_Runtime_TRAP_STACK_OVERFLOW = " + RuntimeEntrypoints.TRAP_STACK_OVERFLOW + ";\n");
-    p("static const int VM_Runtime_TRAP_CHECKCAST      = " + RuntimeEntrypoints.TRAP_CHECKCAST + ";\n");
-    p("static const int VM_Runtime_TRAP_REGENERATE     = " + RuntimeEntrypoints.TRAP_REGENERATE + ";\n");
-    p("static const int VM_Runtime_TRAP_JNI_STACK     = " + RuntimeEntrypoints.TRAP_JNI_STACK + ";\n");
-    p("static const int VM_Runtime_TRAP_MUST_IMPLEMENT = " + RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + ";\n");
-    p("static const int VM_Runtime_TRAP_STORE_CHECK = " + RuntimeEntrypoints.TRAP_STORE_CHECK + ";\n");
+    p("static const int Runtime_TRAP_UNKNOWN        = " + RuntimeEntrypoints.TRAP_UNKNOWN + ";\n");
+    p("static const int Runtime_TRAP_NULL_POINTER   = " + RuntimeEntrypoints.TRAP_NULL_POINTER + ";\n");
+    p("static const int Runtime_TRAP_ARRAY_BOUNDS   = " + RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + ";\n");
+    p("static const int Runtime_TRAP_DIVIDE_BY_ZERO = " + RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + ";\n");
+    p("static const int Runtime_TRAP_STACK_OVERFLOW = " + RuntimeEntrypoints.TRAP_STACK_OVERFLOW + ";\n");
+    p("static const int Runtime_TRAP_CHECKCAST      = " + RuntimeEntrypoints.TRAP_CHECKCAST + ";\n");
+    p("static const int Runtime_TRAP_REGENERATE     = " + RuntimeEntrypoints.TRAP_REGENERATE + ";\n");
+    p("static const int Runtime_TRAP_JNI_STACK     = " + RuntimeEntrypoints.TRAP_JNI_STACK + ";\n");
+    p("static const int Runtime_TRAP_MUST_IMPLEMENT = " + RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + ";\n");
+    p("static const int Runtime_TRAP_STORE_CHECK = " + RuntimeEntrypoints.TRAP_STORE_CHECK + ";\n");
     pln();
 
-    // values in VM_FileSystem
+    // values in FileSystem
     //
-    p("static const int VM_FileSystem_OPEN_READ                 = " + VM_FileSystem.OPEN_READ + ";\n");
-    p("static const int VM_FileSystem_OPEN_WRITE                 = " + VM_FileSystem.OPEN_WRITE + ";\n");
-    p("static const int VM_FileSystem_OPEN_MODIFY                 = " + VM_FileSystem.OPEN_MODIFY + ";\n");
-    p("static const int VM_FileSystem_OPEN_APPEND                 = " + VM_FileSystem.OPEN_APPEND + ";\n");
-    p("static const int VM_FileSystem_SEEK_SET                 = " + VM_FileSystem.SEEK_SET + ";\n");
-    p("static const int VM_FileSystem_SEEK_CUR                 = " + VM_FileSystem.SEEK_CUR + ";\n");
-    p("static const int VM_FileSystem_SEEK_END                 = " + VM_FileSystem.SEEK_END + ";\n");
-    p("static const int VM_FileSystem_STAT_EXISTS                 = " + VM_FileSystem.STAT_EXISTS + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_FILE                 = " + VM_FileSystem.STAT_IS_FILE + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_DIRECTORY                 = " + VM_FileSystem.STAT_IS_DIRECTORY + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_READABLE                 = " + VM_FileSystem.STAT_IS_READABLE + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_WRITABLE                 = " + VM_FileSystem.STAT_IS_WRITABLE + ";\n");
-    p("static const int VM_FileSystem_STAT_LAST_MODIFIED                 = " +
-      VM_FileSystem
+    p("static const int FileSystem_OPEN_READ                 = " + FileSystem.OPEN_READ + ";\n");
+    p("static const int FileSystem_OPEN_WRITE                 = " + FileSystem.OPEN_WRITE + ";\n");
+    p("static const int FileSystem_OPEN_MODIFY                 = " + FileSystem.OPEN_MODIFY + ";\n");
+    p("static const int FileSystem_OPEN_APPEND                 = " + FileSystem.OPEN_APPEND + ";\n");
+    p("static const int FileSystem_SEEK_SET                 = " + FileSystem.SEEK_SET + ";\n");
+    p("static const int FileSystem_SEEK_CUR                 = " + FileSystem.SEEK_CUR + ";\n");
+    p("static const int FileSystem_SEEK_END                 = " + FileSystem.SEEK_END + ";\n");
+    p("static const int FileSystem_STAT_EXISTS                 = " + FileSystem.STAT_EXISTS + ";\n");
+    p("static const int FileSystem_STAT_IS_FILE                 = " + FileSystem.STAT_IS_FILE + ";\n");
+    p("static const int FileSystem_STAT_IS_DIRECTORY                 = " + FileSystem.STAT_IS_DIRECTORY + ";\n");
+    p("static const int FileSystem_STAT_IS_READABLE                 = " + FileSystem.STAT_IS_READABLE + ";\n");
+    p("static const int FileSystem_STAT_IS_WRITABLE                 = " + FileSystem.STAT_IS_WRITABLE + ";\n");
+    p("static const int FileSystem_STAT_LAST_MODIFIED                 = " +
+      FileSystem
           .STAT_LAST_MODIFIED +
                               ";\n");
-    p("static const int VM_FileSystem_STAT_LENGTH                 = " + VM_FileSystem.STAT_LENGTH + ";\n");
+    p("static const int FileSystem_STAT_LENGTH                 = " + FileSystem.STAT_LENGTH + ";\n");
 
     // Value in org.mmtk.vm.Constants:
     p("static const int MMTk_Constants_BYTES_IN_PAGE            = " + org.mmtk.utility.Constants.BYTES_IN_PAGE + ";\n");
 
-    // fields in VM_Processor
+    // fields in Processor
     //
     Offset offset;
-    offset = VM_Entrypoints.timeSliceExpiredField.getOffset();
-    pln("VM_Processor_timeSliceExpired_offset = ", offset);
-    offset = VM_Entrypoints.takeYieldpointField.getOffset();
-    pln("VM_Processor_takeYieldpoint_offset = ", offset);
-    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
-    pln("VM_Processor_activeThreadStackLimit_offset = ", offset);
-    offset = VM_Entrypoints.pthreadIDField.getOffset();
-    pln("VM_Processor_pthread_id_offset = ", offset);
-    offset = VM_Entrypoints.activeThreadField.getOffset();
-    pln("VM_Processor_activeThread_offset = ", offset);
-    offset = VM_Entrypoints.vpStatusField.getOffset();
-    pln("VM_Processor_vpStatus_offset = ", offset);
-    offset = VM_Entrypoints.threadIdField.getOffset();
-    pln("VM_Processor_threadId_offset = ", offset);
+    offset = Entrypoints.timeSliceExpiredField.getOffset();
+    pln("Processor_timeSliceExpired_offset = ", offset);
+    offset = Entrypoints.takeYieldpointField.getOffset();
+    pln("Processor_takeYieldpoint_offset = ", offset);
+    offset = Entrypoints.activeThreadStackLimitField.getOffset();
+    pln("Processor_activeThreadStackLimit_offset = ", offset);
+    offset = Entrypoints.pthreadIDField.getOffset();
+    pln("Processor_pthread_id_offset = ", offset);
+    offset = Entrypoints.activeThreadField.getOffset();
+    pln("Processor_activeThread_offset = ", offset);
+    offset = Entrypoints.vpStatusField.getOffset();
+    pln("Processor_vpStatus_offset = ", offset);
+    offset = Entrypoints.threadIdField.getOffset();
+    pln("Processor_threadId_offset = ", offset);
 
     // fields in RVMThread
     //
-    offset = VM_Entrypoints.threadStackField.getOffset();
+    offset = Entrypoints.threadStackField.getOffset();
     pln("RVMThread_stack_offset = ", offset);
-    offset = VM_Entrypoints.stackLimitField.getOffset();
+    offset = Entrypoints.stackLimitField.getOffset();
     pln("RVMThread_stackLimit_offset = ", offset);
-    offset = VM_Entrypoints.threadExceptionRegistersField.getOffset();
+    offset = Entrypoints.threadExceptionRegistersField.getOffset();
     pln("RVMThread_exceptionRegisters_offset = ", offset);
-    offset = VM_Entrypoints.jniEnvField.getOffset();
+    offset = Entrypoints.jniEnvField.getOffset();
     pln("RVMThread_jniEnv_offset = ", offset);
 
-    // fields in VM_Registers
+    // fields in Registers
     //
-    offset = VM_ArchEntrypoints.registersGPRsField.getOffset();
-    pln("VM_Registers_gprs_offset = ", offset);
-    offset = VM_ArchEntrypoints.registersFPRsField.getOffset();
-    pln("VM_Registers_fprs_offset = ", offset);
-    offset = VM_ArchEntrypoints.registersIPField.getOffset();
-    pln("VM_Registers_ip_offset = ", offset);
+    offset = ArchEntrypoints.registersGPRsField.getOffset();
+    pln("Registers_gprs_offset = ", offset);
+    offset = ArchEntrypoints.registersFPRsField.getOffset();
+    pln("Registers_fprs_offset = ", offset);
+    offset = ArchEntrypoints.registersIPField.getOffset();
+    pln("Registers_ip_offset = ", offset);
 
-    offset = VM_ArchEntrypoints.registersInUseField.getOffset();
-    pln("VM_Registers_inuse_offset = ", offset);
+    offset = ArchEntrypoints.registersInUseField.getOffset();
+    pln("Registers_inuse_offset = ", offset);
 
-    // fields in VM_JNIEnvironment
-    offset = VM_Entrypoints.JNIExternalFunctionsField.getOffset();
-    pln("VM_JNIEnvironment_JNIExternalFunctions_offset = ", offset);
+    // fields in JNIEnvironment
+    offset = Entrypoints.JNIExternalFunctionsField.getOffset();
+    pln("JNIEnvironment_JNIExternalFunctions_offset = ", offset);
 
     // fields in java.net.InetAddress
     if (VM.BuildForGnuClasspath) {
-      offset = VM_Entrypoints.inetAddressAddressField.getOffset();
+      offset = Entrypoints.inetAddressAddressField.getOffset();
       pln("java_net_InetAddress_address_offset = ", offset);
-      offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
+      offset = Entrypoints.inetAddressFamilyField.getOffset();
       pln("java_net_InetAddress_family_offset = ", offset);
     }
     // fields in java.net.SocketImpl
     //
-    offset = VM_Entrypoints.socketImplAddressField.getOffset();
+    offset = Entrypoints.socketImplAddressField.getOffset();
     pln("java_net_SocketImpl_address_offset = ", offset);
-    offset = VM_Entrypoints.socketImplPortField.getOffset();
+    offset = Entrypoints.socketImplPortField.getOffset();
     pln("java_net_SocketImpl_port_offset = ", offset);
 
     arch.emitArchVirtualMachineDeclarations();
@@ -568,7 +568,7 @@ public class GenerateInterfaceDeclarations {
 
   // Codes for exit(3).
   static void emitExitStatusCodes() {
-    pln("/* Automatically generated from the exitStatus declarations in VM_ExitStatus.java */");
+    pln("/* Automatically generated from the exitStatus declarations in ExitStatus.java */");
     pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = " + VM.EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
     pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = " + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
     pln("const int EXIT_STATUS_MISC_TROUBLE                         = " + VM.EXIT_STATUS_MISC_TROUBLE + ";");

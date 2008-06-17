@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.zip.ZipFile;
 
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMType;
 
@@ -111,7 +111,7 @@ final class VMClassLoader {
 
   static Class<?> loadClass(String name, boolean resolve)
   throws ClassNotFoundException {
-    return VM_BootstrapClassLoader.getBootstrapClassLoader().loadClass(name, resolve);
+    return BootstrapClassLoader.getBootstrapClassLoader().loadClass(name, resolve);
   }
 
   static URL getResource(String name) {

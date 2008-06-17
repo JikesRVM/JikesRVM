@@ -17,7 +17,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
 import java.util.LinkedList;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -266,7 +266,7 @@ public class OSR_OsrPointConstructor extends CompilerPhase {
    * adjusted in OSR_AdjustBCIndex
    */
   private void adjustBCIndex(Instruction barrier) {
-    VM_NormalMethod source = barrier.position.method;
+    NormalMethod source = barrier.position.method;
     if (source.isForOsrSpecialization()) {
       barrier.bcIndex -= source.getOsrPrologueLength();
     }

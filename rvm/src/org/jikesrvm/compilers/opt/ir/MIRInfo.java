@@ -50,19 +50,19 @@ public final class MIRInfo {
   public int fpStackHeight;
 
   /**
-   * A basic block holding the call to VM_Thread.threadSwitch for a
+   * A basic block holding the call to Thread.threadSwitch for a
    * prologue.
    */
   public BasicBlock prologueYieldpointBlock = null;
 
   /**
-   * A basic block holding the call to VM_Thread.threadSwitch for an
+   * A basic block holding the call to Thread.threadSwitch for an
    * epilogue.
    */
   public BasicBlock epilogueYieldpointBlock = null;
 
   /**
-   * A basic block holding the call to VM_Thread.threadSwitch for a
+   * A basic block holding the call to Thread.threadSwitch for a
    * backedge.
    */
   public BasicBlock backedgeYieldpointBlock = null;

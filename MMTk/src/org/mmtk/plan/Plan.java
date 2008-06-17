@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsynchronized access to functions such as
  * allocation and collection.
  *
@@ -143,7 +143,7 @@ public abstract class Plan implements Constants {
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
-  public static final int VM_SPACE = vmSpace.getDescriptor();
+  public static final int SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
   public static final int PLOS = ploSpace.getDescriptor();
@@ -972,7 +972,7 @@ public abstract class Plan implements Constants {
       return true;
     if (Space.isInSpace(IMMORTAL, object))
       return true;
-    if (Space.isInSpace(VM_SPACE, object))
+    if (Space.isInSpace(SPACE, object))
       return true;
     if (Space.isInSpace(NON_MOVING, object))
       return true;

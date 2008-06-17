@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.lir2mir.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
@@ -65,8 +65,8 @@ import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.lir2mir.BURS_Common_Helpers;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.Bits;
-import org.jikesrvm.ppc.VM_TrapConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.ppc.TrapConstants;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -1355,7 +1355,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     EMIT(MIR_Store.create(PPC_STW, I(t1), A(FP), IC(p + 4), new TrueGuardOperand()));
     EMIT(MIR_Load.create(PPC_LFD, D(res), A(FP), IC(p)));
     Register tempF = regpool.getDouble();
-    emitLFtoc(PPC_LFD, tempF, VM_Entrypoints.I2DconstantField);
+    emitLFtoc(PPC_LFD, tempF, Entrypoints.I2DconstantField);
     EMIT(MIR_Binary.create(PPC_FSUB, D(res), D(res), D(tempF)));
   }
 
@@ -1873,7 +1873,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   }
 
   // Take the generic LIR trap_if and coerce into the limited vocabulary
-  // understand by C trap handler on PPC.  See VM_TrapConstants.java.
+  // understand by C trap handler on PPC.  See TrapConstants.java.
   // Also see ConvertToLowLevelIR.java which generates most of these TRAP_IFs.
   protected final void TRAP_IF(Instruction s) {
     RegisterOperand gRes = TrapIf.getClearGuardResult(s);
@@ -1899,7 +1899,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   /**
    * Take the generic LIR trap_if and coerce into the limited
    * vocabulary understood by the C trap handler on PPC.  See
-   * VM_TrapConstants.java.  Also see ConvertToLowLevelIR.java
+   * TrapConstants.java.  Also see ConvertToLowLevelIR.java
    * which generates most of these TRAP_IFs.
    *
    * @param s the instruction to expand
@@ -1963,23 +1963,23 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   }
 
   // Take the generic LIR trap and coerce into the limited vocabulary
-  // understand by C trap handler on PPC.  See VM_TrapConstants.java.
+  // understand by C trap handler on PPC.  See TrapConstants.java.
   protected final void TRAP(Instruction s) {
     RegisterOperand gRes = Trap.getClearGuardResult(s);
     TrapCodeOperand tc = Trap.getClearTCode(s);
     switch (tc.getTrapCode()) {
       case RuntimeEntrypoints.TRAP_NULL_POINTER: {
-        RVMMethod target = VM_Entrypoints.raiseNullPointerException;
+        RVMMethod target = Entrypoints.raiseNullPointerException;
         mutateTrapToCall(s, target);
       }
       break;
       case RuntimeEntrypoints.TRAP_ARRAY_BOUNDS: {
-        RVMMethod target = VM_Entrypoints.raiseArrayBoundsException;
+        RVMMethod target = Entrypoints.raiseArrayBoundsException;
         mutateTrapToCall(s, target);
       }
       break;
       case RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO: {
-        RVMMethod target = VM_Entrypoints.raiseArithmeticException;
+        RVMMethod target = Entrypoints.raiseArithmeticException;
         mutateTrapToCall(s, target);
       }
       break;
@@ -1989,7 +1989,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              gRes,
                              PowerPCTrapOperand.ALWAYS(),
                              I(12),
-                             IC(VM_TrapConstants.CHECKCAST_TRAP & 0xffff),
+                             IC(TrapConstants.CHECKCAST_TRAP & 0xffff),
                              tc));
       }
       break;
@@ -1999,7 +1999,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              gRes,
                              PowerPCTrapOperand.ALWAYS(),
                              I(12),
-                             IC(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff),
+                             IC(TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff),
                              tc));
       }
       break;
@@ -2009,7 +2009,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              gRes,
                              PowerPCTrapOperand.ALWAYS(),
                              I(12),
-                             IC(VM_TrapConstants.STORE_CHECK_TRAP & 0xffff),
+                             IC(TrapConstants.STORE_CHECK_TRAP & 0xffff),
                              tc));
       }
       break;
@@ -2020,7 +2020,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
 
   private void mutateTrapToCall(Instruction s, RVMMethod target) {
     Offset offset = target.getOffset();
-    RegisterOperand tmp = regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
+    RegisterOperand tmp = regpool.makeTemp(TypeReference.JavaLangObjectArray);
     Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     MethodOperand meth = MethodOperand.STATIC(target);
     meth.setIsNonReturningCall(true);

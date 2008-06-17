@@ -17,11 +17,11 @@ import org.mmtk.utility.Log;
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
 
-import org.jikesrvm.runtime.VM_Magic;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.runtime.Magic;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 import org.vmmagic.unboxed.*;
@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
   private static void swLock() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
-      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1))
+      while (!Synchronization.testAndSet(Magic.getJTOC(), sysWriteLockOffset, 1))
         ;
     }
   }
@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
   private static void swUnlock() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
-      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
+      Synchronization.fetchAndStore(Magic.getJTOC(), sysWriteLockOffset, 0);
     }
   }
 
@@ -192,14 +192,14 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public Object createDataArray(Object templ, int numElements) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
-      RVMArray array = VM_Magic.getObjectType(templ).asArray();
+      RVMArray array = Magic.getObjectType(templ).asArray();
       return RuntimeEntrypoints.resolvedNewArray(numElements,
                               array.getLogElementSize(),
-                              VM_ObjectModel.computeArrayHeaderSize(array),
+                              ObjectModel.computeArrayHeaderSize(array),
                               array.getTypeInformationBlock(),
                               Plan.ALLOC_GCSPY,
-                              VM_ObjectModel.getAlignment(array),
-                              VM_ObjectModel.getOffsetForAlignment(array),
+                              ObjectModel.getAlignment(array),
+                              ObjectModel.getOffsetForAlignment(array),
                               0);
     } else {
       return null;

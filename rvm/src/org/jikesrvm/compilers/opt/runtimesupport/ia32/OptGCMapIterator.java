@@ -13,9 +13,9 @@
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
-import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
+import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for IA32
  */
 @Uninterruptible
-public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements VM_SizeConstants {
+public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements SizeConstants {
 
   private static final boolean DEBUG = false;
 
@@ -134,7 +134,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  @return the first spill location
    */
   public Address getFirstSpillLoc() {
-    return framePtr.minus(-VM_StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
+    return framePtr.minus(-StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
   }
 
   /**
@@ -150,5 +150,5 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
   }
 
   static final int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
-  static final int SAVE_VOL_SIZE = VOL_SIZE + VM_StackframeLayoutConstants.FPU_STATE_SIZE;
+  static final int SAVE_VOL_SIZE = VOL_SIZE + StackframeLayoutConstants.FPU_STATE_SIZE;
 }

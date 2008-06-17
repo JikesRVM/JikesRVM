@@ -40,7 +40,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @return The high bound of the memory that MMTk can allocate.
    */
    private static ImmortalSpace vmSpace = null;
-   private static Extent VM_SIZE = Extent.fromIntZeroExtend(0x10000000);
+   private static Extent SIZE = Extent.fromIntZeroExtend(0x10000000);
 
   /**
    * Return the space associated with/reserved for the VM.  In the
@@ -51,7 +51,7 @@ public class Memory extends org.mmtk.vm.Memory {
   @Interruptible
   public ImmortalSpace getVMSpace() {
     if (vmSpace == null) {
-      vmSpace = new ImmortalSpace("vm", 0, VMRequest.create(VM_SIZE, false));
+      vmSpace = new ImmortalSpace("vm", 0, VMRequest.create(SIZE, false));
     }
     return vmSpace;
   }
@@ -188,7 +188,7 @@ public class Memory extends org.mmtk.vm.Memory {
   /** @return The highest address in the virtual address space known to MMTk */
   protected Address getHeapEndConstant() { return SimulatedMemory.HEAP_END; }
   /** @return The lowest address in the contiguous address space available to MMTk  */
-  protected Address getAvailableStartConstant() { return SimulatedMemory.HEAP_START.plus(VM_SIZE); }
+  protected Address getAvailableStartConstant() { return SimulatedMemory.HEAP_START.plus(SIZE); }
   /** @return The highest address in the contiguous address space available to MMTk */
   protected Address getAvailableEndConstant()  { return SimulatedMemory.HEAP_END; }
   /** @return The log base two of the size of an address */

@@ -16,10 +16,10 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -60,13 +60,13 @@ public class ScanBootImage implements Constants {
   @Uninterruptible
   public static void scanBootImage(TraceLocal trace) {
     /* establish sentinals in map & image */
-    Address mapStart = VM_BootRecord.the_boot_record.bootImageRMapStart;
-    Address mapEnd = VM_BootRecord.the_boot_record.bootImageRMapEnd;
-    Address imageStart = VM_BootRecord.the_boot_record.bootImageDataStart;
+    Address mapStart = BootRecord.the_boot_record.bootImageRMapStart;
+    Address mapEnd = BootRecord.the_boot_record.bootImageRMapEnd;
+    Address imageStart = BootRecord.the_boot_record.bootImageDataStart;
 
     /* figure out striding */
-    int stride = VM_CollectorThread.numCollectors()<<LOG_CHUNK_BYTES;
-    VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    int stride = CollectorThread.numCollectors()<<LOG_CHUNK_BYTES;
+    CollectorThread collector = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
     int start = (collector.getGCOrdinal() - 1)<<LOG_CHUNK_BYTES;
     Address cursor = mapStart.plus(start);
 

@@ -13,11 +13,11 @@
 package org.jikesrvm.compilers.opt.runtimesupport;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
+import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SaveVolatile;
@@ -48,8 +48,8 @@ public class OptSaveVolatile {
    */
   @Entrypoint
   public static void yieldpointFromPrologue() {
-    Address fp = VM_Magic.getFramePointer();
-    VM_GreenThread.yieldpoint(RVMThread.PROLOGUE, fp);
+    Address fp = Magic.getFramePointer();
+    GreenThread.yieldpoint(RVMThread.PROLOGUE, fp);
   }
 
   /**
@@ -60,8 +60,8 @@ public class OptSaveVolatile {
    */
   @Entrypoint
   public static void yieldpointFromEpilogue() {
-    Address fp = VM_Magic.getFramePointer();
-    VM_GreenThread.yieldpoint(RVMThread.EPILOGUE, fp);
+    Address fp = Magic.getFramePointer();
+    GreenThread.yieldpoint(RVMThread.EPILOGUE, fp);
   }
 
   /**
@@ -72,8 +72,8 @@ public class OptSaveVolatile {
    */
   @Entrypoint
   public static void yieldpointFromBackedge() {
-    Address fp = VM_Magic.getFramePointer();
-    VM_GreenThread.yieldpoint(RVMThread.BACKEDGE, fp);
+    Address fp = Magic.getFramePointer();
+    GreenThread.yieldpoint(RVMThread.BACKEDGE, fp);
   }
 
   /**
@@ -82,12 +82,12 @@ public class OptSaveVolatile {
   @Entrypoint
   public static void yieldpointFromNativePrologue() {
     // VM.sysWriteln(123);
-    // VM.sysWriteln(VM_Magic.getFramePointer());
-    // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    // VM.sysWriteln(Magic.getFramePointer());
+    // VM.sysWriteln(Magic.getCallerFramePointer(Magic.getFramePointer()));
     // System.gc();
     // VM.sysWriteln("Survived GC");
-    // Address fp = VM_Magic.getFramePointer();
-    // VM_Thread.yieldpoint(VM_Thread.NATIVE_PROLOGUE, fp);
+    // Address fp = Magic.getFramePointer();
+    // Thread.yieldpoint(Thread.NATIVE_PROLOGUE, fp);
   }
 
   /**
@@ -96,12 +96,12 @@ public class OptSaveVolatile {
   @Entrypoint
   public static void yieldpointFromNativeEpilogue() {
     // VM.sysWriteln(321);
-    // VM.sysWriteln(VM_Magic.getFramePointer());
-    // VM.sysWriteln(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    // VM.sysWriteln(Magic.getFramePointer());
+    // VM.sysWriteln(Magic.getCallerFramePointer(Magic.getFramePointer()));
     // System.gc();
     // VM.sysWriteln("Survived GC");
-    // Address fp = VM_Magic.getFramePointer();
-    // VM_Thread.yieldpoint(VM_Thread.NATIVE_EPILOGUE, fp);
+    // Address fp = Magic.getFramePointer();
+    // Thread.yieldpoint(Thread.NATIVE_EPILOGUE, fp);
   }
 
   /**
@@ -109,9 +109,9 @@ public class OptSaveVolatile {
    */
   @Entrypoint
   public static void yieldpointFromOsrOpt() {
-    Address fp = VM_Magic.getFramePointer();
-    VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
-    VM_GreenThread.yieldpoint(RVMThread.OSROPT, fp);
+    Address fp = Magic.getFramePointer();
+    Processor.getCurrentProcessor().yieldToOSRRequested = true;
+    GreenThread.yieldpoint(RVMThread.OSROPT, fp);
   }
 
   /**
@@ -123,11 +123,11 @@ public class OptSaveVolatile {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt)
     // compiled method that called resolve
-    Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
-    int cmid = VM_Magic.getCompiledMethodID(fp);
-    OptCompiledMethod cm = (OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    Address fp = Magic.getCallerFramePointer(Magic.getFramePointer());
+    int cmid = Magic.getCompiledMethodID(fp);
+    OptCompiledMethod cm = (OptCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address
-    Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
+    Address ip = Magic.getReturnAddress(Magic.getFramePointer());
     Offset offset = cm.getInstructionOffset(ip);
     VM.enableGC();
     // (3) Call the routine in OptLinker that does all the real work.

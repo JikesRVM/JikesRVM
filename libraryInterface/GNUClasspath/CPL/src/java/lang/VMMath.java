@@ -12,10 +12,10 @@
  */
 package java.lang;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Pure;
-import org.vmmagic.pragma.SysCall;
+import org.vmmagic.pragma.SysCallNative;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -23,104 +23,104 @@ import org.vmmagic.unboxed.Address;
  * implementations in libm using system call (cheaper) native calls
  */
 class VMMath {
-  @Pure @SysCall private static native double mathMagic(Address functionAddress, double a);
-  @Pure @SysCall private static native double mathMagic(Address functionAddress, double a, double b);
+  @Pure @SysCallNative private static native double mathMagic(Address functionAddress, double a);
+  @Pure @SysCallNative private static native double mathMagic(Address functionAddress, double a, double b);
 
   @Pure
   public static double sin(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathSinIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathSinIP, a);
   }
   @Pure
   public static double cos(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathCosIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathCosIP, a);
   }
   @Pure
   public static double tan(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathTanIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathTanIP, a);
   }
   @Pure
   public static double asin(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathAsinIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathAsinIP, a);
   }
   @Pure
   public static double acos(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathAcosIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathAcosIP, a);
   }
   @Pure
   public static double atan(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathAtanIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathAtanIP, a);
   }
   @Pure
   public static double atan2(double y, double x) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathAtan2IP, y , x);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathAtan2IP, y , x);
   }
   @Pure
   public static double cosh(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathCoshIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathCoshIP, a);
   }
   @Pure
   public static double sinh(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathSinhIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathSinhIP, a);
   }
   @Pure
   public static double tanh(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathTanhIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathTanhIP, a);
   }
   @Pure
   public static double exp(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathExpIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathExpIP, a);
   }
   @Pure
   public static double log(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathLogIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathLogIP, a);
   }
   @Pure
   public static double sqrt(double a) {
     if (VM.BuildForHwFsqrt) {
-      return VM_Magic.sqrt(a);
+      return Magic.sqrt(a);
     } else {
-      return mathMagic(VM_BootRecord.the_boot_record.sysVMMathSqrtIP, a);
+      return mathMagic(BootRecord.the_boot_record.sysVMMathSqrtIP, a);
     }
   }
   @Pure
   public static double pow(double a, double b) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathPowIP, a, b);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathPowIP, a, b);
   }
   @Pure
   public static double IEEEremainder(double x, double y) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathIEEEremainderIP, x, y);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathIEEEremainderIP, x, y);
   }
   @Pure
   public static double ceil(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathCeilIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathCeilIP, a);
   }
   @Pure
   public static double floor(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathFloorIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathFloorIP, a);
   }
   @Pure
   public static double rint(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathRintIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathRintIP, a);
   }
   @Pure
   public static double cbrt(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathCbrtIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathCbrtIP, a);
   }
   @Pure
   public static double expm1(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathExpm1IP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathExpm1IP, a);
   }
   @Pure
   public static double hypot(double a, double b) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathHypotIP, a, b);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathHypotIP, a, b);
   }
   @Pure
   public static double log10(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathLog10IP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathLog10IP, a);
   }
   @Pure
   public static double log1p(double a) {
-    return mathMagic(VM_BootRecord.the_boot_record.sysVMMathLog1pIP, a);
+    return mathMagic(BootRecord.the_boot_record.sysVMMathLog1pIP, a);
   }
 }
 

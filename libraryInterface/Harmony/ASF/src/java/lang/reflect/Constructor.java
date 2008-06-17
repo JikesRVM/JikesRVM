@@ -22,9 +22,9 @@ import java.lang.annotation.Annotation;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.Reflection;
 
 /**
  * This class must be implemented by the VM vendor. This class models a

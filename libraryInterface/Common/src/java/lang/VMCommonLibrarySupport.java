@@ -12,18 +12,18 @@
  */
 package java.lang;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.Synchronization;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
@@ -72,15 +72,15 @@ final class VMCommonLibrarySupport {
    * taken place the gc method will just return.
    */
   private static final class GCLock {
-    @SuppressWarnings("unused") // Accessed from VM_EntryPoints
+    @SuppressWarnings("unused") // Accessed from EntryPoints
     @Entrypoint
     private int gcLock;
-    private final Offset gcLockOffset = VM_Entrypoints.gcLockField.getOffset();
+    private final Offset gcLockOffset = Entrypoints.gcLockField.getOffset();
     GCLock() {}
     void gc() {
-      if (VM_Synchronization.testAndSet(this, gcLockOffset, 1)) {
+      if (Synchronization.testAndSet(this, gcLockOffset, 1)) {
         MM_Interface.gc();
-        VM_Synchronization.fetchAndStore(this, gcLockOffset, 0);
+        Synchronization.fetchAndStore(this, gcLockOffset, 0);
       }
     }
   }
@@ -136,7 +136,7 @@ final class VMCommonLibrarySupport {
   static void setSystemStreamField(String fieldName, Object stream) {
     try {
       RVMField field = ((RVMClass)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField(VM_Atom.findOrCreateUnicodeAtom(fieldName));
+        .findDeclaredField(Atom.findOrCreateUnicodeAtom(fieldName));
       field.setObjectValueUnchecked(null, stream);
     } catch (Exception e) {
       throw new Error(e.toString());

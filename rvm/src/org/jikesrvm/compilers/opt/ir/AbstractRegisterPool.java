@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ir;
 
 import java.util.HashMap;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
@@ -214,14 +214,14 @@ public abstract class AbstractRegisterPool {
    * @param type the type of values that the register will hold
    * @return the newly created register object
    */
-  public Register getReg(VM_TypeReference type) {
+  public Register getReg(TypeReference type) {
     if (type.isLongType()) {
       return getLong();
     } else if (type.isDoubleType()) {
       return getDouble();
     } else if (type.isFloatType()) {
       return getFloat();
-    } else if (type == VM_TypeReference.VALIDATION_TYPE) {
+    } else if (type == TypeReference.VALIDATION_TYPE) {
       return getValidation();
     } else if (type.isWordType() || type.isReferenceType()) {
       return getAddress();
@@ -261,7 +261,7 @@ public abstract class AbstractRegisterPool {
    * @param type the type of values to be held in the temp register
    * @return the new temp
    */
-  public RegisterOperand makeTemp(VM_TypeReference type) {
+  public RegisterOperand makeTemp(TypeReference type) {
     return new RegisterOperand(getReg(type), type);
   }
 
@@ -300,7 +300,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempAddress() {
-    return new RegisterOperand(getAddress(), VM_TypeReference.Address);
+    return new RegisterOperand(getAddress(), TypeReference.Address);
   }
 
   /**
@@ -309,7 +309,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempOffset() {
-    return new RegisterOperand(getAddress(), VM_TypeReference.Offset);
+    return new RegisterOperand(getAddress(), TypeReference.Offset);
   }
 
   /**
@@ -318,7 +318,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempInt() {
-    return new RegisterOperand(getInteger(), VM_TypeReference.Int);
+    return new RegisterOperand(getInteger(), TypeReference.Int);
   }
 
   /**
@@ -327,7 +327,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempBoolean() {
-    return new RegisterOperand(getInteger(), VM_TypeReference.Boolean);
+    return new RegisterOperand(getInteger(), TypeReference.Boolean);
   }
 
   /**
@@ -336,7 +336,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempFloat() {
-    return new RegisterOperand(getFloat(), VM_TypeReference.Float);
+    return new RegisterOperand(getFloat(), TypeReference.Float);
   }
 
   /**
@@ -345,7 +345,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempDouble() {
-    return new RegisterOperand(getDouble(), VM_TypeReference.Double);
+    return new RegisterOperand(getDouble(), TypeReference.Double);
   }
 
   /**
@@ -354,7 +354,7 @@ public abstract class AbstractRegisterPool {
    * @return the newly created temporary
    */
   public RegisterOperand makeTempLong() {
-    return new RegisterOperand(getLong(), VM_TypeReference.Long);
+    return new RegisterOperand(getLong(), TypeReference.Long);
   }
 
   /**
@@ -364,7 +364,7 @@ public abstract class AbstractRegisterPool {
    */
   public RegisterOperand makeTempCondition() {
     Register reg = getCondition();
-    return new RegisterOperand(reg, VM_TypeReference.Int);
+    return new RegisterOperand(reg, TypeReference.Int);
   }
 
   /**
@@ -375,7 +375,7 @@ public abstract class AbstractRegisterPool {
   public RegisterOperand makeTempValidation() {
     Register reg = getValidation();
     reg.setValidation();
-    return new RegisterOperand(reg, VM_TypeReference.VALIDATION_TYPE);
+    return new RegisterOperand(reg, TypeReference.VALIDATION_TYPE);
   }
 
 }

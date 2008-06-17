@@ -13,7 +13,7 @@
 package java.lang;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.Atom;
 
 /**
  * Implementation of string interning for JikesRVM.
@@ -26,6 +26,6 @@ final class VMString {
    */
   static String intern(String str) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-    return VM_Atom.internString(str);
+    return Atom.internString(str);
   }
 }

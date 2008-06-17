@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
+import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -121,7 +121,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements VM_Constants, Operators, OptConstants {
+public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.

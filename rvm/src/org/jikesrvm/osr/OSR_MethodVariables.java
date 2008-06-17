@@ -13,7 +13,7 @@
 package org.jikesrvm.osr;
 
 import java.util.LinkedList;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.MemberReference;
 
 /**
  * A class to hold variables for a method at one program point.
@@ -42,7 +42,7 @@ public final class OSR_MethodVariables {
   public String toString() {
     StringBuilder buf = new StringBuilder("");
 
-    buf.append(" pc@").append(bcIndex).append(VM_MemberReference.getMemberRef(methId).getName());
+    buf.append(" pc@").append(bcIndex).append(MemberReference.getMemberRef(methId).getName());
     buf.append("\n");
     for (int i = 0, n = tupleList.size(); i < n; i++) {
       buf.append(tupleList.get(i).toString());

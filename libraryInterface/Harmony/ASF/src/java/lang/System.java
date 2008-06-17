@@ -33,10 +33,10 @@ import java.util.Properties;
 import java.util.PropertyPermission;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_CommandLineArgs;
+import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.runtime.Time;
 
 /**
  * Class System provides a standard place for programs to find system related
@@ -152,7 +152,7 @@ public final class System {
    * @return the time in milliseconds.
    */
   public static long currentTimeMillis() {
-    return VM_Time.currentTimeMillis();
+    return Time.currentTimeMillis();
   }
 
   /**
@@ -164,7 +164,7 @@ public final class System {
    * @return The current time in nanoseconds.
    */
   public static long nanoTime() {
-    return VM_Time.nanoTime();
+    return Time.nanoTime();
   }
 
   private static final int InitLocale = 0;
@@ -220,7 +220,7 @@ public final class System {
     systemProperties.put("com.ibm.oti.configuration", "clear");
     systemProperties.put("com.ibm.oti.configuration.dir", "jclClear");
 
-    String[] list = VM_CommandLineArgs.getEnvironmentArgs();
+    String[] list = CommandLineArgs.getEnvironmentArgs();
     for (int i = 0; i < list.length; i ++) {
       if (list[i] == null) {
         continue;
@@ -478,7 +478,7 @@ public final class System {
    * @see java.lang.Object#hashCode
    */
   public static int identityHashCode(Object anObject) {
-    return anObject == null ? 0 : VM_ObjectModel.getObjectHashCode(anObject);
+    return anObject == null ? 0 : ObjectModel.getObjectHashCode(anObject);
   }
 
   /**

@@ -27,10 +27,10 @@ public class VMProcess extends java.lang.Process {
     System.loadLibrary("rvmexec");
   }
 
-  // VM_Processor from which the child process was created.
+  // Processor from which the child process was created.
   // Linux forces us to use the same pthread when we wait
   // for the child process to exit.
-  VM_GreenProcessor creatingProcessor;
+  GreenProcessor creatingProcessor;
 
   // Child's Unix process id
   private int pid;
@@ -59,21 +59,21 @@ public class VMProcess extends java.lang.Process {
    */
   public VMProcess(String program, String[] args, String[] env, String dirPath) {
     pid = exec4(program, args, env, dirPath);
-    creatingProcessor = VM_GreenProcessor.getCurrentProcessor();
+    creatingProcessor = GreenProcessor.getCurrentProcessor();
     // FIXME: check for error creating process
 
     // initialize file descriptors
-    VM_FileSystem.onCreateFileDescriptor(inputDescriptor, false);
-    VM_FileSystem.onCreateFileDescriptor(outputDescriptor, false);
-    VM_FileSystem.onCreateFileDescriptor(errorDescriptor, false);
+    FileSystem.onCreateFileDescriptor(inputDescriptor, false);
+    FileSystem.onCreateFileDescriptor(outputDescriptor, false);
+    FileSystem.onCreateFileDescriptor(errorDescriptor, false);
   }
 
   /**
-   * Get the <code>VM_Processor</code> that the child process was
+   * Get the <code>Processor</code> that the child process was
    * created from.
    */
   @Uninterruptible
-  public VM_GreenProcessor getCreatingProcessor() {
+  public GreenProcessor getCreatingProcessor() {
     return creatingProcessor;
   }
 
@@ -207,9 +207,9 @@ public class VMProcess extends java.lang.Process {
   private boolean isDead() {
     try {
       // Using a timeout of 1 second should give the
-      // VM_Processor a couple chances to poll to see if the
+      // Processor a couple chances to poll to see if the
       // process has exited.
-      VM_ThreadProcessWaitData waitData = VM_Wait.processWait(this, 1.0d);
+      ThreadProcessWaitData waitData = Wait.processWait(this, 1.0d);
       boolean finished = waitData.finished;
       if (finished) {
         exitStatus = waitData.exitStatus;
@@ -234,7 +234,7 @@ public class VMProcess extends java.lang.Process {
    * do only a single <code>waitpid()</code> for the same process).
    */
   private int waitForInternal() throws InterruptedException {
-    VM_ThreadProcessWaitData waitData = VM_Wait.processWait(this, VM_ThreadEventConstants.WAIT_INFINITE);
+    ThreadProcessWaitData waitData = Wait.processWait(this, ThreadEventConstants.WAIT_INFINITE);
     // InterruptedException may be thrown,
     // in which case we definitely did NOT do the waitpid()
 
@@ -256,7 +256,7 @@ public class VMProcess extends java.lang.Process {
   private InputStream getInputStream(final int fd) {
     return new InputStream() {
       public int available() throws IOException {
-        return VM_FileSystem.bytesAvailable(fd);
+        return FileSystem.bytesAvailable(fd);
       }
 
       public void close() throws IOException {
@@ -264,15 +264,15 @@ public class VMProcess extends java.lang.Process {
       }
 
       public int read() throws IOException {
-        return VM_FileSystem.readByte(fd);
+        return FileSystem.readByte(fd);
       }
 
       public int read(byte[] buffer) throws IOException {
-        return VM_FileSystem.readBytes(fd, buffer, 0, buffer.length);
+        return FileSystem.readBytes(fd, buffer, 0, buffer.length);
       }
 
       public int read(byte[] buf, int off, int len) throws IOException {
-        return VM_FileSystem.readBytes(fd, buf, off, len);
+        return FileSystem.readBytes(fd, buf, off, len);
       }
     };
   }
@@ -280,19 +280,19 @@ public class VMProcess extends java.lang.Process {
   private OutputStream getOutputStream(final int fd) {
     return new OutputStream() {
       public void write(int b) throws IOException {
-        VM_FileSystem.writeByte(fd, b);
+        FileSystem.writeByte(fd, b);
       }
 
       public void write(byte[] b) throws IOException {
-        VM_FileSystem.writeBytes(fd, b, 0, b.length);
+        FileSystem.writeBytes(fd, b, 0, b.length);
       }
 
       public void write(byte[] b, int off, int len) throws IOException {
-        VM_FileSystem.writeBytes(fd, b, off, len);
+        FileSystem.writeBytes(fd, b, off, len);
       }
 
       public void flush() throws IOException {
-        VM_FileSystem.sync(fd);
+        FileSystem.sync(fd);
       }
 
       public void close() throws IOException {

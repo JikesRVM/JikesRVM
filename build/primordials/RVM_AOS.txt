@@ -10,7 +10,7 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-[Lorg/jikesrvm/adaptive/measurements/listeners/VM_MethodListener;
-[Lorg/jikesrvm/adaptive/measurements/listeners/VM_EdgeListener;
-[Lorg/jikesrvm/adaptive/measurements/listeners/VM_ContextListener;
-[Lorg/jikesrvm/adaptive/measurements/listeners/VM_NullListener;
+[Lorg/jikesrvm/adaptive/measurements/listeners/MethodListener;
+[Lorg/jikesrvm/adaptive/measurements/listeners/EdgeListener;
+[Lorg/jikesrvm/adaptive/measurements/listeners/ContextListener;
+[Lorg/jikesrvm/adaptive/measurements/listeners/NullListener;

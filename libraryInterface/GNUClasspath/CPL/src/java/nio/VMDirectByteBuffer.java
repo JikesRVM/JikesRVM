@@ -13,7 +13,7 @@
 package java.nio;
 
 import gnu.classpath.Pointer;
-import org.jikesrvm.runtime.VM_SysCall;
+import org.jikesrvm.runtime.SysCall;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -23,11 +23,11 @@ import static gnu.classpath.JikesRVMSupport.getPointerFromAddress;
 final class VMDirectByteBuffer {
   /** Malloc capacity bytes and ensure they're zeroed */
   static Pointer allocate(int capacity) {
-    return getPointerFromAddress(VM_SysCall.sysCall.sysCalloc(capacity));
+    return getPointerFromAddress(SysCall.sysCall.sysCalloc(capacity));
   }
   /** Free memory previously allocated */
   static void free(Pointer address) {
-    VM_SysCall.sysCall.sysFree(getAddressFromPointer(address));
+    SysCall.sysCall.sysFree(getAddressFromPointer(address));
   }
   /** Read byte at index */
   static byte get(Pointer address, int index) {

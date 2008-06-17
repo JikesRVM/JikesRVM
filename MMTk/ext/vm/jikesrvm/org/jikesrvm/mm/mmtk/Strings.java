@@ -13,8 +13,8 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Services;
-import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.Services;
+import org.jikesrvm.scheduler.Processor;
 
 import org.vmmagic.pragma.*;
 
@@ -57,13 +57,13 @@ import org.vmmagic.pragma.*;
   public int copyStringToChars(String src, char [] dst,
                                      int dstBegin, int dstEnd) {
     if (VM.runningVM)
-      VM_Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
+      Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
     int len = src.length();
     int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
     for (int i = 0; i < n; i++)
-      VM_Services.setArrayNoBarrier(dst, dstBegin + i, src.charAt(i));
+      Services.setArrayNoBarrier(dst, dstBegin + i, src.charAt(i));
     if (VM.runningVM)
-      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      Processor.getCurrentProcessor().enableThreadSwitching();
     return n;
   }
 }

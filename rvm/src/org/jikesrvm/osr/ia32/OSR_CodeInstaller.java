@@ -14,17 +14,17 @@ package org.jikesrvm.osr.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.adaptive.util.AOSLogging;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.ia32.VM_BaselineConstants;
+import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -35,18 +35,18 @@ import org.vmmagic.unboxed.Offset;
  * The glue code is installed right before returning to the threading method
  * by OSR_PostThreadSwitch
  */
-public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
+public abstract class OSR_CodeInstaller implements BaselineConstants {
 
-  public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
+  public static boolean install(OSR_ExecutionState state, CompiledMethod cm) {
     RVMThread thread = state.getThread();
     byte[] stack = thread.getStack();
 
     Offset tsfromFPOffset = state.getTSFPOffset();
     Offset fooFPOffset = state.getFPOffset();
 
-    int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
+    int foomid = Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
 
-    VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
+    CompiledMethod foo = CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
 
     int SW_WIDTH = 4;
@@ -58,28 +58,28 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
     // should given an estimated length, and print the instructions
     // for debugging
-    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(50, VM.TraceOnStackReplacement);
+    Assembler asm = new ArchitectureSpecific.Assembler(50, VM.TraceOnStackReplacement);
 
     // 1. generate bridge instructions to recover saved registers
-    if (cType == VM_CompiledMethod.BASELINE) {
+    if (cType == CompiledMethod.BASELINE) {
 
 //        asm.emitINT_Imm(3);  // break here for debugging
 
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
 
-      asm.emitMOV_Reg_Abs(S0, VM_Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
+      asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
 
       // restore saved EDI
       asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
       // restore saved EBX
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
       // do not pop return address and parameters,
       // we make a faked call to newly compiled method
       asm.emitJMP_Reg(S0);
-    } else if (cType == VM_CompiledMethod.OPT) {
+    } else if (cType == CompiledMethod.OPT) {
       ///////////////////////////////////////////////////
       // recover saved registers from foo's stack frame
       ///////////////////////////////////////////////////
@@ -103,21 +103,21 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // adjust SP to frame pointer
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
 
       // branch to the newly compiled instructions
-      asm.emitJMP_Abs(VM_Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
+      asm.emitJMP_Abs(Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
     }
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("new CM instr addr ");
-      VM.sysWriteHex(VM_Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset()));
+      VM.sysWriteHex(Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset()));
       VM.sysWriteln();
       VM.sysWrite("JTOC register ");
-      VM.sysWriteHex(VM_Magic.getTocPointer());
+      VM.sysWriteHex(Magic.getTocPointer());
       VM.sysWriteln();
       VM.sysWrite("Processor register ");
-      VM.sysWriteHex(VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister()));
+      VM.sysWriteHex(Magic.objectAsAddress(Magic.getProcessorRegister()));
       VM.sysWriteln();
 
       VM.sysWriteln("tsfromFPOffset ", tsfromFPOffset);
@@ -131,11 +131,11 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     thread.fooFPOffset = fooFPOffset;
     thread.tsFPOffset = tsfromFPOffset;
 
-    Address bridgeaddr = VM_Magic.objectAsAddress(thread.bridgeInstructions);
+    Address bridgeaddr = Magic.objectAsAddress(thread.bridgeInstructions);
 
     Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
-    VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
+    AOSLogging.logOsrEvent("OSR code installation succeeded");
 
     return true;
   }

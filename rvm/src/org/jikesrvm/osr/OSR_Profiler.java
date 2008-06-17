@@ -13,23 +13,23 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.controller.VM_ControllerMemory;
-import org.jikesrvm.adaptive.controller.VM_ControllerPlan;
-import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
-import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import org.jikesrvm.Callbacks;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.controller.ControllerMemory;
+import org.jikesrvm.adaptive.controller.ControllerPlan;
+import org.jikesrvm.adaptive.recompilation.InvocationCounts;
+import org.jikesrvm.adaptive.util.AOSLogging;
+import org.jikesrvm.adaptive.util.CompilerAdviceAttribute;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
  * Maintain statistic information about on stack replacement events
  */
-public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
+public class OSR_Profiler implements Callbacks.ExitMonitor {
 
   private static int invalidations = 0;
   private static boolean registered = false;
@@ -44,7 +44,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
 
     if (!registered && VM.MeasureCompilation) {
       registered = true;
-      VM_Callbacks.addExitMonitor(new OSR_Profiler());
+      Callbacks.addExitMonitor(new OSR_Profiler());
     }
 
     if (VM.TraceOnStackReplacement || VM.MeasureCompilation) {
@@ -64,7 +64,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
   private static synchronized void invalidateState(OSR_ExecutionState state) {
     // step 1: invalidate the compiled method with this OSR assumption
     //         how does this affect the performance?
-    VM_CompiledMethod mostRecentlyCompiledMethod = VM_CompiledMethods.getCompiledMethod(state.cmid);
+    CompiledMethod mostRecentlyCompiledMethod = CompiledMethods.getCompiledMethod(state.cmid);
 
     if (VM.VerifyAssertions) {
       VM._assert(mostRecentlyCompiledMethod.getMethod() == state.meth);
@@ -97,24 +97,24 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
     // NOW, we look for the previous compilation plan, and reuse
     // the compilation plan.
     boolean recmplsucc = false;
-    if (VM_Controller.enabled) {
+    if (Controller.enabled) {
       CompilationPlan cmplplan = null;
-      if ((VM_Controller.options.ENABLE_REPLAY_COMPILE || VM_Controller.options.ENABLE_PRECOMPILE) &&
-          VM_CompilerAdviceAttribute.hasAdvice()) {
-        VM_CompilerAdviceAttribute attr = VM_CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
+      if ((Controller.options.ENABLE_REPLAY_COMPILE || Controller.options.ENABLE_PRECOMPILE) &&
+          CompilerAdviceAttribute.hasAdvice()) {
+        CompilerAdviceAttribute attr = CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
         if (VM.VerifyAssertions) {
-          VM._assert(attr.getCompiler() == VM_CompiledMethod.OPT);
+          VM._assert(attr.getCompiler() == CompiledMethod.OPT);
         }
-        if (VM_Controller.options.counters()) {
+        if (Controller.options.counters()) {
           // for invocation counter, we only use one optimization level
-          cmplplan = VM_InvocationCounts.createCompilationPlan(state.meth);
+          cmplplan = InvocationCounts.createCompilationPlan(state.meth);
         } else {
           // for now there is not two options for sampling, so
-          // we don't have to use: if (VM_Controller.options.sampling())
-          cmplplan = VM_Controller.recompilationStrategy.createCompilationPlan(state.meth, attr.getOptLevel(), null);
+          // we don't have to use: if (Controller.options.sampling())
+          cmplplan = Controller.recompilationStrategy.createCompilationPlan(state.meth, attr.getOptLevel(), null);
         }
       } else {
-        VM_ControllerPlan ctrlplan = VM_ControllerMemory.findMatchingPlan(mostRecentlyCompiledMethod);
+        ControllerPlan ctrlplan = ControllerMemory.findMatchingPlan(mostRecentlyCompiledMethod);
         if (ctrlplan != null) {
           cmplplan = ctrlplan.getCompPlan();
         }
@@ -127,17 +127,17 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
         // we have to reset it back
         boolean savedOsr = cmplplan.options.OSR_GUARDED_INLINING;
         cmplplan.options.OSR_GUARDED_INLINING = false;
-        int newcmid = VM_RuntimeCompiler.recompileWithOpt(cmplplan);
+        int newcmid = RuntimeCompiler.recompileWithOpt(cmplplan);
         cmplplan.options.OSR_GUARDED_INLINING = savedOsr;
 
         if (newcmid != -1) {
-          VM_AOSLogging.debug("recompiling state with opt succeeded " + state.cmid);
-          VM_AOSLogging.debug("new cmid " + newcmid);
+          AOSLogging.debug("recompiling state with opt succeeded " + state.cmid);
+          AOSLogging.debug("new cmid " + newcmid);
 
           // transfer hotness to the new cmid
-          double oldSamples = VM_Controller.methodSamples.getData(state.cmid);
-          VM_Controller.methodSamples.reset(state.cmid);
-          VM_Controller.methodSamples.augmentData(newcmid, oldSamples);
+          double oldSamples = Controller.methodSamples.getData(state.cmid);
+          Controller.methodSamples.reset(state.cmid);
+          Controller.methodSamples.augmentData(newcmid, oldSamples);
 
           recmplsucc = true;
           if (VM.TraceOnStackReplacement) {
@@ -148,7 +148,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
     }
 
     if (!recmplsucc) {
-      int newcmid = VM_RuntimeCompiler.recompileWithOpt(state.meth);
+      int newcmid = RuntimeCompiler.recompileWithOpt(state.meth);
       if (newcmid == -1) {
         if (VM.TraceOnStackReplacement) {VM.sysWriteln("  opt recompilation failed!");}
         state.meth.invalidateCompiledMethod(mostRecentlyCompiledMethod);

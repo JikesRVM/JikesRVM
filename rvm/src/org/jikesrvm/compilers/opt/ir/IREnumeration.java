@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.ir;
 import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -372,7 +372,7 @@ public abstract class IREnumeration {
         return instructionOperands.next();
       } else {
         if ((implicitDefs != null) && implicitDefs.hasMoreElements()) {
-          RegisterOperand rop = new RegisterOperand(implicitDefs.nextElement(), VM_TypeReference.Int);
+          RegisterOperand rop = new RegisterOperand(implicitDefs.nextElement(), TypeReference.Int);
           rop.instruction = instr;
           return rop;
         } else {
@@ -464,7 +464,7 @@ public abstract class IREnumeration {
         return instructionOperands.next();
       } else {
         if ((implicitUses != null) && implicitUses.hasMoreElements()) {
-          RegisterOperand rop = new RegisterOperand(implicitUses.nextElement(), VM_TypeReference.Int);
+          RegisterOperand rop = new RegisterOperand(implicitUses.nextElement(), TypeReference.Int);
           rop.instruction = instr;
           return rop;
         } else {

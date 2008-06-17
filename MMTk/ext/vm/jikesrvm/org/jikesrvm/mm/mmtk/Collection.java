@@ -15,29 +15,28 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.options.Options;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants {
+public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utility.Constants,
+                                                                  org.jikesrvm.Constants {
 
   /****************************************************************************
    *
@@ -45,9 +44,9 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
 
   /** The fully qualified name of the collector thread. */
-  private static VM_Atom collectorThreadAtom;
+  private static Atom collectorThreadAtom;
   /** The string "run". */
-  private static VM_Atom runAtom;
+  private static Atom runAtom;
 
   /***********************************************************************
    *
@@ -64,8 +63,8 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   @Interruptible
   public static void init() {
-    collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
-    runAtom = VM_Atom.findOrCreateAsciiAtom("run");
+    collectorThreadAtom = Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/memorymanagers/mminterface/CollectorThread;");
+    runAtom = Atom.findOrCreateAsciiAtom("run");
   }
 
   /**
@@ -86,12 +85,12 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   public final void joinCollection() {
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.joinCollection().  Stack:");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
     }
 
     while (Plan.isCollectionTriggered()) {
       /* allow a gc thread to run */
-      VM_Scheduler.yield();
+      Scheduler.yield();
     }
     checkForOutOfMemoryError(true);
   }
@@ -108,7 +107,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
 
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.triggerCollection().  Stack:");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
     }
 
     checkForOutOfMemoryError(false);
@@ -121,10 +120,10 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Phase GC]");
     } else {
-      VM_Scheduler.getCurrentThread().reportCollectionAttempt();
+      Scheduler.getCurrentThread().reportCollectionAttempt();
     }
 
-    VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
+    CollectorThread.collect(CollectorThread.handshake, why);
     checkForOutOfMemoryError(true);
 
     if (Options.verbose.getValue() >= 4) {
@@ -138,7 +137,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   @Inline
   @LogicallyUninterruptible
   private static void checkForOutOfMemoryError(boolean afterCollection) {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     OutOfMemoryError oome = myThread.getOutOfMemoryError();
     if (oome != null && (!afterCollection || !myThread.physicalAllocationFailed())) {
       if (Options.verbose.getValue() >= 4) {
@@ -155,21 +154,21 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   public int maximumCollectionAttempt() {
     int max = 1;
-    for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
-      RVMThread thread = VM_Scheduler.threads[t];
+    for(int t=0; t <= Scheduler.getThreadHighWatermark(); t++) {
+      RVMThread thread = Scheduler.threads[t];
       if (thread != null) {
         int current = thread.getCollectionAttempt();
         if (current > max) max = current;
       }
     }
-    return max + VM_CollectorThread.collectionAttemptBase;
+    return max + CollectorThread.collectionAttemptBase;
   }
 
   /**
    * Report that the the physical allocation has succeeded.
    */
   public void reportAllocationSuccess() {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     myThread.clearOutOfMemoryError();
     myThread.resetCollectionAttempts();
     myThread.clearPhysicalAllocationFailed();
@@ -179,7 +178,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Report that a physical allocation has failed.
    */
   public void reportPhysicalAllocationFailed() {
-    VM_Scheduler.getCurrentThread().setPhysicalAllocationFailed();
+    Scheduler.getCurrentThread().setPhysicalAllocationFailed();
   }
 
   /**
@@ -187,7 +186,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * heap size rules can be ignored.
    */
   public boolean isEmergencyAllocation() {
-    return VM_Scheduler.getCurrentThread().emergencyAllocation();
+    return Scheduler.getCurrentThread().emergencyAllocation();
   }
 
   /**
@@ -203,7 +202,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
         VM.sysWrite("[Async GC]");
       }
     }
-    VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake, why);
+    CollectorThread.asyncCollect(CollectorThread.handshake, why);
   }
 
   /**
@@ -216,7 +215,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   @Uninterruptible
   public final boolean noThreadsInGC() {
-    return VM_CollectorThread.noThreadsInGC();
+    return CollectorThread.noThreadsInGC();
   }
 
   /**
@@ -229,9 +228,9 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
      */
-    VM_Processor vp = ((Selected.Mutator) m).getProcessor();
+    Processor vp = ((Selected.Mutator) m).getProcessor();
     int vpStatus = vp.vpStatus;
-    if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
+    if (vpStatus == Processor.BLOCKED_IN_NATIVE) {
 
       /* processor & its running thread are blocked in C for this GC.
        Its stack needs to be scanned, starting from the "top" java
@@ -249,21 +248,21 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * @param c the collector to prepare
    */
   public final void prepareCollector(CollectorContext c) {
-    VM_Processor vp = ((Selected.Collector) c).getProcessor();
+    Processor vp = ((Selected.Collector) c).getProcessor();
     int vpStatus = vp.vpStatus;
-    if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
-    RVMThread t = VM_Scheduler.getCurrentThread();
-    Address fp = VM_Magic.getFramePointer();
+    if (VM.VerifyAssertions) VM._assert(vpStatus != Processor.BLOCKED_IN_NATIVE);
+    RVMThread t = Scheduler.getCurrentThread();
+    Address fp = Magic.getFramePointer();
     while (true) {
-      Address caller_ip = VM_Magic.getReturnAddress(fp);
-      Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP))
-        VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
-      int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
-      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+      Address caller_ip = Magic.getReturnAddress(fp);
+      Address caller_fp = Magic.getCallerFramePointer(fp);
+      if (Magic.getCallerFramePointer(caller_fp).EQ(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP))
+        VM.sysFail("prepareMutator (participating): Could not locate CollectorThread.run");
+      int compiledMethodId = Magic.getCompiledMethodID(caller_fp);
+      CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
       RVMMethod method = compiledMethod.getMethod();
-      VM_Atom cls = method.getDeclaringClass().getDescriptor();
-      VM_Atom name = method.getName();
+      Atom cls = method.getDeclaringClass().getDescriptor();
+      Atom name = method.getName();
       if (name == runAtom && cls == collectorThreadAtom) {
         t.contextRegisters.setInnermost(caller_ip, caller_fp);
         break;
@@ -277,12 +276,12 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * (that is, the order this processor arrived at the barrier).
    */
   public final int rendezvous(int where) {
-    return VM_CollectorThread.gcBarrier.rendezvous(where);
+    return CollectorThread.gcBarrier.rendezvous(where);
   }
 
   /** @return The number of active collector threads */
   public final int activeGCThreads() {
-    return VM_CollectorThread.numCollectors();
+    return CollectorThread.numCollectors();
   }
 
   /**
@@ -290,7 +289,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * the set of active collector threads (zero based)
    */
   public final int activeGCThreadOrdinal() {
-    return VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getGCOrdinal() - VM_CollectorThread.GC_ORDINAL_BASE;
+    return Magic.threadAsCollectorThread(Scheduler.getCurrentThread()).getGCOrdinal() - CollectorThread.GC_ORDINAL_BASE;
   }
 
   /**
@@ -306,7 +305,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * flushed.
    */
   public void requestMutatorFlush() {
-    VM_Scheduler.requestMutatorFlush();
+    Scheduler.requestMutatorFlush();
   }
 
   /**
@@ -315,7 +314,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   @Inline
   public boolean yieldpoint() {
-    if (VM_Processor.getCurrentProcessor().takeYieldpoint != 0) {
+    if (Processor.getCurrentProcessor().takeYieldpoint != 0) {
       RVMThread.yieldpointFromBackedge();
       return true;
     }
@@ -337,7 +336,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   public static void scheduleFinalizerThread() {
     int finalizedCount = Finalizer.countToBeFinalized();
     if (finalizedCount > 0) {
-      VM_Scheduler.scheduleFinalizer();
+      Scheduler.scheduleFinalizer();
     }
   }
 
@@ -345,6 +344,6 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Schedule the concurrent collector threads.
    */
   public static void scheduleConcurrentThreads() {
-    VM_Scheduler.scheduleConcurrentCollectorThreads();
+    Scheduler.scheduleConcurrentCollectorThreads();
   }
 }

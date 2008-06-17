@@ -12,5 +12,5 @@
 #
 [Lorg/jikesrvm/ppc/Code;
 [Lorg/jikesrvm/ppc/CodeArray;
-[Lorg/jikesrvm/ppc/VM_OpcodeXX;
-[Lorg/jikesrvm/ppc/VM_OpcodeTab;
+[Lorg/jikesrvm/ppc/OpcodeXX;
+[Lorg/jikesrvm/ppc/OpcodeTab;

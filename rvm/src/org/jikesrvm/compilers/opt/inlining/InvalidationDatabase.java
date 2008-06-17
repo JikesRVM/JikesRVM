@@ -72,7 +72,7 @@ public final class InvalidationDatabase {
 
   /**
    * Record that if a particular RVMMethod method is ever overridden, then
-   * the VM_CompiledMethod encoded by the cmid must be invalidated.
+   * the CompiledMethod encoded by the cmid must be invalidated.
    */
   public void addNotOverriddenDependency(RVMMethod source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
@@ -101,7 +101,7 @@ public final class InvalidationDatabase {
   // (2) Dependency on a particular RVMClass not having any subclasses.
   /////////////////////
   /**
-   * Return an iteration of CMID's of VM_CompiledMethods that are dependent
+   * Return an iteration of CMID's of CompiledMethods that are dependent
    * on the argument RVMClass not having any subclasses.
    * return null if no dependent methods.
    *
@@ -115,7 +115,7 @@ public final class InvalidationDatabase {
 
   /**
    * Record that if a particular RVMClass ever has a subclass, then
-   * the VM_CompiledMethod encoded by the cmid must be invalidated.
+   * the CompiledMethod encoded by the cmid must be invalidated.
    */
   public void addNoSubclassDependency(RVMClass source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(noSubclassHash, source);

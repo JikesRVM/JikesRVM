@@ -15,12 +15,12 @@ package org.jikesrvm.classloader;
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.Constants;
+import org.jikesrvm.SizeConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NonMoving;
@@ -34,13 +34,13 @@ import org.vmmagic.unboxed.Offset;
  * To the three kinds of java objects
  * (class-instances, array-instances, primitive-instances)
  * there are three corresponding
- * subclasses of RVMType: RVMClass, RVMArray, VM_Primitive.
+ * subclasses of RVMType: RVMClass, RVMArray, Primitive.
  * <p>
  * A RVMClass is constructed in four phases:
  * <ul>
  * <li> A "load" phase reads the ".class" file but does not attempt to
  *      examine any of the symbolic references present there. This is done
- *      by the RVMClass constructor as a result of a VM_TypeReference being
+ *      by the RVMClass constructor as a result of a TypeReference being
  *      resolved.
  *
  * <li> A "resolve" phase follows symbolic references as needed to discover
@@ -55,13 +55,13 @@ import org.vmmagic.unboxed.Offset;
  *
  * RVMArray's are constructed in a similar fashion.
  *
- * VM_Primitive's are constructed ab initio.
+ * Primitive's are constructed ab initio.
  * Their "resolution", "instantiation", and "initialization" phases
  * are no-ops.
  */
 @NonMoving
-public abstract class RVMType extends VM_AnnotatedElement
-    implements VM_ClassLoaderConstants, VM_SizeConstants, VM_Constants {
+public abstract class RVMType extends AnnotatedElement
+    implements ClassLoaderConstants, SizeConstants, Constants {
 
   /** Next space in the the type array */
   private static int nextId = 1;
@@ -87,15 +87,15 @@ public abstract class RVMType extends VM_AnnotatedElement
   /*
    * We hold on to a number of special types here for easy access.
    */
-  public static final VM_Primitive VoidType;
-  public static final VM_Primitive BooleanType;
-  public static final VM_Primitive ByteType;
-  public static final VM_Primitive ShortType;
-  public static final VM_Primitive IntType;
-  public static final VM_Primitive LongType;
-  public static final VM_Primitive FloatType;
-  public static final VM_Primitive DoubleType;
-  public static final VM_Primitive CharType;
+  public static final Primitive VoidType;
+  public static final Primitive BooleanType;
+  public static final Primitive ByteType;
+  public static final Primitive ShortType;
+  public static final Primitive IntType;
+  public static final Primitive LongType;
+  public static final Primitive FloatType;
+  public static final Primitive DoubleType;
+  public static final Primitive CharType;
   public static final RVMClass JavaLangObjectType;
   public static final RVMArray JavaLangObjectArrayType;
   public static final RVMClass JavaLangClassType;
@@ -104,17 +104,17 @@ public abstract class RVMType extends VM_AnnotatedElement
   public static final RVMClass JavaLangCloneableType;
   public static final RVMClass JavaIoSerializableType;
   public static final RVMClass MagicType;
-  public static final VM_Primitive WordType;
+  public static final Primitive WordType;
   public static final RVMArray WordArrayType;
-  public static final VM_Primitive AddressType;
+  public static final Primitive AddressType;
   public static final RVMArray AddressArrayType;
   public static final RVMClass ObjectReferenceType;
   public static final RVMArray ObjectReferenceArrayType;
-  public static final VM_Primitive OffsetType;
+  public static final Primitive OffsetType;
   public static final RVMArray OffsetArrayType;
-  public static final VM_Primitive ExtentType;
+  public static final Primitive ExtentType;
   public static final RVMArray ExtentArrayType;
-  public static final VM_Primitive CodeType;
+  public static final Primitive CodeType;
   public static final RVMArray CodeArrayType;
   public static final RVMClass TIBType;
   public static final RVMClass ITableType;
@@ -125,52 +125,52 @@ public abstract class RVMType extends VM_AnnotatedElement
 
   static {
     // Primitive types
-    VoidType = VM_TypeReference.Void.resolve().asPrimitive();
-    BooleanType = VM_TypeReference.Boolean.resolve().asPrimitive();
-    ByteType = VM_TypeReference.Byte.resolve().asPrimitive();
-    ShortType = VM_TypeReference.Short.resolve().asPrimitive();
-    IntType = VM_TypeReference.Int.resolve().asPrimitive();
-    LongType = VM_TypeReference.Long.resolve().asPrimitive();
-    FloatType = VM_TypeReference.Float.resolve().asPrimitive();
-    DoubleType = VM_TypeReference.Double.resolve().asPrimitive();
-    CharType = VM_TypeReference.Char.resolve().asPrimitive();
+    VoidType = TypeReference.Void.resolve().asPrimitive();
+    BooleanType = TypeReference.Boolean.resolve().asPrimitive();
+    ByteType = TypeReference.Byte.resolve().asPrimitive();
+    ShortType = TypeReference.Short.resolve().asPrimitive();
+    IntType = TypeReference.Int.resolve().asPrimitive();
+    LongType = TypeReference.Long.resolve().asPrimitive();
+    FloatType = TypeReference.Float.resolve().asPrimitive();
+    DoubleType = TypeReference.Double.resolve().asPrimitive();
+    CharType = TypeReference.Char.resolve().asPrimitive();
     // Jikes RVM primitives
-    AddressType = VM_TypeReference.Address.resolve().asPrimitive();
-    WordType = VM_TypeReference.Word.resolve().asPrimitive();
-    OffsetType = VM_TypeReference.Offset.resolve().asPrimitive();
-    ExtentType = VM_TypeReference.Extent.resolve().asPrimitive();
-    CodeType = VM_TypeReference.Code.resolve().asPrimitive();
-    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
+    AddressType = TypeReference.Address.resolve().asPrimitive();
+    WordType = TypeReference.Word.resolve().asPrimitive();
+    OffsetType = TypeReference.Offset.resolve().asPrimitive();
+    ExtentType = TypeReference.Extent.resolve().asPrimitive();
+    CodeType = TypeReference.Code.resolve().asPrimitive();
+    ObjectReferenceType = TypeReference.ObjectReference.resolve().asClass();
     // Jikes RVM classes
-    MagicType = VM_TypeReference.Magic.resolve().asClass();
+    MagicType = TypeReference.Magic.resolve().asClass();
     // Array types
-    CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
-    WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
-    AddressArrayType = VM_TypeReference.AddressArray.resolve().asArray();
-    ObjectReferenceArrayType = VM_TypeReference.ObjectReferenceArray.resolve().asArray();
-    OffsetArrayType = VM_TypeReference.OffsetArray.resolve().asArray();
-    ExtentArrayType = VM_TypeReference.ExtentArray.resolve().asArray();
+    CodeArrayType = TypeReference.CodeArray.resolve().asArray();
+    WordArrayType = TypeReference.WordArray.resolve().asArray();
+    AddressArrayType = TypeReference.AddressArray.resolve().asArray();
+    ObjectReferenceArrayType = TypeReference.ObjectReferenceArray.resolve().asArray();
+    OffsetArrayType = TypeReference.OffsetArray.resolve().asArray();
+    ExtentArrayType = TypeReference.ExtentArray.resolve().asArray();
     // Runtime Tables
-    TIBType = VM_TypeReference.TIB.resolve().asClass();
-    ITableType = VM_TypeReference.ITable.resolve().asClass();
-    ITableArrayType = VM_TypeReference.ITableArray.resolve().asClass();
-    IMTType = VM_TypeReference.IMT.resolve().asClass();
-    ProcessorTableType = VM_TypeReference.ProcessorTable.resolve().asClass();
-    FunctionTableType = VM_TypeReference.FunctionTable.resolve().asClass();
+    TIBType = TypeReference.TIB.resolve().asClass();
+    ITableType = TypeReference.ITable.resolve().asClass();
+    ITableArrayType = TypeReference.ITableArray.resolve().asClass();
+    IMTType = TypeReference.IMT.resolve().asClass();
+    ProcessorTableType = TypeReference.ProcessorTable.resolve().asClass();
+    FunctionTableType = TypeReference.FunctionTable.resolve().asClass();
     // Java clases
-    JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve().asClass();
-    JavaLangObjectArrayType = VM_TypeReference.JavaLangObjectArray.resolve().asArray();
-    JavaLangClassType = VM_TypeReference.JavaLangClass.resolve().asClass();
-    JavaLangThrowableType = VM_TypeReference.JavaLangThrowable.resolve().asClass();
-    JavaLangStringType = VM_TypeReference.JavaLangString.resolve().asClass();
-    JavaLangCloneableType = VM_TypeReference.JavaLangCloneable.resolve().asClass();
-    JavaIoSerializableType = VM_TypeReference.JavaIoSerializable.resolve().asClass();
+    JavaLangObjectType = TypeReference.JavaLangObject.resolve().asClass();
+    JavaLangObjectArrayType = TypeReference.JavaLangObjectArray.resolve().asArray();
+    JavaLangClassType = TypeReference.JavaLangClass.resolve().asClass();
+    JavaLangThrowableType = TypeReference.JavaLangThrowable.resolve().asClass();
+    JavaLangStringType = TypeReference.JavaLangString.resolve().asClass();
+    JavaLangCloneableType = TypeReference.JavaLangCloneable.resolve().asClass();
+    JavaIoSerializableType = TypeReference.JavaIoSerializable.resolve().asClass();
   }
 
   /**
    * Canonical type reference for this RVMType instance
    */
-  protected final VM_TypeReference typeRef;
+  protected final TypeReference typeRef;
 
   /**
    * Type id -- used to index into typechecking datastructures
@@ -190,7 +190,7 @@ public abstract class RVMType extends VM_AnnotatedElement
 
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
-   * classes. NB this field must appear in all VM_Types for fast type
+   * classes. NB this field must appear in all Types for fast type
    * checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
    */
   @Entrypoint
@@ -198,7 +198,7 @@ public abstract class RVMType extends VM_AnnotatedElement
   /**
    * Number of superclasses to Object. Known immediately for
    * primitives and arrays, but only after resolving for classes. NB
-   * this field must appear in all VM_Types for fast object array
+   * this field must appear in all Types for fast object array
    * store checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
    */
   @Entrypoint
@@ -226,18 +226,18 @@ public abstract class RVMType extends VM_AnnotatedElement
    * @param dimension The dimensionality
    * @param annotations array of runtime visible annotations
    */
-  protected RVMType(VM_TypeReference typeRef, Class<?> classForType, int dimension, RVMAnnotation[] annotations) {
+  protected RVMType(TypeReference typeRef, Class<?> classForType, int dimension, RVMAnnotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
-    this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
+    this.tibOffset = Statics.allocateReferenceSlot(false).toInt();
     this.id = nextId(this);
     this.classForType = classForType;
     this.dimension = dimension;
 
     /* install partial type information block (no method dispatch table) for use in type checking. */
-    VM_TIB tib = MM_Interface.newTIB(0);
+    TIB tib = MM_Interface.newTIB(0);
     tib.setType(this);
-    VM_Statics.setSlotContents(getTibOffset(), tib);
+    Statics.setSlotContents(getTibOffset(), tib);
   }
 
   /**
@@ -246,25 +246,25 @@ public abstract class RVMType extends VM_AnnotatedElement
    * @param dimension The dimensionality
    * @param annotations array of runtime visible annotations
    */
-  protected RVMType(VM_TypeReference typeRef, int dimension, RVMAnnotation[] annotations) {
+  protected RVMType(TypeReference typeRef, int dimension, RVMAnnotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
-    this.tibOffset = VM_Statics.allocateReferenceSlot(false).toInt();
+    this.tibOffset = Statics.allocateReferenceSlot(false).toInt();
     this.id = nextId(this);
     this.classForType = createClassForType(this, typeRef);
     this.dimension = dimension;
 
     /* install partial type information block (no method dispatch table) for use in type checking. */
-    VM_TIB tib = MM_Interface.newTIB(0);
+    TIB tib = MM_Interface.newTIB(0);
     tib.setType(this);
-    VM_Statics.setSlotContents(getTibOffset(), tib);
+    Statics.setSlotContents(getTibOffset(), tib);
   }
 
   /**
    * Canonical type reference for this type.
    */
   @Uninterruptible
-  public final VM_TypeReference getTypeRef() {
+  public final TypeReference getTypeRef() {
     return typeRef;
   }
 
@@ -324,7 +324,7 @@ public abstract class RVMType extends VM_AnnotatedElement
    * For a primitive, something like "I".
    */
   @Uninterruptible
-  public final VM_Atom getDescriptor() {
+  public final Atom getDescriptor() {
     return typeRef.getName();
   }
 
@@ -339,7 +339,7 @@ public abstract class RVMType extends VM_AnnotatedElement
 
   /**
    * get number of superclasses to Object
-   *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
+   *   0 java.lang.Object, Primitive, and Classes that are interfaces
    *   1 for RVMArrays and classes that extend Object directly
    */
   @Uninterruptible
@@ -375,11 +375,11 @@ public abstract class RVMType extends VM_AnnotatedElement
   }
 
   /**
-   * @return this cast to a VM_Primitive
+   * @return this cast to a Primitive
    */
   @Uninterruptible
-  public final VM_Primitive asPrimitive() {
-    return (VM_Primitive) this;
+  public final Primitive asPrimitive() {
+    return (Primitive) this;
   }
 
   // Convenience methods.
@@ -470,7 +470,7 @@ public abstract class RVMType extends VM_AnnotatedElement
    */
   public final RVMArray getArrayTypeForElementType() {
     if (cachedElementType == null) {
-      VM_TypeReference tr = typeRef.getArrayTypeForElementType();
+      TypeReference tr = typeRef.getArrayTypeForElementType();
       cachedElementType = tr.resolve().asArray();
       /*  Can't fail to resolve the type, because the element type already
           exists (it is 'this') and the VM creates array types itself without
@@ -480,7 +480,7 @@ public abstract class RVMType extends VM_AnnotatedElement
   }
 
   /**
-   * get superclass id vector (@see VM_DynamicTypeCheck)
+   * get superclass id vector (@see DynamicTypeCheck)
    */
   @Uninterruptible
   public final short[] getSuperclassIds() {
@@ -488,7 +488,7 @@ public abstract class RVMType extends VM_AnnotatedElement
   }
 
   /**
-   * get doesImplement vector (@see VM_DynamicTypeCheck)
+   * get doesImplement vector (@see DynamicTypeCheck)
    */
   @Uninterruptible
   public final int[] getDoesImplement() {
@@ -535,13 +535,13 @@ public abstract class RVMType extends VM_AnnotatedElement
    * Utility to create a java.lang.Class for the given type using the
    * given type reference
    */
-  protected static Class<?> createClassForType(RVMType type, VM_TypeReference typeRef) {
+  protected static Class<?> createClassForType(RVMType type, TypeReference typeRef) {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.createClass(type);
     } else {
       Exception x;
       try {
-        VM_Atom className = typeRef.getName();
+        Atom className = typeRef.getName();
         if (className.isAnnotationClass()) {
           return Class.forName(className.annotationClassToAnnotationInterface(), false, RVMType.class.getClassLoader());
         } else if (className.isClassDescriptor()) {
@@ -592,7 +592,7 @@ public abstract class RVMType extends VM_AnnotatedElement
    * @param memberDescriptor method descriptor - something like "I" or "()I"
    * @return method description (null --> not found)
    */
-  public final RVMMethod findVirtualMethod(VM_Atom memberName, VM_Atom memberDescriptor) {
+  public final RVMMethod findVirtualMethod(Atom memberName, Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     RVMMethod[] methods = getVirtualMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
@@ -610,12 +610,12 @@ public abstract class RVMType extends VM_AnnotatedElement
    * @return the method at that slot
    */
   public final RVMMethod getTIBMethodAtSlot(int slot) {
-    int index = VM_TIB.getVirtualMethodIndex(slot);
+    int index = TIB.getVirtualMethodIndex(slot);
     RVMMethod[] methods = getVirtualMethods();
     if (VM.VerifyAssertions) VM._assert(methods[index].getOffset().toInt() == slot << LOG_BYTES_IN_ADDRESS);
     return methods[index];
   }
-  // Methods implemented in VM_Primitive, RVMArray or RVMClass
+  // Methods implemented in Primitive, RVMArray or RVMClass
 
   /**
    * Get the annotation implementing the specified class or null during boot
@@ -781,7 +781,7 @@ public abstract class RVMType extends VM_AnnotatedElement
    * Runtime type information for this class/array type.
    */
   @Uninterruptible
-  public abstract VM_TIB getTypeInformationBlock();
+  public abstract TIB getTypeInformationBlock();
 
   /**
    * Set the specialized method for a class or array.
@@ -809,7 +809,7 @@ public abstract class RVMType extends VM_AnnotatedElement
    * This returns the allocator id as supplied by the memory manager.
    * The method is located here as this is the only common superclass of RVMArray
    * and RVMClass, and due to performance reasons this needs to be a non-abstract
-   * method. For VM_Primitive this field is unused.
+   * method. For Primitive this field is unused.
    *
    * @return the allocator id previously recorded.
    */

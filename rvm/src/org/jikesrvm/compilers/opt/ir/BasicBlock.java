@@ -30,7 +30,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcod
 import java.util.HashSet;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
@@ -41,7 +41,7 @@ import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.util.SortedGraphNode;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.pragma.NoInline;
 
 /**
@@ -417,7 +417,7 @@ public class BasicBlock extends SortedGraphNode {
 
   /**
    * Has the block been marked as being unsafe to schedule
-   * (due to the presence of VM_Magic)?
+   * (due to the presence of Magic)?
    *
    * @return <code>true</code> if the block is marked as unsafe
    *         to schedule or <code>false</code> if it is not
@@ -823,7 +823,7 @@ public class BasicBlock extends SortedGraphNode {
     } else if (Call.conforms(s)) {
       mop = Call.getMethod(s);
     }
-    return mop != null && mop.getTarget() == VM_Entrypoints.athrowMethod;
+    return mop != null && mop.getTarget() == Entrypoints.athrowMethod;
   }
 
   /**
@@ -1062,26 +1062,26 @@ public class BasicBlock extends SortedGraphNode {
       ComputedBBEnum e = new ComputedBBEnum(numPossible);
       switch (instr.getOpcode()) {
         case ATHROW_opcode:
-          VM_TypeReference type = Athrow.getValue(instr).getType();
+          TypeReference type = Athrow.getValue(instr).getType();
           addTargets(e, type);
           break;
         case CHECKCAST_opcode:
         case CHECKCAST_NOTNULL_opcode:
         case CHECKCAST_UNRESOLVED_opcode:
-          addTargets(e, VM_TypeReference.JavaLangClassCastException);
+          addTargets(e, TypeReference.JavaLangClassCastException);
           break;
         case NULL_CHECK_opcode:
-          addTargets(e, VM_TypeReference.JavaLangNullPointerException);
+          addTargets(e, TypeReference.JavaLangNullPointerException);
           break;
         case BOUNDS_CHECK_opcode:
-          addTargets(e, VM_TypeReference.JavaLangArrayIndexOutOfBoundsException);
+          addTargets(e, TypeReference.JavaLangArrayIndexOutOfBoundsException);
           break;
         case INT_ZERO_CHECK_opcode:
         case LONG_ZERO_CHECK_opcode:
-          addTargets(e, VM_TypeReference.JavaLangArithmeticException);
+          addTargets(e, TypeReference.JavaLangArithmeticException);
           break;
         case OBJARRAY_STORE_CHECK_opcode:
-          addTargets(e, VM_TypeReference.JavaLangArrayStoreException);
+          addTargets(e, TypeReference.JavaLangArrayStoreException);
           break;
         default:
           // Not an operator for which we have a more refined notion of
@@ -1098,7 +1098,7 @@ public class BasicBlock extends SortedGraphNode {
   // add all handler blocks in this's out set that might possibly catch
   // an exception of static type throwException
   // (may dynamically be any subtype of thrownException)
-  private void addTargets(ComputedBBEnum e, VM_TypeReference thrownException) {
+  private void addTargets(ComputedBBEnum e, TypeReference thrownException) {
     for (SpaceEffGraphEdge ed = _outEdgeStart; ed != null; ed = ed.getNextOut()) {
       BasicBlock bb = (BasicBlock) ed.toNode();
       if (bb.isExceptionHandlerBasicBlock()) {

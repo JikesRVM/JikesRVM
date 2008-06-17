@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.liveness;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
@@ -71,7 +71,7 @@ final class LiveSetElement {
    * Returns the register type associated with this element
    * @return the register type associated with this element
    */
-  public VM_TypeReference getRegisterType() {
+  public TypeReference getRegisterType() {
     return regOp.getType();
   }
 

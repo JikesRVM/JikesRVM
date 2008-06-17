@@ -20,8 +20,8 @@ import java.util.Iterator;
 import java.util.Set;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
@@ -902,7 +902,7 @@ public final class SSADictionary {
    */
   private void getFieldHelper(Instruction s, BasicBlock b) {
     LocationOperand locOp = GetField.getLocation(s);
-    VM_FieldReference field = locOp.getFieldRef();
+    FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     if (uphi) {
       registerDef(s, b, field);
@@ -919,7 +919,7 @@ public final class SSADictionary {
    */
   private void putFieldHelper(Instruction s, BasicBlock b) {
     LocationOperand locOp = PutField.getLocation(s);
-    VM_FieldReference field = locOp.getFieldRef();
+    FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     registerDef(s, b, field);
   }
@@ -935,7 +935,7 @@ public final class SSADictionary {
    */
   private void getStaticHelper(Instruction s, BasicBlock b) {
     LocationOperand locOp = GetStatic.getLocation(s);
-    VM_FieldReference field = locOp.getFieldRef();
+    FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     if (uphi) {
       registerDef(s, b, field);
@@ -952,7 +952,7 @@ public final class SSADictionary {
    */
   private void putStaticHelper(Instruction s, BasicBlock b) {
     LocationOperand locOp = PutStatic.getLocation(s);
-    VM_FieldReference field = locOp.getFieldRef();
+    FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     registerDef(s, b, field);
   }
@@ -1011,13 +1011,13 @@ public final class SSADictionary {
    */
   private void aloadHelper(Instruction s, BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_TypeReference type = ALoad.getArray(s).getType();
+    TypeReference type = ALoad.getArray(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) {
       if (!type.getArrayElementType().isPrimitiveType()) {
-        type = VM_TypeReference.JavaLangObjectArray;
+        type = TypeReference.JavaLangObjectArray;
       }
       registerUse(s, type);
       if (uphi) {
@@ -1036,13 +1036,13 @@ public final class SSADictionary {
    */
   private void astoreHelper(Instruction s, BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_TypeReference type = AStore.getArray(s).getType();
+    TypeReference type = AStore.getArray(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) {
       if (!type.getArrayElementType().isPrimitiveType()) {
-        type = VM_TypeReference.JavaLangObjectArray;
+        type = TypeReference.JavaLangObjectArray;
       }
       registerUse(s, type);
       registerDef(s, b, type);
@@ -1058,13 +1058,13 @@ public final class SSADictionary {
    */
   private void arraylengthHelper(Instruction s, BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_TypeReference type = GuardedUnary.getVal(s).getType();
+    TypeReference type = GuardedUnary.getVal(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter it out now  -- Feng
     if (type.isArrayType()) {
       if (!type.getArrayElementType().isPrimitiveType()) {
-        type = VM_TypeReference.JavaLangObjectArray;
+        type = TypeReference.JavaLangObjectArray;
       }
       registerUse(s, type);
     }
@@ -1156,7 +1156,7 @@ public final class SSADictionary {
    * @param s the instruction in question
    * @param t the type of the heap variable the instruction uses
    */
-  private void registerUse(Instruction s, VM_TypeReference t) {
+  private void registerUse(Instruction s, TypeReference t) {
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1180,7 +1180,7 @@ public final class SSADictionary {
    * @param b s's basic block
    * @param t the type of the heap variable the instruction modifies
    */
-  private void registerDef(Instruction s, BasicBlock b, VM_TypeReference t) {
+  private void registerDef(Instruction s, BasicBlock b, TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
@@ -1205,7 +1205,7 @@ public final class SSADictionary {
    * @param s the instruction in question
    * @param fr the field heap variable the instruction uses
    */
-  private void registerUse(Instruction s, VM_FieldReference fr) {
+  private void registerUse(Instruction s, FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
@@ -1239,7 +1239,7 @@ public final class SSADictionary {
    * @param b  <code>s</code>'s basic block
    * @param fr the field heap variable the instruction modifies
    */
-  private void registerDef(Instruction s, BasicBlock b, VM_FieldReference fr) {
+  private void registerDef(Instruction s, BasicBlock b, FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
@@ -1376,7 +1376,7 @@ public final class SSADictionary {
    * If no heap variable yet exits for this type or field, create a new
    * one.
    *
-   * @param type the <code> VM_TypeReference </code> or <code> RVMField </code>
+   * @param type the <code> TypeReference </code> or <code> RVMField </code>
    * identifying the desired heap variable
    * @return the desired heap variable
    */
@@ -1408,7 +1408,7 @@ public final class SSADictionary {
    * Get the next number to be assigned to a new heap variable
    * for a given type or field.
    *
-   * @param type the <code> VM_TypeReference </code> or <code> RVMField </code>
+   * @param type the <code> TypeReference </code> or <code> RVMField </code>
    * identifying the heap variable
    * @return the next integer (monotonically increasing) to identify a new
    * name for this heap variable
@@ -1472,7 +1472,7 @@ public final class SSADictionary {
      *
      * @param     number the number, a unique integer from SSA renaming
      * @param     type   the type (a <code> RVMField </code> or <code>
-     * VM_TypeReference </code>
+     * TypeReference </code>
      */
     HeapKey(int number, T type) {
       this.number = number;

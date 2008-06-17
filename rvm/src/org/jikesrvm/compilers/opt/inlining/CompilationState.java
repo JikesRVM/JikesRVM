@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.inlining;
 
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -31,7 +31,7 @@ public final class CompilationState {
   private final Instruction call;
   private final boolean isExtant;
   private final OptOptions options;
-  private final VM_CompiledMethod cm;
+  private final CompiledMethod cm;
 
   /*
    * Interface
@@ -43,7 +43,7 @@ public final class CompilationState {
    * @param options controlling compiler options
    * @param cm compiled method of the IR object being compiled
    */
-  public CompilationState(Instruction call, boolean isExtant, OptOptions options, VM_CompiledMethod cm) {
+  public CompilationState(Instruction call, boolean isExtant, OptOptions options, CompiledMethod cm) {
     this.call = call;
     this.isExtant = isExtant;
     this.options = options;
@@ -106,14 +106,14 @@ public final class CompilationState {
   /**
    * Return the root method of the compilation
    */
-  public VM_NormalMethod getRootMethod() {
+  public NormalMethod getRootMethod() {
     return call.position.getRootMethod();
   }
 
   /**
    * Return the method being compiled
    */
-  public VM_NormalMethod getMethod() {
+  public NormalMethod getMethod() {
     return call.position.getMethod();
   }
 
@@ -134,7 +134,7 @@ public final class CompilationState {
   /**
    * Return the compiled method
    */
-  public VM_CompiledMethod getCompiledMethod() {
+  public CompiledMethod getCompiledMethod() {
     return cm;
   }
 }

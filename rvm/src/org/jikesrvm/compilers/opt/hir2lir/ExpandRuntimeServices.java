@@ -38,10 +38,10 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
@@ -72,8 +72,8 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.runtime.Entrypoints;
 
 /**
  * As part of the expansion of HIR into LIR, this compile phase
@@ -81,7 +81,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * VM service routines with CALLs to those routines.
  * For some (common and performance critical) operators, we
  * may optionally inline expand the call (depending on the
- * the values of the relevant compiler options and/or VM_Controls).
+ * the values of the relevant compiler options and/or Controls).
  * This pass is also responsible for inserting write barriers
  * if we are using an allocator that requires them. Write barriers
  * are always inline expanded.
@@ -139,17 +139,17 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           IntConstantOperand hasFinalizer = IRTools.IC(cls.hasFinalizer() ? 1 : 0);
           RVMMethod callSite = inst.position.getMethod();
           IntConstantOperand allocator = IRTools.IC(MM_Interface.pickAllocator(cls, callSite));
-          IntConstantOperand align = IRTools.IC(VM_ObjectModel.getAlignment(cls));
-          IntConstantOperand offset = IRTools.IC(VM_ObjectModel.getOffsetForAlignment(cls));
+          IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(cls));
+          IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(cls));
           Operand tib = ConvertToLowLevelIR.getTIB(inst, ir, Type);
           if (VM.BuildForIA32 && VM.runningVM) {
             // shield BC2IR from address constants
-            RegisterOperand tmp = ir.regpool.makeTemp(VM_TypeReference.TIB);
+            RegisterOperand tmp = ir.regpool.makeTemp(TypeReference.TIB);
             inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
             tib = tmp.copyRO();
           }
           IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
-          RVMMethod target = VM_Entrypoints.resolvedNewScalarMethod;
+          RVMMethod target = Entrypoints.resolvedNewScalarMethod;
           Call.mutate7(inst,
                        CALL,
                        New.getClearResult(inst),
@@ -175,7 +175,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
         case NEW_UNRESOLVED_opcode: {
           int typeRefId = New.getType(inst).getTypeRef().getId();
-          RVMMethod target = VM_Entrypoints.unresolvedNewScalarMethod;
+          RVMMethod target = Entrypoints.unresolvedNewScalarMethod;
           IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
           Call.mutate2(inst,
                        CALL,
@@ -193,20 +193,20 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           Operand numberElements = NewArray.getClearSize(inst);
           boolean inline = numberElements instanceof IntConstantOperand;
           Operand width = IRTools.IC(array.getLogElementSize());
-          Operand headerSize = IRTools.IC(VM_ObjectModel.computeArrayHeaderSize(array));
+          Operand headerSize = IRTools.IC(ObjectModel.computeArrayHeaderSize(array));
           RVMMethod callSite = inst.position.getMethod();
           IntConstantOperand allocator = IRTools.IC(MM_Interface.pickAllocator(array, callSite));
-          IntConstantOperand align = IRTools.IC(VM_ObjectModel.getAlignment(array));
-          IntConstantOperand offset = IRTools.IC(VM_ObjectModel.getOffsetForAlignment(array));
+          IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(array));
+          IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(array));
           Operand tib = ConvertToLowLevelIR.getTIB(inst, ir, Array);
           if (VM.BuildForIA32 && VM.runningVM) {
             // shield BC2IR from address constants
-            RegisterOperand tmp = ir.regpool.makeTemp(VM_TypeReference.TIB);
+            RegisterOperand tmp = ir.regpool.makeTemp(TypeReference.TIB);
             inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
             tib = tmp.copyRO();
           }
           IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
-          RVMMethod target = VM_Entrypoints.resolvedNewArrayMethod;
+          RVMMethod target = Entrypoints.resolvedNewArrayMethod;
           Call.mutate8(inst,
                        CALL,
                        NewArray.getClearResult(inst),
@@ -234,7 +234,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         case NEWARRAY_UNRESOLVED_opcode: {
           int typeRefId = NewArray.getType(inst).getTypeRef().getId();
           Operand numberElements = NewArray.getClearSize(inst);
-          RVMMethod target = VM_Entrypoints.unresolvedNewArrayMethod;
+          RVMMethod target = Entrypoints.unresolvedNewArrayMethod;
           IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
           Call.mutate3(inst,
                        CALL,
@@ -252,7 +252,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           RVMMethod callSite = inst.position.getMethod();
           int typeRefId = Multianewarray.getType(inst).getTypeRef().getId();
           if (dimensions == 2) {
-            RVMMethod target = VM_Entrypoints.optNew2DArrayMethod;
+            RVMMethod target = Entrypoints.optNew2DArrayMethod;
             Call.mutate4(inst,
                          CALL,
                          Multianewarray.getClearResult(inst),
@@ -265,13 +265,13 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           } else {
             // Step 1: Create an int array to hold the dimensions.
             TypeOperand dimArrayType = new TypeOperand(RVMArray.IntArray);
-            RegisterOperand dimArray = ir.regpool.makeTemp(VM_TypeReference.IntArray);
+            RegisterOperand dimArray = ir.regpool.makeTemp(TypeReference.IntArray);
             dimArray.setPreciseType();
             next =  NewArray.create(NEWARRAY, dimArray, dimArrayType, new IntConstantOperand(dimensions));
             inst.insertBefore(next);
             // Step 2: Assign the dimension values to dimArray
             for (int i = 0; i < dimensions; i++) {
-              LocationOperand loc = new LocationOperand(VM_TypeReference.Int);
+              LocationOperand loc = new LocationOperand(TypeReference.Int);
               inst.insertBefore(AStore.create(INT_ASTORE,
                                 Multianewarray.getClearDimension(inst, i),
                                 dimArray.copyD2U(),
@@ -280,7 +280,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                 IRTools.TG()));
             }
             // Step 3. Plant call to OptLinker.newArrayArray
-            RVMMethod target = VM_Entrypoints.optNewArrayArrayMethod;
+            RVMMethod target = Entrypoints.optNewArrayArrayMethod;
             Call.mutate3(inst,
                          CALL,
                          Multianewarray.getClearResult(inst),
@@ -294,7 +294,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case ATHROW_opcode: {
-          RVMMethod target = VM_Entrypoints.athrowMethod;
+          RVMMethod target = Entrypoints.athrowMethod;
           MethodOperand methodOp = MethodOperand.STATIC(target);
           methodOp.setIsNonReturningCall(true);   // Record the fact that this is a non-returning call.
           Call.mutate1(inst, CALL, null, IRTools.AC(target.getOffset()), methodOp, Athrow.getClearValue(inst));
@@ -308,7 +308,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             Operand ref = MonitorOp.getClearRef(inst);
             RVMType refType = ref.getType().peekType();
             if (refType != null && !refType.getThinLockOffset().isMax()) {
-              RVMMethod target = VM_Entrypoints.inlineLockMethod;
+              RVMMethod target = Entrypoints.inlineLockMethod;
               Call.mutate2(inst,
                            CALL,
                            null,
@@ -323,7 +323,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                 inline(inst, ir);
               }
             } else {
-              RVMMethod target = VM_Entrypoints.lockMethod;
+              RVMMethod target = Entrypoints.lockMethod;
               Call.mutate1(inst,
                            CALL,
                            null,
@@ -343,7 +343,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             Operand ref = MonitorOp.getClearRef(inst);
             RVMType refType = ref.getType().peekType();
             if (refType != null && !refType.getThinLockOffset().isMax()) {
-              RVMMethod target = VM_Entrypoints.inlineUnlockMethod;
+              RVMMethod target = Entrypoints.inlineUnlockMethod;
               Call.mutate2(inst,
                            CALL,
                            null,
@@ -358,7 +358,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                 inline(inst, ir);
               }
             } else {
-              RVMMethod target = VM_Entrypoints.unlockMethod;
+              RVMMethod target = Entrypoints.unlockMethod;
               Call.mutate1(inst,
                            CALL,
                            null,
@@ -373,7 +373,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
         case REF_ASTORE_opcode: {
           if (MM_Constants.NEEDS_WRITE_BARRIER) {
-            RVMMethod target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
+            RVMMethod target = Entrypoints.arrayStoreWriteBarrierMethod;
             Instruction wb =
                 Call.create3(CALL,
                              null,
@@ -396,7 +396,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
         case REF_ALOAD_opcode: {
           if (MM_Constants.NEEDS_READ_BARRIER) {
-            RVMMethod target = VM_Entrypoints.arrayLoadReadBarrierMethod;
+            RVMMethod target = Entrypoints.arrayLoadReadBarrierMethod;
             Instruction rb =
               Call.create2(CALL,
                            ALoad.getClearResult(inst),
@@ -417,11 +417,11 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         case PUTFIELD_opcode: {
           if (MM_Constants.NEEDS_WRITE_BARRIER) {
             LocationOperand loc = PutField.getLocation(inst);
-            VM_FieldReference fieldRef = loc.getFieldRef();
+            FieldReference fieldRef = loc.getFieldRef();
             if (!fieldRef.getFieldContentsType().isPrimitiveType()) {
               RVMField field = fieldRef.peekResolvedField();
               if (field == null || !field.isUntraced()) {
-                RVMMethod target = VM_Entrypoints.putfieldWriteBarrierMethod;
+                RVMMethod target = Entrypoints.putfieldWriteBarrierMethod;
                 Instruction wb =
                     Call.create4(CALL,
                                  null,
@@ -448,11 +448,11 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         case GETFIELD_opcode: {
           if (MM_Constants.NEEDS_READ_BARRIER) {
             LocationOperand loc = GetField.getLocation(inst);
-            VM_FieldReference fieldRef = loc.getFieldRef();
+            FieldReference fieldRef = loc.getFieldRef();
             if (GetField.getResult(inst).getType().isReferenceType()) {
               RVMField field = fieldRef.peekResolvedField();
               if (field == null || !field.isUntraced()) {
-                RVMMethod target = VM_Entrypoints.getfieldReadBarrierMethod;
+                RVMMethod target = Entrypoints.getfieldReadBarrierMethod;
                 Instruction rb =
                   Call.create3(CALL,
                                GetField.getClearResult(inst),
@@ -476,9 +476,9 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         case PUTSTATIC_opcode: {
           if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
             LocationOperand loc = PutStatic.getLocation(inst);
-            VM_FieldReference field = loc.getFieldRef();
+            FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
-              RVMMethod target = VM_Entrypoints.putstaticWriteBarrierMethod;
+              RVMMethod target = Entrypoints.putstaticWriteBarrierMethod;
               Instruction wb =
                   Call.create3(CALL,
                                null,
@@ -502,9 +502,9 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         case GETSTATIC_opcode: {
           if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER) {
             LocationOperand loc = GetStatic.getLocation(inst);
-            VM_FieldReference field = loc.getFieldRef();
+            FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
-              RVMMethod target = VM_Entrypoints.getstaticReadBarrierMethod;
+              RVMMethod target = Entrypoints.getstaticReadBarrierMethod;
               Instruction rb =
                   Call.create2(CALL,
                                GetStatic.getClearResult(inst),

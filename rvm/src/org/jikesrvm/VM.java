@@ -12,41 +12,41 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.ArchitectureSpecific.VM_ProcessorLocalState;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.util.VM_CompilerAdvice;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.ArchitectureSpecific.ProcessorLocalState;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.util.CompilerAdvice;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMember;
-import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeDescriptorParsing;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
-import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
-import org.jikesrvm.compilers.common.VM_BootImageCompiler;
-import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import org.jikesrvm.classloader.TypeDescriptorParsing;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.baseline.BaselineCompiler;
+import org.jikesrvm.compilers.baseline.EdgeCounts;
+import org.jikesrvm.compilers.common.BootImageCompiler;
+import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_DynamicLibrary;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_ExitStatus;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.DynamicLibrary;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.ExitStatus;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.runtime.VM_SysCall;
+import org.jikesrvm.runtime.SysCall;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.scheduler.VM_Lock;
-import org.jikesrvm.scheduler.VM_MainThread;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Synchronization;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+import org.jikesrvm.scheduler.Lock;
+import org.jikesrvm.scheduler.MainThread;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
-import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.FileSystem;
+import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -64,12 +64,12 @@ import org.vmmagic.unboxed.Word;
  * A virtual machine.
  */
 @Uninterruptible
-public class VM extends Properties implements VM_Constants, VM_ExitStatus {
+public class VM extends Properties implements Constants, ExitStatus {
 
   /**
    * Reference to the main thread that is the first none VM thread run
    */
-  public static VM_MainThread mainThread;
+  public static MainThread mainThread;
 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
@@ -125,34 +125,34 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     writingBootImage = false;
     runningVM = true;
     runningAsSubsystem = false;
-    verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
+    verboseBoot = BootRecord.the_boot_record.verboseBoot;
 
-    sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
+    sysWriteLockOffset = Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
     // Register the offsets of static fields that would be potentially
     // erroneously calculated during interface declaration
     if (verboseBoot >= 1) VM.sysWriteln("Setting up static fields");
-    VM_SysCall.sysCall.sysRegisterStaticFieldOffsets(VM_Entrypoints.gcStatusField.getOffset().toInt(),
-        VM_Entrypoints.timerTicksField.getOffset().toInt(),
-        VM_Entrypoints.reportedTimerTicksField.getOffset().toInt());
+    SysCall.sysCall.sysRegisterStaticFieldOffsets(Entrypoints.gcStatusField.getOffset().toInt(),
+        Entrypoints.timerTicksField.getOffset().toInt(),
+        Entrypoints.reportedTimerTicksField.getOffset().toInt());
 
-    // Set up the current VM_Processor object.  The bootstrap program
-    // has placed a pointer to the current VM_Processor in a special
+    // Set up the current Processor object.  The bootstrap program
+    // has placed a pointer to the current Processor in a special
     // register.
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up current VM_Processor");
-    VM_ProcessorLocalState.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up current Processor");
+    ProcessorLocalState.boot();
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
     // because it's accessed by compiler-generated stack overflow checks.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
-    RVMThread currentThread = VM_Processor.getCurrentProcessor().activeThread;
-    currentThread.stackLimit = VM_Magic.objectAsAddress(
-        currentThread.getStack()).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
+    RVMThread currentThread = Processor.getCurrentProcessor().activeThread;
+    currentThread.stackLimit = Magic.objectAsAddress(
+        currentThread.getStack()).plus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
 
-    VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
+    Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
     finishBooting();
   }
@@ -169,37 +169,37 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     // get pthread_id from OS and store into vm_processor field
     //
     sysCall.sysPthreadSetupSignalHandling();
-    VM_Processor.getCurrentProcessor().pthread_id = sysCall.sysPthreadSelf();
+    Processor.getCurrentProcessor().pthread_id = sysCall.sysPthreadSelf();
 
-    // Set up buffer locks used by VM_Thread for logging and status dumping.
+    // Set up buffer locks used by Thread for logging and status dumping.
     //    This can happen at any point before we start running
     //    multi-threaded.
-    VM_Services.boot();
+    Services.boot();
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
     if (verboseBoot >= 1) {
       VM.sysWriteln("Setting up memory manager: bootrecord = ",
-                    VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
+                    Magic.objectAsAddress(BootRecord.the_boot_record));
     }
-    MM_Interface.boot(VM_BootRecord.the_boot_record);
+    MM_Interface.boot(BootRecord.the_boot_record);
 
     // Reset the options for the baseline compiler to avoid carrying
     // them over from bootimage writing time.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
-    VM_BaselineCompiler.initOptions();
+    BaselineCompiler.initOptions();
 
     // Fetch arguments from program command line.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
-    VM_CommandLineArgs.fetchCommandLineArguments();
+    CommandLineArgs.fetchCommandLineArguments();
 
     // Process most virtual machine command line arguments.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of command line");
-    VM_CommandLineArgs.earlyProcessCommandLineArguments();
+    CommandLineArgs.earlyProcessCommandLineArguments();
 
     // Allow Memory Manager to respond to its command line arguments
     //
@@ -208,10 +208,10 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
     // Initialize class loader.
     //
-    String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
+    String bootstrapClasses = CommandLineArgs.getBootstrapClasses();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader: ", bootstrapClasses);
     RVMClassLoader.boot();      // Wipe out cached application class loader
-    VM_BootstrapClassLoader.boot(bootstrapClasses);
+    BootstrapClassLoader.boot(bootstrapClasses);
 
     // Initialize statics that couldn't be placed in bootimage, either
     // because they refer to external state (open files), or because they
@@ -226,7 +226,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
     }
-    runClassInitializer("org.jikesrvm.classloader.VM_Atom$InternedStrings");
+    runClassInitializer("org.jikesrvm.classloader.Atom$InternedStrings");
 
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.classpath.SystemProperties");
@@ -238,9 +238,9 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("sun.misc.Unsafe");
 
     runClassInitializer("java.lang.Character");
-    runClassInitializer("org.jikesrvm.classloader.VM_TypeReferenceVector");
-    runClassInitializer("org.jikesrvm.classloader.VM_MethodVector");
-    runClassInitializer("org.jikesrvm.classloader.VM_FieldVector");
+    runClassInitializer("org.jikesrvm.classloader.TypeReferenceVector");
+    runClassInitializer("org.jikesrvm.classloader.MethodVector");
+    runClassInitializer("org.jikesrvm.classloader.FieldVector");
     // Turn off security checks; about to hit EncodingManager.
     // Commented out because we haven't incorporated this into the CVS head
     // yet.
@@ -249,7 +249,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
       runClassInitializer("java.lang.ThreadGroup");
     }
     /* We can safely allocate a java.lang.Thread now.  The boot
-       thread (running right now, as a VM_Thread) has to become a full-fledged
+       thread (running right now, as a Thread) has to become a full-fledged
        Thread, since we're about to encounter a security check:
 
        EncodingManager checks a system property,
@@ -258,7 +258,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
         which means that ThreadLocal.get() will be called,
         which calls Thread.getCurrentThread().
 
-        So the boot VM_Thread needs to be associated with a real Thread for
+        So the boot Thread needs to be associated with a real Thread for
         Thread.getCurrentThread() to return. */
     VM.safeToAllocateJavaThread = true;
 
@@ -273,24 +273,24 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     if (VM.BuildForHarmony) {
       runClassInitializer("java.security.AccessController");
     }
-    if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
-    VM_Lock.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Booting Lock");
+    Lock.boot();
 
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
-    VM_Scheduler.boot();
-    VM_DynamicLibrary.boot();
+    Scheduler.boot();
+    DynamicLibrary.boot();
 
     if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
-    VM_Scheduler.getCurrentThread().setupBootThread();
+    Scheduler.getCurrentThread().setupBootThread();
 
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
-    org.jikesrvm.jni.VM_JNIEnvironment.boot();
+    org.jikesrvm.jni.JNIEnvironment.boot();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
-    VM_Scheduler.getCurrentThread().initializeJNIEnv();
+    Scheduler.getCurrentThread().initializeJNIEnv();
 
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
@@ -303,7 +303,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
       runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     }
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
-    /* Needed for VM_ApplicationClassLoader, which in turn is needed by
+    /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.net.URLClassLoader");
@@ -383,7 +383,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
       runClassInitializer("java.lang.VMClassLoader");
     }
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
-    VM_FileSystem.initializeStandardStreams();
+    FileSystem.initializeStandardStreams();
 
     ///////////////////////////////////////////////////////////////
     // The VM is now fully booted.                               //
@@ -394,7 +394,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     // Inform interested subsystems that VM is fully booted.
     VM.fullyBooted = true;
     MM_Interface.fullyBootedVM();
-    VM_BaselineCompiler.fullyBootedVM();
+    BaselineCompiler.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
@@ -405,11 +405,11 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     // Initialize compiler that compiles dynamically loaded classes.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing runtime compiler");
-    VM_RuntimeCompiler.boot();
+    RuntimeCompiler.boot();
 
     // Process remainder of the VM's command line arguments.
     if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of command line");
-    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
+    String[] applicationArguments = CommandLineArgs.lateProcessCommandLineArguments();
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
 
@@ -421,7 +421,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-      VM_Controller.boot();
+      Controller.boot();
     }
 
     // The first argument must be a class name.
@@ -429,7 +429,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     if (applicationArguments.length == 0) {
       pleaseSpecifyAClass();
     }
-    if (applicationArguments.length > 0 && !VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
+    if (applicationArguments.length > 0 && !TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
       VM.sysWrite("vm: \"");
       VM.sysWrite(applicationArguments[0]);
       VM.sysWrite("\" is not a legal Java class name.\n");
@@ -441,7 +441,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     RVMClassLoader.declareApplicationClassLoaderIsReady();
 
     if (verboseBoot >= 1) {
-      VM.sysWriteln("Turning back on security checks.  Letting people see the VM_ApplicationClassLoader.");
+      VM.sysWriteln("Turning back on security checks.  Letting people see the ApplicationClassLoader.");
     }
     // Turn on security checks again.
     // Commented out because we haven't incorporated this into the main CVS
@@ -453,11 +453,11 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     }
 
     if (VM.BuildForHarmony) {
-      VM_Entrypoints.luni1.setObjectValueUnchecked(null, null);
-      VM_Entrypoints.luni2.setObjectValueUnchecked(null, null);
-      VM_Entrypoints.luni3.setObjectValueUnchecked(null, null);
-      VM_Entrypoints.luni4.setObjectValueUnchecked(null, null);
-      VM_Entrypoints.luni5.setObjectValueUnchecked(null, null);
+      Entrypoints.luni1.setObjectValueUnchecked(null, null);
+      Entrypoints.luni2.setObjectValueUnchecked(null, null);
+      Entrypoints.luni3.setObjectValueUnchecked(null, null);
+      Entrypoints.luni4.setObjectValueUnchecked(null, null);
+      Entrypoints.luni5.setObjectValueUnchecked(null, null);
       //runClassInitializer("java.lang.String$ConsolePrintStream");
       runClassInitializer("org.apache.harmony.luni.util.Msg");
       runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
@@ -467,38 +467,38 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     }
     // Allow profile information to be read in from a file
     //
-    VM_EdgeCounts.boot(EdgeCounterFile);
+    EdgeCounts.boot(EdgeCounterFile);
 
     if (VM.BuildForAdaptiveSystem) {
-      VM_CompilerAdvice.postBoot();
+      CompilerAdvice.postBoot();
     }
 
     // enable alignment checking
     if (VM.AlignmentChecking) {
-      VM_SysCall.sysCall.sysEnableAlignmentChecking();
+      SysCall.sysCall.sysEnableAlignmentChecking();
     }
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    mainThread = new VM_MainThread(applicationArguments);
+    mainThread = new MainThread(applicationArguments);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
     if (verboseBoot >= 1) VM.sysWriteln("Starting debugger thread");
-    VM_Scheduler.startDebuggerThread();
+    Scheduler.startDebuggerThread();
 
     // End of boot thread.
     //
-    if (VM.TraceThreads) VM_GreenScheduler.trace("VM.boot", "completed - terminating");
+    if (VM.TraceThreads) GreenScheduler.trace("VM.boot", "completed - terminating");
     if (verboseBoot >= 2) {
       VM.sysWriteln("Boot sequence completed; finishing boot thread");
     }
 
-    VM_Scheduler.getCurrentThread().terminate();
+    Scheduler.getCurrentThread().terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -525,9 +525,9 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
       sysWrite("running class intializer for ");
       sysWriteln(className);
     }
-    VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
-    VM_TypeReference tRef =
-        VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
+    Atom classDescriptor = Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
+    TypeReference tRef =
+        TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     RVMClass cls = (RVMClass) tRef.peekType();
     if (null == cls) {
       sysWrite("Failed to run class intializer for ");
@@ -543,7 +543,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
         clinit.compile();
         if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
         try {
-          VM_Magic.invokeClassInitializer(clinit.getCurrentEntryCodeArray());
+          Magic.invokeClassInitializer(clinit.getCurrentEntryCodeArray());
         } catch (Error e) {
           throw e;
         } catch (Throwable t) {
@@ -620,7 +620,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    * Format a 32 bit number as "0x" followed by 8 hex digits.
    * Do this without referencing Integer or Character classes,
    * in order to avoid dynamic linking.
-   * TODO: move this method to VM_Services.
+   * TODO: move this method to Services.
    * @param number
    * @return a String with the hex representation of the integer
    */
@@ -642,7 +642,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    * Format a 64 bit number as "0x" followed by 16 hex digits.
    * Do this without referencing Long or Character classes,
    * in order to avoid dynamic linking.
-   * TODO: move this method to VM_Services.
+   * TODO: move this method to Services.
    * @param number
    * @return a String with the hex representation of the long
    */
@@ -664,7 +664,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
    * Do this without referencing Integer or Character classes,
    * in order to avoid dynamic linking.
-   * TODO: move this method to VM_Services.
+   * TODO: move this method to Services.
    * @param addr  The 32/64 bit number to format.
    * @return a String with the hex representation of an Address
    */
@@ -683,21 +683,21 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   }
 
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
-  // accessed via VM_EntryPoints
+  // accessed via EntryPoints
   @Entrypoint
   private static int sysWriteLock = 0;
   private static Offset sysWriteLockOffset = Offset.max();
 
   private static void swLock() {
     if (sysWriteLockOffset.isMax()) return;
-    while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) {
+    while (!Synchronization.testAndSet(Magic.getJTOC(), sysWriteLockOffset, 1)) {
       ;
     }
   }
 
   private static void swUnlock() {
     if (sysWriteLockOffset.isMax()) return;
-    VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
+    Synchronization.fetchAndStore(Magic.getJTOC(), sysWriteLockOffset, 0);
   }
 
   /**
@@ -706,7 +706,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    */
   @NoInline
   /* don't waste code space inlining these --dave */
-  private static void write(VM_Atom value) {
+  private static void write(Atom value) {
     value.sysWrite();
   }
 
@@ -726,7 +726,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    */
   @NoInline
   /* don't waste code space inlining these --dave */
-  public static void write(VM_MemberReference value) {
+  public static void write(MemberReference value) {
     write(value.getType().getName());
     write(".");
     write(value.getName());
@@ -776,7 +776,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
          *
          *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
          */ {
-        write(VM_Magic.getCharAtOffset(value, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_CHAR)));
+        write(Magic.getCharAtOffset(value, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_CHAR)));
       } else {
         write(value[i]);
       }
@@ -1004,15 +1004,15 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   }
 
   /**
-   * Low level print of the {@link VM_Atom} <code>s</code> to the console.
+   * Low level print of the {@link Atom} <code>s</code> to the console.
    * Left-fill with enough spaces to print at least <code>fieldWidth</code>
    * characters
    * @param fieldWidth  Minimum width to print.
-   * @param s       The {@link VM_Atom} to print.
+   * @param s       The {@link Atom} to print.
    */
   @NoInline
   /* don't waste code space inlining these --dave */
-  public static void writeField(int fieldWidth, VM_Atom s) {
+  public static void writeField(int fieldWidth, Atom s) {
     int len = s.length();
     while (fieldWidth > len++) write(" ");
     write(s);
@@ -1054,14 +1054,14 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
   @NoInline
-  public static void sysWrite(VM_Atom a) {
+  public static void sysWrite(Atom a) {
     swLock();
     write(a);
     swUnlock();
   }
 
   @NoInline
-  public static void sysWriteln(VM_Atom a) {
+  public static void sysWriteln(Atom a) {
     swLock();
     write(a);
     write("\n");
@@ -1076,7 +1076,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   }
 
   @NoInline
-  public static void sysWrite(VM_MemberReference mr) {
+  public static void sysWrite(MemberReference mr) {
     swLock();
     write(mr);
     swUnlock();
@@ -1898,7 +1898,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   }
 
   private static void showProc() {
-    VM_Processor p = VM_Processor.getCurrentProcessor();
+    Processor p = Processor.getCurrentProcessor();
     write("Proc ");
     write(p.id);
     write(": ");
@@ -1906,7 +1906,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
   private static void showThread() {
     write("Thread ");
-    write(VM_Scheduler.getCurrentThread().getIndex());
+    write(Scheduler.getCurrentThread().getIndex());
     write(": ");
   }
 
@@ -2099,13 +2099,13 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    if(!VM_Scheduler.getCurrentThread().isGCThread()) {
-      VM_GreenScheduler.traceback(message);
+    if(!Scheduler.getCurrentThread().isGCThread()) {
+      GreenScheduler.traceback(message);
     } else {
       VM.sysWriteln("Died in GC:");
-      VM_GreenScheduler.traceback(message);
+      GreenScheduler.traceback(message);
       VM.sysWriteln("Virtual machine state:");
-      VM_Scheduler.dumpVirtualMachine();
+      Scheduler.dumpVirtualMachine();
     }
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
@@ -2128,7 +2128,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     handlePossibleRecursiveCallToSysFail(message, number);
 
     // print a traceback and die
-    VM_GreenScheduler.traceback(message, number);
+    GreenScheduler.traceback(message, number);
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2150,17 +2150,17 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   @NoInline
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
-    if (VM_Options.stackTraceAtExit) {
+    if (Options.stackTraceAtExit) {
       VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value, ")...:");
       VM.disableGC();
-      VM_GreenScheduler.dumpStack();
+      GreenScheduler.dumpStack();
       VM.enableGC();
       VM.sysWriteln("... END context of the call to VM.sysExit]");
     }
 
     if (runningVM) {
-      VM_Scheduler.sysExit();
-      VM_Callbacks.notifyExit(value);
+      Scheduler.sysExit();
+      Callbacks.notifyExit(value);
       VM.shutdown(value);
     } else {
       System.exit(value);
@@ -2179,7 +2179,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
-      VM_GreenScheduler.processorExit(value);
+      GreenScheduler.processorExit(value);
     } else {
       sysCall.sysExit(value);
     }
@@ -2236,12 +2236,12 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
   private static void handlePossibleRecursiveExit(String called, int depth, String message, boolean showNumber,
                                                   int number) {
     /* We adjust up by nProcessorAdjust since we do not want to prematurely
-       abort.  Consider the case where VM_Scheduler.numProcessors is greater
+       abort.  Consider the case where Scheduler.numProcessors is greater
        than maxSystemTroubleRecursionDepth.  (This actually happened.)
 
        Possible change: Instead of adjusting by the # of processors, make the
        "depth" variable a per-processor variable. */
-    int nProcessors = VM_GreenScheduler.numProcessors;
+    int nProcessors = GreenScheduler.numProcessors;
     int nProcessorAdjust = nProcessors - 1;
     if (depth > 1 &&
         (depth <=
@@ -2323,7 +2323,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
     // create dummy boot record
     //
-    VM_BootRecord.the_boot_record = new VM_BootRecord();
+    BootRecord.the_boot_record = new BootRecord();
 
     // initialize type subsystem and classloader
     RVMClassLoader.init(bootstrapClasspath);
@@ -2332,10 +2332,10 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     //
     if (writingBootImage) {
       // initialize compiler that builds boot image
-      VM_BootImageCompiler.init(bootCompilerArgs);
+      BootImageCompiler.init(bootCompilerArgs);
     }
     RuntimeEntrypoints.init();
-    VM_Scheduler.init();
+    Scheduler.init();
     MM_Interface.init();
   }
 
@@ -2364,8 +2364,8 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    *   - typecasting objects, except when runtime types of lhs & rhs
    *     match exactly
    *
-   * Recommendation: as a debugging aid, VM_Allocator implementations
-   * should test "VM_Thread.disallowAllocationsByThisThread" to verify that
+   * Recommendation: as a debugging aid, Allocator implementations
+   * should test "Thread.disallowAllocationsByThisThread" to verify that
    * they are never called while gc is disabled.
    */
   @Inline
@@ -2398,7 +2398,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
     //    would invalidate the addresses we're holding)
     //
 
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
 
     // 0. Sanity Check; recursion
     int gcDepth = myThread.getDisableGCDepth();
@@ -2411,15 +2411,15 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
     // 1.
     //
-    if (VM_Magic.getFramePointer().minus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
+    if (Magic.getFramePointer().minus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
       RVMThread.resizeCurrentStack(myThread.getStackLength()+
-          ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
+          ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
     }
 
     // 2.
     //
-    VM_Processor.getCurrentProcessor().disableThreadSwitching("disabling GC");
+    Processor.getCurrentProcessor().disableThreadSwitching("disabling GC");
 
     // 3.
     //
@@ -2447,7 +2447,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
-    RVMThread myThread = VM_Scheduler.getCurrentThread();
+    RVMThread myThread = Scheduler.getCurrentThread();
     int gcDepth = myThread.getDisableGCDepth();
     if (VM.VerifyAssertions) {
       VM._assert(gcDepth >= 1);
@@ -2461,7 +2461,7 @@ public class VM extends Properties implements VM_Constants, VM_ExitStatus {
 
     // Now the actual work of re-enabling GC.
     myThread.clearDisallowAllocationsByThisThread();
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
 }

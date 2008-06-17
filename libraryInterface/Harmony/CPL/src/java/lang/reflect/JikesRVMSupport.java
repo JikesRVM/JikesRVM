@@ -12,7 +12,7 @@
  */
 package java.lang.reflect;
 
-import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.classloader.*;
 import org.vmmagic.pragma.NoInline;

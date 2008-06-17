@@ -12,16 +12,16 @@
  */
 package java.lang;
 
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
+import org.jikesrvm.scheduler.greenthreads.GreenThread;
 
 /**
  * Wrapper for Jikes RVM thread class
  */
 final class VMThread {
   /**
-   * Corresponding VM_Thread accessed by JikesRVMSupport.getThread()
+   * Corresponding Thread accessed by JikesRVMSupport.getThread()
    */
   final RVMThread vmdata;
 
@@ -35,7 +35,7 @@ final class VMThread {
    * Create the VM thread, set this in the parent Thread and start its execution
    */
   static void create(Thread parent, long stacksize) {
-    RVMThread vmd = new VM_GreenThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
+    RVMThread vmd = new GreenThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
     parent.vmThread = new VMThread(vmd);
     vmd.start();
   }
@@ -58,7 +58,7 @@ final class VMThread {
    * @return the current executing java.lang.Thread
    */
   static Thread currentThread() {
-    return VM_Scheduler.getCurrentThread().getJavaLangThread();
+    return Scheduler.getCurrentThread().getJavaLangThread();
   }
   /**
    * Does the currently running Thread hold the lock on an obj?
@@ -66,7 +66,7 @@ final class VMThread {
    * @return whether the thread holds the lock
    */
   static boolean holdsLock(Object obj) {
-    return VM_Scheduler.getCurrentThread().holdsLock(obj);
+    return Scheduler.getCurrentThread().holdsLock(obj);
   }
 
   /**
@@ -109,7 +109,7 @@ final class VMThread {
    * Yield control
    */
   static void yield() {
-    VM_Scheduler.yield();
+    Scheduler.yield();
   }
   /**
    * Put the current thread to sleep
@@ -125,7 +125,7 @@ final class VMThread {
    * @return whether the thread was interrupted
    */
   static boolean interrupted() {
-    RVMThread current = VM_Scheduler.getCurrentThread();
+    RVMThread current = Scheduler.getCurrentThread();
     if (current.isInterrupted()) {
       current.clearInterrupted();
       return true;

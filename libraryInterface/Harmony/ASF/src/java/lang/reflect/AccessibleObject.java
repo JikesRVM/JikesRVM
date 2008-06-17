@@ -22,7 +22,7 @@ import java.lang.annotation.Annotation;
 import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 
 /**
  * This class must be implemented by the VM vendor. This class is the superclass
@@ -200,7 +200,7 @@ public class AccessibleObject implements AnnotatedElement {
 	* @return the declared exception classes
 	*/
   Class<?>[] getExceptionTypes() {
-	 VM_TypeReference[] exceptionTypes = getVMMethod().getExceptionTypes();
+	 TypeReference[] exceptionTypes = getVMMethod().getExceptionTypes();
 	 if (exceptionTypes == null) {
 		return new Class[0];
 	 } else {

@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -57,7 +57,7 @@ import org.jikesrvm.osr.OSR_VariableMap;
  * The result of this analysis is live ranges for each basic block.
  * (@see BasicBlock)
  * This class can also optionally construct GC maps. These GC maps
- * are later used to create the final gc map (see VM_OptReferenceMap.java).
+ * are later used to create the final gc map (see OptReferenceMap.java).
  *
  * The bottom of the file contains comments regarding imprecise exceptions.
  */
@@ -208,7 +208,7 @@ public final class LiveAnalysis extends CompilerPhase {
     if (createGCMaps) {
       // Create the IR-based Map we will use during compilation
       // At a later phase this map is converted into the "runtime"
-      //  map, which is called VM_OptReferenceMap.
+      //  map, which is called OptReferenceMap.
       map = new GCIRMap();
 
       osrMap = new OSR_VariableMap();
@@ -468,7 +468,7 @@ public final class LiveAnalysis extends CompilerPhase {
           if (isSkippableReg(regOp, ir)) {
             continue;
           }
-          VM_TypeReference regType = regOp.getType();
+          TypeReference regType = regOp.getType();
 
           // Because the summary we compute is used to propagate to other
           // basic blocks, if a register is block local, we don't need to
@@ -509,7 +509,7 @@ public final class LiveAnalysis extends CompilerPhase {
               continue;
             }
 
-            VM_TypeReference regType = regOp.getType();
+            TypeReference regType = regOp.getType();
 
             // Because the summary we compute is used to propagate to
             // other basic blocks, if a register is block local,
@@ -564,7 +564,7 @@ public final class LiveAnalysis extends CompilerPhase {
               Operand myRval = Phi.getValue(phi, j);
               if (myRval instanceof RegisterOperand) {
                 RegisterOperand regOp = (RegisterOperand) myRval;
-                VM_TypeReference regType = regOp.getType();
+                TypeReference regType = regOp.getType();
                 if (regOp.getRegister().spansBasicBlock() && regType != null) {
                   bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
                 }
@@ -836,7 +836,7 @@ public final class LiveAnalysis extends CompilerPhase {
             if (isSkippableReg(regOp, ir)) {
               continue;
             }
-            VM_TypeReference regType = regOp.getType();
+            TypeReference regType = regOp.getType();
             // see Def loop comment about magics
             if (regType != null) {
               // process the use as a gen

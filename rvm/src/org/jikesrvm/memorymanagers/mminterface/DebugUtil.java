@@ -13,16 +13,14 @@
 package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Scheduler;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.heap.Mmapper;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -33,20 +31,20 @@ import org.vmmagic.unboxed.ObjectReference;
  * Common debugging utility functions used by various garbage collectors
  */
 @Uninterruptible
-public class DebugUtil implements VM_Constants, Constants {
+public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Constants {
 
-  private static VM_TIB tibForArrayType;
-  private static VM_TIB tibForClassType;
-  private static VM_TIB tibForPrimitiveType;
+  private static TIB tibForArrayType;
+  private static TIB tibForClassType;
+  private static TIB tibForPrimitiveType;
 
   @Interruptible
-  static void boot(VM_BootRecord theBootRecord) {
+  static void boot(BootRecord theBootRecord) {
     // get addresses of TIBs for RVMArray & RVMClass used for testing Type ptrs
     RVMType t = RVMArray.IntArray;
-    tibForArrayType = VM_ObjectModel.getTIB(t);
-    tibForPrimitiveType = VM_ObjectModel.getTIB(RVMType.IntType);
-    t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);
-    tibForClassType = VM_ObjectModel.getTIB(t);
+    tibForArrayType = ObjectModel.getTIB(t);
+    tibForPrimitiveType = ObjectModel.getTIB(RVMType.IntType);
+    t = Magic.getObjectType(BootRecord.the_boot_record);
+    tibForClassType = ObjectModel.getTIB(t);
   }
 
   /**
@@ -61,7 +59,7 @@ public class DebugUtil implements VM_Constants, Constants {
     }
 
     // check if types tib is one of three possible values
-    VM_TIB typeTib = VM_ObjectModel.getTIB(typeAddress);
+    TIB typeTib = ObjectModel.getTIB(typeAddress);
     return ((typeTib == tibForClassType) || (typeTib == tibForArrayType) || (typeTib == tibForPrimitiveType));
   }
 
@@ -71,7 +69,7 @@ public class DebugUtil implements VM_Constants, Constants {
    */
   @Uninterruptible
   public static void dumpAllThreadStacks() {
-    VM_Scheduler.dumpVirtualMachine();
+    Scheduler.dumpVirtualMachine();
   }  // dumpAllThreadStacks
 
   /**
@@ -104,8 +102,8 @@ public class DebugUtil implements VM_Constants, Constants {
       */
     }
 
-    VM_TIB tib = VM_ObjectModel.getTIB(ref);
-    Address tibAddr = VM_Magic.objectAsAddress(tib);
+    TIB tib = ObjectModel.getTIB(ref);
+    Address tibAddr = Magic.objectAsAddress(tib);
     if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
       VM.sysWrite("validRef: TIB outside heap, ref = ");
       VM.sysWrite(ref);
@@ -134,7 +132,7 @@ public class DebugUtil implements VM_Constants, Constants {
       VM.sysWrite("validRef: invalid TYPE, ref = ");
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
-      VM.sysWrite(VM_Magic.objectAsAddress(tib));
+      VM.sysWrite(Magic.objectAsAddress(tib));
       VM.sysWrite(" type = ");
       VM.sysWrite(type);
       VM.sysWrite("\n");
@@ -160,13 +158,13 @@ public class DebugUtil implements VM_Constants, Constants {
       VM.sysWrite(" (REF OUTSIDE OF HEAP OR NOT MAPPED)\n");
       return;
     }
-    VM_ObjectModel.dumpHeader(ref);
-    ObjectReference tib = ObjectReference.fromObject(VM_ObjectModel.getTIB(ref));
+    ObjectModel.dumpHeader(ref);
+    ObjectReference tib = ObjectReference.fromObject(ObjectModel.getTIB(ref));
     if (!MM_Interface.mightBeTIB(tib)) {
       VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
       return;
     }
-    RVMType type = VM_Magic.getObjectType(ref.toObject());
+    RVMType type = Magic.getObjectType(ref.toObject());
     ObjectReference itype = ObjectReference.fromObject(type);
     VM.sysWrite(" TYPE=");
     VM.sysWrite(itype);

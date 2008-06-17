@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
-import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
@@ -115,8 +115,8 @@ public class InterfaceHierarchy {
 
     ImmutableEntryHashSetRVM<RVMClass> classes = allImplementors(I);
     RVMMethod firstMethod = null;
-    VM_Atom name = foo.getName();
-    VM_Atom desc = foo.getDescriptor();
+    Atom name = foo.getName();
+    Atom desc = foo.getDescriptor();
 
     for (RVMClass klass : classes) {
       RVMMethod m = klass.findDeclaredMethod(name, desc);

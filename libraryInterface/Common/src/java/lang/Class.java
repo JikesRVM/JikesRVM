@@ -41,10 +41,10 @@ import java.util.ArrayList;
 
 import org.jikesrvm.classloader.*;
 
-import org.jikesrvm.VM_Callbacks;
-import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.Callbacks;
+import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.VM_UnimplementedError;
+import org.jikesrvm.UnimplementedError;
 
 /**
  * Implementation of java.lang.Class for JikesRVM.
@@ -117,7 +117,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
           }
         }
       }
-      classLoader = VM_BootstrapClassLoader.getBootstrapClassLoader();
+      classLoader = BootstrapClassLoader.getBootstrapClassLoader();
     }
     return forNameInternal(className, initialize, classLoader);
   }
@@ -129,9 +129,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     ArrayList<Class<?>> publicClasses = new ArrayList<Class<?>>();
     for (Class<?> c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
-      VM_TypeReference[] declaredClasses = c.type.asClass().getDeclaredClasses();
+      TypeReference[] declaredClasses = c.type.asClass().getDeclaredClasses();
       if (declaredClasses != null) {
-        for (VM_TypeReference declaredClass : declaredClasses) {
+        for (TypeReference declaredClass : declaredClasses) {
           if (declaredClass != null) {
             RVMClass dc = declaredClass.resolve().asClass();
             if (dc.isPublic()) {
@@ -155,7 +155,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       }
     }
     ClassLoader cl = type.getClassLoader();
-    return cl == VM_BootstrapClassLoader.getBootstrapClassLoader() ? null : cl;
+    return cl == BootstrapClassLoader.getBootstrapClassLoader() ? null : cl;
   }
 
   public Class<?> getComponentType() {
@@ -199,7 +199,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     // Get array of declared classes from RVMClass object
     RVMClass cls = type.asClass();
-    VM_TypeReference[] declaredClasses = cls.getDeclaredClasses();
+    TypeReference[] declaredClasses = cls.getDeclaredClasses();
 
     // The array can be null if the class has no declared inner class members
     if (declaredClasses == null)
@@ -260,7 +260,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchFieldException();
 
-    VM_Atom aName = VM_Atom.findUnicodeAtom(name);
+    Atom aName = Atom.findUnicodeAtom(name);
     if (aName == null) throw new NoSuchFieldException(name);
     RVMField[] fields = type.asClass().getDeclaredFields();
     for (RVMField field : fields) {
@@ -292,7 +292,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       throw new NoSuchMethodException(name + parameterTypes);
     }
 
-    VM_Atom aName = VM_Atom.findUnicodeAtom(name);
+    Atom aName = Atom.findUnicodeAtom(name);
     if (aName == null ||
         aName == RVMClassLoader.StandardClassInitializerMethodName ||
         aName == RVMClassLoader.StandardObjectInitializerMethodName) {
@@ -338,7 +338,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public Class<?> getDeclaringClass() {
     if (!type.isClassType()) return null;
-    VM_TypeReference dc = type.asClass().getDeclaringClass();
+    TypeReference dc = type.asClass().getDeclaringClass();
     if (dc == null) return null;
     return dc.resolve().getClassForType();
   }
@@ -347,7 +347,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchFieldException();
 
-    VM_Atom aName = VM_Atom.findUnicodeAtom(name);
+    Atom aName = Atom.findUnicodeAtom(name);
     if (aName == null) throw new NoSuchFieldException(name);
 
     Field ans = getFieldInternal(aName);
@@ -400,7 +400,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     if (!type.isClassType()) throw new NoSuchMethodException(name + parameterTypes);
 
-    VM_Atom aName = VM_Atom.findUnicodeAtom(name);
+    Atom aName = Atom.findUnicodeAtom(name);
     if (aName == null ||
         aName == RVMClassLoader.StandardClassInitializerMethodName ||
         aName == RVMClassLoader.StandardObjectInitializerMethodName) {
@@ -512,7 +512,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public URL getResource(String resName) {
     ClassLoader loader = type.getClassLoader();
-    if (loader == VM_BootstrapClassLoader.getBootstrapClassLoader())
+    if (loader == BootstrapClassLoader.getBootstrapClassLoader())
       return ClassLoader.getSystemResource(toResourceName(resName));
     else
       return loader.getResource(toResourceName(resName));
@@ -520,7 +520,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public InputStream getResourceAsStream(String resName) {
     ClassLoader loader = type.getClassLoader();
-    if (loader == VM_BootstrapClassLoader.getBootstrapClassLoader())
+    if (loader == BootstrapClassLoader.getBootstrapClassLoader())
       return ClassLoader.getSystemResourceAsStream(toResourceName(resName));
     else
       return loader.getResourceAsStream(toResourceName(resName));
@@ -632,7 +632,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     T obj = (T)RuntimeEntrypoints.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
-    VM_Reflection.invoke(defaultConstructor, obj, null);
+    Reflection.invoke(defaultConstructor, obj, null);
 
     return obj;
   }
@@ -676,12 +676,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
           throw new ClassNotFoundException(className);
         }
       }
-      VM_Atom descriptor = VM_Atom
+      Atom descriptor = Atom
         .findOrCreateAsciiAtom(className.replace('.','/'))
         .descriptorFromClassName();
-      VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
+      TypeReference tRef = TypeReference.findOrCreate(classLoader, descriptor);
       RVMType ans = tRef.resolve();
-      VM_Callbacks.notifyForName(ans);
+      Callbacks.notifyForName(ans);
       if (initialize && !ans.isInitialized()) {
         ans.resolve();
         ans.instantiate();
@@ -701,7 +701,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
 
-  private Field getFieldInternal(VM_Atom name) {
+  private Field getFieldInternal(Atom name) {
     RVMClass ctype = type.asClass();
     // (1) Check my public declared fields
     RVMField[] fields = ctype.getDeclaredFields();
@@ -789,7 +789,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   /**
    * Compare parameter lists for agreement.
    */
-  private boolean parametersMatch(VM_TypeReference[] lhs, Class<?>[] rhs) {
+  private boolean parametersMatch(TypeReference[] lhs, Class<?>[] rhs) {
     if (rhs == null) return lhs.length == 0;
     if (lhs.length != rhs.length) return false;
 
@@ -891,7 +891,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
                            RVMType.JavaIoSerializableType.getClassForType()};
     } else {
       RVMClass klass = type.asClass();
-      VM_Atom sig = klass.getSignature();
+      Atom sig = klass.getSignature();
       if (sig == null) {
         return getInterfaces();
       } else {
@@ -909,7 +909,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return null;
      } else {
        RVMClass klass = type.asClass();
-       VM_Atom sig = klass.getSignature();
+       Atom sig = klass.getSignature();
        if (sig == null) {
          return getSuperclass();
        } else {
@@ -923,7 +923,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return new TypeVariable[0];
     } else {
       RVMClass klass = type.asClass();
-      VM_Atom sig = klass.getSignature();
+      Atom sig = klass.getSignature();
       if (sig == null) {
         return new TypeVariable[0];
       } else {
@@ -959,7 +959,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public Class<?> getEnclosingClass() {
     if (type.isClassType()) {
-      VM_TypeReference enclosingClass = type.asClass().getEnclosingClass();
+      TypeReference enclosingClass = type.asClass().getEnclosingClass();
       if(enclosingClass != null) {
         return enclosingClass.resolve().getClassForType();
       } else {
@@ -971,11 +971,11 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Constructor<?> getEnclosingConstructor() {
-    throw new VM_UnimplementedError();
+    throw new UnimplementedError();
   }
 
   public Method getEnclosingMethod() {
-    throw new VM_UnimplementedError();
+    throw new UnimplementedError();
   }
 
   public T cast(Object obj) {

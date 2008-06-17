@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.VM_SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.VM_SizeConstants.BITS_IN_INT;
-import static org.jikesrvm.VM_SizeConstants.BITS_IN_LONG;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BITS_IN_INT;
+import static org.jikesrvm.SizeConstants.BITS_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
 
 import java.lang.reflect.Array;
@@ -26,7 +26,7 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
@@ -71,10 +71,10 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.UnreachableOperand;
-import org.jikesrvm.objectmodel.VM_TIB;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Reflection;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -689,8 +689,8 @@ public abstract class Simplifier extends IRTools {
       s.operator = CHECKCAST_NOTNULL;
       return checkcastNotNull(s);
     } else {
-      VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
-      VM_TypeReference rhsType = ref.getType();
+      TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
+      TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == OptConstants.YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
@@ -707,8 +707,8 @@ public abstract class Simplifier extends IRTools {
 
   private static DefUseEffect checkcastNotNull(Instruction s) {
     Operand ref = TypeCheck.getRef(s);
-    VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
-    VM_TypeReference rhsType = ref.getType();
+    TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
+    TypeReference rhsType = ref.getType();
     byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
     if (ans == OptConstants.YES) {
       Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
@@ -738,8 +738,8 @@ public abstract class Simplifier extends IRTools {
       s.operator = INSTANCEOF_NOTNULL;
       return instanceOfNotNull(s);
     } else {
-      VM_TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
-      VM_TypeReference rhsType = ref.getType();
+      TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
+      TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       // NOTE: Constants.YES doesn't help because ref may be null and null instanceof T is false
       if (ans == OptConstants.NO) {
@@ -760,8 +760,8 @@ public abstract class Simplifier extends IRTools {
   private static DefUseEffect instanceOfNotNull(Instruction s) {
     {
       Operand ref = InstanceOf.getRef(s);
-      VM_TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
-      VM_TypeReference rhsType = ref.getType();
+      TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
+      TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == OptConstants.YES) {
         Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(1));
@@ -786,7 +786,7 @@ public abstract class Simplifier extends IRTools {
       return DefUseEffect.MOVE_REDUCED;
     } else {
       Operand ref = StoreCheck.getRef(s);
-      VM_TypeReference arrayTypeRef = ref.getType();
+      TypeReference arrayTypeRef = ref.getType();
       if (!arrayTypeRef.isArrayType()) {
         // Caused by inlining new and type propogation
         return DefUseEffect.UNCHANGED;
@@ -802,7 +802,7 @@ public abstract class Simplifier extends IRTools {
         }
       }
       final boolean refIsPrecise = ref.isConstant() || (ref.isRegister() && ref.asRegister().isPreciseType());
-      if ((arrayTypeRef == VM_TypeReference.JavaLangObjectArray) && refIsPrecise) {
+      if ((arrayTypeRef == TypeReference.JavaLangObjectArray) && refIsPrecise) {
         // We know this to be an array of objects so any store must
         // be safe
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
@@ -829,7 +829,7 @@ public abstract class Simplifier extends IRTools {
   private static DefUseEffect objarrayStoreCheckNotNull(Instruction s) {
     Operand val = StoreCheck.getVal(s);
     Operand ref = StoreCheck.getRef(s);
-    VM_TypeReference arrayTypeRef = ref.getType();
+    TypeReference arrayTypeRef = ref.getType();
     if (!arrayTypeRef.isArrayType()) {
       // Caused by inlining new and type propogation
       return DefUseEffect.UNCHANGED;
@@ -845,7 +845,7 @@ public abstract class Simplifier extends IRTools {
       }
     }
     final boolean refIsPrecise = ref.isConstant() || (ref.isRegister() && ref.asRegister().isPreciseType());
-    if ((arrayTypeRef == VM_TypeReference.JavaLangObjectArray) && refIsPrecise) {
+    if ((arrayTypeRef == TypeReference.JavaLangObjectArray) && refIsPrecise) {
       // We know this to be an array of objects so any store must
       // be safe
       Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
@@ -876,8 +876,8 @@ public abstract class Simplifier extends IRTools {
       Trap.mutate(s, TRAP, null, TrapCodeOperand.NullPtr());
       return DefUseEffect.TRAP_REDUCED;
     } else {
-      VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
-      VM_TypeReference rhsType = ref.getType();                     // our type
+      TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
+      TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == OptConstants.YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
@@ -3164,7 +3164,7 @@ public abstract class Simplifier extends IRTools {
           Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
           return DefUseEffect.TRAP_REDUCED;
         } else if (calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
-          VM_TypeReference calleeClass = calleeThis.getType();
+          TypeReference calleeClass = calleeThis.getType();
           if (calleeClass.isResolved()) {
             methOp.refine(calleeClass.peekType());
             return DefUseEffect.UNCHANGED;
@@ -3174,19 +3174,19 @@ public abstract class Simplifier extends IRTools {
         RVMMethod containingMethod = s.position.getMethod();
         RVMMethod method = methOp.getTarget();
         // Can we remove the need for Class.forName to walk the stack?
-        if (method == VM_Entrypoints.java_lang_Class_forName) {
-          methOp = MethodOperand.STATIC(VM_Entrypoints.java_lang_Class_forName_withLoader.getMemberRef().asMethodReference(),
-                                        VM_Entrypoints.java_lang_Class_forName_withLoader);
+        if (method == Entrypoints.java_lang_Class_forName) {
+          methOp = MethodOperand.STATIC(Entrypoints.java_lang_Class_forName_withLoader.getMemberRef().asMethodReference(),
+                                        Entrypoints.java_lang_Class_forName_withLoader);
           Call.mutate3(s, CALL, Call.getResult(s),
-                       new AddressConstantOperand(VM_Entrypoints.java_lang_Class_forName_withLoader.getOffset()),
+                       new AddressConstantOperand(Entrypoints.java_lang_Class_forName_withLoader.getOffset()),
                        methOp, Call.getGuard(s),
                        Call.getParam(s, 0),
                        new IntConstantOperand(1), // true
                        new ObjectConstantOperand(containingMethod.getDeclaringClass().getClassLoader(), Offset.zero()));
           return DefUseEffect.REDUCED;
         // Can we remove the need for RVMClass.getClass...FromStackFrame to walk the stack?
-        } else if (method == VM_Entrypoints.getClassLoaderFromStackFrame ||
-                   method == VM_Entrypoints.getClassFromStackFrame) {
+        } else if (method == Entrypoints.getClassLoaderFromStackFrame ||
+                   method == Entrypoints.getClassFromStackFrame) {
           Operand frameOp = Call.getParam(s, 0);
           if (frameOp.isIntConstant()) {
             int frame = frameOp.asIntConstant().value;
@@ -3198,7 +3198,7 @@ public abstract class Simplifier extends IRTools {
             if (currentFrame != null) {
               // we found the caller
               ObjectConstantOperand cop;
-              if (method == VM_Entrypoints.getClassLoaderFromStackFrame) {
+              if (method == Entrypoints.getClassLoaderFromStackFrame) {
                 cop = new ObjectConstantOperand(currentFrame.method.getDeclaringClass().getTypeRef().getClassLoader(), Offset.zero());
               } else {
                 cop = new ObjectConstantOperand(currentFrame.method.getDeclaringClass(), Offset.zero());
@@ -3221,7 +3221,7 @@ public abstract class Simplifier extends IRTools {
         }
         // Pure method with all constant arguments. Perform reflective method call
         Object thisArg = null;
-        VM_TypeReference[] paramTypes = method.getParameterTypes();
+        TypeReference[] paramTypes = method.getParameterTypes();
         Object[] otherArgs;
         Object result = null;
         if (!methOp.isStatic()) {
@@ -3241,7 +3241,7 @@ public abstract class Simplifier extends IRTools {
         Method m = null;
         try {
           if (VM.runningVM) {
-            result = VM_Reflection.invoke(method, thisArg, otherArgs, !methOp.isVirtual());
+            result = Reflection.invoke(method, thisArg, otherArgs, !methOp.isVirtual());
           } else {
             Class<?>[] argTypes = new Class<?>[n];
             for(int i=0; i < n; i++) {
@@ -3276,7 +3276,7 @@ public abstract class Simplifier extends IRTools {
    * @param t the type of the object (needed to differentiate primitive from numeric types..)
    * @return the object
    */
-  private static Object boxConstantOperand(ConstantOperand op, VM_TypeReference t){
+  private static Object boxConstantOperand(ConstantOperand op, TypeReference t){
     if (op.isObjectConstant()) {
       return op.asObjectConstant().value;
     } else if (op.isLongConstant()) {
@@ -3307,7 +3307,7 @@ public abstract class Simplifier extends IRTools {
    * @param t the type of the object (needed to differentiate primitive from numeric types..)
    * @return the constant operand
    */
-  private static ConstantOperand boxConstantObjectAsOperand(Object x, VM_TypeReference t){
+  private static ConstantOperand boxConstantObjectAsOperand(Object x, TypeReference t){
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
     if (x == null) {
       throw new Error("Field of type: " + t + " is null");
@@ -3385,14 +3385,14 @@ public abstract class Simplifier extends IRTools {
         Move.mutate(s, IRTools.getMoveOp(result.getType()), result, new UnreachableOperand());
         return DefUseEffect.MOVE_FOLDED;
       } else if (op.isConstant()) {
-        final VM_TypeReference typeRef = op.getType();
+        final TypeReference typeRef = op.getType();
         if (typeRef.isResolved()) {
           Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new TIBConstantOperand(op.getType().peekType()));
           return DefUseEffect.MOVE_FOLDED;
         }
       } else {
         RegisterOperand rop = op.asRegister();
-        VM_TypeReference typeRef = rop.getType();
+        TypeReference typeRef = rop.getType();
         // Is the type of this register only one possible type?
         if (typeRef.isResolved() && rop.isPreciseType() && typeRef.resolve().isInstantiated()) {
           // before simplifying ensure that the type is instantiated, this stops
@@ -3499,9 +3499,9 @@ public abstract class Simplifier extends IRTools {
 
           // Create appropriate constant operand for TIB slot
           ConstantOperand result;
-          VM_TIB tibArray = tib.value.getTypeInformationBlock();
+          TIB tibArray = tib.value.getTypeInformationBlock();
           if (tibArray.slotContainsTib(intSlot)) {
-            RVMType typeOfTIB = ((VM_TIB)tibArray.get(intSlot)).getType();
+            RVMType typeOfTIB = ((TIB)tibArray.get(intSlot)).getType();
             result = new TIBConstantOperand(typeOfTIB);
           } else if (tibArray.slotContainsCode(intSlot)) {
             // Only generate code constants when we want to make
@@ -3582,7 +3582,7 @@ public abstract class Simplifier extends IRTools {
     }
     if (op instanceof ObjectConstantOperand) {
       if (VM.VerifyAssertions) VM._assert(!op.isMovableObjectConstant());
-      return VM_Magic.objectAsAddress(op.asObjectConstant().value);
+      return Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OptimizingCompilerException("Cannot getAddressValue from this operand " + op);
   }

@@ -13,17 +13,17 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.VM_AosEntrypoints;
-import org.jikesrvm.classloader.VM_BytecodeConstants;
-import org.jikesrvm.classloader.VM_BytecodeStream;
+import org.jikesrvm.adaptive.AosEntrypoints;
+import org.jikesrvm.classloader.BytecodeConstants;
+import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
-import org.jikesrvm.classloader.VM_FieldReference;
+import org.jikesrvm.classloader.ExceptionHandlerMap;
+import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.VM_MethodReference;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CompiledMethods;
 
 /**
  * OSR_BytecodeTraverser does depth first search on a bytecode
@@ -53,7 +53,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  */
-public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constants {
+public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -68,7 +68,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
   // when computing infor for partial bytecodes
   // donot following bytecodes out of range
   private boolean ignoreGotos = false;
-  private VM_BytecodeStream bytecodes;
+  private BytecodeStream bytecodes;
 
   /////// COMPUTING_TYPE_INFO
   /* type information of local variables and stack slots */
@@ -90,7 +90,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
    *               at the mean time, we only support one PC.
    * @return whether the pc is a valid program point of the method
    */
-  public boolean computeLocalStackTypes(VM_NormalMethod method, int bcpoint) {
+  public boolean computeLocalStackTypes(NormalMethod method, int bcpoint) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("computing local and stack types of " + method + "\n");
     }
@@ -128,7 +128,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
 
     /* initialize local types from method signature.*/
     {
-      VM_TypeReference[] ptypes = method.getParameterTypes();
+      TypeReference[] ptypes = method.getParameterTypes();
       int lidx = 0;
       if (!method.isStatic()) {
         ltypes[lidx++] = ClassTypeCode;
@@ -146,7 +146,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
     boolean found = scanBlocks(method, bytecodes, true, bcpoint, ltypes, stypes, 0, simstacks, null);
     /* scan for exception handler. */
     if (!found) {
-      VM_ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
+      ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
       if (ehmap != null) {
         int[] handlerPCs = ehmap.getHandlerPC();
         for (int i = 0, n = handlerPCs.length; i < n; i++) {
@@ -168,7 +168,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
   /**
    * Returns an array of type information of locals at the registered
    * program point. The size of array is fixed by MAX_LOCALS, the type
-   * descriptor can be found in "VM_ClassLoadConstants.java".
+   * descriptor can be found in "ClassLoadConstants.java".
    *
    * @return an array of type information, or null
    */
@@ -179,7 +179,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
   /**
    * Returns an array of type information of stacks at a program
    * point.  The size of array is fixed by MAX_STACKS, the type
-   * descriptor can be found in "VM_ClassLoadConstants.java".
+   * descriptor can be found in "ClassLoadConstants.java".
    *
    * @return an array of type information, or null
    */
@@ -190,7 +190,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
   //////////////////////////
   // COMPUTE STACK HEIGHTS
   //////////////////////////
-  public void computeStackHeights(VM_NormalMethod method, VM_BytecodeStream bcodes, int[] stackHeights,
+  public void computeStackHeights(NormalMethod method, BytecodeStream bcodes, int[] stackHeights,
                                   boolean adjustExptable) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("computing stack heights of method " + method.toString());
@@ -218,7 +218,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
     }
     /* scan for exception handler. */
     {
-      VM_ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
+      ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
       if (ehmap != null) {
         int[] handlerPCs = ehmap.getHandlerPC();
 
@@ -245,7 +245,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
   /**
    * Compute stack heights of bytecode stream (used for osr prologue)
    */
-  public void prologueStackHeights(VM_NormalMethod method, VM_BytecodeStream bcodes, int[] stackHeights) {
+  public void prologueStackHeights(NormalMethod method, BytecodeStream bcodes, int[] stackHeights) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("computing stack heights of method " + method.toString());
     }
@@ -276,7 +276,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
   }
 
   /* returns type code of the return type from the signature.
-  * SEE also : VM_Atom.parseForReturnType
+  * SEE also : Atom.parseForReturnType
   */
   @SuppressWarnings("unused")
   private byte getReturnCodeFromSignature(String sig) {
@@ -293,8 +293,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
 
   /* return true --> hit the bytecode pointed by PC */
 
-  private boolean scanBlocks(VM_NormalMethod method,    // which method
-                             VM_BytecodeStream bytecodes,         // the bytecodes
+  private boolean scanBlocks(NormalMethod method,    // which method
+                             BytecodeStream bytecodes,         // the bytecodes
                              boolean doDFS,       // do a DFS or one-pass scan
                              int pcs,             // the target pcs, if doDFS
                              byte[] ltypes,       // the local types if doDFS
@@ -1113,8 +1113,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
         case JBC_getfield:
           S.pop();
         case JBC_getstatic: {
-          VM_FieldReference fieldRef = bytecodes.getFieldReference();
-          VM_TypeReference ftype = fieldRef.getFieldContentsType();
+          FieldReference fieldRef = bytecodes.getFieldReference();
+          TypeReference ftype = fieldRef.getFieldContentsType();
           byte tcode = ftype.getName().parseForTypeCode();
           if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
             S.push(VoidTypeCode);
@@ -1123,8 +1123,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
         }
         break;
         case JBC_putstatic: {
-          VM_FieldReference fieldRef = bytecodes.getFieldReference();
-          VM_TypeReference ftype = fieldRef.getFieldContentsType();
+          FieldReference fieldRef = bytecodes.getFieldReference();
+          TypeReference ftype = fieldRef.getFieldContentsType();
           byte tcode = ftype.getName().parseForTypeCode();
           if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
             S.pop(2);
@@ -1134,8 +1134,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
         }
         break;
         case JBC_putfield: {
-          VM_FieldReference fieldRef = bytecodes.getFieldReference();
-          VM_TypeReference ftype = fieldRef.getFieldContentsType();
+          FieldReference fieldRef = bytecodes.getFieldReference();
+          TypeReference ftype = fieldRef.getFieldContentsType();
           byte tcode = ftype.getName().parseForTypeCode();
           if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
             S.pop(2);
@@ -1149,7 +1149,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
         case JBC_invokespecial:
         case JBC_invokestatic:
         case JBC_invokeinterface: {
-          VM_MethodReference callee = bytecodes.getMethodReference();
+          MethodReference callee = bytecodes.getMethodReference();
 
           int psize = callee.getParameterWords();
 
@@ -1159,7 +1159,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
             S.pop();     // pop the object reference
           }
 
-          VM_TypeReference rtype = callee.getReturnType();
+          TypeReference rtype = callee.getReturnType();
           byte tcode = rtype.getName().parseForTypeCode();
 
           if (tcode == VoidTypeCode) {
@@ -1327,10 +1327,10 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
               RVMMethod callee = null;
               switch (mid) {
                 case GETREFAT:
-                  callee = VM_AosEntrypoints.osrGetRefAtMethod;
+                  callee = AosEntrypoints.osrGetRefAtMethod;
                   break;
                 case CLEANREFS:
-                  callee = VM_AosEntrypoints.osrCleanRefsMethod;
+                  callee = AosEntrypoints.osrCleanRefsMethod;
                   break;
                 default:
                   if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1341,7 +1341,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
 
               S.pop(psize);
 
-              VM_TypeReference rtype = callee.getReturnType();
+              TypeReference rtype = callee.getReturnType();
               byte tcode = rtype.getName().parseForTypeCode();
 
               if (tcode == VoidTypeCode) {
@@ -1363,7 +1363,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
               int cmid = bytecodes.readIntConst(); // cmid
               bytecodes.readIntConst(); // skip bcindex
 
-              RVMMethod callee = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
+              RVMMethod callee = CompiledMethods.getCompiledMethod(cmid).getMethod();
               int psize = callee.getParameterWords();
 
               S.pop(psize);
@@ -1372,7 +1372,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
                 S.pop();   // pop receiver
               }
 
-              VM_TypeReference rtype = callee.getReturnType();
+              TypeReference rtype = callee.getReturnType();
               byte tcode = rtype.getName().parseForTypeCode();
 
               if (tcode == VoidTypeCode) {

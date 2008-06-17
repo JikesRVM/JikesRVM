@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand.ia32;
 
-import org.jikesrvm.compilers.common.assembler.ia32.VM_AssemblerConstants;
+import org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -20,11 +20,11 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 /**
  * An IA32 condition operand
  */
-public final class IA32ConditionOperand extends Operand implements VM_AssemblerConstants {
+public final class IA32ConditionOperand extends Operand implements AssemblerConstants {
 
   /**
    * Value of this operand (one of the ConditionCode constants operands
-   * defined in VM_AssemblerConstants)
+   * defined in AssemblerConstants)
    */
   public byte value;
 

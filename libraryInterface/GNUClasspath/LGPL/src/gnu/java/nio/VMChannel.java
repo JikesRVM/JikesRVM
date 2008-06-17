@@ -50,7 +50,7 @@ import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.FileSystem;
 
 /**
  * Native interface to support configuring of channel to run in a non-blocking
@@ -225,7 +225,7 @@ public final class VMChannel
   private int read(ByteBuffer dst, int pos, int len) throws IOException {
     int bytes;
     if (len == 1) {
-      int b = VM_FileSystem.readByte(nfd.getNativeFD());
+      int b = FileSystem.readByte(nfd.getNativeFD());
       if (b >= 0) {
         dst.put((byte)(b & 0xFF));
         dst.position(pos+1);
@@ -281,7 +281,7 @@ public final class VMChannel
    */
   private static int read(int fd, byte[] dst, int position, int len) throws IOException {
     if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(dst));
-    int bytes = VM_FileSystem.readBytes(fd,dst,position,len);
+    int bytes = FileSystem.readBytes(fd,dst,position,len);
     if (bytes < 0) {
       throw new IOException("Error code "+Integer.toString(bytes));
     }
@@ -310,7 +310,7 @@ public final class VMChannel
   public int read() throws IOException
   {
     //return read(nfd.getNativeFD());
-    int result = VM_FileSystem.readByte(nfd.getNativeFD());
+    int result = FileSystem.readByte(nfd.getNativeFD());
     if (result < -1) {
       throw new IOException("Error code "+Integer.toString(result));
     }
@@ -404,7 +404,7 @@ public final class VMChannel
   public int write(ByteBuffer src, int pos, int len) throws IOException {
     int bytes;
     if (len == 1) {
-      bytes = VM_FileSystem.writeByte(nfd.getNativeFD(),src.get(pos));
+      bytes = FileSystem.writeByte(nfd.getNativeFD(),src.get(pos));
     } else if (src.hasArray()) {
       bytes = write(src.array(),pos,len);
     } else {
@@ -434,7 +434,7 @@ public final class VMChannel
    * @throws IOException
    */
   private static int write(int fd, byte[] src, int pos, int len) throws IOException {
-    int bytes = VM_FileSystem.writeBytes(fd,src,pos,len);
+    int bytes = FileSystem.writeBytes(fd,src,pos,len);
     if (bytes < 0)
       throw new IOException("Error code "+Integer.toString(bytes));
     return bytes;
@@ -529,7 +529,7 @@ public final class VMChannel
   public void write(int b) throws IOException
   {
     //write(nfd.getNativeFD(), b);
-    int result = VM_FileSystem.writeByte(nfd.getNativeFD(), b);
+    int result = FileSystem.writeByte(nfd.getNativeFD(), b);
     if (result < 0) {
       throw new IOException("Error code "+Integer.toString(result));
     }
