@@ -12,7 +12,7 @@
  */
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 
 /**
  * Test stack resize with native methods, various scenarios:
@@ -37,8 +37,8 @@ class StackResize {
    * stack to resize because there are native frames on the stack
    */
   public static boolean makeSecondNativeCall() {
-    VM_Thread th = VM_Thread.getCurrentThread();
-    int currentStackSize = VM_Magic.getArrayLength(th.stack);
+    Thread th = Thread.getCurrentThread();
+    int currentStackSize = Magic.getArrayLength(th.stack);
 
     // call another native method
     boolean resizeDidNotOccur = expectNoResize(currentStackSize);
@@ -51,8 +51,8 @@ class StackResize {
   }
 
   public static boolean checkResizeOccurred(int previousStackSize) {
-    VM_Thread th = VM_Thread.getCurrentThread();
-    int currentStackSize = VM_Magic.getArrayLength(th.stack);
+    Thread th = Thread.getCurrentThread();
+    int currentStackSize = Magic.getArrayLength(th.stack);
 
     if (verbose) {
       VM.sysWrite("check resize: previous ");
@@ -70,9 +70,9 @@ class StackResize {
    */
   @NoOptCompile
   public static boolean nativeWithStackAlmostFull() {
-    VM_Thread th = VM_Thread.getCurrentThread();
+    Thread th = Thread.getCurrentThread();
     // VM.disableGC();   // holding frame pointer
-    int fp = VM_Magic.getFramePointer();
+    int fp = Magic.getFramePointer();
     int spaceLeft = fp - th.stackLimit;
 
     // debug printing:  OK until last frame, will cause stack overflow
@@ -85,7 +85,7 @@ class StackResize {
       return nativeWithStackAlmostFull();
     } else {
       // VM.enableGC();
-      int currentStackSize = VM_Magic.getArrayLength(th.stack);
+      int currentStackSize = Magic.getArrayLength(th.stack);
       boolean resizeOccurred = expectResize(currentStackSize);
       if (resizeOccurred) {
         return true;
@@ -116,11 +116,11 @@ class StackResize {
     // Test 1
     // First check if the current stack size is smaller than
     // required for native call
-    VM_Thread th = VM_Thread.getCurrentThread();
-    int currentStackSpace = VM_Magic.getArrayLength(th.stack);
+    Thread th = Thread.getCurrentThread();
+    int currentStackSpace = Magic.getArrayLength(th.stack);
     if (currentStackSpace>VM.STACK_SIZE_JNINATIVE) {
       if (verbose)
-        VM.sysWrite("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.\n  Set up the system configuration for smaller normal stack:  VM_StackFrameLayoutConstants.java\n");
+        VM.sysWrite("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.\n  Set up the system configuration for smaller normal stack:  StackFrameLayoutConstants.java\n");
       VM.sysWrite("FAIL: StackResize\n");
     }
 
