@@ -880,11 +880,20 @@ public abstract class Simplifier extends IRTools {
       TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       if (ans == OptConstants.YES) {
-        Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
-        if (ref.isConstant())
-          return DefUseEffect.MOVE_FOLDED;
-        else
-          return DefUseEffect.MOVE_REDUCED;
+        RVMType rType = rhsType.peekType();
+        if (rType != null) {
+          if (rType.isClassType() && rType.asClass().isInterface()) {
+            /* This is exactly the kind of typing that could require us to raise an IncompatibleClassChangeError */
+            return DefUseEffect.UNCHANGED;
+          }
+          Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
+          if (ref.isConstant())
+            return DefUseEffect.MOVE_FOLDED;
+          else
+            return DefUseEffect.MOVE_REDUCED;
+        } else {
+          return DefUseEffect.UNCHANGED;
+        }
       } else if (ans == OptConstants.NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
