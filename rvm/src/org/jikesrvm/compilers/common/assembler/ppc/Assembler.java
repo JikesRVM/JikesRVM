@@ -299,6 +299,15 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
     mc.addInstruction(mi);
   }
 
+  static final int ANDIStemplate = 29 << 26;
+
+  public final void emitANDIS(int RA, int RS, int U) {
+    if (VM.VerifyAssertions) VM._assert((U & 0xffff) == 0);
+    int mi = ANDIStemplate | RS << 21 | RA << 16 | (U >>> 16);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int Btemplate = 18 << 26;
 
   private void _emitB(int relative_address) {

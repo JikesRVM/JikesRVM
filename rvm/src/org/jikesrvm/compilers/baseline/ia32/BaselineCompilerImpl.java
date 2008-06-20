@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
+import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -2835,19 +2836,28 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           genParameterRegisterLoad(2);                                            // pass 2 parameter word
           asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset()));// check that "this" class implements the interface
         } else {
-          asm.emitMOV_Reg_Abs(T0,
-                              Magic.getTocPointer().plus(resolvedMethod.getDeclaringClass().getTibOffset())); // tib of the interface method
-          asm.emitMOV_Reg_RegDisp(T1,
-                                  SP,
-                                  Offset.fromIntZeroExtend((count - 1) <<
-                                                           2));                                 // "this" object
-          asm.emitPUSH_RegDisp(T0,
-                               Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
-                                                        2));                                    // type of the interface method
-          baselineEmitLoadTIB(asm, S0, T1);
-          asm.emitPUSH_Reg(S0);
-          genParameterRegisterLoad(2);                                          // pass 2 parameter word
-          asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.invokeinterfaceImplementsTestMethod.getOffset()));// check that "this" class implements the interface
+          RVMClass interfaceClass = resolvedMethod.getDeclaringClass();
+          int interfaceIndex = interfaceClass.getDoesImplementIndex();
+          int interfaceMask = interfaceClass.getDoesImplementBitMask();
+          asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend((count - 1) << 2)); // "this" object
+          baselineEmitLoadTIB(asm, S0, T1); // tib of "this" object
+          asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << 2));  // implements bit vector
+
+          if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+            // must do arraybounds check of implements bit vector
+            asm.emitCMP_RegDisp_Imm_Word(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
+            asm.emitBranchLikelyNextInstruction();
+            ForwardReference fr = asm.forwardJcc(Assembler.LGT);
+            asm.emitINT_Imm(RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + RVM_TRAP_BASE);
+            fr.resolve(asm);
+          }
+
+          // Test the appropriate bit and if set, branch around another trap imm
+          asm.emitTEST_RegDisp_Imm(S0, Offset.fromIntZeroExtend(interfaceIndex << 2), interfaceMask);
+          asm.emitBranchLikelyNextInstruction();
+          ForwardReference fr = asm.forwardJcc(Assembler.NE);
+          asm.emitINT_Imm(RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + RVM_TRAP_BASE);
+          fr.resolve(asm);
         }
       }
     }
@@ -3357,15 +3367,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   private void genBoundsCheck(Assembler asm, GPR indexReg, GPR arrayRefReg) {
     if (generateBoundsChecks) {
       // compare index to array length
-      asm.emitCMP_RegDisp_Reg(arrayRefReg,
-          ObjectModel.getArrayLengthOffset(),
-          indexReg);
+      asm.emitCMP_RegDisp_Reg(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);
       // Jmp around trap if index is OK
       asm.emitBranchLikelyNextInstruction();
       ForwardReference fr = asm.forwardJcc(Assembler.LGT);
       // "pass" index param to C trap handler
-      ProcessorLocalState.emitMoveRegToField(asm,
-          ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
+      ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
       // trap
       asm.emitINT_Imm(RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
       fr.resolve(asm);

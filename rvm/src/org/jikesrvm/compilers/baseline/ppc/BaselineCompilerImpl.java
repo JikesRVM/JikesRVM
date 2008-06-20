@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.baseline.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
+import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -42,6 +43,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.ppc.TrapConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.MagicNames;
@@ -2874,16 +2876,35 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           ObjectModel.baselineEmitLoadTIB(asm, T1, T1);
           asm.emitBCCTRL();                 // throw exception, if link error
         } else {
-          // normal case.  Not a ghost ref.
-          asm.emitLAddrToc(T0, Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
-          asm.emitMTCTR(T0);
-          asm.emitLAddrToc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
-          asm.emitLAddr(T0,
-                        TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS,
-                        T0);                   // type of the interface method
-          peekAddr(T1, count - 1);                        // the "this" object
-          ObjectModel.baselineEmitLoadTIB(asm, T1, T1);
-          asm.emitBCCTRL();                              // throw exception, if link error
+          RVMClass interfaceClass = resolvedMethod.getDeclaringClass();
+          int interfaceIndex = interfaceClass.getDoesImplementIndex();
+          int interfaceMask = interfaceClass.getDoesImplementBitMask();
+
+          peekAddr(T0, count - 1);                              // the "this" object
+          ObjectModel.baselineEmitLoadTIB(asm, T0, T0);         // TIB of "this" object
+          asm.emitLAddr(T0, TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS, T0); // implements bit vector
+
+          if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+            // must do arraybounds check of implements bit vector
+            asm.emitLIntOffset(T1, T0, ObjectModel.getArrayLengthOffset()); // T1 gets array length
+            asm.emitLVAL(T2, interfaceIndex);
+            asm.emitCMPL(T2, T1);
+            ForwardReference fr1 = asm.emitForwardBC(LT);  // if in bounds, jump around trap.  TODO: would like to encode "y" bit that this branch is expected to be takem.
+            asm.emitTWI(31, 12, TrapConstants.MUST_IMPLEMENT_TRAP); // encoding of TRAP_ALWAYS MUST_IMPLEMENT_INTERFACE
+            fr1.resolve(asm);
+          }
+
+          // Test the appropriate bit and if set, branch around another trap imm
+          asm.emitLInt(T1, interfaceIndex << LOG_BYTES_IN_INT, T0);
+          if ((interfaceMask & 0xffff) == interfaceMask) {
+            asm.emitANDI(S0, T1, interfaceMask);
+          } else {
+            if (VM.VerifyAssertions) VM._assert((interfaceMask & 0xffff0000) == interfaceMask);
+            asm.emitANDIS(S0, T1, interfaceMask);
+          }
+          ForwardReference fr2 = asm.emitForwardBC(NE);     // TODO: encode "y" bit that branch is likely taken.
+          asm.emitTWI(31, 12, TrapConstants.MUST_IMPLEMENT_TRAP); // encoding of TRAP_ALWAYS MUST_IMPLEMENT_INTERFACE
+          fr2.resolve(asm);
         }
       }
     }
