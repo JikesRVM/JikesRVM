@@ -3092,9 +3092,49 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   /**
    * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   */
+  @Override
+  protected final void emit_checkcast_resolvedInterface(RVMClass type) {
+    int interfaceIndex = type.getDoesImplementIndex();
+    int interfaceMask = type.getDoesImplementBitMask();
+
+    peekAddr(T0, 0);            // load the object being checked
+    asm.emitCMPAddrI(T0, 0);    // check for null
+    ForwardReference isNull = asm.emitForwardBC(EQ);
+
+    ObjectModel.baselineEmitLoadTIB(asm, T0, T0);         // TIB of "this" object
+    asm.emitLAddr(T0, TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS, T0); // implements bit vector
+
+    if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+      // must do arraybounds check of implements bit vector
+      asm.emitLIntOffset(T1, T0, ObjectModel.getArrayLengthOffset()); // T1 gets array length
+      asm.emitLVAL(T2, interfaceIndex);
+      asm.emitCMPL(T2, T1);
+      ForwardReference fr1 = asm.emitForwardBC(LT);      // if in bounds, jump around trap.  TODO: would like to encode "y" bit that this branch is expected to be takem.
+      asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+      fr1.resolve(asm);
+    }
+
+    // Test the appropriate bit and if set, branch around another trap imm
+    asm.emitLInt(T1, interfaceIndex << LOG_BYTES_IN_INT, T0);
+    if ((interfaceMask & 0xffff) == interfaceMask) {
+      asm.emitANDI(S0, T1, interfaceMask);
+    } else {
+      if (VM.VerifyAssertions) VM._assert((interfaceMask & 0xffff0000) == interfaceMask);
+      asm.emitANDIS(S0, T1, interfaceMask);
+    }
+    ForwardReference fr2 = asm.emitForwardBC(NE);      // TODO: encode "y" bit that branch is likely taken.
+    asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+    fr2.resolve(asm);
+    isNull.resolve(asm);
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
    * @param type   The LHS type
    */
-  protected final void emit_checkcast_resolvedClass(RVMType type) {
+  protected final void emit_checkcast_resolvedClass(RVMClass type) {
     asm.emitLAddrToc(T0, Entrypoints.checkcastResolvedClassMethod.getOffset());
     asm.emitMTCTR(T0);
     peekAddr(T0, 0); // checkcast(obj, klass) consumes obj

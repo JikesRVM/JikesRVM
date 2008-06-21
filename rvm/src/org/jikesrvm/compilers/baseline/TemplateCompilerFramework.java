@@ -1664,11 +1664,16 @@ public abstract class TemplateCompilerFramework
           RVMType type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
-              if (type.asClass().isFinal()) {
-                emit_checkcast_final(type);
+              RVMClass cType = type.asClass();
+              if (cType.isFinal()) {
+                emit_checkcast_final(cType);
                 break;
-              } else if (type.isResolved() && !type.asClass().isInterface()) {
-                emit_checkcast_resolvedClass(type);
+              } else if (cType.isResolved()) {
+                if (cType.isInterface()) {
+                  emit_checkcast_resolvedInterface(cType);
+                } else {
+                  emit_checkcast_resolvedClass(cType);
+                }
                 break;
               } // else fall through to emit_checkcast
             } else if (type.isArrayType()) {
@@ -3034,7 +3039,12 @@ public abstract class TemplateCompilerFramework
    * Emit code to implement the checkcast bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_checkcast_resolvedClass(RVMType type);
+  protected abstract void emit_checkcast_resolvedInterface(RVMClass type);
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   */
+  protected abstract void emit_checkcast_resolvedClass(RVMClass type);
 
   /**
    * Emit code to implement the checkcast bytecode

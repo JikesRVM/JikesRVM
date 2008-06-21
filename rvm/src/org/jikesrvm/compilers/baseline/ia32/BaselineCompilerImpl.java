@@ -3066,7 +3066,41 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * @param type the LHS type
    */
   @Override
-  protected final void emit_checkcast_resolvedClass(RVMType type) {
+  protected final void emit_checkcast_resolvedInterface(RVMClass type) {
+    int interfaceIndex = type.getDoesImplementIndex();
+    int interfaceMask = type.getDoesImplementBitMask();
+
+    asm.emitMOV_Reg_RegDisp(S0, SP, Offset.zero());             // load object from stack
+    asm.emitTEST_Reg_Reg(S0, S0);                               // test for null
+    ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
+
+    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
+    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << 2));  // implements bit vector
+
+    if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+      // must do arraybounds check of implements bit vector
+      asm.emitCMP_RegDisp_Imm_Word(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
+      asm.emitBranchLikelyNextInstruction();
+      ForwardReference fr = asm.forwardJcc(Assembler.LGT);
+      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_CHECKCAST + RVM_TRAP_BASE);
+      fr.resolve(asm);
+    }
+
+    // Test the appropriate bit and if set, branch around another trap imm
+    asm.emitTEST_RegDisp_Imm(S0, Offset.fromIntZeroExtend(interfaceIndex << 2), interfaceMask);
+    asm.emitBranchLikelyNextInstruction();
+    ForwardReference fr = asm.forwardJcc(Assembler.NE);
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_CHECKCAST + RVM_TRAP_BASE);
+    fr.resolve(asm);
+    isNull.resolve(asm);
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param type the LHS type
+   */
+  @Override
+  protected final void emit_checkcast_resolvedClass(RVMClass type) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getId());                  // RVMType id.
     genParameterRegisterLoad(2);                     // pass 2 parameter words
