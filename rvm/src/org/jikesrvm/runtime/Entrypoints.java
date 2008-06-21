@@ -118,10 +118,6 @@ public class Entrypoints {
       getMethod(org.jikesrvm.classloader.InterfaceInvocation.class,
                 "findITable",
                 "(Lorg/jikesrvm/objectmodel/TIB;I)Lorg/jikesrvm/objectmodel/ITable;");
-  public static final NormalMethod invokeinterfaceImplementsTestMethod =
-      getMethod(org.jikesrvm.classloader.InterfaceInvocation.class,
-                "invokeinterfaceImplementsTest",
-                "(Lorg/jikesrvm/classloader/RVMClass;Lorg/jikesrvm/objectmodel/TIB;)V");
   public static final NormalMethod unresolvedInvokeinterfaceImplementsTestMethod =
       getMethod(org.jikesrvm.classloader.InterfaceInvocation.class,
                 "unresolvedInvokeinterfaceImplementsTest",

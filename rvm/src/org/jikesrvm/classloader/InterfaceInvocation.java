@@ -120,29 +120,9 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
   }
 
   /**
-   * LHSclass is an interface that RHS class must implement.
-   * Raises an IncompatibleClassChangeError if RHStib does not
-   * implement LHSclass.
+   * <code>mid</code> is the dictionary id of an interface method we are trying to invoke
+   * <code>RHStib</code> is the TIB of an object on which we are attempting to invoke it.
    *
-   * @param LHSclass an class (should be an interface)
-   * @param RHStib the TIB of an object that must implement LHSclass
-   */
-  @Entrypoint
-  public static void invokeinterfaceImplementsTest(RVMClass LHSclass, TIB RHStib)
-      throws IncompatibleClassChangeError {
-    if (!LHSclass.isResolved()) {
-      LHSclass.resolve();
-    }
-    if (LHSclass.isInterface() && DynamicTypeCheck.instanceOfInterface(LHSclass, RHStib)) return;
-    // Raise an IncompatibleClassChangeError.
-    throw new IncompatibleClassChangeError();
-  }
-
-  /**
-   * <code>mid</code> is the dictionary id of an interface method we are
-   * trying to invoke
-   * <code>RHStib</code> is the TIB of an object on which we are attempting to
-   * invoke it
    * We were unable to resolve the member reference at compile time.
    * Therefore we must resolve it now and then call invokeinterfaceImplementsTest
    * with the right LHSclass.
@@ -156,7 +136,13 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
   public static void unresolvedInvokeinterfaceImplementsTest(int mid, TIB RHStib)
       throws IncompatibleClassChangeError {
     RVMMethod sought = MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod();
-    invokeinterfaceImplementsTest(sought.getDeclaringClass(), RHStib);
+    RVMClass LHSclass = sought.getDeclaringClass();
+    if (!LHSclass.isResolved()) {
+      LHSclass.resolve();
+    }
+    if (LHSclass.isInterface() && DynamicTypeCheck.instanceOfInterface(LHSclass, RHStib)) return;
+    // Raise an IncompatibleClassChangeError.
+    throw new IncompatibleClassChangeError();
   }
 
   /*
