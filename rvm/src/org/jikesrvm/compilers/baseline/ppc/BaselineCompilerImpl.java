@@ -3147,11 +3147,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param type the LHS type
    */
   protected final void emit_checkcast_final(RVMType type) {
-    asm.emitLAddrToc(T0, Entrypoints.checkcastFinalMethod.getOffset());
-    asm.emitMTCTR(T0);
-    peekAddr(T0, 0); // checkcast(obj, klass) consumes obj
-    asm.emitLVALAddr(T1, type.getTibOffset());
-    asm.emitBCCTRL();               // but obj remains on stack afterwords
+    peekAddr(T0, 0);            // load the object being checked
+    asm.emitCMPAddrI(T0, 0);    // check for null
+    ForwardReference isNull = asm.emitForwardBC(EQ);
+
+    ObjectModel.baselineEmitLoadTIB(asm, T0, T0);       // TIB of "this" object
+    asm.emitLAddrToc(T1, type.getTibOffset());          // TIB of LHS type
+    asm.emitCMP(T0, T1);                                // TIBs equal?
+    ForwardReference fr = asm.emitForwardBC(EQ);       // TODO: encode "y" bit that branch is likely taken.
+    asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+    fr.resolve(asm);
+    isNull.resolve(asm);
   }
 
   /**

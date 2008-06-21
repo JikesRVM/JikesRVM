@@ -3113,10 +3113,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_checkcast_final(RVMType type) {
-    asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
-    asm.emitPUSH_Imm(type.getTibOffset().toInt());           // JTOC index that identifies klass
-    genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkcastFinalMethod.getOffset())); // checkcast(obj, TIB's JTOC offset)
+    asm.emitMOV_Reg_RegDisp(S0, SP, Offset.zero());             // load object from stack
+    asm.emitTEST_Reg_Reg(S0, S0);                               // test for null
+    ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
+
+    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
+    asm.emitCMP_Reg_Abs(S0, Magic.getTocPointer().plus(type.getTibOffset()));
+
+    asm.emitBranchLikelyNextInstruction();
+    ForwardReference fr = asm.forwardJcc(Assembler.EQ);
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_CHECKCAST + RVM_TRAP_BASE);
+    fr.resolve(asm);
+    isNull.resolve(asm);
   }
 
   /**

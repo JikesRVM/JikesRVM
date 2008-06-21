@@ -224,29 +224,6 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     }
   }
 
-  /**
-   * quick version for final classes, array of final class or array of primitives
-   */
-  @Uninterruptible
-  @Entrypoint
-  static void checkcastFinal(Object object, Offset targetTibOffset) {
-    if (object == null) return; // null can be cast to any type
-
-    Object lhsTib = Magic.getObjectAtOffset(Magic.getJTOC(), targetTibOffset);
-    Object rhsTib = ObjectModel.getTIB(object);
-    if (lhsTib != rhsTib) {
-      RVMType lhsType =
-          Magic.objectAsType(Magic.getObjectAtOffset(lhsTib,
-                                                           Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
-                                                                                    LOG_BYTES_IN_ADDRESS)));
-      RVMType rhsType =
-          Magic.objectAsType(Magic.getObjectAtOffset(rhsTib,
-                                                           Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
-                                                                                    LOG_BYTES_IN_ADDRESS)));
-      raiseCheckcastException(lhsType, rhsType);
-    }
-  }
-
   @LogicallyUninterruptible
   @Uninterruptible
   private static void raiseCheckcastException(RVMType lhsType, RVMType rhsType) {
