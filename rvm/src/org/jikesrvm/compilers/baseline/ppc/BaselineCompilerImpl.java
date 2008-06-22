@@ -3135,11 +3135,32 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param type   The LHS type
    */
   protected final void emit_checkcast_resolvedClass(RVMClass type) {
-    asm.emitLAddrToc(T0, Entrypoints.checkcastResolvedClassMethod.getOffset());
-    asm.emitMTCTR(T0);
-    peekAddr(T0, 0); // checkcast(obj, klass) consumes obj
-    asm.emitLVAL(T1, type.getId());
-    asm.emitBCCTRL();               // but obj remains on stack afterwords
+    int LHSDepth = type.getTypeDepth();
+    int LHSId = type.getId();
+
+    peekAddr(T0, 0);            // load the object being checked
+    asm.emitCMPAddrI(T0, 0);    // check for null
+    ForwardReference isNull = asm.emitForwardBC(EQ);
+
+    ObjectModel.baselineEmitLoadTIB(asm, T0, T0);       // TIB of "this" object
+    asm.emitLAddr(T0, TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS, T0); // superclass display
+    if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
+      // must do arraybounds check of superclass display
+      asm.emitLIntOffset(T1, T0, ObjectModel.getArrayLengthOffset()); // T1 gets array length
+      asm.emitLVAL(T2, LHSDepth);
+      asm.emitCMPL(T2, T1);
+      ForwardReference fr1 = asm.emitForwardBC(LT);      // if in bounds, jump around trap.  TODO: would like to encode "y" bit that this branch is expected to be takem.
+      asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+      fr1.resolve(asm);
+    }
+
+    // Load id from display at required depth and compare against target id.
+    asm.emitLHZ(T0, LHSDepth << LOG_BYTES_IN_CHAR, T0);
+    asm.emitCMPI(T0, LHSId);
+    ForwardReference fr2 = asm.emitForwardBC(EQ);      // TODO: encode "y" bit that branch is likely taken.
+    asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+    fr2.resolve(asm);
+    isNull.resolve(asm);
   }
 
   /**
