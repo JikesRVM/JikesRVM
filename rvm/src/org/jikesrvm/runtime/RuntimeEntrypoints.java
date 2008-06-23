@@ -33,7 +33,6 @@ import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -199,35 +198,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     // not an exact match, do more involved lookups
     //
     if (!isAssignableWith(lhsType, rhsType)) {
-      raiseCheckcastException(lhsType, rhsType);
+      throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
     }
-  }
-
-  /**
-   * Throw exception unless object is instance of target resolved proper class.
-   * @param object object to be tested
-   * @param id of type corresponding to target class
-   */
-  @Uninterruptible
-  @Entrypoint
-  static void checkcastResolvedClass(Object object, int id) {
-    if (object == null) return; // null can be cast to any type
-
-    RVMClass lhsType = RVMType.getType(id).asClass();
-    TIB rhsTIB = ObjectModel.getTIB(object);
-    if (VM.VerifyAssertions) {
-      VM._assert(rhsTIB != null);
-    }
-    if (!DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
-      RVMType rhsType = ObjectModel.getObjectType(object);
-      raiseCheckcastException(lhsType, rhsType);
-    }
-  }
-
-  @LogicallyUninterruptible
-  @Uninterruptible
-  private static void raiseCheckcastException(RVMType lhsType, RVMType rhsType) {
-    throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
   }
 
   /**
