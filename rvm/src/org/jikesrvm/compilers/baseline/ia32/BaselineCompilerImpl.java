@@ -3168,10 +3168,38 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_instanceof_resolvedClass(RVMType type) {
-    asm.emitPUSH_Imm(type.getId());
-    genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.instanceOfResolvedClassMethod.getOffset()));
-    asm.emitPUSH_Reg(T0);
+    int LHSDepth = type.getTypeDepth();
+    int LHSId = type.getId();
+
+    asm.emitPOP_Reg(S0);             // load object from stack
+    asm.emitTEST_Reg_Reg(S0, S0);    // test for null
+    ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
+
+    // get superclass display from object's TIB
+    baselineEmitLoadTIB(asm, S0, S0);
+    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << 2));
+
+    ForwardReference outOfBounds = null;
+    if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
+      // must do arraybounds check of superclass display
+      asm.emitCMP_RegDisp_Imm_Word(S0, ObjectModel.getArrayLengthOffset(), LHSDepth);
+      outOfBounds = asm.forwardJcc(Assembler.LLE);
+    }
+
+    // Load id from display at required depth and compare against target id; push true if matched
+    asm.emitMOVZX_Reg_RegDisp_Word(S0, S0, Offset.fromIntZeroExtend(LHSDepth << LOG_BYTES_IN_SHORT));
+    asm.emitCMP_Reg_Imm(S0, LHSId);
+    ForwardReference notMatched = asm.forwardJcc(Assembler.NE);
+    asm.emitPUSH_Imm(1);
+    ForwardReference done = asm.forwardJMP();
+
+    // push false
+    isNull.resolve(asm);
+    if (outOfBounds != null) outOfBounds.resolve(asm);
+    notMatched.resolve(asm);
+    asm.emitPUSH_Imm(0);
+
+    done.resolve(asm);
   }
 
   /**
@@ -3180,10 +3208,23 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_instanceof_final(RVMType type) {
-    asm.emitPUSH_Imm(type.getTibOffset().toInt());
-    genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.instanceOfFinalMethod.getOffset()));
-    asm.emitPUSH_Reg(T0);
+    asm.emitPOP_Reg(S0);             // load object from stack
+    asm.emitTEST_Reg_Reg(S0, S0);    // test for null
+    ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
+
+    // compare TIB of object to desired TIB and push true if equal
+    baselineEmitLoadTIB(asm, S0, S0);
+    asm.emitCMP_Reg_Abs(S0, Magic.getTocPointer().plus(type.getTibOffset()));
+    ForwardReference notMatched = asm.forwardJcc(Assembler.NE);
+    asm.emitPUSH_Imm(1);
+    ForwardReference done = asm.forwardJMP();
+
+    // push false
+    isNull.resolve(asm);
+    notMatched.resolve(asm);
+    asm.emitPUSH_Imm(0);
+
+    done.resolve(asm);
   }
 
   /**
