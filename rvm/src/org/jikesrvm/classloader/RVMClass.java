@@ -2079,7 +2079,11 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
         throw e;
       } catch (Throwable t) {
         ExceptionInInitializerError eieio = new ExceptionInInitializerError("While initializing " + this);
-        eieio.initCause(t);
+        if (VM.verboseClassLoading) {
+          VM.sysWriteln("[Exception in initializer error caused by:");
+          t.printStackTrace();
+          VM.sysWriteln("]");
+        }
         throw eieio;
       }
 
