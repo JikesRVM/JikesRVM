@@ -188,7 +188,7 @@ public class AccessibleObject implements AnnotatedElement {
    * @see java.lang.reflect.Modifier
    */
   int getModifiers() {
-    return getVMMethod().getModifiers();
+    return getVMMember().getModifiers();
   }
 
   /**
