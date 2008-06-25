@@ -265,6 +265,7 @@ public class Thread implements Runnable {
     }
     stacksize = stack;
     this.runnable = runnable;
+    this.group = group;
   }
 
   /**
