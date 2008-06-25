@@ -143,6 +143,8 @@ public final class NativeMethod extends RVMMethod {
     // Mangled Class name
     // Special case: underscore in class name
     mangledClassName = replaceCharWithString(className, '_', "_1");
+    // Special case: dollar in class name
+    mangledClassName = replaceCharWithString(mangledClassName, '$', "_00024");
 
     // Mangled Method name
     // Special case: underscore in method name
