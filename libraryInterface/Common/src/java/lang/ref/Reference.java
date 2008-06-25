@@ -43,7 +43,7 @@ public abstract class Reference<T> {
    * classpath release.
    * @see java.lang.ref.ReferenceQueue
  */
-  Reference<?> nextOnQueue;
+  Reference nextOnQueue;
 
 
   /**

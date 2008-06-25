@@ -2307,32 +2307,11 @@ public class BootImageWriter extends BootImageWriterMessages
         if (verbose >= 2) traceContext.pop();
         return true;
       } else if (jdkObject instanceof java.lang.ref.ReferenceQueue) {
-        if(rvmFieldName.equals("references")) {
-          Object value = new java.lang.ref.Reference[128];
-          Address imageAddress = BootImageMap.findOrCreateEntry(value).imageAddress;
-          if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
-            // object not part of bootimage: install null reference
-            if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-            throw new Error("Failed to populate referenceQueue in WeakHashMap");
-          } else if (imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
-            imageAddress = copyToBootImage(value, false, Address.max(), jdkObject, false);
-            if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
-            bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, true);
-          } else {
-            if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
-            bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, true);
-          }
-          return true;
-        } else if (rvmFieldName.equals("tail")){
-          bootImage.setFullWord(rvmFieldAddress, 0);
-          return true;
-        } else if (rvmFieldName.equals("empty")){
-          bootImage.setByte(rvmFieldAddress, 1);
-          return true;
+        if (rvmFieldName.equals("firstReference")){
+          return false;
         } else {
           throw new Error("Unknown field "+rvmFieldName+" in java.lang.ref.ReferenceQueue");
         }
-
       } else {
         // unknown field
         return false;
