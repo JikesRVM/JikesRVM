@@ -295,6 +295,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
       System.loadLibrary("hythr");
+      System.loadLibrary("hycharset");
     }
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
