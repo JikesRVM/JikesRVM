@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * Note that as soon as the mutator is created it is considered active. This means
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
-public class Mutator extends Thread {
+public class Mutator extends MMTkThread {
   /** Debugging */
   public static final boolean TRACE = false;
 

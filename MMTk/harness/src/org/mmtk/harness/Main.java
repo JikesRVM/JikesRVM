@@ -23,7 +23,7 @@ import org.mmtk.harness.lang.parser.Parser;
 import org.mmtk.harness.lang.parser.ParseException;
 
 public class Main {
-  public static void main(String[] args) throws ParseException, FileNotFoundException {
+  public static void main(String[] args) throws InterruptedException, ParseException, FileNotFoundException {
     /* Usage */
     if (args.length < 1) {
       System.err.println("usage: java -jar mmtk-harness.jar test-script [options ...]");

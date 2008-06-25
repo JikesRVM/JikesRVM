@@ -50,39 +50,45 @@ public class Harness {
    *
    * After calling this it is possible to begin creating mutator threads.
    */
-  public static void init(String[] args) {
+  public static void init(String[] args) throws InterruptedException {
     /* Always use the harness factory */
     System.setProperty("mmtk.hostjvm", Factory.class.getCanonicalName());
 
     /* Options used for configuring the plan to use */
-    ArrayList<String> newArgs = new ArrayList<String>();
+    final ArrayList<String> newArgs = new ArrayList<String>();
     for(String arg: args) {
       if (!options.process(arg)) newArgs.add(arg);
     }
+    MMTkThread thread = new MMTkThread((new Runnable() {
+      public void run() {
 
-    /* Get MMTk breathing */
-    ActivePlan.init(plan.getValue());
-    ActivePlan.plan.boot();
-    HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
-    Collector.init(collectors.getValue());
+        /* Get MMTk breathing */
+        ActivePlan.init(plan.getValue());
+        ActivePlan.plan.boot();
+        HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
+        Collector.init(collectors.getValue());
 
-    /* Override some defaults */
-    Options.noFinalizer.setValue(true);
-    Options.noReferenceTypes.setValue(true);
+        /* Override some defaults */
+        Options.noFinalizer.setValue(true);
+        Options.noReferenceTypes.setValue(true);
 
-    /* Process command line options */
-    for(String arg: newArgs) {
-      if (!options.process(arg)) {
-        throw new RuntimeException("Invalid option '" + arg + "'");
+        /* Process command line options */
+        for(String arg: newArgs) {
+          if (!options.process(arg)) {
+            throw new RuntimeException("Invalid option '" + arg + "'");
+          }
+        }
+
+        /* Check options */
+        assert Options.noFinalizer.getValue(): "noFinalizer must be true";
+        assert Options.noReferenceTypes.getValue(): "noReferenceTypes must be true";
+
+        /* Finish starting up MMTk */
+        ActivePlan.plan.postBoot();
+        ActivePlan.plan.fullyBooted();
       }
-    }
-
-    /* Check options */
-    assert Options.noFinalizer.getValue(): "noFinalizer must be true";
-    assert Options.noReferenceTypes.getValue(): "noReferenceTypes must be true";
-
-    /* Finish starting up MMTk */
-    ActivePlan.plan.postBoot();
-    ActivePlan.plan.fullyBooted();
+    }));
+    thread.start();
+    thread.join();
   }
 }

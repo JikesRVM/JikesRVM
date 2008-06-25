@@ -16,7 +16,6 @@ import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
 
@@ -73,9 +72,6 @@ import org.vmmagic.unboxed.*;
    */
   /** Unique collector identifier */
   protected int id = VM.activePlan.registerCollector(this);
-
-  /** Used for printing log information in a thread safe manner */
-  protected Log log = new Log();
 
   /** Per-collector allocator into the immortal space */
   protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
@@ -192,11 +188,6 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Miscellaneous.
    */
-
-  /** @return the <code>Log</code> instance for this PlanLocal */
-  public final Log getLog() {
-    return log;
-  }
 
   /** @return the unique identifier for this collector context. */
   @Inline

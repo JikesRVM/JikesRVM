@@ -14,6 +14,8 @@ package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.scheduler.Processor;
 
+import org.mmtk.utility.Log;
+
 import org.vmmagic.pragma.*;
 
 public class Selected {
@@ -50,6 +52,9 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
+    private final Log log = new Log(); 
+    @Inline
+    public final Log getLog() { return log; }
     @Inline
     public final Processor getProcessor() { return (Processor) this; }
     @Inline

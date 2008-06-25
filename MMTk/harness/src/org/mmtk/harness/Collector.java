@@ -24,7 +24,7 @@ import org.mmtk.vm.Collection;
 /**
  * This class represents a collector thread.
  */
-public final class Collector extends Thread {
+public final class Collector extends MMTkThread {
 
   /** Registered collectors */
   private static ArrayList<Collector> collectors = new ArrayList<Collector>();

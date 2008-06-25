@@ -13,11 +13,13 @@
 package org.mmtk.harness.vm;
 
 import org.mmtk.harness.Collector;
+import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.Mutator;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
+import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
 
@@ -61,6 +63,9 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /** @return The active <code>MutatorContext</code> instance. */
   public MutatorContext mutator() { return Mutator.current().getContext(); }
+
+  /** @return The active <code>MutatorContext</code> instance. */
+  public Log log() { return MMTkThread.current().getLog(); }
 
   /**
    * Return the <code>CollectorContext</code> instance given its unique identifier.

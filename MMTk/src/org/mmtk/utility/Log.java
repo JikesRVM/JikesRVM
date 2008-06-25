@@ -20,7 +20,8 @@ import org.vmmagic.pragma.*;
 /**
  * Error and trace logging.
  */
-@Uninterruptible public class Log implements Constants {
+@Uninterruptible
+public class Log implements Constants {
 
   /****************************************************************************
    *
@@ -37,11 +38,9 @@ import org.vmmagic.pragma.*;
   private static final int MESSAGE_BUFFER_SIZE = 3000;
 
   /** message added when the write buffer has overflown */
-  private static final String OVERFLOW_MESSAGE =
-    "... WARNING: Text truncated.\n";
+  private static final String OVERFLOW_MESSAGE = "... WARNING: Text truncated.\n";
 
-  private static final char OVERFLOW_MESSAGE_FIRST_CHAR =
-    OVERFLOW_MESSAGE.charAt(0);
+  private static final char OVERFLOW_MESSAGE_FIRST_CHAR = OVERFLOW_MESSAGE.charAt(0);
 
   /** characters in the overflow message, including the (optional) final
    * newline  */
@@ -69,15 +68,13 @@ import org.vmmagic.pragma.*;
    * log2 of number of digits in the unsigned hexadecimal
    * representation of a byte
    */
-  private static final int LOG_HEX_DIGITS_IN_BYTE =
-    LOG_BITS_IN_BYTE - LOG_BITS_IN_HEX_DIGIT;
+  private static final int LOG_HEX_DIGITS_IN_BYTE = LOG_BITS_IN_BYTE - LOG_BITS_IN_HEX_DIGIT;
 
   /**
    * map of hexadecimal digit values to their character representations
    */
   private static final char [] hexDigitCharacter =
-  { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
-    'f' };
+  { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
   /** new line character. Emitted by writeln methods. */
   private static final char NEW_LINE_CHAR = '\n';
@@ -91,8 +88,7 @@ import org.vmmagic.pragma.*;
    */
 
   /** buffer to store written message until flushing */
-  private char [] buffer =
-    new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
+  private char [] buffer = new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
 
   /** location of next character to be written */
   private int bufferIndex = 0;
@@ -112,8 +108,9 @@ import org.vmmagic.pragma.*;
 
   /** constructor */
   public Log() {
-    for (int i = 0; i < OVERFLOW_SIZE; i++)
-      VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i, OVERFLOW_MESSAGE.charAt(i));
+    for (int i = 0; i < OVERFLOW_SIZE; i++) {
+      buffer[MESSAGE_BUFFER_SIZE + i] = OVERFLOW_MESSAGE.charAt(i);
+    }
   }
 
   /**
@@ -138,6 +135,7 @@ import org.vmmagic.pragma.*;
    * writes a long, in decimal.  The value is not padded and no
    * thousands seperator is logged.  If the value is negative a
    * leading minus sign (-) is logged.
+   *
    *
    * @param l long value to be logged
    */
@@ -755,7 +753,7 @@ import org.vmmagic.pragma.*;
 
   private static Log getLog() {
     if (VM.assertions.runningVM())
-      return VM.activePlan.collector().getLog();
+      return VM.activePlan.log();
     else
       return log;
   }
