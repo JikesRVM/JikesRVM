@@ -52,8 +52,7 @@ public final class Word {
   }
 
   /**
-   * Convert a long to a word.  On 64-bit this is a no-op.
-   * TODO document behaviour on 32-bit.  Truncate ?
+   * Convert a long to a word, truncating to a 32-bit value.
    *
    * @param val
    * @return

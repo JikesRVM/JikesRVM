@@ -10,29 +10,16 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.test;
-
-import org.mmtk.harness.Mutator;
 
 /**
  * This is a simple test that forces an out of memory condition by creating an infinite linked list.
  */
-public class OutOfMemory extends Test {
-  /**
-   * Create an infinite linked list.
-   */
-  protected void main(Mutator m) {
-    try {
-      m.muAlloc("current", 1, 8);
-      while(true) {
-        m.muCopy("last", "current");
-        m.muAlloc("current", 1, 8);
-        m.muStore("current", 0, "last");
-      }
-    } catch (Mutator.OutOfMemory oom) {
-      System.err.println("OutOfMemory");
-      m.muEnd();
-      return;
-    }
+main() {
+  object current = alloc(1, 8);
+  object last;
+  while(true) {
+    last = current;
+    current = alloc(1,8);
+    current.object[0] = last;
   }
 }

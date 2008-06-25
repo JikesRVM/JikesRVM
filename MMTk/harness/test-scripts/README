@@ -1,0 +1,43 @@
+MMTk harness scripting language
+
+Basics:
+
+The language has two types: integer and object.  Objects are allocated
+with the 'alloc' statement, and have a specified number of pointers and
+nonpointers (integers).  Variables are declared 'c' style, and are optionally
+initialized at declaration.
+
+Object fields are referenced using syntax like "tmp.int[5]" or "tmp.object[i*3]",
+ie like a struct of arrays of the appropriate types.
+
+Syntax:
+
+script ::= method...
+
+method ::= ident "(" { type ident { "," type ident}...  ")" "{" statement... "}"
+
+statement ::=
+	  "if" "(" expr ")" "then" block [ "else" block ]
+	| "while "(" expr ")" block
+	| [ [ type ] ident "=" ] "alloc" "(" expr "," expr [ "," expr ] ")" ";"
+	| [ ident "=" ] "hash" "(" expr ")" ";"
+        | "gc" "(" ")"
+        | "spawn" "(" ident [ "," expr ]... ")" ";"
+	| type ident [ "=" expr ] ";"
+	| lvalue "=" expr ";"	
+
+lvalue ::= ident "=" expr ";"
+	| ident "." type "[" expr "]"
+	
+type ::= "int" | "object"
+
+expr ::= expr binop expr
+		| unop expr
+		| "(" expr ")"
+		| ident
+		| ident "." type "[" expr "]"
+		| int-const
+
+binop ::= "+" | "-" | "*" | "/" | "%" | "&&" | "||" | "==" | "!="
+
+unop ::= "!" | "-"

@@ -1,0 +1,542 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+options {
+  JDK_VERSION = "1.5";
+  LOOKAHEAD = 10;
+  STATIC = false;
+}
+PARSER_BEGIN(Parser)
+package org.mmtk.harness.lang.parser;
+
+// CHECKSTYLE:OFF
+import org.mmtk.harness.lang.*;
+import java.util.*;
+
+public class Parser {
+}
+PARSER_END(Parser)
+
+/* Lexical structure based from Java grammar */
+
+/* White space */
+
+SKIP : {
+  " " |
+  "\t" |
+  "\n" |
+  "\r" |
+  "\f"
+} 
+
+/* Comments */
+
+MORE : {
+  "//" : IN_SINGLE_LINE_COMMENT |
+  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN : {
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN : {
+  <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_MULTI_LINE_COMMENT>
+MORE : {
+  < ~[] >
+}
+
+/* Reserved words */
+
+TOKEN : {
+   < ALLOC : "alloc" > |
+   < ASSERT : "assert" > |
+   < ELSE : "else" > |
+   < GC: "gc" > |
+   < HASH: "hash" > |
+   < IF : "if" > |
+   < INT : "int" > |
+   < OBJECT : "object" > |
+   < PRINT : "print" > |
+   < SPAWN : "spawn" > |
+   < TID : "tid" > |
+   < WHILE : "while" >
+}
+
+/* Literals */
+
+TOKEN : {
+  < INTEGER_LITERAL: (["0"-"9"])+ > |
+  < BOOLEAN_LITERAL: ("true" | "false") > |
+  < STRING_LITERAL: "\"" ([" ", "_", "=", "-", "(", ")", "[", "]", "<", ">", "0"-"9", "a"-"z", "A"-"Z"])* "\"" >
+}
+
+/* Identifiers */
+
+TOKEN : {
+  <IDENTIFIER: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])* >
+}
+
+/* Separators */
+
+TOKEN : {
+  < LPAREN: "(" > |
+  < RPAREN: ")" > |
+  < LBRACE: "{" > |
+  < RBRACE: "}" > |
+  < LBRACKET: "[" > |
+  < RBRACKET: "]" > |
+  < SEMICOLON: ";" > |
+  < COMMA: "," > |
+  < DOT: "." >
+}
+
+/* Operators */
+
+TOKEN : {
+  < ASSIGN: "=" > |
+  < LT: "<" > |
+  < GT: ">" > |
+  < BANG: "!" > |
+  < EQ: "==" > |
+  < LE: "<=" > |
+  < GE: ">=" > |
+  < NE: "!=" > |
+  < SC_OR: "||" > |
+  < SC_AND: "&&" > |
+  < PLUS: "+" > |
+  < MINUS: "-" > |
+  < STAR: "*" > |
+  < SLASH: "/" > |
+  < REM: "%" >
+}
+
+Method script() : {
+  MethodTable methods = new MethodTable();
+  Method m;
+}
+{
+  ( m=method(methods) { methods.add(m); } )+
+  { return methods.get("main"); }
+}
+
+/**
+ * A program method with its own variable scope.
+ */
+Method method(MethodTable methods) : {
+    SymbolTable symbols = new SymbolTable();
+    Statement stmt;
+    String name;
+    int params = 0;
+}
+{
+  name=ident() <LPAREN>
+  ( declaration1(methods, symbols) { params++; } ( <COMMA> declaration1(methods, symbols) { params++; } )* )?
+  <RPAREN>
+  stmt=statements(methods, symbols)
+  { return new Method(name, params, symbols.declarations(), stmt); }
+}
+
+/**
+ * A sequence of statements in braces, carrying an inner variable scope
+ */
+Statement statements(MethodTable methods, SymbolTable symbols) : {
+    Statement stmt;
+    List<Statement> stmts = new ArrayList<Statement>();
+}
+{
+  <LBRACE>
+  { symbols.pushScope(); }
+  ( stmt=statement(methods, symbols)
+    { stmts.add(stmt); }
+  )* 
+  { symbols.popScope(); }
+  <RBRACE>
+  { return new Sequence(stmts); }
+}
+
+/**
+ * A single statement
+ */
+Statement statement(MethodTable methods, SymbolTable symbols) : {
+    Statement stmt;
+}
+{
+  ( stmt=conditional(methods, symbols) |
+    stmt=declaration(methods, symbols) <SEMICOLON> |
+    stmt=gc() <SEMICOLON> |
+    stmt=assignment(methods, symbols) <SEMICOLON> |
+    stmt=spawn(methods, symbols) <SEMICOLON> |
+    stmt=storeField(methods, symbols) <SEMICOLON> |
+    stmt=whileLoop(methods, symbols) |
+    stmt=alloc(methods, symbols) <SEMICOLON> | 
+    stmt=print(methods, symbols) <SEMICOLON> |
+    stmt=assertTrue(methods, symbols) <SEMICOLON> |
+    stmt=callMethod(methods, symbols) <SEMICOLON> )
+  { return stmt; }
+}
+
+/**
+ * if - then - else
+ */
+Statement conditional(MethodTable methods, SymbolTable symbols) : {
+    Expression cond;
+    Statement ifTrue, ifFalse = new Empty();
+}
+{
+  <IF> <LPAREN> cond=expression(symbols) <RPAREN> 
+  ifTrue=statements(methods, symbols)
+  ( <ELSE>  ifFalse=statements(methods, symbols) )?
+  { return new IfStatement(cond, ifTrue, ifFalse); }
+}
+
+/**
+ * assertion
+ */
+Statement assertTrue(MethodTable methods, SymbolTable symbols) : {
+    Expression cond;
+    List<Expression> exprs = new ArrayList<Expression>();
+    Expression expr;
+}
+{
+  <ASSERT> <LPAREN> cond=expression(symbols)
+  ( <COMMA> expr=expression(symbols)
+    { exprs.add(expr); } )+
+  <RPAREN> 
+  { return new Assert(cond, exprs); }
+}
+
+/**
+ * while loop
+ */
+Statement whileLoop(MethodTable methods, SymbolTable symbols) : {
+    Expression cond;
+    Statement body;
+}
+{
+  <WHILE> <LPAREN> cond=expression(symbols) <RPAREN> 
+  body=statements(methods, symbols) 
+  { return new WhileStatement(cond,body); }
+}
+
+/**
+ * Variable declaration, and optional initializing assignment
+ *
+ * Adds a symbol to the symbol table, and returns either an
+ * assignment statement or an empty sequence.
+ */
+Statement declaration(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Expression expr;
+    Statement stmt;
+}
+{
+  name=declaration1(methods, symbols)
+  ( ( <ASSIGN> expr=expression(symbols)
+        { return new Assignment(symbols.getLocation(name), expr); } |
+      <ASSIGN> stmt=alloc1(methods, symbols, name)
+        { return stmt; }
+    )
+  )?
+  { return new Empty(); } 
+}
+
+/**
+ * First part of variable declaration (without initialization).
+ *
+ * Adds a symbol to the symbol table and returns the name.
+ */
+String declaration1(MethodTable methods, SymbolTable symbols) : {
+    String name;
+}
+{
+  ( <INT> name=ident()
+      { symbols.declare(name,Type.INT); } |
+    <OBJECT> name=ident()
+      { symbols.declare(name,Type.OBJECT); })
+  { return name; } 
+}
+
+/*
+ * Assign a value to a variable
+ */
+Statement assignment(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Expression expr;
+}
+{
+    name=ident() <ASSIGN> expr=expression(symbols) 
+    { return new Assignment(symbols.getLocation(name), expr); }
+}
+
+/*
+ * Assign a value to a field of an object
+ */
+Statement storeField(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Type type;
+    Expression index, rVal;
+}
+{
+  name=ident() 
+  <DOT> ( <INT> { type = Type.INT;} |
+          <OBJECT> { type = Type.OBJECT;})
+  <LBRACKET> index=expression(symbols) <RBRACKET> <ASSIGN> rVal=expression(symbols) 
+  { return new StoreField(symbols.getLocation(name), type, index, rVal); }
+}
+
+/*
+ * Trigger a garbage collection.
+ */
+Statement gc() : {
+}
+{
+  <GC> <LPAREN> <RPAREN> 
+  { return new GC(); }
+}
+
+/*
+ * Allocate an object.
+ */
+Statement alloc(MethodTable methods, SymbolTable symbols) : {
+    String id=null;
+    Statement s;
+}
+{
+  ( id=ident() <ASSIGN> )?
+  s=alloc1(methods, symbols, id)
+  { return s; }
+}
+
+/*
+ * Allocate an object.
+ */
+Statement alloc1(MethodTable methods, SymbolTable symbols, String id) : {
+    Expression refCount, dataCount;
+    Expression doubleAlign = new BoolValue(false);
+}
+{
+  <ALLOC> <LPAREN> 
+    refCount=expression(symbols) <COMMA>
+    dataCount=expression(symbols)
+    ( <COMMA> doubleAlign=expression(symbols) )?
+  <RPAREN>
+  { return new Alloc(id == null ? -1 : symbols.getLocation(id), refCount, dataCount, doubleAlign); }
+}
+
+/*
+ * Allocate an object.
+ */
+Statement callMethod(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    List<Expression> params = new ArrayList<Expression>();
+    Expression p;
+}
+{
+  name=ident() <LPAREN> 
+  ( p=expression(symbols)
+      { params.add(p); }
+    ( <COMMA> p=expression(symbols)
+      { params.add(p); }
+    )*
+  )?
+  <RPAREN>
+  { return new Call(methods, name, params); }
+}
+
+/*
+ * Allocate an object.
+ */
+Statement spawn(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    List<Expression> params = new ArrayList<Expression>();
+    Expression p;
+}
+{
+  <SPAWN> <LPAREN> name=ident() 
+  ( <COMMA> p=expression(symbols)
+      { params.add(p); }
+    ( <COMMA> p=expression(symbols)
+      { params.add(p); }
+    )*
+  )?
+  <RPAREN>
+  { return new Spawn(methods, name, params); }
+}
+
+Statement print(MethodTable methods, SymbolTable symbols) : {
+    List<Expression> exprs = new ArrayList<Expression>();
+    Expression expr;
+}
+{
+  <PRINT> <LPAREN> expr=expression(symbols)
+    { exprs.add(expr); }
+  ( <COMMA> expr=expression(symbols)
+    { exprs.add(expr); } )*
+  <RPAREN>
+  { return new PrintStatement(exprs); }
+}
+
+/*******************************************************************************
+ *              Arithmetic expressions
+ */
+Expression expression(SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr1(symbols) 
+  ( <SC_OR> e2=expression(symbols)
+      { return new BinaryExpression(e1, Operator.OR, e2); } |
+    <SC_AND> e2=expression(symbols)
+      { return new BinaryExpression(e1, Operator.AND, e2); }
+  )?    
+  { return e1; }  
+}
+
+Expression expr1(SymbolTable symbols) : {
+    Expression e;
+}
+{
+  <BANG> e=expr1(symbols)
+  { return new UnaryExpression(Operator.NOT,e); } |
+  <MINUS> e=expr1(symbols) 
+  { return new UnaryExpression(Operator.MINUS,e); } |
+  e=expr2(symbols) { return e; }
+}
+
+Expression expr2(SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr3(symbols) 
+  ( <LT> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.LT,e2); } |
+    <GT> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.GT,e2); } |
+    <LE> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.LE,e2); } |
+    <GE> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.GE,e2); } |
+    <EQ> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.EQ,e2); } |
+    <NE> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.NE,e2); }
+  )?
+  { return e1; }
+}
+
+Expression expr3(SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr4(symbols) 
+  ( <PLUS> e2=expr3(symbols) 
+      { return new BinaryExpression(e1,Operator.PLUS,e2); } |
+    <MINUS> e2=expr3(symbols)
+      { return new BinaryExpression(e1,Operator.MINUS,e2); }
+  )?
+  { return e1; }
+}
+
+Expression expr4(SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr5(symbols) 
+  ( <STAR> e2=expr4(symbols) 
+      { return new BinaryExpression(e1,Operator.MULT,e2); } |
+    <SLASH> e2=expr4(symbols) 
+      { return new BinaryExpression(e1,Operator.DIV,e2); } |
+    <REM> e2=expr4(symbols) 
+      { return new BinaryExpression(e1,Operator.REM,e2); }
+  )? 
+  { return e1; }
+}
+
+Expression expr5(SymbolTable symbols) : {
+    Expression e, index;
+    String id;
+    int i;
+    boolean b;
+    String s;
+    Type type;
+}
+{
+  id=ident() 
+    <DOT> ( <INT> { type = Type.INT;} |
+            <OBJECT> { type = Type.OBJECT;} )
+    <LBRACKET> index=expression(symbols) <RBRACKET>
+    { return new LoadField(symbols.getLocation(id), type, index); } |
+  id=ident()
+    { return new Variable(symbols.getLocation(id)); } | 
+  i=integer()
+    { return new IntValue(i); } |
+  b=bool()
+    { return new BoolValue(b); } |
+  s=string()
+    { return new StringValue(s); } |
+  <TID> <LPAREN> <RPAREN> 
+    { return new ThreadId(); } |
+  <HASH> <LPAREN> e=expression(symbols) <RPAREN>
+    { return new Hash(e); } |
+  <LPAREN> e=expression(symbols) <RPAREN>
+    { return e; }
+}
+
+/***************************************************************************
+ *               Utility rules
+ */
+
+/*
+ * Match an identifier and return it as a string
+ */
+String ident() : {
+    Token t;
+}
+{
+  t=<IDENTIFIER> { return t.toString(); }
+}
+
+/*
+ * Match an integer literal and return it as an int
+ */
+int integer() : {
+    Token t;
+}
+{
+  t=<INTEGER_LITERAL> { return Integer.parseInt(t.toString()); }
+}
+/*
+ * Match a boolean literal and return it as a boolean
+ */
+boolean bool() : {
+    Token t;
+}
+{
+  t=<BOOLEAN_LITERAL> { return Boolean.parseBoolean(t.toString()); }
+}
+/*
+ * Match a string literal and return the contents as a string
+ */
+String string() : {
+    Token t;
+    String s;
+}
+{
+  t=<STRING_LITERAL> { s = t.toString(); return s.substring(1, s.length() - 1); }
+}

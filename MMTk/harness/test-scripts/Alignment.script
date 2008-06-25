@@ -1,0 +1,35 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+/**
+ * This is a simple test that allocates aligned and unaligned objects.
+ */
+main() {
+  int listSize = 200;
+  int alignEvery = 3;
+
+  print("Building List");
+  object head = alloc(1, 1);
+  object last = head;
+  int j=1;
+  while (j < listSize) {
+    object current = alloc(1, 1, (j % alignEvery) == 0);
+    last.object[0] = current;
+    last = current;
+    j = j + 1;
+  }
+
+  print("Triggering GC");
+  gc();
+}
+

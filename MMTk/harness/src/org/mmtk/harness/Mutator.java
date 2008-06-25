@@ -13,21 +13,16 @@
 package org.mmtk.harness;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 
+import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.SimulatedMemory;
 
 /**
  * This class represents a mutator thread that has memory managed by MMTk.
@@ -42,23 +37,11 @@ import org.vmmagic.unboxed.SimulatedMemory;
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
 public class Mutator extends Thread {
+  /** Debugging */
+  public static final boolean TRACE = false;
 
   /** Registered mutators */
   protected static ArrayList<Mutator> mutators = new ArrayList<Mutator>();
-
-  /** Thread access to current collector */
-  protected static ThreadLocal<Mutator> mutatorThreadLocal = new ThreadLocal<Mutator>() {
-    public Mutator initialValue() {
-      for(int i=0; i <mutators.size(); i++) {
-        Mutator m = mutators.get(i);
-        if (m == Thread.currentThread()) {
-          return m;
-        }
-      }
-      assert false: "Could not find mutator";
-      return null;
-    }
-  };
 
   /**
    * Get a mutator by id.
@@ -71,10 +54,8 @@ public class Mutator extends Thread {
    * Get the currently executing mutator.
    */
   public static Mutator current() {
-    Mutator m = mutatorThreadLocal.get();
-    assert m != null: "Mutator.current() called from a thread without a mutator context";
-    assert m == Thread.currentThread() : "Mutator.current() does not match Thread.currentThread()";
-    return m;
+    assert Thread.currentThread() instanceof Mutator  : "Current thread does is not a Mutator";
+    return (Mutator)Thread.currentThread();
   }
 
   /**
@@ -138,10 +119,7 @@ public class Mutator extends Thread {
   }
 
   /** The MMTk MutatorContext for this mutator */
-  private final MutatorContext context;
-
-  /** The local variable -> value map (a crude representation of a mutator stack) */
-  private Map<String, ObjectReference> locals;
+  protected final MutatorContext context;
 
   /**
    * Create a mutator thread, specifying an (optional) entry point and initial local variable map.
@@ -149,7 +127,7 @@ public class Mutator extends Thread {
    * @param entryPoint The entryPoint.
    * @param locals The local variable map.
    */
-  private Mutator(Runnable entryPoint, Map<String, ObjectReference> locals) {
+  public Mutator(Runnable entryPoint) {
     super(entryPoint);
     try {
       String prefix = Harness.plan.getValue();
@@ -157,24 +135,14 @@ public class Mutator extends Thread {
     } catch (Exception ex) {
       throw new RuntimeException("Could not create Mutator", ex);
     }
-    this.locals = locals != null ? locals : new HashMap<String, ObjectReference>();
     mutators.set(context.getId(), this);
-    addActiveMutator();
   }
 
   /**
    * Create a new mutator thread. Intended to be used for subclasses implementing a run() method.
    */
   protected Mutator() {
-    this(null, null);
-  }
-
-  /**
-   * Create a new mutator thread with a specified entry point.
-   * @param entryPoint
-   */
-  public Mutator(Runnable entryPoint) {
-    this(entryPoint, null);
+    this(null);
   }
 
   /**
@@ -188,13 +156,7 @@ public class Mutator extends Thread {
    * Compute the thread roots for this mutator.
    */
   public void computeThreadRoots(TraceLocal trace) {
-    Map<String, ObjectReference> newLocals = new HashMap<String, ObjectReference>();
-    for(String key: locals.keySet()) {
-      ObjectReference object = locals.get(key);
-      object = trace.traceObject(object, true);
-      newLocals.put(key, object);
-    }
-    locals = newLocals;
+    // Nothing to do for the default mutator
   }
 
   /**
@@ -218,7 +180,7 @@ public class Mutator extends Thread {
   }
 
   /**
-   * Object used for syncrhonizing the number of mutators waiting for a gc.
+   * Object used for synchronizing the number of mutators waiting for a gc.
    */
   private static Object count = new Object();
 
@@ -236,7 +198,7 @@ public class Mutator extends Thread {
    * Mark a mutator as currently active. If a GC is currently in process we must
    * wait for it to finish.
    */
-  private static void addActiveMutator() {
+  protected static void begin() {
     synchronized (count) {
       if (!allWaitingForGC()) {
         activeMutators++;
@@ -252,10 +214,24 @@ public class Mutator extends Thread {
   }
 
   /**
+   * A mutator is creating a new mutator and calling begin on its behalf.
+   * This simplfies the logic and is guaranteed not to block for GC.
+   */
+  public void beginChild() {
+    synchronized (count) {
+      if (!allWaitingForGC()) {
+        activeMutators++;
+        return;
+      }
+    }
+    notReached();
+  }
+
+  /**
    * Mark a mutator as no longer active. If a GC has been triggered we must ensure
    * that it proceeds before we deactivate.
    */
-  private static void removeActiveMutator() {
+  protected static void end() {
     boolean lastToGC;
     synchronized (count) {
       lastToGC = (mutatorsWaitingForGC == (activeMutators - 1));
@@ -295,337 +271,131 @@ public class Mutator extends Thread {
   }
 
   /**
-   * Set the value of a local variable
+   * Fail during execution.
+   * @param failMessage
    */
-  private void setVar(String var, ObjectReference value) {
-    if (var != null) {
-      assert Pattern.matches("[a-zA-Z_]+", var): "Invalid variable name";
-      if (value == null && locals.containsKey(var)) {
-        locals.remove(var);
-      } else {
-        locals.put(var, value);
-      }
-    }
+  public void fail(String failMessage) {
+    check(false, failMessage);
   }
 
   /**
-   * Get the value of a local variable.
+   * Print a message that this code path should be impossible and exit.
    */
-  private ObjectReference getVar(String var) {
-    assert Pattern.matches("[a-zA-Z_]+", var): "Invalid variable name";
-    ObjectReference ref = locals.get(var);
-    assert ref != null: "Variable cannot be null";
-    return ref;
+  public void notReached() {
+    check(false, "Unreachable code reached!");
   }
 
   /**
-   * Load an object reference from the specified field of the named variable
+   * Assert that the given condition is true or print the failure message.
+   */
+  public void check(boolean condition, String failMessage) {
+    if (!condition) throw new RuntimeException(failMessage);
+  }
+
+  /**
+   * Store a value into the data field of an object.
    *
-   * @param fromVar The variable name of the object to load from
-   * @param fromIndex The reference index
-   * @return The loaded ObjectReference
+   * @param object The object to store the field of.
+   * @param index The field index.
+   * @param value The value to store.
    */
-  private ObjectReference loadInternal(String fromVar, int fromIndex) {
-    ObjectReference ref = getVar(fromVar);
-    int refs = ObjectModel.getRefs(ref);
-    assert fromIndex >= 0 && fromIndex < refs: "Index out of bounds";
-    Address slot = ObjectModel.getRefSlot(ref, fromIndex);
-    if (ActivePlan.constraints.needsReadBarrier()) {
-      ref = context.readBarrier(ref, slot, Offset.zero(), 0, Plan.AALOAD_READ_BARRIER);
-    } else {
-      ref = slot.loadObjectReference();
-    }
-    return ref;
+  public void storeDataField(ObjectReference object, int index, int value) {
+    int limit = ObjectModel.getDataCount(object);
+    check(!object.isNull(), "Object can not be null");
+    check(index >= 0, "Index must be non-negative");
+    check(index < limit, "Index out of bounds");
+
+    Address ref = ObjectModel.getDataSlot(object, index);
+    ref.store(value);
+    if (Env.TRACE) System.err.println(object + ".data[" + index + "] = " + value);
   }
 
   /**
-   * Store an object reference in a field of a named variable object.
+   * Store a value into a reference field of an object.
    *
-   * @param toVar The name of the variable containing the object to store into.
-   * @param toIndex The index to store at.
-   * @param target The ObjectReference to store.
+   * @param object The object to store the field of.
+   * @param index The field index.
+   * @param value The value to store.
    */
-  private void storeInternal(String toVar, int toIndex, ObjectReference target) {
-    ObjectReference src = getVar(toVar);
-    int refs = ObjectModel.getRefs(src);
-    assert toIndex >= 0 && toIndex < refs: "Index out of bounds";
-    Address slot = ObjectModel.getRefSlot(src, toIndex);
+  public void storeReferenceField(ObjectReference object, int index, ObjectReference value) {
+    int limit = ObjectModel.getRefs(object);
+    check(!object.isNull(), "Object can not be null");
+    check(index >= 0, "Index must be non-negative");
+    check(index < limit, "Index out of bounds");
+
+    Address referenceSlot = ObjectModel.getRefSlot(object, index);
     if (ActivePlan.constraints.needsWriteBarrier()) {
-      context.writeBarrier(src, slot, target, Offset.zero(), 0, Plan.AASTORE_WRITE_BARRIER);
+      context.writeBarrier(object, referenceSlot, value, Offset.zero(), 0, Plan.AASTORE_WRITE_BARRIER);
     } else {
-      slot.store(target);
+      referenceSlot.store(value);
     }
+    if (Env.TRACE) System.err.println("[" + object + "].object[" + index + "] = " + value);
   }
 
   /**
-   * Return the hash code for object stored in the given variable.
+   * Load and return the value of a data field of an object.
    *
-   * @param var The variable storing the object reference.
-   * @return The hash code
+   * @param object The object to load the field of.
+   * @param index The field index.
    */
-  public int muHashCode(String var) {
-    ObjectReference ref = getVar(var);
-    int result = ObjectModel.getHashCode(ref);
-    gcSafePoint();
+  public int loadDataField(ObjectReference object, int index) {
+    int limit = ObjectModel.getDataCount(object);
+    check(!object.isNull(), "Object can not be null");
+    check(index >= 0, "Index must be non-negative");
+    check(index < limit, "Index out of bounds");
+
+    Address dataSlot = ObjectModel.getDataSlot(object, index);
+    int result = dataSlot.loadInt();
+    if (Env.TRACE) System.err.println("[" + object + "].int[" + index + "] returned [" + result + "]");
     return result;
   }
 
   /**
-   * Return the current address of an object (for use in assertions/debug output).
-   * This method will never yield to a collection.
+   * Load and return the value of a reference field of an object.
    *
-   * @param var The variable storing the object reference.
-   * @return The address of the object.
+   * @param object The object to load the field of.
+   * @param index The field index.
    */
-  public Address muAddress(String var) {
-    return getVar(var).toAddress();
-  }
+  public ObjectReference loadReferenceField(ObjectReference object, int index) {
+    int limit = ObjectModel.getRefs(object);
+    check(!object.isNull(), "Object can not be null");
+    check(index >= 0, "Index must be non-negative");
+    check(index < limit, "Index out of bounds");
 
-  /**
-   * Allocate an object of the specified size.
-   *
-   * @param bytes the size of the object in bytes.
-   */
-  public void muAlloc(int bytes) {
-    muAlloc(null, bytes, false);
-  }
-
-  /**
-   * Allocate an object of the specified size.
-   *
-   * @param bytes the size of the object in bytes.
-   * @param doubleAlign Align the object on an 8 byte boundary
-   */
-  public void muAlloc(int bytes, boolean doubleAlign) {
-    muAlloc(null, bytes, doubleAlign);
-  }
-
-  /**
-   * Allocate an object with the specified number of reference and data fields.
-   *
-   * @param refCount The number of reference fields.
-   * @param dataCount The number of data fields.
-   */
-  public void muAlloc(int refCount, int dataCount) {
-    muAlloc(null, refCount, dataCount, false);
-  }
-
-  /**
-   * Allocate an object with the specified number of reference and data fields.
-   *
-   * @param refCount The number of reference fields.
-   * @param dataCount The number of data fields.
-   * @param doubleAlign Align the object on an 8 byte boundary
-   */
-  public void muAlloc(int refCount, int dataCount, boolean doubleAlign) {
-    muAlloc(null, refCount, dataCount, doubleAlign);
-  }
-
-  /**
-   * Allocate an object of the specified size and store a reference to it in the given variable.
-   *
-   * @param toVar The variable to store the object into.
-   * @param bytes the size of the object in bytes.
-   */
-  public void muAlloc(String toVar, int bytes) {
-    muAlloc(toVar, bytes, false);
-  }
-
-  /**
-   * Allocate an object of the specified size and store a reference to it in the given variable.
-   *
-   * @param toVar The variable to store the object into.
-   * @param bytes the size of the object in bytes.
-   * @param doubleAlign Align the object on an 8 byte boundary
-   */
-  public void muAlloc(String toVar, int bytes, boolean doubleAlign) {
-    int words = (bytes >>> SimulatedMemory.LOG_BYTES_IN_WORD);
-    assert words >= ObjectModel.HEADER_WORDS: "Allocation request smaller than minimum object size";
-    muAlloc(toVar, 0, words - ObjectModel.HEADER_WORDS);
-  }
-
-  /**
-   * Allocate an object with the specified number of reference and data fields and store a
-   * reference to it in the given variable.
-   *
-   * @param toVar The variable to store the object into.
-   * @param refCount The number of reference fields.
-   * @param dataCount The number of data fields.
-   */
-  public void muAlloc(String toVar, int refCount, int dataCount) {
-    muAlloc(toVar, refCount, dataCount, false);
-  }
-
-  /**
-   * Allocate an object with the specified number of reference and data fields and store a
-   * reference to it in the given variable.
-   *
-   * @param toVar The variable to store the object into.
-   * @param refCount The number of reference fields.
-   * @param dataCount The number of data fields.
-   * @param doubleAlign Align the object on an 8 byte boundary
-   */
-  public void muAlloc(String toVar, int refCount, int dataCount, boolean doubleAlign) {
-    ObjectReference ref = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign);
-    setVar(toVar, ref);
-    gcSafePoint();
-  }
-
-  /**
-   * Load a reference from an object and store the value in the given variable.
-   *
-   * @param toVar The variable to store the loaded value in.
-   * @param fromVar The object to load the reference from.
-   * @param fromIndex The index to load.
-   */
-  public void muLoad(String toVar, String fromVar, int fromIndex) {
-    ObjectReference ref = loadInternal(fromVar, fromIndex);
-    setVar(toVar, ref);
-    gcSafePoint();
-  }
-
-  /**
-   * Load a data field from an object.
-   *
-   * @param fromVar The object to load the data from.
-   * @param fromIndex The index to load.
-   */
-  public int muLoadData(String fromVar, int fromIndex) {
-    ObjectReference ref = getVar(fromVar);
-    int dataCount = ObjectModel.getDataCount(ref);
-    assert fromIndex >= 0 && fromIndex < dataCount: "Index out of bounds";
-    Address slot = ObjectModel.getDataSlot(ref, fromIndex);
-    int value = slot.loadInt();
-    gcSafePoint();
-    return value;
-  }
-
-  /**
-   * Store a reference into an object at the specified index.
-   *
-   * @param toVar The variable holding the object to store into.
-   * @param toIndex The index to store.
-   * @param fromVar The variable holding the value to store.
-   */
-  public void muStore(String toVar, int toIndex, String fromVar) {
-    ObjectReference target = getVar(fromVar);
-    storeInternal(toVar, toIndex, target);
-    gcSafePoint();
-  }
-
-  /**
-   * Store data into an object at the specified index.
-   *
-   * @param toVar The variable holding the object to store into.
-   * @param toIndex The index to store.
-   * @param value The data value to store.
-   */
-  public void muStoreData(String toVar, int toIndex, int value) {
-    ObjectReference src = getVar(toVar);
-    int dataCount = ObjectModel.getDataCount(src);
-    assert toIndex >= 0 && toIndex < dataCount: "Index out of bounds";
-    Address slot = ObjectModel.getDataSlot(src, toIndex);
-    slot.store(value);
-    gcSafePoint();
-  }
-
-  /**
-   * Copy a value from one object field to another.
-   *
-   * @param toVar The variable holding the object to store into.
-   * @param toIndex The index to store.
-   * @param fromVar The variable holding the object to load from.
-   * @param fromIndex The index to load.
-   */
-  public void muCopy(String toVar, int toIndex, String fromVar, int fromIndex) {
-    ObjectReference ref = loadInternal(fromVar, fromIndex);
-    storeInternal(toVar, toIndex, ref);
-    gcSafePoint();
-  }
-
-  /**
-   * Check if the value stored in the given variable is null.
-   *
-   * @param var The variable to check.
-   */
-  public boolean muIsNull(String var) {
-    ObjectReference value = getVar(var);
-    boolean result = value.isNull();
-    gcSafePoint();
+    Address referenceSlot = ObjectModel.getRefSlot(object, index);
+    ObjectReference result;
+    if (ActivePlan.constraints.needsReadBarrier()) {
+      result = context.readBarrier(object, referenceSlot, Offset.zero(), 0, Plan.AASTORE_WRITE_BARRIER);
+    } else {
+      result = referenceSlot.loadObjectReference();
+    }
+    if (Env.TRACE) System.err.println(object + ".ref[" + index + "] returned [" + result + "]");
     return result;
   }
 
   /**
-   * Copy a value from one variable to another.
+   * Get the hash code for the given object.
+   */
+  public int hash(ObjectReference object) {
+    check(!object.isNull(), "Object can not be null");
+    int result = ObjectModel.getHashCode(object);
+    if (Env.TRACE) System.err.println("hash(" + object + ") returned [" + result + "]");
+    return result;
+  }
+
+  /**
+   * Allocate an object and return a reference to it.
    *
-   * @param toVar The variable to store into.
-   * @param fromVar The variable to load from.
+   * @param refCount The number of reference fields.
+   * @param dataCount The number of data fields.
+   * @param doubleAlign Is this an 8 byte aligned object?
+   * @return The object reference.
    */
-  public void muCopy(String toVar, String fromVar) {
-    ObjectReference value = getVar(fromVar);
-    setVar(toVar, value);
-    gcSafePoint();
-  }
-
-  /**
-   * Spawn a new mutator thread at the given entry point, copying all local variables.
-   *
-   * @param entryPoint The entry point of the new mutator.
-   */
-  public void muSpawn(Runnable entryPoint) {
-    muSpawn(entryPoint, (String[])locals.keySet().toArray());
-  }
-
-  /**
-   * Spawn a new mutator thread at the given entry point, copying the value of
-   * a specified set of local variables.
-   *
-   * @param entryPoint The entry point of the new mutator.
-   * @param vars The variables to copy, or null to copy none.
-   */
-  public void muSpawn(final Runnable entryPoint, String[] vars) {
-    Map<String, ObjectReference> spawnLocals = new HashMap<String, ObjectReference>();
-    if (vars != null) {
-      for(String var: vars) {
-        spawnLocals.put(var, getVar(var));
-      }
-    }
-    Mutator m = new Mutator(entryPoint, spawnLocals);
-    m.start();
-    gcSafePoint();
-  }
-
-  /**
-   * Clear the value of a variable
-   *
-   * @param var The variable to clear
-   */
-  public void muClear(String var) {
-    setVar(var, null);
-    gcSafePoint();
-  }
-
-  /**
-   * Clear the value of a all variables
-   */
-  public void muClearAll() {
-    locals = new HashMap<String, ObjectReference>();
-    gcSafePoint();
-  }
-
-  /**
-   * Mark the mutator as inactive.
-   */
-  public void muEnd() {
-    locals = new HashMap<String, ObjectReference>();
-    removeActiveMutator();
-  }
-
-  /**
-   * Trigger a garbage collection.
-   */
-  public void muGC() {
-    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
-    gcSafePoint();
+  public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign) {
+    check(refCount >= 0, "Non-negative reference field count required");
+    check(dataCount >= 0, "Non-negative data field count required");
+    ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign);
+    if (Env.TRACE) System.err.println("alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
+    return result;
   }
 }

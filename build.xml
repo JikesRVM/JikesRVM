@@ -74,6 +74,8 @@
   <property name="generated.asm" location="${generated.dir}/asm/java"/>
   <property name="build.asm.classes" location="${generated.dir}/asm/classes"/>
 
+  <property name="generated.mmtk-harness-parser.java" location="${generated.dir}/mmtk-harness-parser/java/org/mmtk/harness/lang/parser"/>
+
   <!-- Set the properties for distribution directory -->
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
 
@@ -403,9 +405,17 @@ Check to make sure all required properties are specified. This includes properti
       </classpath>
     </javac>
     <jar destfile="${build.mmtk.jar}" basedir="${build.mmtk.classes}"/>
+  </target>
+
+  <target name="mmtk-harness" depends="compile-mmtk">
     <property name="build.mmtk-harness.classes" location="${build.dir}/mmtk/harness/classes"/>
+    <ant antfile="build/components/javacc.xml" target="ensure"/>
+    <property file="${components.file}"/>
+    <mkdir dir="${generated.mmtk-harness-parser.java}"/>
+    <echo message="${javacc.dir}"/>
+    <javacc target="${basedir}/MMTk/harness/src-generated/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
     <mkdir dir="${build.mmtk-harness.classes}"/>
-    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}" destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" source="1.5"
+    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" source="1.5"
            target="1.5">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -415,7 +425,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
     <jar destfile="${build.mmtk-harness.jar}" update="true" compress="false">
       <manifest>
-        <attribute name="Main-Class" value="org.mmtk.test.Test"/>
+        <attribute name="Main-Class" value="org.mmtk.harness.Main"/>
       </manifest>
       <fileset dir="${build.vmmagic-stub.classes}"/>
       <fileset dir="${build.mmtk-harness.classes}"/>
@@ -2109,7 +2119,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
-  <target name="mmtk-harness-eclipse-project">
+  <target name="mmtk-harness-eclipse-project" depends="compile-mmtk">
     <delete dir="eclipse"/>
     <delete file=".project"/>
     <delete file=".classpath"/>
