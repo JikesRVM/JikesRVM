@@ -754,7 +754,7 @@ public class Thread implements Runnable {
    * @deprecated Used with deprecated method Thread.suspend().
    */
   @Deprecated
-  public final void resume() {
+  public final synchronized void resume() {
     vmThread.resume();
   }
 
@@ -951,7 +951,7 @@ public class Thread implements Runnable {
    * @deprecated May cause deadlocks.
    */
   @Deprecated
-  public final void suspend() {
+  public final synchronized void suspend() {
     vmThread.suspend();
   }
 
