@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.vm.VM;
@@ -211,17 +210,5 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
     } else {
       dst[index] = value;
     }
-  }
-
-  /**
-   * Gets an element of an Object array without invoking any read
-   * barrier or performing bounds checks.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public final Object getArrayNoBarrier(Object [] src, int index) {
-    return Services.getArrayNoBarrier(src, index);
   }
 }

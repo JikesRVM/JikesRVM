@@ -172,16 +172,4 @@ public class Barriers extends org.mmtk.vm.Barriers {
                                                     Offset offset, int locationMetadata, int mode) {
     return slot.attempt(rawOld, rawTarget);
   }
-
-  /**
-   * Gets an element of an Object array without invoking any read
-   * barrier or performing bounds checks.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public Object getArrayNoBarrier(Object[] src, int index) {
-    return src[index];
-  }
 }

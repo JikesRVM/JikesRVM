@@ -146,14 +146,4 @@ public abstract class Barriers {
   public abstract boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                              Word rawOld, Word rawTarget,
                                                              Offset offset, int locationMetadata, int mode);
-
-  /**
-   * Gets an element of an Object array without invoking any read
-   * barrier or performing bounds checks.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public abstract Object getArrayNoBarrier(Object[] src, int index);
 }
