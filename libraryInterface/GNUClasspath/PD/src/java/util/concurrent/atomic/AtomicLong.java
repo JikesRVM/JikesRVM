@@ -34,7 +34,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * method works in either case, some constructions should be
      * handled at Java level to avoid locking user-visible locks.
      */
-    static final boolean SUPPORTS_LONG_CAS = Configuration.BuildForIA32;
+    static final boolean VM_SUPPORTS_LONG_CAS = Configuration.BuildForIA32;
 
     static {
       try {
