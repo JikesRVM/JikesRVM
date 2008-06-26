@@ -20,6 +20,7 @@ package org.apache.harmony.kernel.vm;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.runtime.StackBrowser;
 
 /**
  * This class must be implemented by the vm vendor. Represents the running
@@ -86,8 +87,17 @@ public final class VM {
      * @return the first non-bootstrap ClassLoader on the stack
      */
     static public final ClassLoader getNonBootstrapClassLoader() {
-        throw new Error("TODO");
-    };
+      StackBrowser browser = new StackBrowser();
+      browser.init();
+      while (browser.hasMoreFrames()) {
+        ClassLoader cl = browser.getClassLoader();
+        if (cl != BootstrapClassLoader.getBootstrapClassLoader() && cl != null) {
+          return cl;
+        }
+        browser.up();
+      }
+      return null;
+    }
 
     /**
      * Initialize the classloader.
