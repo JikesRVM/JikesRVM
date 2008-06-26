@@ -284,4 +284,11 @@ public class AccessibleObject implements AnnotatedElement {
 		}
 	 }
   }
+
+ /**
+  * Harmony: TODO
+  */
+  String getSignature() {
+    throw new Error("TODO");
+  }
 }
