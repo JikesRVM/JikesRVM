@@ -108,6 +108,7 @@ Ljava/lang/InterruptedException;
 Ljava/lang/NegativeArraySizeException;
 Ljava/lang/NoSuchFieldError;
 Ljava/lang/NoSuchFieldException;
+Ljava/lang/NoSuchMethodError;
 Ljava/lang/NoSuchMethodException;
 Ljava/lang/NumberFormatException;
 Ljava/lang/StringIndexOutOfBoundsException;
@@ -358,6 +359,7 @@ Ljava/io/InputStreamReader;
 Ljava/io/BufferedReader;
 Ljava/io/Reader;
 Ljava/lang/Math;
+Ljava/io/Externalizable;
 Ljava/io/Serializable;
 Ljava/util/Locale;
 
@@ -394,6 +396,9 @@ Ljava/io/ByteArrayOutputStream;
 Ljava/io/FileOutputStream;
 Ljava/io/PrintStream;
 Ljava/io/RandomAccessFile;
+Ljava/io/ObjectInputStream;
+Ljava/io/ObjectOutputStream;
+Ljava/io/ObjectStreamClass;
 Ljava/io/ObjectStreamField;
 Ljava/io/ObjectStreamField$1;
 [Ljava/io/ObjectStreamField;
@@ -497,6 +502,7 @@ Lorg/apache/harmony/niochar/charset/ISO_8859_1$Encoder;
 Lorg/apache/harmony/niochar/charset/ISO_8859_1;
 Lorg/apache/harmony/niochar/internal/nls/Messages;
 Lorg/apache/harmony/niochar/internal/nls/Messages$1;
+Lorg/apache/harmony/security/fortress/PolicyUtils;
 
 # Picked up from icu4j
 Lcom/ibm/icu/impl/SimpleCache;

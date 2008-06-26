@@ -370,6 +370,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("org.apache.harmony.luni.platform.AbstractMemorySpy");
       runClassInitializer("org.apache.harmony.luni.platform.PlatformAddress");
       runClassInitializer("com.ibm.icu.util.ULocale");
+      runClassInitializer("java.io.ObjectStreamClass");
     }
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.VMDouble");
