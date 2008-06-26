@@ -37,46 +37,53 @@ public class BinaryExpression implements Expression {
    */
   public Value eval(Env env) {
     Value lhsVal = lhs.eval(env);
+    env.pushTemporary(lhsVal);
+    env.gcSafePoint();
+
     Value rhsVal = rhs.eval(env);
 
-    env.check(lhsVal.type() == rhsVal.type(), "Mismatched types in expression");
+    try {
+      env.check(lhsVal.type() == rhsVal.type(), "Mismatched types in expression");
 
-    /* Valid for all */
-    switch (op) {
-      case EQ: return new BoolValue(lhsVal.equals(rhsVal));
-      case NE: return new BoolValue(!lhsVal.equals(rhsVal));
-      default:
-    }
-
-    /* Only valid for boolean */
-    if (lhsVal.type() == Type.BOOLEAN && rhsVal.type() == Type.BOOLEAN) {
+      /* Valid for all */
       switch (op) {
-        case AND: return new BoolValue(lhsVal.getBoolValue() && rhsVal.getBoolValue());
-        case OR:  return new BoolValue(lhsVal.getBoolValue() || rhsVal.getBoolValue());
+        case EQ: return new BoolValue(lhsVal.equals(rhsVal));
+        case NE: return new BoolValue(!lhsVal.equals(rhsVal));
         default:
       }
-    }
 
-    /* Only valid for numeric */
-    if (lhsVal.type() == Type.INT && rhsVal.type() == Type.INT) {
-      switch (op) {
-        case PLUS:  return new IntValue(lhsVal.getIntValue() + rhsVal.getIntValue());
-        case MINUS: return new IntValue(lhsVal.getIntValue() - rhsVal.getIntValue());
-        case MULT:  return new IntValue(lhsVal.getIntValue() * rhsVal.getIntValue());
-        case DIV:   return new IntValue(lhsVal.getIntValue() / rhsVal.getIntValue());
-        case REM:   return new IntValue(lhsVal.getIntValue() % rhsVal.getIntValue());
-        case LS:    return new IntValue(lhsVal.getIntValue() << rhsVal.getIntValue());
-        case RS:    return new IntValue(lhsVal.getIntValue() >> rhsVal.getIntValue());
-        case RSL:   return new IntValue(lhsVal.getIntValue() >>> rhsVal.getIntValue());
-        case GT:    return new BoolValue(lhsVal.getIntValue() > rhsVal.getIntValue());
-        case LT:    return new BoolValue(lhsVal.getIntValue() < rhsVal.getIntValue());
-        case GE:    return new BoolValue(lhsVal.getIntValue() >= rhsVal.getIntValue());
-        case LE:    return new BoolValue(lhsVal.getIntValue() <= rhsVal.getIntValue());
-        default:
+      /* Only valid for boolean */
+      if (lhsVal.type() == Type.BOOLEAN && rhsVal.type() == Type.BOOLEAN) {
+        switch (op) {
+          case AND: return new BoolValue(lhsVal.getBoolValue() && rhsVal.getBoolValue());
+          case OR:  return new BoolValue(lhsVal.getBoolValue() || rhsVal.getBoolValue());
+          default:
+        }
       }
-    }
 
-    env.fail("Invalid binary expression " + op.name());
-    return null;
+      /* Only valid for numeric */
+      if (lhsVal.type() == Type.INT && rhsVal.type() == Type.INT) {
+        switch (op) {
+          case PLUS:  return new IntValue(lhsVal.getIntValue() + rhsVal.getIntValue());
+          case MINUS: return new IntValue(lhsVal.getIntValue() - rhsVal.getIntValue());
+          case MULT:  return new IntValue(lhsVal.getIntValue() * rhsVal.getIntValue());
+          case DIV:   return new IntValue(lhsVal.getIntValue() / rhsVal.getIntValue());
+          case REM:   return new IntValue(lhsVal.getIntValue() % rhsVal.getIntValue());
+          case LS:    return new IntValue(lhsVal.getIntValue() << rhsVal.getIntValue());
+          case RS:    return new IntValue(lhsVal.getIntValue() >> rhsVal.getIntValue());
+          case RSL:   return new IntValue(lhsVal.getIntValue() >>> rhsVal.getIntValue());
+          case GT:    return new BoolValue(lhsVal.getIntValue() > rhsVal.getIntValue());
+          case LT:    return new BoolValue(lhsVal.getIntValue() < rhsVal.getIntValue());
+          case GE:    return new BoolValue(lhsVal.getIntValue() >= rhsVal.getIntValue());
+          case LE:    return new BoolValue(lhsVal.getIntValue() <= rhsVal.getIntValue());
+          default:
+        }
+      }
+
+      env.fail("Invalid binary expression " + op.name());
+      return null;
+    } finally {
+      env.popTemporary(lhsVal);
+    }
   }
 }

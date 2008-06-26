@@ -44,6 +44,7 @@ public class StoreField implements Statement {
    */
   public void exec(Env env) {
     Value fieldVal = index.eval(env);
+    env.gcSafePoint();
     Value assignVal = value.eval(env);
 
     env.check(env.top().getType(slot) == Type.OBJECT, "Attempt to store field of non-object variable");

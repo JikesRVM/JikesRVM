@@ -184,7 +184,6 @@ Statement statement(MethodTable methods, SymbolTable symbols) : {
     stmt=spawn(methods, symbols) <SEMICOLON> |
     stmt=storeField(methods, symbols) <SEMICOLON> |
     stmt=whileLoop(methods, symbols) |
-    stmt=alloc(methods, symbols) <SEMICOLON> | 
     stmt=print(methods, symbols) <SEMICOLON> |
     stmt=assertTrue(methods, symbols) <SEMICOLON> |
     stmt=callMethod(methods, symbols) <SEMICOLON> )
@@ -247,11 +246,8 @@ Statement declaration(MethodTable methods, SymbolTable symbols) : {
 }
 {
   name=declaration1(methods, symbols)
-  ( ( <ASSIGN> expr=expression(symbols)
-        { return new Assignment(symbols.getLocation(name), expr); } |
-      <ASSIGN> stmt=alloc1(methods, symbols, name)
-        { return stmt; }
-    )
+  ( <ASSIGN> expr=expression(symbols)
+      { return new Assignment(symbols.getLocation(name), expr); }
   )?
   { return new Empty(); } 
 }
@@ -313,20 +309,7 @@ Statement gc() : {
 /*
  * Allocate an object.
  */
-Statement alloc(MethodTable methods, SymbolTable symbols) : {
-    String id=null;
-    Statement s;
-}
-{
-  ( id=ident() <ASSIGN> )?
-  s=alloc1(methods, symbols, id)
-  { return s; }
-}
-
-/*
- * Allocate an object.
- */
-Statement alloc1(MethodTable methods, SymbolTable symbols, String id) : {
+Expression alloc(SymbolTable symbols) : {
     Expression refCount, dataCount;
     Expression doubleAlign = new BoolValue(false);
 }
@@ -336,7 +319,7 @@ Statement alloc1(MethodTable methods, SymbolTable symbols, String id) : {
     dataCount=expression(symbols)
     ( <COMMA> doubleAlign=expression(symbols) )?
   <RPAREN>
-  { return new Alloc(id == null ? -1 : symbols.getLocation(id), refCount, dataCount, doubleAlign); }
+  { return new Alloc(refCount, dataCount, doubleAlign); }
 }
 
 /*
@@ -490,6 +473,8 @@ Expression expr5(SymbolTable symbols) : {
     { return new BoolValue(b); } |
   s=string()
     { return new StringValue(s); } |
+  e=alloc(symbols)
+    { return e; } |
   <TID> <LPAREN> <RPAREN> 
     { return new ThreadId(); } |
   <HASH> <LPAREN> e=expression(symbols) <RPAREN>

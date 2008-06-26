@@ -35,21 +35,18 @@ public class UnaryExpression implements Expression {
    * Evaluate the expression.
    */
   public Value eval(Env env) {
-    Value rhsVal = expr.eval(env);
-
+    Value val = expr.eval(env);
 
     switch (op) {
       case NOT:
-        env.check(rhsVal.type() == Type.BOOLEAN, "Expected boolean for NOT unary operator");
-        return new BoolValue(!rhsVal.getBoolValue());
+        env.check(val.type() == Type.BOOLEAN || val.type() == Type.OBJECT, "Expected object or boolean for NOT unary operator");
+        return new BoolValue(!val.getBoolValue());
       case MINUS:
-        env.check(rhsVal.type() == Type.INT, "Expected integer for MINUS unary operator");
-        return new IntValue(-rhsVal.getIntValue());
+        env.check(val.type() == Type.INT, "Expected integer for MINUS unary operator");
+        return new IntValue(-val.getIntValue());
     }
 
     env.notReached();
     return null;
   }
-
-
 }

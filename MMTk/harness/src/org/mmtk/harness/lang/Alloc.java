@@ -14,9 +14,7 @@ package org.mmtk.harness.lang;
 
 import org.vmmagic.unboxed.ObjectReference;
 
-public class Alloc implements Statement {
-  /** Stack slot to store object variable */
-  private final int slot;
+public class Alloc implements Expression {
   /** Number of reference fields */
   private final Expression refCount;
   /** Number of data fields */
@@ -25,35 +23,33 @@ public class Alloc implements Statement {
   private final Expression doubleAlign;
 
   /**
-   * Allocate an object into the given stack frame slot, with numbers of
-   * reference and data fields given by expressions.
+   * Allocate an object.
    */
-  public Alloc(int slot, Expression refCount, Expression dataCount, Expression doubleAlign) {
-    this.slot = slot;
+  public Alloc(Expression refCount, Expression dataCount, Expression doubleAlign) {
     this.refCount = refCount;
     this.dataCount = dataCount;
     this.doubleAlign = doubleAlign;
   }
 
   /**
-   * Run this statement. Evaluate the expression arguments, then call MMTk
-   * (via the environment) to allocate the object.
+   * Perform the allocation by calling MMTk.
    */
-  public void exec(Env env) {
+  public Value eval(Env env) {
     Value refCountVal = refCount.eval(env);
-    Value dataCountVal = dataCount.eval(env);
-    Value doubleAlignVal = doubleAlign.eval(env);
+    env.gcSafePoint();
 
-    env.check(env.top().getType(slot) == Type.OBJECT, "Attempt to store object in non-object variable");
+    Value dataCountVal = dataCount.eval(env);
+    env.gcSafePoint();
+
+    Value doubleAlignVal = doubleAlign.eval(env);
+    env.gcSafePoint();
+
     env.check(refCountVal.type() == Type.INT, "Number of reference fields must be an integer");
     env.check(dataCountVal.type() == Type.INT, "Number of data fields must be an integer");
     env.check(doubleAlignVal.type() == Type.BOOLEAN, "DoubleAlign must be a boolean");
 
     ObjectReference object = env.alloc(refCountVal.getIntValue(), dataCountVal.getIntValue(), doubleAlignVal.getBoolValue());
 
-    if (slot >= 0) {
-      ObjectValue value = new ObjectValue(object);
-      env.top().set(slot, value);
-    }
+    return new ObjectValue(object);
   }
 }

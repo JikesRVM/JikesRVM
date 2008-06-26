@@ -37,11 +37,13 @@ public class Assert implements Statement {
    */
   public void exec(Env env) {
     Value condVal = cond.eval(env);
+    env.gcSafePoint();
 
     if (!condVal.getBoolValue()) {
       StringBuilder output = new StringBuilder();
       for(Expression expr: exprs) {
         output.append(expr.eval(env));
+        env.gcSafePoint();
       }
       System.err.println(output);
       System.exit(1);

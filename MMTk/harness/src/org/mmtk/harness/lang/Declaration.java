@@ -37,6 +37,4 @@ public class Declaration {
     this.initial = initial;
     this.slot = slot;
   }
-
-
 }

@@ -34,6 +34,9 @@ public class Hash implements Expression {
 
     env.check(objectVal.type() == Type.OBJECT, "Attempt to calculate hash code of non-object expression");
 
-    return new IntValue(env.hash(objectVal.getObjectValue()));
+    int hashCode = env.hash(objectVal.getObjectValue());
+    env.gcSafePoint();
+
+    return new IntValue(hashCode);
   }
 }

@@ -36,6 +36,7 @@ public class PrintStatement implements Statement {
     StringBuilder output = new StringBuilder();
     for(Expression expr: exprs) {
       output.append(expr.eval(env));
+      env.gcSafePoint();
     }
     System.err.println(output);
   }

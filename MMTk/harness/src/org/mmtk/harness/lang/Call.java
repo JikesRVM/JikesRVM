@@ -44,8 +44,17 @@ public class Call implements Statement {
     Value[] values = new Value[params.size()];
     for(int i=0; i < params.size(); i++) {
       values[i] = params.get(i).eval(env);
+      // GC may occur between evaluating each parameter
+      env.pushTemporary(values[i]);
+      env.gcSafePoint();
     }
 
+    // No GC safe points between here and when everything is saved in the callee's stack
+    for(int i=params.size() - 1; i >= 0; i--) {
+      env.popTemporary(values[i]);
+    }
     method.exec(env, values);
+
+    env.gcSafePoint();
   }
 }

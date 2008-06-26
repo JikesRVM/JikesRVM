@@ -40,6 +40,7 @@ public class LoadField implements Expression {
    */
   public Value eval(Env env) {
     Value fieldVal = index.eval(env);
+    env.gcSafePoint();
 
     env.check(env.top().getType(slot) == Type.OBJECT, "Attempt to load field of non-object variable");
     env.check(fieldVal.type() == Type.INT, "Index must be an integer");

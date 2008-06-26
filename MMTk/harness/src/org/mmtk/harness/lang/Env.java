@@ -27,6 +27,11 @@ public class Env extends Mutator {
   private Stack<StackFrame> stack = new Stack<StackFrame>();
 
   /**
+   * The temporary values saved during evaluation.
+   */
+  private Stack<ObjectValue> temporaries = new Stack<ObjectValue>();
+
+  /**
    * The main program
    */
   private final Statement body;
@@ -86,8 +91,34 @@ public class Env extends Mutator {
    */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
+    for(ObjectValue value : temporaries) {
+      value.traceObject(trace);
+    }
     for (StackFrame frame : stack) {
       frame.computeRoots(trace);
+    }
+  }
+
+  /**
+   * Push a temporary value to avoid GC errors for objects held during expression evaluation.
+   *
+   * @param value The value to push
+   */
+  public void pushTemporary(Value value) {
+    if (value instanceof ObjectValue) {
+      temporaries.push((ObjectValue)value);
+    }
+  }
+
+  /**
+   * Pop the specified temporary.
+   *
+   * @param value The expected value, to ensure that pushes and pops match.
+   */
+  public void popTemporary(Value value) {
+    if (value instanceof ObjectValue) {
+      ObjectValue poppedValue = temporaries.pop();
+      check(poppedValue == value, "Invalid temporary stack maintenance");
     }
   }
 }
