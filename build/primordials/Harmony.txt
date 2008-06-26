@@ -59,6 +59,7 @@ Ljava/lang/Cloneable;
 Ljava/lang/reflect/Field;
 Ljava/lang/reflect/Method;
 Ljava/lang/reflect/Member;
+Ljava/lang/reflect/Modifier;
 Ljava/lang/reflect/Constructor;
 Ljava/lang/reflect/AccessibleObject;
 
@@ -122,6 +123,7 @@ Ljava/nio/charset/UnsupportedCharsetException;
 Ljava/util/NoSuchElementException;
 Ljava/util/zip/DataFormatException;
 Ljava/security/GeneralSecurityException;
+Ljava/security/MessageDigest;
 Ljava/security/NoSuchAlgorithmException;
 
 # primitive wrapper types
@@ -179,6 +181,15 @@ Ljava/util/HashMap$EntryIterator;
 Ljava/util/HashMap$HashMapEntrySet;
 Ljava/util/HashMap$KeyIterator;
 Ljava/util/HashMap$ValueIterator;
+Ljava/util/IdentityHashMap;
+Ljava/util/IdentityHashMap$1;
+Ljava/util/IdentityHashMap$1$1;
+Ljava/util/IdentityHashMap$2;
+Ljava/util/IdentityHashMap$2$1;
+Ljava/util/IdentityHashMap$IdentityHashMapEntry;
+Ljava/util/IdentityHashMap$IdentityHashMapEntrySet;
+Ljava/util/IdentityHashMap$IdentityHashMapEntrySet$1;
+Ljava/util/IdentityHashMap$IdentityHashMapIterator;
 Ljava/util/HashSet;
 [Ljava/util/HashSet;
 
@@ -399,6 +410,12 @@ Ljava/io/RandomAccessFile;
 Ljava/io/ObjectInputStream;
 Ljava/io/ObjectOutputStream;
 Ljava/io/ObjectStreamClass;
+Ljava/io/ObjectStreamClass$1;
+Ljava/io/ObjectStreamClass$2;
+Ljava/io/ObjectStreamClass$3;
+Ljava/io/ObjectStreamClass$4;
+Ljava/io/ObjectStreamClass$OSCThreadLocalCache;
+Ljava/io/ObjectStreamClass$OSCThreadLocalCache$1;
 Ljava/io/ObjectStreamField;
 Ljava/io/ObjectStreamField$1;
 [Ljava/io/ObjectStreamField;
@@ -473,6 +490,12 @@ Lorg/apache/harmony/luni/util/MsgHelp;
 Lorg/apache/harmony/luni/util/MsgHelp$1;
 Lorg/apache/harmony/luni/util/NumberConverter;
 Lorg/apache/harmony/luni/util/PriviAction;
+Lorg/apache/harmony/luni/util/ThreadLocalCache;
+Lorg/apache/harmony/luni/util/ThreadLocalCache$1;
+Lorg/apache/harmony/luni/util/ThreadLocalCache$2;
+Lorg/apache/harmony/luni/util/ThreadLocalCache$3;
+Lorg/apache/harmony/luni/util/ThreadLocalCache$4;
+Lorg/apache/harmony/luni/util/ThreadLocalCache$5;
 Lorg/apache/harmony/luni/util/Util;
 Lorg/apache/harmony/nio/FileChannelFactory;
 Lorg/apache/harmony/nio/internal/DirectBuffer;
@@ -502,6 +525,7 @@ Lorg/apache/harmony/niochar/charset/ISO_8859_1$Encoder;
 Lorg/apache/harmony/niochar/charset/ISO_8859_1;
 Lorg/apache/harmony/niochar/internal/nls/Messages;
 Lorg/apache/harmony/niochar/internal/nls/Messages$1;
+Lorg/apache/harmony/security/fortress/Engine;
 Lorg/apache/harmony/security/fortress/PolicyUtils;
 
 # Picked up from icu4j
