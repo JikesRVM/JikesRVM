@@ -44,6 +44,7 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.Callbacks;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.UnimplementedError;
 
 /**
@@ -1035,7 +1036,26 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   // TODO: Harmony
-  static Class[] getStackClasses(int maxDepth, boolean stopAtPrivileged) {
-    return null;
+  static Class<?>[] getStackClasses(int maxDepth, boolean stopAtPrivileged) {
+    StackBrowser browser = new StackBrowser();
+    if (maxDepth == -1) {
+      browser.init();
+      maxDepth = 0;
+      while(browser.hasMoreFrames()) {
+        maxDepth++;
+        browser.up();
+      }
+    }
+    if (maxDepth == 0) return new Class[0];
+    else if (maxDepth < 0) {
+      throw new Error("Unexpected negative call stack size" + maxDepth);
+    }
+    Class<?>[] result = new Class[maxDepth];
+    browser.init();
+    for (int i=0; i < maxDepth; i++) {
+      result[i] = browser.getCurrentClass().getClassForType();
+      browser.up();
+    }
+    return result;
   }
 }
