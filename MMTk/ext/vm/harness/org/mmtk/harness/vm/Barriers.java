@@ -18,20 +18,6 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public class Barriers extends org.mmtk.vm.Barriers {
   /**
-   * Sets an element of a char array without invoking any write
-   * barrier.  This method is called by the Log method, as it will be
-   * used during garbage collection and needs to manipulate character
-   * arrays without causing a write barrier operation.
-   *
-   * @param dst the destination array
-   * @param index the index of the element to set
-   * @param value the new value for the element
-   */
-  public void setArrayNoBarrier(char [] dst, int index, char value) {
-    dst[index] = value;
-  }
-
-  /**
    * Sets an element of an object array without invoking any write
    * barrier.  This method is called by the Map class to ensure
    * potentially-allocation-triggering write barriers do not occur in
@@ -42,18 +28,6 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param value the new value for the element
    */
   public void setArrayNoBarrier(Object [] dst, int index, Object value) {
-    dst[index] = value;
-  }
-
-  /**
-   * Sets an element of an object array without it being possible to lose
-   * control.
-   *
-   * @param dst the destination array
-   * @param index the index of the element to set
-   * @param value the new value for the element
-   */
-  public void setArrayUninterruptible(Object [] dst, int index, Object value) {
     dst[index] = value;
   }
 
@@ -200,42 +174,6 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Gets an element of a char array without invoking any read barrier
-   * or performing bounds check.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public char getArrayNoBarrier(char[] src, int index) {
-    return src[index];
-  }
-
-  /**
-   * Gets an element of a byte array without invoking any read barrier
-   * or bounds check.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public byte getArrayNoBarrier(byte[] src, int index) {
-    return src[index];
-  }
-
-  /**
-   * Gets an element of an int array without invoking any read barrier
-   * or performing bounds checks.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public int getArrayNoBarrier(int[] src, int index) {
-    return src[index];
-  }
-
-  /**
    * Gets an element of an Object array without invoking any read
    * barrier or performing bounds checks.
    *
@@ -244,18 +182,6 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @return the new value of element
    */
   public Object getArrayNoBarrier(Object[] src, int index) {
-    return src[index];
-  }
-
-  /**
-   * Gets an element of an array of byte arrays without causing the potential
-   * thread switch point that array accesses normally cause.
-   *
-   * @param src the source array
-   * @param index the index of the element to get
-   * @return the new value of element
-   */
-  public byte[] getArrayNoBarrier(byte[][] src, int index) {
     return src[index];
   }
 }

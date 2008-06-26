@@ -147,22 +147,24 @@ public class Log implements Constants {
     char[] intBuffer = getIntBuffer();
 
     nextDigit = (int) (l % 10);
-    nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, negative ? - nextDigit : nextDigit);
-    VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+    nextChar = hexDigitCharacter[negative ? - nextDigit : nextDigit];
+    intBuffer[index--] = nextChar;
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
-      nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, negative ? - nextDigit : nextDigit);
-      VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+      nextChar = hexDigitCharacter[negative ? - nextDigit : nextDigit];
+      intBuffer[index--] = nextChar;
       l = l / 10;
     }
 
-    if (negative)
-      VM.barriers.setArrayNoBarrier(intBuffer, index--, '-');
+    if (negative) {
+      intBuffer[index--] = '-';
+    }
 
-    for (index++; index < TEMP_BUFFER_SIZE; index++)
-      add(VM.barriers.getArrayNoBarrier(intBuffer, index));
+    for (index++; index < TEMP_BUFFER_SIZE; index++) {
+      add(intBuffer[index]);
+    }
   }
 
   /**
@@ -243,8 +245,9 @@ public class Log implements Constants {
    */
   public static void write(char[] c, int len) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(len <= c.length);
-    for (int i = 0; i < len; i++)
-      add(VM.barriers.getArrayNoBarrier(c, i));
+    for (int i = 0; i < len; i++) {
+      add(c[i]);
+    }
   }
 
   /**
@@ -254,8 +257,9 @@ public class Log implements Constants {
    * @param b the array of bytes to be logged
    */
   public static void write(byte[] b) {
-    for (int i = 0; i < b.length; i++)
-      add((char)VM.barriers.getArrayNoBarrier(b, i));
+    for (int i = 0; i < b.length; i++) {
+      add((char)b[i]);
+    }
   }
 
   /**
@@ -283,10 +287,11 @@ public class Log implements Constants {
    * @param w the word to be logged
    */
   public static void writeDec(Word w) {
-    if (BYTES_IN_ADDRESS == 4)
+    if (BYTES_IN_ADDRESS == 4) {
       write(w.toInt());
-    else
+    } else {
       write(w.toLong());
+    }
   }
 
   /**
@@ -708,8 +713,9 @@ public class Log implements Constants {
    */
   private static void writelnWithFlush(boolean flush) {
     add(NEW_LINE_CHAR);
-    if (flush)
+    if (flush) {
       flush();
+    }
   }
 
   /**
@@ -728,7 +734,7 @@ public class Log implements Constants {
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
       nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
-      char nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, nextDigit);
+      char nextChar = hexDigitCharacter[nextDigit];
       add(nextChar);
     }
   }
@@ -752,10 +758,11 @@ public class Log implements Constants {
   }
 
   private static Log getLog() {
-    if (VM.assertions.runningVM())
+    if (VM.assertions.runningVM()) {
       return VM.activePlan.log();
-    else
+    } else {
       return log;
+    }
   }
 
   /**
@@ -764,9 +771,9 @@ public class Log implements Constants {
    * @param c the character to add
    */
   private void addToBuffer(char c) {
-    if (bufferIndex < MESSAGE_BUFFER_SIZE)
-      VM.barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
-    else {
+    if (bufferIndex < MESSAGE_BUFFER_SIZE) {
+      buffer[bufferIndex++] = c;
+    } else {
       overflow = true;
       overflowLastChar = c;
     }
@@ -779,18 +786,18 @@ public class Log implements Constants {
    */
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
-      bufferIndex += VM.strings.copyStringToChars(s, buffer, bufferIndex,
-          MESSAGE_BUFFER_SIZE + 1);
+      bufferIndex += VM.strings.copyStringToChars(s, buffer, bufferIndex, MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
         // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
         // MMTk method that lets us peek into a string. Anyway, it's just a
         // convenience to get the newline right.
-        VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE, OVERFLOW_MESSAGE_FIRST_CHAR);
+        buffer[MESSAGE_BUFFER_SIZE] = OVERFLOW_MESSAGE_FIRST_CHAR;
         bufferIndex--;
       }
-    } else
+    } else {
       overflow = true;
+    }
   }
 
   /**
@@ -799,10 +806,11 @@ public class Log implements Constants {
   private void flushBuffer() {
     int newlineAdjust = overflowLastChar == NEW_LINE_CHAR ? 0 : -1;
     int totalMessageSize = overflow ? (MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust) : bufferIndex;
-    if (threadIdFlag)
+    if (threadIdFlag) {
       VM.strings.writeThreadId(buffer, totalMessageSize);
-    else
+    } else {
       VM.strings.write(buffer, totalMessageSize);
+    }
     threadIdFlag = false;
     overflow = false;
     overflowLastChar = '\0';
