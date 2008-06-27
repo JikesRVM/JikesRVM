@@ -20,6 +20,7 @@ package java.lang.reflect;
 import java.lang.annotation.Annotation;
 
 import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -286,9 +287,9 @@ public class AccessibleObject implements AnnotatedElement {
   }
 
  /**
-  * Harmony: TODO
+  * Return a descriptor for the member
   */
   String getSignature() {
-    throw new Error("TODO");
+    return getVMMember().getDescriptor().toString();
   }
 }

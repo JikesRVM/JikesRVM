@@ -24,8 +24,6 @@ import org.vmmagic.pragma.Inline;
  */
 public class JikesRVMSupport {
 
-
-
   public static Field createField(RVMField f) {
     return new Field(f);
   }
@@ -44,14 +42,14 @@ public class JikesRVMSupport {
   }
 
   public static RVMField getFieldOf(Field f) {
-    throw new Error("TODO");
+    return (RVMField)f.getVMMember();
   }
 
   public static RVMMethod getMethodOf(Method m) {
-    throw new Error("TODO");
+    return (RVMMethod)m.getVMMember();
   }
 
   public static RVMMethod getMethodOf(Constructor cons) {
-    throw new Error("TODO");
+    return (RVMMethod)cons.getVMMember();
   }
 }
