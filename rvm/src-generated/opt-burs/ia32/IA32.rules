@@ -2022,10 +2022,13 @@ r:	PREPARE_LONG(riv, riv)
 EMIT_INSTRUCTION
 RegisterOperand hres = Prepare.getResult(P(p)); \\
 MemoryOperand hmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \\
-                           Prepare.getLocation(P(p)), Prepare.getGuard(P(p)), DW); \\
+                       Prepare.getLocation(P(p)), Prepare.getGuard(P(p)), DW); \\
 RegisterOperand lres = new RegisterOperand(regpool.getSecondReg(hres.getRegister()), TypeReference.Int); \\
-MemoryOperand lmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \\
-                           Prepare.getLocation(P(p)), Prepare.getGuard(P(p))); \\
+MemoryOperand lmo = MO(Prepare.getAddress(P(p)) != null ? Prepare.getAddress(P(p)).copy() : null, \\
+                       Prepare.getOffset(P(p)) != null ? Prepare.getOffset(P(p)).copy() : null, \\
+                       DW, \\
+                       Prepare.getLocation(P(p)) != null ? (LocationOperand)Prepare.getLocation(P(p)).copy() : null, \\
+                       Prepare.getGuard(P(p)) != null ? Prepare.getGuard(P(p)).copy() : null); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, hmo))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, lmo));
 
