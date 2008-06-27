@@ -65,7 +65,7 @@ public final class Offset {
   }
 
   public Offset minus(Offset off2) {
-    return new Offset(value + off2.value);
+    return new Offset(value - off2.value);
   }
 
   public boolean EQ(Offset off2) {
