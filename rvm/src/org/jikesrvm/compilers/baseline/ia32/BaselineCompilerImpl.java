@@ -3167,7 +3167,45 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * @param type the LHS type
    */
   @Override
-  protected final void emit_instanceof_resolvedClass(RVMType type) {
+  protected final void emit_instanceof_resolvedInterface(RVMClass type) {
+    int interfaceIndex = type.getDoesImplementIndex();
+    int interfaceMask = type.getDoesImplementBitMask();
+
+    asm.emitPOP_Reg(S0);             // load object from stack
+    asm.emitTEST_Reg_Reg(S0, S0);    // test for null
+    ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
+
+    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
+    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << 2));  // implements bit vector
+
+    ForwardReference outOfBounds = null;
+    if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+      // must do arraybounds check of implements bit vector
+      asm.emitCMP_RegDisp_Imm_Word(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
+      outOfBounds = asm.forwardJcc(Assembler.LLE);
+    }
+
+    // Test the implements bit and push true if it is set
+    asm.emitTEST_RegDisp_Imm(S0, Offset.fromIntZeroExtend(interfaceIndex << 2), interfaceMask);
+    ForwardReference notMatched = asm.forwardJcc(Assembler.EQ);
+    asm.emitPUSH_Imm(1);
+    ForwardReference done = asm.forwardJMP();
+
+    // push false
+    isNull.resolve(asm);
+    if (outOfBounds != null) outOfBounds.resolve(asm);
+    notMatched.resolve(asm);
+    asm.emitPUSH_Imm(0);
+
+    done.resolve(asm);
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param type the LHS type
+   */
+  @Override
+  protected final void emit_instanceof_resolvedClass(RVMClass type) {
     int LHSDepth = type.getTypeDepth();
     int LHSId = type.getId();
 

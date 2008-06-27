@@ -134,46 +134,6 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Uninterruptible version for fully resolved proper classes.
-   * @param object object to be tested
-   * @param id type id corresponding to target class.
-   * @return true iff is object instance of target type?
-   */
-  @Uninterruptible
-  @Entrypoint
-  static boolean instanceOfResolvedClass(Object object, int id) {
-    if (object == null) {
-      return false; // null is not an instance of any type
-    }
-
-    RVMClass lhsType = RVMType.getType(id).asClass();
-    TIB rhsTIB = ObjectModel.getTIB(object);
-    return DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
-  }
-
-  /**
-   * Quick version for final classes, array of final class or array of
-   * primitives
-   *
-   * @param object Object to be tested
-   * @param targetTibOffset  JTOC offset of TIB of target type
-   *
-   * @return <code>true</code> iff  <code>object</code> is instance of the
-   *         target type
-   */
-  @Uninterruptible
-  @Entrypoint
-  static boolean instanceOfFinal(Object object, Offset targetTibOffset) {
-    if (object == null) {
-      return false; // null is not an instance of any type
-    }
-
-    Object lhsTib = Magic.getObjectAtOffset(Magic.getJTOC(), targetTibOffset);
-    Object rhsTib = ObjectModel.getTIB(object);
-    return lhsTib == rhsTib;
-  }
-
-  /**
    * Throw exception unless object is instance of target
    * class/array or implements target interface.
    * @param object object to be tested

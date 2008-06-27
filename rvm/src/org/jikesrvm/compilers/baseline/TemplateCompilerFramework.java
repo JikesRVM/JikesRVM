@@ -1701,11 +1701,16 @@ public abstract class TemplateCompilerFramework
           RVMType type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
-              if (type.asClass().isFinal()) {
+              RVMClass cType = type.asClass();
+              if (cType.isFinal()) {
                 emit_instanceof_final(type);
                 break;
-              } else if (type.isResolved() && !type.asClass().isInterface()) {
-                emit_instanceof_resolvedClass(type);
+              } else if (cType.isResolved()) {
+                if (cType.isInterface()) {
+                  emit_instanceof_resolvedInterface(cType);
+                } else {
+                  emit_instanceof_resolvedClass(cType);
+                }
                 break;
               }
             } else if (type.isArrayType()) {
@@ -3062,7 +3067,13 @@ public abstract class TemplateCompilerFramework
    * Emit code to implement the instanceof bytecode
    * @param type the LHS type
    */
-  protected abstract void emit_instanceof_resolvedClass(RVMType type);
+  protected abstract void emit_instanceof_resolvedInterface(RVMClass type);
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param type the LHS type
+   */
+  protected abstract void emit_instanceof_resolvedClass(RVMClass type);
 
   /**
    * Emit code to implement the instanceof bytecode

@@ -51,12 +51,6 @@ public class Entrypoints {
 
   public static final NormalMethod instanceOfMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "instanceOf", "(Ljava/lang/Object;I)Z");
-  public static final NormalMethod instanceOfResolvedClassMethod =
-      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
-  public static final NormalMethod instanceOfFinalMethod =
-      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class,
-                "instanceOfFinal",
-                "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)Z");
   public static final NormalMethod checkcastMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "checkcast", "(Ljava/lang/Object;I)V");
   public static final NormalMethod checkstoreMethod =

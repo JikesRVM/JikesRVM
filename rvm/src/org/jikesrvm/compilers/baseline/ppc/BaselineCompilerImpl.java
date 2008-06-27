@@ -3198,13 +3198,94 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * Emit code to implement the instanceof bytecode
    * @param type     The LHS type
    */
-  protected final void emit_instanceof_resolvedClass(RVMType type) {
-    asm.emitLAddrToc(T0, Entrypoints.instanceOfResolvedClassMethod.getOffset());
-    asm.emitMTCTR(T0);
-    peekAddr(T0, 0);
-    asm.emitLVAL(T1, type.getId());
-    asm.emitBCCTRL();
-    pokeInt(T0, 0);
+  protected final void emit_instanceof_resolvedInterface(RVMClass type) {
+    int interfaceIndex = type.getDoesImplementIndex();
+    int interfaceMask = type.getDoesImplementBitMask();
+
+    // load object from stack and check for null
+    popAddr(T0);
+    asm.emitCMPAddrI(T0, 0);
+    ForwardReference isNull = asm.emitForwardBC(EQ);
+
+    // get implements bit vector from object's TIB
+    ObjectModel.baselineEmitLoadTIB(asm, T0, T0);
+    asm.emitLAddr(T0, TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS, T0);
+
+    ForwardReference outOfBounds = null;
+    if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+      // must do arraybounds check of implements bit vector
+      asm.emitLIntOffset(T1, T0, ObjectModel.getArrayLengthOffset()); // T1 gets array length
+      asm.emitLVAL(T2, interfaceIndex);
+      asm.emitCMPL(T1, T2);
+      outOfBounds = asm.emitForwardBC(LE);
+    }
+
+    // Test the appropriate bit and if set, set T0 to true (1)
+    asm.emitLInt(T1, interfaceIndex << LOG_BYTES_IN_INT, T0);
+    if ((interfaceMask & 0xffff) == interfaceMask) {
+      asm.emitANDI(S0, T1, interfaceMask);
+    } else {
+      if (VM.VerifyAssertions) VM._assert((interfaceMask & 0xffff0000) == interfaceMask);
+      asm.emitANDIS(S0, T1, interfaceMask);
+    }
+
+    ForwardReference notMatched = asm.emitForwardBC(EQ);
+    asm.emitLVAL(T0, 1);
+    ForwardReference done = asm.emitForwardB();
+
+    // set T1 to 0 (false)
+    isNull.resolve(asm);
+    if (outOfBounds != null) outOfBounds.resolve(asm);
+    notMatched.resolve(asm);
+    asm.emitLVAL(T0, 0);
+
+    // push T0, containing the result of the instanceof comparision, to the stack.
+    done.resolve(asm);
+    pushInt(T0);
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param type     The LHS type
+   */
+  protected final void emit_instanceof_resolvedClass(RVMClass type) {
+    int LHSDepth = type.getTypeDepth();
+    int LHSId = type.getId();
+
+    // load object from stack and check for null
+    popAddr(T0);
+    asm.emitCMPAddrI(T0, 0);
+    ForwardReference isNull = asm.emitForwardBC(EQ);
+
+    // get superclass display from object's TIB
+    ObjectModel.baselineEmitLoadTIB(asm, T0, T0);
+    asm.emitLAddr(T0, TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS, T0);
+
+    ForwardReference outOfBounds = null;
+    if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
+      // must do arraybounds check of superclass display
+      asm.emitLIntOffset(T1, T0, ObjectModel.getArrayLengthOffset()); // T1 gets array length
+      asm.emitLVAL(T2, LHSDepth);
+      asm.emitCMPL(T1, T2);
+      outOfBounds = asm.emitForwardBC(LE);
+    }
+
+    // Load id from display at required depth and compare against target id; set T1 to 1 (true) if matched
+    asm.emitLHZ(T0, LHSDepth << LOG_BYTES_IN_CHAR, T0);
+    asm.emitCMPI(T0, LHSId);
+    ForwardReference notMatched = asm.emitForwardBC(NE);
+    asm.emitLVAL(T0, 1);
+    ForwardReference done = asm.emitForwardB();
+
+    // set T1 to 0 (false)
+    isNull.resolve(asm);
+    if (outOfBounds != null) outOfBounds.resolve(asm);
+    notMatched.resolve(asm);
+    asm.emitLVAL(T0, 0);
+
+    // push T0, containing the result of the instanceof comparision, to the stack.
+    done.resolve(asm);
+    pushInt(T0);
   }
 
   /**
@@ -3212,12 +3293,26 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param type     The LHS type
    */
   protected final void emit_instanceof_final(RVMType type) {
-    asm.emitLAddrToc(T0, Entrypoints.instanceOfFinalMethod.getOffset());
-    asm.emitMTCTR(T0);
-    peekAddr(T0, 0);
-    asm.emitLVALAddr(T1, type.getTibOffset());
-    asm.emitBCCTRL();
-    pokeInt(T0, 0);
+    popAddr(T0);                // load object from stack
+    asm.emitCMPAddrI(T0, 0);    // check for null
+    ForwardReference isNull = asm.emitForwardBC(EQ);
+
+    // compare TIB of object to desired TIB and set T0 to 1 (true) if equal
+    ObjectModel.baselineEmitLoadTIB(asm, T0, T0);       // TIB of "this" object
+    asm.emitLAddrToc(T1, type.getTibOffset());          // TIB of LHS type
+    asm.emitCMP(T0, T1);                                // TIBs equal?
+    ForwardReference notMatched = asm.emitForwardBC(NE);
+    asm.emitLVAL(T0, 1);
+    ForwardReference done = asm.emitForwardB();
+
+    // set T1 to 0 (false)
+    isNull.resolve(asm);
+    notMatched.resolve(asm);
+    asm.emitLVAL(T0, 0);
+
+    // push T0, containing the result of the instanceof comparision, to the stack.
+    done.resolve(asm);
+    pushInt(T0);
   }
 
   /**
