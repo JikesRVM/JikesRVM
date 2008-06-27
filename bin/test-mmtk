@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+
+# Temporary script
+ant mmtk-harness
+rm -rf results/mmtk
+mkdir -p results/mmtk
+
+plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy org.mmtk.plan.generational.immix.GenImmix org.mmtk.plan.generational.marksweep.GenMS org.mmtk.plan.immix.Immix org.mmtk.plan.markcompact.MC org.mmtk.plan.marksweep.MS org.mmtk.plan.poisoned.Poisoned org.mmtk.plan.refcount.fullheap.RC org.mmtk.plan.refcount.generational.GenRC org.mmtk.plan.semispace.SS org.mmtk.plan.stickyimmix.StickyImmix org.mmtk.plan.stickyms.StickyMS"
+
+for plan in $plans
+do
+  showplan=`echo $plan | sed "{s/.*\.//g}"`
+  mkdir results/mmtk/$showplan
+  for script in `ls MMTk/harness/test-scripts/*.script`
+  do
+    showscript=`echo $script | sed "{s/.*[\/]//g}" | sed "{s/\.script$//g}"`
+    /opt/jdk1.6.0/bin/java -jar target/mmtk/mmtk-harness.jar $script plan=$plan &> results/mmtk/temp.out
+    if [ ${?} == 0 ]
+    then
+      echo "PASSED: $showplan $showscript"
+      mv results/mmtk/temp.out results/mmtk/$showplan/$showscript.out.pass
+    else
+      echo "FAILED: $showplan $showscript"
+      mv results/mmtk/temp.out results/mmtk/$showplan/$showscript.out.fail
+    fi
+  done
+done
+
+passed=`find results/mmtk -name "*.pass" | wc -l`
+failed=`find results/mmtk -name "*.fail" | wc -l`
+
+echo
+echo "FAILURES:"
+find results/mmtk -name "*.fail" | sed "{s/results\/mmtk\///g}" | sed "{s/\.out\.fail$//g}" | sed "{s/\// /g}"
+echo
+echo "PASSED $passed/$[$passed + failed] tests ($[(100 * $passed) / ($passed + $failed)]%)"
