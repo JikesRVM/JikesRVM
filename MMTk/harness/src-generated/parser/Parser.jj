@@ -14,6 +14,7 @@
 options {
   JDK_VERSION = "1.5";
   LOOKAHEAD = 10;
+  FORCE_LA_CHECK=true;
   STATIC = false;
 }
 PARSER_BEGIN(Parser)
@@ -66,6 +67,7 @@ MORE : {
 TOKEN : {
    < ALLOC : "alloc" > |
    < ASSERT : "assert" > |
+   < ELIF : "elif" > |
    < ELSE : "else" > |
    < GC: "gc" > |
    < HASH: "hash" > |
@@ -83,13 +85,13 @@ TOKEN : {
 TOKEN : {
   < INTEGER_LITERAL: (["0"-"9"])+ > |
   < BOOLEAN_LITERAL: ("true" | "false") > |
-  < STRING_LITERAL: "\"" ([" ", "_", "=", "-", "(", ")", "[", "]", "<", ">", "0"-"9", "a"-"z", "A"-"Z"])* "\"" >
+  < STRING_LITERAL: "\"" (~["\""])* "\"" >
 }
 
 /* Identifiers */
 
 TOKEN : {
-  <IDENTIFIER: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])* >
+  <IDENTIFIER: ["a"-"z","A"-"Z","_"] (["a"-"z","A"-"Z","0"-"9","_"])* >
 }
 
 /* Separators */
@@ -194,14 +196,18 @@ Statement statement(MethodTable methods, SymbolTable symbols) : {
  * if - then - else
  */
 Statement conditional(MethodTable methods, SymbolTable symbols) : {
-    Expression cond;
-    Statement ifTrue, ifFalse = new Empty();
+	Expression cond;
+    List<Expression> conds = new ArrayList<Expression>();
+    Statement stmt;
+    List<Statement> stmts = new ArrayList<Statement>();
 }
 {
-  <IF> <LPAREN> cond=expression(symbols) <RPAREN> 
-  ifTrue=statements(methods, symbols)
-  ( <ELSE>  ifFalse=statements(methods, symbols) )?
-  { return new IfStatement(cond, ifTrue, ifFalse); }
+  <IF> <LPAREN> cond=expression(symbols) { conds.add(cond); } <RPAREN> 
+  stmt=statements(methods, symbols) { stmts.add(stmt); }
+  ( <ELIF>  <LPAREN> cond=expression(symbols) { conds.add(cond); } <RPAREN> 
+  	stmt=statements(methods, symbols) { stmts.add(stmt); })*
+  ( <ELSE>  stmt=statements(methods, symbols) { stmts.add(stmt); } )?
+  { return new IfStatement(conds,stmts); }
 }
 
 /**

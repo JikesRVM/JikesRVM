@@ -61,4 +61,10 @@ public abstract class Value implements Expression {
   public String getStringValue() {
     throw new RuntimeException("Invalid use of " + type() + " as a string");
   }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public abstract Value clone();
 }

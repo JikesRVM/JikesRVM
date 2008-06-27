@@ -59,4 +59,13 @@ public class StringValue extends Value {
   public String getStringValue() {
     return value;
   }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public StringValue clone() {
+    return new StringValue(value);
+  }
+
 }

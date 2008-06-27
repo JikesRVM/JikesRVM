@@ -31,6 +31,7 @@ public class BoolValue extends Value {
   /**
    * Object equality.
    */
+  @Override
   public boolean equals(Object other) {
     return (other instanceof BoolValue && value == ((BoolValue)other).value);
   }
@@ -45,6 +46,7 @@ public class BoolValue extends Value {
   /**
    * Get this value as a boolean.
    */
+  @Override
   public boolean getBoolValue() {
     return value;
   }
@@ -52,6 +54,7 @@ public class BoolValue extends Value {
   /**
    * String representation
    */
+  @Override
   public String toString() {
     return Boolean.toString(value);
   }
@@ -62,5 +65,13 @@ public class BoolValue extends Value {
   @Override
   public Type type() {
     return Type.BOOLEAN;
+  }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public BoolValue clone() {
+    return new BoolValue(value);
   }
 }

@@ -12,40 +12,51 @@
  */
 package org.mmtk.harness.lang;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * A conditional statement whereby one of two statements (either possibly an empty sequence)
  * is executed depending on the value of a condition expression.
  */
 public class IfStatement implements Statement {
-  /** The expression to be evaluated */
-  private final Expression cond;
-  /** The statement to execute if the condition is true */
-  private final Statement ifTrue;
-  /** The statement to execute if the condition is false */
-  private final Statement ifFalse;
+  /** The expressions to be evaluated */
+  private final List<Expression> conds;
+  /** The statement to execute if the corresponding condition is true */
+  private final List<Statement> stmts;
 
   /**
    * Create a new conditional statement.
    */
-  public IfStatement(Expression cond, Statement ifTrue, Statement ifFalse) {
-    this.cond = cond;
-    this.ifTrue = ifTrue;
-    this.ifFalse = ifFalse;
+  public IfStatement(List<Expression> conds, List<Statement> stmts) {
+    this.conds = conds;
+    this.stmts = stmts;
+    assert conds.size() == stmts.size() || conds.size() +1 == stmts.size() :
+      "mismatch between conditions and statements for a conditional";
   }
 
   /**
-   * Evaluate the condition, execute either the true or false statement and return.
+   * Evaluate the conditions in sequence until one of them evaluates
+   * to true, then execute the corresponding statement.  If all evaluate
+   * to false, and there is an 'extra' statement, execute it.
    */
   public void exec(Env env) {
-    Value condVal = cond.eval(env);
+    Iterator<Statement> stmtIter = stmts.iterator();
+    for (Expression cond : conds) {
+      Value condVal = cond.eval(env);
+      env.check(condVal.type() == Type.BOOLEAN || condVal.type() == Type.OBJECT, "Condition must be object or boolean");
+      env.gcSafePoint();
 
-    env.check(condVal.type() == Type.BOOLEAN || condVal.type() == Type.OBJECT, "Condition must be object or boolean");
-    env.gcSafePoint();
-    if (condVal.getBoolValue()) {
-      ifTrue.exec(env);
-    } else {
-      ifFalse.exec(env);
+      assert stmtIter.hasNext() : "too few statements in a conditional";
+      Statement stmt = stmtIter.next();
+      if (condVal.getBoolValue()) {
+        stmt.exec(env);
+        return;
+      }
     }
-    env.gcSafePoint();
+    if (stmtIter.hasNext()) {
+      Statement stmt = stmtIter.next();
+      stmt.exec(env);
+    }
   }
 }

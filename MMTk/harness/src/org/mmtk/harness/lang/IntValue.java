@@ -66,4 +66,12 @@ public class IntValue extends Value {
   public void setIntValue(int value) {
     this.value = value;
   }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public IntValue clone() {
+    return new IntValue(value);
+  }
 }

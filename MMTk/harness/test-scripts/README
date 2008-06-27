@@ -1,4 +1,4 @@
-MMTk harness scripting language
+......MMTk harness scripting language
 
 Basics:
 
@@ -17,7 +17,7 @@ script ::= method...
 method ::= ident "(" { type ident { "," type ident}...  ")" "{" statement... "}"
 
 statement ::=
-	  "if" "(" expr ")" "then" block [ "else" block ]
+	  "if" "(" expr ")" block { "elif" "(" expr ")" block } [ "else" block ]
 	| "while "(" expr ")" block
 	| [ [ type ] ident "=" ] "alloc" "(" expr "," expr [ "," expr ] ")" ";"
 	| [ ident "=" ] "hash" "(" expr ")" ";"

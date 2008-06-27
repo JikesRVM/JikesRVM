@@ -34,7 +34,7 @@ public class ObjectValue extends Value {
    */
   @Override
   public boolean equals(Object other) {
-    return (other instanceof ObjectValue && value.toAddress().toInt() == ((ObjectValue)other).value.toAddress().toInt());
+    return (other instanceof ObjectValue && value.toAddress().EQ(((ObjectValue)other).value.toAddress()));
   }
 
   /**
@@ -88,4 +88,14 @@ public class ObjectValue extends Value {
   public void traceObject(TraceLocal trace) {
     value = trace.traceObject(value, true);
   }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public ObjectValue clone() {
+    return new ObjectValue(value);
+  }
+
+
 }

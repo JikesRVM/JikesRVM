@@ -136,7 +136,11 @@ public class SymbolTable {
    * @return
    */
   int getLocation(String name) {
-    return table.get(name).location;
+    Symbol symbol = table.get(name);
+    if (symbol == null) {
+      throw new RuntimeException(String.format("symbol \"%s\" not found",name));
+    }
+    return symbol.location;
   }
 
   /**
