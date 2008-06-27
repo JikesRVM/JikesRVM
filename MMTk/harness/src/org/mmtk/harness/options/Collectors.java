@@ -24,7 +24,7 @@ public final class Collectors extends org.vmutil.options.IntOption {
   public Collectors() {
     super(Harness.options, "Collectors",
           "Collector threads",
-          2);
+          1);
   }
 
   /**
