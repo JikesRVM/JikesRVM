@@ -815,8 +815,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction long_mul(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
+    Instruction origNextInstr = nextInstr;
     while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
-      nextInstr = s.nextInstructionInCodeOrder();
+      nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 4 basic blocks
     // 1: the current block and a test for 32bit or 64bit multiply
@@ -908,10 +909,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     mul64BB.insertOut(nextBB);
 
     // move result from edx:eax to lhsReg:lowlhsReg
-    nextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
+    origNextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(lhsReg, TypeReference.Int),
         new RegisterOperand(edx, TypeReference.Int))));
-    nextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
+    origNextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(lowlhsReg, TypeReference.Int),
         new RegisterOperand(eax, TypeReference.Int))));
     s.remove();
