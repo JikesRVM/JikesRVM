@@ -32,7 +32,7 @@ public class Assignment implements Statement {
   /**
    * Perform the assignment.
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     env.top().set(slot, expr.eval(env));
   }
 }

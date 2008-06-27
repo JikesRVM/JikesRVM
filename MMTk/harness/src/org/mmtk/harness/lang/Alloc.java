@@ -12,9 +12,21 @@
  */
 package org.mmtk.harness.lang;
 
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.ObjectReference;
 
 public class Alloc implements Expression {
+  /** GC stress - GC on every allocation */
+  private static boolean gcEveryAlloc = false;
+
+  /**
+   * GC stress - GC after every allocation
+   */
+  public static void setGcEveryAlloc() {
+    gcEveryAlloc = true;
+  }
+
   /** Number of reference fields */
   private final Expression refCount;
   /** Number of data fields */
@@ -35,21 +47,44 @@ public class Alloc implements Expression {
    * Perform the allocation by calling MMTk.
    */
   public Value eval(Env env) {
-    Value refCountVal = refCount.eval(env);
-    env.gcSafePoint();
+    int refCountVal = evalInt(env, refCount, "Number of reference fields must be an integer");
+    int dataCountVal = evalInt(env,dataCount, "Number of data fields must be an integer");
+    boolean doubleAlignVal = evalBoolVal(env, doubleAlign, "DoubleAlign must be a boolean");
 
-    Value dataCountVal = dataCount.eval(env);
-    env.gcSafePoint();
-
-    Value doubleAlignVal = doubleAlign.eval(env);
-    env.gcSafePoint();
-
-    env.check(refCountVal.type() == Type.INT, "Number of reference fields must be an integer");
-    env.check(dataCountVal.type() == Type.INT, "Number of data fields must be an integer");
-    env.check(doubleAlignVal.type() == Type.BOOLEAN, "DoubleAlign must be a boolean");
-
-    ObjectReference object = env.alloc(refCountVal.getIntValue(), dataCountVal.getIntValue(), doubleAlignVal.getBoolValue());
-
+    ObjectReference object = env.alloc(refCountVal, dataCountVal, doubleAlignVal);
+    if (gcEveryAlloc) VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
     return new ObjectValue(object);
+  }
+
+  /**
+   * Evaluate a boolean expression, type-check and return a boolean
+   * @param env
+   * @param doubleAlign2
+   * @param message
+   * @return
+   */
+  private boolean evalBoolVal(Env env, Expression doubleAlign2, String message) {
+    Value doubleAlignVal = doubleAlign2.eval(env);
+
+    env.check(doubleAlignVal.type() == Type.BOOLEAN, message);
+
+    boolean doubleAlignBool = doubleAlignVal.getBoolValue();
+    env.gcSafePoint();
+    return doubleAlignBool;
+  }
+
+  /**
+   * Evaluate an int expression, type-check and return an int
+   * @param env
+   * @param doubleAlign2
+   * @param message
+   * @return
+   */
+  private int evalInt(Env env, Expression refCount2, String message) {
+    Value refCountVal = refCount2.eval(env);
+    env.check(refCountVal.type() == Type.INT, message);
+    int refCountInt = refCountVal.getIntValue();
+    env.gcSafePoint();
+    return refCountInt;
   }
 }

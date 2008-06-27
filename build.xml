@@ -1957,7 +1957,7 @@ target.jni-suffix=${target.jni-suffix}
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="rvm/src-generated" includes="**/*.java"/>
-      <fileset dir="MMTk" includes="**/*.java"/>
+      <fileset dir="MMTk" includes="**/*.java" excludes="harness/src-generated/**/*.java"/>
       <fileset dir="common/vmmagic" includes="**/*.java"/>
       <fileset dir="common/options" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>

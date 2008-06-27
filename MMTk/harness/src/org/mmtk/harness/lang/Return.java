@@ -12,14 +12,18 @@
  */
 package org.mmtk.harness.lang;
 
-/**
- * Interface representing any statement.
- */
-public interface Statement {
+public class Return implements Statement {
 
-  /**
-   * Execute the statement, possibly with side-effects on the environment.
-   * @throws ReturnException as the result of a 'return' statement
-   */
-  void exec(Env env) throws ReturnException;
+  private final Expression expr;
+
+  public Return(Expression expr) {
+    this.expr = expr;
+  }
+
+  @Override
+  public void exec(Env env) throws ReturnException {
+    Value val = expr.eval(env);
+    throw new ReturnException(val);
+  }
+
 }

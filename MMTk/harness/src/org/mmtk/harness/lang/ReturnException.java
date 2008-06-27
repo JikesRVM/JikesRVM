@@ -12,14 +12,17 @@
  */
 package org.mmtk.harness.lang;
 
-/**
- * Interface representing any statement.
- */
-public interface Statement {
+class ReturnException extends Exception {
+  private final Value result;
 
-  /**
-   * Execute the statement, possibly with side-effects on the environment.
-   * @throws ReturnException as the result of a 'return' statement
-   */
-  void exec(Env env) throws ReturnException;
+  public ReturnException(Value result) {
+    super();
+    this.result = result;
+  }
+
+  Value getResult() {
+    return result;
+  }
+
+  private static final long serialVersionUID = 0;
 }

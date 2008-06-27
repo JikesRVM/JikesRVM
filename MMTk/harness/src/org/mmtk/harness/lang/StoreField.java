@@ -42,7 +42,7 @@ public class StoreField implements Statement {
    * Evaluate the field index expression, and then the value expression.
    * Store the result into the appropriate field.
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     Value fieldVal = index.eval(env);
     env.gcSafePoint();
     Value assignVal = value.eval(env);

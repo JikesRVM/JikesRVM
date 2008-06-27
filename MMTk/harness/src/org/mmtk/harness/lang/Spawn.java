@@ -38,7 +38,7 @@ public class Spawn implements Statement {
   /**
    * Run this statement.
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     Value[] values = new Value[params.size()];
     for(int i=0; i < params.size(); i++) {
       values[i] = params.get(i).eval(env);

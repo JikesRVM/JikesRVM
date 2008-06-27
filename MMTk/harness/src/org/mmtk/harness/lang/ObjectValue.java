@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.lang;
 
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -19,14 +20,20 @@ import org.vmmagic.unboxed.ObjectReference;
  * Expression consisting of a simple object value
  */
 public class ObjectValue extends Value {
+  /** Hand out unique IDs for object variables */
+  private static int last_id = 0;
+
   /** The reference to the heap object */
   private ObjectReference value;
+
+  /** A unique ID for this object value */
+  private final int id;
 
   /**
    * Construct an initially null object value
    */
   public ObjectValue() {
-    this.value = ObjectReference.nullReference();
+    this(ObjectReference.nullReference());
   }
 
   /**
@@ -43,12 +50,15 @@ public class ObjectValue extends Value {
    */
   public ObjectValue(ObjectReference value) {
     this.value = value;
+    this.id = last_id++;
   }
 
   /**
    * Copy the value from the given new value.
    */
   public void copyFrom(Value newValue) {
+    Trace.trace(Item.OBJECT, "copy %d(%s) from %d(%s)", id, value.toString(),
+        ((ObjectValue)newValue).id, newValue.toString());
     this.value = newValue.getObjectValue();
   }
 

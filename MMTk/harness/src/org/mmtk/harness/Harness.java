@@ -15,10 +15,12 @@ package org.mmtk.harness;
 import java.util.ArrayList;
 
 import org.mmtk.harness.options.Collectors;
+import org.mmtk.harness.options.GcEvery;
 import org.mmtk.harness.options.HarnessOptionSet;
 import org.mmtk.harness.options.InitHeap;
 import org.mmtk.harness.options.MaxHeap;
 import org.mmtk.harness.options.Plan;
+import org.mmtk.harness.options.Trace;
 import org.mmtk.harness.vm.*;
 
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -44,6 +46,12 @@ public class Harness {
   /** Option for the maximum heap size */
   public static MaxHeap maxHeap = new MaxHeap();
 
+  /** Trace options */
+  public static Trace trace = new Trace();
+
+  /** GC stress options */
+  public static GcEvery gcEvery = new GcEvery();
+
   /**
    * Start up the harness, including creating the global plan and constraints,
    * and starting off the collector threads.
@@ -59,6 +67,8 @@ public class Harness {
     for(String arg: args) {
       if (!options.process(arg)) newArgs.add(arg);
     }
+    trace.apply();
+    gcEvery.apply();
     MMTkThread thread = new MMTkThread((new Runnable() {
       public void run() {
 

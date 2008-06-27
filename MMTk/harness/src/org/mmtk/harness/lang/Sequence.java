@@ -40,7 +40,7 @@ public class Sequence implements Statement {
   /**
    * Execute the statements in sequence
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     for (Statement s : stmts) {
       s.exec(env);
       env.gcSafePoint();

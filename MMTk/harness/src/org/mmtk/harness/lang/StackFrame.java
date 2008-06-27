@@ -37,7 +37,7 @@ public class StackFrame {
    * Declare a variable in a given slot
    */
   public void declare(Declaration d) {
-    values[d.slot] = d.initial;
+    values[d.slot] = d.initial.clone();
     names[d.slot] = d.name;
   }
 

@@ -28,7 +28,7 @@ public class GC implements Statement {
   /**
    * Trigger a garbage collection
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 }

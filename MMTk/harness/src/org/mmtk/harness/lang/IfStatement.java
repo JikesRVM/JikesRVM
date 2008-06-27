@@ -40,7 +40,7 @@ public class IfStatement implements Statement {
    * to true, then execute the corresponding statement.  If all evaluate
    * to false, and there is an 'extra' statement, execute it.
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     Iterator<Statement> stmtIter = stmts.iterator();
     for (Expression cond : conds) {
       Value condVal = cond.eval(env);

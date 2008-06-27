@@ -15,6 +15,8 @@ package org.mmtk.harness;
 import java.util.ArrayList;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;
@@ -395,7 +397,7 @@ public class Mutator extends MMTkThread {
     check(refCount >= 0, "Non-negative reference field count required");
     check(dataCount >= 0, "Non-negative data field count required");
     ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign);
-    if (Env.TRACE) System.err.println("alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
+    Trace.trace(Item.ALLOC,"alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
     return result;
   }
 }

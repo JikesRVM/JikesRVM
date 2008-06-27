@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * A method is a set of variable declarations followed by a statement.
  */
-public class Method implements Statement {
+public class Method implements Statement, Expression {
   /** The name of this block */
   private final String name;
   /** Number of parameters */
@@ -40,7 +40,7 @@ public class Method implements Statement {
   /**
    * Execute the statements in the method.
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     exec(env, new Value[] {});
   }
 
@@ -57,6 +57,43 @@ public class Method implements Statement {
   public void exec(Env env, Value...values) {
     StackFrame frame = new StackFrame(decls);
     env.push(frame);
+    setParams(env, values);
+    env.gcSafePoint();
+    /* values could be trashed from here down ... */
+    try {
+      body.exec(env);
+    } catch (ReturnException e) {
+      // Ignore return values
+    }
+    env.gcSafePoint();
+    env.pop();
+  }
+
+  public Value eval(Env env) {
+    return eval(env, new Value[] {});
+  }
+
+  /**
+   * Execute the statements in the method (with passed parameters).
+   */
+  public Value eval(Env env, Value...values) {
+    StackFrame frame = new StackFrame(decls);
+    env.push(frame);
+    setParams(env, values);
+    env.gcSafePoint();
+    /* values could be trashed from here down ... */
+    try {
+      body.exec(env);
+    } catch (ReturnException e) {
+      env.gcSafePoint();
+      env.pop();
+      return e.getResult();
+    }
+    env.check(false, "method didn't return a value");
+    return null;
+  }
+
+  private void setParams(Env env, Value... values) {
     env.check(values.length == params, "Invalid number of parameters");
     for(int i=0; i<values.length; i++) {
       Type expected = env.top().getType(i);
@@ -64,9 +101,5 @@ public class Method implements Statement {
       env.check(expected == actual, "Method " + name + " parameter " + i + " expected " + expected + " found " + actual);
       env.top().set(i, values[i]);
     }
-    env.gcSafePoint();
-    body.exec(env);
-    env.gcSafePoint();
-    env.pop();
   }
 }

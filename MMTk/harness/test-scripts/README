@@ -37,6 +37,11 @@ expr ::= expr binop expr
 		| ident
 		| ident "." type "[" expr "]"
 		| int-const
+		| intrinsic
+
+intrinsic ::= "alloc" "(" expr "," expr ["," expr] ")
+            | "(" expr ")" 
+            | "gc " "(" ")"
 
 binop ::= "+" | "-" | "*" | "/" | "%" | "&&" | "||" | "==" | "!="
 

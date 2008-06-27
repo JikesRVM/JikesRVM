@@ -16,11 +16,16 @@ import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 /**
  * An execution environment
  */
 public class Env extends Mutator {
+
+  private static boolean gcEverySafepoint = false;
+
   /**
    * The stack
    */
@@ -45,13 +50,21 @@ public class Env extends Mutator {
     this.body = body;
   }
 
+  public static void setGcEverySafepoint() {
+    gcEverySafepoint = true;
+  }
+
   /**
    * Thread.run()
    */
   @Override
   public void run() {
     begin();
-    body.exec(this);
+    try {
+      body.exec(this);
+    } catch (ReturnException e) {
+      // Ignore return values on thread exit
+    }
     end();
   }
 
@@ -98,6 +111,14 @@ public class Env extends Mutator {
       frame.computeRoots(trace);
     }
   }
+
+  @Override
+  public boolean gcSafePoint() {
+    if (gcEverySafepoint) VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    return super.gcSafePoint();
+  }
+
+
 
   /**
    * Push a temporary value to avoid GC errors for objects held during expression evaluation.

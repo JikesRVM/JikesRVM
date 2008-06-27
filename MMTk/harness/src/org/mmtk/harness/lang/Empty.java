@@ -24,6 +24,6 @@ public class Empty implements Statement {
   /**
    * Execute the empty statement (do nothing)
    */
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
   }
 }

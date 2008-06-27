@@ -30,7 +30,7 @@ public class WhileStatement implements Statement {
     this.body = body;
   }
 
-  public void exec(Env env) {
+  public void exec(Env env) throws ReturnException {
     while (cond.eval(env).getBoolValue()) {
       body.exec(env);
       env.gcSafePoint();

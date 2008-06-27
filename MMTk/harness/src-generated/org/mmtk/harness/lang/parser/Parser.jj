@@ -73,8 +73,10 @@ TOKEN : {
    < HASH: "hash" > |
    < IF : "if" > |
    < INT : "int" > |
+   < NULL : "null" > |
    < OBJECT : "object" > |
    < PRINT : "print" > |
+   < RETURN : "return" > |
    < SPAWN : "spawn" > |
    < TID : "tid" > |
    < WHILE : "while" >
@@ -145,8 +147,10 @@ Method method(MethodTable methods) : {
     Statement stmt;
     String name;
     int params = 0;
+    Type retType;
 }
 {
+  (retType=type())?
   name=ident() <LPAREN>
   ( declaration1(methods, symbols) { params++; } ( <COMMA> declaration1(methods, symbols) { params++; } )* )?
   <RPAREN>
@@ -188,7 +192,8 @@ Statement statement(MethodTable methods, SymbolTable symbols) : {
     stmt=whileLoop(methods, symbols) |
     stmt=print(methods, symbols) <SEMICOLON> |
     stmt=assertTrue(methods, symbols) <SEMICOLON> |
-    stmt=callMethod(methods, symbols) <SEMICOLON> )
+    stmt=callMethod(methods, symbols) <SEMICOLON> |
+    stmt=returnStmt(methods, symbols) <SEMICOLON> )
   { return stmt; }
 }
 
@@ -202,9 +207,9 @@ Statement conditional(MethodTable methods, SymbolTable symbols) : {
     List<Statement> stmts = new ArrayList<Statement>();
 }
 {
-  <IF> <LPAREN> cond=expression(symbols) { conds.add(cond); } <RPAREN> 
+  <IF> <LPAREN> cond=expression(methods,symbols) { conds.add(cond); } <RPAREN> 
   stmt=statements(methods, symbols) { stmts.add(stmt); }
-  ( <ELIF>  <LPAREN> cond=expression(symbols) { conds.add(cond); } <RPAREN> 
+  ( <ELIF>  <LPAREN> cond=expression(methods,symbols) { conds.add(cond); } <RPAREN> 
   	stmt=statements(methods, symbols) { stmts.add(stmt); })*
   ( <ELSE>  stmt=statements(methods, symbols) { stmts.add(stmt); } )?
   { return new IfStatement(conds,stmts); }
@@ -219,8 +224,8 @@ Statement assertTrue(MethodTable methods, SymbolTable symbols) : {
     Expression expr;
 }
 {
-  <ASSERT> <LPAREN> cond=expression(symbols)
-  ( <COMMA> expr=expression(symbols)
+  <ASSERT> <LPAREN> cond=expression(methods,symbols)
+  ( <COMMA> expr=expression(methods,symbols)
     { exprs.add(expr); } )+
   <RPAREN> 
   { return new Assert(cond, exprs); }
@@ -234,7 +239,7 @@ Statement whileLoop(MethodTable methods, SymbolTable symbols) : {
     Statement body;
 }
 {
-  <WHILE> <LPAREN> cond=expression(symbols) <RPAREN> 
+  <WHILE> <LPAREN> cond=expression(methods,symbols) <RPAREN> 
   body=statements(methods, symbols) 
   { return new WhileStatement(cond,body); }
 }
@@ -252,8 +257,9 @@ Statement declaration(MethodTable methods, SymbolTable symbols) : {
 }
 {
   name=declaration1(methods, symbols)
-  ( <ASSIGN> expr=expression(symbols)
-      { return new Assignment(symbols.getLocation(name), expr); }
+  ( ( <ASSIGN> expr=expression(methods,symbols)
+        { return new Assignment(symbols.getLocation(name), expr); } 
+    )
   )?
   { return new Empty(); } 
 }
@@ -265,13 +271,20 @@ Statement declaration(MethodTable methods, SymbolTable symbols) : {
  */
 String declaration1(MethodTable methods, SymbolTable symbols) : {
     String name;
+    Type type;
 }
 {
-  ( <INT> name=ident()
-      { symbols.declare(name,Type.INT); } |
-    <OBJECT> name=ident()
-      { symbols.declare(name,Type.OBJECT); })
-  { return name; } 
+  type=type() name=ident()
+      { symbols.declare(name,type);
+       return name; 
+      } 
+}
+
+Type type() : {
+}
+{
+	<INT> { return Type.INT; } |
+	<OBJECT> { return Type.OBJECT; }
 }
 
 /*
@@ -282,8 +295,8 @@ Statement assignment(MethodTable methods, SymbolTable symbols) : {
     Expression expr;
 }
 {
-    name=ident() <ASSIGN> expr=expression(symbols) 
-    { return new Assignment(symbols.getLocation(name), expr); }
+    name=ident() <ASSIGN> expr=expression(methods,symbols) 
+    { return new Assignment(symbols.getLocation(name),expr); }
 }
 
 /*
@@ -296,9 +309,8 @@ Statement storeField(MethodTable methods, SymbolTable symbols) : {
 }
 {
   name=ident() 
-  <DOT> ( <INT> { type = Type.INT;} |
-          <OBJECT> { type = Type.OBJECT;})
-  <LBRACKET> index=expression(symbols) <RBRACKET> <ASSIGN> rVal=expression(symbols) 
+  <DOT> type = type()
+  <LBRACKET> index=expression(methods,symbols) <RBRACKET> <ASSIGN> rVal=expression(methods,symbols) 
   { return new StoreField(symbols.getLocation(name), type, index, rVal); }
 }
 
@@ -312,24 +324,9 @@ Statement gc() : {
   { return new GC(); }
 }
 
-/*
- * Allocate an object.
- */
-Expression alloc(SymbolTable symbols) : {
-    Expression refCount, dataCount;
-    Expression doubleAlign = new BoolValue(false);
-}
-{
-  <ALLOC> <LPAREN> 
-    refCount=expression(symbols) <COMMA>
-    dataCount=expression(symbols)
-    ( <COMMA> doubleAlign=expression(symbols) )?
-  <RPAREN>
-  { return new Alloc(refCount, dataCount, doubleAlign); }
-}
 
-/*
- * Allocate an object.
+/**
+ * Procedure call, as a statement
  */
 Statement callMethod(MethodTable methods, SymbolTable symbols) : {
     String name;
@@ -338,9 +335,9 @@ Statement callMethod(MethodTable methods, SymbolTable symbols) : {
 }
 {
   name=ident() <LPAREN> 
-  ( p=expression(symbols)
+  ( p=expression(methods,symbols)
       { params.add(p); }
-    ( <COMMA> p=expression(symbols)
+    ( <COMMA> p=expression(methods,symbols)
       { params.add(p); }
     )*
   )?
@@ -348,8 +345,19 @@ Statement callMethod(MethodTable methods, SymbolTable symbols) : {
   { return new Call(methods, name, params); }
 }
 
+/**
+ * Return a value from a method
+ */
+Statement returnStmt(MethodTable methods, SymbolTable symbols) : {
+	Expression e;
+}
+{
+	<RETURN> e=expression(methods,symbols) 
+	  { return new Return(e); }
+}
+
 /*
- * Allocate an object.
+ * Create a new thread
  */
 Statement spawn(MethodTable methods, SymbolTable symbols) : {
     String name;
@@ -358,9 +366,9 @@ Statement spawn(MethodTable methods, SymbolTable symbols) : {
 }
 {
   <SPAWN> <LPAREN> name=ident() 
-  ( <COMMA> p=expression(symbols)
+  ( <COMMA> p=expression(methods,symbols)
       { params.add(p); }
-    ( <COMMA> p=expression(symbols)
+    ( <COMMA> p=expression(methods,symbols)
       { params.add(p); }
     )*
   )?
@@ -373,9 +381,9 @@ Statement print(MethodTable methods, SymbolTable symbols) : {
     Expression expr;
 }
 {
-  <PRINT> <LPAREN> expr=expression(symbols)
+  <PRINT> <LPAREN> expr=expression(methods,symbols)
     { exprs.add(expr); }
-  ( <COMMA> expr=expression(symbols)
+  ( <COMMA> expr=expression(methods,symbols)
     { exprs.add(expr); } )*
   <RPAREN>
   { return new PrintStatement(exprs); }
@@ -383,111 +391,175 @@ Statement print(MethodTable methods, SymbolTable symbols) : {
 
 /*******************************************************************************
  *              Arithmetic expressions
+ *
+ *  Complicated slightly by the fact that we don't (currently) have a mechanism
+ *  for enumerating temporaries at GC time.  Therefore, method calls as expressions
+ *  can only occur at the top level of an expression.
  */
-Expression expression(SymbolTable symbols) : {
+Expression expression(MethodTable methods, SymbolTable symbols) : {
     Expression e1,e2;
 }
 {
-  e1=expr1(symbols) 
-  ( <SC_OR> e2=expression(symbols)
+  e1=expr1(methods,symbols) 
+  ( <SC_OR> e2=expression(methods,symbols)
       { return new BinaryExpression(e1, Operator.OR, e2); } |
-    <SC_AND> e2=expression(symbols)
+    <SC_AND> e2=expression(methods,symbols)
       { return new BinaryExpression(e1, Operator.AND, e2); }
   )?    
   { return e1; }  
 }
 
-Expression expr1(SymbolTable symbols) : {
+Expression expr1(MethodTable methods, SymbolTable symbols) : {
     Expression e;
 }
 {
-  <BANG> e=expr1(symbols)
+  <BANG> e=expr1(methods,symbols)
   { return new UnaryExpression(Operator.NOT,e); } |
-  <MINUS> e=expr1(symbols) 
+  <MINUS> e=expr1(methods,symbols) 
   { return new UnaryExpression(Operator.MINUS,e); } |
-  e=expr2(symbols) { return e; }
+  e=expr2(methods,symbols) { return e; }
 }
 
-Expression expr2(SymbolTable symbols) : {
+Expression expr2(MethodTable methods, SymbolTable symbols) : {
     Expression e1,e2;
 }
 {
-  e1=expr3(symbols) 
-  ( <LT> e2=expr3(symbols) 
+  e1=expr3(methods,symbols) 
+  ( <LT> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.LT,e2); } |
-    <GT> e2=expr3(symbols) 
+    <GT> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.GT,e2); } |
-    <LE> e2=expr3(symbols) 
+    <LE> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.LE,e2); } |
-    <GE> e2=expr3(symbols) 
+    <GE> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.GE,e2); } |
-    <EQ> e2=expr3(symbols) 
+    <EQ> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.EQ,e2); } |
-    <NE> e2=expr3(symbols) 
+    <NE> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.NE,e2); }
   )?
   { return e1; }
 }
 
-Expression expr3(SymbolTable symbols) : {
+Expression expr3(MethodTable methods, SymbolTable symbols) : {
     Expression e1,e2;
 }
 {
-  e1=expr4(symbols) 
-  ( <PLUS> e2=expr3(symbols) 
+  e1=expr4(methods,symbols) 
+  ( <PLUS> e2=expr3(methods,symbols) 
       { return new BinaryExpression(e1,Operator.PLUS,e2); } |
-    <MINUS> e2=expr3(symbols)
+    <MINUS> e2=expr3(methods,symbols)
       { return new BinaryExpression(e1,Operator.MINUS,e2); }
   )?
   { return e1; }
 }
 
-Expression expr4(SymbolTable symbols) : {
+Expression expr4(MethodTable methods, SymbolTable symbols) : {
     Expression e1,e2;
 }
 {
-  e1=expr5(symbols) 
-  ( <STAR> e2=expr4(symbols) 
+  e1=expr5(methods,symbols) 
+  ( <STAR> e2=expr4(methods,symbols) 
       { return new BinaryExpression(e1,Operator.MULT,e2); } |
-    <SLASH> e2=expr4(symbols) 
+    <SLASH> e2=expr4(methods,symbols) 
       { return new BinaryExpression(e1,Operator.DIV,e2); } |
-    <REM> e2=expr4(symbols) 
+    <REM> e2=expr4(methods,symbols) 
       { return new BinaryExpression(e1,Operator.REM,e2); }
   )? 
   { return e1; }
 }
 
-Expression expr5(SymbolTable symbols) : {
+Expression expr5(MethodTable methods, SymbolTable symbols) : {
     Expression e, index;
     String id;
-    int i;
-    boolean b;
-    String s;
     Type type;
 }
 {
-  id=ident() 
-    <DOT> ( <INT> { type = Type.INT;} |
-            <OBJECT> { type = Type.OBJECT;} )
-    <LBRACKET> index=expression(symbols) <RBRACKET>
-    { return new LoadField(symbols.getLocation(id), type, index); } |
-  id=ident()
-    { return new Variable(symbols.getLocation(id)); } | 
+  /* constants of various types */
+  e=constant() { return e; } |
+  
+  /* intrinsic functions */
+  e=intrinsic(methods,symbols) { return e; } |
+    
+  /* An expression in parentheses */
+  <LPAREN> e=expression(methods,symbols) <RPAREN>
+    { return e; } |
+    
+  /* Field dereference */
+  ( id=ident() 
+  		(<DOT> type = type() 
+  		 <LBRACKET> index=expression(methods,symbols) <RBRACKET>
+              { return new LoadField(symbols.getLocation(id), type, index); } |
+  
+         e=callExpr(id,methods,symbols) { return e; } )?
+  
+          /* Variable substitution */
+          { return new Variable(symbols.getLocation(id)); }
+    )
+}
+
+Expression constant() : {
+    int i;
+    boolean b;
+    String s;
+} {
+  /* Null constant */
+  <NULL>
+    { return new ObjectValue(); } |
+    
+  /* Integer constant */
   i=integer()
     { return new IntValue(i); } |
+    
+  /* boolean constant */
   b=bool()
     { return new BoolValue(b); } |
+    
+  /* String constant */
   s=string()
-    { return new StringValue(s); } |
-  e=alloc(symbols)
-    { return e; } |
+    { return new StringValue(s); }
+}
+
+/**
+ * Procedure call, as an expression
+ */
+Expression callExpr(String name, MethodTable methods, SymbolTable symbols) : {
+    List<Expression> params = new ArrayList<Expression>();
+    Expression p;
+}
+{
+  <LPAREN> 
+  ( p=expression(methods,symbols)
+      { params.add(p); }
+    ( <COMMA> p=expression(methods,symbols)
+      { params.add(p); }
+    )*
+  )?
+  <RPAREN>
+  { return new Call(methods, name, params); }
+}
+
+
+Expression intrinsic(MethodTable methods, SymbolTable symbols) : {
+	Expression e,refCount,dataCount,doubleAlign = new BoolValue(false);
+}
+{
+  /* Thread ID */
   <TID> <LPAREN> <RPAREN> 
     { return new ThreadId(); } |
-  <HASH> <LPAREN> e=expression(symbols) <RPAREN>
-    { return new Hash(e); } |
-  <LPAREN> e=expression(symbols) <RPAREN>
-    { return e; }
+    
+  /* Hash code */
+  <HASH> <LPAREN> e=expression(methods,symbols) <RPAREN>
+    { return new Hash(e); } | 
+    
+  <ALLOC> <LPAREN> 
+    refCount=expression(methods,symbols) <COMMA>
+    dataCount=expression(methods,symbols)
+    ( <COMMA> doubleAlign=expression(methods,symbols) )?
+  <RPAREN>
+    { return new Alloc(refCount, dataCount, doubleAlign); }
 }
+
 
 /***************************************************************************
  *               Utility rules
