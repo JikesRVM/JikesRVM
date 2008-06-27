@@ -413,7 +413,7 @@ Check to make sure all required properties are specified. This includes properti
     <property file="${components.file}"/>
     <mkdir dir="${generated.mmtk-harness-parser.java}"/>
     <echo message="${javacc.dir}"/>
-    <javacc target="${basedir}/MMTk/harness/src-generated/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
+    <javacc target="${basedir}/MMTk/harness/src-generated/org/mmtk/harness/lang/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
     <mkdir dir="${build.mmtk-harness.classes}"/>
     <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" source="1.5"
            target="1.5">
