@@ -23,7 +23,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-import org.jikesrvm.VM;
+import org.apache.harmony.luni.util.DeleteOnExit;
+import org.apache.harmony.luni.internal.net.www.protocol.jar.JarURLConnection;
+import org.apache.harmony.lang.RuntimePermissionCollection;
+import org.apache.harmony.kernel.vm.VM;
+
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.DynamicLibrary;
@@ -39,6 +43,18 @@ import org.jikesrvm.scheduler.greenthreads.VMProcess;
 public class Runtime {
 
   private static final Runtime singleton = new Runtime();
+
+  /** Shutdown hooks */
+  private static ArrayList<Thread> hooksList = new ArrayList<Thread>();
+
+  /**
+   * 0 - normal work
+   * 1 - being shutdown sequence running
+   * 2 - being finalizing
+   */
+  private static int VMState = 0;
+
+  static boolean finalizeOnExit = false;
 
   /**
    * Prevent this class from being instantiated
@@ -206,18 +222,71 @@ public class Runtime {
     return exec(progArray, envp, directory);
   }
 
+  void execShutdownSequence() {
+    synchronized (hooksList) {
+        if (VMState > 0) {
+            return;
+        }
+        try {
+            // Phase1: Execute all registered hooks.
+            VMState = 1;
+            for (Thread hook : hooksList) {
+                hook.start();
+            }
+           
+            for (Thread hook : hooksList) {
+                while (true){
+                    try {
+                        hook.join();
+                        break;
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                }
+            }
+            // Phase2: Execute all finalizers if nessesary.
+            VMState = 2;
+            // TODO
+            //FinalizerThread.shutdown(finalizeOnExit);
+            
+            // Close connections.
+            if (VM.closeJars) {
+                JarURLConnection.closeCachedFiles();
+            }
+
+            // Delete files.
+            if (VM.deleteOnExit) {
+                DeleteOnExit.deleteOnExit();
+            }
+        } catch (Throwable e) {
+            // just catch all exceptions
+        }
+    }
+  }
+
   /**
    * Causes the virtual machine to stop running, and the program to exit. If
    * runFinalizersOnExit(true) has been invoked, then all finalizers will be
    * run first.
    * 
-   * @param code the return code.
+   * @param status the return code.
    * @throws SecurityException if the running thread is not allowed to cause
    *         the vm to exit.
    * @see SecurityManager#checkExit
    */
-  public void exit(int code) {
-    VM.sysExit(code);
+  public void exit(int status) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkExit(status);
+    }
+    // Halt the VM if it is running finalizers.
+    if (VMState == 2 && finalizeOnExit == true && status != 0) {
+        halt(status);
+    }
+
+    execShutdownSequence();
+
+    org.jikesrvm.VM.sysExit(status);
   }
 
   /**
@@ -386,7 +455,13 @@ public class Runtime {
    */
   @Deprecated
   public static void runFinalizersOnExit(boolean run) {
-    return;
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkExit(0);
+    }
+    synchronized(hooksList) {
+        finalizeOnExit = run;
+    }
   }
 
   /**
@@ -438,11 +513,26 @@ public class Runtime {
    * @param hook the hook (a Thread) to register
    */
   public void addShutdownHook(Thread hook) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(RuntimePermissionCollection.SHUTDOWN_HOOKS_PERMISSION);
+    }
     // Check hook for null
     if (hook == null)
-      throw new NullPointerException("null is not allowed here");
-
-    throw new Error("TODO");
+        throw new NullPointerException("null is not allowed here");
+            
+    if (hook.getState() != Thread.State.NEW) {
+        throw new IllegalArgumentException();
+    }
+    if (VMState > 0) {
+        throw new IllegalStateException();
+    }
+    synchronized (hooksList) {
+        if (hooksList.contains(hook)) {
+            throw new IllegalArgumentException();
+        }
+        hooksList.add(hook);
+    }
   }
 
   /**
@@ -452,11 +542,20 @@ public class Runtime {
    * @return true if the hook could be de-registered
    */
   public boolean removeShutdownHook(Thread hook) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(RuntimePermissionCollection.SHUTDOWN_HOOKS_PERMISSION);
+    }
     // Check hook for null
     if (hook == null)
-      throw new NullPointerException("null is not allowed here");
-
-    throw new Error("TODO");
+        throw new NullPointerException("null is not allowed here");
+            
+    if (VMState > 0) {
+        throw new IllegalStateException();
+    }
+    synchronized (hooksList) {
+        return hooksList.remove(hook);
+    }
   }
 
   /**
@@ -471,7 +570,12 @@ public class Runtime {
    * @see SecurityManager#checkExit
    */
   public void halt(int code) {
-    VM.sysExit(code);
+    SecurityManager sm = System.getSecurityManager();
+
+    if (sm != null) {
+        sm.checkExit(code);
+    }
+    org.jikesrvm.VM.sysExit(code);
   }
 
   /**

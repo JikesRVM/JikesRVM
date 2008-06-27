@@ -31,6 +31,9 @@ import org.jikesrvm.runtime.StackBrowser;
  */
 public final class VM {
 
+  public static boolean closeJars = false;
+  public static boolean deleteOnExit = false;
+
     /*
      * kernelVersion has the format: aabbxxyy where: aa - major version of
      * kernel. Must equal that stored in jcl. bb - minor version of kernel. Must
@@ -241,7 +244,7 @@ public final class VM {
      * called on VM shutdown.
      */
     public static void closeJars() {
-	throw new Error("TODO");
+      closeJars = true;
     }
 
     /**
@@ -250,7 +253,7 @@ public final class VM {
      * DeleteOnExit.deleteOnExit() should be called on VM shutdown.
      */
     public static void deleteOnExit() {
-	throw new Error("TODO");
+      deleteOnExit = true;
     }
 
     // Constants used by getClassPathEntryType to indicate the class path entry
