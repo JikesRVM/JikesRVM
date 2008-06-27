@@ -369,6 +369,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("org.apache.harmony.luni.platform.Platform");
       runClassInitializer("org.apache.harmony.luni.platform.AbstractMemorySpy");
       runClassInitializer("org.apache.harmony.luni.platform.PlatformAddress");
+      runClassInitializer("org.apache.harmony.nio.internal.FileChannelImpl");
       runClassInitializer("com.ibm.icu.util.ULocale");
       runClassInitializer("java.io.ObjectStreamClass");
       runClassInitializer("java.io.ObjectStreamClass$OSCThreadLocalCache");
