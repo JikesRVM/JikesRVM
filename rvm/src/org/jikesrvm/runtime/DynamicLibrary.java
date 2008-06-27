@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.runtime;
 
+import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.Scheduler;
@@ -51,6 +52,16 @@ public final class DynamicLibrary {
   private final Address libHandler;
 
   /**
+   * Address of JNI_OnLoad method
+   */
+  private final Address jniOnLoad;
+
+  /**
+   * Address of JNI_OnUnLoad
+   */
+  private final Address jniOnUnload;
+
+  /**
    * Load a dynamic library and maintain it in this object.
    * @param libraryName library name
    */
@@ -81,6 +92,8 @@ public final class DynamicLibrary {
     }
 
     libName = libraryName;
+    jniOnLoad = getJNI_OnLoad();
+    jniOnUnload = getJNI_OnUnload();
     try {
       callOnLoad();
     } catch (UnsatisfiedLinkError e) {
@@ -94,13 +107,44 @@ public final class DynamicLibrary {
   }
 
   /**
+   * Get the unique JNI_OnLoad symbol associated with this library
+   * @return JNI_OnLoad address or zero if not present
+   */
+  private Address getJNI_OnLoad() {
+    Address candidate = getSymbol("JNI_OnLoad");
+    Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
+    while(libs.hasNext()) {
+      DynamicLibrary lib = libs.next();
+      if (lib.jniOnLoad == candidate) {
+        return Address.zero();
+      }
+    }
+    return candidate;
+  }
+
+  /**
+   * Get the unique JNI_OnUnload symbol associated with this library
+   * @return JNI_OnUnload address or zero if not present
+   */
+  private Address getJNI_OnUnload() {
+    Address candidate = getSymbol("JNI_OnUnload");
+    Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
+    while(libs.hasNext()) {
+      DynamicLibrary lib = libs.next();
+      if (lib.jniOnUnload == candidate) {
+        return Address.zero();
+      }
+    }
+    return candidate;
+  }
+
+  /**
    * Called after we've successfully loaded the shared library
    */
   private void callOnLoad() {
     // Run any JNI_OnLoad functions defined within the library
-    Address JNI_OnLoadAddress = getSymbol("JNI_OnLoad");
-    if (!JNI_OnLoadAddress.isZero()) {
-      int version = runJNI_OnLoad(JNI_OnLoadAddress);
+    if (!jniOnLoad.isZero()) {
+      int version = runJNI_OnLoad(jniOnLoad);
       checkJNIVersion(version);
     }
   }
