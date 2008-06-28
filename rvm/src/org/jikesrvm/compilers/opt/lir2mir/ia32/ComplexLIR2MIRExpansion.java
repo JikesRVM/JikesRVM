@@ -815,7 +815,6 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction long_mul(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    Instruction origNextInstr = nextInstr;
     while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
@@ -909,10 +908,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     mul64BB.insertOut(nextBB);
 
     // move result from edx:eax to lhsReg:lowlhsReg
-    origNextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
+    nextBB.prependInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(lhsReg, TypeReference.Int),
         new RegisterOperand(edx, TypeReference.Int))));
-    origNextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
+    nextBB.prependInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(lowlhsReg, TypeReference.Int),
         new RegisterOperand(eax, TypeReference.Int))));
     s.remove();
