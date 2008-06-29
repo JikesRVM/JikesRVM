@@ -18,7 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import org.mmtk.harness.lang.Env;
-import org.mmtk.harness.lang.Statement;
+import org.mmtk.harness.lang.Method;
 import org.mmtk.harness.lang.parser.Parser;
 import org.mmtk.harness.lang.parser.ParseException;
 
@@ -39,13 +39,14 @@ public class Main {
     if(!scriptFile.endsWith(".script")) {
       scriptFile += ".script";
     }
-    final Statement script = new Parser(new BufferedInputStream(new FileInputStream(scriptFile))).script();
+    final Method main = new Parser(new BufferedInputStream(new FileInputStream(scriptFile))).main();
 
     /* Initialise the harness */
     Harness.init(harnessArgs);
 
     /* Invoke the test */
-    Env m = new Env(script);
+    Env m = new Env(main);
     m.start();
+    m.join();
   }
 }

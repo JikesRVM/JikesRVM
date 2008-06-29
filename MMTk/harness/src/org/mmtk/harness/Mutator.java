@@ -138,6 +138,18 @@ public class Mutator extends MMTkThread {
       throw new RuntimeException("Could not create Mutator", ex);
     }
     mutators.set(context.getId(), this);
+    setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        if (e instanceof Mutator.OutOfMemory) {
+          System.err.println("Mutator " + context.getId() + " exiting due to OutOfMemory");
+          end();
+        } else {
+          System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
+          e.printStackTrace();
+          System.exit(1);
+        }
+      }
+    });
   }
 
   /**
@@ -233,7 +245,7 @@ public class Mutator extends MMTkThread {
    * Mark a mutator as no longer active. If a GC has been triggered we must ensure
    * that it proceeds before we deactivate.
    */
-  protected static void end() {
+  protected void end() {
     boolean lastToGC;
     synchronized (count) {
       lastToGC = (mutatorsWaitingForGC == (activeMutators - 1));

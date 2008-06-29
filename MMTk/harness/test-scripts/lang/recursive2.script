@@ -23,10 +23,10 @@ object insert(object tree, int value) {
     object result = alloc(2,1);
     result.int[0] = value;
     return result;
-  } 
+  }
   assert(tree != null, "tree is null");
   assert(!(tree == null), "tree is null");
-  
+
   if (tree.int[0] == value) {
     //print("unchanged");
     return tree;
@@ -47,7 +47,7 @@ object insert(object tree, int value) {
   }
 }
 
-  
+
 printTree(object tree) {
     if (tree == null) {
       return 6;

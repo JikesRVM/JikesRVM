@@ -2,7 +2,7 @@ main() {
   int initial = 1;
   recurse(initial,10);
   print(initial);
-  
+
   object initial_o = alloc(0,1);
   initial_o.int[0] = 1;
   recurse_o(initial_o,10);

@@ -24,7 +24,7 @@ public final class GcEvery extends org.vmutil.options.EnumOption {
    * Create the option.
    */
   public GcEvery() {
-    super(Harness.options, "GcEvery",
+    super(Harness.options, "Gc Every",
           "MMTk Harness gc-stress",
           new String[] { "NONE", "ALLOC", "SAFEPOINT" }, 0);
   }

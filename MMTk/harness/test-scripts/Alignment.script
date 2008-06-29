@@ -18,7 +18,6 @@ main() {
   int listSize = 200;
   int alignEvery = 3;
 
-  print("Building List");
   object head = alloc(1, 1);
   object last = head;
   int j=1;
@@ -29,7 +28,6 @@ main() {
     j = j + 1;
   }
 
-  print("Triggering GC");
   gc();
 }
 

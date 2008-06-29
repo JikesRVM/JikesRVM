@@ -17,12 +17,10 @@
 main() {
   int limitPages = 128;
   int startPages = 2;
-  print("Allocating from ", startPages, " to ", limitPages, " page objects");
   int p = startPages;
   while (p <= limitPages) {
     object temp = alloc(0, p * 1024);
     gc();
     p = p * 2;
   }
-  print("Finished");
 }

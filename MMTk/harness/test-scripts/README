@@ -40,7 +40,7 @@ expr ::= expr binop expr
 		| intrinsic
 
 intrinsic ::= "alloc" "(" expr "," expr ["," expr] ")
-            | "(" expr ")" 
+            | "(" expr ")"
             | "gc " "(" ")"
 
 binop ::= "+" | "-" | "*" | "/" | "%" | "&&" | "||" | "==" | "!="

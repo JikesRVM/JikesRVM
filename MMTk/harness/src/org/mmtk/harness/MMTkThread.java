@@ -13,6 +13,8 @@
 package org.mmtk.harness;
 
 
+import java.lang.Thread.UncaughtExceptionHandler;
+
 import org.mmtk.utility.Log;
 
 /**
@@ -37,6 +39,13 @@ public class MMTkThread extends Thread {
    */
   protected MMTkThread(Runnable entryPoint) {
     super(entryPoint);
+    setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        System.err.print("Unexpected exception: ");
+        e.printStackTrace();
+        System.exit(1);
+      }
+    });
   }
 
   /**

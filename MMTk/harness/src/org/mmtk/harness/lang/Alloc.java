@@ -52,8 +52,13 @@ public class Alloc implements Expression {
     boolean doubleAlignVal = evalBoolVal(env, doubleAlign, "DoubleAlign must be a boolean");
 
     ObjectReference object = env.alloc(refCountVal, dataCountVal, doubleAlignVal);
-    if (gcEveryAlloc) VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
-    return new ObjectValue(object);
+    ObjectValue oval = new ObjectValue(object);
+    if (gcEveryAlloc) {
+      env.pushTemporary(oval);
+      VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+      env.popTemporary(oval);
+    }
+    return oval;
   }
 
   /**

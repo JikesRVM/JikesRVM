@@ -64,6 +64,7 @@ public class Env extends Mutator {
       body.exec(this);
     } catch (ReturnException e) {
       // Ignore return values on thread exit
+      popTemporary(e.getResult());
     }
     end();
   }

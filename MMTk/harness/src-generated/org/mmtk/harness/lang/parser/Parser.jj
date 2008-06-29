@@ -130,7 +130,7 @@ TOKEN : {
   < REM: "%" >
 }
 
-Method script() : {
+Method main() : {
   MethodTable methods = new MethodTable();
   Method m;
 }

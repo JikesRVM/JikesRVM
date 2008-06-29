@@ -32,13 +32,11 @@ main() {
     i = i + 1;
   }
   verify(head);
-  print("Triggering GC");
   gc();
   verify(head);
 }
 
 verify(object current) {
-  print("Checking list");
   while (current) {
     if (current.int[0] != 0) {
   	  assert(current.int[0] == hash(current), "Hash code does not match remembered value ", current.int[0], " ", hash(current));

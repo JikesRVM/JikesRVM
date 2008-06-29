@@ -10,20 +10,29 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.harness.lang;
 
-public class Return implements Statement {
+/**
+ * This is a simple test that creates lots of cyclic garbage.
+ */
+main() {
+  int cycles = 100;
+  int cycleSize = 100;
 
-  private final Expression expr;
-
-  public Return(Expression expr) {
-    this.expr = expr;
+  int i = 1;
+  while (i < cycles) {
+    createCycle(cycleSize);
+    i = i + 1;
   }
+}
 
-  @Override
-  public void exec(Env env) throws ReturnException {
-    Value val = expr.eval(env);
-    env.pushTemporary(val);
-    throw new ReturnException(val);
+object createCycle(int size) {
+  object head = alloc(1, 10);
+  object tail = head;
+  while(size > 0) {
+    tail.object[0] = alloc(1, 10);
+    tail = tail.object[0];
+    size = size - 1;
   }
+  tail.object[0] = head;
+  return head;
 }

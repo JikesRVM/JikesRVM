@@ -88,10 +88,17 @@ public final class Collector extends MMTkThread {
   /**
    * Create a new Collector
    */
-  private Collector(CollectorContext context) {
+  private Collector(final CollectorContext context) {
     collectors.set(context.getId(), this);
     this.context = context;
     setDaemon(true);
+    setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        System.err.print("Collector " + context.getId() + " caused unexpected exception: ");
+        e.printStackTrace();
+        System.exit(1);
+      }
+    });
   }
 
   /** The number of collectors executing GC */

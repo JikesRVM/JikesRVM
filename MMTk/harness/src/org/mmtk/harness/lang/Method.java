@@ -64,6 +64,7 @@ public class Method implements Statement, Expression {
       body.exec(env);
     } catch (ReturnException e) {
       // Ignore return values
+      env.popTemporary(e.getResult());
     }
     env.gcSafePoint();
     env.pop();
@@ -85,9 +86,11 @@ public class Method implements Statement, Expression {
     try {
       body.exec(env);
     } catch (ReturnException e) {
-      env.gcSafePoint();
+      Value result = e.getResult();
       env.pop();
-      return e.getResult();
+      env.gcSafePoint();
+      env.popTemporary(result);
+      return result;
     }
     env.check(false, "method didn't return a value");
     return null;

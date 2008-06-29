@@ -37,6 +37,10 @@ public class Collection extends org.mmtk.vm.Collection {
    *          <code>TRIGGER_REASONS - 1</code>.
    */
   public void triggerCollection(int why) {
+    if (Options.verbose.getValue() >= 4) {
+      new Exception("Collection trigger: " + triggerReasons[why]).printStackTrace();
+    }
+
     Plan.setCollectionTriggered();
 
     if (Options.verbose.getValue() >= 1) {
