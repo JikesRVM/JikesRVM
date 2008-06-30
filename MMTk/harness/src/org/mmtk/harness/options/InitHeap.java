@@ -24,7 +24,7 @@ public final class InitHeap extends org.vmutil.options.PagesOption {
   public InitHeap() {
     super(Harness.options, "Init Heap",
         "Initial Heap Size",
-        64);
+        384);
   }
 
   protected void validate() {

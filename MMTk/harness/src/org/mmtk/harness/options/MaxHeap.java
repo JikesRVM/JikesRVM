@@ -24,7 +24,7 @@ public final class MaxHeap extends org.vmutil.options.PagesOption {
   public MaxHeap() {
     super(Harness.options, "Max Heap",
         "Max Heap Size",
-        64);
+        384);
   }
 
   protected void validate() {

@@ -124,6 +124,18 @@ public class Mutator extends MMTkThread {
   protected final MutatorContext context;
 
   /**
+   * The type of exception that is expected at the end of execution.
+   */
+  private Class<?> expectedThrowable;
+
+  /**
+   * Set an expectation that the execution will exit with a throw of this exception.
+   */
+  public void setExpectedThrowable(Class<?> expectedThrowable) {
+    this.expectedThrowable = expectedThrowable;
+  }
+
+  /**
    * Create a mutator thread, specifying an (optional) entry point and initial local variable map.
    *
    * @param entryPoint The entryPoint.
@@ -140,8 +152,9 @@ public class Mutator extends MMTkThread {
     mutators.set(context.getId(), this);
     setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
-        if (e instanceof Mutator.OutOfMemory) {
-          System.err.println("Mutator " + context.getId() + " exiting due to OutOfMemory");
+        if (e.getClass() == expectedThrowable) {
+          System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
+          expectedThrowable = null;
           end();
         } else {
           System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
@@ -246,6 +259,7 @@ public class Mutator extends MMTkThread {
    * that it proceeds before we deactivate.
    */
   protected void end() {
+    check(expectedThrowable == null, "Expected exception of class " + expectedThrowable + " not found");
     boolean lastToGC;
     synchronized (count) {
       lastToGC = (mutatorsWaitingForGC == (activeMutators - 1));

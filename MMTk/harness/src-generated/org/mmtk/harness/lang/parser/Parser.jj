@@ -69,6 +69,7 @@ TOKEN : {
    < ASSERT : "assert" > |
    < ELIF : "elif" > |
    < ELSE : "else" > |
+   < EXPECT : "expect" > |
    < GC: "gc" > |
    < HASH: "hash" > |
    < IF : "if" > |
@@ -186,6 +187,7 @@ Statement statement(MethodTable methods, SymbolTable symbols) : {
   ( stmt=conditional(methods, symbols) |
     stmt=declaration(methods, symbols) <SEMICOLON> |
     stmt=gc() <SEMICOLON> |
+    stmt=expect(methods, symbols) <SEMICOLON> |
     stmt=assignment(methods, symbols) <SEMICOLON> |
     stmt=spawn(methods, symbols) <SEMICOLON> |
     stmt=storeField(methods, symbols) <SEMICOLON> |
@@ -285,6 +287,17 @@ Type type() : {
 {
 	<INT> { return Type.INT; } |
 	<OBJECT> { return Type.OBJECT; }
+}
+
+/*
+ * Set up an expectation for an exception
+ */
+Statement expect(MethodTable methods, SymbolTable symbols) : {
+    String name;
+}
+{
+    <EXPECT> <LPAREN> name=ident() <RPAREN>
+    { return new Expect(name); }
 }
 
 /*

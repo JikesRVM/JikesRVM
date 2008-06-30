@@ -15,7 +15,7 @@
  * This is a simple test that creates lots of cyclic garbage.
  */
 main() {
-  int cycles = 100;
+  int cycles = 300;
   int cycleSize = 100;
 
   int i = 1;
