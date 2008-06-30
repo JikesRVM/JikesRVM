@@ -497,6 +497,7 @@ Lorg/apache/harmony/luni/util/ThreadLocalCache$3;
 Lorg/apache/harmony/luni/util/ThreadLocalCache$4;
 Lorg/apache/harmony/luni/util/ThreadLocalCache$5;
 Lorg/apache/harmony/luni/util/Util;
+Lorg/apache/harmony/nio/AddressUtil;
 Lorg/apache/harmony/nio/FileChannelFactory;
 Lorg/apache/harmony/nio/internal/DirectBuffer;
 Lorg/apache/harmony/nio/internal/FileChannelImpl;

@@ -362,6 +362,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     runClassInitializer("java.util.zip.ZipFile");
     if (VM.BuildForHarmony) {
+      runClassInitializer("java.util.Hashtable");
       runClassInitializer("java.util.jar.Manifest");
       runClassInitializer("java.util.jar.Attributes$Name");
       runClassInitializer("java.util.BitSet");
