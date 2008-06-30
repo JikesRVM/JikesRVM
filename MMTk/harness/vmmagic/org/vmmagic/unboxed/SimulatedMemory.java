@@ -84,16 +84,18 @@ public final class SimulatedMemory {
   public static double setDouble(Address address, double value) { return setDouble(address, value, ZERO); }
 
   public static byte getByte(Address address, Offset offset) {
-    int shift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
-    int value = getInt(address, offset) >>> shift;
+    int byteShift = ((address.value + offset.value) & ~WORD_MASK);
+    int bitShift = byteShift << LOG_BITS_IN_BYTE;
+    int value = getInt(address.minus(byteShift), offset) >>> bitShift;
     return (byte)value;
   }
 
   public static char getChar(Address address, Offset offset) {
-    int shift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
-    assert shift == 0 || shift == 16: "misaligned char access";
-    int value = getInt(address, offset);
-    return (char)(value >>> shift);
+    int byteShift = ((address.value + offset.value) & ~WORD_MASK);
+    int bitShift = byteShift << LOG_BITS_IN_BYTE;
+    assert bitShift == 0 || bitShift == 16: "misaligned char access";
+    int value = getInt(address.minus(byteShift), offset);
+    return (char)(value >>> bitShift);
   }
 
   public static short getShort(Address address, Offset offset) {
