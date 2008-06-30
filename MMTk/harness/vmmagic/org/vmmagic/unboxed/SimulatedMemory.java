@@ -394,7 +394,7 @@ public final class SimulatedMemory {
     }
 
     public synchronized boolean exchangeInt(Address address, int oldValue, int value, Offset offset) {
-      assert ((address.value + offset.value) % 8) == 0: "misaligned 4b access";
+      assert ((address.value + offset.value) % 4) == 0: "misaligned 4b access";
       int index = getIndex(address, offset);
       int old = read(index);
       if (old != oldValue) return false;
