@@ -84,22 +84,15 @@ public final class SimulatedMemory {
   public static double setDouble(Address address, double value) { return setDouble(address, value, ZERO); }
 
   public static byte getByte(Address address, Offset offset) {
-    int byteShift = ((address.value + offset.value) & ~WORD_MASK);
-    int bitShift = byteShift << LOG_BITS_IN_BYTE;
-    int value = getInt(address.minus(byteShift), offset) >>> bitShift;
-    return (byte)value;
+    return getPage(address, offset).getByte(address, offset);
   }
 
   public static char getChar(Address address, Offset offset) {
-    int byteShift = ((address.value + offset.value) & ~WORD_MASK);
-    int bitShift = byteShift << LOG_BITS_IN_BYTE;
-    assert bitShift == 0 || bitShift == 16: "misaligned char access";
-    int value = getInt(address.minus(byteShift), offset);
-    return (char)(value >>> bitShift);
+    return getPage(address, offset).getChar(address, offset);
   }
 
   public static short getShort(Address address, Offset offset) {
-    return (short)getChar(address, offset);
+    return (short)getPage(address, offset).getChar(address, offset);
   }
 
   public static int getInt(Address address, Offset offset) {
@@ -336,6 +329,25 @@ public final class SimulatedMemory {
         throw new RuntimeException("Invalid access of " + Address.formatInt(address.toInt() + offset.toInt()) + " in page " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
       }
       return ((address.toInt() + offset.toInt()) & INDEX_MASK) >>> LOG_BYTES_IN_WORD;
+    }
+
+    /**
+     * Load a byte value from this page.
+     */
+    public byte getByte(Address address, Offset offset) {
+      int bitShift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+      int index = getIndex(address, offset);
+      return (byte)(read(index) >>> bitShift);
+    }
+
+    /**
+     * Load a char value from this page.
+     */
+    public char getChar(Address address, Offset offset) {
+      int bitShift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+      assert bitShift == 0 || bitShift == 16: "misaligned char access";
+      int index = getIndex(address, offset);
+      return (char)(read(index) >>> bitShift);
     }
 
     /**
