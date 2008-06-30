@@ -156,7 +156,7 @@ public final class VM {
      */
     public static ClassLoader callerClassLoader() {
 	if (org.jikesrvm.VM.runningVM) {
-	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(1);
+	    ClassLoader ans = RVMClass.getClassLoaderFromStackFrame(2);
 	    if (ans == BootstrapClassLoader.getBootstrapClassLoader()) {
 		return null;
 	    } else {
