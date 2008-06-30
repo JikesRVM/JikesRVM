@@ -13,8 +13,6 @@
 package org.mmtk.harness;
 
 
-import java.lang.Thread.UncaughtExceptionHandler;
-
 import org.mmtk.utility.Log;
 
 /**
