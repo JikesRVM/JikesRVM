@@ -68,7 +68,7 @@ public final class ChunkList implements Constants {
     entry.store(chunk);
     Chunk.setMap(chunk, chunkMapCursor);
     if (VM.VERIFY_ASSERTIONS) checkMap();
-    }
+  }
 
   void removeChunkFromMap(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Chunk.isAligned(chunk));
@@ -89,32 +89,61 @@ public final class ChunkList implements Constants {
     return chunkMap.get(map).plus(index<<LOG_BYTES_IN_ADDRESS);
   }
 
+  /**
+   * A chunk iterator.  Return the next chunk in sequence, or null if the
+   * next chunk is the same chunk (ie there is only one chunk in the iterator).
+   *
+   * @param chunk The chunk
+   * @return The next chunk in the sequence, or null if next is chunk.
+   */
   public Address nextChunk(Address chunk) {
     return nextChunk(chunk, chunk);
   }
 
-  public Address nextChunk(Address chunk, Address limit) {
+  /**
+   * A chunk iterator.  Return the next chunk in sequence, or null if the
+   * next chunk is limit.
+   *
+   * @param chunk The chunk
+   * @param limit The starting point (if next is equal to this, we're done)
+   * @return The next chunk in the sequence, or null if next is limit.
+   */
+  private Address nextChunk(final Address chunk, final Address limit) {
     return nextChunk(chunk, Chunk.getMap(limit), 1);
   }
 
-  public Address nextChunk(Address chunk, int limit) {
-    return nextChunk(chunk, limit, 1);
-  }
-
-  public Address nextChunk(Address chunk, int limit, int stride) {
+  /**
+   * A chunk iterator.  Return the next chunk in sequence, strided
+   * by stride steps, or null if the next chunk is start.
+   *
+   * @param chunk The chunk
+   * @param start The point where this iterator started, which defines its end-point
+   * @param stride The stride by which the iterator should be stepped
+   * @return The next chunk in the sequence, or null if next is start.
+   */
+  public Address nextChunk(final Address chunk, final int start, final int stride) {
     if (VM.VERIFY_ASSERTIONS) checkMap();
-    return nextChunk(Chunk.getMap(chunk), limit, stride);
+    return nextChunk(Chunk.getMap(chunk), start, stride);
   }
 
-  public Address nextChunk(int entry, int limit, int stride) {
+  /**
+   * A chunk iterator.  Return the next chunk in sequence, strided
+   * by stride steps, or null if the next chunk is start.
+   *
+   * @param entry The entry we're currently up to
+   * @param start The point where this iterator started, which defines its end-point
+   * @param stride The stride by which the iterator should be stepped
+   * @return The next chunk in the sequence, or null if next is start.
+   */
+  private Address nextChunk(int entry, final int start, final int stride) {
     if (VM.VERIFY_ASSERTIONS) checkMap();
     Address chunk;
     do {
       entry += stride;
       if (entry > chunkMapLimit) { entry = entry % stride; }
       chunk = getMapAddress(entry).loadAddress();
-    } while (chunk.isZero() && entry != limit);
-    return entry == limit ? Address.zero() : chunk;
+    } while (chunk.isZero() && entry != start);
+    return entry == start ? Address.zero() : chunk;
   }
 
   public Address firstChunk(int ordinal, int stride) {

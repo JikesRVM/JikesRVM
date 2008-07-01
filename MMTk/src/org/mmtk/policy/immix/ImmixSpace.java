@@ -543,53 +543,74 @@ public final class ImmixSpace extends Space implements Constants {
   *
   * Establish available lines
   */
- int getAvailableLines(int[] spillAvailHistogram) {
-   int availableLines;
-   if (allocBlockCursor.isZero() || exhaustedReusableSpace) {
-     availableLines = 0;
-   } else {
-     if (allocBlockCursor.EQ(allocBlockSentinel)) {
-       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!exhaustedReusableSpace);
-       allocBlockCursor = chunkMap.getHeadChunk();
-       allocBlockSentinel = allocBlockCursor;
-     }
-     availableLines = getUsableLinesInRegion(allocBlockCursor, allocBlockSentinel, spillAvailHistogram);
-   }
-   return availableLines;
- }
 
- private int getUsableLinesInRegion(Address start, Address end, int[] spillAvailHistogram) {
-   int usableLines = 0;
-   Address blockCursor = Chunk.isAligned(start) ? start.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK) : start;
-   Address blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
-   Address chunkCursor = Chunk.align(blockCursor);
-   Address highwater = Chunk.getHighWater(chunkCursor);
-   if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK)
-     end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
+  /**
+   * Establish the number of recyclable lines lines available for allocation
+   * during defragmentation, populating the spillAvailHistogram, which buckets
+   * available lines according to the number of holes on the block on which
+   * the available lines reside.
+   *
+   * @param spillAvailableHistogram A histogram of availability to be populated
+   * @return The number of available recyclable lines
+   */
+  int getAvailableLines(int[] spillAvailHistogram) {
+    int availableLines;
+    if (allocBlockCursor.isZero() || exhaustedReusableSpace) {
+      availableLines = 0;
+    } else {
+      if (allocBlockCursor.EQ(allocBlockSentinel)) {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!exhaustedReusableSpace);
+        allocBlockCursor = chunkMap.getHeadChunk();
+        allocBlockSentinel = allocBlockCursor;
+      }
+      availableLines = getUsableLinesInRegion(allocBlockCursor, allocBlockSentinel, spillAvailHistogram);
+    }
+    return availableLines;
+  }
 
-   for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++) spillAvailHistogram[i] = 0;
+  /**
+   * Return the number of lines usable for allocation during defragmentation in the
+   * address range specified by start and end.  Populate a histogram to indicate where
+   * the usable lines reside as a function of block hole count.
+   *
+   * @param start  The start of the region to be checked for availability
+   * @param end The end of the region to be checked for availability
+   * @param spillAvailHistogram The histogram which will be populated
+   * @return The number of usable lines
+   */
+  private int getUsableLinesInRegion(Address start, Address end, int[] spillAvailHistogram) {
+    int usableLines = 0;
+    Address blockCursor = Chunk.isAligned(start) ? start.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK) : start;
+    Address blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
+    Address chunkCursor = Chunk.align(blockCursor);
+    if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK)
+      end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
 
-   do {
-     short markState = blockStateCursor.loadShort();
-     if (markState != 0 && markState <= reusableMarkStateThreshold) {
-       int usable = LINES_IN_BLOCK - markState;
-       short bucket = (short) Block.getConservativeSpillCount(blockCursor);
-       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bucket >= 0 && bucket <= MAX_CONSV_SPILL_COUNT);
-       spillAvailHistogram[bucket] += usable;
-       usableLines += usable;
-     }
-     blockCursor = blockCursor.plus(BYTES_IN_BLOCK);
-     if (blockCursor.GT(highwater)) {
-       chunkCursor = chunkMap.nextChunk(chunkCursor);
-       blockCursor = chunkCursor.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
-       blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
-       highwater = Chunk.getHighWater(chunkCursor);
-     } else
-       blockStateCursor = blockStateCursor.plus(Block.BYTES_IN_BLOCK_STATE_ENTRY);
-   } while (blockCursor.NE(end));
+    for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++) spillAvailHistogram[i] = 0;
 
-   return usableLines;
- }
+    Address highwater = Chunk.getHighWater(chunkCursor);
+    do {
+      short markState = blockStateCursor.loadShort();
+      if (markState != 0 && markState <= reusableMarkStateThreshold) {
+        int usable = LINES_IN_BLOCK - markState;
+        short bucket = (short) Block.getConservativeSpillCount(blockCursor);
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bucket >= 0 && bucket <= MAX_CONSV_SPILL_COUNT);
+        spillAvailHistogram[bucket] += usable;
+        usableLines += usable;
+      }
+      blockCursor = blockCursor.plus(BYTES_IN_BLOCK);
+      if (blockCursor.GT(highwater)) {
+        chunkCursor = chunkMap.nextChunk(chunkCursor);
+        if (chunkCursor.isZero()) break;
+        blockCursor = chunkCursor.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
+        blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
+        highwater = Chunk.getHighWater(chunkCursor);
+      } else
+        blockStateCursor = blockStateCursor.plus(Block.BYTES_IN_BLOCK_STATE_ENTRY);
+    } while (blockCursor.NE(end));
+
+    return usableLines;
+  }
 
   /****************************************************************************
    *
