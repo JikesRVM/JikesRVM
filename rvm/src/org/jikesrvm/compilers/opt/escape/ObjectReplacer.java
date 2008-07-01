@@ -313,7 +313,7 @@ final class ObjectReplacer implements AggregateReplacer {
             if (visited == null) {
               visited = new HashSet<Register>();
             }
-            Register copy = Move.getResult(use.instruction).getRegister();
+            Register copy = TypeCheck.getResult(use.instruction).getRegister();
             if(!visited.contains(copy)) {
               visited.add(copy);
               if(containsUnsupportedUse(ir, copy, klass, visited)) {

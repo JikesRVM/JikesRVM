@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.escape;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -23,6 +24,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.InstanceOf;
 import org.jikesrvm.compilers.opt.ir.Move;
@@ -33,6 +35,7 @@ import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import static org.jikesrvm.compilers.opt.ir.IRTools.IC;
@@ -68,9 +71,11 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
+import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
@@ -189,7 +194,6 @@ final class ShortArrayReplacer implements AggregateReplacer {
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, Set<Register> visited) {
     Instruction inst = use.instruction;
     RVMType type = vmArray.getElementType();
-    Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
     switch (inst.getOpcode()) {
       case INT_ALOAD_opcode:
       case LONG_ALOAD_opcode:
@@ -202,17 +206,41 @@ final class ShortArrayReplacer implements AggregateReplacer {
       case REF_ALOAD_opcode: {
         // Create use of scalar or eliminate unreachable instruction because
         // of a trap
-        int index;
         if (ALoad.getIndex(inst).isIntConstant()) {
-          index = ALoad.getIndex(inst).asIntConstant().value;
+          Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
+          int index = ALoad.getIndex(inst).asIntConstant().value;
+          if (index >= 0 && index < size) {
+            Instruction i2 = Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
+            DefUse.replaceInstructionAndUpdateDU(inst, i2);
+          } else {
+            DefUse.removeInstructionAndUpdateDU(inst);
+          }
         } else {
-          index = 0;
-        }
-        if (index >= 0 && index < size) {
-          Instruction i2 = Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
-          DefUse.replaceInstructionAndUpdateDU(inst, i2);
-        } else {
-          DefUse.removeInstructionAndUpdateDU(inst);
+          if (VM.BuildForIA32) {
+            if (size == 0) {
+              DefUse.removeInstructionAndUpdateDU(inst);
+            } else if (size == 1) {
+              int index = 0;
+              Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
+              Instruction i2 =  Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
+              DefUse.replaceInstructionAndUpdateDU(inst, i2);
+            } else {
+              Operator moveOp = IRTools.getCondMoveOp(type.getTypeRef());
+              Instruction i2 = CondMove.create(moveOp, ALoad.getClearResult(inst),
+                  ALoad.getIndex(inst), IC(0), ConditionOperand.EQUAL(),
+                  scalars[0].copyRO(), scalars[1].copyRO());
+              DefUse.replaceInstructionAndUpdateDU(inst, i2);
+            }
+          } else {
+            if (size == 1) {
+              int index = 0;
+              Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
+              Instruction i2 =  Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
+              DefUse.replaceInstructionAndUpdateDU(inst, i2);
+            } else {
+              DefUse.removeInstructionAndUpdateDU(inst);
+            }
+          }
         }
       }
       break;
@@ -225,17 +253,47 @@ final class ShortArrayReplacer implements AggregateReplacer {
       case REF_ASTORE_opcode: {
         // Create move to scalar or eliminate unreachable instruction because
         // of a trap
-        int index;
         if (AStore.getIndex(inst).isIntConstant()) {
-          index = AStore.getIndex(inst).asIntConstant().value;
+          int index = AStore.getIndex(inst).asIntConstant().value;
+          if (index >= 0 && index < size) {
+            Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
+            Instruction i2 =  Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
+            DefUse.replaceInstructionAndUpdateDU(inst, i2);
+          } else {
+            DefUse.removeInstructionAndUpdateDU(inst);
+          }
         } else {
-          index = 0;
-        }
-        if (index >= 0 && index < size) {
-          Instruction i2 = Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
-          DefUse.replaceInstructionAndUpdateDU(inst, i2);
-        } else {
-          DefUse.removeInstructionAndUpdateDU(inst);
+          if (VM.BuildForIA32) {
+            if (size == 0) {
+              DefUse.removeInstructionAndUpdateDU(inst);
+            } else if (size == 1) {
+              int index = 0;
+              Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
+              Instruction i2 =  Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
+              DefUse.replaceInstructionAndUpdateDU(inst, i2);
+            } else {
+              Operator moveOp = IRTools.getCondMoveOp(type.getTypeRef());
+              Operand value = AStore.getClearValue(inst);
+              Instruction i2 = CondMove.create(moveOp, scalars[0].copyRO(),
+                  AStore.getIndex(inst), IC(0), ConditionOperand.EQUAL(),
+                  value, scalars[0].copyRO());
+              DefUse.replaceInstructionAndUpdateDU(inst, i2);
+              Instruction i3 = CondMove.create(moveOp, scalars[1].copyRO(),
+                  AStore.getIndex(inst), IC(0), ConditionOperand.NOT_EQUAL(),
+                  value, scalars[1].copyRO());
+              i2.insertAfter(i3);
+              DefUse.updateDUForNewInstruction(i3);
+            }
+          } else {
+            if (size == 1) {
+              int index = 0;
+              Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
+              Instruction i2 =  Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
+              DefUse.replaceInstructionAndUpdateDU(inst, i2);
+            } else {
+              DefUse.removeInstructionAndUpdateDU(inst);
+            }
+          }
         }
       }
       break;
@@ -247,13 +305,9 @@ final class ShortArrayReplacer implements AggregateReplacer {
       break;
       case BOUNDS_CHECK_opcode: {
         // Remove or create trap as appropriate
-        int index = BoundsCheck.getIndex(inst).asIntConstant().value;
-        Instruction i2;
-        if (index >= 0 && index < size) {
-          i2 = Move.create(GUARD_MOVE, BoundsCheck.getClearGuardResult(inst), new TrueGuardOperand());
-        } else {
-          i2 = Trap.create(TRAP, BoundsCheck.getClearGuardResult(inst), TrapCodeOperand.ArrayBounds());
-        }
+        Instruction i2 = TrapIf.create(TRAP_IF, BoundsCheck.getClearGuardResult(inst),
+            IC(size), BoundsCheck.getClearIndex(inst), ConditionOperand.LOWER_EQUAL(),
+            TrapCodeOperand.ArrayBounds());
         DefUse.replaceInstructionAndUpdateDU(inst, i2);
       }
       break;
@@ -328,6 +382,8 @@ final class ShortArrayReplacer implements AggregateReplacer {
    * @param size the size of the array to scalar replace.
    */
   private static boolean containsUnsupportedUse(IR ir, Register reg, int size, RVMArray vmArray, Set<Register> visited) {
+    // If an array is accessed by a non-constant integer, what's the maximum size of support array?
+    final int MAX_SIZE_FOR_VARIABLE_LOAD_STORE = VM.BuildForIA32 ? 2 : 1;
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case NEWOBJMULTIARRAY_opcode:
@@ -352,7 +408,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
             if (visited == null) {
               visited = new HashSet<Register>();
             }
-            Register copy = Move.getResult(use.instruction).getRegister();
+            Register copy = TypeCheck.getResult(use.instruction).getRegister();
             if(!visited.contains(copy)) {
               visited.add(copy);
               if(containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
@@ -382,7 +438,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
         case REF_ASTORE_opcode:
           // Don't handle registers as indexes
           // TODO: support for registers if the size of the array is small (e.g. 1)
-          if (!AStore.getIndex(use.instruction).isIntConstant() || size > 1) {
+          if (!AStore.getIndex(use.instruction).isIntConstant() && size > MAX_SIZE_FOR_VARIABLE_LOAD_STORE) {
             return true;
           }
           break;
@@ -397,7 +453,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
         case REF_ALOAD_opcode:
           // Don't handle registers as indexes
           // TODO: support for registers if the size of the array is small (e.g. 1)
-          if (!ALoad.getIndex(use.instruction).isIntConstant() || size > 1) {
+          if (!ALoad.getIndex(use.instruction).isIntConstant() && size > MAX_SIZE_FOR_VARIABLE_LOAD_STORE) {
             return true;
           }
           break;
