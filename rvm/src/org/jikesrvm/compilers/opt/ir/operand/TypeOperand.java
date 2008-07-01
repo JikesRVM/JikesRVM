@@ -79,7 +79,10 @@ public final class TypeOperand extends Operand {
    * @return the RVMType for this type operand -- may be null
    */
   public RVMType getVMType() {
-    return type;
+    if (type != null)
+      return type;
+    else
+      return typeRef.peekType();
   }
 
   /**
