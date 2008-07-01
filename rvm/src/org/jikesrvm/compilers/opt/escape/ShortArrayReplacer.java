@@ -202,7 +202,12 @@ final class ShortArrayReplacer implements AggregateReplacer {
       case REF_ALOAD_opcode: {
         // Create use of scalar or eliminate unreachable instruction because
         // of a trap
-        int index = ALoad.getIndex(inst).asIntConstant().value;
+        int index;
+        if (ALoad.getIndex(inst).isIntConstant()) {
+          index = ALoad.getIndex(inst).asIntConstant().value;
+        } else {
+          index = 0;
+        }
         if (index >= 0 && index < size) {
           Instruction i2 = Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
           DefUse.replaceInstructionAndUpdateDU(inst, i2);
@@ -220,7 +225,12 @@ final class ShortArrayReplacer implements AggregateReplacer {
       case REF_ASTORE_opcode: {
         // Create move to scalar or eliminate unreachable instruction because
         // of a trap
-        int index = AStore.getIndex(inst).asIntConstant().value;
+        int index;
+        if (AStore.getIndex(inst).isIntConstant()) {
+          index = AStore.getIndex(inst).asIntConstant().value;
+        } else {
+          index = 0;
+        }
         if (index >= 0 && index < size) {
           Instruction i2 = Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
           DefUse.replaceInstructionAndUpdateDU(inst, i2);
@@ -372,7 +382,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
         case REF_ASTORE_opcode:
           // Don't handle registers as indexes
           // TODO: support for registers if the size of the array is small (e.g. 1)
-          if (!AStore.getIndex(use.instruction).isIntConstant()) {
+          if (!AStore.getIndex(use.instruction).isIntConstant() || size > 1) {
             return true;
           }
           break;
@@ -387,7 +397,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
         case REF_ALOAD_opcode:
           // Don't handle registers as indexes
           // TODO: support for registers if the size of the array is small (e.g. 1)
-          if (!ALoad.getIndex(use.instruction).isIntConstant()) {
+          if (!ALoad.getIndex(use.instruction).isIntConstant() || size > 1) {
             return true;
           }
           break;
