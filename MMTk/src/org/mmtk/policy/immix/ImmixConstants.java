@@ -21,59 +21,11 @@ import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.Word;
 
 public class ImmixConstants {
-  public static final boolean BUILD_FOR_IMMIXGEN = Plan.NEEDS_LOG_BIT_IN_HEADER;
+  public static final boolean BUILD_FOR_STICKYIMMIX = Plan.NEEDS_LOG_BIT_IN_HEADER;
 
   /* start temporary experimental constants --- should not be allowed to lurk longer than necessary */
-  public static final boolean TMP_USE_LINE_MARKS = true;
-  public static final boolean TMP_EXACT_LINE_MARKS = false;  // else conservatively assume spill after each marked line
-         static final boolean TMP_USE_CONSERVATIVE_BLOCK_MARKS = true && !TMP_EXACT_LINE_MARKS && TMP_USE_LINE_MARKS;
-  public static final boolean TMP_ALLOC_TIME_STRADDLE_CHECK = true && TMP_USE_LINE_MARKS; // else establish at gc time
-  public static final boolean TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK = TMP_ALLOC_TIME_STRADDLE_CHECK && TMP_EXACT_LINE_MARKS;
-  public static final boolean TMP_INEXACT_ALLOC_TIME_STRADDLE_CHECK = TMP_ALLOC_TIME_STRADDLE_CHECK && !TMP_EXACT_LINE_MARKS;
-  public static final boolean TMP_MUTATOR_MARK_BLOCKS_ASREUSED = true && TMP_USE_LINE_MARKS;
-
-  public static final boolean TMP_USE_OVERFLOW_FOR_BIG_OBJECTS = true;
-
-  public static final boolean TMP_SEPARATE_HOT_ALLOC_SITES = false;
-
-  static final boolean TMP_USE_BLOCK_LIVE_BYTE_COUNTS = false;
-  static final boolean TMP_USE_BLOCK_COUNT_META = false || TMP_USE_BLOCK_LIVE_BYTE_COUNTS;
-  static final boolean TMP_USE_SIZE_FOR_LIVE_COUNTS = true; // else just increment by 1 for each obj
-  static final boolean TMP_USE_OBJ_END_TO_GET_SIZE = false; // else use the direct VM.objectModel method
-
-  public static final boolean TMP_USE_BYTE_GRAIN_LOG_STORE = true;
-
-  public static final boolean TMP_CHECK_REUSE_EFFICIENCY = true && VM.VERIFY_ASSERTIONS;
-
-  public static final boolean TMP_SUPPORT_DEFRAG = true && TMP_USE_LINE_MARKS;
-  public static final boolean TMP_DEFRAG_TO_IMMORTAL = false && TMP_SUPPORT_DEFRAG;
-  public static final boolean TMP_DEFRAG_WITHOUT_BUDGET = false && !TMP_DEFRAG_TO_IMMORTAL && TMP_SUPPORT_DEFRAG;
-  public static final boolean TMP_DEFRAG_ONLY_TO_NEW_BLOCKS = false && !TMP_DEFRAG_TO_IMMORTAL && !TMP_DEFRAG_WITHOUT_BUDGET && TMP_SUPPORT_DEFRAG;
-  public static final boolean TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS = true && TMP_SUPPORT_DEFRAG;
-  public static final boolean TMP_TRIAL_MARK_HISTO = false;
-  public static final int TMP_MARK_HISTO_SCALING = 2;
-  public static final boolean TMP_USE_NAIVE_SPILL_DEFRAG_THRESHOLD = false && TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS;
-  public static final boolean TMP_CLEAR_SPILLS_WHEN_ESTABLISHING_AVAILABLE = false && TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS;
-  public static final boolean TMP_EAGER_SPILL_MARK_HISTO_CONSTRUCTION = true && TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS && !TMP_USE_NAIVE_SPILL_DEFRAG_THRESHOLD;
-  public static final boolean TMP_EAGER_SPILL_AVAIL_HISTO_CONSTRUCTION = false && TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS && !TMP_USE_NAIVE_SPILL_DEFRAG_THRESHOLD;
-  public static final boolean TMP_USE_LIVE_COUNTS_FOR_SPILL_HISTOGRAM = true && TMP_USE_BLOCK_LIVE_BYTE_COUNTS && TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS;
-  public static final boolean TMP_DECREASE_AVAIL_WHEN_CALC_THRESHOLD = true;
   public static final int TMP_MIN_SPILL_THRESHOLD = 2;
-
   public static final boolean TMP_PREFER_COPY_ON_NURSERY_GC = true;
-  public static final boolean TMP_ALWAYS_DEFRAG_ON_FULL_HEAP = false;
-  public static final boolean TMP_CONSERVATIVE_DEFRAG_TRIGGER = true && BUILD_FOR_IMMIXGEN;
-
-  public static final boolean TMP_HEADROOM_FRACTION_WRT_TOTAL_HEAP = false;
-
-  public static final boolean TMP_SUPPORT_PINNING = true;
-
-  public static final boolean TMP_VERBOSE_STATS = false;
-  public static final boolean TMP_VERBOSE_ALLOC_STATS = TMP_VERBOSE_STATS;
-  public static final boolean TMP_VERBOSE_MARK_STATS = TMP_VERBOSE_STATS;
-  public static final boolean TMP_VERBOSE_DEFRAG_STATS = TMP_VERBOSE_STATS && TMP_SUPPORT_DEFRAG;
-  public static final boolean TMP_VERBOSE_PINNING_STATS = TMP_VERBOSE_STATS && TMP_SUPPORT_PINNING;
-
   /* end temporary experimental constants */
 
   public static final boolean MARK_LINE_AT_SCAN_TIME = true; // else do it at mark time

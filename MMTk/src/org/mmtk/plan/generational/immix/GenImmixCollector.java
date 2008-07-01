@@ -12,15 +12,10 @@
  */
 package org.mmtk.plan.generational.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.generational.*;
-import org.mmtk.policy.immix.ImmixConstants;
-import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.alloc.ImmixAllocator;
 import org.mmtk.utility.statistics.Stats;
 
@@ -61,7 +56,6 @@ public class GenImmixCollector extends GenCollector {
 
   private final ImmixAllocator copy = new ImmixAllocator(GenImmix.immixSpace, true, false);
   private final ImmixAllocator defragCopy = new ImmixAllocator(GenImmix.immixSpace, true, true);
-  private final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
   /****************************************************************************
    *
@@ -91,10 +85,7 @@ public class GenImmixCollector extends GenCollector {
       if (Space.isInSpace(GenImmix.NURSERY, original)) GenImmix.nurseryMark.inc(bytes);
     }
     if (GenImmix.immixSpace.inImmixDefragCollection()) {
-      if (TMP_DEFRAG_TO_IMMORTAL)
-        return immortal.alloc(bytes, align, offset);
-      else
-        return defragCopy.alloc(bytes, align, offset);
+      return defragCopy.alloc(bytes, align, offset);
     } else
       return copy.alloc(bytes, align, offset);
   }
@@ -113,10 +104,7 @@ public class GenImmixCollector extends GenCollector {
       VM.assertions._assert((!GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MINORGC) ||
           (GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MAJORGC));
     }
-    if (TMP_DEFRAG_TO_IMMORTAL)
-      GenImmix.immortalSpace.initializeHeader(object);
-    else
-      GenImmix.immixSpace.postCopy(object, bytes, allocator == GenImmix.ALLOC_MATURE_MAJORGC, ImmixConstants.TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK ? copy.getLastAllocLineStraddle() : false);
+    GenImmix.immixSpace.postCopy(object, bytes, allocator == GenImmix.ALLOC_MATURE_MAJORGC);
   }
 
   /*****************************************************************************
@@ -141,10 +129,7 @@ public class GenImmixCollector extends GenCollector {
         copy.reset();
         if (global().gcFullHeap) {
           immix.prepare(true);
-          if (TMP_DEFRAG_TO_IMMORTAL)
-            immortal.reset();
-          else
-            defragCopy.reset();
+          defragCopy.reset();
         }
         return;
       }

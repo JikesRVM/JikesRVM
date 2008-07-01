@@ -20,11 +20,6 @@ import static org.mmtk.policy.immix.ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC;
 import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_DEFRAG;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_BLOCK_LIVE_BYTE_COUNTS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_LINE_MARKS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_VERBOSE_MARK_STATS;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
@@ -65,29 +60,20 @@ public class Chunk implements Constants {
     for (int index = FIRST_USABLE_BLOCK_INDEX; index < BLOCKS_IN_CHUNK; index++) {
       Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
       if (block.GT(end)) break;
-      if (TMP_USE_LINE_MARKS) {
-        boolean defragSource = space.inImmixDefragCollection() && Block.isDefragSource(block);
-        short marked = Block.sweepOneBlock(block, markHistogram, availHistogram);
-        if (marked == 0) {
-          if (!Block.isUnusedState(cursor)) {
-            space.release(block);
-            if (defragSource) Defrag.defragBytesFreed.inc(BYTES_IN_BLOCK);
-            if (TMP_VERBOSE_MARK_STATS) ImmixSpace.bytesFreed.inc(BYTES_IN_BLOCK);
-          }
-          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isUnused(block));
-        } else {
-          if (TMP_VERBOSE_MARK_STATS) ImmixSpace.bytesHeld.inc(BYTES_IN_BLOCK);
-          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(marked > 0 && marked <= LINES_IN_BLOCK);
-          cursor.store(marked);
-          if (defragSource) Defrag.defragBytesNotFreed.inc(BYTES_IN_BLOCK);
-        }
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isUnused(block) || (Block.getBlockMarkState(block) == marked && marked > 0 && marked <= MAX_BLOCK_MARK_STATE));
-      } else {
-        if (Block.isUnmarkedState(cursor))
+      boolean defragSource = space.inImmixDefragCollection() && Block.isDefragSource(block);
+      short marked = Block.sweepOneBlock(block, markHistogram, availHistogram);
+      if (marked == 0) {
+        if (!Block.isUnusedState(cursor)) {
           space.release(block);
-        else if (!DONT_CLEAR_MARKS_AT_EVERY_GC && Block.isMarkedState(cursor))
-          Block.setToUnmarkedState(cursor);
+          if (defragSource) Defrag.defragBytesFreed.inc(BYTES_IN_BLOCK);
+        }
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isUnused(block));
+      } else {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(marked > 0 && marked <= LINES_IN_BLOCK);
+        cursor.store(marked);
+        if (defragSource) Defrag.defragBytesNotFreed.inc(BYTES_IN_BLOCK);
       }
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isUnused(block) || (Block.getBlockMarkState(block) == marked && marked > 0 && marked <= MAX_BLOCK_MARK_STATE));
       cursor = cursor.plus(Block.BYTES_IN_BLOCK_STATE_ENTRY);
     }
   }
@@ -120,8 +106,7 @@ public class Chunk implements Constants {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(DONT_CLEAR_MARKS_AT_EVERY_GC);
 
-    if (TMP_USE_LINE_MARKS) clearLineMarks(chunk);
-
+    clearLineMarks(chunk);
     Address cursor = Block.getBlockMarkStateAddress(getFirstUsableBlock(chunk));
     for (int block = FIRST_USABLE_BLOCK_INDEX; block < BLOCKS_IN_CHUNK; block++)
       cursor = Block.clearMarkStateAndAdvance(cursor);
@@ -129,11 +114,7 @@ public class Chunk implements Constants {
 
   static void clearLineMarks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(TMP_USE_LINE_MARKS);
-
     VM.memory.zero(chunk.plus(LINE_MARK_TABLE_OFFSET), Extent.fromIntZeroExtend(Line.LINE_MARK_TABLE_BYTES));
-    if (TMP_USE_BLOCK_LIVE_BYTE_COUNTS)
-      VM.memory.zero(chunk.plus(BLOCK_LIVE_BYTE_TABLE_OFFSET), Extent.fromIntZeroExtend(Block.BLOCK_LIVE_BYTE_TABLE_BYTES));
   }
 
   static void updateHighWater(Address value) {
@@ -166,7 +147,6 @@ public class Chunk implements Constants {
 
   static void resetLineMarksAndDefragStateTable(Address chunk, short threshold) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(TMP_SUPPORT_DEFRAG && !TMP_DEFRAG_TO_IMMORTAL);
     Address markStateBase = Block.getBlockMarkStateAddress(chunk);
     Address defragStateBase = Block.getDefragStateAddress(chunk);
     Address lineMarkBase = Line.getChunkMarkTable(chunk);
@@ -190,8 +170,7 @@ public class Chunk implements Constants {
   /* byte offsets for each type of metadata */
   static final int LINE_MARK_TABLE_OFFSET = 0;
   static final int BLOCK_STATE_TABLE_OFFSET = LINE_MARK_TABLE_OFFSET + Line.LINE_MARK_TABLE_BYTES;
-  static final int BLOCK_LIVE_BYTE_TABLE_OFFSET = BLOCK_STATE_TABLE_OFFSET + Block.BLOCK_STATE_TABLE_BYTES;
-  static final int BLOCK_DEFRAG_STATE_TABLE_OFFSET = BLOCK_LIVE_BYTE_TABLE_OFFSET + Block.BLOCK_LIVE_BYTE_TABLE_BYTES;
+  static final int BLOCK_DEFRAG_STATE_TABLE_OFFSET = BLOCK_STATE_TABLE_OFFSET + Block.BLOCK_STATE_TABLE_BYTES;
   static final int HIGHWATER_OFFSET = BLOCK_DEFRAG_STATE_TABLE_OFFSET + Block.BLOCK_DEFRAG_STATE_TABLE_BYTES;
   static final int MAP_OFFSET = HIGHWATER_OFFSET + HIGHWATER_BYTES;
   static final int METADATA_BYTES_PER_CHUNK = MAP_OFFSET + MAP_BYTES;

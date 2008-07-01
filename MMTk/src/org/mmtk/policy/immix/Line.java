@@ -19,8 +19,6 @@ import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.LINE_MASK;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_LINES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_EXACT_LINE_MARKS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_LINE_MARKS;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -58,9 +56,6 @@ public class Line implements Constants {
     /* endLine is the address of the last (highest) line touched by this object */
     Address endLine = Line.align(VM.objectModel.getObjectEndAddress(object).minus(1));
     Address line = Line.align(start.plus(BYTES_IN_LINE));
-    /* we only record spill into the last line if we're exact (otherwise we're conservative) */
-    if (TMP_EXACT_LINE_MARKS)
-      endLine = endLine.plus(BYTES_IN_LINE);
     while (line.LT(endLine)) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(Block.align(start) == Block.align(line));
@@ -89,10 +84,7 @@ public class Line implements Constants {
 
   @Inline
   public static int getNextUnused(Address baseLineMarkAddress, int line) {
-    if (TMP_EXACT_LINE_MARKS)
-      return getNext(baseLineMarkAddress, line, LINE_UNMARKED_VALUE);
-    else
-      return getNextDoubleLine(baseLineMarkAddress, line, LINE_UNMARKED_VALUE);
+    return getNextDoubleLine(baseLineMarkAddress, line, LINE_UNMARKED_VALUE);
   }
 
   @Inline
@@ -140,7 +132,7 @@ public class Line implements Constants {
           static final byte LINE_UNMARKED_VALUE = 0;
 
   static final int LOG_BYTES_IN_LINE_MARK = 0;
-  static final int LINE_MARK_TABLE_BYTES = TMP_USE_LINE_MARKS ? LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_MARK : 0;
-  static final int LOG_LINE_MARK_BYTES_PER_BLOCK = TMP_USE_LINE_MARKS ? LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_MARK : 0;
-  static final int LINE_MARK_BYTES_PER_BLOCK = TMP_USE_LINE_MARKS ? (1<<LOG_LINE_MARK_BYTES_PER_BLOCK) : 0;
+  static final int LINE_MARK_TABLE_BYTES = LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_MARK;
+  static final int LOG_LINE_MARK_BYTES_PER_BLOCK = LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_MARK;
+  static final int LINE_MARK_BYTES_PER_BLOCK = (1<<LOG_LINE_MARK_BYTES_PER_BLOCK);
 }

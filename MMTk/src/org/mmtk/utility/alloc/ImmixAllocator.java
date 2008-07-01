@@ -22,7 +22,6 @@ import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -53,14 +52,7 @@ public class ImmixAllocator extends Allocator implements Constants {
   private Address recyclableBlock;
   private int line;
   private boolean recyclableExhausted;
-  private int allocTableIndex; // only needed if TMP_USE_ALLOC_TABLE is true
-  private int blockState; // only needed for TMP_VERBOSE_ALLOC_STATS
 
-  private static final int BLOCK_STATE_CLEAN = -1;
-  private static final int BLOCK_STATE_0 = 0;
-  private static final int BLOCK_STATE_1 = 1;
-  private static final int BLOCK_STATE_2 = 2;
-  private static final int BLOCK_STATE_3 = 3;
   /**
    * Constructor.
    *
@@ -88,7 +80,6 @@ public class ImmixAllocator extends Allocator implements Constants {
     requestForLarge = false;
     recyclableExhausted = false;
     line = LINES_IN_BLOCK;
-    allocTableIndex = 0;
     lineUseCount = 0;
   }
 
@@ -116,34 +107,16 @@ public class ImmixAllocator extends Allocator implements Constants {
 
     /* check whether we've exceeded the limit */
     if (end.GT(limit)) {
-      if (TMP_USE_OVERFLOW_FOR_BIG_OBJECTS && bytes > BYTES_IN_LINE)
+      if (bytes > BYTES_IN_LINE)
         return overflowAlloc(bytes, align, offset);
       else
         return allocSlowHot(bytes, align, offset);
-    }
-    if (TMP_VERBOSE_ALLOC_STATS) {
-      ImmixSpace.bytesAlloc.inc(bytes);
-      ImmixSpace.bytesAllocAlign.inc(start.diff(cursor).toInt());
     }
 
     /* sufficient memory is available, so we can finish performing the allocation */
     fillAlignmentGap(cursor, start);
     cursor = end;
-    if (TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK)
-      straddle = (bytes > BYTES_IN_LINE) || (start.toWord().xor(end.minus(1).toWord()).toInt() >= BYTES_IN_LINE);
 
-    if (TMP_VERBOSE_ALLOC_STATS) {
-      if (blockState == BLOCK_STATE_CLEAN)
-        ImmixSpace.bytesAllocClean.inc(bytes);
-      else if (blockState == BLOCK_STATE_0)
-        ImmixSpace.bytesAllocDirty0.inc(bytes);
-      else if (blockState == BLOCK_STATE_1)
-        ImmixSpace.bytesAllocDirty1.inc(bytes);
-      else if (blockState == BLOCK_STATE_2)
-        ImmixSpace.bytesAllocDirty2.inc(bytes);
-      else
-        ImmixSpace.bytesAllocDirty3.inc(bytes);
-    }
     return start;
   }
 
@@ -170,17 +143,10 @@ public class ImmixAllocator extends Allocator implements Constants {
       requestForLarge = false;
       return rtn;
     }
-    if (TMP_VERBOSE_ALLOC_STATS) {
-      ImmixSpace.bytesAlloc.inc(bytes);
-      ImmixSpace.bytesAllocAlign.inc(start.diff(largeCursor).toInt());
-      ImmixSpace.bytesAllocOverflow.inc(bytes);
-    }
 
     /* sufficient memory is available, so we can finish performing the allocation */
     fillAlignmentGap(largeCursor, start);
     largeCursor = end;
-    if (TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK)
-      straddle = (bytes > BYTES_IN_LINE) || (start.toWord().xor(end.minus(1).toWord()).toInt() >= BYTES_IN_LINE);
 
     return start;
   }
@@ -226,11 +192,6 @@ public class ImmixAllocator extends Allocator implements Constants {
       } else {
         cursor = ptr;
         limit = ptr.plus(BYTES_IN_BLOCK);
-        blockState = BLOCK_STATE_CLEAN;
-      }
-      if (TMP_VERBOSE_ALLOC_STATS) {
-        ImmixSpace.bytesLine.inc(BYTES_IN_BLOCK);
-        ImmixSpace.bytesLineApprox.inc(BYTES_IN_BLOCK);
       }
     }
     return alloc(bytes, align, offset);
@@ -298,10 +259,6 @@ public class ImmixAllocator extends Allocator implements Constants {
           VM.assertions._assert(end.LE(limit));
         }
         VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
-        if (TMP_VERBOSE_ALLOC_STATS) {
-          ImmixSpace.bytesLine.inc(limit.diff(cursor).toInt());
-        }
-        if (TMP_CHECK_REUSE_EFFICIENCY) ImmixSpace.TMPreusedLineCount += (endLine - line);
         line = endLine;
         if (VM.VERIFY_ASSERTIONS && copy) VM.assertions._assert(!Block.isDefragSource(cursor));
         return true;
@@ -322,7 +279,7 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   @Inline
   private boolean acquireRecyclableBlockAddressOrder() {
-    if (recyclableExhausted || (TMP_DEFRAG_ONLY_TO_NEW_BLOCKS && copy)) return false;
+    if (recyclableExhausted) return false;
     int markState = 0;
     boolean usable = false;
     while (!usable) {
@@ -339,27 +296,13 @@ public class ImmixAllocator extends Allocator implements Constants {
       }
       markState = Block.getBlockMarkState(recyclableBlock);
       usable = (markState > 0 && markState <= ImmixSpace.getReusuableMarkStateThreshold(copy));
-      if (TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS && copy && Block.isDefragSource(recyclableBlock))
+      if (copy && Block.isDefragSource(recyclableBlock))
         usable = false;
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(recyclableBlock));
-    if (TMP_MUTATOR_MARK_BLOCKS_ASREUSED)
-      Block.setBlockAsReused(recyclableBlock);
-    if (TMP_CHECK_REUSE_EFFICIENCY) ImmixSpace.TMPreusedBlockCount++;
-    if (VM.VERIFY_ASSERTIONS && copy && Options.verbose.getValue() > 2) {
-      Log.write("arb["); Log.write(recyclableBlock); Log.write(" ");
-      Log.write(markState);Log.write(" ");
-      Log.write(Block.getBlockMarkState(recyclableBlock)); Log.write(" ");
-      Log.write(space.isDefragSource(recyclableBlock)); Log.write(" ");
-      Log.write(ImmixSpace.getReusuableMarkStateThreshold(copy)); Log.writeln("]");
-      VM.assertions._assert(space.willNotMoveThisGC(recyclableBlock.plus(100)));
-    }
+    Block.setBlockAsReused(recyclableBlock);
+
     lineUseCount += (LINES_IN_BLOCK-markState);
-    if (TMP_VERBOSE_ALLOC_STATS) {
-      blockState = (markState*4)/LINES_IN_BLOCK;
-      if (blockState > 3) blockState = 3;
-      ImmixSpace.bytesLineApprox.inc((LINES_IN_BLOCK-markState)*BYTES_IN_LINE);
-    }
     return true; // found something good
   }
 

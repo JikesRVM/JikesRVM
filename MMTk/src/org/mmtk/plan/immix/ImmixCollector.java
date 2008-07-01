@@ -12,12 +12,9 @@
  */
 package org.mmtk.plan.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-
 import org.mmtk.plan.*;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.immix.CollectorLocal;
-import org.mmtk.policy.immix.ImmixConstants;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.alloc.ImmixAllocator;
 import org.mmtk.vm.VM;
@@ -97,12 +94,9 @@ public class ImmixCollector extends StopTheWorldCollector {
       int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      VM.assertions._assert((!TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_DEFAULT) || (TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_IMMORTAL));
+      VM.assertions._assert(allocator == Immix.ALLOC_DEFAULT);
     }
-    if (TMP_DEFRAG_TO_IMMORTAL)
-      return immortal.alloc(bytes, align, offset);
-    else
-      return copy.alloc(bytes, align, offset);
+    return copy.alloc(bytes, align, offset);
   }
 
  /**
@@ -115,14 +109,8 @@ public class ImmixCollector extends StopTheWorldCollector {
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert((!TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_DEFAULT) || (TMP_DEFRAG_TO_IMMORTAL && allocator == Immix.ALLOC_IMMORTAL));
-    }
-
-    if (TMP_DEFRAG_TO_IMMORTAL)
-      Immix.immortalSpace.initializeHeader(object);
-    else
-      Immix.immixSpace.postCopy(object, bytes, true, ImmixConstants.TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK ? copy.getLastAllocLineStraddle() : false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == Immix.ALLOC_DEFAULT);
+    Immix.immixSpace.postCopy(object, bytes, true);
 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(getCurrentTrace().isLive(object));
@@ -149,10 +137,7 @@ public class ImmixCollector extends StopTheWorldCollector {
       currentTrace = Immix.immixSpace.inImmixDefragCollection() ? defragTrace : fastTrace;
       immix.prepare(true);
       currentTrace.prepare();
-      if (TMP_DEFRAG_TO_IMMORTAL)
-        immortal.reset();
-      else
-        copy.reset();
+      copy.reset();
       return;
     }
 

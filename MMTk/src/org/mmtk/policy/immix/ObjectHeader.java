@@ -18,7 +18,6 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Word;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_BYTE_GRAIN_LOG_STORE;
 
 @Uninterruptible
 public class ObjectHeader {
@@ -76,27 +75,15 @@ public class ObjectHeader {
    * @param markState The value to which the mark bits will be set
    */
   static Word testAndMark(ObjectReference object, Word markState) {
-    if (TMP_USE_BYTE_GRAIN_LOG_STORE) {
-      int oldValue, newValue, oldMarkState;
+    int oldValue, newValue, oldMarkState;
 
-      oldValue = VM.objectModel.readAvailableByte(object);
-      oldMarkState = oldValue & MARK_AND_LOG_BITS_MASK.toInt();
-      if (oldMarkState != markState.toInt()) {
-        newValue = (oldValue & ~MARK_AND_LOG_BITS_MASK.toInt()) | markState.toInt();
-        VM.objectModel.writeAvailableByte(object, (byte) newValue);
-      }
-      return Word.fromIntZeroExtend(oldMarkState);
-    } else {
-      Word oldValue, newValue, oldMarkState;
-
-      oldValue = VM.objectModel.readAvailableBitsWord(object);
-      oldMarkState = oldValue.and(MARK_AND_LOG_BITS_MASK);
-      if (oldMarkState.NE(markState)) {
-        newValue = (oldValue.and(MARK_AND_LOG_BITS_MASK.not())).or(markState);
-        VM.objectModel.writeAvailableBitsWord(object, newValue);
-      }
-      return oldMarkState;
+    oldValue = VM.objectModel.readAvailableByte(object);
+    oldMarkState = oldValue & MARK_AND_LOG_BITS_MASK.toInt();
+    if (oldMarkState != markState.toInt()) {
+      newValue = (oldValue & ~MARK_AND_LOG_BITS_MASK.toInt()) | markState.toInt();
+      VM.objectModel.writeAvailableByte(object, (byte) newValue);
     }
+    return Word.fromIntZeroExtend(oldMarkState);
   }
 
   static void setMarkStateUnlogAndUnlock(ObjectReference object, Word originalForwardingWord, Word markState) {
@@ -117,11 +104,7 @@ public class ObjectHeader {
    */
   static boolean testMarkState(ObjectReference object, Word value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(MARK_MASK).EQ(value));
-    if (false && TMP_USE_BYTE_GRAIN_LOG_STORE) {
-      return (VM.objectModel.readAvailableByte(object) & MARK_MASK.toInt()) == value.toInt();
-    } else {
-      return testMarkState(VM.objectModel.readAvailableBitsWord(object), value);
-    }
+    return testMarkState(VM.objectModel.readAvailableBitsWord(object), value);
   }
 
   static boolean testMarkState(Word forwardingWord, Word value) {
@@ -130,12 +113,8 @@ public class ObjectHeader {
   }
 
   static boolean isNewObject(ObjectReference object) {
-    if (false && TMP_USE_BYTE_GRAIN_LOG_STORE) {
-      return (VM.objectModel.readAvailableByte(object) & MARK_AND_LOG_BITS_MASK.toInt()) == NEW_OBJECT_MARK.toInt();
-    } else {
-      Word markBits = VM.objectModel.readAvailableBitsWord(object).and(MARK_AND_LOG_BITS_MASK);
-      return markBits.EQ(NEW_OBJECT_MARK);
-    }
+    Word markBits = VM.objectModel.readAvailableBitsWord(object).and(MARK_AND_LOG_BITS_MASK);
+    return markBits.EQ(NEW_OBJECT_MARK);
   }
 
   static boolean isMatureObject(ObjectReference object) {
@@ -173,13 +152,7 @@ public class ObjectHeader {
 
   @Inline
   public static void pinObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixConstants.TMP_SUPPORT_PINNING);
     Word header = VM.objectModel.readAvailableBitsWord(object);
-    if (ImmixConstants.TMP_VERBOSE_PINNING_STATS) {
-      ImmixSpace.callsToPin.inc();
-      if (header.and(PINNED_BIT).NE(PINNED_BIT))
-        ImmixSpace.pinnedObjects.inc();
-    }
     VM.objectModel.writeAvailableBitsWord(object, header.or(PINNED_BIT));
   }
 
@@ -190,7 +163,6 @@ public class ObjectHeader {
 
   @Inline
   private static boolean isPinnedBitSet(Word header) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixConstants.TMP_SUPPORT_PINNING);
     return header.and(PINNED_BIT).EQ(PINNED_BIT);
   }
 
@@ -205,7 +177,7 @@ public class ObjectHeader {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markValue = Plan.NEEDS_LOG_BIT_IN_HEADER ? markState.or(ObjectHeader.UNLOGGED_BIT) : markState;
     Word newValue = oldValue.and(MARK_AND_LOG_BITS_MASK.not()).or(markValue);
-    if (straddle && ImmixConstants.TMP_ALLOC_TIME_STRADDLE_CHECK)
+    if (straddle)
       newValue = newValue.or(STRADDLE_BIT);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }

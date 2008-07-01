@@ -12,9 +12,6 @@
  */
 package org.mmtk.plan.generational.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_DEFRAG;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_PINNING;
-
 import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.Trace;
 import org.mmtk.plan.TransitiveClosure;
@@ -41,7 +38,8 @@ import org.vmmagic.unboxed.*;
  * nursery size has dropped to a statically defined threshold,
  * <code>NURSERY_THRESHOLD</code><p>
  *
- * See Blackburn & McKinley's 2008 PLDI paper for an overview of Immix.
+ * See the PLDI'08 paper by Blackburn and McKinley for a description
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
  *
  * See the Jones & Lins GC book, chapter 7 for a detailed discussion
  * of generational collection and section 7.3 for an overview of the
@@ -172,15 +170,11 @@ public class GenImmix extends Gen {
    */
   @Override
   public boolean willNeverMove(ObjectReference object) {
-    if (Space.isInSpace(IMMIX, object))
-      if (!TMP_SUPPORT_DEFRAG)
-        return true;
-      else if (TMP_SUPPORT_PINNING) {
-        ObjectHeader.pinObject(object);
-        return true;
-      } else
-        return false;
-    return super.willNeverMove(object);
+    if (Space.isInSpace(IMMIX, object)) {
+      ObjectHeader.pinObject(object);
+      return true;
+    } else
+      return super.willNeverMove(object);
   }
 
   /**

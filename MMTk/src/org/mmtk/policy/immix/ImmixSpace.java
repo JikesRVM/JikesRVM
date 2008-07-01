@@ -21,8 +21,6 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.LineReuseRatio;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.BooleanCounter;
-import org.mmtk.utility.statistics.EventCounter;
-import org.mmtk.utility.statistics.SizeCounter;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
@@ -53,25 +51,6 @@ public final class ImmixSpace extends Space implements Constants {
 
   /* statistics */
   public static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
-  public static EventCounter callsToPin = TMP_VERBOSE_DEFRAG_STATS && TMP_SUPPORT_PINNING ? new EventCounter("callsToPin") : null;
-  public static EventCounter pinnedObjects = TMP_VERBOSE_DEFRAG_STATS && TMP_SUPPORT_PINNING ? new EventCounter("pinned") : null;
-  public static SizeCounter bytesAlloc = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAlloc") : null;
-  public static SizeCounter bytesLine = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesLine") : null;
-  public static SizeCounter bytesLineApprox = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesLineApprox") : null;
-  public static SizeCounter tmpBytesLineApprox = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("tmpBytesLineApprox") : null;
-  public static SizeCounter bytesAllocAlign = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocAlign") : null;
-  public static SizeCounter bytesAllocClean = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocClean") : null;
-  public static SizeCounter bytesAllocOverflow = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocOverflow") : null;
-  public static SizeCounter bytesAllocDirty0 = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocDirty0") : null;
-  public static SizeCounter bytesAllocDirty1 = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocDirty1") : null;
-  public static SizeCounter bytesAllocDirty2 = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocDirty2") : null;
-  public static SizeCounter bytesAllocDirty3 = TMP_VERBOSE_ALLOC_STATS ? new SizeCounter("bytesAllocDirty3") : null;
-  public static SizeCounter bytesMarkedObjects = TMP_VERBOSE_MARK_STATS ? new SizeCounter("bytesMarkedObjects") : null;
-  public static SizeCounter bytesMarkedLines = TMP_VERBOSE_MARK_STATS ? new SizeCounter("bytesMarkedLines") : null;
-  public static SizeCounter bytesConsvMarkedLines = TMP_VERBOSE_MARK_STATS ? new SizeCounter("bytesConsvMarkedLines") : null;
-  public static SizeCounter bytesMarkedBlocks = TMP_VERBOSE_MARK_STATS ? new SizeCounter("bytesMarkedBlocks") : null;
-  public static SizeCounter bytesFreed = TMP_VERBOSE_MARK_STATS ? new SizeCounter("bytesFreed") : null;
-  public static SizeCounter bytesHeld = TMP_VERBOSE_MARK_STATS ? new SizeCounter("bytesHeld") : null;
   public static int TMPreusableLineCount = 0;
   public static int TMPreusedLineCount = 0;
   public static int TMPreusableBlockCount = 0;
@@ -139,14 +118,6 @@ public final class ImmixSpace extends Space implements Constants {
     defrag.prepare(chunkMap, this);
     inCollection = true;
 
-    if (TMP_CHECK_REUSE_EFFICIENCY && Options.verbose.getValue() >= 1) {
-      float ratio = (TMPreusableLineCount > 0) ? ((float)TMPreusedLineCount/(float) TMPreusableLineCount) : (float) 1.0;
-      Log.write("<"); Log.write(TMPreusedLineCount); Log.write("/"); Log.write(TMPreusableLineCount); Log.write(" "); Log.write(ratio);
-      ratio = (TMPreusableBlockCount > 0) ? ((float)TMPreusedBlockCount/(float) TMPreusableBlockCount) : (float) 1.0;
-      Log.write(" "); Log.write(TMPreusedBlockCount); Log.write("/"); Log.write(TMPreusableBlockCount);Log.write(" "); Log.write(ratio); Log.write(">");
-      TMPreusableLineCount = 0;
-      TMPreusedLineCount = 0;
-    }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.activePlan.collectorCount() <= MAX_COLLECTORS);
   }
 
@@ -156,16 +127,6 @@ public final class ImmixSpace extends Space implements Constants {
   public void globalRelease() {
     chunkMap.reset();
     defrag.globalRelease();
-
-    if (TMP_VERBOSE_MARK_STATS && Options.verbose.getValue() >= 1) {
-      Log.write("[ mobj: "); bytesMarkedObjects.printCurrentVolume();
-      Log.write(", mlin: "); bytesMarkedLines.printCurrentVolume();
-      Log.write(", cmln: "); bytesConsvMarkedLines.printCurrentVolume();
-      Log.write(", mblk: "); bytesMarkedBlocks.printCurrentVolume();
-      Log.write(", free: "); bytesFreed.printCurrentVolume();
-      Log.write(", held: "); bytesHeld.printCurrentVolume();
-      Log.write("]"); Log.flush();
-    }
     inCollection = false;
 
     /* set up reusable space */
@@ -261,8 +222,6 @@ public final class ImmixSpace extends Space implements Constants {
       defrag.getBlock();
 
     linesConsumed += lineUseCount;
-    if (TMP_VERBOSE_ALLOC_STATS)
-      tmpBytesLineApprox.inc(lineUseCount*BYTES_IN_LINE);
 
     rtn = acquire(PAGES_IN_BLOCK);
 
@@ -300,13 +259,10 @@ public final class ImmixSpace extends Space implements Constants {
 
   public Address acquireReusableBlocks() {
     if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(!inCollection || (TMP_SUPPORT_DEFRAG && !TMP_DEFRAG_TO_IMMORTAL));
       VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockCursor));
       VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockSentinel));
     }
     Address rtn;
-    if (TMP_DEFRAG_WITHOUT_BUDGET && defrag.inDefrag())
-      return Address.zero();
 
     lock();
     if (exhaustedReusableSpace)
@@ -364,15 +320,8 @@ public final class ImmixSpace extends Space implements Constants {
   * @param object the object ref to the storage to be initialized
   */
   @Inline
-  public void postAlloc(ObjectReference object, int bytes, boolean straddle) {
-    if (VM.VERIFY_ASSERTIONS && TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK) {
-      Address start = VM.objectModel.objectStartRef(object);
-      Address end = VM.objectModel.getObjectEndAddress(object).minus(1);
-      boolean sanityStraddle = start.toWord().xor(end.toWord()).toInt() >= BYTES_IN_LINE;
-      VM.assertions._assert(sanityStraddle == straddle);
-    }
-    boolean setStraddleBit = (TMP_INEXACT_ALLOC_TIME_STRADDLE_CHECK && bytes > BYTES_IN_LINE) || (TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK && straddle);
-    if (setStraddleBit)
+  public void postAlloc(ObjectReference object, int bytes) {
+    if (bytes > BYTES_IN_LINE)
       ObjectHeader.markAsStraddling(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ObjectHeader.isNewObject(object));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
@@ -384,12 +333,11 @@ public final class ImmixSpace extends Space implements Constants {
   * a copying GC.
   *
   * @param object the object ref to the storage to be initialized
-  * @param majorGC Is this copy happening during a major gc?
+ * @param majorGC Is this copy happening during a major gc?
   */
   @Inline
-  public void postCopy(ObjectReference object, int bytes, boolean majorGC, boolean straddle) {
-    boolean setStraddleBit = (TMP_INEXACT_ALLOC_TIME_STRADDLE_CHECK && bytes > BYTES_IN_LINE) || (TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK && straddle);
-    ObjectHeader.writeMarkState(object, markState, setStraddleBit);
+  public void postCopy(ObjectReference object, int bytes, boolean majorGC) {
+    ObjectHeader.writeMarkState(object, markState, bytes > BYTES_IN_LINE);
     if (!MARK_LINE_AT_SCAN_TIME && majorGC)
       markLines(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
@@ -422,10 +370,7 @@ public final class ImmixSpace extends Space implements Constants {
 
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(!rtn.isNull());
-      if (TMP_DEFRAG_TO_IMMORTAL)
-        VM.assertions._assert(getSpaceForObject(rtn) != this);
-      else
-        VM.assertions._assert(defrag.spaceExhausted() || !isDefragSource(rtn) || (TMP_SUPPORT_PINNING && ObjectHeader.isPinnedObject(rtn)));
+      VM.assertions._assert(defrag.spaceExhausted() || !isDefragSource(rtn) || (ObjectHeader.isPinnedObject(rtn)));
     }
     return rtn;
   }
@@ -539,18 +484,14 @@ public final class ImmixSpace extends Space implements Constants {
       } else {
         /* we are the first to reach the object; either mark in place or forward it */
         ObjectReference newObject;
-        if (ObjectHeader.isPinnedObject(object) || (!TMP_DEFRAG_TO_IMMORTAL && defrag.spaceExhausted())) {
+        if (ObjectHeader.isPinnedObject(object) || defrag.spaceExhausted()) {
           /* mark in place */
           ObjectHeader.setMarkStateUnlogAndUnlock(object, priorForwardingWord, markState);
           newObject = object;
-          if (TMP_VERBOSE_DEFRAG_STATS)
-            Defrag.defragBytesSkipped.inc(VM.objectModel.getCurrentSize(newObject));
           if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(newObject));
         } else {
           /* forward */
           newObject = ObjectHeader.forwardObject(object, allocator);
-          if (TMP_VERBOSE_DEFRAG_STATS)
-            Defrag.defragBytesCopied.inc(VM.objectModel.getCurrentSize(newObject));
           if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(newObject));
         }
         if (!MARK_LINE_AT_SCAN_TIME)
@@ -593,26 +534,9 @@ public final class ImmixSpace extends Space implements Constants {
    */
   public static void markLines(ObjectReference object) {
     Address address = VM.objectModel.objectStartRef(object);
-    if (TMP_USE_LINE_MARKS) {
-      Line.mark(address);
-      if (!TMP_ALLOC_TIME_STRADDLE_CHECK || ObjectHeader.isStraddlingObject(object))
-        Line.markMultiLine(address, object);
-    } else
-      Block.markBlock(address);
-    if (TMP_USE_BLOCK_LIVE_BYTE_COUNTS) {
-      int size = 1;
-      if (TMP_USE_SIZE_FOR_LIVE_COUNTS) {
-        if (TMP_USE_OBJ_END_TO_GET_SIZE)
-          size = VM.objectModel.getObjectEndAddress(object).diff(address).toInt();
-        else
-          size = VM.objectModel.getCurrentSize(object);
-      }
-      Block.incrementLiveCount(address, size);
-    }
-
-    if (TMP_VERBOSE_MARK_STATS) {
-      bytesMarkedObjects.inc(VM.objectModel.getCurrentSize(object));
-    }
+    Line.mark(address);
+    if (ObjectHeader.isStraddlingObject(object))
+      Line.markMultiLine(address, object);
   }
 
   /****************************************************************************
@@ -643,20 +567,16 @@ public final class ImmixSpace extends Space implements Constants {
    if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK)
      end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
 
-   if (!TMP_EAGER_SPILL_AVAIL_HISTO_CONSTRUCTION && TMP_DECREASE_AVAIL_WHEN_CALC_THRESHOLD)
-     for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++) spillAvailHistogram[i] = 0;
+   for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++) spillAvailHistogram[i] = 0;
 
    do {
      short markState = blockStateCursor.loadShort();
      if (markState != 0 && markState <= reusableMarkStateThreshold) {
        int usable = LINES_IN_BLOCK - markState;
-       if (!TMP_EAGER_SPILL_AVAIL_HISTO_CONSTRUCTION && TMP_DECREASE_AVAIL_WHEN_CALC_THRESHOLD) {
-         short bucket = (short) (TMP_TRIAL_MARK_HISTO ? markState/TMP_MARK_HISTO_SCALING : Block.getConservativeSpillCount(blockCursor));
-         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bucket >= 0 && bucket <= MAX_CONSV_SPILL_COUNT);
-         spillAvailHistogram[bucket] += usable;
-        }
+       short bucket = (short) Block.getConservativeSpillCount(blockCursor);
+       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bucket >= 0 && bucket <= MAX_CONSV_SPILL_COUNT);
+       spillAvailHistogram[bucket] += usable;
        usableLines += usable;
-       if (TMP_CLEAR_SPILLS_WHEN_ESTABLISHING_AVAILABLE) Block.clearConservativeSpillCount(blockCursor);
      }
      blockCursor = blockCursor.plus(BYTES_IN_BLOCK);
      if (blockCursor.GT(highwater)) {
@@ -684,7 +604,7 @@ public final class ImmixSpace extends Space implements Constants {
    */
   @Inline
   public boolean isLive(ObjectReference object) {
-    if (TMP_SUPPORT_DEFRAG && defrag.inDefrag() && isDefragSource(object))
+    if (defrag.inDefrag() && isDefragSource(object))
       return ObjectHeader.isForwardedOrBeingForwarded(object) || ObjectHeader.testMarkState(object, markState);
     else
       return ObjectHeader.testMarkState(object, markState);
@@ -709,14 +629,14 @@ public final class ImmixSpace extends Space implements Constants {
    */
   @Inline
   public boolean fastIsLive(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!TMP_SUPPORT_DEFRAG || !defrag.inDefrag());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!defrag.inDefrag());
     return ObjectHeader.testMarkState(object, markState);
   }
 
   @Inline
   public boolean willNotMoveThisGC(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getSpaceForObject(object) == this && defrag.inDefrag());
-    return (TMP_SUPPORT_PINNING && ObjectHeader.isPinnedObject(object)) || willNotMoveThisGC(VM.objectModel.refToAddress(object));
+    return ObjectHeader.isPinnedObject(object) || willNotMoveThisGC(VM.objectModel.refToAddress(object));
   }
 
   @Inline
@@ -733,7 +653,7 @@ public final class ImmixSpace extends Space implements Constants {
 
   @Inline
   public boolean willNotMoveThisGC(Address address) {
-    return !TMP_SUPPORT_DEFRAG || !defrag.inDefrag() || (!TMP_DEFRAG_TO_IMMORTAL && defrag.spaceExhausted()) || !isDefragSource(address);
+    return !defrag.inDefrag() || defrag.spaceExhausted() || !isDefragSource(address);
   }
 
   @Inline

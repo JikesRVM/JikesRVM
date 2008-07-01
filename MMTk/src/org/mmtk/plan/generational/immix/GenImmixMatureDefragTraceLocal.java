@@ -13,9 +13,7 @@
 package org.mmtk.plan.generational.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.MARK_LINE_AT_SCAN_TIME;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
@@ -57,7 +55,7 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(GenImmix.immixSpace.inImmixDefragCollection());
     if (object.isNull()) return object;
     if (Space.isInSpace(GenImmix.IMMIX, object)) {
-      return GenImmix.immixSpace.traceObject(this, object, TMP_DEFRAG_TO_IMMORTAL ? Plan.ALLOC_IMMORTAL : GenImmix.ALLOC_MATURE_MAJORGC);
+      return GenImmix.immixSpace.traceObject(this, object, GenImmix.ALLOC_MATURE_MAJORGC);
     }
     return super.traceObject(object);
   }

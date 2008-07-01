@@ -34,6 +34,9 @@ import org.vmmagic.pragma.*;
  * in a conservative collector, here we have an exact collector, so we can use
  * a regular write barrier, and don't need to use page protection etc.
  *
+ * See the PLDI'08 paper by Blackburn and McKinley for a description
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be

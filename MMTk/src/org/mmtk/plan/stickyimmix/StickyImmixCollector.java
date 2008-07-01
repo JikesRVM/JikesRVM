@@ -12,8 +12,6 @@
  */
 package org.mmtk.plan.stickyimmix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-
 import org.mmtk.plan.*;
 import org.mmtk.plan.immix.Immix;
 import org.mmtk.plan.immix.ImmixCollector;
@@ -96,10 +94,7 @@ public class StickyImmixCollector extends ImmixCollector {
         immix.prepare(false);
         nurseryTrace.prepare();
         nurseryCopy.reset();
-        if (TMP_DEFRAG_TO_IMMORTAL)
-          immortal.reset();
-        else
-          copy.reset();
+        copy.reset();
         return;
       }
 

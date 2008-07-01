@@ -13,7 +13,6 @@
 package org.mmtk.plan.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.MARK_LINE_AT_SCAN_TIME;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
@@ -87,7 +86,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Immix.immixSpace.inImmixDefragCollection());
     if (object.isNull()) return object;
     if (Space.isInSpace(Immix.IMMIX, object))
-      return Immix.immixSpace.traceObject(this, object, TMP_DEFRAG_TO_IMMORTAL ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT);
+      return Immix.immixSpace.traceObject(this, object, Plan.ALLOC_DEFAULT);
     return super.traceObject(object);
   }
 
@@ -98,7 +97,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
     if (object.isNull()) return object;
     ObjectReference rtn;
     if (Space.isInSpace(Immix.IMMIX, object))
-      rtn = Immix.immixSpace.traceObject(this, object, TMP_DEFRAG_TO_IMMORTAL ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT);
+      rtn = Immix.immixSpace.traceObject(this, object, Plan.ALLOC_DEFAULT);
     else
       rtn = object;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(willNotMoveInCurrentCollection(rtn));
@@ -129,10 +128,8 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
   protected void scanObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Immix.immixSpace.inImmixDefragCollection());
     super.scanObject(object);
-    if (MARK_LINE_AT_SCAN_TIME && Space.isInSpace(Immix.IMMIX, object)) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!TMP_DEFRAG_TO_IMMORTAL);  // should be no objects live in immix space
-      ImmixSpace.markLines(object);
-    }
+    if (MARK_LINE_AT_SCAN_TIME && Space.isInSpace(Immix.IMMIX, object))
+       ImmixSpace.markLines(object);
   }
 
   /**
