@@ -110,6 +110,9 @@ public final class Collector extends MMTkThread {
   /** The current base count of collection attempts */
   public static int collectionAttemptBase;
 
+  /** Has a heap dump been requested? */
+  private static boolean heapDumpRequested;
+
   /**
    * Are there no threads currently in GC?
    */
@@ -122,6 +125,13 @@ public final class Collector extends MMTkThread {
    */
   public static boolean gcTriggered() {
     return inGC > 0;
+  }
+
+  /**
+   * Request a heap dump at the next GC.
+   */
+  public static void requestHeapDump() {
+    heapDumpRequested = true;
   }
 
   /** Synchronisation object used for GC triggering */
@@ -282,6 +292,10 @@ public final class Collector extends MMTkThread {
         collectionAttemptBase = 0;
 
         /* This is where we would schedule Finalization, if we supported it. */
+        if (heapDumpRequested) {
+          Mutator.dumpHeap();
+          heapDumpRequested = false;
+        }
       }
       rendezvous(5202);
       if (primary) {

@@ -12,9 +12,6 @@
  */
 package org.mmtk.harness.lang;
 
-import org.mmtk.vm.VM;
-import org.mmtk.vm.Collection;
-
 /**
  * A manual GC trigger.
  */
@@ -29,6 +26,6 @@ public class GC implements Statement {
    * Trigger a garbage collection
    */
   public void exec(Env env) throws ReturnException {
-    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    env.gc();
   }
 }

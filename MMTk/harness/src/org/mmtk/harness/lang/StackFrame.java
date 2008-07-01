@@ -13,8 +13,11 @@
 package org.mmtk.harness.lang;
 
 import java.util.List;
+import java.util.Stack;
 
+import org.mmtk.harness.Mutator;
 import org.mmtk.plan.TraceLocal;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * A stack frame.  Currently assumes each slot contains exactly one
@@ -77,6 +80,21 @@ public class StackFrame {
     for (Value value : values) {
       if (value instanceof ObjectValue) {
         ((ObjectValue)value).traceObject(trace);
+      }
+    }
+  }
+
+  /**
+   * Debug printing support: dump this stack frame and return roots.
+   */
+  public void dumpRoots(int width, Stack<ObjectReference> roots) {
+    for (int i=0; i < values.length; i++) {
+      Value value = values[i];
+      String name = names[i];
+      if (value instanceof ObjectValue) {
+        ObjectReference ref = ((ObjectValue)value).getObjectValue();
+        System.err.printf(" %s=%s", name, Mutator.formatObject(width, ref));
+        if (!ref.isNull()) roots.push(ref);
       }
     }
   }

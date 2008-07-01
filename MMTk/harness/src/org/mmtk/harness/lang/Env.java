@@ -16,8 +16,7 @@ import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * An execution environment
@@ -113,9 +112,33 @@ public class Env extends Mutator {
     }
   }
 
+  /**
+   * Print the thread roots and add them to a stack for processing.
+   */
+  @Override
+  public void dumpThreadRoots(int width, Stack<ObjectReference> roots) {
+    System.err.print("  Temporaries [");
+    for(ObjectValue value : temporaries) {
+      ObjectReference ref = value.getObjectValue();
+      System.err.printf(" %s", Mutator.formatObject(width, ref));
+    }
+    System.err.println(" ]");
+    int frameId = 0;
+    for (StackFrame frame : stack) {
+      System.err.printf("  Frame %5d [", frameId++);
+      frame.dumpRoots(width, roots);
+      System.err.println(" ]");
+    }
+    System.err.println();
+  }
+
+
   @Override
   public boolean gcSafePoint() {
-    if (gcEverySafepoint) VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    if (gcEverySafepoint) {
+      gc();
+      return true;
+    }
     return super.gcSafePoint();
   }
 

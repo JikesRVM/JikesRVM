@@ -12,7 +12,10 @@
  */
 package org.mmtk.harness.vm;
 
+import java.util.Stack;
+
 import org.mmtk.harness.Collector;
+import org.mmtk.harness.Mutator;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
@@ -199,6 +202,37 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    */
   public static int getSize(int refs, int data) {
     return (HEADER_WORDS + refs + data) << SimulatedMemory.LOG_BYTES_IN_WORD;
+  }
+
+
+  /**
+   * Dump (logical) information for an object.
+   *
+   * @param object The object whose information is to be dumped
+   */
+  public static void dumpLogicalObject(int width, ObjectReference object, Stack<ObjectReference> workStack) {
+    int refCount = getRefs(object);
+    int dataCount = getDataCount(object);
+    boolean hashed = (object.toAddress().loadInt(STATUS_OFFSET) & HASHED) == HASHED;
+    System.err.printf("  Object %s <%d %d %1s> [", Mutator.formatObject(width, object), refCount, dataCount, (hashed ? "H" : ""));
+    if (refCount > 0) {
+      for(int i=0; i < refCount; i++) {
+        ObjectReference ref = getRefSlot(object, i).loadObjectReference();
+        System.err.print(" ");
+        System.err.print(Mutator.formatObject(width, ref));
+        if (!ref.isNull()) {
+          workStack.push(ref);
+        }
+      }
+    }
+    System.err.println(" ]");
+  }
+
+  /**
+   * Return the next object id to be allocated.
+   */
+  public static int nextObjectId() {
+    return nextObjectId;
   }
 
   /**

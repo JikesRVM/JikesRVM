@@ -12,8 +12,6 @@
  */
 package org.mmtk.harness.lang;
 
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.ObjectReference;
 
 public class Alloc implements Expression {
@@ -55,7 +53,7 @@ public class Alloc implements Expression {
     ObjectValue oval = new ObjectValue(object);
     if (gcEveryAlloc) {
       env.pushTemporary(oval);
-      VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+      env.gc();
       env.popTemporary(oval);
     }
     return oval;

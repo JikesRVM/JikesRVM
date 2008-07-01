@@ -13,6 +13,9 @@
 package org.mmtk.harness;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
@@ -22,6 +25,8 @@ import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
@@ -187,6 +192,42 @@ public class Mutator extends MMTkThread {
   }
 
   /**
+   * Print the thread roots and add them to a stack for processing.
+   */
+  public void dumpThreadRoots(int width, Stack<ObjectReference> roots) {
+    // Nothing to do for the default mutator
+  }
+
+  /**
+   * Format the object for dumping.
+   */
+  public static String formatObject(int width, ObjectReference object) {
+    String base = Address.fromIntZeroExtend(object.isNull() ? 0 : ObjectModel.getId(object)).toString();
+    return base.substring(base.length() - width);
+  }
+
+  /**
+   * Print the thread roots and add them to a stack for processing.
+   */
+  public static void dumpHeap() {
+    int width = Integer.toHexString(ObjectModel.nextObjectId()).length();
+    Stack<ObjectReference> workStack = new Stack<ObjectReference>();
+    Set<ObjectReference> dumped = new HashSet<ObjectReference>();
+    for(Mutator m: mutators) {
+      System.err.println("Mutator " + m.context.getId());
+      m.dumpThreadRoots(width, workStack);
+    }
+    System.err.println("Heap (Depth First)");
+    while(!workStack.isEmpty()) {
+      ObjectReference object = workStack.pop();
+      if (!dumped.contains(object)) {
+        dumped.add(object);
+        ObjectModel.dumpLogicalObject(width, object, workStack);
+      }
+    }
+  }
+
+/**
    * A gc safe point for the mutator.
    */
   public boolean gcSafePoint() {
@@ -286,7 +327,7 @@ public class Mutator extends MMTkThread {
   /**
    * Cause the current thread to wait for a triggered GC to proceed.
    */
-  public static void waitForGC() {
+  public void waitForGC() {
     boolean allWaiting;
     synchronized (count) {
       mutatorsWaitingForGC++;
@@ -296,6 +337,21 @@ public class Mutator extends MMTkThread {
     synchronized (count) {
         mutatorsWaitingForGC--;
     }
+  }
+
+  /**
+   * Request a heap dump (also invokes a garbage collection)
+   */
+  public void heapDump() {
+    Collector.requestHeapDump();
+    gc();
+  }
+
+  /**
+   * Request a garbage collection.
+   */
+  public void gc() {
+    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 
   /**

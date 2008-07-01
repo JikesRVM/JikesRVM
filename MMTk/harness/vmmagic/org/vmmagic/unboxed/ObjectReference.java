@@ -46,6 +46,20 @@ public final class ObjectReference {
   }
 
   /**
+   * Object equality.
+   */
+  public boolean equals(Object other) {
+    return other instanceof ObjectReference && ((ObjectReference)other).value == value;
+  }
+
+  /**
+   * Object hashCode
+   */
+  public int hashCode() {
+    return value >>> 2;
+  }
+
+  /**
    * Is this a null reference?
    */
   public boolean isNull() {

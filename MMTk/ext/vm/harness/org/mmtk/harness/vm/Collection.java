@@ -59,7 +59,7 @@ public class Collection extends org.mmtk.vm.Collection {
     if (mutator.isOutOfMemory()) throw new Mutator.OutOfMemory();
 
     Collector.triggerGC(why);
-    Mutator.waitForGC();
+    Mutator.current().waitForGC();
 
     if (mutator.isOutOfMemory() && !mutator.isPhysicalAllocationFailure()) {
       throw new Mutator.OutOfMemory();
