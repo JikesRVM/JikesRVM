@@ -843,10 +843,6 @@ public class LICM extends CompilerPhase {
     this.ir = ir;
 
     relocated = new HashSet<Instruction>();
-    if (ir.IRStage == IR.HIR) {
-      // SimpleEscape analyzer = new SimpleEscape();
-      // escapeSummary = analyzer.simpleEscapeAnalysis(ir); - unused
-    }
     // Note: the following unfactors the CFG
     new DominatorsPhase(true).perform(ir);
     Dominators.computeApproxPostdominators(ir);
@@ -916,7 +912,6 @@ public class LICM extends CompilerPhase {
   private SSADictionary ssad;
   private DominatorTree dominator;
   private IR ir;
-  //  private FI_EscapeSummary escapeSummary; - unused
   private final HashSet<Operator> moved = DEBUG ? new HashSet<Operator>() : null;
 
   private boolean simplify(Instruction inst, BasicBlock block) {

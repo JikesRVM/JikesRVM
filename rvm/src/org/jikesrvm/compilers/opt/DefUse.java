@@ -282,7 +282,7 @@ public final class DefUse {
   /**
    * Replace an instruction and update register lists.
    */
-  static void replaceInstructionAndUpdateDU(Instruction oldI, Instruction newI) {
+  public static void replaceInstructionAndUpdateDU(Instruction oldI, Instruction newI) {
     oldI.insertBefore(newI);
     removeInstructionAndUpdateDU(oldI);
     updateDUForNewInstruction(newI);

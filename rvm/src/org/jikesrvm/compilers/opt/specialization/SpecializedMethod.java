@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.specialization;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -18,7 +18,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 /**
  * This is the top-level class to support specialized versions of Java methods
  */
-public class SpecializedMethod {
+public final class SpecializedMethod {
   /**
    * The method that was specialized
    */

@@ -22,29 +22,29 @@ import static org.jikesrvm.runtime.EntrypointHelper.getMethod;
  */
 public interface AosEntrypoints {
   NormalMethod osrGetRefAtMethod =
-      getMethod("Lorg/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
-  NormalMethod osrCleanRefsMethod = getMethod("Lorg/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
+      getMethod(org.jikesrvm.osr.OSR_ObjectHolder.class, "getRefAt", "(II)Ljava/lang/Object;");
+  NormalMethod osrCleanRefsMethod = getMethod(org.jikesrvm.osr.OSR_ObjectHolder.class, "cleanRefs", "(I)V");
   RVMField methodListenerNumSamplesField =
-      getField("Lorg/jikesrvm/adaptive/measurements/listeners/MethodListener;", "numSamples", "I");
+      getField(org.jikesrvm.adaptive.measurements.listeners.MethodListener.class, "numSamples", int.class);
   RVMField edgeListenerUpdateCalledField =
-      getField("Lorg/jikesrvm/adaptive/measurements/listeners/EdgeListener;", "updateCalled", "I");
+      getField(org.jikesrvm.adaptive.measurements.listeners.EdgeListener.class, "updateCalled", int.class);
   RVMField edgeListenerSamplesTakenField =
-      getField("Lorg/jikesrvm/adaptive/measurements/listeners/EdgeListener;", "samplesTaken", "I");
+      getField(org.jikesrvm.adaptive.measurements.listeners.EdgeListener.class, "samplesTaken", int.class);
   RVMField yieldCountListenerNumYieldsField =
-      getField("Lorg/jikesrvm/adaptive/measurements/listeners/YieldCounterListener;", "numYields", "I");
+      getField(org.jikesrvm.adaptive.measurements.listeners.YieldCounterListener.class, "numYields", int.class);
   RVMField counterArrayManagerCounterArraysField =
-      getField("Lorg/jikesrvm/adaptive/measurements/instrumentation/CounterArrayManager;", "counterArrays", "[[D");
+      getField(org.jikesrvm.adaptive.measurements.instrumentation.CounterArrayManager.class, "counterArrays", double[][].class);
   RVMField invocationCountsField =
-      getField("Lorg/jikesrvm/adaptive/recompilation/InvocationCounts;", "counts", "[I");
+      getField(org.jikesrvm.adaptive.recompilation.InvocationCounts.class, "counts", int[].class);
   NormalMethod invocationCounterTrippedMethod =
-      getMethod("Lorg/jikesrvm/adaptive/recompilation/InvocationCounts;", "counterTripped", "(I)V");
+      getMethod(org.jikesrvm.adaptive.recompilation.InvocationCounts.class, "counterTripped", "(I)V");
   RVMField globalCBSField =
-      getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/CounterBasedSampling;", "globalCounter", "I");
-  RVMField processorCBSField = getField("Lorg/jikesrvm/scheduler/Processor;", "processor_cbs_counter", "I");
+      getField(org.jikesrvm.adaptive.recompilation.instrumentation.CounterBasedSampling.class, "globalCounter", int.class);
+  RVMField processorCBSField = getField(org.jikesrvm.scheduler.Processor.class, "processor_cbs_counter", int.class);
   RVMField cbsResetValueField =
-      getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/CounterBasedSampling;", "resetValue", "I");
+      getField(org.jikesrvm.adaptive.recompilation.instrumentation.CounterBasedSampling.class, "resetValue", int.class);
   RVMField specializedMethodsField =
-      getField("Lorg/jikesrvm/compilers/opt/SpecializedMethodPool;",
+      getField(org.jikesrvm.compilers.opt.specialization.SpecializedMethodPool.class,
                "specializedMethods",
-               "[Lorg/jikesrvm/ArchitectureSpecific$CodeArray;");
+               org.jikesrvm.ArchitectureSpecific.CodeArray[].class);
 }

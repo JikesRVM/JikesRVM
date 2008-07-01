@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
@@ -18,6 +18,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEW_opcode;
 
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.LocalConstantProp;
+import org.jikesrvm.compilers.opt.LocalCopyProp;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;

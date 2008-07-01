@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.specialization;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
  * This class holds the static array of pointers to instructions
  * of specialized methods
  */
-public class SpecializedMethodPool {
+public final class SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;
   static int specializedMethodCount = 0;
   static CodeArray[] specializedMethods = new CodeArray[SPECIALIZED_METHOD_COUNT];

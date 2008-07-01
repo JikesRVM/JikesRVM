@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 import org.jikesrvm.classloader.RVMMethod;
 
@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.RVMMethod;
  * Hold semantic information about a method that is not defined in
  * RVMMethod.
  */
-public class MethodSummary {
+class MethodSummary {
 
   /**
    * Is this method currently being analyzed?  Used for recursive

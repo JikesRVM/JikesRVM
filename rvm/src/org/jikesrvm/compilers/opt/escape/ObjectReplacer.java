@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,6 +21,8 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.Move;
@@ -59,7 +61,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * Class that performs scalar replacement of aggregates for non-array
  * objects
  */
-public final class ObjectReplacer implements AggregateReplacer {
+final class ObjectReplacer implements AggregateReplacer {
   static final boolean DEBUG = false;
 
   /**

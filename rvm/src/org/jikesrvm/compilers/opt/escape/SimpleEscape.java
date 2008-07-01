@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,6 +19,11 @@ import java.util.Set;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;

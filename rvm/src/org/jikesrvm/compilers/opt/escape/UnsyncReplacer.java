@@ -10,10 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.New;
@@ -28,12 +30,13 @@ import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.specialization.InvokeeThreadLocalContext;
 
 /**
  * Replace calls to synchronized methods to calls specialized to be
  * unsynchronized.
  */
-public final class UnsyncReplacer {
+final class UnsyncReplacer {
   private static final boolean DEBUG = false;
 
   /**

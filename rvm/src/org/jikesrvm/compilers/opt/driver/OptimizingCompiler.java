@@ -21,12 +21,12 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.opt.InvokeeThreadLocalContext;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.SpecializationDatabase;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.specialization.InvokeeThreadLocalContext;
+import org.jikesrvm.compilers.opt.specialization.SpecializationDatabase;
 
 /**
  * <p> The main driver of the Compiler.

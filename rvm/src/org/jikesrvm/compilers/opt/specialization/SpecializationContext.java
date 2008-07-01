@@ -10,12 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.specialization;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 
-public interface SpecializationContext {
+interface SpecializationContext {
 
   /**
    * Find or create a specialized version of source for this

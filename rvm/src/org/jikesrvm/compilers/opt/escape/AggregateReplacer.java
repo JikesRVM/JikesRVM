@@ -10,12 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 /**
  * Class that performs scalar replacement of aggregates
  */
-public interface AggregateReplacer {
+interface AggregateReplacer {
 
   /**
    * Perform the transformation

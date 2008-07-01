@@ -10,13 +10,15 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.escape;
 
 import java.util.HashSet;
 import java.util.Set;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
@@ -69,7 +71,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 /**
  * Class that performs scalar replacement of short arrays
  */
-public final class ShortArrayReplacer implements AggregateReplacer {
+final class ShortArrayReplacer implements AggregateReplacer {
   private static final boolean DEBUG = false;
 
   /**

@@ -17,7 +17,7 @@ import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.compilers.opt.SpecializedMethod;
+import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
 import org.vmmagic.unboxed.Offset;
 
 /**

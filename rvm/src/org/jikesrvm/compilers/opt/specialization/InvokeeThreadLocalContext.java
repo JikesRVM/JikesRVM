@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt;
+package org.jikesrvm.compilers.opt.specialization;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
@@ -24,9 +25,9 @@ import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
  * "the invokee is thread local".
  * We use this context to remove unnecessary synchronizations.
  */
-public class InvokeeThreadLocalContext implements SpecializationContext {
+public final class InvokeeThreadLocalContext implements SpecializationContext {
 
-  InvokeeThreadLocalContext() {
+  public InvokeeThreadLocalContext() {
   }
 
   /**

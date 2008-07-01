@@ -22,7 +22,6 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCount
 import org.jikesrvm.adaptive.recompilation.instrumentation.InstrumentationSamplingFramework;
 import org.jikesrvm.adaptive.recompilation.instrumentation.LowerInstrumentation;
 import org.jikesrvm.compilers.opt.AdjustBranchProbabilities;
-import org.jikesrvm.compilers.opt.EscapeTransformations;
 import org.jikesrvm.compilers.opt.FieldAnalysis;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.LocalCastOptimization;
@@ -43,6 +42,7 @@ import org.jikesrvm.compilers.opt.controlflow.ReorderingPhase;
 import org.jikesrvm.compilers.opt.controlflow.StaticSplitting;
 import org.jikesrvm.compilers.opt.controlflow.TailRecursionElimination;
 import org.jikesrvm.compilers.opt.controlflow.YieldPoints;
+import org.jikesrvm.compilers.opt.escape.EscapeTransformations;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertHIRtoLIR;
 import org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;

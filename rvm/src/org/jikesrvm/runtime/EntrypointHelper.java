@@ -94,7 +94,7 @@ public class EntrypointHelper {
    * @param type of field
    * @return corresponding RVMField
    */
-  static RVMField getField(Class<?> klass, String member, Class<?> type) {
+  public static RVMField getField(Class<?> klass, String member, Class<?> type) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       try {
         TypeReference klassTRef = TypeReference.findOrCreate(klass);
@@ -156,7 +156,7 @@ public class EntrypointHelper {
    * @param memberDescriptor member descriptor - something like "()V"
    * @return corresponding RVMMethod
    */
-  static NormalMethod getMethod(Class<?> klass, String member, String descriptor) {
+  public static NormalMethod getMethod(Class<?> klass, String member, String descriptor) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       try {
         TypeReference klassTRef = TypeReference.findOrCreate(klass);
