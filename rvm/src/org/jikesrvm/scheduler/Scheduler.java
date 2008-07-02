@@ -33,6 +33,7 @@ import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -47,6 +48,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class Scheduler {
   private static final Scheduler singleton = new GreenScheduler();
 
+  @NonMoving
   public static class ThreadModel extends org.jikesrvm.scheduler.greenthreads.GreenThread {
     public ThreadModel(byte[] stack, String s) {
       super(stack, s);

@@ -17,6 +17,7 @@ import org.jikesrvm.runtime.Magic;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.Scheduler;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -26,6 +27,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * This follows the Singleton pattern.
  */
+@NonMoving
 final class IdleThread extends GreenThread {
   /**
    * Should we call Processor.initializeProcessor as the first action

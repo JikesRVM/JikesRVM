@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.listeners.Listener;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.jikesrvm.scheduler.greenthreads.GreenThreadQueue;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -24,6 +25,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * simple or complex tasks, but it is always simply following the
  * instructions given by the controller.
  */
+@NonMoving
 public abstract class Organizer extends GreenThread {
 
   /** Constructor */

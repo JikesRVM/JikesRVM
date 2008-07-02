@@ -26,6 +26,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.NonMoving;
 
 /**
  * An organizer to build a dynamic call graph from call graph edge
@@ -52,6 +53,7 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * EXPECTATION: buffer is filled all the way up with triples.
  */
+@NonMoving
 public class DynamicCallGraphOrganizer extends Organizer {
 
   private static final boolean DEBUG = false;

@@ -1617,6 +1617,10 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       ObjectModel.allocateThinLock(this);
     }
 
+    if (superClass != null && superClass.isNonMoving() && !isNonMoving()) {
+      VM.sysWriteln("WARNING: movable " + this + " extends non-moving " + superClass);
+    }
+
     if (VM.verboseClassLoading) VM.sysWrite("[Preparing " + this + "]\n");
 
     // build field and method lists for this class

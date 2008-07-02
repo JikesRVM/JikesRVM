@@ -20,12 +20,14 @@ import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Threads that perform collector work while mutators are active. these
  * threads wait for the collector to activate them.
  */
+@NonMoving
 public final class ConcurrentCollectorThread extends GreenThread {
 
   /***********************************************************************

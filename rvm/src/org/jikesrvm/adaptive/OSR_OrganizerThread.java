@@ -18,6 +18,7 @@ import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.jikesrvm.scheduler.greenthreads.GreenThreadQueue;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -53,7 +54,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * C.activate and passivate have to acquire a lock before dequeue and
  * enqueue.
  */
-
+@NonMoving
 public final class OSR_OrganizerThread extends GreenThread {
   /** Constructor */
   public OSR_OrganizerThread() {

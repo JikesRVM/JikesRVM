@@ -31,6 +31,7 @@ import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.scheduler.Scheduler.ThreadModel;
+import org.vmmagic.pragma.NonMoving;
 
 /**
  * This class implements the controller thread.  This entity is the brains of
@@ -42,6 +43,7 @@ import org.jikesrvm.scheduler.Scheduler.ThreadModel;
  *     c) static information about a method; or
  *     d) all of the above.
  */
+@NonMoving
 public final class ControllerThread extends ThreadModel {
 
   /**

@@ -14,11 +14,13 @@ package org.jikesrvm.adaptive.measurements.organizers;
 
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.YieldCounterListener;
+import org.vmmagic.pragma.NonMoving;
 
 /**
  * An organizer that periodically decays runtime counters
  *
  **/
+@NonMoving
 public final class DecayOrganizer extends Organizer {
 
   /**
