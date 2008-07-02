@@ -67,16 +67,22 @@ MORE : {
 TOKEN : {
    < ALLOC : "alloc" > |
    < ASSERT : "assert" > |
+   < BOOLEAN : "boolean" > |
+   < CLASS : "class" > |
    < ELIF : "elif" > |
    < ELSE : "else" > |
    < EXPECT : "expect" > |
    < IF : "if" > |
    < INT : "int" > |
+   < INTRINSIC : "intrinsic" > |
+   < METHOD : "method" > |
    < NULL : "null" > |
    < OBJECT : "object" > |
    < PRINT : "print" > |
    < RETURN : "return" > |
+   < SIGNATURE : "signature" > |
    < SPAWN : "spawn" > |
+   < STRING : "string" > |
    < WHILE : "while" >
 }
 
@@ -151,15 +157,40 @@ Method method(MethodTable methods) : {
     String name;
     int params = 0;
     Type retType;
+    String javaClass, javaMethod, javaParam;
+    List<String> signature = new ArrayList<String>();
 }
 {
   (retType=type())?
   name=ident() <LPAREN>
   ( declaration1(methods, symbols) { params++; } ( <COMMA> declaration1(methods, symbols) { params++; } )* )?
   <RPAREN>
-  stmt=statements(methods, symbols)
-  { return new NormalMethod(name, params, symbols.declarations(), stmt); }
+  ( stmt=statements(methods, symbols)
+    { return new NormalMethod(name, params, symbols.declarations(), stmt); }
+  | <INTRINSIC>
+      <CLASS> javaClass=string()
+      <METHOD> javaMethod=string()
+      ( <SIGNATURE> <LPAREN>
+          (intrinsicParam(signature)
+          ( <COMMA> intrinsicParam(signature))*
+          )?
+        <RPAREN>
+      )? <SEMICOLON>
+      { return new IntrinsicMethod(name,javaClass,javaMethod,signature); }
+  )
 }
+
+void intrinsicParam(List<String> signature) : {
+	String javaParam;
+}
+{
+  javaParam=string()
+          { if (javaParam.equals("org.mmtk.harness.lang.Env")) {
+          	  throw new ParseException("Env parameter to intrinsic methods is implicit!");
+            }
+          	signature.add(javaParam); }
+}
+	
 
 /**
  * A sequence of statements in braces, carrying an inner variable scope
@@ -286,8 +317,10 @@ String declaration1(MethodTable methods, SymbolTable symbols) : {
 Type type() : {
 }
 {
-	<INT> { return Type.INT; } |
-	<OBJECT> { return Type.OBJECT; }
+	<INT> { return Type.INT; }
+|	<OBJECT> { return Type.OBJECT; }
+|	<BOOLEAN> { return Type.BOOLEAN; }
+|	<STRING> { return Type.STRING; }
 }
 
 /*

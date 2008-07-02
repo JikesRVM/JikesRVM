@@ -12,6 +12,8 @@
  */
 package org.mmtk.harness.lang;
 
+import java.util.List;
+
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.vm.Collection;
@@ -81,6 +83,66 @@ public class IntrinsicMethod extends Method {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Turn a string into a class object, applying some simple mappings for
+   * primitives etc.
+   * @param param
+   * @return
+   */
+  private static Class<?> classForParam(String param) {
+    Class<?> r;
+    if (param.equals("int")) {
+      r = int.class;
+    } else if (param.equals("long")) {
+      r = long.class;
+    } else if (param.equals("byte")) {
+      r = byte.class;
+    } else if (param.equals("short")) {
+      r = short.class;
+    } else if (param.equals("char")) {
+      r = char.class;
+    } else if (param.equals("boolean")) {
+      r = boolean.class;
+    } else try {
+      r = Class.forName(param);
+    } catch (ClassNotFoundException e) {
+      // As a last chance, try looking for the class in java.lang
+      try {
+        r = Class.forName("java.lang."+param);
+      } catch (ClassNotFoundException f) {
+        throw new RuntimeException(e);
+      }
+    }
+    return r;
+  }
+
+  /**
+   * Turn an array of strings (class names) into an array of Class objects
+   * @param params
+   * @return
+   */
+  private static Class<?>[] classesForParams(List<String> params) {
+    Class<?>[] result = new Class<?>[params.size()];
+    for (int i=0; i < params.size(); i++) {
+      result[i] = classForParam(params.get(i));
+    }
+    return result;
+  }
+
+
+  /************************************************************************
+   *
+   *              Constructors
+   *
+   */
+
+  /**
+   * Constructor
+   */
+  public IntrinsicMethod(String name, String className, String methodName, List<String> params) {
+    this(name,className, methodName,classesForParams(params));
   }
 
   /**
@@ -277,5 +339,12 @@ public class IntrinsicMethod extends Method {
    */
   public static int hash(Env env, ObjectValue val) {
     return env.hash(val.getObjectValue());
+  }
+
+  /**
+   * Unit test method for the Intrinsic method
+   */
+  public static String testMethod(Env env, int x, boolean y, String string, ObjectValue val) {
+    return String.format("successfully called testMethod(%d,%b,%s,%s)", x,y,string,val.toString());
   }
 }
