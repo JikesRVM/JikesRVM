@@ -17,11 +17,7 @@ import java.util.List;
 /**
  * A method is a set of variable declarations followed by a statement.
  */
-public class Method implements Statement, Expression {
-  /** The name of this block */
-  private final String name;
-  /** Number of parameters */
-  private final int params;
+public class NormalMethod extends Method {
   /** The variable declarations */
   private final List<Declaration> decls;
   /** The statement this block will execute */
@@ -30,25 +26,10 @@ public class Method implements Statement, Expression {
   /**
    * Create a new method.
    */
-  public Method(String name, int params, List<Declaration> decls, Statement body) {
-    this.name = name;
-    this.params = params;
+  public NormalMethod(String name, int params, List<Declaration> decls, Statement body) {
+    super(name,params);
     this.decls = decls;
     this.body = body;
-  }
-
-  /**
-   * Execute the statements in the method.
-   */
-  public void exec(Env env) throws ReturnException {
-    exec(env, new Value[] {});
-  }
-
-  /**
-   * Get the name of this method.
-   */
-  public String getName() {
-    return name;
   }
 
   /**
@@ -68,10 +49,6 @@ public class Method implements Statement, Expression {
     }
     env.gcSafePoint();
     env.pop();
-  }
-
-  public Value eval(Env env) {
-    return eval(env, new Value[] {});
   }
 
   /**
@@ -101,7 +78,7 @@ public class Method implements Statement, Expression {
     for(int i=0; i<values.length; i++) {
       Type expected = env.top().getType(i);
       Type actual = values[i].type();
-      env.check(expected == actual, "Method " + name + " parameter " + i + " expected " + expected + " found " + actual);
+      env.check(expected == actual, "NormalMethod " + name + " parameter " + i + " expected " + expected + " found " + actual);
       env.top().set(i, values[i]);
     }
   }

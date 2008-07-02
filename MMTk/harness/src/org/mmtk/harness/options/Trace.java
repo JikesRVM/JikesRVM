@@ -24,7 +24,7 @@ public final class Trace extends org.vmutil.options.EnumOption {
   public Trace() {
     super(Harness.options, "Trace",
           "Harness debugging trace options",
-          new String[] { "none", "CALL", "ALLOC", "OBJECT" }, 0);
+          new String[] { "none", "CALL", "ALLOC", "OBJECT", "INTRINSIC" }, 0);
   }
 
   public void apply() {

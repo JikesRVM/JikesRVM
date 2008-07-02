@@ -46,14 +46,11 @@ public class SymbolTable {
     reservedWords.add("alloc");
     reservedWords.add("assert");
     reservedWords.add("else");
-    reservedWords.add("gc");
-    reservedWords.add("hash");
     reservedWords.add("if");
     reservedWords.add("int");
     reservedWords.add("object");
     reservedWords.add("print");
     reservedWords.add("spawn");
-    reservedWords.add("tid");
     reservedWords.add("while");
   }
 
