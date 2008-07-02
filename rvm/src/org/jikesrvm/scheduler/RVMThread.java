@@ -407,14 +407,16 @@ public abstract class RVMThread {
     this.daemon = daemon;
     this.priority = priority;
 
-    contextRegisters   = new Registers();
-    exceptionRegisters = new Registers();
+    Registers contextRegisters   = new Registers();
+    Registers exceptionRegisters = new Registers();
 
     if(VM.VerifyAssertions) VM._assert(stack != null);
     // put self in list of threads known to scheduler and garbage collector
     if (!VM.runningVM) {
       // create primordial thread (in boot image)
       threadSlot = Scheduler.assignThreadSlot(this);
+      this.contextRegisters = contextRegisters;
+      this.exceptionRegisters = exceptionRegisters;
       // Remember the boot thread
       if (VM.VerifyAssertions) VM._assert(bootThread == null);
       bootThread = this;
@@ -450,6 +452,8 @@ public abstract class RVMThread {
       Configuration.archHelper.initializeStack(contextRegisters, ip, sp);
 
       threadSlot = Scheduler.assignThreadSlot(this);
+      this.contextRegisters = contextRegisters;
+      this.exceptionRegisters = exceptionRegisters;
       VM.enableGC();
 
       // only do this at runtime because it will call Magic;
