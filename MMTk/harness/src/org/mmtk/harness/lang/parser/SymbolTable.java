@@ -21,9 +21,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.mmtk.harness.lang.BoolValue;
 import org.mmtk.harness.lang.Declaration;
 import org.mmtk.harness.lang.IntValue;
 import org.mmtk.harness.lang.ObjectValue;
+import org.mmtk.harness.lang.StringValue;
 import org.mmtk.harness.lang.Type;
 import org.mmtk.harness.lang.Value;
 import org.vmmagic.unboxed.ObjectReference;
@@ -180,6 +182,8 @@ public class SymbolTable {
     switch(type) {
       case INT: return new IntValue(0);
       case OBJECT: return new ObjectValue(ObjectReference.nullReference());
+      case STRING: return new StringValue("");
+      case BOOLEAN: return new BoolValue(false);
     }
     throw new RuntimeException("Invalid type");
   }
