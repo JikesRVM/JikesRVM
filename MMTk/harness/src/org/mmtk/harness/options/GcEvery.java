@@ -34,9 +34,10 @@ public final class GcEvery extends org.vmutil.options.EnumOption {
       case 0:
         break;
       case 1:
-        Env.setGcEverySafepoint();
-      case 2:
         Alloc.setGcEveryAlloc();
+        break;
+      case 2:
+        Env.setGcEverySafepoint();
         break;
     }
   }
