@@ -2831,8 +2831,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
                                   SP,
                                   Offset.fromIntZeroExtend((count - 1) << 2));                       // "this" object
           asm.emitPUSH_Imm(methodRef.getId());                                    // dict id of target
-          baselineEmitLoadTIB(asm, S0, T1);
-          asm.emitPUSH_Reg(S0);
+          asm.emitPUSH_Reg(T1);
           genParameterRegisterLoad(2);                                            // pass 2 parameter word
           asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset()));// check that "this" class implements the interface
         } else {

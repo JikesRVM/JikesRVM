@@ -2873,8 +2873,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitMTCTR(T0);
           asm.emitLVAL(T0, methodRef.getId());            // id of method reference we are trying to call
           peekAddr(T1, count - 1);           // the "this" object
-          ObjectModel.baselineEmitLoadTIB(asm, T1, T1);
-          asm.emitBCCTRL();                 // throw exception, if link error
+          asm.emitBCCTRL();                  // throw exception, if link error
         } else {
           RVMClass interfaceClass = resolvedMethod.getDeclaringClass();
           int interfaceIndex = interfaceClass.getDoesImplementIndex();

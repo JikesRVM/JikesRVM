@@ -2001,17 +2001,6 @@ public final class BC2IR
 
           Operand receiver = Call.getParam(s, 0);
           RVMClass receiverType = (RVMClass) receiver.getType().peekType();
-          // null check on this parameter of call
-          // TODO: Strictly speaking we need to do dynamic linking of the
-          //       interface type BEFORE we do the null check. FIXME.
-          clearCurrentGuard();
-          if (do_NullCheck(receiver)) {
-            // call will always raise null pointer exception
-            s = null;
-            break;
-          }
-          Call.setGuard(s, getCurrentGuard());
-
           boolean requiresImplementsTest = VM.BuildForIMTInterfaceInvocation;
 
           // Invokeinterface requires a dynamic type check
@@ -2022,43 +2011,47 @@ public final class BC2IR
           // we are using, we may have to make this test explicit
           // in the calling sequence if we can't prove at compile time
           // that it is not needed.
+          if (requiresImplementsTest && resolvedMethod == null) {
+            // Sigh.  Can't even resolve the reference to figure out what interface
+            // method we are trying to call. Therefore we must make generate a call
+            // to an out-of-line typechecking routine to handle it at runtime.
+            RVMMethod target = Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
+            Instruction callCheck =
+              Call.create2(CALL,
+                           null,
+                           new AddressConstantOperand(target.getOffset()),
+                           MethodOperand.STATIC(target),
+                           new IntConstantOperand(ref.getId()),
+                           receiver.copy());
+            if (gc.options.NO_CALLEE_EXCEPTIONS) {
+              callCheck.markAsNonPEI();
+            }
+
+            appendInstruction(callCheck);
+            callCheck.bcIndex = RUNTIME_SERVICES_BCI;
+
+            requiresImplementsTest = false; // the above call subsumes the test
+            rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
+          }
+
+          // null check on this parameter of call. Must be done after dynamic linking!
+          clearCurrentGuard();
+          if (do_NullCheck(receiver)) {
+            // call will always raise null pointer exception
+            s = null;
+            break;
+          }
+          Call.setGuard(s, getCurrentGuard());
+
           if (requiresImplementsTest) {
-            if (resolvedMethod == null) {
-              // Sigh.  Can't even resolve the reference to figure out what interface
-              // method we are trying to call. Therefore we must make generate a call
-              // to an out-of-line typechecking routine to handle it at runtime.
-              RegisterOperand tibPtr = gc.temps.makeTemp(TypeReference.TIB);
-              Instruction getTib = GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copy(), getCurrentGuard());
-              appendInstruction(getTib);
-              getTib.bcIndex = RUNTIME_SERVICES_BCI;
-
-              RVMMethod target = Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
-              Instruction callCheck =
-                  Call.create2(CALL,
-                               null,
-                               new AddressConstantOperand(target.getOffset()),
-                               MethodOperand.STATIC(target),
-                               new IntConstantOperand(ref.getId()),
-                               tibPtr.copyD2U());
-              if (gc.options.NO_CALLEE_EXCEPTIONS) {
-                callCheck.markAsNonPEI();
-              }
-
-              appendInstruction(callCheck);
-              callCheck.bcIndex = RUNTIME_SERVICES_BCI;
-
-              requiresImplementsTest = false; // the above call subsumes the test
-              rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
-            } else {
-              // We know what interface method the program wants to invoke.
-              // Attempt to avoid inserting the type check by seeing if the
-              // known static type of the receiver implements the desired interface.
-              RVMType interfaceType = resolvedMethod.getDeclaringClass();
-              if (receiverType != null && receiverType.isResolved() && !receiverType.isInterface()) {
-                byte doesImplement =
-                    ClassLoaderProxy.includesType(interfaceType.getTypeRef(), receiverType.getTypeRef());
-                requiresImplementsTest = doesImplement != YES;
-              }
+            // We know what interface method the program wants to invoke.
+            // Attempt to avoid inserting the type check by seeing if the
+            // known static type of the receiver implements the desired interface.
+            RVMType interfaceType = resolvedMethod.getDeclaringClass();
+            if (receiverType != null && receiverType.isResolved() && !receiverType.isInterface()) {
+              byte doesImplement =
+                ClassLoaderProxy.includesType(interfaceType.getTypeRef(), receiverType.getTypeRef());
+              requiresImplementsTest = doesImplement != YES;
             }
           }
 

@@ -109,7 +109,7 @@ public class Entrypoints {
   public static final NormalMethod unresolvedInvokeinterfaceImplementsTestMethod =
       getMethod(org.jikesrvm.classloader.InterfaceInvocation.class,
                 "unresolvedInvokeinterfaceImplementsTest",
-                "(ILorg/jikesrvm/objectmodel/TIB;)V");
+                "(ILjava/lang/Object;)V");
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
