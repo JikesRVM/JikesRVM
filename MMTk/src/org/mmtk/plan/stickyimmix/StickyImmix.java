@@ -143,7 +143,7 @@ public class StickyImmix extends Immix {
         ploSpace.release(collectWholeHeap);
       lastCommittedPLOSpages = ploSpace.committedPages();
       lastCommittedImmixPages = immixSpace.committedPages();
-      nextGCWholeHeap = false;
+      nextGCWholeHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       return;
     }
 

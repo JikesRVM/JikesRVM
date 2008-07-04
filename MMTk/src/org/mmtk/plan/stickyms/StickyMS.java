@@ -133,6 +133,7 @@ public class StickyMS extends MS {
         modPool.reset();
         if (NURSERY_COLLECT_PLOS)
           ploSpace.release(collectWholeHeap);
+        nextGCWholeHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
         return;
       }
     }
