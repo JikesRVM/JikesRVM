@@ -13,7 +13,8 @@
 package org.jikesrvm.tools.ant;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 import org.apache.tools.ant.BuildException;
@@ -43,9 +44,7 @@ public class SelectRegexTask
   public void execute() {
     validate();
 
-    final byte[] bytes = readFully();
-    final String input = new String(bytes);
-    final String output = performMatching(input);
+    final String output = matchFile();
     if (output != null) {
       Property p = (Property) getProject().createTask("property");
       p.setName(property);
@@ -54,23 +53,25 @@ public class SelectRegexTask
     }
   }
 
-  private byte[] readFully() {
-    FileInputStream inputStream = null;
+  private String matchFile() {
+    BufferedReader input = null;
     try {
-      inputStream = new FileInputStream(file);
-      final int size = (int) file.length();
-      final byte[] bytes = new byte[size];
-      int count = 0;
-      while (count < size) {
-        count += inputStream.read(bytes, count, size - count);
+      final Regexp regexp = this.pattern.getRegexp(getProject());
+      input = new BufferedReader(new FileReader(file));
+      String line;
+      while((line = input.readLine()) != null) {
+        String result = performMatching(line);
+        if (result != null) {
+          return result;
+        }
       }
-      return bytes;
+      return null;
     } catch (IOException ioe) {
       throw new BuildException("Error loading file " + file, ioe, getLocation());
     } finally {
-      if (null != inputStream) {
+      if (input != null) {
         try {
-          inputStream.close();
+          input.close();
         } catch (final IOException ioe) {
           //ignore
         }
