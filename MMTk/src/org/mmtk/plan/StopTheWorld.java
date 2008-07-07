@@ -62,7 +62,7 @@ public abstract class StopTheWorld extends Simple {
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
-      if (getSanityChecker() == null || VM.activePlan.collector().getSanityChecker() == null) {
+      if (getSanityChecker() == null) {
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
