@@ -14,7 +14,6 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
