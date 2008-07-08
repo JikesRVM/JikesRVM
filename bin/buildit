@@ -28,6 +28,9 @@ $shortusage =
 $usage = $shortusage."Building:
   buildit <Option(s)> build-host [-c target-host] <Config(s)>
 
+Eclipse Project:
+  buildit --eclipse build-host
+
 Testing:
   buildit <Option(s)> -t test build-host [-c target-host] [<Config(s)>]
     for example:
@@ -79,6 +82,7 @@ Building Options:
  -s, --suffix         Append a suffix to the build name
  -m, --mmtk-config    MMTk properties (included in suffix)
  -j, --java-home      Specify a JAVA_HOME directory to use
+     --eclipse        Build an eclipse project (and bring it back to this machine)
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
      --checkstyle     Perform source code style checks.
@@ -138,6 +142,7 @@ GetOptions(
   "p|profile" => \$profile,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
+  "eclipse" => \$eclipse,
   "target-user=s" => \$cmd_targetUser,
   "classpath-cvs" => \$cvs_head,
   "g|gdb-symbols" => \$gdb_symbols,
@@ -422,9 +427,12 @@ if ($#gcs == -1 && $test_set && $compiler eq "") {
   @gcs = split(" ", $baseconfigs);
 }
 if ($#gcs == -1) {
+  if ($eclipse && $compile eq "") {
+    $compiler = "production";
+  }
   if ($compiler ne "") {
-  @gcs = ( $compiler );
-  $compiler = "";
+    @gcs = ( $compiler );
+    $compiler = "";
   } else {
     bad_usage("Need at least one configuration");
   }
@@ -659,7 +667,9 @@ if ($ok) {
       #
       # Initial build
       #
-      if ($hostConfig eq $targetConfig) {
+      if ($eclipse) {
+        $build .= "  ant eclipse-project $hostdefs";
+      } elsif ($hostConfig eq $targetConfig) {
         $build .= "  ant $hostdefs";
       } else {
         $build .= "  ant cross-compile-host $hostdefs";
@@ -673,7 +683,13 @@ if ($ok) {
     #
     # Cross-builds
     #
-    if ($host ne $target) {
+    if ($eclipse) {
+      if ($host ne "localhost") {
+        $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/eclipse $localRoot/ ";
+        $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.project $localRoot/ ";
+        $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.classpath $localRoot/ ";
+      }
+    } elsif ($host ne $target) {
       if ($compcachedir ne "") {
         $build .= "&& rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache/ ";
       }
