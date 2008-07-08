@@ -67,27 +67,31 @@ public class LocalConstantProp extends CompilerPhase {
     // info is a mapping from Register to ConstantOperand.
     HashMap<Register, ConstantOperand> info = new HashMap<Register, ConstantOperand>();
     boolean runBranchOpts = false;
+
+    /* Visit each basic block and apply the optimization */
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
-      if (bb.isEmpty()) continue;
+      if (bb.isEmpty()) continue; /* skip over trivial blocks */
       container.counter2++;
       if (bb.getInfrequent()) {
         container.counter1++;
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
-      // iterate over all instructions in the basic block
-      for (Instruction s = bb.firstRealInstruction(), next,
-          sentinel = bb.lastInstruction(); s != sentinel; s = next) {
+
+      /* Iterate over all instructions in the basic block */
+      for (Instruction s = bb.firstRealInstruction(), next, sentinel = bb.lastInstruction(); s != sentinel; s = next) {
         next = s.nextInstructionInCodeOrder();
+
+        /* Do we known anything ? */
         if (!info.isEmpty()) {
-          // PROPAGATE CONSTANTS
-          int numUses = s.getNumberOfUses();
+          /* Transform: attempt to propagate constants */
+          int numUses = s.getNumberOfPureUses();
           if (numUses > 0) {
             boolean didSomething = false;
             int numDefs = s.getNumberOfDefs();
             for (int idx = numDefs; idx < numUses + numDefs; idx++) {
               Operand use = s.getOperand(idx);
               if (use instanceof RegisterOperand) {
-                RegisterOperand rUse = (RegisterOperand) use;
+                RegisterOperand rUse = (RegisterOperand)use;
                 Operand value = info.get(rUse.getRegister());
                 if (value != null) {
                   didSomething = true;
@@ -95,43 +99,40 @@ public class LocalConstantProp extends CompilerPhase {
                 }
               }
             }
-            if (didSomething) Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
+            if (didSomething) {
+              Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
+            }
           }
-          // KILL
-          for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-            Operand def = e.next();
-            if (def != null) {
-              // we have a definition, check to see if it kills a local move of a constant
-              Register defReg = ((RegisterOperand) def).getRegister();
-              ConstantOperand cOp = info.get(defReg);
-              if (cOp != null) {
-                // move was overwritten
-                if (Move.conforms(s) && Move.getVal(s).isConstant()) {
-                  ConstantOperand cOp2 = (ConstantOperand) Move.getVal(s);
-                  if (cOp2.similar(cOp)) {
-                    // Redundant move of same value, remove instruction and do nothing
-                    s.remove();
-                  } else {
-                    // Overwriting move
-                    info.put(defReg, cOp2);
-                  }
-                } else {
-                  // Overwritten by non-move
-                  info.remove(defReg);
-                }
+
+          /* KILL: Remove bindings for all registers defined by this instruction */
+          if (!info.isEmpty()) {
+            for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
+              Operand def = e.next();
+              if (def != null) {
+                /* Don't bother special casing the case where we are defining another constant; GEN will handle that */
+                /* Don't attempt to remove redundant assignments; let dead code elimination handle that */
+                Register defReg = ((RegisterOperand)def).getRegister();
+                info.remove(defReg);
               }
             }
           }
-        } else if (Move.conforms(s) && Move.getVal(s).isConstant()) {
-          // GEN
-          info.put(Move.getResult(s).getRegister(), (ConstantOperand) Move.getVal(s));
+        }
+
+        /* GEN: If this is a move operation with a constant RHS, then it defines a constant */
+        if (Move.conforms(s) && Move.getVal(s).isConstant()) {
+          info.put(Move.getResult(s).getRegister(), (ConstantOperand)Move.getVal(s));
         }
       }
+
+      /* End of basic block; clean up and prepare for next block */
       info.clear();
       runBranchOpts |= BranchSimplifier.simplify(bb, ir);
     }
+
+    /* End of IR.  If we simplified a branch instruction, then run branch optimizations */
     if (runBranchOpts) {
       new BranchOptimizations(0, true, false, false).perform(ir);
     }
+
   }
 }
