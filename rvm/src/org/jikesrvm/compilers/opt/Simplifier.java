@@ -267,7 +267,7 @@ public abstract class Simplifier extends IRTools {
         result = intAnd(s);
         break;
       case INT_DIV_opcode:
-        result = intDiv(s);
+        result = intDiv(regpool, s);
         break;
       case INT_MUL_opcode:
         result = intMul(regpool, s);
@@ -1299,7 +1299,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intDiv(Instruction s) {
+  private static DefUseEffect intDiv(AbstractRegisterPool regpool, Instruction s) {
     if (CF_INT) {
       Operand op1 = GuardedBinary.getVal1(s);
       Operand op2 = GuardedBinary.getVal2(s);
@@ -1329,11 +1329,26 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          // x / c == x >> (log c) if c is power of 2
-          int power = PowerOf2(val2);
-          if (power != -1) {
-            Binary.mutate(s, INT_SHR, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s), IC(power));
-            return DefUseEffect.REDUCED;
+          // x / c == (x + (((1 << c) - 1) & (x >> 31))) >> c .. if c is power of 2
+          if (s.getPrev() != null) {
+            int power = PowerOf2(val2);
+            if (power != -1) {
+              int x = (1 << power)-1;
+              RegisterOperand tempInt1 = regpool.makeTempInt();
+              RegisterOperand tempInt2 = regpool.makeTempInt();
+              RegisterOperand tempInt3 = regpool.makeTempInt();
+              Instruction sign = Binary.create(INT_SHR, tempInt1, GuardedBinary.getVal1(s).copy(), IC(31));
+              sign.copyPosition(s);
+              s.insertBefore(sign);
+              Instruction masked = Binary.create(INT_AND, tempInt2, tempInt1.copyRO(), IC((1 << power)-1));
+              masked.copyPosition(s);
+              s.insertBefore(masked);
+              Instruction adjusted = Binary.create(INT_ADD, tempInt3, tempInt2.copyRO(), GuardedBinary.getClearVal1(s));
+              adjusted.copyPosition(s);
+              s.insertBefore(adjusted);
+              Binary.mutate(s, INT_SHR, GuardedBinary.getClearResult(s), tempInt3.copyRO(), IC(power));
+              return DefUseEffect.REDUCED;
+            }
           }
         }
       }
