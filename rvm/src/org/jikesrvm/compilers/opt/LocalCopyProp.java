@@ -81,7 +81,7 @@ public class LocalCopyProp extends CompilerPhase {
 
         if (!info.isEmpty()) {
           // PROPAGATE COPIES
-          int numUses = s.getNumberOfUses();
+          int numUses = s.getNumberOfPureUses();
           if (numUses > 0) {
             boolean didSomething = false;
             for (OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
