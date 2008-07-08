@@ -22,7 +22,7 @@ public class TestParallelHardwareTrap {
     for(int i=0; i<10; i++) {
       new Thread(new Runnable() {
         public void run() {
-          for(int i=0; i < 10000; i++) {
+          for(int i=0; i < 5000; i++) {
             causeAndHandleNPE();
           }
           synchronized (oLock) {
