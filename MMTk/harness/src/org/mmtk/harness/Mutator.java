@@ -29,7 +29,6 @@ import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * This class represents a mutator thread that has memory managed by MMTk.
