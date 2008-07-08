@@ -105,15 +105,13 @@ public class LocalConstantProp extends CompilerPhase {
           }
 
           /* KILL: Remove bindings for all registers defined by this instruction */
-          if (!info.isEmpty()) {
-            for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-              Operand def = e.next();
-              if (def != null) {
-                /* Don't bother special casing the case where we are defining another constant; GEN will handle that */
-                /* Don't attempt to remove redundant assignments; let dead code elimination handle that */
-                Register defReg = ((RegisterOperand)def).getRegister();
-                info.remove(defReg);
-              }
+          for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
+            Operand def = e.next();
+            if (def != null) {
+              /* Don't bother special casing the case where we are defining another constant; GEN will handle that */
+              /* Don't attempt to remove redundant assignments; let dead code elimination handle that */
+              Register defReg = ((RegisterOperand)def).getRegister();
+              info.remove(defReg);
             }
           }
         }
