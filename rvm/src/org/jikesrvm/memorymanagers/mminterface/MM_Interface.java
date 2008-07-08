@@ -177,8 +177,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
                                         ObjectReference.fromObject(value),
-                                        offset,
-                                        locationMetadata,
+                                        offset.toWord(),
+                                        Word.fromIntZeroExtend(locationMetadata),
                                         PUTFIELD_WRITE_BARRIER);
   }
 
@@ -197,8 +197,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
                                         src.toAddress().plus(offset),
                                         ObjectReference.fromObject(old),
                                         ObjectReference.fromObject(value),
-                                        offset,
-                                        0, // do not have location metadata
+                                        offset.toWord(),
+                                        Word.zero(), // do not have location metadata
                                         PUTFIELD_WRITE_BARRIER);
   }
 
@@ -216,8 +216,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
                                         ObjectReference.fromObject(value),
-                                        offset,
-                                        locationMetadata,
+                                        offset.toWord(),
+                                        Word.fromIntZeroExtend(locationMetadata),
                                         PUTSTATIC_WRITE_BARRIER);
   }
 
@@ -239,8 +239,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     Selected.Mutator.get().writeBarrier(array,
                                         array.toAddress().plus(offset),
                                         ObjectReference.fromObject(value),
-                                        offset,
-                                        0,
+                                        offset.toWord(),
+                                        Word.zero(),
                                         // don't know metadata
                                         AASTORE_WRITE_BARRIER);
   }
@@ -289,8 +289,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     ObjectReference src = ObjectReference.fromObject(ref);
     return Selected.Mutator.get().readBarrier(src,
                                               src.toAddress().plus(offset),
-                                              offset,
-                                              locationMetadata,
+                                              offset.toWord(),
+                                              Word.fromIntZeroExtend(locationMetadata),
                                               GETFIELD_READ_BARRIER).toObject();
   }
 
@@ -309,8 +309,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
     return Selected.Mutator.get().readBarrier(array,
                                               array.toAddress().plus(offset),
-                                              offset,
-                                              0, // don't know metadata
+                                              offset.toWord(),
+                                              Word.zero(), // don't know metadata
                                               AALOAD_READ_BARRIER).toObject();
   }
 
@@ -327,8 +327,8 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
     return Selected.Mutator.get().readBarrier(src,
                                               src.toAddress().plus(offset),
-                                              offset,
-                                              locationMetadata,
+                                              offset.toWord(),
+                                              Word.fromIntZeroExtend(locationMetadata),
                                               GETSTATIC_READ_BARRIER).toObject();
   }
 

@@ -27,16 +27,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    */
   @Inline
   public final void performWriteInBarrier(ObjectReference ref, Address slot,
-                                           ObjectReference target, Offset offset,
-                                           int locationMetadata, int mode) {
+                                           ObjectReference target, Word metaDataA,
+                                           Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    Magic.setObjectAtOffset(obj, offset, target.toObject(), locationMetadata);
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    Magic.setObjectAtOffset(obj, offset, target.toObject(), location);
   }
 
   /**
@@ -45,16 +47,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param rawTarget The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    */
   @Inline
   public final void performRawWriteInBarrier(ObjectReference ref, Address slot,
-                                             Word rawTarget, Offset offset,
-                                             int locationMetadata, int mode) {
+                                             Word rawTarget, Word metaDataA,
+                                             Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    Magic.setWordAtOffset(obj, offset, rawTarget, locationMetadata);
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    Magic.setWordAtOffset(obj, offset, rawTarget, location);
   }
 
   /**
@@ -62,16 +66,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    * @return the read value
    */
   @Inline
   public final ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
-                                                    Offset offset, int locationMetadata, int mode) {
+                                                    Word metaDataA, Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    return ObjectReference.fromObject(Magic.getObjectAtOffset(obj, offset, locationMetadata));
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    return ObjectReference.fromObject(Magic.getObjectAtOffset(obj, offset, location));
   }
 
   /**
@@ -79,16 +85,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    * @return the read value
    */
   @Inline
   public final Word performRawReadInBarrier(ObjectReference ref, Address slot,
-                                            Offset offset, int locationMetadata, int mode) {
+                                            Word metaDataA, Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    return Magic.getWordAtOffset(obj, offset, locationMetadata);
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    return Magic.getWordAtOffset(obj, offset, location);
   }
 
   /**
@@ -98,18 +106,19 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
   @Inline
   public final ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
-                                           ObjectReference target, Offset offset,
-                                           int locationMetadata, int mode) {
+                                           ObjectReference target, Word metaDataA,
+                                           Word metaDataB, int mode) {
     Object obj = ref.toObject();
     Object newObject = target.toObject();
+    Offset offset = metaDataA.toOffset();
     Object oldObject;
     do {
       oldObject = Magic.prepareObject(obj, offset);
@@ -125,17 +134,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param rawTarget The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
   @Inline
   public final Word performRawWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
-                                           Word rawTarget, Offset offset,
-                                           int locationMetadata, int mode) {
+                                           Word rawTarget, Word metaDataA,
+                                           Word metaDataB, int mode) {
     Object obj = ref.toObject();
+    Offset offset = metaDataA.toOffset();
     Word oldValue;
     do {
       oldValue = Magic.prepareWord(obj, offset);
@@ -150,16 +160,17 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param slot The slot that holds the reference
    * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
   @Inline
   public final boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                        ObjectReference old, ObjectReference target,
-                                                       Offset offset, int locationMetadata, int mode) {
+                                                       Word metaDataA, Word metaDataB, int mode) {
     Object oldValue;
+    Offset offset = metaDataA.toOffset();
     do {
       oldValue = Magic.prepareObject(ref, offset);
       if (oldValue != old) return false;
@@ -175,15 +186,16 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param slot The slot that holds the reference
    * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
   @Inline
   public final boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
-                                                          Word rawOld, Word rawTarget, Offset offset,
-                                                          int locationMetadata, int mode) {
+                                                          Word rawOld, Word rawTarget, Word metaDataA,
+                                                          Word metaDataB, int mode) {
+    Offset offset = metaDataA.toOffset();
     do {
       Word currentValue = Magic.prepareWord(ref, offset);
       if (currentValue != rawOld) return false;

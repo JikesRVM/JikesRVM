@@ -75,13 +75,13 @@ public class StickyMSMutator extends MSMutator {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA A field used by the VM to create a correct store.
-   * @param metaDataB A field used by the VM to create a correct store.
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
+      ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     if (Plan.logRequired(src))
       logSource(src);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);

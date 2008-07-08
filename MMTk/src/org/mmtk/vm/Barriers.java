@@ -35,13 +35,13 @@ public abstract class Barriers {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    */
   public abstract void performWriteInBarrier(ObjectReference ref, Address slot,
-                                             ObjectReference target, Offset offset,
-                                             int locationMetadata, int mode);
+                                             ObjectReference target, Word metaDataA,
+                                             Word metaDataB, int mode);
 
   /**
    * Perform the actual write of the write barrier, writing the value as a raw Word.
@@ -49,39 +49,39 @@ public abstract class Barriers {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param rawTarget The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    */
   public abstract void performRawWriteInBarrier(ObjectReference ref, Address slot,
-                                                Word rawTarget, Offset offset,
-                                                int locationMetadata, int mode);
+                                                Word rawTarget, Word metaDataA,
+                                                Word metaDataB, int mode);
 
   /**
    * Perform the actual read of the read barrier.
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    * @return the read value
    */
   public abstract ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
-                                                       Offset offset, int locationMetadata, int mode);
+                                                       Word metaDataA, Word metaDataB, int mode);
 
   /**
    * Perform the actual read of the read barrier, returning the value as a raw Word.
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    * @return the read value
    */
   public abstract Word performRawReadInBarrier(ObjectReference ref, Address slot,
-                                               Offset offset, int locationMetadata, int mode);
+                                               Word metaDataA, Word metaDataB, int mode);
 
   /**
    * Atomically write a reference field of an object or array and return
@@ -90,14 +90,14 @@ public abstract class Barriers {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
   public abstract ObjectReference performWriteInBarrierAtomic(ObjectReference ref, Address slot,
-                                                              ObjectReference target, Offset offset,
-                                                              int locationMetadata, int mode);
+                                                              ObjectReference target, Word metaDataA,
+                                                              Word metaDataB, int mode);
 
   /**
    * Atomically write a reference field of an object or array and return
@@ -106,14 +106,14 @@ public abstract class Barriers {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param rawTarget The raw value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    * @return The raw value that was replaced by the write.
    */
   public abstract Word performRawWriteInBarrierAtomic(ObjectReference ref, Address slot,
-                                                      Word rawTarget, Offset offset,
-                                                      int locationMetadata, int mode);
+                                                      Word rawTarget, Word metaDataA,
+                                                      Word metaDataB, int mode);
 
   /**
    * Attempt an atomic compare and exchange in a write barrier sequence.
@@ -122,14 +122,14 @@ public abstract class Barriers {
    * @param slot The slot that holds the reference
    * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
   public abstract boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                           ObjectReference old, ObjectReference target,
-                                                          Offset offset, int locationMetadata, int mode);
+                                                          Word metaDataA, Word metaDataB, int mode);
 
   /**
    * Attempt an atomic compare and exchange in a write barrier sequence.
@@ -138,12 +138,12 @@ public abstract class Barriers {
    * @param slot The slot that holds the reference
    * @param rawOld The old reference to be swapped out
    * @param rawTarget The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA VM specific meta data
+   * @param metaDataB VM specific meta data
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
   public abstract boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                              Word rawOld, Word rawTarget,
-                                                             Offset offset, int locationMetadata, int mode);
+                                                             Word metaDataA, Word metaDataB, int mode);
 }

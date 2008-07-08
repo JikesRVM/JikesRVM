@@ -112,14 +112,14 @@ public class RCMutator extends RCBaseMutator implements Constants {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
-                                 ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode) {
+                                 ObjectReference tgt, Word metaDataA,
+                                 Word metaDataB, int mode) {
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -139,15 +139,15 @@ public class RCMutator extends RCBaseMutator implements Constants {
    * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   @Inline
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+      ObjectReference old, ObjectReference tgt, Word metaDataA,
+      Word metaDataB, int mode) {
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -166,14 +166,14 @@ public class RCMutator extends RCBaseMutator implements Constants {
    * @param slot The address of the word (slot) being mutated.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference (about to be stored into src).
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @Inline
   private boolean tryCompareAndSwapWriteBarrierInternal(ObjectReference src, Address slot,
-                                          ObjectReference old, ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode) {
+                                          ObjectReference old, ObjectReference tgt, Word metaDataA,
+                                          Word metaDataB, int mode) {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -201,14 +201,14 @@ public class RCMutator extends RCBaseMutator implements Constants {
    * @param slot The address of the word (slot) being mutated.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference (about to be stored into src).
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @NoInline
   private boolean tryCompareAndSwapWriteBarrierInternalOOL(ObjectReference src, Address slot,
-                                          ObjectReference old, ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode) {
+                                          ObjectReference old, ObjectReference tgt, Word metaDataA,
+                                          Word metaDataB, int mode) {
     return tryCompareAndSwapWriteBarrierInternal(src,slot,old,tgt,metaDataA,metaDataB,mode);
   }
 
@@ -220,14 +220,14 @@ public class RCMutator extends RCBaseMutator implements Constants {
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @Inline
   private void writeBarrierInternal(ObjectReference src, Address slot,
-                                          ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode) {
+                                    ObjectReference tgt, Word metaDataA,
+                                    Word metaDataB, int mode) {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -251,15 +251,15 @@ public class RCMutator extends RCBaseMutator implements Constants {
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   @NoInline
   private void writeBarrierInternalOOL(ObjectReference src, Address slot,
-                                             ObjectReference tgt,
-                                             Offset metaDataA, int metaDataB,
-                                             int mode) {
+                                       ObjectReference tgt,
+                                       Word metaDataA, Word metaDataB,
+                                       int mode) {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {

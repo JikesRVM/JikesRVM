@@ -19,6 +19,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class implements a poisoned collector, that is essentially a test
@@ -49,7 +50,7 @@ public class PoisonedMutator extends MSMutator {
    */
   @Inline
   @Override
-  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
+  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.performRawWriteInBarrier(src, slot, Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
@@ -72,7 +73,7 @@ public class PoisonedMutator extends MSMutator {
    */
   @Override
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
-                                               Offset metaDataA, int metaDataB, int mode) {
+                                               Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.tryRawCompareAndSwapWriteInBarrier(src, slot, Poisoned.poison(old), Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
@@ -116,7 +117,7 @@ public class PoisonedMutator extends MSMutator {
    */
   @Inline
   @Override
-  public ObjectReference readBarrier(ObjectReference src, Address slot, Offset metaDataA, int metaDataB, int mode) {
+  public ObjectReference readBarrier(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
     return Poisoned.depoison(VM.barriers.performRawReadInBarrier(src, slot, metaDataA, metaDataB, mode));
   }
 }

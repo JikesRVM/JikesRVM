@@ -409,7 +409,7 @@ public class Mutator extends MMTkThread {
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     if (ActivePlan.constraints.needsWriteBarrier()) {
-      context.writeBarrier(object, referenceSlot, value, Offset.zero(), 0, Plan.AASTORE_WRITE_BARRIER);
+      context.writeBarrier(object, referenceSlot, value, null, null, Plan.AASTORE_WRITE_BARRIER);
     } else {
       referenceSlot.store(value);
     }
@@ -449,7 +449,7 @@ public class Mutator extends MMTkThread {
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
     if (ActivePlan.constraints.needsReadBarrier()) {
-      result = context.readBarrier(object, referenceSlot, Offset.zero(), 0, Plan.AASTORE_WRITE_BARRIER);
+      result = context.readBarrier(object, referenceSlot, null, null, Plan.AASTORE_WRITE_BARRIER);
     } else {
       result = referenceSlot.loadObjectReference();
     }

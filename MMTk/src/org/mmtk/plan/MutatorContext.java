@@ -316,13 +316,13 @@ import org.vmmagic.unboxed.*;
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    */
   public void writeBarrier(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+      ObjectReference tgt, Word metaDataA,
+      Word metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -340,14 +340,14 @@ import org.vmmagic.unboxed.*;
    * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+      ObjectReference old, ObjectReference tgt, Word metaDataA,
+      Word metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -409,7 +409,7 @@ import org.vmmagic.unboxed.*;
    * @return The reference that was read.
    */
   @Inline
-  public ObjectReference readBarrier(ObjectReference src, Address slot, Offset metaDataA, int metaDataB, int mode) {
+  public ObjectReference readBarrier(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
     // Either: read barriers are used and this is overridden, or
     // read barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
