@@ -129,6 +129,7 @@ $mailserver=$config{"global.mail.server"};
 
 # Execution environment
 $xvfb_run=$config{"global.display-wrapper.exe"};
+$shell=$config{"global.shell"};
 
 use Cwd 'abs_path';
 use Getopt::Long qw(:config no_auto_abbrev bundling);
@@ -197,6 +198,9 @@ if ($target eq "") {
 if ($results_name eq "") {
   $results_name = "latest";
 }
+if ($shell eq "") {
+  $shell = "/bin/bash -c ";
+}
 
 $testsid = getid();
 
@@ -224,6 +228,17 @@ if ($root eq "") {
   bad_usage("rvm root is not specified");
 }
 
+$local = `hostname`;
+chomp($local);
+
+if ($host eq "localhost") {
+  $host = $local;
+}
+
+if ($target eq "localhost") {
+  $target = $local;
+}
+
 $hostUser = $ENV{USER};
 $targetUser = $ENV{USER};
 
@@ -244,10 +259,22 @@ if ($cmd_targetUser ne "") {
 }
 
 $sshHost = $hostUser."@".$host;
-$sshTarget = $targetUser."@".$target;
+$sshHostCmd = "ssh $sshHost";
+$sshHostCmdT = "ssh $sshHost -t";
 
-$local = `hostname`;
-chomp($local);
+$sshTarget = $targetUser."@".$target;
+$sshTargetCmd = "ssh $sshTarget";
+$sshTargetCmdT = "ssh $sshTarget -t";
+
+if ($host eq $local) {
+  $sshHostCmd = $shell;
+  $sshHostCmdT = $shell;
+}
+
+if ($target eq $local) {
+  $sshTargetCmd = $shell;
+  $sshTargetCmdT = $shell;
+}
 
 if ($config{"$local.home"} ne "") {
   $localHome = $config{"$local.home"};
@@ -258,15 +285,23 @@ if ($config{"$local.home"} ne "") {
 if ($config{"$host.home"} ne "") {
   $hostHome = $config{"$host.home"};
 } else {
-  $hostHome = `ssh $sshHost pwd`;
-  chomp($hostHome);
+  if ($host eq $local) {
+    $hostHome = $localHome;
+  } else {
+    $hostHome = `ssh $sshHost pwd`;
+    chomp($hostHome);
+  }
 }
 
 if ($config{"$target.home"} ne "") {
   $targetHome = $config{"$target.home"};
 } else {
-  $targetHome = `ssh $sshTarget pwd`;
-  chomp($targetHome);
+  if ($target eq $local) {
+    $targetHome = $localHome;
+  } else {
+    $targetHome = `ssh $sshTarget pwd`;
+    chomp($targetHome);
+  }
 }
 
 if ($compcachedir ne "") {
@@ -305,7 +340,7 @@ if (! -e $localRoot . "/rvm") {
 if ($config{"$host.host-type"} ne "") {
   $hostConfig = $config{"$host.host-type"};
 } else {
-  @host_info = split(" ", `ssh $sshHost uname -mo`);
+  @host_info = split(" ", `$sshHostCmd 'uname -mo'`);
   chomp(@host_info);
   $hostConfig = $config{"global.arch.".$host_info[0]}."-".$config{"global.os.".$host_info[1]};
 }
@@ -313,7 +348,7 @@ if ($config{"$host.host-type"} ne "") {
 if ($config{"$target.host-type"} ne "") {
   $targetConfig = $config{"$target.host-type"};
 } else {
-  @target_info = split(" ", `ssh $sshTarget uname -mo`);
+  @target_info = split(" ", `$sshTargetCmd 'uname -mo'`);
   chomp(@target_info);
   $targetConfig = $config{"global.arch.".$target_info[0]}."-".$config{"global.os.".$target_info[1]};
 }
@@ -493,27 +528,27 @@ foreach $dir (@dirs) {
 #
 # Test connectivity
 #
-if ($config{"$host.tested"} eq "") {
+if ($config{"$host.tested"} eq "" && $host ne $local) {
   print "Testing build-host connectivity... ";
-  if (!system("ssh $sshHost echo OK")) {
+  if (!system("$sshHostCmd echo OK")) {
     cache_data("$host.tested", "OK");
   }
 }
-if ($config{"$target.tested"} eq "") {
+if ($config{"$target.tested"} eq "" && $target ne $local) {
   print "Testing target-host connectivity... ";
-  if (!system("ssh $sshTarget echo OK")) {
+  if (!system("$sshTargetCmd echo OK")) {
     cache_data("$target.tested", "OK");
   }
 }
 if ($host ne $target && $config{"$host-$target.tested"} eq "") {
   print "Testing build-host -> target-host connectivity... ";
-  if (!system("ssh -t $sshHost ssh $sshTarget echo OK")) {
+  if (!system("$sshHostCmdT 'ssh $sshTarget echo OK'")) {
     cache_data("$host-$target.tested", "OK");
   }
 }
 if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
   print "Testing target-host -> upload-host connectivity... ";
-  if (!system("ssh -t $sshTarget ssh -t $upload_host echo OK")) {
+  if (!system("$sshTargetCmdT 'ssh $upload_host -t echo OK'")) {
     cache_data("$target-$upload_host.tested", "OK");
   }
 }
@@ -521,10 +556,10 @@ if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
 #
 # Clean up first ?
 #
-if ($nuke) {
-  $nukecmd = "ssh -t $sshHost rm -rf $hostRoot;\n"; 
+if ($nuke && $target ne $local) {
+  $nukecmd = "$sshHostCmdT rm -rf $hostRoot;\n"; 
   if ($host ne $target) {
-    $nukecmd = "ssh -t $sshTarget rm -rf $targetRoot;\n"; 
+    $nukecmd = "$sshTargetCmdT rm -rf $targetRoot;\n"; 
   }
   print "$nukecmd\n\n";
   if (! $dry_run) {
@@ -552,18 +587,18 @@ if ($compcachedir) {
 my $ok = ($mkccRet == 0);
 
 if ($ok) {
-  if ($host ne "localhost") {
-    $rsync .= "ssh -t $sshHost mkdir -p $hostRoot;\n";
+  if ($host ne $local) {
+    $rsync .= "ssh $sshHost -t mkdir -p $hostRoot;\n";
     if ($compcachedir ne "") {
-      $rsync .= "ssh -t $sshHost mkdir -p $hostCompCache;\n";
+      $rsync .= "ssh $sshHost -t mkdir -p $hostCompCache;\n";
       $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshHost:$hostCompCache/;\n";
     }
     $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
     if ($host ne $target) {
-      $rsync .= ";\nssh -t $sshTarget mkdir -p $targetRoot";
+      $rsync .= ";\nssh $sshTarget -t mkdir -p $targetRoot";
       $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
       if ($compcachedir ne "") {
-        $rsync .= ";\nssh -t $sshTarget mkdir -p $targetCompCache;\n";
+        $rsync .= ";\nssh $sshTarget -t mkdir -p $targetCompCache;\n";
         $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
       }
     }
@@ -648,7 +683,7 @@ if ($ok) {
     if ($skip_build) {
       $build .= "echo Skipping build ";
     } else {
-      $build .= "ssh -t $sshHost '/bin/bash -c \" ".
+      $build .= "$sshHostCmdT '$shell \" ".
                "  cd $hostRoot &&".
                "  export JAVA_HOME=$javaHome{$host} && ";
 
@@ -675,7 +710,7 @@ if ($ok) {
         $build .= "  ant cross-compile-host $hostdefs";
       }
       $build .= "\"' ";
-      if ($compcachedir ne "") {
+      if ($compcachedir ne "" && $host ne $local) {
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostCompCache/ $localCompCache/ ";
       }
     }
@@ -684,27 +719,27 @@ if ($ok) {
     # Cross-builds
     #
     if ($eclipse) {
-      if ($host ne "localhost") {
+      if ($host ne $local) {
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/eclipse $localRoot/ ";
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.project $localRoot/ ";
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.classpath $localRoot/ ";
       }
     } elsif ($host ne $target) {
-      if ($compcachedir ne "") {
+      if ($compcachedir ne "" && $target ne $local) {
         $build .= "&& rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache/ ";
       }
       $build .= "&& ".
-                "ssh -t $sshTarget 'mkdir -p $targetRoot/dist && ".
+                "$sshTargetCmdT 'mkdir -p $targetRoot/dist && ".
                 "mkdir -p $targetRoot/target' &&";
       if ($hostConfig eq $targetConfig) {
         #
         # Same architecture: just copy the dist directory
         #
-        $build .= "ssh -t $sshHost rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ";
-        $build .= " $sshTarget:$targetRoot/dist/$targetDir/ ";
+        $build .= "$sshHostCmdT 'rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ";
+        $build .= " $sshTarget:$targetRoot/dist/$targetDir/ ' ";
       } else {
         # Copy the compiled classes and boot image
-        $build .= "ssh -t $sshHost '".
+        $build .= "$sshHostCmdT '".
                   "  rsync -avze ssh --delete $hostRoot/target/$targetDir/ ".
                   " $sshTarget:$targetRoot/target/$targetDir/ &&".
                   " rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ".
@@ -720,7 +755,7 @@ if ($ok) {
         #
 
         # For the classpath build, the host is now the target ;)
-        $build .= "ssh -t $sshTarget '/bin/bash -c \"".
+        $build .= "$sshTargetCmdT '$shell \"".
 	          "  cd $targetRoot && ".
                   "  export JAVA_HOME=$javaHome{$target} && ";
 
@@ -734,7 +769,7 @@ if ($ok) {
 
         $build .= "  ant cross-compile-target $targetdefs \"'";
       }
-      if ($compcachedir ne "") {
+      if ($compcachedir ne "" && $target ne $local) {
         $build .= " && rsync -azvLe ssh --delete $sshTarget:$targetCompCache/ $localCompCache/ ";
       }
     }
@@ -761,7 +796,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   }
   $configs =~ s/^ //;
 
-  $test = "ssh -t $sshTarget '/bin/bash -c \" ".
+  $test = "$sshTargetCmdT '$shell \" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
           "  export JAVA_HOME=$javaHome{$target} && ".
@@ -796,7 +831,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
       $test .= "-Dupload.location=$upload_host:$uploaddir ";
     }
 
-    $make_upload = "ssh -t $upload_host mkdir -p $uploaddir ";
+    $make_upload = "ssh $upload_host -t mkdir -p $uploaddir ";
     print($make_upload."\n");
     if (! $dry_run) {
       system($make_upload);
@@ -836,10 +871,12 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     system($test);
   }
 
-  $rsync = "mkdir -p $localRoot/$resultdir && ".
-           "rm -f $localRoot/results/buildit/$results_name && ".
-           "ln -s $localRoot/$resultdir $localRoot/results/buildit/$results_name && ".
-           "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
+  if ($target ne $local) {
+    $rsync = "mkdir -p $localRoot/$resultdir && ".
+             "rm -f $localRoot/results/buildit/$results_name && ".
+             "ln -s $localRoot/$resultdir $localRoot/results/buildit/$results_name && ".
+             "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
+  }
 
   print "$rsync\n";
   if(! $dry_run) {

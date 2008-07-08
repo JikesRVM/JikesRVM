@@ -65,3 +65,4 @@ global.os.GNU/Linux=linux
 
 # Execution environment
 global.display-wrapper.exe=/usr/bin/xvfb-run
+global.shell=/bin/bash -c
