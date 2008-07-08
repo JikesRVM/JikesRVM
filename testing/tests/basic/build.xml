@@ -12,7 +12,7 @@
  -->
 <project name="basic" default="test" basedir=".">
 
-  <condition property="test.time.limit" value="1500" else="400">
+  <condition property="test.time.limit" value="1000" else="400">
     <equals arg1="${test.mode}" arg2="gcstress"/>
   </condition>
 
@@ -107,7 +107,7 @@
     <runCompareTest tag="TestInterruptedSleep" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep"/>
     <runCompareTest tag="TestInterruptedSleep2" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep2"/>
     <runCompareTest tag="TestInterruptedWait" class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
-    <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap" timeLimit="20"/>
+    <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap"/>
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
     <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
