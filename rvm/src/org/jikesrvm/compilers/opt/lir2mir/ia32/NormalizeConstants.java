@@ -80,6 +80,8 @@ public abstract class NormalizeConstants implements Operators {
                 s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
                 s.putOperand(idx, rop.copyD2U());
               } else {
+                // Ensure object is in JTOC to keep it alive
+                Statics.findOrCreateObjectLiteral(oc.value);
                 s.putOperand(idx, new IntConstantOperand(Magic.objectAsAddress(oc.value).toInt()));
               }
             } else if (use instanceof DoubleConstantOperand) {
