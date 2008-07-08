@@ -19,6 +19,7 @@ class TestArithmetic {
   private static int int5 = 5;
   private static int int33 = 33;
   private static int int65 = 65;
+  private static long long_3 = -3;
   private static long long_1 = -1;
   private static long long0 = 0;
   private static long long2 = 2;
@@ -66,6 +67,22 @@ class TestArithmetic {
     System.out.print("Expected: -3 Actual: ");
     System.out.println(-a);  // ineg
     System.out.print("Expected: 4 Actual: ");
+    System.out.println(++a);  // iinc
+
+    a = int_3;
+    System.out.print("Expected: -2 Actual: ");
+    System.out.println(a + 1);  // iadd
+    System.out.print("Expected: -4 Actual: ");
+    System.out.println(a - 1);  // isub
+    System.out.print("Expected: -9 Actual: ");
+    System.out.println(a * 3);  // imul
+    System.out.print("Expected: -1 Actual: ");
+    System.out.println(a / 2);  // idiv
+    System.out.print("Expected: -1 Actual: ");
+    System.out.println(a % 2);  // irem
+    System.out.print("Expected: 3 Actual: ");
+    System.out.println(-a);  // ineg
+    System.out.print("Expected: -2 Actual: ");
     System.out.println(++a);  // iinc
 
     a = int3;     // 0x00000011
@@ -220,6 +237,21 @@ class TestArithmetic {
     System.out.print("Expected: -2 Actual: ");
     System.out.println(-b);  // lneg
     System.out.print("Expected: -10000000000 Actual: ");
+    System.out.println(-a);  // lneg
+
+    a = long_3;
+
+    System.out.print("Expected: -1 Actual: ");
+    System.out.println(a + 2);  // ladd
+    System.out.print("Expected: -5 Actual: ");
+    System.out.println(a - 2);  // lsub
+    System.out.print("Expected: -9 Actual: ");
+    System.out.println(a * 3);  // lmul
+    System.out.print("Expected: -1 Actual: ");
+    System.out.println(a / 2);  // ldiv
+    System.out.print("Expected: -1 Actual: ");
+    System.out.println(a % 2);  // lrem
+    System.out.print("Expected: 3 Actual: ");
     System.out.println(-a);  // lneg
 
     a = long0x0110000000000011;
