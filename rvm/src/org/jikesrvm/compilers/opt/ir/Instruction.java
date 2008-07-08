@@ -580,7 +580,11 @@ public final class Instruction implements Constants, Operators, OptConstants {
       }
       return numOps;
     } else {
-      return operator.getNumberOfFixedPureUses();
+      if (operator.hasVarUses()) {
+        return getNumberOfOperands() - operator.getNumberOfDefs();
+      } else {
+        return operator.getNumberOfFixedPureUses();
+      }
     }
   }
 
