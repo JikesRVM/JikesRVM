@@ -47,7 +47,7 @@ public class TestAnnotationInheritance {
   public static void main(String[] args) {
     final Annotation[] annotations = Y.class.getAnnotations();
     for (final Annotation annotation : annotations) {
-      System.out.println(annotation);
+      System.out.println(annotation.annotationType().getName());
     }
     check("getAnnotations must return 2 annotations, 1 inherited and 1 declared", Y.class.getAnnotations().length == 2);
     check("getAnnotations must return declared first", Y.class.getAnnotations()[0] instanceof B);

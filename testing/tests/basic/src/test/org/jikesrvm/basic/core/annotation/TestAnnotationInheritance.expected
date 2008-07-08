@@ -1,2 +1,2 @@
-@test/org/jikesrvm/basic/core/annotation/TestAnnotationInheritance$B()
-@test/org/jikesrvm/basic/core/annotation/TestAnnotationInheritance$A()
+test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance$B
+test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance$A
