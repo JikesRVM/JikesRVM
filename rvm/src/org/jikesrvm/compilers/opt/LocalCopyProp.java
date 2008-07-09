@@ -15,12 +15,13 @@ package org.jikesrvm.compilers.opt;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
-import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -66,7 +67,6 @@ public class LocalCopyProp extends CompilerPhase {
    * @param ir the IR to optimize
    */
   public void perform(IR ir) {
-    // info is a mapping from Register to Register
     HashMap<Register, Operand> info = new HashMap<Register, Operand>();
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
@@ -100,7 +100,9 @@ public class LocalCopyProp extends CompilerPhase {
                 }
               }
             }
-            if (didSomething) Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
+            if (didSomething) {
+              Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, s);
+            }
           }
           // KILL
           boolean killPhysicals = s.isTSPoint() || s.operator().implicitDefs != 0;
@@ -111,11 +113,9 @@ public class LocalCopyProp extends CompilerPhase {
           if (killPhysicals) {
             HashSet<Register> toRemove = new HashSet<Register>();
             for (Map.Entry<Register, Operand> entry : info.entrySet()) {
-              Register eR = entry.getValue().
-                  asRegister().getRegister();
+              Register eR = entry.getValue().asRegister().getRegister();
               if (killPhysicals && eR.isPhysical()) {
-                // delay the removal to avoid ConcurrentModification
-                // with iterator.
+                // delay the removal to avoid ConcurrentModification with iterator.
                 toRemove.add(entry.getKey());
               }
             }
@@ -153,8 +153,15 @@ public class LocalCopyProp extends CompilerPhase {
         // GEN
         if (Move.conforms(s)) {
           Operand val = Move.getVal(s);
-          if (val.isRegister() && !val.asRegister().getRegister().isPhysical()) {
-            info.put(Move.getResult(s).getRegister(), val);
+          if (val.isRegister()) {
+            RegisterOperand rhs = val.asRegister();
+            if (!rhs.getRegister().isPhysical()) {
+              RegisterOperand lhs = Move.getResult(s);
+              /* Only gen if the move instruction does not represent a Magic <==> non-Magic coercion */
+              if (lhs.getType().isReferenceType() == rhs.getType().isReferenceType()) {
+                info.put(lhs.getRegister(), val);
+              }
+            }
           }
         }
       }
