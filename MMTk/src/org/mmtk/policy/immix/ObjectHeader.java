@@ -152,8 +152,8 @@ public class ObjectHeader {
 
   @Inline
   public static void pinObject(ObjectReference object) {
-    Word header = VM.objectModel.readAvailableBitsWord(object);
-    VM.objectModel.writeAvailableBitsWord(object, header.or(PINNED_BIT));
+    byte header = VM.objectModel.readAvailableByte(object);
+    VM.objectModel.writeAvailableByte(object, (byte)(header | PINNED_BIT.toInt()));
   }
 
   @Inline
