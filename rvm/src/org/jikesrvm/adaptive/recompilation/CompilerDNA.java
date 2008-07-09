@@ -27,14 +27,17 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
  * This class codifies the cost/benefit properties of the various compilers
  * used in the adaptive optimization system.
  *
- * <p>
  * The DNA tells the AOS two important kinds of averages for each optimization
  * level: the cost of compiling at an optimization level (as measured in
  * bytecode/milliseconds) and the expected speedup of the resulting code
  * (relative to the first compiler).
  *
- * <p>There is an AOS command-line option to set the compiler DNA.  The method
+ * There is an AOS command-line option to set the compiler DNA.  The method
  * {@link CompilerDNA#readDNA} contains a comment on the expected format.
+ *
+ * This DNA was gathered on July 9, 2008 using revision r14679 + the bugfix in r14688.
+ * The PowerPC data was gathered on piccolo.watson.ibm.com (JS21, machine type 8884; ppc64-aix).
+ * The IA32 data was gathered on lyric.watson.ibm.com (LS41, machine type 7972; x86_64-linux).
  */
 public class CompilerDNA implements Constants {
 
@@ -51,18 +54,16 @@ public class CompilerDNA implements Constants {
 
   /**
    * Average bytecodes compiled per millisecond.
-   * These numbers were measured on July 1, 2007 on excalibur (AIX/PPC)
-   * and July 1, 2007 on legato (Linux/IA32) using unweighted compilation rate.
    */
   private static final double[] compilationRates;
 
   static {
     if (VM.BuildForPowerPC) {
-      compilationRates = new double[]{525.53,             // base
-                                      15.28, 7.74, 7.68}; // opt 0...2
+      compilationRates = new double[]{667.32,             // base
+                                      26.36, 13.41, 12.73}; // opt 0...2
     } else if (VM.BuildForIA32) {
-      compilationRates = new double[]{1246.22,              // base
-                                      30.03, 14.60, 14.59}; // opt 0...2
+      compilationRates = new double[]{909.46,               // base
+                                      39.53, 18.48, 17.28}; // opt 0...2
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       compilationRates = null;
@@ -71,18 +72,16 @@ public class CompilerDNA implements Constants {
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
-   * These numbers were measured on July 1, 2007 on excalibur (AIX/PPC, IBM Power4+)
-   * and July 1, 2007 on legato (Linux/IA32, IBM LS20) using unweighted compilation rate.
    */
   private static final double[] speedupRates;
 
   static {
     if (VM.BuildForPowerPC) {
       speedupRates = new double[]{1.00,               // base
-                                  8.22, 13.25, 13.26};  // opt 0...2
+                                  7.87, 12.23, 12.29};  // opt 0...2
     } else if (VM.BuildForIA32) {
       speedupRates = new double[]{1.00,               // base
-                                  4.86, 6.39, 6.40};  // opt 0...2
+                                  4.03, 5.88, 5.93};  // opt 0...2
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       speedupRates = null;
