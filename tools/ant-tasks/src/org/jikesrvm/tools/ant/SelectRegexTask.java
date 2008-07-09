@@ -27,6 +27,7 @@ public class SelectRegexTask
     extends Task {
 
   private RegularExpression pattern;
+  private int patternLines;
   private String select;
 
   private String property;
@@ -39,6 +40,7 @@ public class SelectRegexTask
   public void setPattern(final String pattern) {
     this.pattern = new RegularExpression();
     this.pattern.setPattern(pattern);
+    this.patternLines = pattern.split(System.getProperty("line.separator")).length;
   }
 
   public void execute() {
@@ -58,12 +60,24 @@ public class SelectRegexTask
     try {
       final Regexp regexp = this.pattern.getRegexp(getProject());
       input = new BufferedReader(new FileReader(file));
-      String line;
-      while((line = input.readLine()) != null) {
-        String result = performMatching(line);
+      String[] lines = new String[patternLines];
+      String sep = System.getProperty("line.separator");
+      for(int i=0; i < lines.length; i++) {
+        lines[i] = "";
+      }
+      int nextLine = 0;
+      while((lines[nextLine] = input.readLine()) != null) {
+        StringBuilder sb = new StringBuilder();
+        for(int i=nextLine+1; i <= nextLine + lines.length ; i++) {
+          String line = lines[i % lines.length];
+          sb.append(line);
+          sb.append(sep);
+        }
+        String result = performMatching(sb.toString());
         if (result != null) {
           return result;
         }
+        nextLine = (nextLine + 1) % lines.length;
       }
       return null;
     } catch (IOException ioe) {
