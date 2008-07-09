@@ -64,7 +64,7 @@ public class SSCollector extends StopTheWorldCollector {
    * @param tr The trace to use
    */
   protected SSCollector(SSTraceLocal tr) {
-    ss = new CopyLocal(SS.copySpace0);
+    ss = new CopyLocal();
     trace = tr;
   }
 

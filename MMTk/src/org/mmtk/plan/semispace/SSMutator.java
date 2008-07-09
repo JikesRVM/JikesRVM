@@ -52,7 +52,16 @@ public class SSMutator extends StopTheWorldMutator {
    * Constructor
    */
   public SSMutator() {
-    ss = new CopyLocal(SS.copySpace0);
+    ss = new CopyLocal();
+  }
+
+  /**
+   * Called before the MutatorContext is used, but after the context has been
+   * fully registered and is visible to collection.
+   */
+  public void initMutator() {
+    super.initMutator();
+    ss.rebind(SS.toSpace());
   }
 
   /****************************************************************************

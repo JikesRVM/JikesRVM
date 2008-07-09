@@ -76,7 +76,20 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  */
-@Uninterruptible  public abstract class MutatorContext implements Constants {
+@Uninterruptible
+public abstract class MutatorContext implements Constants {
+
+  /****************************************************************************
+   * Initialization
+   */
+
+  /**
+   * Called before the MutatorContext is used, but after the context has been
+   * fully registered and is visible to collection.
+   */
+  public void initMutator() {
+  }
+
   /****************************************************************************
    * Instance fields
    */

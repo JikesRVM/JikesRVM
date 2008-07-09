@@ -150,6 +150,7 @@ public class Mutator extends MMTkThread {
     try {
       String prefix = Harness.plan.getValue();
       this.context = (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
+      this.context.initMutator();
     } catch (Exception ex) {
       throw new RuntimeException("Could not create Mutator", ex);
     }

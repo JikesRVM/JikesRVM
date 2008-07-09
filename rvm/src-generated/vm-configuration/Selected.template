@@ -52,6 +52,7 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
+    protected Mutator() { initMutator(); }
     private final Log log = new Log(); 
     @Inline
     public final Log getLog() { return log; }
