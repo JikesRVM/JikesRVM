@@ -285,16 +285,40 @@
 ]]></echo>
         <forEach list="${test.config.@{tag}.tests}" property="test">
           <sequential>
-            <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
+            <erxmlvalidate lenient="true" failonerrorproperty="@{tag}.@{test}.Results.xml.valid">
               <fileset dir="${test.results.dir}" includes="@{tag}/@{test}/Results.xml"/>
-            </concat>
+            </erxmlvalidate>
+            <if>
+              <conditions>
+                <not>
+                  <isset property="@{tag}.@{test}.Results.xml.valid"/>
+                </not>
+              </conditions>
+              <sequential>
+                <concat destfile="${build.results.dir}/@{tag}.xml" append="true">
+                  <fileset dir="${test.results.dir}" includes="@{tag}/@{test}/Results.xml"/>
+                </concat>
+              </sequential>
+            </if>
           </sequential>
         </forEach>
         <echo file="${build.results.dir}/@{tag}.xml" append="true"><![CDATA[
 </test-configuration>]]></echo>
-        <concat destfile="${test.results.file}" append="true">
+        <erxmlvalidate lenient="true" failonerrorproperty="@{tag}.xml.valid">
           <fileset dir="${build.results.dir}" includes="@{tag}.xml"/>
-        </concat>
+        </erxmlvalidate>
+        <if>
+          <conditions>
+            <not>
+              <isset property="@{tag}.xml.valid"/>
+            </not>
+          </conditions>
+          <sequential>
+            <concat destfile="${test.results.file}" append="true">
+              <fileset dir="${build.results.dir}" includes="@{tag}.xml"/>
+            </concat>
+          </sequential>
+        </if>
       </sequential>
     </forEach>
     <echo file="${test.results.file}" append="true"><![CDATA[
