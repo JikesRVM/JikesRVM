@@ -2064,6 +2064,7 @@ target.jni-suffix=${target.jni-suffix}
       <src path="${classlib.library-interface.non-cpl.java}"/>
       <src path="${classlib.library-interface.non-cpl2.java}"/>
       <src path="${vmmagic-stub.java}"/>
+      <src path="${options.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-vm-rvm.java}"/>
       <src path="${generated.java}"/>
@@ -2107,6 +2108,7 @@ target.jni-suffix=${target.jni-suffix}
       <packageset dir="${classlib.library-interface.non-cpl2.java}" defaultexcludes="yes" includes="gnu/**"/>
 
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${generated.java}" includes="org/**"/>
