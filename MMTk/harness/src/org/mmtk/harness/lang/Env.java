@@ -12,9 +12,11 @@
  */
 package org.mmtk.harness.lang;
 
+import java.util.Random;
 import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -39,6 +41,12 @@ public class Env extends Mutator {
    * The main program
    */
   private final Statement body;
+
+  /**
+   * A source of random numbers (we have one per thread so that we can write
+   * deterministic scripts).
+   */
+  private Random rng = new Random();
 
   /**
    * Create an environment with the given main program
@@ -81,7 +89,7 @@ public class Env extends Mutator {
    */
   public void push(StackFrame frame) {
     stack.push(frame);
-    if (Env.TRACE) System.err.println("push()");
+    Trace.trace(Item.ENV,"push()");
   }
 
   /**
@@ -89,7 +97,7 @@ public class Env extends Mutator {
    */
   public void pop() {
     stack.pop();
-    if (Env.TRACE) System.err.println("pop()");
+    Trace.trace(Item.ENV,"pop()");
   }
 
   /**
@@ -104,12 +112,16 @@ public class Env extends Mutator {
    */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
+    int tempCount = 0, localCount = 0;
     for(ObjectValue value : temporaries) {
+      Trace.trace(Item.ROOTS, "Tracing root (temporary) %s", value.toString());
       value.traceObject(trace);
+      tempCount++;
     }
     for (StackFrame frame : stack) {
-      frame.computeRoots(trace);
+      localCount += frame.computeRoots(trace);
     }
+    Trace.trace(Item.ROOTS, "Temporaries: %d, locals: %d", tempCount, localCount);
   }
 
   /**
@@ -165,5 +177,48 @@ public class Env extends Mutator {
       ObjectValue poppedValue = temporaries.pop();
       check(poppedValue == value, "Invalid temporary stack maintenance");
     }
+  }
+
+  /*******************************************************************
+   * Utility methods
+   */
+
+  /**
+   * Evaluate an int expression, type-check and return an int
+   * @param env
+   * @param doubleAlign2
+   * @param message
+   * @return
+   */
+  int evalInt(Expression refCount2, String message) {
+    Value refCountVal = refCount2.eval(this);
+    check(refCountVal.type() == Type.INT, message);
+    int refCountInt = refCountVal.getIntValue();
+    gcSafePoint();
+    return refCountInt;
+  }
+
+  /**
+   * Evaluate a boolean expression, type-check and return a boolean
+   * @param env
+   * @param doubleAlign2
+   * @param message
+   * @return
+   */
+  boolean evalBoolVal(Expression doubleAlign2, String message) {
+    Value doubleAlignVal = doubleAlign2.eval(this);
+
+    check(doubleAlignVal.type() == Type.BOOLEAN, message);
+
+    boolean doubleAlignBool = doubleAlignVal.getBoolValue();
+    gcSafePoint();
+    return doubleAlignBool;
+  }
+
+  /**
+   * @return The per-thread random number generator
+   */
+  public Random random() {
+    return rng;
   }
 }

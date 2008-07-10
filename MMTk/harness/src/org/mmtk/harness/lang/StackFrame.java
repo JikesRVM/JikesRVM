@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -62,7 +63,7 @@ public class StackFrame {
    * Assign a new value to the given slot
    */
   public void set(int slot, Value value) {
-    if (Env.TRACE) System.err.println(values[slot].type() + " " + names[slot] + " = " + value);
+    Trace.trace(Item.ENV, "%s %s = %s",values[slot].type().toString(),names[slot],value.toString());
     values[slot].copyFrom(value);
   }
 
@@ -76,12 +77,19 @@ public class StackFrame {
   /**
    * GC support: trace this stack frame.
    */
-  public void computeRoots(TraceLocal trace) {
-    for (Value value : values) {
+  public int computeRoots(TraceLocal trace) {
+    int rootCount = 0;
+    for (int i=0; i < values.length; i++) {
+      Value value = values[i];
+      String name = names[i];
       if (value instanceof ObjectValue) {
-        ((ObjectValue)value).traceObject(trace);
+        ObjectValue object = (ObjectValue)value;
+        Trace.trace(Item.ROOTS, "Tracing root %s=%s", name, object.toString());
+        object.traceObject(trace);
+        rootCount++;
       }
     }
+    return rootCount;
   }
 
   /**

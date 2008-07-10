@@ -25,6 +25,8 @@ public class Alloc implements Expression {
     gcEveryAlloc = true;
   }
 
+  /** Call site ID */
+  private final int site;
   /** Number of reference fields */
   private final Expression refCount;
   /** Number of data fields */
@@ -35,7 +37,8 @@ public class Alloc implements Expression {
   /**
    * Allocate an object.
    */
-  public Alloc(Expression refCount, Expression dataCount, Expression doubleAlign) {
+  public Alloc(int site, Expression refCount, Expression dataCount, Expression doubleAlign) {
+    this.site = site;
     this.refCount = refCount;
     this.dataCount = dataCount;
     this.doubleAlign = doubleAlign;
@@ -45,11 +48,11 @@ public class Alloc implements Expression {
    * Perform the allocation by calling MMTk.
    */
   public Value eval(Env env) {
-    int refCountVal = evalInt(env, refCount, "Number of reference fields must be an integer");
-    int dataCountVal = evalInt(env,dataCount, "Number of data fields must be an integer");
-    boolean doubleAlignVal = evalBoolVal(env, doubleAlign, "DoubleAlign must be a boolean");
+    int refCountVal = env.evalInt(refCount, "Number of reference fields must be an integer");
+    int dataCountVal = env.evalInt(dataCount, "Number of data fields must be an integer");
+    boolean doubleAlignVal = env.evalBoolVal(doubleAlign, "DoubleAlign must be a boolean");
 
-    ObjectReference object = env.alloc(refCountVal, dataCountVal, doubleAlignVal);
+    ObjectReference object = env.alloc(refCountVal, dataCountVal, doubleAlignVal,site);
     ObjectValue oval = new ObjectValue(object);
     if (gcEveryAlloc) {
       env.pushTemporary(oval);
@@ -57,37 +60,5 @@ public class Alloc implements Expression {
       env.popTemporary(oval);
     }
     return oval;
-  }
-
-  /**
-   * Evaluate a boolean expression, type-check and return a boolean
-   * @param env
-   * @param doubleAlign2
-   * @param message
-   * @return
-   */
-  private boolean evalBoolVal(Env env, Expression doubleAlign2, String message) {
-    Value doubleAlignVal = doubleAlign2.eval(env);
-
-    env.check(doubleAlignVal.type() == Type.BOOLEAN, message);
-
-    boolean doubleAlignBool = doubleAlignVal.getBoolValue();
-    env.gcSafePoint();
-    return doubleAlignBool;
-  }
-
-  /**
-   * Evaluate an int expression, type-check and return an int
-   * @param env
-   * @param doubleAlign2
-   * @param message
-   * @return
-   */
-  private int evalInt(Env env, Expression refCount2, String message) {
-    Value refCountVal = refCount2.eval(env);
-    env.check(refCountVal.type() == Type.INT, message);
-    int refCountInt = refCountVal.getIntValue();
-    env.gcSafePoint();
-    return refCountInt;
   }
 }

@@ -13,6 +13,7 @@
 package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Alloc;
 import org.mmtk.harness.lang.Env;
 
@@ -26,7 +27,7 @@ public final class GcEvery extends org.vmutil.options.EnumOption {
   public GcEvery() {
     super(Harness.options, "Gc Every",
           "MMTk Harness gc-stress",
-          new String[] { "NONE", "ALLOC", "SAFEPOINT" }, "NONE");
+          new String[] { "NONE", "ALLOC", "SAFEPOINT", "WRITEBARRIER" }, "NONE");
   }
 
   public void apply() {
@@ -38,6 +39,9 @@ public final class GcEvery extends org.vmutil.options.EnumOption {
         break;
       case 2:
         Env.setGcEverySafepoint();
+        break;
+      case 3:
+        Mutator.setGcEveryWB();
         break;
     }
   }

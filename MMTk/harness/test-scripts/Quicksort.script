@@ -1,0 +1,140 @@
+/*
+ * Create a list of random integers, then sort the list using quicksort.
+ * It's (java) stack intensive, run with -Xss4m or more.
+ */
+main() {
+  runTest(1);
+  runTest(10);
+  runTest(100);
+  runTest(1000);
+  runTest(10000);
+}
+
+runTest(int size) {
+  print("=== Testing list of size ",size," ===");
+  test(size);
+  print("=== test ",size," complete, heap should now be empty ===");
+  gc();
+}
+
+test(int size) {
+  int n = 0;
+  object list = null;
+  while (n < size) {
+    list = cons(random(0,20000000),list);
+    n = n + 1;
+  }
+  print("  List contructed, sorting ...");
+  gc();
+  object sorted = qsort(list);
+  print("  Sort complete, checking ...");
+  gc();
+  checkList(sorted,size);
+  print("  test complete");
+}
+
+/*
+ * Utility functions for managing lists of ints
+ */
+ 
+/* List constructor */
+object cons(int head, object tail) {
+  object result = alloc(1,1);       // Allocate a list cell
+  result.int[0] = head;
+  result.object[0] = tail;
+  return result;
+}
+
+/* List destructors */
+int head(object list) {
+  return list.int[0];
+}
+
+object tail(object list) {
+  return list.object[0];
+}
+
+/* Classic recursive append operation */
+object append(object part1, object part2) {
+  if (part1 == null) {
+    return part2;
+  } else {
+    return cons(head(part1),append(tail(part1),part2));
+  }
+}
+
+/* List-based quicksort */
+object qsort(object list) {
+  if (list == null) {
+    return list;
+  } else {
+    int median = head(list);
+    object part = partition(median,tail(list));
+    return append(qsort(part.object[0]),cons(median,qsort(part.object[1])));
+  }
+}
+
+/* partition a list around a pivot, returning a pair of lists */
+object partition(int pivot,object list) {
+  object result = alloc(2,0);  
+  result.object[0] = null;
+  result.object[1] = null;
+  if (list != null) {
+    part2(result,pivot,list);
+  }
+  return result;
+}
+
+/* 
+ * Perform a partition, putting the low elements into parts.object[0],
+ * and the high elements into parts.object[1]
+ */
+part2(object parts,int pivot, object list) {
+  while (list != null) {
+    int hd = head(list);
+    if (hd < pivot) {
+      parts.object[0] = cons(hd,parts.object[0]);
+    } else {
+      parts.object[1] = cons(hd,parts.object[1]);
+    }
+    list = tail(list);
+  }  
+}
+
+/*
+ * Print a list
+ */
+printList(object list) {
+  if (list == null) {
+    return 0;
+  } else {
+    print (head(list));
+    printList(tail(list));
+  }
+}
+
+/*
+ * Sanity check a list - ensure that the elements are in
+ * monotonic order, and the list is the right length.
+ */
+checkList(object list, int len) {
+  int count = 0;
+  if (list != null) {
+    int v1 = head(list);
+    count = 1;
+    list = tail(list);
+    while (list != null) {
+      int v2 = head(list);
+      count = count + 1;
+      if (v1 > v2) {
+        print ("unsorted values in list :(");
+      }
+      v1 = v2;
+      list = tail(list);
+    }
+  }
+  if (count != len) {
+    print ("list has changed length (expected ",len," found ",count,")");
+  }
+}
+ 

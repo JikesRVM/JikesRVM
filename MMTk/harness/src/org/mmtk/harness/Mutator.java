@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.AllocationSite;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.vm.ActivePlan;
@@ -43,8 +43,11 @@ import org.vmmagic.unboxed.ObjectReference;
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
 public class Mutator extends MMTkThread {
-  /** Debugging */
-  public static final boolean TRACE = false;
+  private static boolean gcEveryWB = false;
+
+  public static void setGcEveryWB() {
+    gcEveryWB = true;
+  }
 
   /** Registered mutators */
   protected static ArrayList<Mutator> mutators = new ArrayList<Mutator>();
@@ -201,8 +204,16 @@ public class Mutator extends MMTkThread {
   /**
    * Format the object for dumping.
    */
+  public static String formatObject(ObjectReference object) {
+//    return Address.fromIntZeroExtend(object.isNull() ? 0 : ObjectModel.getId(object)).toString();
+    return String.format("%s[%d@%s]", object, ObjectModel.getId(object), getSiteName(object));
+  }
+
+  /**
+   * Format the object for dumping, and trim to a max width.
+   */
   public static String formatObject(int width, ObjectReference object) {
-    String base = Address.fromIntZeroExtend(object.isNull() ? 0 : ObjectModel.getId(object)).toString();
+    String base = formatObject(object);
     return base.substring(base.length() - width);
   }
 
@@ -391,7 +402,7 @@ public class Mutator extends MMTkThread {
 
     Address ref = ObjectModel.getDataSlot(object, index);
     ref.store(value);
-    if (Env.TRACE) System.err.println(object + ".data[" + index + "] = " + value);
+    Trace.trace(Item.STORE,"%s.[%d] = %d",object.toString(),index,value);
   }
 
   /**
@@ -403,6 +414,9 @@ public class Mutator extends MMTkThread {
    */
   public void storeReferenceField(ObjectReference object, int index, ObjectReference value) {
     int limit = ObjectModel.getRefs(object);
+    if (Trace.isEnabled(Item.STORE)) {
+      System.err.printf("[%s].object[%d/%d] = %s%n",object.toString(),index,limit,value.toString());
+    }
     check(!object.isNull(), "Object can not be null");
     check(index >= 0, "Index must be non-negative");
     check(index < limit, "Index out of bounds");
@@ -410,10 +424,12 @@ public class Mutator extends MMTkThread {
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     if (ActivePlan.constraints.needsWriteBarrier()) {
       context.writeBarrier(object, referenceSlot, value, null, null, Plan.AASTORE_WRITE_BARRIER);
+      if (gcEveryWB) {
+        gc();
+      }
     } else {
       referenceSlot.store(value);
     }
-    if (Env.TRACE) System.err.println("[" + object + "].object[" + index + "] = " + value);
   }
 
   /**
@@ -430,7 +446,7 @@ public class Mutator extends MMTkThread {
 
     Address dataSlot = ObjectModel.getDataSlot(object, index);
     int result = dataSlot.loadInt();
-    if (Env.TRACE) System.err.println("[" + object + "].int[" + index + "] returned [" + result + "]");
+    Trace.trace(Item.LOAD,"[%s].int[%d] returned [%d]",object.toString(),index,result);
     return result;
   }
 
@@ -453,7 +469,7 @@ public class Mutator extends MMTkThread {
     } else {
       result = referenceSlot.loadObjectReference();
     }
-    if (Env.TRACE) System.err.println(object + ".ref[" + index + "] returned [" + result + "]");
+    Trace.trace(Item.LOAD,"[%s].object[%d] returned [%s]",object.toString(),index,result.toString());
     return result;
   }
 
@@ -463,7 +479,7 @@ public class Mutator extends MMTkThread {
   public int hash(ObjectReference object) {
     check(!object.isNull(), "Object can not be null");
     int result = ObjectModel.getHashCode(object);
-    if (Env.TRACE) System.err.println("hash(" + object + ") returned [" + result + "]");
+    Trace.trace(Item.HASH,"hash(%s) returned [%d]",object.toString(),result);
     return result;
   }
 
@@ -475,11 +491,20 @@ public class Mutator extends MMTkThread {
    * @param doubleAlign Is this an 8 byte aligned object?
    * @return The object reference.
    */
-  public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign) {
+  public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign, int allocSite) {
     check(refCount >= 0, "Non-negative reference field count required");
     check(dataCount >= 0, "Non-negative data field count required");
-    ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign);
+    ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign, allocSite);
     Trace.trace(Item.ALLOC,"alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
     return result;
+  }
+
+  /**
+   * Return a string identifying the allocation site of an object
+   * @param object
+   * @return
+   */
+  public static String getSiteName(ObjectReference object) {
+    return AllocationSite.getSite(ObjectModel.getSite(object)).toString();
   }
 }

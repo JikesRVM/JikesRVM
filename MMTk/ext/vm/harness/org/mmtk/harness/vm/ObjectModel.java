@@ -16,6 +16,8 @@ import java.util.Stack;
 
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
@@ -29,6 +31,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * The object model for the harness stores:
    *
    *    Object id (age in allocations);        (Word)
+   *    Allocation site                        (Word)
    *    The size of the data section in words. (UInt16)
    *    The number of reference words.         (UInt16)
    *    Status Word (includes GC)
@@ -39,7 +42,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    */
 
   /** The total header size (including any requested GC words) */
-  public static final int HEADER_WORDS = 3 + ActivePlan.constraints.gcHeaderWords();
+  public static final int HEADER_WORDS = 4 + ActivePlan.constraints.gcHeaderWords();
   /** The number of bytes in the header */
   public static final int HEADER_SIZE = HEADER_WORDS << SimulatedMemory.LOG_BYTES_IN_WORD;
   /** The number of bytes requested for GC in the header */
@@ -49,8 +52,10 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   private static final Offset GC_OFFSET        = Offset.zero();
   /** The offset of the object ID */
   private static final Offset ID_OFFSET        = GC_OFFSET.plus(GC_HEADER_BYTES);
+  /** The offset of the allocation site */
+  private static final Offset SITE_OFFSET      = ID_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
   /** The offset of the UInt16 storing the number of data fields */
-  private static final Offset DATACOUNT_OFFSET = ID_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  private static final Offset DATACOUNT_OFFSET = SITE_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
   /** The offset of the UInt16 storing the number of reference fields */
   private static final Offset REFCOUNT_OFFSET  = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_SHORT);
   /** The offset of the status word */
@@ -85,7 +90,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param doubleAlign Align the object at an 8 byte boundary?
    * @return The new ObjectReference.
    */
-  public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount, boolean doubleAlign) {
+  public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount, boolean doubleAlign, int site) {
     int bytes = (HEADER_WORDS + refCount + dataCount) << SimulatedMemory.LOG_BYTES_IN_WORD;
     int align = (doubleAlign ? 2 : 1) * SimulatedMemory.BYTES_IN_WORD;
     int allocator = context.checkAllocator(bytes, align, Plan.ALLOC_DEFAULT);
@@ -97,6 +102,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
     ObjectReference ref = region.toObjectReference();
     if (doubleAlign) region.store(DOUBLE_ALIGN, STATUS_OFFSET);
     setId(ref, allocateObjectId());
+    setSite(ref, site);
     setRefCount(ref, refCount);
     setDataCount(ref, dataCount);
 
@@ -129,8 +135,22 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   /**
    * Set the object identifier.
    */
-  public static void setId(ObjectReference object, int value) {
+  private static void setId(ObjectReference object, int value) {
     object.toAddress().store(value, ID_OFFSET);
+  }
+
+  /**
+   * Set the call site identifier.
+   */
+  private static void setSite(ObjectReference object, int site) {
+    object.toAddress().store(site, SITE_OFFSET);
+  }
+
+  /**
+   * Get the call site identifier.
+   */
+  public static int getSite(ObjectReference object) {
+    return object.toAddress().loadInt(SITE_OFFSET);
   }
 
   /**
@@ -143,7 +163,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   /**
    * Set the number of data words in the object.
    */
-  public static void setDataCount(ObjectReference object, int count) {
+  private static void setDataCount(ObjectReference object, int count) {
     object.toAddress().store((short)count, DATACOUNT_OFFSET);
   }
 
@@ -151,7 +171,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   /**
    * Set the number of references in the object.
    */
-  public static void setRefCount(ObjectReference object, int count) {
+  private static void setRefCount(ObjectReference object, int count) {
     object.toAddress().store((short)count, REFCOUNT_OFFSET);
   }
 
@@ -229,6 +249,15 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   }
 
   /**
+   * Print an object's header
+   */
+  public static void dumpObjectHeader(ObjectReference object) {
+    int gcWord = object.toAddress().loadInt(GC_OFFSET);
+    int statusWord = object.toAddress().loadInt(STATUS_OFFSET);
+    System.err.printf("Object %s[%d@%s]<%x,%x>%n",object,getId(object),Mutator.getSiteName(object),gcWord,statusWord);
+  }
+
+  /**
    * Return the next object id to be allocated.
    */
   public static int nextObjectId() {
@@ -270,6 +299,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return the address of the new object
    */
   public ObjectReference copy(ObjectReference from, int allocator) {
+    Trace.trace(Item.COLLECT,"Copying object %s[%d@%s]",from,getId(from),Mutator.getSiteName(from));
     int oldBytes = getSize(from);
     int newBytes = getCopiedSize(from);
     int align = getAlignWhenCopied(from);
@@ -307,9 +337,13 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return Address The address past the end of the copied object
    */
   public Address copyTo(ObjectReference from, ObjectReference to, Address toRegion) {
+    Trace.trace(Item.COLLECT,"Copying object %s[%d@%s] to %s",from,getId(from),Mutator.getSiteName(from),to);
+    if (Trace.isEnabled(Item.COLLECT)) {
+      dumpObjectHeader(from);
+    }
     int bytes = getSize(from);
     Address fromRegion = from.toAddress();
-    for(int i=0; i < (bytes >>> SimulatedMemory.LOG_BYTES_IN_WORD); i++) {
+    for(int i=0; i < bytes; i += SimulatedMemory.BYTES_IN_WORD) {
       SimulatedMemory.setInt(toRegion.plus(i), SimulatedMemory.getInt(fromRegion.plus(i)));
     }
 
@@ -317,9 +351,12 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
     if ((status & HASHED_AND_MOVED) == HASHED) {
       toRegion.store(status | HASHED_AND_MOVED, STATUS_OFFSET);
       toRegion.store(getHashCode(from), Offset.fromIntZeroExtend(bytes));
-      return toRegion.plus(bytes + SimulatedMemory.BYTES_IN_WORD);
+      bytes += SimulatedMemory.BYTES_IN_WORD;
     }
 
+    if (Trace.isEnabled(Item.COLLECT)) {
+      dumpObjectHeader(to);
+    }
     return toRegion.plus(bytes);
   }
 

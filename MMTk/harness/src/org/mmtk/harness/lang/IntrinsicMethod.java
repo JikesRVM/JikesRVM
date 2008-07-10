@@ -342,6 +342,33 @@ public class IntrinsicMethod extends Method {
   }
 
   /**
+   * Set the random seed for this thread
+   * @param env
+   * @param seed
+   */
+  public static void setRandomSeed(Env env, int seed) {
+    env.random().setSeed(seed);
+  }
+
+  /**
+   * A random integer in the closed interval [low..high].
+   * @param env
+   * @param low
+   * @param high
+   * @return
+   */
+  public static int random(Env env, int low, int high) {
+    return (int)(env.random().nextInt(high-low+1) + low);
+  }
+
+  /**
+   * Dump the heap
+   */
+  public static void heapDump(Env env) {
+    Mutator.dumpHeap();
+  }
+
+  /**
    * Unit test method for the Intrinsic method
    */
   public static String testMethod(Env env, int x, boolean y, String string, ObjectValue val) {

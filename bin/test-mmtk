@@ -12,24 +12,36 @@
 #  regarding copyright ownership.
 
 # Temporary script
+
+TEST_DIR=MMTk/harness/test-scripts
 ant mmtk-harness
 rm -rf results/mmtk
 mkdir -p results/mmtk
 
 plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy org.mmtk.plan.generational.immix.GenImmix org.mmtk.plan.generational.marksweep.GenMS org.mmtk.plan.immix.Immix org.mmtk.plan.markcompact.MC org.mmtk.plan.marksweep.MS org.mmtk.plan.poisoned.Poisoned org.mmtk.plan.refcount.fullheap.RC org.mmtk.plan.refcount.generational.GenRC org.mmtk.plan.semispace.SS org.mmtk.plan.stickyimmix.StickyImmix org.mmtk.plan.stickyms.StickyMS"
 
-opts=""
-#opts="gcEvery=SAFEPOINT"
+opts="variableSizeHeap=false"
+#opts="$opts gcEvery=SAFEPOINT"
+
+# 4m stack required for 'quicksort'
+jvm_opts="-ea -Xss8m"
 
 for plan in $plans
 do
   showplan=`echo $plan | sed "{s/.*\.//g}"`
   mkdir results/mmtk/$showplan
-  for script in `ls MMTk/harness/test-scripts/*.script`
+  for script in `ls $TEST_DIR/*.script`
   do
     showscript=`echo $script | sed "{s/.*[\/]//g}" | sed "{s/\.script$//g}"`
-    (echo /opt/jdk1.6.0/bin/java -ea -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts;
-    /opt/jdk1.6.0/bin/java -ea -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts ) &> results/mmtk/temp.out
+    if [ -f $TEST_DIR/$showscript.options ]; then
+      scriptopts=$(cat  $TEST_DIR/$showscript.options)
+    else
+      scriptopts=
+    fi
+    (
+      echo /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
+      /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts
+    ) &> results/mmtk/temp.out
     if [ ${?} == 0 ]
     then
       echo "PASSED: $showplan $showscript"
