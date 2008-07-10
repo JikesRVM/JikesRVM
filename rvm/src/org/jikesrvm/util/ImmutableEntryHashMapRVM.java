@@ -72,4 +72,9 @@ public final class ImmutableEntryHashMapRVM<K, V> extends AbstractHashMapRVM<K,V
   protected boolean same(K k1, K k2) {
     return k1.equals(k2);
   }
+
+  @Override
+  protected int hashTheKey(K key) {
+    return key.hashCode();
+  }
 }

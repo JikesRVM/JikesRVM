@@ -49,6 +49,8 @@ abstract class AbstractHashMapRVM<K, V> {
    */
   abstract boolean same(K key1, K key2);
 
+  abstract int hashTheKey(K key);
+
   abstract AbstractBucket<K,V> createNewBucket(K k, V v, AbstractBucket<K,V> n);
 
   AbstractHashMapRVM(int size) {
@@ -160,7 +162,7 @@ abstract class AbstractHashMapRVM<K, V> {
     if (key == null) {
       return 0;
     } else {
-      return (key.hashCode() & 0x7fffffff) % divisor;
+      return (hashTheKey(key) & 0x7fffffff) % divisor;
     }
   }
 

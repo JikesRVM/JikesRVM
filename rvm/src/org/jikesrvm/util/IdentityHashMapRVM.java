@@ -25,6 +25,11 @@ public final class IdentityHashMapRVM<K, V> extends AbstractHashMapRVM<K, V> {
   }
 
   @Override
+  protected int hashTheKey(K key) {
+    return System.identityHashCode(key);
+  }
+
+  @Override
   AbstractBucket<K,V> createNewBucket(K key, V value, AbstractBucket<K, V> next) {
     return new Bucket<K,V>(key, value, next);
   }

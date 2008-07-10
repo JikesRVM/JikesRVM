@@ -37,4 +37,9 @@ public final class ImmutableEntryIdentityHashMapRVM<K, V> extends AbstractHashMa
   protected boolean same(K k1, K k2) {
     return k1 == k2;
   }
+
+  @Override
+  protected int hashTheKey(K key) {
+    return System.identityHashCode(key);
+  }
 }
