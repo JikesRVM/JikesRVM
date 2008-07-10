@@ -23,6 +23,6 @@ public class PerfMetric extends org.vmutil.options.EnumOption {
     super(Options.set, "Perf Metric",
           "Use this to select a performance metric to measure",
           new String[] {"RI", "L1D_MISS", "L2_MISS", "DTLB_MISS", "ITLB_MISS", "ITLB_HIT", "BPU_TC", "TC_FLUSH", "L1I_MISS", "BRANCHES", "BRANCH_MISS"},
-          0);
+          "RI");
   }
 }

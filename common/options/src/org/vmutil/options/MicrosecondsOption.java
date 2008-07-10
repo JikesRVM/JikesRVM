@@ -89,4 +89,13 @@ public class MicrosecondsOption extends Option {
     validate();
     set.logChange(this);
   }
+
+  /**
+   * Modify the default value of the option.
+   *
+   * @param value The new default value for the option.
+   */
+  public void setDefaultMicrosends(int value) {
+    this.value = this.defaultValue = value;
+  }
 }

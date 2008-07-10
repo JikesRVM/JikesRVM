@@ -26,7 +26,7 @@ public final class GcEvery extends org.vmutil.options.EnumOption {
   public GcEvery() {
     super(Harness.options, "Gc Every",
           "MMTk Harness gc-stress",
-          new String[] { "NONE", "ALLOC", "SAFEPOINT" }, 0);
+          new String[] { "NONE", "ALLOC", "SAFEPOINT" }, "NONE");
   }
 
   public void apply() {

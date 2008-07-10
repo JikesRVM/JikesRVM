@@ -36,10 +36,10 @@ public class EnumOption extends Option {
    * @param values A mapping of int to string for the enum.
    * @param defaultValue The default value of the option.
    */
-  protected EnumOption(OptionSet set, String name, String description, String[] values, int defaultValue) {
+  protected EnumOption(OptionSet set, String name, String description, String[] values, String defaultValue) {
     super(set, ENUM_OPTION, name, description);
     this.values = values;
-    this.value = this.defaultValue = defaultValue;
+    this.value = this.defaultValue = findValue(defaultValue);
   }
 
   /**
@@ -120,6 +120,15 @@ public class EnumOption extends Option {
    */
   public void setValue(String value) {
     setValue(findValue(value));
+  }
+
+  /**
+   * Modify the default value of the option.
+   *
+   * @param value The new default value for the option.
+   */
+  public void setDefaultValue(String value) {
+    this.value = this.defaultValue = findValue(value);
   }
 
   /**

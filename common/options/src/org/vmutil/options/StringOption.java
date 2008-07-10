@@ -67,4 +67,13 @@ public class StringOption extends Option {
     validate();
     set.logChange(this);
   }
+
+  /**
+   * Modify the default value of the option.
+   *
+   * @param value The new default value for the option.
+   */
+  public void setDefaultValue(String value) {
+    this.value = this.defaultValue = value;
+  }
 }

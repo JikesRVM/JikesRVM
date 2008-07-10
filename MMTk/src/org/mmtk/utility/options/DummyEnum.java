@@ -26,8 +26,8 @@ public final class DummyEnum extends org.vmutil.options.EnumOption {
    */
   public DummyEnum() {
     super(Options.set, "Dummy Enum",
-        "This is a sample enumeration to test the options system",
+          "This is a sample enumeration to test the options system",
           new String[] {"foo", "bar"},
-          0);
+          "foo");
   }
 }
