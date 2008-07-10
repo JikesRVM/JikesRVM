@@ -14,41 +14,22 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_IntStore : istore_<?>, istore
- *
- *      Local number            Instruction
- *      [0, 3]                  istore_<i>
- *      other                   istore, wide istore
+ *  LocalInitEnd
  */
-public class BC_IntStore extends OSR_PseudoBytecode {
-  private int bsize;
-  private byte[] codes;
-  private int lnum;
-
-  public BC_IntStore(int local) {
-    this.lnum = local;
-    if (local <= 255) {
-      bsize = 2;
-      codes = makeOUcode(JBC_istore, local);
-    } else {
-      bsize = 4;
-      codes = makeWOUUcode(JBC_istore, local);
-    }
-  }
-
+public class ParamInitEnd extends PseudoBytecode {
   public byte[] getBytes() {
-    return codes;
+    return initBytes(2, PSEUDO_ParamInitEnd);
   }
 
   public int getSize() {
-    return bsize;
+    return 2;
   }
 
   public int stackChanges() {
-    return -1;
+    return 0;
   }
 
   public String toString() {
-    return "istore " + lnum;
+    return "ParamInitEnd";
   }
 }

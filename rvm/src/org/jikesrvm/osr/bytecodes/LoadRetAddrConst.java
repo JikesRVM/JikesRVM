@@ -14,19 +14,20 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * goto instruction
+ * artificial instruction, load a PC on the stack.
  */
-public class BC_Goto extends OSR_PseudoBytecode {
-  private int offset;
-  private byte[] codes;
-  private int bsize;
 
-  public BC_Goto(int off) {
-    this.offset = off;
-    adjustFields();
+public class LoadRetAddrConst extends PseudoBytecode {
+  private static final int bsize = 6;
+  private int bcindex;
+
+  public LoadRetAddrConst(int off) {
+    this.bcindex = off;
   }
 
   public byte[] getBytes() {
+    byte[] codes = initBytes(bsize, PSEUDO_LoadRetAddrConst);
+    int2bytes(codes, 2, bcindex);
     return codes;
   }
 
@@ -35,34 +36,18 @@ public class BC_Goto extends OSR_PseudoBytecode {
   }
 
   public int getOffset() {
-    return this.offset;
+    return bcindex;
   }
 
   public int stackChanges() {
-    return 0;
+    return +1;
   }
 
   public void patch(int off) {
-    this.offset = off;
-    adjustFields();
-  }
-
-  private void adjustFields() {
-    if ((offset >= -32768) && (offset <= 32767)) {
-      bsize = 3;
-      codes = new byte[3];
-      codes[0] = (byte) JBC_goto;
-      codes[1] = (byte) (offset >> 8);
-      codes[2] = (byte) (offset & 0xFF);
-    } else {
-      bsize = 5;
-      codes = new byte[5];
-      codes[0] = (byte) JBC_goto_w;
-      int2bytes(codes, 1, offset);
-    }
+    this.bcindex = off;
   }
 
   public String toString() {
-    return "goto " + this.offset;
+    return "LoadRetAddrConst " + bcindex;
   }
 }

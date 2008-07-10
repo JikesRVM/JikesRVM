@@ -18,25 +18,25 @@ import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.osr.bytecodes.BC_AConstNull;
-import org.jikesrvm.osr.bytecodes.BC_DoubleStore;
-import org.jikesrvm.osr.bytecodes.BC_FloatStore;
-import org.jikesrvm.osr.bytecodes.BC_Goto;
-import org.jikesrvm.osr.bytecodes.BC_IntStore;
-import org.jikesrvm.osr.bytecodes.BC_InvokeCompiledMethod;
-import org.jikesrvm.osr.bytecodes.BC_InvokeStatic;
-import org.jikesrvm.osr.bytecodes.BC_LoadDoubleConst;
-import org.jikesrvm.osr.bytecodes.BC_LoadFloatConst;
-import org.jikesrvm.osr.bytecodes.BC_LoadIntConst;
-import org.jikesrvm.osr.bytecodes.BC_LoadLongConst;
-import org.jikesrvm.osr.bytecodes.BC_LoadRetAddrConst;
-import org.jikesrvm.osr.bytecodes.BC_LoadWordConst;
-import org.jikesrvm.osr.bytecodes.BC_LongStore;
-import org.jikesrvm.osr.bytecodes.BC_Nop;
-import org.jikesrvm.osr.bytecodes.BC_ParamInitEnd;
-import org.jikesrvm.osr.bytecodes.BC_Pop;
-import org.jikesrvm.osr.bytecodes.BC_RefStore;
-import org.jikesrvm.osr.bytecodes.OSR_PseudoBytecode;
+import org.jikesrvm.osr.bytecodes.AConstNull;
+import org.jikesrvm.osr.bytecodes.DoubleStore;
+import org.jikesrvm.osr.bytecodes.FloatStore;
+import org.jikesrvm.osr.bytecodes.Goto;
+import org.jikesrvm.osr.bytecodes.IntStore;
+import org.jikesrvm.osr.bytecodes.InvokeCompiledMethod;
+import org.jikesrvm.osr.bytecodes.InvokeStatic;
+import org.jikesrvm.osr.bytecodes.LoadDoubleConst;
+import org.jikesrvm.osr.bytecodes.LoadFloatConst;
+import org.jikesrvm.osr.bytecodes.LoadIntConst;
+import org.jikesrvm.osr.bytecodes.LoadLongConst;
+import org.jikesrvm.osr.bytecodes.LoadRetAddrConst;
+import org.jikesrvm.osr.bytecodes.LoadWordConst;
+import org.jikesrvm.osr.bytecodes.LongStore;
+import org.jikesrvm.osr.bytecodes.Nop;
+import org.jikesrvm.osr.bytecodes.ParamInitEnd;
+import org.jikesrvm.osr.bytecodes.Pop;
+import org.jikesrvm.osr.bytecodes.RefStore;
+import org.jikesrvm.osr.bytecodes.PseudoBytecode;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
@@ -164,8 +164,8 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     this.objnum = 0;
     this.rid = OSR_ObjectHolder.handinRefs(this.objs);
 
-    OSR_PseudoBytecode head = new BC_Nop();
-    OSR_PseudoBytecode tail = head;
+    PseudoBytecode head = new Nop();
+    PseudoBytecode tail = head;
 
     int elmcount = 0;
     // restore parameters first;
@@ -192,7 +192,7 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     }
     // ok, ready to indicate param initialized, thread switch
     // and stack overflow check happens here
-    tail.next = new BC_ParamInitEnd();
+    tail.next = new ParamInitEnd();
     tail = tail.next;
 
     // restore other locals and stack slots, assuming stack element
@@ -203,10 +203,10 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     }// end of for loop
 
     if (this.objnum != 0) {
-      tail.next = new BC_LoadIntConst(this.rid);
+      tail.next = new LoadIntConst(this.rid);
       tail = tail.next;
 
-      tail.next = new BC_InvokeStatic(CLEANREFS);
+      tail.next = new InvokeStatic(CLEANREFS);
       tail = tail.next;
     } else {
       OSR_ObjectHolder.cleanRefs(this.rid);
@@ -220,7 +220,7 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
      */
     if (callee_cmid != -1) {
       // remember the callee's cmid, and the index of original index
-      tail.next = new BC_InvokeCompiledMethod(callee_cmid, this.bcIndex);
+      tail.next = new InvokeCompiledMethod(callee_cmid, this.bcIndex);
       tail = tail.next;
 
       // if this method needs a call, than we must jump to
@@ -256,7 +256,7 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     int pops = computeStackHeight(head);
     branchTarget += pops;  // preserve space
     {
-      BC_Goto togo = new BC_Goto(branchTarget);
+      Goto togo = new Goto(branchTarget);
       int osize = togo.getSize();
       togo.patch(branchTarget + osize);
       int nsize = togo.getSize();
@@ -281,54 +281,54 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     return prologue;
   }// end of method
 
-  private OSR_PseudoBytecode processElement(OSR_VariableElement var, OSR_PseudoBytecode tail, int i) {
+  private PseudoBytecode processElement(OSR_VariableElement var, PseudoBytecode tail, int i) {
     switch (var.getTypeCode()) {
       case INT: {
-        tail.next = new BC_LoadIntConst(var.getIntBits());
+        tail.next = new LoadIntConst(var.getIntBits());
         tail = tail.next;
 
         if (var.isLocal()) {
-          tail.next = new BC_IntStore(var.getNumber());
+          tail.next = new IntStore(var.getNumber());
           tail = tail.next;
         }
         break;
       }
       case FLOAT: {
-        tail.next = new BC_LoadFloatConst(var.getIntBits());
+        tail.next = new LoadFloatConst(var.getIntBits());
         tail = tail.next;
 
         if (var.isLocal()) {
-          tail.next = new BC_FloatStore(var.getNumber());
+          tail.next = new FloatStore(var.getNumber());
           tail = tail.next;
         }
         break;
       }
       case LONG: {
-        tail.next = new BC_LoadLongConst(var.getLongBits());
+        tail.next = new LoadLongConst(var.getLongBits());
         tail = tail.next;
 
         if (var.isLocal()) {
-          tail.next = new BC_LongStore(var.getNumber());
+          tail.next = new LongStore(var.getNumber());
           tail = tail.next;
         }
         break;
       }
       case DOUBLE: {
-        tail.next = new BC_LoadDoubleConst(var.getLongBits());
+        tail.next = new LoadDoubleConst(var.getLongBits());
         tail = tail.next;
 
         if (var.isLocal()) {
-          tail.next = new BC_DoubleStore(var.getNumber());
+          tail.next = new DoubleStore(var.getNumber());
           tail = tail.next;
         }
         break;
       }
       case RET_ADDR: {
-        tail.next = new BC_LoadRetAddrConst(var.getIntBits());
+        tail.next = new LoadRetAddrConst(var.getIntBits());
         tail = tail.next;
 
         if (var.isLocal()) {
-          tail.next = new BC_RefStore(var.getNumber());
+          tail.next = new RefStore(var.getNumber());
           tail = tail.next;
         }
         break;
@@ -338,25 +338,25 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
 
         if (this.objs[i] != null) {
 
-          tail.next = new BC_LoadIntConst(this.rid);
+          tail.next = new LoadIntConst(this.rid);
           tail = tail.next;
 
-          tail.next = new BC_LoadIntConst(i);
+          tail.next = new LoadIntConst(i);
           tail = tail.next;
 
           // the opt compiler will adjust the type of
           // return value to the real type of object
           // when it sees the invoke target is GETREFAT
-          tail.next = new BC_InvokeStatic(GETREFAT);
+          tail.next = new InvokeStatic(GETREFAT);
           tail = tail.next;
         } else {
           // just give an aconst_null
-          tail.next = new BC_AConstNull();
+          tail.next = new AConstNull();
           tail = tail.next;
         }
 
         if (var.isLocal()) {
-          tail.next = new BC_RefStore(var.getNumber());
+          tail.next = new RefStore(var.getNumber());
           tail = tail.next;
         }
 
@@ -365,11 +365,11 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
         break;
       }
       case WORD: {
-        tail.next = new BC_LoadWordConst(var.getWord());
+        tail.next = new LoadWordConst(var.getWord());
         tail = tail.next;
 
         if (var.isLocal()) {
-          tail.next = new BC_RefStore(var.getNumber());
+          tail.next = new RefStore(var.getNumber());
           tail = tail.next;
         }
         break;
@@ -390,9 +390,9 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     return this.maxStackHeight;
   }
 
-  private int computeStackHeight(OSR_PseudoBytecode head) {
+  private int computeStackHeight(PseudoBytecode head) {
     /* skip the first Nop */
-    OSR_PseudoBytecode bcode = head.next;
+    PseudoBytecode bcode = head.next;
     short height = 0;
     while (bcode != null) {
       height += bcode.stackChanges();
@@ -406,10 +406,10 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     return height;
   }
 
-  private static OSR_PseudoBytecode adjustStackHeight(OSR_PseudoBytecode last, int height) {
+  private static PseudoBytecode adjustStackHeight(PseudoBytecode last, int height) {
     // append pop
     for (int i = 0; i < height; i++) {
-      last.next = new BC_Pop();
+      last.next = new Pop();
       last = last.next;
     }
 
@@ -420,9 +420,9 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
    * to make the new bytecode size dividable by 4, then no branch
    * target adjustment is needed in the original code.
    */
-  private static int paddingBytecode(OSR_PseudoBytecode head) {
+  private static int paddingBytecode(PseudoBytecode head) {
     /* skip the first Nop. */
-    OSR_PseudoBytecode bcode = head.next;
+    PseudoBytecode bcode = head.next;
 
     /* count the total size of prologue code. */
     int bsize = 0;
@@ -435,7 +435,7 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
     int padding = 3 - (bsize + 3) & 0x03;
 
     for (int i = 0; i < padding; i++) {
-      bcode = new BC_Nop();
+      bcode = new Nop();
       bcode.next = head.next;
       head.next = bcode;
     }
@@ -448,20 +448,20 @@ public class OSR_ExecutionState implements OSR_Constants, BytecodeConstants {
   /* generating binary code from pseudo code, the size and the code
    * list are padded and well calculated.
    */
-  private static byte[] generateBinaries(OSR_PseudoBytecode bhead, int bsize) {
+  private static byte[] generateBinaries(PseudoBytecode bhead, int bsize) {
 
     /* patch the LoalAddrConst instruction, and generate codes. */
     byte[] codes = new byte[bsize];
 
     /* skip the first NOP */
-    OSR_PseudoBytecode bcode = bhead.next;
+    PseudoBytecode bcode = bhead.next;
     int pos = 0;
     while (bcode != null) {
 
       int size = bcode.getSize();
 
-      if (bcode instanceof BC_LoadRetAddrConst) {
-        BC_LoadRetAddrConst laddr = (BC_LoadRetAddrConst) bcode;
+      if (bcode instanceof LoadRetAddrConst) {
+        LoadRetAddrConst laddr = (LoadRetAddrConst) bcode;
 
         /* CAUTION: path relative offset only. */
         laddr.patch(laddr.getOffset() + bsize);

@@ -14,19 +14,27 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_LoadFloatConst: ldc, ldc_w
+ * BC_RefStore: astore, astore_<i>
  */
-public class BC_LoadFloatConst extends OSR_PseudoBytecode {
-  private static final int bsize = 6;
-  private final int fbits;
 
-  public BC_LoadFloatConst(int bits) {
-    this.fbits = bits;
+public class RefStore extends PseudoBytecode {
+  private int bsize;
+  private byte[] codes;
+  private int lnum;
+
+  public RefStore(int local) {
+    this.lnum = local;
+
+    if (local <= 255) {
+      bsize = 2;
+      codes = makeOUcode(JBC_astore, local);
+    } else {
+      bsize = 4;
+      codes = makeWOUUcode(JBC_astore, local);
+    }
   }
 
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_LoadFloatConst);
-    int2bytes(codes, 2, fbits);
     return codes;
   }
 
@@ -35,10 +43,10 @@ public class BC_LoadFloatConst extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    return +1;
+    return -1;
   }
 
   public String toString() {
-    return "LoadFloat " + Float.intBitsToFloat(fbits);
+    return "astore " + this.lnum;
   }
 }

@@ -16,7 +16,7 @@ package org.jikesrvm.osr.bytecodes;
 /**
  * aconst_null
  */
-public class BC_AConstNull extends OSR_PseudoBytecode {
+public class AConstNull extends PseudoBytecode {
   public byte[] getBytes() {
     byte[] codes = new byte[1];
     codes[0] = 1;

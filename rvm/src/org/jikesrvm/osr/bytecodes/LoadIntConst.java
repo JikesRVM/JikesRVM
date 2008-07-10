@@ -14,20 +14,19 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * artificial instruction, load a PC on the stack.
+ * load an integer constant on the stack
  */
-
-public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
+public class LoadIntConst extends PseudoBytecode {
   private static final int bsize = 6;
-  private int bcindex;
+  private final int ibits;
 
-  public BC_LoadRetAddrConst(int off) {
-    this.bcindex = off;
+  public LoadIntConst(int bits) {
+    this.ibits = bits;
   }
 
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_LoadRetAddrConst);
-    int2bytes(codes, 2, bcindex);
+    byte[] codes = initBytes(bsize, PSEUDO_LoadIntConst);
+    int2bytes(codes, 2, ibits);
     return codes;
   }
 
@@ -35,19 +34,11 @@ public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
     return bsize;
   }
 
-  public int getOffset() {
-    return bcindex;
-  }
-
   public int stackChanges() {
     return +1;
   }
 
-  public void patch(int off) {
-    this.bcindex = off;
-  }
-
   public String toString() {
-    return "LoadRetAddrConst " + bcindex;
+    return "LoadInt " + ibits;
   }
 }

@@ -12,29 +12,22 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import org.vmmagic.unboxed.Word;
 
 /**
- * BC_RefStore: astore, astore_<i>
+ * load a word constant on the stack
  */
+public class LoadWordConst extends PseudoBytecode {
+  private static final int bsize = 2 + BYTES_IN_ADDRESS;
+  private final Word wbits;
 
-public class BC_RefStore extends OSR_PseudoBytecode {
-  private int bsize;
-  private byte[] codes;
-  private int lnum;
-
-  public BC_RefStore(int local) {
-    this.lnum = local;
-
-    if (local <= 255) {
-      bsize = 2;
-      codes = makeOUcode(JBC_astore, local);
-    } else {
-      bsize = 4;
-      codes = makeWOUUcode(JBC_astore, local);
-    }
+  public LoadWordConst(Word bits) {
+    this.wbits = bits;
   }
 
   public byte[] getBytes() {
+    byte[] codes = initBytes(bsize, PSEUDO_LoadWordConst);
+    word2bytes(codes, 2, wbits);
     return codes;
   }
 
@@ -43,10 +36,10 @@ public class BC_RefStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    return -1;
+    return +1;
   }
 
   public String toString() {
-    return "astore " + this.lnum;
+    return "LoadWord 0x" + Long.toHexString(wbits.toLong());
   }
 }

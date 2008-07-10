@@ -14,22 +14,37 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- *  LocalInitEnd
+ * BC_FloatStore: fstore, fstore_<i>
  */
-public class BC_ParamInitEnd extends OSR_PseudoBytecode {
+public class FloatStore extends PseudoBytecode {
+  private int bsize;
+  private byte[] codes;
+  private int lnum;
+
+  public FloatStore(int local) {
+    this.lnum = local;
+    if (local <= 255) {
+      bsize = 2;
+      codes = makeOUcode(JBC_fstore, local);
+    } else {
+      bsize = 4;
+      codes = makeWOUUcode(JBC_fstore, local);
+    }
+  }
+
   public byte[] getBytes() {
-    return initBytes(2, PSEUDO_ParamInitEnd);
+    return codes;
   }
 
   public int getSize() {
-    return 2;
+    return bsize;
   }
 
   public int stackChanges() {
-    return 0;
+    return -1;
   }
 
   public String toString() {
-    return "ParamInitEnd";
+    return "FloatStore " + lnum;
   }
 }

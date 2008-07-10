@@ -14,26 +14,19 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_DoubleStore: dstore, dstore_<l>
+ * checkcast instruction
  */
+public class CheckCast extends PseudoBytecode {
+  private static final int bsize = 6;
+  private final int tid;
 
-public class BC_DoubleStore extends OSR_PseudoBytecode {
-  private int bsize;
-  private byte[] codes;
-  private int lnum;
-
-  public BC_DoubleStore(int local) {
-    this.lnum = local;
-    if (local <= 255) {
-      bsize = 2;
-      codes = makeOUcode(JBC_dstore, local);
-    } else {
-      bsize = 4;
-      codes = makeWOUUcode(JBC_dstore, local);
-    }
+  public CheckCast(int typeId) {
+    this.tid = typeId;
   }
 
   public byte[] getBytes() {
+    byte[] codes = initBytes(bsize, PSEUDO_CheckCast);
+    int2bytes(codes, 2, tid);
     return codes;
   }
 
@@ -42,10 +35,10 @@ public class BC_DoubleStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    return -2;
+    return 0;
   }
 
   public String toString() {
-    return "dstore " + lnum;
+    return "CheckCast " + this.tid;
   }
 }

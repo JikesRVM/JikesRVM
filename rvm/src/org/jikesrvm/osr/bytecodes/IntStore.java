@@ -14,24 +14,41 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- *  nop
+ * BC_IntStore : istore_<?>, istore
+ *
+ *      Local number            Instruction
+ *      [0, 3]                  istore_<i>
+ *      other                   istore, wide istore
  */
-public class BC_Nop extends OSR_PseudoBytecode {
+public class IntStore extends PseudoBytecode {
+  private int bsize;
+  private byte[] codes;
+  private int lnum;
+
+  public IntStore(int local) {
+    this.lnum = local;
+    if (local <= 255) {
+      bsize = 2;
+      codes = makeOUcode(JBC_istore, local);
+    } else {
+      bsize = 4;
+      codes = makeWOUUcode(JBC_istore, local);
+    }
+  }
+
   public byte[] getBytes() {
-    byte[] codes = new byte[1];
-    codes[0] = 0;
     return codes;
   }
 
   public int getSize() {
-    return 1;
+    return bsize;
   }
 
   public int stackChanges() {
-    return 0;
+    return -1;
   }
 
   public String toString() {
-    return "Nop";
+    return "istore " + lnum;
   }
 }

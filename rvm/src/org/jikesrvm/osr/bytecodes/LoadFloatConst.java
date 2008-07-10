@@ -14,24 +14,31 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- *  pop
+ * BC_LoadFloatConst: ldc, ldc_w
  */
-public class BC_Pop extends OSR_PseudoBytecode {
+public class LoadFloatConst extends PseudoBytecode {
+  private static final int bsize = 6;
+  private final int fbits;
+
+  public LoadFloatConst(int bits) {
+    this.fbits = bits;
+  }
+
   public byte[] getBytes() {
-    byte[] codes = new byte[1];
-    codes[0] = 87;
+    byte[] codes = initBytes(bsize, PSEUDO_LoadFloatConst);
+    int2bytes(codes, 2, fbits);
     return codes;
   }
 
   public int getSize() {
-    return 1;
+    return bsize;
   }
 
   public int stackChanges() {
-    return -1;
+    return +1;
   }
 
   public String toString() {
-    return "Pop";
+    return "LoadFloat " + Float.intBitsToFloat(fbits);
   }
 }

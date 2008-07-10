@@ -12,32 +12,29 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.common.CompiledMethods;
 
 /**
- * invoke a compiled method
+ * Special invokestatic, with only two possible target
+ * OSR_ObjectHolder.getRefAt and OSR_ObjectHolder.cleanRefs
+ * indiced by GETREFAT and CLEANREFS.
  */
 
-public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
+public class InvokeStatic extends PseudoBytecode {
 
-  private static int bsize = 10;
-  private int cmid;
+  private static final int bsize = 6;
+  private final int tid;  // target INDEX
 
-  // the bc index of referred call site
-  private int origIdx;
-
-  public BC_InvokeCompiledMethod(int cmethId, int origBCIndex) {
-    this.cmid = cmethId;
-    this.origIdx = origBCIndex;
+  public InvokeStatic(int targetId) {
+    this.tid = targetId;
   }
 
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_InvokeCompiledMethod);
-    int2bytes(codes, 2, cmid);
-    int2bytes(codes, 6, origIdx);
+    byte[] codes = initBytes(bsize, PSEUDO_InvokeStatic);
+    int2bytes(codes, 2, tid);
     return codes;
   }
 
@@ -46,16 +43,21 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
-    RVMMethod callee = cm.getMethod();
+    RVMMethod callee = null;
+    switch (tid) {
+      case GETREFAT:
+        callee = AosEntrypoints.osrGetRefAtMethod;
+        break;
+      case CLEANREFS:
+        callee = AosEntrypoints.osrCleanRefsMethod;
+        break;
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        break;
+    }
 
     int psize = callee.getParameterWords();
     int schanges = -psize;
-
-    // pop receiver
-    if (!callee.isStatic()) {
-      schanges--;
-    }
 
     TypeReference rtype = callee.getReturnType();
     byte tcode = rtype.getName().parseForTypeCode();
@@ -73,7 +75,6 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    //CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
-    return "InvokeCompiledMethod (0x" + Integer.toHexString(cmid) + ") " + "@" + origIdx;
+    return "InvokeStatic " + tid;
   }
 }
