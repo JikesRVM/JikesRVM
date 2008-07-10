@@ -800,10 +800,9 @@ public abstract class RVMType extends AnnotatedElement
   private int mmAllocator;
 
   /**
-   * Record the allocator information the memory manager holds about this
-   * type.
+   * Record the allocator information the memory manager holds about this type.
    *
-   * @param mmType the type to record
+   * @param allocator the allocator to record
    */
   public final void setMMAllocator(int allocator) {
     this.mmAllocator = allocator;

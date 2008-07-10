@@ -173,7 +173,7 @@ public abstract class RVMMember extends AnnotatedElement implements Constants, C
   /**
    * Has the field been laid out in the object yet ?
    *
-   * @return
+   * @return true if the field has been assigned an offset, false if not.
    */
   public final boolean hasOffset() {
     return !(offset == NO_OFFSET);

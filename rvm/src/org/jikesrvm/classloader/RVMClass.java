@@ -2359,9 +2359,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * toString</li>
    * </ul>
    *
-   * @param annotationInterface the annotation interface this class
-   * will implement
-   * @return the implementing class
+   * @param annotationInterface the annotation interface this class will implement
    */
   private static void createAnnotationClass(RVMClass annotationInterface) {
     // Compute name of class based on the name of the annotation interface

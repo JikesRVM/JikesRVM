@@ -87,11 +87,11 @@ import org.vmmagic.unboxed.*;
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an {@link org.jikesrvm.compilers.opt.Assembler}
+ * optimizing compiler has an {@link org.jikesrvm.compilers.opt.AssemblerOpt}
  * that is built on top of this one to match
  * {@link org.jikesrvm.compilers.opt.ir.Instruction}s and
  * {@link org.jikesrvm.compilers.opt.ir.Operator}s to the emit methods
- * this assembler provides.  The {@link org.jikesrvm.compilers.opt.Assembler}
+ * this assembler provides.  The {@link org.jikesrvm.compilers.opt.AssemblerOpt}
  * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
  * naming and signiture convention that is designed to make the method
@@ -174,7 +174,7 @@ import org.vmmagic.unboxed.*;
  *  </DL>
  * </DL>
  *
- * @see org.jikesrvm.compilers.opt.Assembler
+ * @see org.jikesrvm.compilers.opt.AssemblerOpt
  * @see Lister
  * @see ForwardReference
  *

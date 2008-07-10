@@ -129,7 +129,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
    * with the right LHSclass.
    *
    * @param mid     Dictionary id of the {@link MemberReference} for the target interface method.
-   * @param object  The object on which we are attempting to invoke the interface method
+   * @param rhsObject  The object on which we are attempting to invoke the interface method
    */
   @Entrypoint
   public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object rhsObject)
