@@ -100,9 +100,10 @@ import org.vmmagic.unboxed.*;
    * Constructor.
  */
   public RCBase() {
-    if (!SCAN_BOOT_IMAGE) {
-      VM.assertions.fail("RC currently requires scan boot image");
-    }
+    if (!SCAN_BOOT_IMAGE)VM.assertions.fail("RC requires scan boot image");
+    /* Change defaults */
+    Options.noReferenceTypes.setDefaultValue(true);
+    Options.noFinalizer.setDefaultValue(true);
     if (GATHER_WRITE_BARRIER_STATS) {
       wbFast = new EventCounter("wbFast");
       wbSlow = new EventCounter("wbSlow");
