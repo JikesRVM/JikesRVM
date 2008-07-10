@@ -55,9 +55,9 @@ import org.vmmagic.pragma.Uninterruptible;
  * enqueue.
  */
 @NonMoving
-public final class OSR_OrganizerThread extends GreenThread {
+public final class OSROrganizerThread extends GreenThread {
   /** Constructor */
-  public OSR_OrganizerThread() {
+  public OSROrganizerThread() {
     super("OSR_Organizer");
     makeDaemon(true);
   }

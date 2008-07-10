@@ -15,7 +15,7 @@ package org.jikesrvm.scheduler.greenthreads;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_NORMAL;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.OSR_Listener;
+import org.jikesrvm.adaptive.OSRListener;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -288,7 +288,7 @@ public class GreenThread extends RVMThread {
       }
 
       if (VM.BuildForAdaptiveSystem) {
-        threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom, yieldpointServiceMethodFP);
+        threadSwitch |= OSRListener.checkForOSRPromotion(whereFrom, yieldpointServiceMethodFP);
       }
       if (threadSwitch) {
         p.yieldForCBSMethod = false;
@@ -353,7 +353,7 @@ public class GreenThread extends RVMThread {
 
     if (VM.BuildForAdaptiveSystem && p.yieldToOSRRequested) {
       p.yieldToOSRRequested = false;
-      OSR_Listener.handleOSRFromOpt(yieldpointServiceMethodFP);
+      OSRListener.handleOSRFromOpt(yieldpointServiceMethodFP);
       threadSwitch = true;
     }
 

@@ -377,7 +377,7 @@ public class Entrypoints {
           getField(org.jikesrvm.compilers.opt.specialization.SpecializedMethodPool.class,
                    "specializedMethods",
                    org.jikesrvm.ArchitectureSpecific.CodeArray[].class);
-      osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSR_OrganizerThread.class, "queueLock", int.class);
+      osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSROrganizerThread.class, "queueLock", int.class);
       optThreadSwitchFromOsrOptMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromOsrOpt", "()V");
       optThreadSwitchFromPrologueMethod =

@@ -21,7 +21,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.Services;
 import org.jikesrvm.UnimplementedError;
-import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
+import org.jikesrvm.adaptive.OnStackReplacementEvent;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -368,7 +368,7 @@ public abstract class RVMThread {
    * Only used by OSR when VM.BuildForAdaptiveSystem. Declared as an
    * Object to cut link to adaptive system.  Ugh.
    */
-  public final Object /* OSR_OnStackReplacementEvent */ onStackReplacementEvent;
+  public final Object /* OnStackReplacementEvent */ onStackReplacementEvent;
 
   /**
    * The flag indicates whether this thread is waiting for on stack
@@ -461,7 +461,7 @@ public abstract class RVMThread {
       jniEnv = JNIEnvironment.allocateEnvironment();
 
       if (VM.BuildForAdaptiveSystem) {
-        onStackReplacementEvent = new OSR_OnStackReplacementEvent();
+        onStackReplacementEvent = new OnStackReplacementEvent();
       } else {
         onStackReplacementEvent = null;
       }

@@ -30,7 +30,7 @@ import org.jikesrvm.compilers.opt.LocalCopyProp;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
-import org.jikesrvm.compilers.opt.bc2ir.OSR_OsrPointConstructor;
+import org.jikesrvm.compilers.opt.bc2ir.OsrPointConstructor;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
 import org.jikesrvm.compilers.opt.controlflow.BuildLST;
 import org.jikesrvm.compilers.opt.controlflow.CFGTransformations;
@@ -181,7 +181,7 @@ public class OptimizationPlanner {
         // Generate HIR from bytecodes
         new ConvertBCtoHIR(),
 
-        new AdjustBCIndexes(), new OSR_OsrPointConstructor(),
+        new AdjustBCIndexes(), new OsrPointConstructor(),
 
         // Always do initial wave of peephole branch optimizations
         new BranchOptimizations(0, true, false),

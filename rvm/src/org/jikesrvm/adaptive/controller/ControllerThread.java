@@ -14,8 +14,8 @@ package org.jikesrvm.adaptive.controller;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
-import org.jikesrvm.adaptive.OSR_OrganizerThread;
+import org.jikesrvm.adaptive.OnStackReplacementEvent;
+import org.jikesrvm.adaptive.OSROrganizerThread;
 import org.jikesrvm.adaptive.database.methodsamples.MethodCountData;
 import org.jikesrvm.adaptive.measurements.listeners.EdgeListener;
 import org.jikesrvm.adaptive.measurements.listeners.YieldCounterListener;
@@ -103,7 +103,7 @@ public final class ControllerThread extends ThreadModel {
       } else if (Controller.options.counters()) {
         InvocationCounts.init();
       }
-      Controller.osrOrganizer = new OSR_OrganizerThread();
+      Controller.osrOrganizer = new OSROrganizerThread();
       Controller.osrOrganizer.start();
       createCompilationThread();
       // We're running an AOS bootimage with a non-adaptive primary strategy.
@@ -119,7 +119,7 @@ public final class ControllerThread extends ThreadModel {
           Controller.stop();
         }
         Object event = Controller.controllerInputQueue.deleteMin();
-        ((OSR_OnStackReplacementEvent) event).process();
+        ((OnStackReplacementEvent) event).process();
       }
 
     }
@@ -263,7 +263,7 @@ public final class ControllerThread extends ThreadModel {
     }
 
     if ((!Controller.options.ENABLE_REPLAY_COMPILE) && (!Controller.options.ENABLE_PRECOMPILE)) {
-      Controller.osrOrganizer = new OSR_OrganizerThread();
+      Controller.osrOrganizer = new OSROrganizerThread();
       Controller.osrOrganizer.start();
     }
   }

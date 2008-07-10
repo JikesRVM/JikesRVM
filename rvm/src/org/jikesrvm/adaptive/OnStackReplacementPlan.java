@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.Offset;
  * The execution of this plan compiles the method, installs the new
  * code, and reschedule the thread.
  */
-public class OSR_OnStackReplacementPlan implements Constants {
+public class OnStackReplacementPlan implements Constants {
   private final int CMID;
   private final Offset tsFromFPoff;
   private final Offset ypTakenFPoff;
@@ -57,7 +57,7 @@ public class OSR_OnStackReplacementPlan implements Constants {
   private int timeInitiated = 0;
   private int timeCompleted = 0;
 
-  public OSR_OnStackReplacementPlan(RVMThread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
+  public OnStackReplacementPlan(RVMThread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
                                     Offset ypoff, double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;

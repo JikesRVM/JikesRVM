@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.adaptive.recompilation;
 
-import org.jikesrvm.adaptive.OSR_OnStackReplacementPlan;
+import org.jikesrvm.adaptive.OnStackReplacementPlan;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
 import org.jikesrvm.adaptive.util.AOSLogging;
@@ -53,8 +53,8 @@ public final class CompilationThread extends GreenThread {
       Object plan = Controller.compilationQueue.deleteMin();
       if (plan instanceof ControllerPlan) {
         ((ControllerPlan) plan).doRecompile();
-      } else if (plan instanceof OSR_OnStackReplacementPlan) {
-        ((OSR_OnStackReplacementPlan) plan).execute();
+      } else if (plan instanceof OnStackReplacementPlan) {
+        ((OnStackReplacementPlan) plan).execute();
       }
     }
   }

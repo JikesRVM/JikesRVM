@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  * Code invoked from Thread.yieldpoint for the purposes of OSR.
  */
 @Uninterruptible
-public class OSR_Listener {
+public class OSRListener {
 
   public static boolean checkForOSRPromotion(int whereFrom, Address yieldpointServiceMethodFP) {
     if (Scheduler.getCurrentThread().isIdleThread()) return false;
@@ -55,7 +55,7 @@ public class OSR_Listener {
       Offset tsFromFPoff = tsFromFP.diff(stackbeg);
       Offset realFPoff = realFP.diff(stackbeg);
 
-      OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, whereFrom);
+      OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, whereFrom);
       return true;
     }
     return false;
@@ -70,6 +70,6 @@ public class OSR_Listener {
     Offset tsFromFPoff = tsFromFP.diff(stackbeg);
     Offset realFPoff = realFP.diff(stackbeg);
 
-    OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, RVMThread.OSROPT);
+    OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, RVMThread.OSROPT);
   }
 }

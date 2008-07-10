@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  * not extend the HotMethodEvent.
  */
 
-public final class OSR_OnStackReplacementEvent implements ControllerInputEvent {
+public final class OnStackReplacementEvent implements ControllerInputEvent {
 
   /** the suspended thread. */
   public RVMThread suspendedThread;
@@ -80,8 +80,8 @@ public final class OSR_OnStackReplacementEvent implements ControllerInputEvent {
 
     CompilationPlan compPlan = new CompilationPlan(todoMethod, optimizationPlan, null, options);
 
-    OSR_OnStackReplacementPlan plan =
-        new OSR_OnStackReplacementPlan(this.suspendedThread,
+    OnStackReplacementPlan plan =
+        new OnStackReplacementPlan(this.suspendedThread,
                                        compPlan,
                                        this.CMID,
                                        this.whereFrom,

@@ -35,7 +35,7 @@ import org.jikesrvm.compilers.opt.ir.operand.OsrTypeInfoOperand;
  * A phase in the OPT compiler for construction OsrPoint instructions
  * after inlining.
  */
-public class OSR_OsrPointConstructor extends CompilerPhase {
+public class OsrPointConstructor extends CompilerPhase {
 
   public final boolean shouldPerform(OptOptions options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
@@ -52,7 +52,7 @@ public class OSR_OsrPointConstructor extends CompilerPhase {
   }
 
   public final String getName() {
-    return "OSR_OsrPointConstructor";
+    return "OsrPointConstructor";
   }
 
   /**
@@ -63,7 +63,7 @@ public class OSR_OsrPointConstructor extends CompilerPhase {
   /**
    * Constructor
    */
-  public OSR_OsrPointConstructor() {
+  public OsrPointConstructor() {
     branchOpts = new BranchOptimizations(-1, false, false);
   }
 

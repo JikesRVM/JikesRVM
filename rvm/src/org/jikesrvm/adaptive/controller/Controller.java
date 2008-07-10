@@ -16,7 +16,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
-import org.jikesrvm.adaptive.OSR_OrganizerThread;
+import org.jikesrvm.adaptive.OSROrganizerThread;
 import org.jikesrvm.adaptive.database.AOSDatabase;
 import org.jikesrvm.adaptive.database.callgraph.PartialCallGraph;
 import org.jikesrvm.adaptive.database.methodsamples.MethodCountData;
@@ -89,7 +89,7 @@ public class Controller implements Callbacks.ExitMonitor,
   /**
    * Thread collecting osr request and pass it to controllerThread
    */
-  public static OSR_OrganizerThread osrOrganizer = null;
+  public static OSROrganizerThread osrOrganizer = null;
 
   /**
    * Threads that will organize profile data as directed by the controller
