@@ -272,6 +272,15 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
+   * Clear the contents of the table. This is called when reference types are
+   * disabled to make it easier for VMs to change this setting at runtime.
+   */
+  @Override
+  public void clear() {
+    maxIndex = 0;
+  }
+
+  /**
    * Scan through the list of references. Calls ReferenceProcessor's
    * processReference method for each reference and builds a new
    * list of those references still active.

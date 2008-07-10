@@ -39,6 +39,14 @@ public final class SpecializedMethodManager {
     }
   }
 
+  /** Set up the specialized methods for the given type */
+  public static void refreshSpecializedMethods(RVMType type) {
+    for(int i=0; i < numSpecializedMethods; i++) {
+      if (VM.VerifyAssertions) VM._assert(methods[i] != null, "Specialized method missing!");
+      type.setSpecializedMethod(i, methods[i].specializeMethod(type));
+    }
+  }
+
   /** Ensure that a specific specialized method now exists. */
   private static void initializeSpecializedMethod(int id) {
     if (VM.VerifyAssertions) VM._assert(id >= 0);

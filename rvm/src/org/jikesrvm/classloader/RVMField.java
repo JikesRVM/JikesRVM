@@ -45,6 +45,11 @@ public final class RVMField extends RVMMember {
   private final boolean reference;
 
   /**
+   * Has the field been made traced?
+   */
+  private boolean madeTraced;
+
+  /**
    * Create a field.
    *
    * @param declaringClass the TypeReference object of the class
@@ -62,6 +67,7 @@ public final class RVMField extends RVMMember {
     TypeReference typeRef = memRef.asFieldReference().getFieldContentsType();
     this.size = (byte)typeRef.getMemoryBytes();
     this.reference = typeRef.isReferenceType();
+    this.madeTraced = false;
     if (isUntraced() && VM.runningVM) {
       VM.sysFail("Untraced field " + toString() + " created at runtime!");
     }
@@ -143,6 +149,13 @@ public final class RVMField extends RVMMember {
   /**
    * Does the field hold a reference?
    */
+  public boolean isTraced() {
+    return (reference && !isUntraced()) || madeTraced;
+  }
+
+  /**
+   * Does the field hold a reference?
+   */
   public boolean isReferenceType() {
     return reference;
   }
@@ -207,6 +220,15 @@ public final class RVMField extends RVMMember {
    */
   public boolean isUntraced() {
     return hasUntracedAnnotation();
+  }
+
+  /**
+   * Make this field a traced field by garbage collection. Affects all
+   * subclasses of the class in which this field is defined.
+   */
+  public void makeTraced() {
+    madeTraced = true;
+    getDeclaringClass().makeFieldTraced(this);
   }
 
   /**

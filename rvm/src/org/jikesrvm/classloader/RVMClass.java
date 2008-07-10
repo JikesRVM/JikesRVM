@@ -1789,7 +1789,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     int referenceFieldCount = 0;
     for (int i = 0, n = instanceFields.length; i < n; ++i) {
       RVMField field = instanceFields[i];
-      if (field.isReferenceType() && !field.isUntraced()) {
+      if (field.isTraced()) {
         referenceFieldCount += 1;
       }
     }
@@ -1802,7 +1802,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       referenceOffsets = MM_Interface.newNonMovingIntArray(referenceFieldCount);
       for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
         RVMField field = instanceFields[i];
-        if (field.isReferenceType() && !field.isUntraced()) {
+        if (field.isTraced()) {
           referenceOffsets[j++] = field.getOffset().toInt();
         }
       }
@@ -2036,6 +2036,31 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   instantiate " + this);
+  }
+
+  /**
+   * Make the passed field a traced field by garbage collection. Also affects all
+   * subclasses.
+   */
+  public synchronized void makeFieldTraced(RVMField field) {
+    int[] oldOffsets = referenceOffsets;
+    int fieldOffset = field.getOffset().toInt();
+    referenceOffsets = MM_Interface.newNonMovingIntArray(oldOffsets.length + 1);
+    int i;
+    for(i=0; i < oldOffsets.length && oldOffsets[i] < fieldOffset; i++) {
+      referenceOffsets[i] = oldOffsets[i];
+    }
+    if (VM.VerifyAssertions) VM._assert(oldOffsets[i] != fieldOffset, "Field is already traced!");
+    referenceOffsets[i++] = fieldOffset;
+    while(i < referenceOffsets.length) {
+      referenceOffsets[i] = oldOffsets[i-1];
+      i++;
+    }
+    SpecializedMethodManager.refreshSpecializedMethods(this);
+
+    for(RVMClass klass: subClasses) {
+      klass.makeFieldTraced(field);
+    }
   }
 
   /**

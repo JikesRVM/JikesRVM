@@ -90,22 +90,29 @@ public abstract class SimpleCollector extends CollectorContext {
     }
 
     if (phaseId == Simple.SOFT_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue()) {
-        VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      if (primary) {
+        if (Options.noReferenceTypes.getValue())
+          VM.softReferences.clear();
+        else
+          VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
       }
       return;
     }
 
     if (phaseId == Simple.WEAK_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      if (primary) {
+        if (Options.noReferenceTypes.getValue())
+          VM.weakReferences.clear();
+        else
+          VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      }
       return;
     }
 
     if (phaseId == Simple.FINALIZABLE) {
       if (primary) {
         if (Options.noFinalizer.getValue())
-          Finalizer.kill();
+          Finalizer.clear();
         else
           Finalizer.moveToFinalizable(getCurrentTrace());
       }
@@ -113,8 +120,12 @@ public abstract class SimpleCollector extends CollectorContext {
     }
 
     if (phaseId == Simple.PHANTOM_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      if (primary) {
+        if (Options.noReferenceTypes.getValue())
+          VM.phantomReferences.clear();
+        else
+          VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      }
       return;
     }
 

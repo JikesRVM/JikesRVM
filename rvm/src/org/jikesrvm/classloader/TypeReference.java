@@ -129,6 +129,7 @@ public final class TypeReference {
   public static final TypeReference JavaLangString = findOrCreate(java.lang.String.class);
   public static final TypeReference JavaLangCloneable = findOrCreate(java.lang.Cloneable.class);
   public static final TypeReference JavaIoSerializable = findOrCreate(java.io.Serializable.class);
+  public static final TypeReference JavaLangRefReference = findOrCreate(java.lang.ref.Reference.class);
 
   public static final TypeReference JavaLangObjectArray = findOrCreate(java.lang.Object[].class);
 

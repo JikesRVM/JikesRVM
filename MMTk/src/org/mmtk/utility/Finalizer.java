@@ -213,7 +213,7 @@ import org.vmmagic.unboxed.*;
   }
 
 
-  public static void kill() {
+  public static void clear() {
     candidateEnd = 0;
   }
 

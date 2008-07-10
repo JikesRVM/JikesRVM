@@ -48,6 +48,7 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Mmapper;
+import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -131,11 +132,15 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
   @Interruptible
   public static void postBoot() {
     Selected.Plan.get().postBoot();
+
+    if (Options.noReferenceTypes.getValue()) {
+      RVMType.JavaLangRefReferenceReferenceField.makeTraced();
+    }
+
     if (VM.BuildWithGCSpy) {
       // start the GCSpy interpreter server
       MM_Interface.startGCspyServer();
     }
-
   }
 
   /**

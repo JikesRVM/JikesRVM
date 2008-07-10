@@ -103,6 +103,8 @@ public abstract class RVMType extends AnnotatedElement
   public static final RVMClass JavaLangStringType;
   public static final RVMClass JavaLangCloneableType;
   public static final RVMClass JavaIoSerializableType;
+  public static final RVMClass JavaLangRefReferenceType;
+  public static final RVMField JavaLangRefReferenceReferenceField;
   public static final RVMClass MagicType;
   public static final Primitive WordType;
   public static final RVMArray WordArrayType;
@@ -165,6 +167,8 @@ public abstract class RVMType extends AnnotatedElement
     JavaLangStringType = TypeReference.JavaLangString.resolve().asClass();
     JavaLangCloneableType = TypeReference.JavaLangCloneable.resolve().asClass();
     JavaIoSerializableType = TypeReference.JavaIoSerializable.resolve().asClass();
+    JavaLangRefReferenceType = TypeReference.JavaLangRefReference.resolve().asClass();
+    JavaLangRefReferenceReferenceField = JavaLangRefReferenceType.findDeclaredField(Atom.findAsciiAtom("_referent"));
   }
 
   /**
