@@ -10,15 +10,16 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * aconst_null
+ *  nop
  */
-public class BC_AConstNull extends OSR_PseudoBytecode {
+public class BC_Nop extends OSR_PseudoBytecode {
   public byte[] getBytes() {
     byte[] codes = new byte[1];
-    codes[0] = 1;
+    codes[0] = 0;
     return codes;
   }
 
@@ -27,10 +28,10 @@ public class BC_AConstNull extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    return 1;
+    return 0;
   }
 
   public String toString() {
-    return "aconst_null";
+    return "Nop";
   }
 }

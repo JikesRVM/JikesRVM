@@ -10,32 +10,24 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * BC_IntStore : istore_<?>, istore
- *
- *      Local number            Instruction
- *      [0, 3]                  istore_<i>
- *      other                   istore, wide istore
+ * artificial instruction, load a PC on the stack.
  */
-public class BC_IntStore extends OSR_PseudoBytecode {
-  private int bsize;
-  private byte[] codes;
-  private int lnum;
 
-  public BC_IntStore(int local) {
-    this.lnum = local;
-    if (local <= 255) {
-      bsize = 2;
-      codes = makeOUcode(JBC_istore, local);
-    } else {
-      bsize = 4;
-      codes = makeWOUUcode(JBC_istore, local);
-    }
+public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
+  private static final int bsize = 6;
+  private int bcindex;
+
+  public BC_LoadRetAddrConst(int off) {
+    this.bcindex = off;
   }
 
   public byte[] getBytes() {
+    byte[] codes = initBytes(bsize, PSEUDO_LoadRetAddrConst);
+    int2bytes(codes, 2, bcindex);
     return codes;
   }
 
@@ -43,11 +35,19 @@ public class BC_IntStore extends OSR_PseudoBytecode {
     return bsize;
   }
 
+  public int getOffset() {
+    return bcindex;
+  }
+
   public int stackChanges() {
-    return -1;
+    return +1;
+  }
+
+  public void patch(int off) {
+    this.bcindex = off;
   }
 
   public String toString() {
-    return "istore " + lnum;
+    return "LoadRetAddrConst " + bcindex;
   }
 }

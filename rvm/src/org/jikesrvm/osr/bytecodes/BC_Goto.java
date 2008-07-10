@@ -10,7 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
  * goto instruction

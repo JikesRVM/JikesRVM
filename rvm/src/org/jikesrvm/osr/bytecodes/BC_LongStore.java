@@ -10,25 +10,26 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * BC_DoubleStore: dstore, dstore_<l>
+ * BC_LongStore: lstore, lstore_<n>
  */
 
-public class BC_DoubleStore extends OSR_PseudoBytecode {
+public class BC_LongStore extends OSR_PseudoBytecode {
   private int bsize;
   private byte[] codes;
   private int lnum;
 
-  public BC_DoubleStore(int local) {
+  public BC_LongStore(int local) {
     this.lnum = local;
     if (local <= 255) {
       bsize = 2;
-      codes = makeOUcode(JBC_dstore, local);
+      codes = makeOUcode(JBC_lstore, local);
     } else {
       bsize = 4;
-      codes = makeWOUUcode(JBC_dstore, local);
+      codes = makeWOUUcode(JBC_lstore, local);
     }
   }
 
@@ -45,6 +46,6 @@ public class BC_DoubleStore extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "dstore " + lnum;
+    return "lstore " + lnum;
   }
 }

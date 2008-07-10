@@ -10,27 +10,19 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * checkcast instruction
+ *  LocalInitEnd
  */
-public class BC_CheckCast extends OSR_PseudoBytecode {
-  private static final int bsize = 6;
-  private final int tid;
-
-  public BC_CheckCast(int typeId) {
-    this.tid = typeId;
-  }
-
+public class BC_ParamInitEnd extends OSR_PseudoBytecode {
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_CheckCast);
-    int2bytes(codes, 2, tid);
-    return codes;
+    return initBytes(2, PSEUDO_ParamInitEnd);
   }
 
   public int getSize() {
-    return bsize;
+    return 2;
   }
 
   public int stackChanges() {
@@ -38,6 +30,6 @@ public class BC_CheckCast extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "CheckCast " + this.tid;
+    return "ParamInitEnd";
   }
 }

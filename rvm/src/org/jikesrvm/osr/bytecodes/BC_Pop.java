@@ -10,35 +10,28 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * BC_LoadDoubleConst: ldc2_w
+ *  pop
  */
-public class BC_LoadDoubleConst extends OSR_PseudoBytecode {
-  private static final int bsize = 10;
-  private final long dbits;
-
-  public BC_LoadDoubleConst(long bits) {
-    this.dbits = bits;
-  }
-
+public class BC_Pop extends OSR_PseudoBytecode {
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_LoadDoubleConst);
-    long2bytes(codes, 2, dbits);
+    byte[] codes = new byte[1];
+    codes[0] = 87;
     return codes;
   }
 
   public int getSize() {
-    return bsize;
+    return 1;
   }
 
   public int stackChanges() {
-    return +2;
+    return -1;
   }
 
   public String toString() {
-    return "LoadDouble 0x" + Long.toHexString(dbits) + " : " + Double.longBitsToDouble(dbits);
+    return "Pop";
   }
 }
-

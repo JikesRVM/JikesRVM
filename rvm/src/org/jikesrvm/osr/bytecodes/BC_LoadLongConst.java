@@ -10,28 +10,23 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * BC_FloatStore: fstore, fstore_<i>
+ * load a long constant on the stack
  */
-public class BC_FloatStore extends OSR_PseudoBytecode {
-  private int bsize;
-  private byte[] codes;
-  private int lnum;
+public class BC_LoadLongConst extends OSR_PseudoBytecode {
+  private static final int bsize = 10;
+  private final long lbits;
 
-  public BC_FloatStore(int local) {
-    this.lnum = local;
-    if (local <= 255) {
-      bsize = 2;
-      codes = makeOUcode(JBC_fstore, local);
-    } else {
-      bsize = 4;
-      codes = makeWOUUcode(JBC_fstore, local);
-    }
+  public BC_LoadLongConst(long bits) {
+    this.lbits = bits;
   }
 
   public byte[] getBytes() {
+    byte[] codes = initBytes(bsize, PSEUDO_LoadLongConst);
+    long2bytes(codes, 2, lbits);
     return codes;
   }
 
@@ -40,10 +35,10 @@ public class BC_FloatStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    return -1;
+    return 2;
   }
 
   public String toString() {
-    return "FloatStore " + lnum;
+    return "LoadLong " + lbits;
   }
 }

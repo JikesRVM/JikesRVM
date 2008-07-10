@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
 
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.BytecodeConstants;
+import org.jikesrvm.osr.OSR_Constants;
 import org.vmmagic.unboxed.Word;
 
 /**

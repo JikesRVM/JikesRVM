@@ -10,24 +10,23 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
 
-import org.vmmagic.unboxed.Word;
 
 /**
- * load a word constant on the stack
+ * BC_LoadFloatConst: ldc, ldc_w
  */
-public class BC_LoadWordConst extends OSR_PseudoBytecode {
-  private static final int bsize = 2 + BYTES_IN_ADDRESS;
-  private final Word wbits;
+public class BC_LoadFloatConst extends OSR_PseudoBytecode {
+  private static final int bsize = 6;
+  private final int fbits;
 
-  public BC_LoadWordConst(Word bits) {
-    this.wbits = bits;
+  public BC_LoadFloatConst(int bits) {
+    this.fbits = bits;
   }
 
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_LoadWordConst);
-    word2bytes(codes, 2, wbits);
+    byte[] codes = initBytes(bsize, PSEUDO_LoadFloatConst);
+    int2bytes(codes, 2, fbits);
     return codes;
   }
 
@@ -40,6 +39,6 @@ public class BC_LoadWordConst extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "LoadWord 0x" + Long.toHexString(wbits.toLong());
+    return "LoadFloat " + Float.intBitsToFloat(fbits);
   }
 }

@@ -10,25 +10,36 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- *  LocalInitEnd
+ * BC_LoadDoubleConst: ldc2_w
  */
-public class BC_ParamInitEnd extends OSR_PseudoBytecode {
+public class BC_LoadDoubleConst extends OSR_PseudoBytecode {
+  private static final int bsize = 10;
+  private final long dbits;
+
+  public BC_LoadDoubleConst(long bits) {
+    this.dbits = bits;
+  }
+
   public byte[] getBytes() {
-    return initBytes(2, PSEUDO_ParamInitEnd);
+    byte[] codes = initBytes(bsize, PSEUDO_LoadDoubleConst);
+    long2bytes(codes, 2, dbits);
+    return codes;
   }
 
   public int getSize() {
-    return 2;
+    return bsize;
   }
 
   public int stackChanges() {
-    return 0;
+    return +2;
   }
 
   public String toString() {
-    return "ParamInitEnd";
+    return "LoadDouble 0x" + Long.toHexString(dbits) + " : " + Double.longBitsToDouble(dbits);
   }
 }
+

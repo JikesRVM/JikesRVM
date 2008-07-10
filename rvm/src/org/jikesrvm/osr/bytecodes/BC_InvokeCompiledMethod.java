@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
 
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;

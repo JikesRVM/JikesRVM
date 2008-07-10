@@ -10,20 +10,34 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- *  pop
+ * BC_FloatStore: fstore, fstore_<i>
  */
-public class BC_Pop extends OSR_PseudoBytecode {
+public class BC_FloatStore extends OSR_PseudoBytecode {
+  private int bsize;
+  private byte[] codes;
+  private int lnum;
+
+  public BC_FloatStore(int local) {
+    this.lnum = local;
+    if (local <= 255) {
+      bsize = 2;
+      codes = makeOUcode(JBC_fstore, local);
+    } else {
+      bsize = 4;
+      codes = makeWOUUcode(JBC_fstore, local);
+    }
+  }
+
   public byte[] getBytes() {
-    byte[] codes = new byte[1];
-    codes[0] = 87;
     return codes;
   }
 
   public int getSize() {
-    return 1;
+    return bsize;
   }
 
   public int stackChanges() {
@@ -31,6 +45,6 @@ public class BC_Pop extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "Pop";
+    return "FloatStore " + lnum;
   }
 }

@@ -10,23 +10,31 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * artificial instruction, load a PC on the stack.
+ * BC_RefStore: astore, astore_<i>
  */
 
-public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
-  private static final int bsize = 6;
-  private int bcindex;
+public class BC_RefStore extends OSR_PseudoBytecode {
+  private int bsize;
+  private byte[] codes;
+  private int lnum;
 
-  public BC_LoadRetAddrConst(int off) {
-    this.bcindex = off;
+  public BC_RefStore(int local) {
+    this.lnum = local;
+
+    if (local <= 255) {
+      bsize = 2;
+      codes = makeOUcode(JBC_astore, local);
+    } else {
+      bsize = 4;
+      codes = makeWOUUcode(JBC_astore, local);
+    }
   }
 
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_LoadRetAddrConst);
-    int2bytes(codes, 2, bcindex);
     return codes;
   }
 
@@ -34,19 +42,11 @@ public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
     return bsize;
   }
 
-  public int getOffset() {
-    return bcindex;
-  }
-
   public int stackChanges() {
-    return +1;
-  }
-
-  public void patch(int off) {
-    this.bcindex = off;
+    return -1;
   }
 
   public String toString() {
-    return "LoadRetAddrConst " + bcindex;
+    return "astore " + this.lnum;
   }
 }

@@ -10,34 +10,28 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr;
+package org.jikesrvm.osr.bytecodes;
+
 
 /**
- * BC_LoadFloatConst: ldc, ldc_w
+ * aconst_null
  */
-public class BC_LoadFloatConst extends OSR_PseudoBytecode {
-  private static final int bsize = 6;
-  private final int fbits;
-
-  public BC_LoadFloatConst(int bits) {
-    this.fbits = bits;
-  }
-
+public class BC_AConstNull extends OSR_PseudoBytecode {
   public byte[] getBytes() {
-    byte[] codes = initBytes(bsize, PSEUDO_LoadFloatConst);
-    int2bytes(codes, 2, fbits);
+    byte[] codes = new byte[1];
+    codes[0] = 1;
     return codes;
   }
 
   public int getSize() {
-    return bsize;
+    return 1;
   }
 
   public int stackChanges() {
-    return +1;
+    return 1;
   }
 
   public String toString() {
-    return "LoadFloat " + Float.intBitsToFloat(fbits);
+    return "aconst_null";
   }
 }
