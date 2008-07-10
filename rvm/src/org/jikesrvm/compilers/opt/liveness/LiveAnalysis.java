@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.liveness;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
-import static org.jikesrvm.osr.OSR_Constants.LongTypeCode;
-import static org.jikesrvm.osr.OSR_Constants.VoidTypeCode;
+import static org.jikesrvm.osr.OSRConstants.LongTypeCode;
+import static org.jikesrvm.osr.OSRConstants.VoidTypeCode;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -47,10 +47,10 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.util.EmptyIterator;
 import org.jikesrvm.compilers.opt.util.SortedGraphIterator;
-import org.jikesrvm.osr.OSR_Constants;
-import org.jikesrvm.osr.OSR_LocalRegPair;
-import org.jikesrvm.osr.OSR_MethodVariables;
-import org.jikesrvm.osr.OSR_VariableMap;
+import org.jikesrvm.osr.OSRConstants;
+import org.jikesrvm.osr.LocalRegPair;
+import org.jikesrvm.osr.MethodVariables;
+import org.jikesrvm.osr.VariableMap;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis.
@@ -98,7 +98,7 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   private GCIRMap map;
 
-  private OSR_VariableMap osrMap;
+  private VariableMap osrMap;
 
   /**
    * For each register, the set of live interval elements describing the
@@ -211,7 +211,7 @@ public final class LiveAnalysis extends CompilerPhase {
       //  map, which is called OptReferenceMap.
       map = new GCIRMap();
 
-      osrMap = new OSR_VariableMap();
+      osrMap = new VariableMap();
     }
 
     // allocate the "currentSet" which is used to cache the current results
@@ -1196,7 +1196,7 @@ public final class LiveAnalysis extends CompilerPhase {
   /* collect osr info according to live information */
   private void collectOsrInfo(Instruction inst, LiveSet lives) {
     // create an entry to the OSRIRMap, order: callee => caller
-    LinkedList<OSR_MethodVariables> mvarList = new LinkedList<OSR_MethodVariables>();
+    LinkedList<MethodVariables> mvarList = new LinkedList<MethodVariables>();
 
     // get the type info for locals and stacks
     InlinedOsrTypeInfoOperand typeInfo = OsrPoint.getInlinedTypeInfo(inst);
@@ -1215,7 +1215,7 @@ public final class LiveAnalysis extends CompilerPhase {
     int snd_long_idx = typeInfo.validOps;
     for (int midx = 0; midx < nummeth; midx++) {
 
-      LinkedList<OSR_LocalRegPair> tupleList = new LinkedList<OSR_LocalRegPair>();
+      LinkedList<LocalRegPair> tupleList = new LinkedList<LocalRegPair>();
 
       byte[] ls = ltypes[midx];
       byte[] ss = stypes[midx];
@@ -1225,14 +1225,14 @@ public final class LiveAnalysis extends CompilerPhase {
         if (ls[i] != VoidTypeCode) {
           // check liveness
           Operand op = OsrPoint.getElement(inst, elm_idx++);
-          OSR_LocalRegPair tuple = new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);
+          LocalRegPair tuple = new LocalRegPair(OSRConstants.LOCAL, i, ls[i], op);
           // put it in the list
           tupleList.add(tuple);
 
           // get another half of a long type operand
           if (VM.BuildFor32Addr && (ls[i] == LongTypeCode)) {
             Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
-            tuple._otherHalf = new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], other_op);
+            tuple._otherHalf = new LocalRegPair(OSRConstants.LOCAL, i, ls[i], other_op);
 
           }
         }
@@ -1241,20 +1241,20 @@ public final class LiveAnalysis extends CompilerPhase {
       /* record maps for stack slots */
       for (int i = 0, n = ss.length; i < n; i++) {
         if (ss[i] != VoidTypeCode) {
-          OSR_LocalRegPair tuple =
-              new OSR_LocalRegPair(OSR_Constants.STACK, i, ss[i], OsrPoint.getElement(inst, elm_idx++));
+          LocalRegPair tuple =
+              new LocalRegPair(OSRConstants.STACK, i, ss[i], OsrPoint.getElement(inst, elm_idx++));
 
           tupleList.add(tuple);
 
           if (VM.BuildFor32Addr && (ss[i] == LongTypeCode)) {
             tuple._otherHalf =
-                new OSR_LocalRegPair(OSR_Constants.STACK, i, ss[i], OsrPoint.getElement(inst, snd_long_idx++));
+                new LocalRegPair(OSRConstants.STACK, i, ss[i], OsrPoint.getElement(inst, snd_long_idx++));
           }
         }
       }
 
-      // create OSR_MethodVariables
-      OSR_MethodVariables mvar = new OSR_MethodVariables(typeInfo.methodids[midx], typeInfo.bcindexes[midx], tupleList);
+      // create MethodVariables
+      MethodVariables mvar = new MethodVariables(typeInfo.methodids[midx], typeInfo.bcindexes[midx], tupleList);
       mvarList.add(mvar);
     }
 

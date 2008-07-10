@@ -25,11 +25,11 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 
 /**
- * OSR_SpecialCompiler is a wrapper for compiling specialized byte code.
- * It accepts an instance of OSR_ExecutionState, generates the specialized
+ * SpecialCompiler is a wrapper for compiling specialized byte code.
+ * It accepts an instance of ExecutionState, generates the specialized
  * byte code, and compiles it to machine code instructions.
  */
-public class OSR_SpecialCompiler {
+public class SpecialCompiler {
 
   /**
    * recompile an execution state
@@ -37,7 +37,7 @@ public class OSR_SpecialCompiler {
    * @param invalidate Is this an invalidation?
    * @return the compiled method for the root state
    */
-  public static CompiledMethod recompileState(OSR_ExecutionState state, boolean invalidate) {
+  public static CompiledMethod recompileState(ExecutionState state, boolean invalidate) {
 
     // compile from callee to caller
     CompiledMethod newCM = null;
@@ -76,7 +76,7 @@ public class OSR_SpecialCompiler {
   *    bytecode after compilation. I believe this minimizes the
   *    work to change both compilers.
   */
-  public static CompiledMethod baselineCompile(OSR_ExecutionState state) {
+  public static CompiledMethod baselineCompile(ExecutionState state) {
     NormalMethod method = state.getMethod();
 
     if (VM.TraceOnStackReplacement) {VM.sysWriteln("BASE : starts compiling " + method); }
@@ -124,7 +124,7 @@ public class OSR_SpecialCompiler {
    *     5. compile the method.
    *     6. restore bytecode, exception, linenumber map to the original one.
    */
-  public static CompiledMethod optCompile(OSR_ExecutionState state) {
+  public static CompiledMethod optCompile(ExecutionState state) {
 
     NormalMethod method = state.getMethod();
     if (VM.TraceOnStackReplacement) { VM.sysWriteln("OPT : starts compiling " + method); }

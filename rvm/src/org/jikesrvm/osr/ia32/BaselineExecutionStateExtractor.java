@@ -20,11 +20,11 @@ import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.osr.OSR_BytecodeTraverser;
-import org.jikesrvm.osr.OSR_Constants;
-import org.jikesrvm.osr.OSR_ExecStateExtractor;
-import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.osr.OSR_VariableElement;
+import org.jikesrvm.osr.BytecodeTraverser;
+import org.jikesrvm.osr.OSRConstants;
+import org.jikesrvm.osr.ExecutionStateExtractor;
+import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -37,20 +37,20 @@ import org.vmmagic.unboxed.Word;
  * baseline compiler.
  */
 
-public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtractor
-    implements Constants, ArchConstants, OSR_Constants, PhysicalRegisterConstants {
+public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
+    implements Constants, ArchConstants, OSRConstants, PhysicalRegisterConstants {
 
   /**
-   * Implements OSR_ExecStateExtractor.extractState.
+   * Implements ExecutionStateExtractor.extractState.
    *
    * @param thread : the suspended thread, the registers and stack frames are used.
    * @param osrFPoff : the osr method's stack frame offset
    * @param methFPoff : the real method's stack frame offset
    * @param cmid   : the top application method ( system calls are unwounded ).
    *
-   * return a OSR_ExecStateExtractor object.
+   * return a ExecutionStateExtractor object.
    */
-  public OSR_ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
+  public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* performs architecture and compiler dependent operations here
     *
@@ -64,7 +64,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     *           threadSwitchFrom[Prologue|Backedge|Epilong]
     *           foo ( real method ).
     *
-    * The returned OSR_ExecutionState should have following
+    * The returned ExecutionState should have following
     *
     *     current thread
     *     compiled method ID of "foo"
@@ -122,12 +122,12 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     }
 
     // create execution state object
-    OSR_ExecutionState state = new OSR_ExecutionState(thread, methFPoff, cmid, bcIndex, osrFPoff);
+    ExecutionState state = new ExecutionState(thread, methFPoff, cmid, bcIndex, osrFPoff);
 
     /* extract values for local and stack, but first of all
      * we need to get type information for current PC.
      */
-    OSR_BytecodeTraverser typer = new OSR_BytecodeTraverser();
+    BytecodeTraverser typer = new BytecodeTraverser();
     typer.computeLocalStackTypes(fooM, bcIndex);
     byte[] localTypes = typer.getLocalTypes();
     byte[] stackTypes = typer.getStackTypes();
@@ -187,9 +187,9 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
     return state;
   }
 
-  /* go over local/stack array, and build OSR_VariableElement. */
+  /* go over local/stack array, and build VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       BaselineCompiledMethod compiledMethod, boolean kind, OSR_ExecutionState state) {
+                                       BaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
@@ -215,7 +215,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
           byte tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
 
-          state.add(new OSR_VariableElement(kind, i, tcode, value));
+          state.add(new VariableElement(kind, i, tcode, value));
           break;
         }
         case LongTypeCode:
@@ -228,7 +228,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
           byte tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
 
-          state.add(new OSR_VariableElement(kind, i, tcode, value));
+          state.add(new VariableElement(kind, i, tcode, value));
 
           if (kind == LOCAL) { //KV:VoidTypeCode is next
             vOffset = vOffset.minus(2 * BYTES_IN_STACKSLOT);
@@ -258,7 +258,7 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
             VM.sysWrite(" bc " + bcIndex + "\n");
           }
 
-          state.add(new OSR_VariableElement(kind, i, RET_ADDR, bcIndex));
+          state.add(new VariableElement(kind, i, RET_ADDR, bcIndex));
           break;
         }
 
@@ -270,14 +270,14 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
 
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
-          state.add(new OSR_VariableElement(kind, i, REF, ref));
+          state.add(new VariableElement(kind, i, REF, ref));
           break;
         }
         case WordTypeCode: {
           Word value = Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
-          state.add(new OSR_VariableElement(kind, i, WORD, value));
+          state.add(new VariableElement(kind, i, WORD, value));
           break;
         }
         default:

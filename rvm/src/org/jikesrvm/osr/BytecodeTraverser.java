@@ -26,7 +26,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethods;
 
 /**
- * OSR_BytecodeTraverser does depth first search on a bytecode
+ * BytecodeTraverser does depth first search on a bytecode
  * array, determines the type information of locals and stacks at
  * insteresting point.
  *
@@ -53,7 +53,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  */
-public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
+public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -124,7 +124,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
       ltypes[i] = VoidTypeCode;
     }
 
-    OSR_TypeStack simstacks = new OSR_TypeStack(stacksize, VoidTypeCode);
+    TypeStack simstacks = new TypeStack(stacksize, VoidTypeCode);
 
     /* initialize local types from method signature.*/
     {
@@ -209,7 +209,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
     addr = -1;
 
     int stacksize = method.getOperandWords();
-    OSR_TypeStack simstacks = new OSR_TypeStack(stacksize, VoidTypeCode);
+    TypeStack simstacks = new TypeStack(stacksize, VoidTypeCode);
 
     /* scan start from method entry */
     {
@@ -225,7 +225,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
         for (int i = 0, n = handlerPCs.length; i < n; i++) {
           int startpc = handlerPCs[i];
 
-          /* for baseline compilation, the OSR_SpecialCompiler
+          /* for baseline compilation, the SpecialCompiler
            * didnot adjust exception table, we has to adjust it
            * here.
            */
@@ -265,7 +265,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
     addr = -1;
 
     int stacksize = method.getOperandWords();
-    OSR_TypeStack simstacks = new OSR_TypeStack(stacksize, VoidTypeCode);
+    TypeStack simstacks = new TypeStack(stacksize, VoidTypeCode);
 
     /* scan start from method entry */
     {
@@ -300,7 +300,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
                              byte[] ltypes,       // the local types if doDFS
                              byte[] stypes,       // the stack types if doDFS
                              int startpc,         // start pc
-                             OSR_TypeStack S,     // stack
+                             TypeStack S,     // stack
                              int[] stackHeights) { // the stack height if not doDFS
 
     int localsize = method.getLocalWords() - 1;
@@ -858,7 +858,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
             byte[] newstypes = new byte[stypes.length];
             System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
             System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new OSR_TypeStack(S), null);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new TypeStack(S), null);
             if (found) {
               // copy back the ltypes and stypes
               System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -867,7 +867,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
               return true;
             }
           } else {
-            found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
+            found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new TypeStack(S), stackHeights);
           }
           bytecodes.reset(target);
         }
@@ -892,7 +892,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
             byte[] newstypes = new byte[stypes.length];
             System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
             System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new OSR_TypeStack(S), null);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new TypeStack(S), null);
             if (found) {
               // copy back the ltypes and stypes
               System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -901,7 +901,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
               return true;
             }
           } else {
-            found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
+            found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new TypeStack(S), stackHeights);
           }
 
           bytecodes.reset(target);
@@ -933,7 +933,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
             byte[] newstypes = new byte[stypes.length];
             System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
             System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new OSR_TypeStack(S), null);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new TypeStack(S), null);
             if (found) {
               // copy back the ltypes and stypes
               System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -942,7 +942,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
               return true;
             }
           } else {
-            found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
+            found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new TypeStack(S), stackHeights);
           }
 
           // branch to jsr subroutine
@@ -996,7 +996,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
 
               System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
               System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
                 System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -1005,7 +1005,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
                 return true;
               }
             } else {
-              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new TypeStack(S), stackHeights);
             }
           }
 
@@ -1019,14 +1019,14 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
               byte[] newstypes = new byte[stypes.length];
               System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
               System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
                 System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
                 System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
               }
             } else {
-              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new TypeStack(S), stackHeights);
             }
             return found;
           }
@@ -1057,7 +1057,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
 
               System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
               System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
                 System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -1066,7 +1066,7 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
                 return true;
               }
             } else {
-              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new TypeStack(S), stackHeights);
             }
           }
 
@@ -1081,14 +1081,14 @@ public class OSR_BytecodeTraverser implements BytecodeConstants, OSR_Constants {
 
               System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
               System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
                 System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
                 System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
               }
             } else {
-              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+              found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new TypeStack(S), stackHeights);
             }
           }
         }

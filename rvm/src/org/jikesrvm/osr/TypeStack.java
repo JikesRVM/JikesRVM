@@ -15,14 +15,14 @@ package org.jikesrvm.osr;
 import org.jikesrvm.VM;
 
 /**
- * Utility class used by OSR_BytecodeTraverser.
+ * Utility class used by BytecodeTraverser.
  */
-class OSR_TypeStack {
+class TypeStack {
   private final byte[] stack;
   private int top;
   private final byte defv;
 
-  public OSR_TypeStack(int depth, byte defv) {
+  public TypeStack(int depth, byte defv) {
     byte[] stk = new byte[depth];
     for (int i = 0; i < depth; i++) {
       stk[i] = defv;
@@ -33,7 +33,7 @@ class OSR_TypeStack {
     this.defv = defv;
   }
 
-  public OSR_TypeStack(OSR_TypeStack other) {
+  public TypeStack(TypeStack other) {
 
     int ssize = other.stack.length;
     this.stack = new byte[ssize];
@@ -44,14 +44,14 @@ class OSR_TypeStack {
 
   public void push(byte v) {
     if (top == stack.length) {
-      VM.sysWrite("OSR_TypeStack.push(B) : overflow!\n");
+      VM.sysWrite("TypeStack.push(B) : overflow!\n");
     }
     stack[top++] = v;
   }
 
   public byte pop() {
     if (top <= 0) {
-      VM.sysWrite("OSR_TypeStack.pop() : underflow!\n");
+      VM.sysWrite("TypeStack.pop() : underflow!\n");
     }
     top--;
     byte v = stack[top];
@@ -64,7 +64,7 @@ class OSR_TypeStack {
     int newtop = top - n;
 
     if (newtop < 0) {
-      VM.sysWrite("OSR_TypeStack.pop(I) : underflow!\n");
+      VM.sysWrite("TypeStack.pop(I) : underflow!\n");
     }
 
     for (int i = top - 1; i >= newtop; i--) {

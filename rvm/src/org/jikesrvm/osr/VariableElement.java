@@ -17,12 +17,12 @@ import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Word;
 
 /**
- * An instance of OSR_VariableElement represents a byte code variable
+ * An instance of VariableElement represents a byte code variable
  * (local or stack element).  It is used to generate prologue to
  * recover the runtime state.  It refers to VM architecture.
  */
 
-public class OSR_VariableElement implements OSR_Constants {
+public class VariableElement implements OSRConstants {
 
   //////////////////////////////////
   // instance fields
@@ -96,7 +96,7 @@ public class OSR_VariableElement implements OSR_Constants {
   /////////////////////////////////////
 
   /** Constructor for 32-bit value */
-  public OSR_VariableElement(boolean what_kind, int which_num, byte type, int ibits) {
+  public VariableElement(boolean what_kind, int which_num, byte type, int ibits) {
     if (VM.VerifyAssertions) {
       VM._assert(isIBitsType(type));
       VM._assert(which_num < 0xFFFF);
@@ -110,7 +110,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /** Constructor for 64-bit value */
-  public OSR_VariableElement(boolean what_kind, int which_num, byte type, long lbits) {
+  public VariableElement(boolean what_kind, int which_num, byte type, long lbits) {
     if (VM.VerifyAssertions) {
       VM._assert(isLBitsType(type));
       VM._assert(which_num < 0xFFFF);
@@ -124,7 +124,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /** Constructor for reference type */
-  public OSR_VariableElement(boolean what_kind, int which_num, byte type, Object ref) {
+  public VariableElement(boolean what_kind, int which_num, byte type, Object ref) {
     if (VM.VerifyAssertions) {
       VM._assert(isRefType(type));
       VM._assert(which_num < 0xFFFF);
@@ -138,7 +138,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /** Constructor for word type */
-  public OSR_VariableElement(boolean what_kind, int which_num, byte type, Word word) {
+  public VariableElement(boolean what_kind, int which_num, byte type, Word word) {
     if (VM.VerifyAssertions) {
       VM._assert(isWordType(type));
       VM._assert(which_num < 0xFFFF);

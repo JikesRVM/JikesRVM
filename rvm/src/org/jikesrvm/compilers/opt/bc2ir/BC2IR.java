@@ -108,8 +108,8 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.osr.OSR_Constants;
-import org.jikesrvm.osr.OSR_ObjectHolder;
+import org.jikesrvm.osr.OSRConstants;
+import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.NoInline;
@@ -148,7 +148,7 @@ import org.vmmagic.unboxed.Offset;
  * @see ConvertBCtoHIR
  */
 public final class BC2IR
-    implements IRGenOptions, Operators, BytecodeConstants, OptConstants, OSR_Constants {
+    implements IRGenOptions, Operators, BytecodeConstants, OptConstants, OSRConstants {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
@@ -2549,7 +2549,7 @@ public final class BC2IR
 
               /* try to set the type of return register */
               if (targetidx == GETREFAT) {
-                Object realObj = OSR_ObjectHolder.getRefAt(param1, param2);
+                Object realObj = ObjectHolder.getRefAt(param1, param2);
 
                 if (VM.VerifyAssertions) VM._assert(realObj != null);
 

@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan;
-import org.jikesrvm.osr.OSR_VariableMap;
+import org.jikesrvm.osr.VariableMap;
 
 /**
  * Wrapper class around IR info that is valid on the MIR
@@ -37,7 +37,7 @@ public final class MIRInfo {
    */
   public GCIRMap gcIRMap;
 
-  public OSR_VariableMap osrVarMap;
+  public VariableMap osrVarMap;
   /**
    * The frame size of the current method
    */

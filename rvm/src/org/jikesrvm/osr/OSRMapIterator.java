@@ -28,7 +28,7 @@ import org.jikesrvm.VM;
  *     }
  */
 
-public class OSR_MapIterator implements OSR_Constants {
+public class OSRMapIterator implements OSRConstants {
   private int curidx;
   private final int[] maps;
   private int curmid;
@@ -37,7 +37,7 @@ public class OSR_MapIterator implements OSR_Constants {
   private boolean moreMethId = false;
   private boolean moreElemnt = false;
 
-  public OSR_MapIterator(int[] mapcode, int index) {
+  public OSRMapIterator(int[] mapcode, int index) {
     // skip over the map of registers which are references.
     this.curidx = index + 1;
     this.maps = mapcode;

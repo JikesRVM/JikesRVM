@@ -10,32 +10,37 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.osr.ia32;
+package org.jikesrvm.osr.ppc;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.ia32.Registers;
+import org.jikesrvm.ppc.RegisterConstants;
+import org.jikesrvm.ppc.Registers;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Temporary register set.
+ * Temporary resiter set.
  * see: Registers
  */
-public class OSR_TempRegisters implements ArchConstants {
-
-  final Address ip;        // next instruction address
+public class TempRegisters implements RegisterConstants {
+  /** next instruction address */
+  final Address ip;
   final WordArray gprs;
   final double[] fprs;
 
+  /* hold CR, XER, CTR */
+  int cr;
+  int xer;
+  Word ctr;
+
   /**
-   * if a GPR hold a reference to an object, we convert the raw memory
+   * if a GPR holds a reference to an object, we convert the raw memory
    * address to a reference. When objs[i] is null, the GPR[i] is not
    * holding a reference.
    */
-  final Object[] objs;
+  Object[] objs;
 
-  public OSR_TempRegisters(Registers contextRegisters) {
+  public TempRegisters(Registers contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     objs = new Object[NUM_GPRS];
@@ -48,10 +53,10 @@ public class OSR_TempRegisters implements ArchConstants {
   }
 
   public void dumpContents() {
-    System.err.println("OSR_TempRegister: @" + VM.addressAsHexString(ip));
+    System.err.println("TempRegister: @" + ip.toInt());
     System.err.println("  GPRS: ");
     for (int i = 0; i < NUM_GPRS; i++) {
-      System.err.println("    (" + i + "," + VM.addressAsHexString(gprs.get(i).toAddress()) + ")");
+      System.err.println("    (" + i + "," + gprs.get(i).toInt() + ")");
     }
 
     System.err.println();

@@ -25,19 +25,19 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor)
+ * A ExecutionStateExtractor extracts a runtime state (VM scope descriptor)
  * of a method activation. The implementation depends on compilers and
  * hardware architectures
- * @see org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor
- * @see org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor
+ * @see org.jikesrvm.ArchitectureSpecific.BaselineExecutionStateExtractor
+ * @see org.jikesrvm.ArchitectureSpecific.OptExecutionStateExtractor
  *
  * It returns a compiler and architecture neutered runtime state
- * OSR_ExecutionState.
+ * ExecutionState.
  */
 
-public abstract class OSR_ExecStateExtractor implements Constants {
+public abstract class ExecutionStateExtractor implements Constants {
   /**
-   * Returns a VM scope descriptor (OSR_ExecutionState) for a compiled method
+   * Returns a VM scope descriptor (ExecutionState) for a compiled method
    * on the top of a thread stack, (or a list of descriptors for an inlined
    * method).
    *
@@ -47,7 +47,7 @@ public abstract class OSR_ExecStateExtractor implements Constants {
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
    */
-  public abstract OSR_ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
+  public abstract ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
 
   public static void printStackTraces(int[] stack, Offset osrFPoff) {
 

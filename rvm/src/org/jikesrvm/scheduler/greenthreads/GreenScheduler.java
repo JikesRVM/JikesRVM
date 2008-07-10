@@ -19,7 +19,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
 import org.jikesrvm.memorymanagers.mminterface.ConcurrentCollectorThread;
-import org.jikesrvm.osr.OSR_ObjectHolder;
+import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -264,7 +264,7 @@ public final class GreenScheduler extends Scheduler {
     sysCall.sysWaitForMultithreadingStart();
 
     if (VM.BuildForAdaptiveSystem) {
-      OSR_ObjectHolder.boot();
+      ObjectHolder.boot();
     }
 
     // Start collector threads on each Processor.

@@ -54,7 +54,7 @@ import org.jikesrvm.compilers.opt.ssa.LoopVersioning;
 import org.jikesrvm.compilers.opt.ssa.PiNodes;
 import org.jikesrvm.compilers.opt.ssa.RedundantBranchElimination;
 import org.jikesrvm.compilers.opt.ssa.SSATuneUp;
-import org.jikesrvm.osr.OSR_AdjustBCIndexes;
+import org.jikesrvm.osr.AdjustBCIndexes;
 
 /**
  * This class specifies the order in which CompilerPhases are
@@ -181,7 +181,7 @@ public class OptimizationPlanner {
         // Generate HIR from bytecodes
         new ConvertBCtoHIR(),
 
-        new OSR_AdjustBCIndexes(), new OSR_OsrPointConstructor(),
+        new AdjustBCIndexes(), new OSR_OsrPointConstructor(),
 
         // Always do initial wave of peephole branch optimizations
         new BranchOptimizations(0, true, false),

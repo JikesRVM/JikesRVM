@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.osr.OSR_ExecutionState;
+import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.ppc.MachineCode;
 import org.jikesrvm.runtime.Magic;
@@ -32,15 +32,15 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * OSR_CodeInstaller adjusts registers and return address to make a
+ * CodeInstaller adjusts registers and return address to make a
  * specialized thread as a normal thread get scheduled. The method
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
  */
-public abstract class OSR_CodeInstaller implements BaselineConstants {
+public abstract class CodeInstaller implements BaselineConstants {
 
   /* install the newly compiled instructions. */
-  public static boolean install(OSR_ExecutionState state, CompiledMethod cm) {
+  public static boolean install(ExecutionState state, CompiledMethod cm) {
 
     RVMThread thread = state.getThread();
     byte[] stack = thread.getStack();

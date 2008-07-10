@@ -29,7 +29,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 /**
  * Maintain statistic information about on stack replacement events
  */
-public class OSR_Profiler implements Callbacks.ExitMonitor {
+public class OSRProfiler implements Callbacks.ExitMonitor {
 
   private static int invalidations = 0;
   private static boolean registered = false;
@@ -40,15 +40,15 @@ public class OSR_Profiler implements Callbacks.ExitMonitor {
 
   // we know which assumption is invalidated
   // current we only reset the root caller method to be recompiled.
-  public static void notifyInvalidation(OSR_ExecutionState state) {
+  public static void notifyInvalidation(ExecutionState state) {
 
     if (!registered && VM.MeasureCompilation) {
       registered = true;
-      Callbacks.addExitMonitor(new OSR_Profiler());
+      Callbacks.addExitMonitor(new OSRProfiler());
     }
 
     if (VM.TraceOnStackReplacement || VM.MeasureCompilation) {
-      OSR_Profiler.invalidations++;
+      OSRProfiler.invalidations++;
     }
 
     // find the root state
@@ -61,7 +61,7 @@ public class OSR_Profiler implements Callbacks.ExitMonitor {
   }
 
   // invalidate an execution state
-  private static synchronized void invalidateState(OSR_ExecutionState state) {
+  private static synchronized void invalidateState(ExecutionState state) {
     // step 1: invalidate the compiled method with this OSR assumption
     //         how does this affect the performance?
     CompiledMethod mostRecentlyCompiledMethod = CompiledMethods.getCompiledMethod(state.cmid);
@@ -88,7 +88,7 @@ public class OSR_Profiler implements Callbacks.ExitMonitor {
 
     // a list of state from callee -> caller
     if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("OSR " + OSR_Profiler.invalidations + " : " + state.bcIndex + "@" + state.meth);
+      VM.sysWriteln("OSR " + OSRProfiler.invalidations + " : " + state.bcIndex + "@" + state.meth);
     }
 
     // simply reset the compiled method to null is not good

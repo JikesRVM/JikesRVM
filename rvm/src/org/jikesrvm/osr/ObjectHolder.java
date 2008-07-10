@@ -23,12 +23,12 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * OSR_ObjectHolder helps the specialized prologue to load reference
+ * ObjectHolder helps the specialized prologue to load reference
  * get around of GC problem
  */
 
 @Uninterruptible
-public class OSR_ObjectHolder implements SizeConstants {
+public class ObjectHolder implements SizeConstants {
 
   // initialize pool size
   private static final int POOLSIZE = 8;
@@ -46,7 +46,7 @@ public class OSR_ObjectHolder implements SizeConstants {
     cleanRefs(p);
 
     if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("OSR_ObjectHolder booted...");
+      VM.sysWriteln("ObjectHolder booted...");
     }
   }
 
@@ -78,7 +78,7 @@ public class OSR_ObjectHolder implements SizeConstants {
   public static Object getRefAt(int h, int i) {
 
     if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("OSR_ObjectHolder getRefAt");
+      VM.sysWriteln("ObjectHolder getRefAt");
     }
     Object obj = refs[h][i];
     return obj;
@@ -91,7 +91,7 @@ public class OSR_ObjectHolder implements SizeConstants {
   @Inline
   public static void cleanRefs(int h) {
     if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("OSR_ObjectHolder cleanRefs");
+      VM.sysWriteln("ObjectHolder cleanRefs");
     }
     /* refs[h] = null; */
     if (MM_Constants.NEEDS_WRITE_BARRIER) {

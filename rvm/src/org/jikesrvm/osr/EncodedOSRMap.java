@@ -24,14 +24,14 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * OSR_EncodedOSRMap provides the samilar function as GC map
+ * EncodedOSRMap provides the samilar function as GC map
  * in OptMachineCodeMap.
  *
  * In OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  */
 
-public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_Constants {
+public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConstants {
 
   /** osr info entries */
   private final long[] mapEntries;
@@ -43,7 +43,7 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
   private final int[] osrMaps;
 
   /** map used when there are no OSR instructions */
-  private static final OSR_EncodedOSRMap emptyMap = new OSR_EncodedOSRMap();
+  private static final EncodedOSRMap emptyMap = new EncodedOSRMap();
 
   @Inline
   public static boolean registerIsSet(int map, int regnum) {
@@ -69,14 +69,14 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
   }
 
   /** Constructor to build empty map */
-  private OSR_EncodedOSRMap() {
+  private EncodedOSRMap() {
     this.mapEntries = null;
     this.osrMaps = null;
     this.lastEntry = -1;
   }
 
   /** Constructor that builds EncodedOSRMap from variable map */
-  private OSR_EncodedOSRMap(OSR_VariableMap varMap) {
+  private EncodedOSRMap(VariableMap varMap) {
     int entries = varMap.getNumberOfElements();
 
     this.lastEntry = entries - 1;
@@ -99,9 +99,9 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
    * Encode the given variable map returning the canonical empty map if the map
    * is empty
    */
-  public static OSR_EncodedOSRMap makeMap(OSR_VariableMap varMap) {
+  public static EncodedOSRMap makeMap(VariableMap varMap) {
     if (varMap.getNumberOfElements() > 0) {
-      return new OSR_EncodedOSRMap(varMap);
+      return new EncodedOSRMap(varMap);
     } else {
       return emptyMap;
     }
@@ -112,14 +112,14 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
    * we can not trust the osrlist is in the increasing order of
    * machine code offset. Sort it first.
    */
-  private void translateMap(ArrayList<Integer> tempOsrMaps, LinkedList<OSR_VariableMapElement> osrlist) {
+  private void translateMap(ArrayList<Integer> tempOsrMaps, LinkedList<VariableMapElement> osrlist) {
 
     /* sort the list, use the mc offset of the index instruction
      * as the key.
      */
     int n = osrlist.size();
 
-    OSR_VariableMapElement[] osrarray = new OSR_VariableMapElement[n];
+    VariableMapElement[] osrarray = new VariableMapElement[n];
     for (int i = 0; i < n; i++) {
       osrarray[i] = osrlist.get(i);
     }
@@ -132,8 +132,8 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
      */
     if (n > 1) {
       Arrays.sort(osrarray,
-        new Comparator<OSR_VariableMapElement>() {
-          public int compare(OSR_VariableMapElement a, OSR_VariableMapElement b) {
+        new Comparator<VariableMapElement>() {
+          public int compare(VariableMapElement a, VariableMapElement b) {
             return a.osr.getmcOffset() - b.osr.getmcOffset();
           }
         });
@@ -149,14 +149,14 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
 
     for (int i = 0; i < n; i++) {
 
-      OSR_VariableMapElement elm = osrarray[i];
+      VariableMapElement elm = osrarray[i];
       Instruction instr = elm.osr;
 
       int iei = inliningTree.find(instr.position).encodedOffset;
       setIEIndex(i, iei);
 
       // get osr map
-      LinkedList<OSR_MethodVariables> mVarList = elm.mvars;
+      LinkedList<MethodVariables> mVarList = elm.mvars;
       int osrMapIndex = generateOsrMaps(tempOsrMaps, mVarList);
 
       // use this offset, and adjust on extractState
@@ -186,7 +186,7 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
    *
    * The MSB of mpc indicates if the next is a valid pair
    */
-  private int generateOsrMaps(ArrayList<Integer> tempOsrMaps, LinkedList<OSR_MethodVariables> mVarList) {
+  private int generateOsrMaps(ArrayList<Integer> tempOsrMaps, LinkedList<MethodVariables> mVarList) {
 
     int regmap = (!mVarList.isEmpty()) ? NEXT_BIT : 0;
     tempOsrMaps.add(regmap);
@@ -194,7 +194,7 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
 
     // from inner to outer
     for (int i = 0, m = mVarList.size(); i < m; i++) {
-      OSR_MethodVariables mVar = mVarList.get(i);
+      MethodVariables mVar = mVarList.get(i);
       _generateMapForOneMethodVariable(tempOsrMaps, mapIndex, mVar, (i == (m - 1)));
     }
 
@@ -208,12 +208,12 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
    * @param mVar the method variables
    * @param lastMid
    */
-  private void _generateMapForOneMethodVariable(ArrayList<Integer> tempOsrMaps, int regMapIndex, OSR_MethodVariables mVar, boolean lastMid) {
+  private void _generateMapForOneMethodVariable(ArrayList<Integer> tempOsrMaps, int regMapIndex, MethodVariables mVar, boolean lastMid) {
     // Is this the last method in the inlined chain?
     int mid = lastMid ? mVar.methId : (mVar.methId | NEXT_BIT);
     tempOsrMaps.add(mid);
 
-    LinkedList<OSR_LocalRegPair> tupleList = mVar.tupleList;
+    LinkedList<LocalRegPair> tupleList = mVar.tupleList;
     int m = tupleList.size();
 
     // Is this method has variables?
@@ -222,7 +222,7 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
 
     // append each element
     for (int j = 0; j < m; j++) {
-      OSR_LocalRegPair tuple = tupleList.get(j);
+      LocalRegPair tuple = tupleList.get(j);
 
       boolean isLast = (j == m - 1);
 
@@ -240,7 +240,7 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
    * tuple, maps the local to register, spill
    * isLast, indicates to set NEXT_BIT
    */
-  private void processTuple(ArrayList<Integer> tempOsrMaps, OSR_LocalRegPair tuple, boolean isLast) {
+  private void processTuple(ArrayList<Integer> tempOsrMaps, LocalRegPair tuple, boolean isLast) {
 
     int first = (tuple.num << NUM_SHIFT) & NUM_MASK;
 
@@ -388,10 +388,10 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
    * NOTE: the map index is gotten from 'findOSRMapIndex'.
    * This has to be changed....
    */
-  public OSR_MapIterator getOsrMapIteratorForMCOffset(Offset mcOffset) {
+  public OSRMapIterator getOsrMapIteratorForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     int mapIndex = getOSRMapIndex(entry);
-    return new OSR_MapIterator(osrMaps, mapIndex);
+    return new OSRMapIterator(osrMaps, mapIndex);
   }
 
   /////////////////////////////////
@@ -490,7 +490,7 @@ public final class OSR_EncodedOSRMap implements OptGCMapIteratorConstants, OSR_C
       int regmap = osrMaps[mapIndex] & ~NEXT_BIT;
       VM.sysWrite("regmap: " + Integer.toBinaryString(regmap));
 
-      OSR_MapIterator iterator = new OSR_MapIterator(osrMaps, mapIndex);
+      OSRMapIterator iterator = new OSRMapIterator(osrMaps, mapIndex);
 
       while (iterator.hasMore()) {
         VM.sysWrite("(" + iterator.getValueType() + "," + iterator.getValue() + ")");

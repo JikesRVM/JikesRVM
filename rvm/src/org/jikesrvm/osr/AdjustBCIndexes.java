@@ -26,7 +26,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
  * byte code to its original byte code.
  */
 
-public class OSR_AdjustBCIndexes extends CompilerPhase {
+public class AdjustBCIndexes extends CompilerPhase {
 
   public final boolean shouldPerform(OptOptions options) {
     return true;

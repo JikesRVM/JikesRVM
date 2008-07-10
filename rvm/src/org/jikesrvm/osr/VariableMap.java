@@ -17,17 +17,17 @@ import java.util.ListIterator;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
- * OSR_VariableMap, non-encoded yet
- * OSR_VariableMap          ---> LinkedList of OSR_VariableMapElement
- * OSR_VariableMapElement   ---> (OsrPoint, LinkedList of MethodVariables)
- * OSR_MethodVariables      ---> (Method, PC, List of LocalRegTuple)
+ * VariableMap, non-encoded yet
+ * VariableMap          ---> LinkedList of VariableMapElement
+ * VariableMapElement   ---> (OsrPoint, LinkedList of MethodVariables)
+ * MethodVariables      ---> (Method, PC, List of LocalRegTuple)
  * LocalRegTuple   ---> ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
  * *
  */
-public final class OSR_VariableMap {
+public final class VariableMap {
 
-  /* A list of OSR_VariableMapElement */
-  public final LinkedList<OSR_VariableMapElement> list = new LinkedList<OSR_VariableMapElement>();
+  /* A list of VariableMapElement */
+  public final LinkedList<VariableMapElement> list = new LinkedList<VariableMapElement>();
 
   public int getNumberOfElements() {
     return list.size();
@@ -38,23 +38,23 @@ public final class OSR_VariableMap {
    * @param inst      the IR instruction we care about
    * @param mvarList  the set of symbolic registers as a list
    */
-  public void insert(Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
+  public void insert(Instruction inst, LinkedList<MethodVariables> mvarList) {
     // make a VariableMapElement and put it on the big list
-    list.add(new OSR_VariableMapElement(inst, mvarList));
+    list.add(new VariableMapElement(inst, mvarList));
   }
 
   /**
    * Inserts a new entry at the begin of the list.
    */
-  public void insertFirst(Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
-    list.addFirst(new OSR_VariableMapElement(inst, mvarList));
+  public void insertFirst(Instruction inst, LinkedList<MethodVariables> mvarList) {
+    list.addFirst(new VariableMapElement(inst, mvarList));
   }
 
   /**
    * Creates and returns an enumerator for this object
    * @return an iterator for this object
    */
-  public ListIterator<OSR_VariableMapElement> iterator() {
+  public ListIterator<VariableMapElement> iterator() {
     return list.listIterator(0);
   }
 
@@ -67,7 +67,7 @@ public final class OSR_VariableMap {
     if (list.isEmpty()) {
       buf.append("empty");
     } else {
-      for (OSR_VariableMapElement ptr : list) {
+      for (VariableMapElement ptr : list) {
         buf.append(ptr.toString());
       }
     }

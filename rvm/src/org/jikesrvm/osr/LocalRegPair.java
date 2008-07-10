@@ -17,10 +17,10 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.vmmagic.unboxed.Word;
 
 /**
- * An OSR_LocalRegPair keeps the type information and location of
+ * An LocalRegPair keeps the type information and location of
  * a local variable/stack slot from byte code to machine code.
  */
-public class OSR_LocalRegPair implements OSR_Constants {
+public class LocalRegPair implements OSRConstants {
 
   /** is it a local or stack? */
   public final boolean kind;
@@ -58,7 +58,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
   /* A LONG variable takes two symbolic registers, we need to know another
    * half part.
    */
-  public OSR_LocalRegPair _otherHalf;
+  public LocalRegPair _otherHalf;
 
   /* The LiveAnalysis phase builds the linked list of tuples, and
    * the long type variables will get another half register
@@ -67,15 +67,15 @@ public class OSR_LocalRegPair implements OSR_Constants {
    * anymore. The physical register number, spilled location, or
    * constant value is represented by (valueType, value)
    */
-  public OSR_LocalRegPair(boolean kind, int num, byte type, Operand op) {
+  public LocalRegPair(boolean kind, int num, byte type, Operand op) {
     this.kind = kind;
     this.num = num;
     this.typeCode = type;
     this.operand = op;
   }
 
-  public OSR_LocalRegPair copy() {
-    return new OSR_LocalRegPair(kind, num, typeCode, operand);
+  public LocalRegPair copy() {
+    return new LocalRegPair(kind, num, typeCode, operand);
   }
 
   /**

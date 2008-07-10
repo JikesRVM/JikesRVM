@@ -15,10 +15,10 @@ package org.jikesrvm.osr;
 import org.jikesrvm.SizeConstants;
 
 /**
- * OSR_Constants defines constants used for on-stack-replacement mapping,
+ * OSRConstants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.
  */
-public interface OSR_Constants extends SizeConstants {
+public interface OSRConstants extends SizeConstants {
 
   ////////////////////////////////////////////
   // Part I  constants used for opt compilation with OSR points
@@ -160,8 +160,8 @@ public interface OSR_Constants extends SizeConstants {
   /* indicate local initialization ends, for baselike compiler */ int PSEUDO_ParamInitEnd = 10;
 
   /* special method id for PSEUDO_InvokeStatic, target must be listed here */ int GETREFAT =
-      0;  // OSR_ObjectHolder.getRefAt
-  int CLEANREFS = 1;  // OSR_ObjectHolder.cleanRefAt
+      0;  // ObjectHolder.getRefAt
+  int CLEANREFS = 1;  // ObjectHolder.cleanRefAt
 
   byte ClassTypeCode = (byte) 'L';
   byte ArrayTypeCode = (byte) '[';

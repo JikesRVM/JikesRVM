@@ -20,11 +20,11 @@ import org.jikesrvm.compilers.opt.ir.OsrPoint;
 /**
  * Variable map element (osr instruction, LinkedList MethodVariables)
  */
-public class OSR_VariableMapElement {
+public class VariableMapElement {
   public final Instruction osr;
-  public final LinkedList<OSR_MethodVariables> mvars;
+  public final LinkedList<MethodVariables> mvars;
 
-  public OSR_VariableMapElement(Instruction inst, LinkedList<OSR_MethodVariables> methVars) {
+  public VariableMapElement(Instruction inst, LinkedList<MethodVariables> methVars) {
     if (VM.VerifyAssertions) {
       VM._assert(OsrPoint.conforms(inst));
     }

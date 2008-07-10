@@ -363,7 +363,7 @@ public class GreenThread extends RVMThread {
 
     GreenThread myThread = GreenScheduler.getCurrentThread();
     if (VM.BuildForAdaptiveSystem && myThread.isWaitingForOsr) {
-      ArchitectureSpecificOpt.OSR_PostThreadSwitch.postProcess(myThread);
+      ArchitectureSpecificOpt.PostThreadSwitch.postProcess(myThread);
     }
   }
 

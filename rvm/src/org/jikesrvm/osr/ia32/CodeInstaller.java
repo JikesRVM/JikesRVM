@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.ia32.BaselineConstants;
-import org.jikesrvm.osr.OSR_ExecutionState;
+import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
@@ -30,14 +30,14 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * OSR_CodeInstaller generates a glue code which recovers registers and
+ * CodeInstaller generates a glue code which recovers registers and
  * from the stack frames and branch to the newly compiled method instructions.
  * The glue code is installed right before returning to the threading method
- * by OSR_PostThreadSwitch
+ * by PostThreadSwitch
  */
-public abstract class OSR_CodeInstaller implements BaselineConstants {
+public abstract class CodeInstaller implements BaselineConstants {
 
-  public static boolean install(OSR_ExecutionState state, CompiledMethod cm) {
+  public static boolean install(ExecutionState state, CompiledMethod cm) {
     RVMThread thread = state.getThread();
     byte[] stack = thread.getStack();
 

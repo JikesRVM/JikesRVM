@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.MemberReference;
 /**
  * A class to hold variables for a method at one program point.
  */
-public final class OSR_MethodVariables {
+public final class MethodVariables {
 
   /* which method */
   public int methId;
@@ -27,15 +27,15 @@ public final class OSR_MethodVariables {
   public int bcIndex;
 
   /* a list of variables */
-  public LinkedList<OSR_LocalRegPair> tupleList;
+  public LinkedList<LocalRegPair> tupleList;
 
-  public OSR_MethodVariables(int mid, int pc, LinkedList<OSR_LocalRegPair> tupleList) {
+  public MethodVariables(int mid, int pc, LinkedList<LocalRegPair> tupleList) {
     this.methId = mid;
     this.bcIndex = pc;
     this.tupleList = tupleList;
   }
 
-  public LinkedList<OSR_LocalRegPair> getTupleList() {
+  public LinkedList<LocalRegPair> getTupleList() {
     return tupleList;
   }
 

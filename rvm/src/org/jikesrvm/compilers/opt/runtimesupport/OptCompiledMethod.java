@@ -29,7 +29,7 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.osr.OSR_EncodedOSRMap;
+import org.jikesrvm.osr.EncodedOSRMap;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
@@ -251,14 +251,14 @@ public final class OptCompiledMethod extends CompiledMethod {
   private static final ArchitectureSpecificOpt.OptExceptionDeliverer exceptionDeliverer =
       new ArchitectureSpecificOpt.OptExceptionDeliverer();
 
-  private OSR_EncodedOSRMap _osrMap;
+  private EncodedOSRMap _osrMap;
 
   @Interruptible
   public void createFinalOSRMap(IR ir) {
-    this._osrMap = OSR_EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap);
+    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap);
   }
 
-  public OSR_EncodedOSRMap getOSRMap() {
+  public EncodedOSRMap getOSRMap() {
     return this._osrMap;
   }
 

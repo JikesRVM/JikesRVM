@@ -20,12 +20,12 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
-import org.jikesrvm.osr.OSR_Constants;
-import org.jikesrvm.osr.OSR_EncodedOSRMap;
-import org.jikesrvm.osr.OSR_ExecStateExtractor;
-import org.jikesrvm.osr.OSR_ExecutionState;
-import org.jikesrvm.osr.OSR_MapIterator;
-import org.jikesrvm.osr.OSR_VariableElement;
+import org.jikesrvm.osr.OSRConstants;
+import org.jikesrvm.osr.EncodedOSRMap;
+import org.jikesrvm.osr.ExecutionStateExtractor;
+import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.OSRMapIterator;
+import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.ppc.ArchConstants;
 import org.jikesrvm.ppc.Registers;
 import org.jikesrvm.runtime.Magic;
@@ -36,13 +36,13 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor.
+ * OptExecutionStateExtractor is a subclass of ExecutionStateExtractor.
  * It extracts the execution state of a optimized activation.
  */
-public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
-    implements ArchConstants, OSR_Constants, PhysicalRegisterConstants {
+public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
+    implements ArchConstants, OSRConstants, PhysicalRegisterConstants {
 
-  public OSR_ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
+  public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* perform machine and compiler dependent operations here
     * osrFPoff is the fp offset of
@@ -64,7 +64,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
-    OSR_TempRegisters registers = new OSR_TempRegisters((Registers)thread.getContextRegisters());
+    TempRegisters registers = new TempRegisters((Registers)thread.getContextRegisters());
 
     if (VM.VerifyAssertions) {
       int foocmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
@@ -100,7 +100,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
-    OSR_EncodedOSRMap fooOSRMap = fooCM.getOSRMap();
+    EncodedOSRMap fooOSRMap = fooCM.getOSRMap();
 
     /* get register reference map from OSR map
      * we are using this map to convert addresses to objects,
@@ -123,12 +123,12 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     // return a list of states: from caller to callee
     // if the osr happens in an inlined method, the state is
     // a chain of recoverd methods.
-    OSR_ExecutionState state =
+    ExecutionState state =
         getExecStateSequence(thread, stack, ipOffset, methFPoff, cmid, osrFPoff, registers, fooOSRMap);
 
     // reverse callerState points
-    OSR_ExecutionState prevState = null;
-    OSR_ExecutionState nextState = state;
+    ExecutionState prevState = null;
+    ExecutionState nextState = state;
     while (nextState != null) {
       // 1. current node
       state = nextState;
@@ -141,8 +141,8 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     }
 
     if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("OptExecState : recovered states");
-      OSR_ExecutionState temp = state;
+      VM.sysWriteln("OptExecutionState : recovered states");
+      ExecutionState temp = state;
       while (temp != null) {
         VM.sysWriteln(temp.toString());
         temp = temp.callerState;
@@ -160,7 +160,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
    *
    *   GPR 3 -- 14 15 16 17 -- 31, cr, xer, ctr, FPR 0 -- 15
    */
-  private void restoreValuesFromOptSaveVolatile(byte[] stack, Offset osrFPoff, OSR_TempRegisters registers, int regmap,
+  private void restoreValuesFromOptSaveVolatile(byte[] stack, Offset osrFPoff, TempRegisters registers, int regmap,
                                                 CompiledMethod cm) {
 
     OptCompiledMethod tsfromCM = (OptCompiledMethod) cm;
@@ -221,7 +221,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
 
     // convert addresses in registers to references
     for (int i = 1; i < NUM_GPRS; i++) {
-      if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
+      if (EncodedOSRMap.registerIsSet(regmap, i)) {
         registers.objs[i] = Magic.addressAsObject(registers.gprs.get(i).toAddress());
       }
     }
@@ -233,15 +233,15 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     registers.ctr = ctr;
   }
 
-  private OSR_ExecutionState getExecStateSequence(RVMThread thread, byte[] stack, Offset ipOffset, Offset fpOffset,
-                                                  int cmid, Offset tsFPOffset, OSR_TempRegisters registers,
-                                                  OSR_EncodedOSRMap osrmap) {
+  private ExecutionState getExecStateSequence(RVMThread thread, byte[] stack, Offset ipOffset, Offset fpOffset,
+                                                  int cmid, Offset tsFPOffset, TempRegisters registers,
+                                                  EncodedOSRMap osrmap) {
 
     // go through the stack frame and extract values
     // In the variable value list, we keep the order as follows:
     // L0, L1, ..., S0, S1, ....
 
-    /* go over osr map element, build list of OSR_VariableElement.
+    /* go over osr map element, build list of VariableElement.
     * assuming iterator has ordered element as
     *     L0, L1, ..., S0, S1, ...
     *
@@ -262,10 +262,10 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     int lpart_one = 0;
 
     // now recover execution states
-    OSR_MapIterator iterator = osrmap.getOsrMapIteratorForMCOffset(ipOffset);
+    OSRMapIterator iterator = osrmap.getOsrMapIteratorForMCOffset(ipOffset);
     if (VM.VerifyAssertions) VM._assert(iterator != null);
 
-    OSR_ExecutionState state = new OSR_ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
+    ExecutionState state = new ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
 
     MethodReference mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
     state.setMethod((NormalMethod) mref.peekResolvedMethod());
@@ -274,7 +274,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     while (iterator.hasMore()) {
 
       if (iterator.getMethodId() != state.meth.getId()) {
-        OSR_ExecutionState newstate = new OSR_ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
+        ExecutionState newstate = new ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
         mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
         newstate.setMethod((NormalMethod) mref.peekResolvedMethod());
         // this is not caller, but the callee, reverse it when outside
@@ -284,7 +284,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         state = newstate;
       }
 
-      // create a OSR_VariableElement for it.
+      // create a VariableElement for it.
       boolean kind = iterator.getKind();
       int num = iterator.getNumber();
       byte tcode = iterator.getTypeCode();
@@ -304,13 +304,13 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       switch (tcode) {
         case INT: {
           int ibits = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
-          state.add(new OSR_VariableElement(kind, num, tcode, ibits));
+          state.add(new VariableElement(kind, num, tcode, ibits));
           break;
         }
         case FLOAT: {
           float fv = (float) getDoubleFrom(vtype, value, stack, fpOffset, registers);
           int ibits = Magic.floatAsIntBits(fv);
-          state.add(new OSR_VariableElement(kind, num, tcode, ibits));
+          state.add(new VariableElement(kind, num, tcode, ibits));
           break;
         }
         case HIGH_64BIT: {
@@ -320,7 +320,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         case LONG: {
           long lbits = getLongBitsFrom(vtype, lpart_one, value, stack, fpOffset, registers);
           lpart_one = 0;
-          state.add(new OSR_VariableElement(kind, num, LONG,    // not use LONG2,
+          state.add(new VariableElement(kind, num, LONG,    // not use LONG2,
                                             lbits));
 
           break;
@@ -328,7 +328,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         case DOUBLE: {
           double dv = getDoubleFrom(vtype, value, stack, fpOffset, registers);
           long lbits = Magic.doubleAsLongBits(dv);
-          state.add(new OSR_VariableElement(kind, num, tcode, lbits));
+          state.add(new VariableElement(kind, num, tcode, lbits));
           break;
         }
         // I believe I did not handle return address correctly because
@@ -336,23 +336,23 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
         // To be VERIFIED.
         case RET_ADDR: {
           int bcIndex = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
-          state.add(new OSR_VariableElement(kind, num, tcode, bcIndex));
+          state.add(new VariableElement(kind, num, tcode, bcIndex));
           break;
         }
         case REF: {
           Object ref = getObjectFrom(vtype, value, stack, fpOffset, registers);
 
-          state.add(new OSR_VariableElement(kind, num, tcode, ref));
+          state.add(new VariableElement(kind, num, tcode, ref));
           break;
         }
         case WORD: {
           if (VM.BuildFor32Addr) {
             int word = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
-            state.add(new OSR_VariableElement(kind, num, tcode, word));
+            state.add(new VariableElement(kind, num, tcode, word));
           } else {
             long word = getLongBitsFrom(vtype, lpart_one, value, stack, fpOffset, registers);
             lpart_one = 0;
-            state.add(new OSR_VariableElement(kind, num, tcode, word));
+            state.add(new VariableElement(kind, num, tcode, word));
           }
           break;
         }
@@ -366,7 +366,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   }
 
   /** auxillary functions to get value from different places. */
-  private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, OSR_TempRegisters registers) {
+  private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {
       return value;
@@ -392,7 +392,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   }
 
   private static long getLongBitsFrom(int vtype, int valueHigh, int valueLow, byte[] stack, Offset fpOffset,
-                                      OSR_TempRegisters registers) {
+                                      TempRegisters registers) {
 
     // for LCONST type, the value is the value
     if (vtype == LCONST || vtype == ACONST) {
@@ -433,7 +433,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   }
 
   private static double getDoubleFrom(int vtype, int value, byte[] stack, Offset fpOffset,
-                                      OSR_TempRegisters registers) {
+                                      TempRegisters registers) {
     if (vtype == PHYREG) {
       return registers.fprs[value];
     } else if (vtype == SPILL) {
@@ -446,7 +446,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   }
 
   private static Object getObjectFrom(int vtype, int value, byte[] stack, Offset fpOffset,
-                                      OSR_TempRegisters registers) {
+                                      TempRegisters registers) {
     if (vtype == ACONST) {
       // the only constant object is NULL, I believe.
       if (VM.VerifyAssertions) VM._assert(value == 0);

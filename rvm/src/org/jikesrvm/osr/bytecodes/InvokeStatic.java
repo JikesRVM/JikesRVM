@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Special invokestatic, with only two possible target
- * OSR_ObjectHolder.getRefAt and OSR_ObjectHolder.cleanRefs
+ * ObjectHolder.getRefAt and ObjectHolder.cleanRefs
  * indiced by GETREFAT and CLEANREFS.
  */
 

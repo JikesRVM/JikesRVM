@@ -313,7 +313,7 @@ public class OSR_OsrPointConstructor extends CompilerPhase {
   private int countNonVoidTypes(byte[] typeCodes) {
     int count = 0;
     for (int idx = 0, size = typeCodes.length; idx < size; idx++) {
-      if (typeCodes[idx] != org.jikesrvm.osr.OSR_Constants.VoidTypeCode) {
+      if (typeCodes[idx] != org.jikesrvm.osr.OSRConstants.VoidTypeCode) {
         count++;
       }
     }

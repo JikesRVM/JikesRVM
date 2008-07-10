@@ -1871,7 +1871,7 @@ public abstract class TemplateCompilerFramework
             int pseudo_opcode = bcodes.nextPseudoInstruction();
             // pseudo instruction
             switch (pseudo_opcode) {
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_LoadIntConst: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadIntConst: {
                 int value = bcodes.readIntConst();
 
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
@@ -1881,7 +1881,7 @@ public abstract class TemplateCompilerFramework
 
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_LoadLongConst: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadLongConst: {
                 long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
 
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
@@ -1891,7 +1891,7 @@ public abstract class TemplateCompilerFramework
 
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_LoadWordConst: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadWordConst: {
                 if (VM.BuildFor32Addr) {
                   int value = bcodes.readIntConst();
 
@@ -1910,7 +1910,7 @@ public abstract class TemplateCompilerFramework
                 }
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_LoadFloatConst: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadFloatConst: {
                 int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
 
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
@@ -1920,7 +1920,7 @@ public abstract class TemplateCompilerFramework
 
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_LoadDoubleConst: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadDoubleConst: {
                 long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
 
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
@@ -1930,7 +1930,7 @@ public abstract class TemplateCompilerFramework
 
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_LoadRetAddrConst: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadRetAddrConst: {
                 int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
 
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_retaddr", bcIndex);
@@ -1940,14 +1940,14 @@ public abstract class TemplateCompilerFramework
 
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_InvokeStatic: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeStatic: {
                 RVMMethod methodRef = null;
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
                 switch (targetidx) {
-                  case org.jikesrvm.osr.OSR_Constants.GETREFAT:
+                  case org.jikesrvm.osr.OSRConstants.GETREFAT:
                     methodRef = AosEntrypoints.osrGetRefAtMethod;
                     break;
-                  case org.jikesrvm.osr.OSR_Constants.CLEANREFS:
+                  case org.jikesrvm.osr.OSRConstants.CLEANREFS:
                     methodRef = AosEntrypoints.osrCleanRefsMethod;
                     break;
                   default:
@@ -1963,7 +1963,7 @@ public abstract class TemplateCompilerFramework
                 break;
               }
               /*
-                case org.jikesrvm.osr.OSR_Constants.PSEUDO_CheckCast: {
+                case org.jikesrvm.osr.OSRConstants.PSEUDO_CheckCast: {
 
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
 
@@ -1973,7 +1973,7 @@ public abstract class TemplateCompilerFramework
                 break;
                 }
               */
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_InvokeCompiledMethod: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeCompiledMethod: {
                 int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
                 int origIdx =
                     bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
@@ -1990,7 +1990,7 @@ public abstract class TemplateCompilerFramework
                 */
                 break;
               }
-              case org.jikesrvm.osr.OSR_Constants.PSEUDO_ParamInitEnd: {
+              case org.jikesrvm.osr.OSRConstants.PSEUDO_ParamInitEnd: {
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
                 // now we can inserted stack overflow check,
                 emit_deferred_prologue();
