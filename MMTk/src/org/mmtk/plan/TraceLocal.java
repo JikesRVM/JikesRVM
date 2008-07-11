@@ -81,8 +81,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * @param source The source of the reference.
    * @param slot The location containing the object reference to be
-   * traced.  The object reference is <i>NOT</i> an interior pointer.
-   * @param root True if <code>objLoc</code> is within a root.
+   *        traced.  The object reference is <i>NOT</i> an interior pointer.
    */
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {

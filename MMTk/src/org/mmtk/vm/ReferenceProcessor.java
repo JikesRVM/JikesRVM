@@ -44,9 +44,7 @@ public abstract class ReferenceProcessor {
   public abstract void forward(TraceLocal trace, boolean nursery);
 
   /**
-   * Return the number of references objects on the queue
-   *
-   * @return
+   * @return the number of references objects on the queue
    */
   public abstract int countWaitingReferences();
 }

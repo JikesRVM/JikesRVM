@@ -184,8 +184,8 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param old The old reference to be swapped out
-   * @param target The value that the slot will be updated to
+   * @param rawOld The old reference to be swapped out
+   * @param rawTarget The value that the slot will be updated to
    * @param metaDataA The offset from the ref
    * @param metaDataB Unused
    * @param mode The context in which the write is occuring

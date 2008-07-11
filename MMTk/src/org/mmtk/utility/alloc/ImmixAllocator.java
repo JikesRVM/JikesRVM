@@ -96,7 +96,6 @@ public class ImmixAllocator extends Allocator implements Constants {
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
   @Inline
@@ -128,7 +127,6 @@ public class ImmixAllocator extends Allocator implements Constants {
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
   public final Address overflowAlloc(int bytes, int align, int offset) {
@@ -166,7 +164,6 @@ public class ImmixAllocator extends Allocator implements Constants {
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Was the request made from within GC?
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
@@ -208,14 +205,10 @@ public class ImmixAllocator extends Allocator implements Constants {
    * line.  If required we perform an external slow path take, which
    * we inline into this method since this is already out of line.
    *
-   * @param start The start address for the pending allocation
-   * @param end The end address for the pending allocation
+   * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment
-   * @param inGC Is the allocation request occuring during GC.
-   * @param bpCaller True if this was called by bump pointer
    * @return The address of the first byte of the allocated region
-   * @throws NoInlinePragma
    */
   @NoInline
   private Address allocSlowHot(int bytes, int align, int offset) {

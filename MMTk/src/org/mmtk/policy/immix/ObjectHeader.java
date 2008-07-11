@@ -171,7 +171,8 @@ public class ObjectHeader {
    * This is appropriate for collection time initialization.
    *
    * @param object The object whose mark state is to be written
-   * @param unlogged TODO
+   * @param markState TODO: what am I?
+   * @param straddle TODO: what am I?
    */
   static void writeMarkState(ObjectReference object, Word markState, boolean straddle) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);

@@ -157,9 +157,9 @@ public class ScanBootImage implements Constants {
   }
 
   /**
-   * Return true if the given offset is address-aligned
-   * @param offset the offset to be check
-   * @return true if the offset is address aligned.
+   * Return true if the given address is address-aligned
+   * @param address the address to be check
+   * @return true if the address is address aligned.
    */
   @Uninterruptible
   private static boolean isAddressAligned(Address address) {

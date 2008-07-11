@@ -246,7 +246,6 @@ public abstract class PageResource implements Constants {
    *
    * @param requestedPages The number of pages from this request
    * @param totalPages The number of pages
-   * @param begin The start address of the allocated region
    */
   protected void commitPages(int requestedPages, int totalPages) {
     int predictedPages = adjustForMetaData(requestedPages);

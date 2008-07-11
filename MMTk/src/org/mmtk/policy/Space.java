@@ -114,7 +114,6 @@ public abstract class Space implements Constants {
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
    * @param vmRequest An object describing the virtual memory requested.
-   * @param pr The page resource associated with this space
    */
   protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
     this.name = name;
@@ -426,8 +425,7 @@ public abstract class Space implements Constants {
    * space.  This simply involves requesting a suitable number of chunks
    * from the pool of chunks available to discontiguous spaces.
    *
-   * @param bytes The amount by which the space needs to be extended
-   * (will be rounded up to chunks)
+   * @param chunks The number of chunks by which the space needs to be extended
    * @return The address of the new discontiguous space.
    */
   public Address growDiscontiguousSpace(int chunks) {

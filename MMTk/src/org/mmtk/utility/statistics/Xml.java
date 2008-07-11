@@ -92,7 +92,6 @@ public class Xml {
    *
    * @param name Name of the entity
    * @param value The value of the entity
-   * @param units The units, or null for no units.
    */
   public static void configItem(String name, boolean value) {
     openMinorTag("conf");
@@ -106,7 +105,6 @@ public class Xml {
    *
    * @param name Name of the entity
    * @param value The value of the entity
-   * @param units The units, or null for no units.
    */
   public static void configItem(String name, String value) {
     openMinorTag("conf");

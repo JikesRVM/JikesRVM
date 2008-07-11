@@ -90,10 +90,8 @@ public final class ImmixSpace extends Space implements Constants {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
+   * @param pageBudget The number of pages this space may consume before consulting the plan
+   * @param vmRequest The virtual memory request
    */
   public ImmixSpace(String name, int pageBudget, VMRequest vmRequest) {
     super(name, false, false, vmRequest);
@@ -550,7 +548,7 @@ public final class ImmixSpace extends Space implements Constants {
    * available lines according to the number of holes on the block on which
    * the available lines reside.
    *
-   * @param spillAvailableHistogram A histogram of availability to be populated
+   * @param spillAvailHistogram A histogram of availability to be populated
    * @return The number of available recyclable lines
    */
   int getAvailableLines(int[] spillAvailHistogram) {

@@ -126,7 +126,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Factory method.
    * Creates an instance of the appropriate reference type processor.
-   * @return
+   * @return the reference processor
    */
   @Interruptible
   public static ReferenceProcessor get(Semantics semantics) {

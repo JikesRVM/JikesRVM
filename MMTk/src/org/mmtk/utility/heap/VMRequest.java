@@ -45,7 +45,7 @@ public final class VMRequest implements Constants {
 
   /**
    * Is this a discontiguous space request?
-   * @return
+   * @return true if this is a discontiguous space request, false otherwise
    */
   public boolean isDiscontiguous() {
     return type == REQUEST_DISCONTIGUOUS;

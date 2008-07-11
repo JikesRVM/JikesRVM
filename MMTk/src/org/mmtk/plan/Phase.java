@@ -691,8 +691,6 @@ public abstract class Phase implements Constants {
 
   /**
    * Clears the scheduled phase stack.
-   *
-   * @param scheduledPhase The scheduled phase.
    */
   @Inline
   public static void resetPhaseStack() {

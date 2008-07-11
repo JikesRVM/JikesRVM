@@ -152,7 +152,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * Read a reference type. In a concurrent collector this may
    * involve adding the referent to the marking queue.
    *
-   * @param src The referent being read.
+   * @param ref The referent being read.
    * @return The new referent.
    */
   @Inline

@@ -1010,7 +1010,7 @@ public abstract class Plan implements Constants {
     * counting where duplicates would lead to incorrect reference
     * counts).
     *
-    * @param src The object to be marked as logged
+    * @param object The object to be marked as logged
     */
    public static final void markAsLogged(ObjectReference object) {
      int value = VM.objectModel.readAvailableByte(object);
@@ -1020,7 +1020,7 @@ public abstract class Plan implements Constants {
    /**
     * Mark an object as unlogged.
     *
-    * @param src The object to be marked as unlogged
+    * @param object The object to be marked as unlogged
     */
    public static final void markAsUnlogged(ObjectReference object) {
      int value = VM.objectModel.readAvailableByte(object);

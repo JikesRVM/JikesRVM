@@ -44,7 +44,7 @@ public class PoisonedCollector extends MSCollector {
    * Load an object reference
    *
    * @param slot The location of the reference
-   * @param value The value to store
+   * @return the object reference loaded from slot
    */
   @Inline
   public ObjectReference loadObjectReference(Address slot) {

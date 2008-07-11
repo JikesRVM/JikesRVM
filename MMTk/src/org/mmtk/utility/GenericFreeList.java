@@ -319,7 +319,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
   /**
    * Return true if this unit may be coalesced with the unit below it.
    *
-   * @param The unit in question
+   * @param unit The unit in question
    * @return True if this unit may be coalesced with the unit below it.
    */
   @Override
