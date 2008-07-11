@@ -1183,7 +1183,7 @@ public class GenerateAssembler {
     emitTab(1);
     emit("/**\n");
     emitTab(1);
-    emit(" * @see Assembler\n");
+    emit(" * @see org.jikesrvm.ArchitectureSpecific.Assembler\n");
     emitTab(1);
     emit(" */\n");
     emitTab(1);

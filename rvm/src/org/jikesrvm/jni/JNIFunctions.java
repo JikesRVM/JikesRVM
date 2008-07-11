@@ -3866,7 +3866,7 @@ public class JNIFunctions implements SizeConstants {
   /**
    * GetStringChars:  return address of buffer containing contents of a String
    * @param env A JREF index for the JNI environment object
-   * @param objJREF a JREF index for the String object
+   * @param strJREF a JREF index for the String object
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return address of a copy of the String unicode characters
    *         and *isCopy is set to 1 (TRUE)

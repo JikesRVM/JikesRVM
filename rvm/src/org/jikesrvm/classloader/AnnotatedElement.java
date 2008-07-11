@@ -123,7 +123,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   /**
    * Convert annotations from internal format to annotation instances.
    *
-   * @param annotations the annotations.
+   * @param datas the annotations.
    * @return the annotation instances.
    */
   final Annotation[] toAnnotations(final Object datas) {

@@ -23,8 +23,8 @@ public class Time {
   /**
    * Convert a long representing a time in nanoseconds into
    * a double representing the same time in milliseconds.
-   * @param nt a time in nanoseconds
-   * @return nt converted to milliseconds
+   * @param c a time in nanoseconds
+   * @return c converted to milliseconds
    */
   public static double nanosToMillis(long c) {
     return ((double)c)/1e6;

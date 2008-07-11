@@ -17,16 +17,10 @@ import org.jikesrvm.adaptive.measurements.Reportable;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 
 /**
- * YieldpointCounterData.java
- *
  * An extension of StringEventCounterData so that the printing can
  * be specialized for yieldpoints.  Otherwise, the functionality is
  * identical.
- *
- * @see StringEventCounterData.java
- *
- *
- **/
+ */
 public final class YieldpointCounterData extends StringEventCounterData implements Reportable {
 
   static final boolean DEBUG = false;

@@ -40,18 +40,17 @@ public abstract class SpecializedMethod {
   }
 
   /**
-   * Return the specialized method for the given type.
+   * @return the specialized method for the given type.
    */
   public abstract CodeArray specializeMethod(RVMType type);
 
   /**
-   * Return the method signature of the specialized method's invoke.
+   * @return the method signature of the specialized method's invoke.
    */
   public abstract TypeReference[] getSignature();
 
   /**
-   * Return the return type of the specialized method's invoke.
-   * @return
+   * @return the return type of the specialized method's invoke
    */
   public abstract TypeReference getReturnType();
 

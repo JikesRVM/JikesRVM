@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.WordArray;
  * This class contains its architecture-independent code for iteration
  * across the references represented by a frame built by the OPT compiler.
  *
- * @see org.jikesrvm.ArchitectureSpecific.OptGCMapIterator
+ * @see org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIterator
  */
 @Uninterruptible
 public abstract class OptGenericGCMapIterator extends GCMapIterator

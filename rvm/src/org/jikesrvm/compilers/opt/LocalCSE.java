@@ -738,13 +738,13 @@ public class LocalCSE extends CompilerPhase {
      * @param t temporary register holding the result of the available
      * expression
      */
-    AvailableExpression(Instruction i, Operator op, Operand[] os,
+    AvailableExpression(Instruction i, Operator op, Operand[] ops,
                         LocationOperand loc, Register t) {
-      inst = i;
-      opr = op;
-      ops = os;
-      location = loc;
-      tmp = t;
+      this.inst = i;
+      this.opr = op;
+      this.ops = ops;
+      this.location = loc;
+      this.tmp = t;
     }
 
     /**

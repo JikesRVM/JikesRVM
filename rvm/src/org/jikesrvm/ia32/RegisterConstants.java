@@ -67,7 +67,7 @@ public interface RegisterConstants {
     }
     /**
      * Convert encoded value representing an opcode into the GPR to represent it
-     * @param num encoded value
+     * @param opcode encoded value
      * @return represented GPR
      */
     public static GPR getForOpcode(int opcode) {

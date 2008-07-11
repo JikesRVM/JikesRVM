@@ -35,7 +35,7 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
  *
  *
  * @see org.jikesrvm.adaptive.util.CompilerAdviceAttribute
- * @see CompilerAdviceInfoReader
+ * @see org.jikesrvm.adaptive.util.CompilerAdviceInfoReader
  * @see org.jikesrvm.compilers.common.RuntimeCompiler
  */
 public class PreCompile implements Callbacks.StartupMonitor {

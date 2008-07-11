@@ -59,7 +59,7 @@ final class NormalBURS extends BURS {
   /**
    * Create a BURS object for the given IR.
    *
-   * @param IR the IR to translate from LIR to MIR.
+   * @param ir the IR to translate from LIR to MIR.
    */
   NormalBURS(IR ir) {
     super(ir);

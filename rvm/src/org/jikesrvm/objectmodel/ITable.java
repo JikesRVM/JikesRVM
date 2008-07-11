@@ -86,10 +86,7 @@ public final class ITable {
   }
 
   /**
-   * Does this ITable correspond to the given interface?
-   *
-   * @param I The interface
-   * @return True if this ITable is for the given interface
+   * @return The interface class for this ITable
    */
   @Inline
   @Interruptible

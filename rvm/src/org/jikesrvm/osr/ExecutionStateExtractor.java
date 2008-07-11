@@ -28,8 +28,8 @@ import org.vmmagic.unboxed.Offset;
  * A ExecutionStateExtractor extracts a runtime state (VM scope descriptor)
  * of a method activation. The implementation depends on compilers and
  * hardware architectures
- * @see org.jikesrvm.ArchitectureSpecific.BaselineExecutionStateExtractor
- * @see org.jikesrvm.ArchitectureSpecific.OptExecutionStateExtractor
+ * @see org.jikesrvm.ArchitectureSpecificOpt.BaselineExecutionStateExtractor
+ * @see org.jikesrvm.ArchitectureSpecificOpt.OptExecutionStateExtractor
  *
  * It returns a compiler and architecture neutered runtime state
  * ExecutionState.

@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Address;
  * Intel specific implementation where JTOC is stored in the processor object
  * and accessed through the processor register.
  *
- * @see Register
+ * @see org.jikesrvm.compilers.opt.ir.Register
  */
 public abstract class RegisterPool extends GenericRegisterPool implements Operators {
 

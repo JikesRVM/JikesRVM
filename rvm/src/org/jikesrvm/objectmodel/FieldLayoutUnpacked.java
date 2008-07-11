@@ -62,8 +62,8 @@ public class FieldLayoutUnpacked extends FieldLayout implements SizeConstants {
   }
 
   /**
-   * @param klass
-   * @return
+   * @param klass the class to layout
+   * @return The layout context
    */
   @Override
   protected FieldLayoutContext getLayoutContext(RVMClass klass) {

@@ -541,7 +541,7 @@ public final class RegisterOperand extends Operand {
   /**
    * Set the {@link TypeReference} of the value represented by the operand.
    *
-   * @param the inferred data type of the contents of the register
+   * @param t the inferred data type of the contents of the register
    */
   public void setType(TypeReference t) {
     type = t;

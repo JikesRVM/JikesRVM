@@ -90,7 +90,7 @@ public class EntrypointHelper {
   /**
    * Get description of virtual machine field.
    * @param klass class containing field
-   * @param memberName member name - something like "invokestatic"
+   * @param member member name - something like "invokestatic"
    * @param type of field
    * @return corresponding RVMField
    */
@@ -120,7 +120,7 @@ public class EntrypointHelper {
   /**
    * Get description of virtual machine field.
    * @param klass class containing field
-   * @param memberName member name - something like "invokestatic"
+   * @param member member name - something like "invokestatic"
    * @param type of field
    * @return corresponding RVMField
    */
@@ -152,8 +152,8 @@ public class EntrypointHelper {
   /**
    * Get description of virtual machine method.
    * @param klass class  containing method
-   * @param memberName member name - something like "invokestatic"
-   * @param memberDescriptor member descriptor - something like "()V"
+   * @param member member name - something like "invokestatic"
+   * @param descriptor member descriptor - something like "()V"
    * @return corresponding RVMMethod
    */
   public static NormalMethod getMethod(Class<?> klass, String member, String descriptor) {

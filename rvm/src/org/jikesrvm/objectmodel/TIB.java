@@ -39,8 +39,7 @@ import org.vmmagic.unboxed.Word;
 @NonMoving
 public final class TIB implements TIBLayoutConstants, SizeConstants {
   /**
-   * Calculate the number of words required to hold the lazy method invoker trampoline.
-   * @return
+   * @return the number of words required to hold the lazy method invoker trampoline.
    */
   public static int lazyMethodInvokerTrampolineWords() {
     int codeWords = VM.BuildForIA32 ? 2 : (VM.BuildFor32Addr ? 3 : 2);
@@ -306,7 +305,7 @@ public final class TIB implements TIBLayoutConstants, SizeConstants {
 
   /**
    * Calculate the address that is the call target for the lazy method invoker trampoline.
-   * @return
+   * @return the offset of the instruction that is the call target
    */
   public int lazyMethodInvokerTrampolineIndex() {
     return length() - lazyMethodInvokerTrampolineWords();

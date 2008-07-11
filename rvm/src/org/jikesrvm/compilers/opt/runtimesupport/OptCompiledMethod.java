@@ -112,7 +112,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * Return whether or not the instruction offset corresponds to an uninterruptible context.
    *
-   * @param offset of addr from start of instructions in bytes
+   * @param instructionOffset offset of addr from start of instructions in bytes
    * @return true if the IP is within an Uninterruptible method, false otherwise.
    */
   @Interruptible

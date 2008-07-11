@@ -848,6 +848,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   /**
    * Build a two-dimensional array.
    * @param methodId  Apparently unused (!)
+   * @param dim0 the arraylength of dimension 0
+   * @param dim1 the arraylength of dimension 1
    * @param numElements number of elements to allocate for each dimension
    * @param arrayType type of array that will result
    * @return array object

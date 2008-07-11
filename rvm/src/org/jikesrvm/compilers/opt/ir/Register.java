@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * pool, there is only one instance of an Register with each number.
  *
  * @see RegisterOperand
- * @see org.jikesrvm.ArchitectureSpecific.RegisterPool
+ * @see org.jikesrvm.ArchitectureSpecificOpt.RegisterPool
  */
 public final class Register {
 

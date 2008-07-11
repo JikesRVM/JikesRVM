@@ -1148,11 +1148,10 @@ Operand value, boolean signExtend) {
    *
    * @param s the instruction to expand
    * @param result the result operand
-   * @param value1 the first operand
-   * @param value2 the second operand
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
-  protected final void LONG_SUB(Instruction s, Operand result,
-      Operand val1, Operand val2) {
+  protected final void LONG_SUB(Instruction s, Operand result, Operand val1, Operand val2) {
 
     if (result.similar(val1)) {
       // Straight forward case where instruction is already in accumulate form

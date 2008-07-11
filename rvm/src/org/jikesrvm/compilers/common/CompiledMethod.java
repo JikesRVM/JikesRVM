@@ -486,8 +486,8 @@ public abstract class CompiledMethod implements SizeConstants {
    * Return whether or not the given address (which is purported to be inside
    * of the compiled method's code array) corresponds to an uninterruptible context.
    *
-   * @param ip a Address (should be an interior pointer to instructions)
-   * @return offset of addr from start of instructions in bytes
+   * @param instructionOffset of addr from start of instructions in bytes
+   * @return true if the IP is within an Uninterruptible method, false otherwise.
    */
   @Interruptible
   public abstract boolean isWithinUninterruptibleCode(Offset instructionOffset);

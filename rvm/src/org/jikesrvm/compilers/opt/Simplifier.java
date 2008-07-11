@@ -173,7 +173,7 @@ public abstract class Simplifier extends IRTools {
    * doing peephole optimizations of branches
    * is the job of a separate module.
    *
-   * @param HIR is this the HIR phase?
+   * @param hir is this the HIR phase?
    * @param regpool register pool in case simplification requires a temporary register
    * @param s the instruction to simplify
    * @return one of UNCHANGED, MOVE_FOLDED, MOVE_REDUCED, TRAP_REDUCED, REDUCED

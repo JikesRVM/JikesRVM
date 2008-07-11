@@ -87,11 +87,11 @@ import org.vmmagic.unboxed.*;
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an {@link org.jikesrvm.compilers.opt.AssemblerOpt}
+ * optimizing compiler has an {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt}
  * that is built on top of this one to match
  * {@link org.jikesrvm.compilers.opt.ir.Instruction}s and
  * {@link org.jikesrvm.compilers.opt.ir.Operator}s to the emit methods
- * this assembler provides.  The {@link org.jikesrvm.compilers.opt.AssemblerOpt}
+ * this assembler provides.  The {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt}
  * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
  * naming and signiture convention that is designed to make the method
@@ -174,7 +174,7 @@ import org.vmmagic.unboxed.*;
  *  </DL>
  * </DL>
  *
- * @see org.jikesrvm.compilers.opt.AssemblerOpt
+ * @see org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt
  * @see Lister
  * @see ForwardReference
  *
@@ -1457,7 +1457,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param cond the IA32 ISA condition code bits to mask into opcode
    * @param label the label associated with the branch target instrucion
    *
-   * @see ForwardReference.ConditionalBranch
+   * @see org.jikesrvm.compilers.common.assembler.ForwardReference.ConditionalBranch
    */
   public final void emitJCC_Cond_Label (byte cond, int label) {
     int miStart = mi;

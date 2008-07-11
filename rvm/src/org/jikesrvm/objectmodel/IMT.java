@@ -46,10 +46,9 @@ public final class IMT {
   }
 
   /**
-   * Create a new TIB of the specified size.
+   * Create an IMT.
    *
-   * @param size The size of the TIB
-   * @return The created TIB instance.
+   * @return The created IMT instance.
    */
   public static IMT allocate() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);

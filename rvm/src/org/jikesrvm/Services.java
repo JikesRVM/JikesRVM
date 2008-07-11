@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 public class Services implements SizeConstants {
   /**
-   * Biggest buffer you would possibly need for {@link #dump(char[], int)}
+   * Biggest buffer you would possibly need for {@link org.jikesrvm.scheduler.RVMThread#dump(char[], int)}
    * Modify this if you modify that method.
    */
   public static final int MAX_DUMP_LEN =

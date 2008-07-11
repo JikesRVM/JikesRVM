@@ -188,7 +188,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Return whether or not the instruction offset corresponds to an uninterruptible context.
    *
-   * @param offset of addr from start of instructions in bytes
+   * @param instructionOffset of addr from start of instructions in bytes
    * @return true if the IP is within an Uninterruptible method, false otherwise.
    */
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {

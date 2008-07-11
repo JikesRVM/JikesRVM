@@ -51,7 +51,7 @@ final class MinimalBURS extends BURS {
   /**
    * Create a BURS object for the given IR.
    *
-   * @param IR the IR to translate from LIR to MIR.
+   * @param ir the IR to translate from LIR to MIR.
    */
   MinimalBURS(IR ir) {
     super(ir);
