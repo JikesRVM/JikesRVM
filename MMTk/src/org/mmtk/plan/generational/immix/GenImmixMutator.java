@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
  *
  * @see GenImmix
  * @see GenImmixCollector
- * @see GenMutator
+ * @see org.mmtk.plan.generational.GenMutator
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase

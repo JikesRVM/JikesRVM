@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.*;
  * per-mutator allocator state).<p>
  *
  * @see Immix
- * @see CollectorLocal
+ * @see org.mmtk.policy.immix.CollectorLocal
  * @see StopTheWorldMutator
  * @see MutatorContext
  */

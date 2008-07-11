@@ -192,7 +192,7 @@ public abstract class PageResource implements Constants {
    * This call allows pages to be unconditionally removed from
    * the collectors page budget.
    *
-   * @see unconditionallyReservePages
+   * @see #unconditionallyReservePages
    * @param pages The number of pages to be unconditionally
    * released.
    */

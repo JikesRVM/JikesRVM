@@ -20,9 +20,9 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements unsynchronized (local) elements of an
  * explicity managed collector.  Allocation is via the segregated free list
- * (@see SegregatedFreeList).<p>
+ * (@see org.mmtk.utility.alloc.SegregatedFreeList).<p>
  *
- * @see SegregatedFreeList
+ * @see org.mmtk.utility.alloc.SegregatedFreeList
  * @see ExplicitFreeListSpace
  */
 @Uninterruptible

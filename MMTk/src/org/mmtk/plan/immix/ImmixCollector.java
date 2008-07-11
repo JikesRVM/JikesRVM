@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * collector.
  *
  * @see Immix
- * @see MutatorLocal
+ * @see org.mmtk.policy.immix.MutatorLocal
  * @see StopTheWorldCollector
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
