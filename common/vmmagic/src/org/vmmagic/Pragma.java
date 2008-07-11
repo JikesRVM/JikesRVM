@@ -20,7 +20,7 @@ import java.lang.annotation.Inherited;
 
 /**
  * A Pragma is a mechanism for supplying information to the compiler to alter the code it
- * generates for a method. A Pragma is similar to an {@link @org.vmmagic.Intrinsic}
+ * generates for a method. A Pragma is similar to an {@link org.vmmagic.Intrinsic}
  * but it does not provide any behaviour but provides information to the compiler that modifies
  * optimizations, calling conventions and activation frame layout.
  *

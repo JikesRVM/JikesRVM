@@ -434,7 +434,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Get the offset into the machine code array (in bytes) that
    * corresponds to the first byte after this instruction.
    * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecific.Assembler#generateCode final assembly}.
+   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.
    * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
    *
    * @return the offset (in bytes) of the machinecode instruction
@@ -445,7 +445,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Only for use by {@link org.jikesrvm.ArchitectureSpecific.Assembler#generateCode}; sets the machine
+   * Only for use by {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode}; sets the machine
    * code offset of the instruction as described in {@link #getmcOffset}.
    *
    * @param mcOffset the offset (in bytes) for this instruction.

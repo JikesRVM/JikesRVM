@@ -36,13 +36,6 @@ import org.vmmagic.Pragma;
  * definition there can be noGC if control is not lost). Unpreemtible
  * code will have GC maps for all potential GC points and may contain
  * places where a thread explicitly yields.
- * <p>
- * You can use {@link UninterruptiblePragma} and
- * {@link InterruptiblePragma} to control
- * this property at a per-method granularity.
- * <P>
- * There is no matching <code>Interruptible</code> annotation,
- * since that is the default.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

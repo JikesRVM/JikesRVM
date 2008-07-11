@@ -56,8 +56,8 @@ import org.vmmagic.unboxed.Offset;
  *
  * Between collections, the collector threads reside on the Scheduler
  * collectorQueue. A collection in initiated by a call to the static
- * {@link #collect()} method, which calls
- * {@link Handshake#requestAndAwaitCompletion()} to dequeue the collector
+ * {@link #collect} method, which calls
+ * {@link Handshake#requestAndAwaitCompletion} to dequeue the collector
  * threads and schedule them for execution. The collection commences when all
  * scheduled collector threads arrive at the first "rendezvous" in the run
  * methods run loop.

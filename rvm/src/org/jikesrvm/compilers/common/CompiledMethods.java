@@ -55,8 +55,8 @@ public class CompiledMethods implements SizeConstants {
   private static int currentCompiledMethodId = 0;
 
   /**
-   * Used to communicate between {@link setCompiledMethodObsolete}
-   * and {@link snipObsoleteCompiledMethods}
+   * Used to communicate between {@link #setCompiledMethodObsolete}
+   * and {@link #snipObsoleteCompiledMethods}
    */
   private static boolean scanForObsoleteMethods = false;
 

@@ -414,7 +414,7 @@ public class GreenThread extends RVMThread {
    * Suspend execution of current thread, change its state, and release
    * a lock.
    * @param l lock guarding the decision to suspend
-   * @param s state to change to
+   * @param newState state to change to
    */
   @NoInline
   public final void yield(ProcessorLock l, State newState) {

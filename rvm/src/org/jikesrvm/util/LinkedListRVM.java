@@ -125,7 +125,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * Membership test
    *
    * @param arg0 Object to check
-   * @return
+   * @return true if the list contains arg0, false otherwise
    */
   public boolean contains(Object arg0) {
     return indexOf(arg0) != -1;
@@ -135,7 +135,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * Set inclusion test
    *
    * @param arg0 Objects to check
-   * @return
+   * @return true if the list contains all objects in arg0, false otherwise
    */
   public boolean containsAll(Collection<?> arg0) {
     for (Object o : arg0) {

@@ -115,7 +115,7 @@ abstract class ThreadEventWaitQueue extends AbstractThreadQueue implements Threa
 
   /**
    * Check to see if any events occurred.
-   * Called prior to calling {@link #isReady(RVMThread)} on
+   * Called prior to calling {@link #isReady(GreenThread)} on
    * queued threads.
    * @return whether or not polling was successful
    */
@@ -130,7 +130,7 @@ abstract class ThreadEventWaitQueue extends AbstractThreadQueue implements Threa
 
   /**
    * Place a thread on this queue.
-   * Its {@link RVMThread#waitData waitData} field should
+   * Its {@link org.jikesrvm.scheduler.greenthreads.GreenThread#waitData waitData} field should
    * be set to indicate the event that the thread is waiting for.
    * @param thread the thread to put on the queue
    */

@@ -58,7 +58,6 @@ public final class ConcurrentCollectorThread extends GreenThread {
    * Constructor
    *
    * @param stack The stack this thread will run on
-   * @param isActive Whether or not this thread will participate in GC
    * @param processorAffinity The processor with which this thread is
    * associated.
    */

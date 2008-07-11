@@ -18,7 +18,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Object specifying sets of file descriptors to wait for.
  * Used as event wait data for {@link ThreadEventWaitQueue#enqueue}.
  *
- *
  * @see ThreadEventWaitData
  */
 @Uninterruptible
@@ -34,7 +33,7 @@ public final class ThreadIOWaitData extends ThreadEventWaitData implements Threa
 
   /**
    * Constructor.
-   * @param maxWaitCycle the timestamp when the wait should end
+   * @param maxWaitNano the time when the wait should end
    */
   public ThreadIOWaitData(long maxWaitNano) {
     super(maxWaitNano);

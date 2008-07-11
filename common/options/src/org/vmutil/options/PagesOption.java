@@ -95,7 +95,7 @@ public class PagesOption extends Option {
    * The validate method is called to allow subclasses to perform any additional
    * validation.
    *
-   * @param value The new value for the option.
+   * @param pages The new value for the option.
    */
   public void setPages(int pages) {
     this.value = pages;

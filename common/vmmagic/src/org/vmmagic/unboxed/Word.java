@@ -200,8 +200,8 @@ public final class Word {
 
   /**
    * Less-than or equal comparison
-   * @param addr2
-   * @return true if this <code>Word</code> instance is <i>less than or equal to</i> <code>addr2</code>
+   * @param w2
+   * @return true if this <code>Word</code> instance is <i>less than or equal to</i> <code>w2</code>
    */
   public boolean LE(Word w2) {
     return false;
@@ -209,8 +209,8 @@ public final class Word {
 
   /**
    * Greater-than comparison
-   * @param addr2
-   * @return true if this <code>Word</code> instance is <i>greater than</i> <code>addr2</code>
+   * @param w2
+   * @return true if this <code>Word</code> instance is <i>greater than</i> <code>w2</code>
    */
   public boolean GT(Word w2) {
     return false;
@@ -218,8 +218,8 @@ public final class Word {
 
   /**
    * Greater-than or equal comparison
-   * @param addr2
-   * @return true if this <code>Word</code> instance is <i>greater than or equal to</i> <code>addr2</code>
+   * @param w2
+   * @return true if this <code>Word</code> instance is <i>greater than or equal to</i> <code>w2</code>
    */
   public boolean GE(Word w2) {
     return false;
@@ -228,7 +228,7 @@ public final class Word {
   /**
    * Equality comparison
    * @param w2
-   * @return true if this <code>Word</code> instance is <i>equal to</i> <code>addr2</code>
+   * @return true if this <code>Word</code> instance is <i>equal to</i> <code>w2</code>
    */
   public boolean EQ(Word w2) {
     return false;
@@ -237,7 +237,7 @@ public final class Word {
   /**
    * Not-equal comparison
    * @param w2
-   * @return true if this <code>Word</code> instance is <i>not equal to</i> <code>addr2</code>
+   * @return true if this <code>Word</code> instance is <i>not equal to</i> <code>w2</code>
    */
   public boolean NE(Word w2) {
     return false;
@@ -263,7 +263,6 @@ public final class Word {
 
   /**
    * Bit-wise complement of a word.
-   * @param w2
    * @return the bitwise complement of this
    */
   public Word not() {
@@ -296,7 +295,7 @@ public final class Word {
 
   /**
    * Logical right-shift a word. Shifts of a size greater than the Word are undefined and
-   * have an architecture and compiler specific behaviour {@see #lsh(int)}.
+   * have an architecture and compiler specific behaviour see also {@link #lsh(int)}.
    *
    * @param amt the amount to shift by
    * @return new Word shifted by the given amount
@@ -307,7 +306,7 @@ public final class Word {
 
   /**
    * Arithmetic right-shift a word. Shifts of a size greater than the Word are undefined and
-   * have an architecture and compiler specific behaviour {@see #lsh(int)}.
+   * have an architecture and compiler specific behaviour see also {@link #lsh(int)}.
    * Arithmetic right-shift a word.  Equivalent to the integer <code>&gt;&gt;</code> operator
    *
    * @param amt the amount to shift by

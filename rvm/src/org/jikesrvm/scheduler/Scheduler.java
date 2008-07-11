@@ -801,7 +801,7 @@ public abstract class Scheduler {
    *   <li>Boot (For the boot thread)</li>
    * </ul>
    *
-   * <p>or it is {@link ArchitectureSpecific.StackframeLayoutConstants#STACKFRAME_SENTINEL_FP}.
+   * <p>or it is {@link org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants#STACKFRAME_SENTINEL_FP}.
    * The STACKFRAME_SENTINEL_FP is possible when the thread has been created but has yet to be
    * scheduled.</p>
    *

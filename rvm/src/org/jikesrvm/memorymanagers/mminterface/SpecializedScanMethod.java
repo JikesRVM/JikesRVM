@@ -159,15 +159,14 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   }
 
   /**
-   * Return the method signature of the specialized method's invoke.
+   * @return the method signature of the specialized method's invoke.
    */
   public TypeReference[] getSignature() {
     return signature;
   }
 
   /**
-   * Return the return type of the specialized method's invoke.
-   * @return
+   * @return the return type of the specialized method's invoke
    */
   public TypeReference getReturnType() {
     return returnType;

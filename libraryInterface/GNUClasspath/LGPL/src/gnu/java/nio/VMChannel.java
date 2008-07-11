@@ -202,7 +202,7 @@ public final class VMChannel
    * Read the specified byte buffer.
    *
    * @param dst
-   * @return
+   * @return the number of bytes actually read
    * @throws IOException
    */
   public int read(ByteBuffer dst) throws IOException {
@@ -219,7 +219,7 @@ public final class VMChannel
    * @param dst
    * @param pos
    * @param len
-   * @return
+   * @return the number of bytes actually read
    * @throws IOException
    */
   private int read(ByteBuffer dst, int pos, int len) throws IOException {
@@ -296,7 +296,7 @@ public final class VMChannel
    *
    * @param fd
    * @param dst
-   * @return
+   * @return the number of bytes actually read
    * @throws IOException
    */
   private static native int read(int fd, ByteBuffer dst) throws IOException;
@@ -428,7 +428,7 @@ public final class VMChannel
    *
    * @param fd File descriptor
    * @param src SOurce buffer
-   * @param position Starting offset in the buffer
+   * @param pos Starting offset in the buffer
    * @param len Number of bytes to write
    * @return Number of bytes written.
    * @throws IOException
@@ -445,17 +445,16 @@ public final class VMChannel
    *
    * @param fd
    * @param src
-   * @return
+   * @return Number of bytes written
    * @throws IOException
    */
   private static native int write(int fd, ByteBuffer src) throws IOException;
 
   /**
    * Writes from byte buffers directly using the supplied file descriptor.
-   * Assumes the that buffer list constains DirectBuffers.  Will perform
+   * Assumes the that buffer list contains DirectBuffers.  Will perform
    * as gathering write.
    *
-   * @param fd
    * @param srcs
    * @param offset
    * @param length
@@ -835,7 +834,7 @@ public final class VMChannel
    * <p>Provides a simple mean for the JNI code to find out whether the
    * current thread was interrupted by a call to Thread.interrupt().</p>
    *
-   * @return
+   * @return true if the current thread was interrupted, false otherwise
    */
   static boolean isThreadInterrupted()
   {
