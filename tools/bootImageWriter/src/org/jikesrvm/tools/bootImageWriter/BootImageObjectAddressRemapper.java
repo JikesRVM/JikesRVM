@@ -63,4 +63,17 @@ final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
     }
     return obj;
   }
+
+  /**
+   * Identity hash code of an object
+   *
+   * @param obj the object to generate the identity hash code for
+   * @return the identity hash code
+   */
+  public int identityHashCode(Object obj) {
+    BootImageMap.Entry entry = BootImageMap.findOrCreateEntry(obj);
+    int identityHashCode = System.identityHashCode(obj);
+    entry.setHashed(identityHashCode);
+    return identityHashCode;
+  }
 }

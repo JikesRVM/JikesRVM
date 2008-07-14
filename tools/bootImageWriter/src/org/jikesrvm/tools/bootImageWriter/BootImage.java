@@ -182,12 +182,14 @@ public class BootImage extends BootImageWriterMessages
    * Allocate a scalar object.
    *
    * @param klass RVMClass object of scalar being allocated
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
    * @return address of object within bootimage
    */
-  public Address allocateScalar(RVMClass klass) {
+  public Address allocateScalar(RVMClass klass, boolean needsIdentityHash, int identityHashValue) {
     numObjects++;
     BootImageWriter.logAllocation(klass, klass.getInstanceSize());
-    return ObjectModel.allocateScalar(this, klass);
+    return ObjectModel.allocateScalar(this, klass, needsIdentityHash, identityHashValue);
   }
 
   /**
@@ -195,12 +197,14 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param array RVMArray object of array being allocated.
    * @param numElements number of elements
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
    * @return address of object within bootimage
    */
-  public Address allocateArray(RVMArray array, int numElements) {
+  public Address allocateArray(RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
-    return ObjectModel.allocateArray(this, array, numElements);
+    return ObjectModel.allocateArray(this, array, numElements, needsIdentityHash, identityHashValue);
   }
 
   /**

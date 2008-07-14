@@ -734,16 +734,27 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    *
    * @param bootImage the bootimage to put the object in
    * @param klass the RVMClass object of the instance to create.
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
    * @return the offset of object in bootimage (in bytes)
    */
   @Interruptible
-  public static Address allocateScalar(BootImageInterface bootImage, RVMClass klass) {
+  public static Address allocateScalar(BootImageInterface bootImage, RVMClass klass, boolean needsIdentityHash, int identityHashValue) {
     TIB tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
+    if (needsIdentityHash) {
+      if (JavaHeader.ADDRESS_BASED_HASHING) {
+        size += JavaHeader.HASHCODE_BYTES;
+      } else {
+        // TODO: support rehashing or header initialisation for object models
+        // that don't support an extra word for the hash code
+        throw new Error("Unsupported allocation");
+      }
+    }
     int align = getAlignment(klass);
     int offset = getOffsetForAlignment(klass);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
-    Address ref = JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size);
+    Address ref = JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size, needsIdentityHash, identityHashValue);
     MM_Interface.initializeHeader(bootImage, ref, tib, size, true);
     MiscHeader.initializeHeader(bootImage, ref, tib, size, true);
     return ref;
@@ -788,16 +799,27 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * @param bootImage the bootimage to put the object in
    * @param array RVMArray object of array being allocated.
    * @param numElements number of elements
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
    * @return Address of object in bootimage (in bytes)
    */
   @Interruptible
-  public static Address allocateArray(BootImageInterface bootImage, RVMArray array, int numElements) {
+  public static Address allocateArray(BootImageInterface bootImage, RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue) {
     TIB tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
+    if (needsIdentityHash) {
+      if (JavaHeader.ADDRESS_BASED_HASHING) {
+        size += JavaHeader.HASHCODE_BYTES;
+      } else {
+        // TODO: support rehashing or header initialisation for object models
+        // that don't support an extra word for the hash code
+        throw new Error("Unsupported allocation");
+      }
+    }
     int align = getAlignment(array);
     int offset = getOffsetForAlignment(array);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
-    Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
+    Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, needsIdentityHash, identityHashValue);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
     MM_Interface.initializeHeader(bootImage, ref, tib, size, false);
     MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
@@ -821,7 +843,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     int align = getAlignment(array);
     int offset = getOffsetForAlignment(array);
     Address ptr = bootImage.allocateCodeStorage(size, align, offset);
-    Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
+    Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, false, 0);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
     MM_Interface.initializeHeader(bootImage, ref, tib, size, false);
     MiscHeader.initializeHeader(bootImage, ref, tib, size, false);

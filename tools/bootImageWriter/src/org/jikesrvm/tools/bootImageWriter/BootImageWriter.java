@@ -1546,7 +1546,9 @@ public class BootImageWriter extends BootImageWriterMessages
         // allocate space in image
         //
         int arrayCount       = Array.getLength(jdkObject);
-        Address arrayImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateArray(rvmArrayType, arrayCount) : overwriteAddress;
+        boolean needsIdentityHash = mapEntry.requiresIdentityHashCode();
+        int identityHashValue = mapEntry.getIdentityHashCode();
+        Address arrayImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateArray(rvmArrayType, arrayCount, needsIdentityHash, identityHashValue) : overwriteAddress;
         mapEntry.imageAddress = arrayImageAddress;
 
         if (verbose >= 2) {
@@ -1735,7 +1737,9 @@ public class BootImageWriter extends BootImageWriterMessages
         // allocate space in image
         //
         RVMClass rvmScalarType = rvmType.asClass();
-        Address scalarImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateScalar(rvmScalarType) : overwriteAddress;
+        boolean needsIdentityHash = mapEntry.requiresIdentityHashCode();
+        int identityHashValue = mapEntry.getIdentityHashCode();
+        Address scalarImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateScalar(rvmScalarType, needsIdentityHash, identityHashValue) : overwriteAddress;
         mapEntry.imageAddress = scalarImageAddress;
 
         if (verbose >= 2) {
@@ -1921,7 +1925,9 @@ public class BootImageWriter extends BootImageWriterMessages
       if (rvmElementType.equals(RVMType.CodeType)) {
         arrayImageAddress = bootImage.allocateCode(rvmArrayType, arrayCount);
       } else {
-        arrayImageAddress = bootImage.allocateArray(rvmArrayType, arrayCount);
+        boolean needsIdentityHash = mapEntry.requiresIdentityHashCode();
+        int identityHashValue = mapEntry.getIdentityHashCode();
+        arrayImageAddress = bootImage.allocateArray(rvmArrayType, arrayCount, needsIdentityHash, identityHashValue);
       }
     } else {
       arrayImageAddress = overwriteAddress;

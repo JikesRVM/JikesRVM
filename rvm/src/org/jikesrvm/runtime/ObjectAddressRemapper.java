@@ -43,4 +43,12 @@ public interface ObjectAddressRemapper {
    * @return interned object
    */
   <T> T intern(T object);
+
+  /**
+   * Identity hash code of an object
+   *
+   * @param object the object to generate the identity hash code for
+   * @return the identity hash code
+   */
+  int identityHashCode(Object object);
 }
