@@ -75,7 +75,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER = 0;
   public static final byte BASELINE_COMPILER = 1;
-  public static final byte COMPILER = 2;
+  public static final byte OPT_COMPILER = 2;
 
   // Data accumulators
   private static final String[] name = {"JNI\t", "Base\t", "Opt\t"};   // Output names
@@ -362,7 +362,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
           if (cm != null) {
             double compileTime = Time.nanosToMillis(end - start);
             cm.setCompilationTime(compileTime);
-            record(COMPILER, method, cm);
+            record(OPT_COMPILER, method, cm);
           }
         }
       }
