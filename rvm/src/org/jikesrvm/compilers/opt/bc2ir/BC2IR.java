@@ -2231,14 +2231,36 @@ public final class BC2IR
               break;
             }
             TypeReference type = getRefTypeOf(op2);  // non-null, null case above
-            if (ClassLoaderProxy.includesType(typeRef, type) == YES) {
+            byte typeTestResult = ClassLoaderProxy.includesType(typeRef, type);
+            if (typeTestResult == YES) {
               push(op2);
               if (DBG_CF) {
                 db("skipped gen of checkcast of " + op2 + " from " + typeRef + " to " + type);
               }
               break;
             }
+            if (typeTestResult == NO) {
+              if (isNonNull(op2)) {
+                // Definite class cast exception
+                endOfBasicBlock = true;
+                appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), TrapCodeOperand.CheckCast()));
+                rectifyStateWithExceptionHandler(TypeReference.JavaLangClassCastException);
+                if (DBG_CF) db("Converted checkcast into unconditional trap");
+                break;
+              } else {
+                // At runtime either it is null and the checkcast succeeds or it is non-null
+                // and a class cast exception is raised
+                RegisterOperand refinedOp2 = gc.temps.makeTemp(op2);
+                s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), makeTypeOperand(typeRef.peekType()));
+                refinedOp2.refine(TypeReference.NULL_TYPE);
+                push(refinedOp2.copyRO());
+                rectifyStateWithExceptionHandler(TypeReference.JavaLangClassCastException);
+                if (DBG_CF) db("Narrowed type downstream of checkcast to NULL");
+                break;
+              }
+            }
           }
+
           RegisterOperand refinedOp2 = gc.temps.makeTemp(op2);
           if (!gc.options.NO_CHECKCAST) {
             if (classLoading) {
