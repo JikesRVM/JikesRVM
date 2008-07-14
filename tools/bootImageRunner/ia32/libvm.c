@@ -509,14 +509,14 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         writeErr("fs            0x%08x\n", IA32_FS(context));
         writeErr("es            0x%08x\n", IA32_ES(context));
         writeErr("ds            0x%08x\n", IA32_DS(context));
-        writeErr("edi -- JTOC?  0x%08x\n", IA32_EDI(context));
+        writeErr("edi           0x%08x\n", IA32_EDI(context));
         writeErr("esi -- PR/VP  0x%08x\n", IA32_ESI(context));
-        writeErr("ebp -- FP?    0x%08x\n", IA32_EBP(context));
+        writeErr("ebp           0x%08x\n", IA32_EBP(context));
         writeErr("esp -- SP     0x%08x\n", IA32_ESP(context));
         writeErr("ebx           0x%08x\n", IA32_EBX(context));
-        writeErr("edx -- T1?    0x%08x\n", IA32_EDX(context));
-        writeErr("ecx -- S0?    0x%08x\n", IA32_ECX(context));
-        writeErr("eax -- T0?    0x%08x\n", IA32_EAX(context));
+        writeErr("edx           0x%08x\n", IA32_EDX(context));
+        writeErr("ecx           0x%08x\n", IA32_ECX(context));
+        writeErr("eax           0x%08x\n", IA32_EAX(context));
         writeErr("ss            0x%08x\n", IA32_SS(context));
         writeErr("eip           0x%08x\n", IA32_EIP(context));
         writeErr("cs            0x%08x\n", IA32_CS(context));
@@ -543,63 +543,16 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 //Solaris doesn't seem to support these
 #if !(defined (__SVR4) && defined (__sun)) 
 	if (IA32_FPREGS(context)) {
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                0,
-                                IA32_STMM(context, 0, 0) & 0xffff,
-                                IA32_STMM(context, 0, 1) & 0xffff,
-                                IA32_STMM(context, 0, 2) & 0xffff,
-                                IA32_STMM(context, 0, 3) & 0xffff,
-                                IA32_STMMEXP(context, 0) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                1,
-                                IA32_STMM(context, 1, 0) & 0xffff,
-                                IA32_STMM(context, 1, 1) & 0xffff,
-                                IA32_STMM(context, 1, 2) & 0xffff,
-                                IA32_STMM(context, 1, 3) & 0xffff,
-                                IA32_STMMEXP(context, 1) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                2,
-                                IA32_STMM(context, 2, 0) & 0xffff,
-                                IA32_STMM(context, 2, 1) & 0xffff,
-                                IA32_STMM(context, 2, 2) & 0xffff,
-                                IA32_STMM(context, 2, 3) & 0xffff,
-                                IA32_STMMEXP(context, 2) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                3,
-                                IA32_STMM(context, 3, 0) & 0xffff,
-                                IA32_STMM(context, 3, 1) & 0xffff,
-                                IA32_STMM(context, 3, 2) & 0xffff,
-                                IA32_STMM(context, 3, 3) & 0xffff,
-                                IA32_STMMEXP(context, 3) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                4,
-                                IA32_STMM(context, 4, 0) & 0xffff,
-                                IA32_STMM(context, 4, 1) & 0xffff,
-                                IA32_STMM(context, 4, 2) & 0xffff,
-                                IA32_STMM(context, 4, 3) & 0xffff,
-                                IA32_STMMEXP(context, 4) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                5,
-                                IA32_STMM(context, 5, 0) & 0xffff,
-                                IA32_STMM(context, 5, 1) & 0xffff,
-                                IA32_STMM(context, 5, 2) & 0xffff,
-                                IA32_STMM(context, 5, 3) & 0xffff,
-                                IA32_STMMEXP(context, 5) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                6,
-                                IA32_STMM(context, 6, 0) & 0xffff,
-                                IA32_STMM(context, 6, 1) & 0xffff,
-                                IA32_STMM(context, 6, 2) & 0xffff,
-                                IA32_STMM(context, 6, 3) & 0xffff,
-                                IA32_STMMEXP(context, 6) & 0xffff);
-                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                7,
-                                IA32_STMM(context, 7, 0) & 0xffff,
-                                IA32_STMM(context, 7, 1) & 0xffff,
-                                IA32_STMM(context, 7, 2) & 0xffff,
-                                IA32_STMM(context, 7, 3) & 0xffff,
-                                IA32_STMMEXP(context, 7) & 0xffff);
-        }
+		for (int reg=0; reg<8; reg++) {
+			writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+					reg,
+					IA32_STMM(context, reg, 0) & 0xffff,
+					IA32_STMM(context, reg, 1) & 0xffff,
+					IA32_STMM(context, reg, 2) & 0xffff,
+					IA32_STMM(context, reg, 3) & 0xffff,
+					IA32_STMMEXP(context, reg) & 0xffff);
+		}
+}
 #endif
         if (isRecoverable) {
             fprintf(SysTraceFile, "%s: normal trap\n", Me);
