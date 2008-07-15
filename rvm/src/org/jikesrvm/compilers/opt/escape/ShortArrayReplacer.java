@@ -66,6 +66,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_NOTNU
 import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
@@ -386,6 +387,10 @@ final class ShortArrayReplacer implements AggregateReplacer {
     final int MAX_SIZE_FOR_VARIABLE_LOAD_STORE = VM.BuildForIA32 ? 2 : 1;
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
+        case REF_IFCMP_opcode:
+          // Comparison between the array reference we want to replace and
+          // another. TODO: this case is either always true or always false,
+          // we should optimize
         case NEWOBJMULTIARRAY_opcode:
           // dimensions array must be passed as an array argument to
           // newobjmultiarray, common case of 2 arguments is handled without a
