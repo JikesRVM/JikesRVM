@@ -21,15 +21,14 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.InvocationHandler;
 import java.util.Arrays;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.Reflection;
-import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Internal representation of an annotation. We synthetically create
+ * Internal representation of an annotation. We use a proxy class to implement
  * actual annotations {@link RVMClass}.
  */
 public final class RVMAnnotation {
@@ -43,10 +42,6 @@ public final class RVMAnnotation {
    */
   private final AnnotationMember[] elementValuePairs;
   /**
-   * A reference to the constructor of the base annotation
-   */
-  private static final MethodReference baseAnnotationInitMethod;
-  /**
    * Remembered unique annotations
    */
   private static final ImmutableEntryHashMapRVM<RVMAnnotation, RVMAnnotation>
@@ -57,18 +52,8 @@ public final class RVMAnnotation {
    */
   private Annotation value;
 
-  /**
-   * Class constructor
-   */
-  static {
-    baseAnnotationInitMethod =
-        MemberReference.findOrCreate(TypeReference.BaseAnnotation,
-                                        Atom.findOrCreateAsciiAtom("<init>"),
-                                        Atom.findOrCreateAsciiAtom("(Lorg/jikesrvm/classloader/RVMAnnotation;)V")).asMethodReference();
-    if (baseAnnotationInitMethod == null) {
-      throw new Error("Error creating reference to base annotation");
-    }
-  }
+  /** Encoding of when a result cannot be returned */
+  private static final Object NO_VALUE = new Object();
 
   /**
    * Construct a read annotation
@@ -134,82 +119,19 @@ public final class RVMAnnotation {
     // Find the annotation then find its implementing class
     final RVMClass annotationInterface = type.resolve().asClass();
     annotationInterface.resolve();
-    final RVMClass annotationClass = annotationInterface.getAnnotationClass();
-    if (!annotationClass.isResolved()) {
-      annotationClass.resolve();
+    Class<?> interfaceClass = annotationInterface.getClassForType();
+    ClassLoader classLoader = interfaceClass.getClassLoader();
+    if (classLoader == null) {
+      classLoader = BootstrapClassLoader.getBootstrapClassLoader();
     }
-    if (VM.runningVM) {
-      if (!annotationClass.isInitialized()) {
-        RuntimeEntrypoints.initializeClassForDynamicLink(annotationClass);
-      }
-      // Construct an instance with default values
-      Annotation annotationInstance = (Annotation) RuntimeEntrypoints.resolvedNewScalar(annotationClass);
-      RVMMethod defaultConstructor = annotationClass.getConstructorMethods()[0];
-      Reflection.invoke(defaultConstructor, annotationInstance, new RVMAnnotation[]{this});
-      // Override default values with those given in the element value pairs
-      RVMField[] annotationClassFields = annotationClass.getDeclaredFields();
-      for (AnnotationMember evp : elementValuePairs) {
-        Atom evpFieldName = evp.getNameAsFieldName();
-        for (RVMField field : annotationClassFields) {
-          if (field.getName() == evpFieldName) {
-            evp.setValueToField(field, annotationInstance);
-          }
-        }
-      }
-      return annotationInstance;
-    } else {
-      Class<?> interfaceClass = annotationInterface.getClassForType();
-      return (Annotation) Proxy.newProxyInstance(interfaceClass
-          .getClassLoader(), new Class[] { interfaceClass },
-          new InvocationHandler() {
-            public Object invoke(Object proxy, Method method, Object[] args) {
-              for (AnnotationMember evp : elementValuePairs) {
-                String evpFieldName = evp.getName().toString();
-                if (method.getName().equals(evpFieldName)) {
-                  return evp.getValue();
-                }
-              }
-              if (method.getName().equals("hashCode")) {
-                return hashCode();
-              }
-              if (method.getName().equals("equals")) {
-                return equals(args[0]);
-              }
-              MethodReference methRef = MemberReference.findOrCreate(
-                  annotationInterface.getTypeRef(),
-                  Atom.findOrCreateAsciiAtom(method.getName()),
-                  Atom.findOrCreateAsciiAtom("()" +
-                                                TypeReference.findOrCreate(method.getReturnType())
-                                                .getName())).asMethodReference();
-              return methRef.resolve().getAnnotationDefault();
-              //throw new Error("Annotation value not found for: " + method);
-            }
-          });
-    }
-  }
-
-  /**
-   * Return a string representation of the annotation of the form
-   * "@type(name1=val1, ...nameN=valN)"
-   */
-  public String toString() {
-    String result = type.toString();
-    result = "@" + result.substring(1, result.length() - 1) + "(";
-    if (elementValuePairs != null) {
-      for (int i = 0; i < elementValuePairs.length; i++) {
-        result += elementValuePairs[i];
-        if (i < (elementValuePairs.length - 1)) {
-          result += ", ";
-        }
-      }
-    }
-    result += ")";
-    return result;
+    return (Annotation) Proxy.newProxyInstance(classLoader, new Class[] { interfaceClass },
+        new AnnotationFactory());
   }
 
   /**
    * Read the element_value field of an annotation
    *
+   * @param type the type of the value to read or null
    * @param constantPool the constant pool for the class being read
    * @param input stream to read from
    * @return object representing the value read
@@ -294,7 +216,13 @@ public final class RVMAnnotation {
       case'c': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangClass);
         int classInfoIndex = input.readUnsignedShort();
-        value = Class.forName(RVMClass.getUtf(constantPool, classInfoIndex).toString());
+        // Value should be a class but resolving the class at this point could cause infinite recursion in class loading
+        TypeReference unresolvedValue = TypeReference.findOrCreate(classLoader, RVMClass.getUtf(constantPool, classInfoIndex));
+        if (unresolvedValue.peekType() != null) {
+          value = unresolvedValue.peekType().getClassForType();
+        } else {
+          value = unresolvedValue;
+        }
         break;
       }
       case'@':
@@ -385,10 +313,9 @@ public final class RVMAnnotation {
             break;
           }
           case 's':
-          case 'c':
           case '@':
           case 'e':
-          case '[':
+          case '[': {
             Object value1 = readValue(innerType, constantPool, input, classLoader, innerElementValue_tag);
             value = Array.newInstance(value1.getClass(), numValues);
             Array.set(value, 0, value1);
@@ -396,6 +323,29 @@ public final class RVMAnnotation {
               Array.set(value, i, readValue(innerType, constantPool, input, classLoader));
             }
             break;
+          }
+          case 'c': {
+            Object value1 = readValue(innerType, constantPool, input, classLoader, innerElementValue_tag);
+            Object[] values = new Object[numValues];
+            values[0] = value1;
+            boolean allClasses = value1 instanceof Class;
+            for (int i = 1; i < numValues; i++) {
+              values[i] = readValue(innerType, constantPool, input, classLoader);
+              if (allClasses && !(values[i] instanceof Class)) {
+                allClasses = false;
+              }
+            }
+            if (allClasses == true) {
+              Class<?>[] newValues = new Class[numValues];
+              for (int i = 0; i < numValues; i++) {
+                newValues[i] = (Class<?>)values[i];
+              }
+              value = newValues;
+            } else {
+              value = values;
+            }
+            break;
+          }
           default:
             throw new ClassFormatError("Unknown element_value tag '" + (char) innerElementValue_tag + "'");
           }
@@ -408,6 +358,33 @@ public final class RVMAnnotation {
     return value;
   }
 
+  /** Handle late resolution of class value annotations */
+  static Object firstUse(Object value) {
+    if (value instanceof TypeReference) {
+      return ((TypeReference)value).resolve().getClassForType();
+    } else if (value instanceof Object[]) {
+      Object[] values = (Object[])value;
+      boolean typeChanged = false;
+      for (int i=0; i < values.length; i++) {
+        Object newVal = firstUse(values[i]);
+        if (newVal.getClass() != values[i].getClass()) {
+          typeChanged = true;
+        }
+        values[i] = newVal;
+      }
+      if (typeChanged) {
+        Object[] newValues = (Object[])Array.newInstance(values[0].getClass(), values.length);
+        for (int i=0; i < values.length; i++) {
+          newValues[i] = values[i];
+        }
+        return newValues;
+      } else {
+        return values;
+      }
+    }
+    return value;
+  }
+
   /**
    * Return the TypeReference of the declared annotation, ie an
    * interface and not the class object of this instance
@@ -416,67 +393,6 @@ public final class RVMAnnotation {
    */
   @Uninterruptible
   TypeReference annotationType() { return type; }
-
-  /**
-   * Are two annotations logically equivalent?
-   *
-   * TODO: for performance reasons if we dynamically generated the
-   * bytecode for this method, rather than using reflection, the
-   * performance should be better.
-   */
-  static boolean equals(BaseAnnotation a, RVMAnnotation vmA, BaseAnnotation b, RVMAnnotation vmB) {
-    if (vmA.type != vmB.type) {
-      return false;
-    } else {
-      RVMClass annotationInterface = vmA.type.resolve().asClass();
-      RVMClass annotationClass = annotationInterface.getAnnotationClass();
-      RVMField[] annotationClassFields = annotationClass.getDeclaredFields();
-      for (RVMField annotationClassField : annotationClassFields) {
-        Object objA = annotationClassField.getObjectUnchecked(a);
-        Object objB = annotationClassField.getObjectUnchecked(b);
-        if (!objA.getClass().isArray()) {
-          if (!objA.equals(objB)) {
-            return false;
-          }
-        } else {
-          return Arrays.equals((Object[]) objA, (Object[]) objB);
-        }
-      }
-      return true;
-    }
-  }
-
-  /**
-   * Compute the hashCode for an instance of an annotation
-   *
-   * TODO: for performance reasons if we dynamically generated the
-   * bytecode for this method, rather than using reflection, the
-   * performance should be better.
-   */
-  public int hashCode(BaseAnnotation a) {
-    RVMClass annotationInterface = type.resolve().asClass();
-    RVMClass annotationClass = annotationInterface.getAnnotationClass();
-    RVMField[] annotationClassFields = annotationClass.getDeclaredFields();
-    String typeString = type.toString();
-    int result = typeString.substring(1, typeString.length() - 1).hashCode();
-    try {
-      for (RVMField field : annotationClassFields) {
-        String name = field.getName().toUnicodeString();
-        name = name.substring(0, name.length() - 6); // remove "_field" from name
-        Object value = field.getObjectUnchecked(a);
-        int part_result = name.hashCode() * 127;
-        if (value.getClass().isArray()) {
-          part_result ^= Arrays.hashCode((Object[]) value);
-        } else {
-          part_result ^= value.hashCode();
-        }
-        result += part_result;
-      }
-    } catch (java.io.UTFDataFormatException e) {
-      throw new Error(e);
-    }
-    return result;
-  }
 
   /*
    * Hash map support
@@ -507,76 +423,186 @@ public final class RVMAnnotation {
   }
 
   /**
-   * @return member reference to init method of BaseAnnotation
+   * Return a string representation of the annotation of the form
+   * "@type(name1=val1, ...nameN=valN)"
    */
-  static MethodReference getBaseAnnotationInitMemberReference() {
-    if (baseAnnotationInitMethod == null) {
-      throw new Error("Error creating reference to base annotation");
+  public String toString() {
+    RVMClass annotationInterface = type.resolve().asClass();
+    RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
+    String result = "@" + type.resolve().getClassForType().getName() + "(";
+    try {
+      for (int i=0; i < annotationMethods.length; i++) {
+        String name=annotationMethods[i].getName().toUnicodeString();
+        Object value=getElementValue(name, annotationMethods[i].getReturnType().resolve().getClassForType());
+        result += elementString(name, value);
+        if (i < (annotationMethods.length - 1)) {
+          result += ", ";
+        }
+      }
+    } catch (java.io.UTFDataFormatException e) {
+      throw new Error(e);
     }
-    return baseAnnotationInitMethod;
+    result += ")";
+    return result;
   }
 
   /**
-   * The superclass for all annotation instances
+   * String representation of the value pair of the form
+   * "name=value"
    */
-  abstract static class BaseAnnotation implements Annotation {
-    /**
-     * The RVMAnnotation that this annotation is an instance of
-     */
-    private final RVMAnnotation vmAnnotation;
-
-    /**
-     * Constructor, called via RVMAnnotation.createValue
-     */
-    BaseAnnotation(RVMAnnotation vmAnnotation) {
-      this.vmAnnotation = vmAnnotation;
-    }
-
-    /**
-     * Return a string representation of the annotation of the form
-     * "@type(name1=val1, ...nameN=valN)"
-     */
-    public String toString() {
-      return vmAnnotation.toString();
-    }
-
-    /**
-     * Return the Class object of the declared annotation, ie an
-     * interface and not the class object of this instance
-     *
-     * @return Class object of interface annotation object implements
-     */
-    @SuppressWarnings("unchecked")
-    // We intentionally break type-safety
-    public Class<? extends Annotation> annotationType() {
-      return (Class<? extends Annotation>) vmAnnotation.annotationType().resolve().getClassForType();
-    }
-
-    /**
-     * Are two annotations logically equivalent?
-     */
-    public boolean equals(Object o) {
-      if (o instanceof BaseAnnotation) {
-        if (o == this) {
-          return true;
-        } else {
-          BaseAnnotation b = (BaseAnnotation) o;
-          return RVMAnnotation.equals(this, this.vmAnnotation, b, b.vmAnnotation);
+  private String elementString(String name, Object value) {
+    return name + "=" + toStringHelper(value);
+  }
+  private static String toStringHelper(Object value) {
+    if (value instanceof Object[]) {
+      StringBuilder result = new StringBuilder("[");
+      Object[] a = (Object[]) value;
+      for (int i = 0; i < a.length; i++) {
+        result.append(toStringHelper(a[i]));
+        if (i < (a.length - 1)) {
+          result.append(", ");
         }
-      } else {
-        return false;
       }
-    }
-
-    /**
-     * Compute the hash code of an annotation using the standard
-     * algorithm {@link java.lang.annotation.Annotation#hashCode()}
-     */
-    public int hashCode() {
-      return vmAnnotation.hashCode(this);
+      result.append("]");
+      return result.toString();
+    } else {
+      return value.toString();
     }
   }
 
+  /** Find the value for an annotation */
+  private Object getElementValue(String name, Class<?> valueType) {
+    for (AnnotationMember evp : elementValuePairs) {
+      String evpFieldName = evp.getName().toString();
+      if (name.equals(evpFieldName)) {
+        return evp.getValue();
+      }
+    }
+    MethodReference methRef = MemberReference.findOrCreate(
+        type,
+        Atom.findOrCreateAsciiAtom(name),
+        Atom.findOrCreateAsciiAtom("()" + TypeReference.findOrCreate(valueType).getName())
+    ).asMethodReference();
+    try {
+      return methRef.resolve().getAnnotationDefault();
+    } catch (Throwable t) {
+      return NO_VALUE;
+    }
+  }
+
+  /** Hash code for annotation value */
+  private int annotationHashCode() {
+    RVMClass annotationInterface = type.resolve().asClass();
+    RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
+    String typeString = type.toString();
+    int result = typeString.substring(1, typeString.length() - 1).hashCode();
+    try {
+      for (RVMMethod method : annotationMethods) {
+        String name = method.getName().toUnicodeString();
+        Object value = getElementValue(name, method.getReturnType().resolve().getClassForType());
+        int part_result = name.hashCode() * 127;
+        if (value.getClass().isArray()) {
+          if (value instanceof Object[]) {
+            part_result ^= Arrays.hashCode((Object[]) value);
+          } else if (value instanceof boolean[]) {
+            part_result ^= Arrays.hashCode((boolean[]) value);
+          } else if (value instanceof byte[]) {
+            part_result ^= Arrays.hashCode((byte[]) value);
+          } else if (value instanceof char[]) {
+              part_result ^= Arrays.hashCode((char[]) value);
+          } else if (value instanceof short[]) {
+            part_result ^= Arrays.hashCode((short[]) value);
+          } else if (value instanceof int[]) {
+            part_result ^= Arrays.hashCode((int[]) value);
+          } else if (value instanceof long[]) {
+            part_result ^= Arrays.hashCode((long[]) value);
+          } else if (value instanceof float[]) {
+            part_result ^= Arrays.hashCode((float[]) value);
+          } else if (value instanceof double[]) {
+            part_result ^= Arrays.hashCode((double[]) value);
+          }
+        } else {
+          part_result ^= value.hashCode();
+        }
+        result += part_result;
+      }
+    } catch (java.io.UTFDataFormatException e) {
+      throw new Error(e);
+    }
+    return result;
+  }
+
+  /** Are two annotations equal? */
+  private boolean annotationEquals(Annotation a, Annotation b) {
+    if (a == b) {
+      return true;
+    } else if (a.getClass() != b.getClass()) {
+      return false;
+    } else {
+      RVMClass annotationInterface = type.resolve().asClass();
+      RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
+      AnnotationFactory afB = (AnnotationFactory)Proxy.getInvocationHandler(b);
+      try {
+        for (RVMMethod method : annotationMethods) {
+          String name = method.getName().toUnicodeString();
+          Object objA = getElementValue(name, method.getReturnType().resolve().getClassForType());
+          Object objB = afB.getValue(name, method.getReturnType().resolve().getClassForType());
+          if (!objA.getClass().isArray()) {
+            if (!objA.equals(objB)) {
+              return false;
+            }
+          } else {
+            if(!Arrays.equals((Object[]) objA, (Object[]) objB)) {
+              return false;
+            }
+          }
+        }
+      } catch (java.io.UTFDataFormatException e) {
+        throw new Error(e);
+      }
+      return true;
+    }
+  }
+
+  /**
+   * Class used to implement annotations as proxies
+   */
+  private final class AnnotationFactory implements InvocationHandler {
+    /** Cache of hash code */
+    private int cachedHashCode;
+
+    AnnotationFactory() {
+    }
+
+    /** Entry point to factory */
+    public Object invoke(Object proxy, Method method, Object[] args) {
+      if (method.getName().equals("annotationType")) {
+        return type.resolve().getClassForType();
+      }
+      Object value = getValue(method.getName(), method.getReturnType());
+      if (value != NO_VALUE) {
+        return value;
+      }
+      if (method.getName().equals("hashCode")) {
+        if (cachedHashCode == 0) {
+          cachedHashCode = annotationHashCode();
+        }
+        return cachedHashCode;
+      }
+      if (method.getName().equals("equals")) {
+        return annotationEquals((Annotation)proxy, (Annotation)args[0]);
+      }
+      if (method.getName().equals("toString")) {
+        return RVMAnnotation.this.toString();
+      }
+      throw new IllegalArgumentException("Invalid method for annotation type: " + method);
+    }
+
+    private Object getValue(String name, Class<?> valueType) {
+      return RVMAnnotation.this.getElementValue(name, valueType);
+    }
+
+  }
   /**
    * A class to decode and hold the name and its associated value for
    * an annotation member
@@ -589,8 +615,11 @@ public final class RVMAnnotation {
     /**
      * Elements value, decoded from its tag
      */
-    private final Object value;
-
+    private Object value;
+    /**
+     * Is this not the first use of the member?
+     */
+    private boolean notFirstUse = false;
     /**
      * Construct a read value pair
      */
@@ -625,67 +654,20 @@ public final class RVMAnnotation {
       return new AnnotationMember(meth, value);
     }
 
-    /**
-     * Return name as it would appear in a class implementing this
-     * annotation
-     */
-    Atom getNameAsFieldName() {
-      // TODO: optimize this atom operation
-      return Atom.findAsciiAtom(meth.getName().toString() + "_field");
-    }
-
-    /**
-     * Set the value to the given field of the given annotation
-     */
-    void setValueToField(RVMField field, Annotation annotation) {
-      if (value instanceof Boolean) {
-        field.setBooleanValueUnchecked(annotation, (Boolean) value);
-      } else if (value instanceof Integer) {
-        field.setIntValueUnchecked(annotation, (Integer) value);
-      } else if (value instanceof Long) {
-        field.setLongValueUnchecked(annotation, (Long) value);
-      } else if (value instanceof Byte) {
-        field.setByteValueUnchecked(annotation, (Byte) value);
-      } else if (value instanceof Character) {
-        field.setCharValueUnchecked(annotation, (Character) value);
-      } else if (value instanceof Short) {
-        field.setShortValueUnchecked(annotation, (Short) value);
-      } else if (value instanceof Float) {
-        field.setFloatValueUnchecked(annotation, (Float) value);
-      } else if (value instanceof Double) {
-        field.setDoubleValueUnchecked(annotation, (Double) value);
-      } else {
-        field.setObjectValueUnchecked(annotation, value);
-      }
-    }
     /** @return the name of the of the given pair */
     Atom getName() {
       return meth.getName();
     }
     /** @return the value of the of the given pair */
+    @Pure
     Object getValue() {
-      return value;
-    }
-    /**
-     * String representation of the value pair of the form
-     * "name=value"
-     */
-    public String toString() {
-      String result = getName().toString() + "=";
-      if (value instanceof Object[]) {
-        result += "{";
-        Object[] a = (Object[]) value;
-        for (int i = 0; i < a.length; i++) {
-          result += a[i].toString();
-          if (i < (a.length - 1)) {
-            result += ", ";
-          }
-          result += "}";
+      if (!notFirstUse) {
+        synchronized(this) {
+          value = firstUse(value);
+          notFirstUse = true;
         }
-      } else {
-        result += value.toString();
       }
-      return result;
+      return value;
     }
 
     /**
@@ -718,7 +700,7 @@ public final class RVMAnnotation {
           return Arrays.hashCode((Object[]) value) - Arrays.hashCode((Object[]) am.value);
         } else {
           @SuppressWarnings("unchecked") // True generic programming, we can't type check it in Java
-              Comparable<Object> cValue = (Comparable) value;
+          Comparable<Object> cValue = (Comparable) value;
           return cValue.compareTo(am.value);
         }
       }

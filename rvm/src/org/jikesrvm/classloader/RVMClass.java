@@ -14,10 +14,8 @@ package org.jikesrvm.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.UTFDataFormatException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.Array;
 import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
 import org.jikesrvm.Constants;
@@ -32,7 +30,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.LinkedListRVM;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
@@ -187,14 +184,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /** type and virtual method dispatch table for class */
   private TIB typeInformationBlock;
 
-  // --- Annotation support --- //
-
-  /**
-   * Map from interfaces of annotations to the classes that implement them
-   */
-  private static final ImmutableEntryHashMapRVM<RVMClass, RVMClass> annotationClasses =
-    new ImmutableEntryHashMapRVM<RVMClass, RVMClass>();
-
   // --- Memory manager support --- //
 
   /**
@@ -268,15 +257,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public int getMemoryBytes() {
     return BYTES_IN_ADDRESS;
-  }
-
-  /**
-   * If class is an annotation (which means its actually an
-   * interface), get the class that implements it
-   */
-  RVMClass getAnnotationClass() {
-    if (VM.VerifyAssertions) VM._assert(this.isAnnotation());
-    return annotationClasses.get(this);
   }
 
   /**
@@ -1883,12 +1863,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       }
     }
 
-    // Check if this was an annotation, if so create the class that
-    // will implement the annotation interface
-    //
-    if (isAnnotation()) {
-      createAnnotationClass(this);
-    }
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   resolve " + this);
   }
 
@@ -2338,201 +2312,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
           interfaces = new RVMClass[200];
         }
         interfaces[interfaceId] = this;
-      }
-    }
-  }
-
-  //------------------------------------------------------------//
-  // Additional methods for annotation                          //
-  //------------------------------------------------------------//
-  /**
-   * Method to create a class representing an implementation of an
-   * annotation interface ({@link RVMAnnotation}). The created class
-   * must have:
-   * <ul>
-   * <li>a method for each in the interface</li>
-   * <li>a field backing store for the values to be returned by the
-   * methods</li>
-   * <li>a constructor that assigns default annotation values to each
-   * of the field backing store values (if they are given)</li>
-   * <li>an implementation of: annotationType, equals, hashCode and
-   * toString</li>
-   * </ul>
-   *
-   * @param annotationInterface the annotation interface this class will implement
-   */
-  private static void createAnnotationClass(RVMClass annotationInterface) {
-    // Compute name of class based on the name of the annotation interface
-    Atom annotationClassName = annotationInterface.getDescriptor().annotationInterfaceToAnnotationClass();
-
-    // Create a handle to the new synthetic type
-    TypeReference annotationClass =
-        TypeReference.findOrCreateInternal(annotationInterface.getClassLoader(), annotationClassName);
-
-    if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWrite("RVMClass: (begin) create (load) annotation " + annotationClass.getName() + "\n");
-    }
-
-    // Count the number of default values for this class
-    int numDefaultFields = 0;
-    for (RVMMethod declaredMethod : annotationInterface.declaredMethods) {
-      if (declaredMethod.getAnnotationDefault() != null) {
-        numDefaultFields++;
-      }
-    }
-    // The constant pool that will be used by bytecodes in our
-    // synthetic methods. The constant pool is laid out as:
-    // * 1 - the fields holding the annotation values
-    // * 2 - the methods implementing those in the interface
-    // * 3 - the default values to initialise the class fields to
-    // * 4 - the object initialiser method
-    int numFields = annotationInterface.declaredMethods.length;
-    int numMethods = annotationInterface.declaredMethods.length + 1;
-    int constantPoolSize = numFields + numMethods + numDefaultFields;
-    int[] constantPool = new int[constantPoolSize];
-
-    // Create fields for class
-    RVMField[] annotationFields = new RVMField[numFields];
-    for (int i = 0; i < numFields; i++) {
-      RVMMethod currentAnnotationValue = annotationInterface.declaredMethods[i];
-      Atom newFieldName = Atom.findOrCreateAsciiAtom(currentAnnotationValue.getName().toString() + "_field");
-      Atom newFieldDescriptor = currentAnnotationValue.getReturnType().getName();
-      MemberReference newFieldRef =
-          MemberReference.findOrCreate(annotationClass, newFieldName, newFieldDescriptor);
-      annotationFields[i] = RVMField.createAnnotationField(annotationClass, newFieldRef);
-      constantPool[i] = packCPEntry(CP_MEMBER, newFieldRef.getId());
-    }
-
-    // Create copy of methods from the annotation
-    RVMMethod[] annotationMethods = new RVMMethod[numMethods];
-    for (int i = 0; i < annotationInterface.declaredMethods.length; i++) {
-      RVMMethod currentAnnotationValue = annotationInterface.declaredMethods[i];
-      Atom newMethodName = currentAnnotationValue.getName();
-      Atom newMethodDescriptor = currentAnnotationValue.getDescriptor();
-      MemberReference newMethodRef =
-          MemberReference.findOrCreate(annotationClass, newMethodName, newMethodDescriptor);
-      annotationMethods[i] =
-          RVMMethod.createAnnotationMethod(annotationClass,
-                                           constantPool,
-                                           newMethodRef,
-                                           annotationInterface.declaredMethods[i],
-                                           i);
-      constantPool[numFields + i] = packCPEntry(CP_MEMBER, annotationMethods[i].getMemberRef().getId());
-    }
-    // Create default value constants
-    int nextFreeConstantPoolSlot = numFields + annotationInterface.declaredMethods.length;
-    int[] defaultConstants = new int[numDefaultFields];
-    for (int i = 0, j = 0; i < annotationInterface.declaredMethods.length; i++) {
-      Object value = annotationInterface.declaredMethods[i].getAnnotationDefault();
-      if (value != null) {
-        if (value instanceof Object[]) {
-          // Special case of 0 length arrays that can't have their type resolved early
-          if (VM.VerifyAssertions) VM._assert(((Object[])value).length == 0);
-          value = Array.newInstance(annotationInterface.declaredMethods[i].getReturnType().resolve().getClassForType(), 0);
-        }
-        if (value instanceof Integer) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_INT, Statics.findOrCreateIntSizeLiteral((Integer) value));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Boolean) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_INT, Statics.findOrCreateIntSizeLiteral((Boolean) value ? 1 : 0));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Byte) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_INT, Statics.findOrCreateIntSizeLiteral((Byte) value));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Short) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_INT, Statics.findOrCreateIntSizeLiteral((Short) value));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Character) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_INT, Statics.findOrCreateIntSizeLiteral((Character) value));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Float) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_FLOAT, Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(((Float)value).floatValue())));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Double) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_DOUBLE, Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(((Double)value).doubleValue())));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof Long) {
-          constantPool[nextFreeConstantPoolSlot] =
-              packCPEntry(CP_LONG, Statics.findOrCreateLongSizeLiteral((Long)value));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else if (value instanceof String) {
-          try {
-            constantPool[nextFreeConstantPoolSlot] =
-                packCPEntry(CP_STRING,
-                            Atom.findOrCreateUnicodeAtom((String) value).getStringLiteralOffset());
-          } catch (UTFDataFormatException e) {
-            throw new Error(e);
-          }
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        } else { // Array/Enum/Annotation
-          constantPool[nextFreeConstantPoolSlot] =
-            packCPEntry(CP_STRING,
-                Statics.findOrCreateObjectLiteral(value));
-          defaultConstants[j] = nextFreeConstantPoolSlot;
-          j++;
-          nextFreeConstantPoolSlot++;
-        }
-      }
-    }
-    // Create initialiser
-    int objectInitIndex = nextFreeConstantPoolSlot;
-    MethodReference baInitMemRef = RVMAnnotation.getBaseAnnotationInitMemberReference();
-    constantPool[objectInitIndex] = packCPEntry(CP_MEMBER, baInitMemRef.getId());
-
-    MemberReference initMethodRef =
-        MemberReference.findOrCreate(annotationClass, baInitMemRef.getName(), baInitMemRef.getDescriptor());
-
-    annotationMethods[annotationInterface.declaredMethods.length] =
-        RVMMethod.createAnnotationInit(annotationClass,
-                                       constantPool,
-                                       initMethodRef,
-                                       objectInitIndex,
-                                       annotationFields,
-                                       annotationInterface.declaredMethods,
-                                       defaultConstants);
-
-    // Create class
-    RVMClass klass =
-        new RVMClass(annotationClass, constantPool, (short) (ACC_SYNTHETIC | ACC_PUBLIC | ACC_FINAL), // modifiers
-                     baInitMemRef.resolveMember().getDeclaringClass(), // superClass
-                     new RVMClass[]{annotationInterface}, // declaredInterfaces
-                     annotationFields, annotationMethods, null, null, null, null, null, null, null, null);
-    annotationClass.setType(klass);
-    annotationClasses.put(annotationInterface, klass);
-    // Now the class is set up, try to resolve any RVMAnnotation constants to Annotation constants
-    for (int cpSlot : defaultConstants) {
-      if (unpackCPType(constantPool[cpSlot]) == CP_STRING) {
-        Offset off = getLiteralOffset(constantPool, cpSlot);
-        Object value = Statics.getSlotContentsAsObject(off);
-        if (value instanceof RVMAnnotation) {
-          value = ((RVMAnnotation)value).getValue();
-          Statics.setSlotContents(off, value);
-        }
       }
     }
   }

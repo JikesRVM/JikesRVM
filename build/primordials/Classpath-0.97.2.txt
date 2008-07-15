@@ -66,6 +66,11 @@ Ljava/lang/reflect/Member;
 Ljava/lang/reflect/VMConstructor;
 Ljava/lang/reflect/Constructor;
 Ljava/lang/reflect/AccessibleObject;
+Ljava/lang/reflect/Proxy;
+Ljava/lang/reflect/Proxy$ClassFactory;
+Ljava/lang/reflect/Proxy$ProxyData;
+Ljava/lang/reflect/Proxy$ProxySignature;
+Ljava/lang/reflect/Proxy$ProxyType;
 
 # annotation support
 Ljava/lang/reflect/AnnotatedElement;

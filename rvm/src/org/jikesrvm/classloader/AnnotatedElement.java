@@ -148,25 +148,15 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    */
   @SuppressWarnings({"unchecked"})
   public final <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-    if (true || VM.runningVM) {
-      if (null == annotationClass) {
-        throw new NullPointerException("annotationClass");
-      }
-      final Annotation[] annotations = getAnnotationsInternal();
-      for (final Annotation annotation : annotations) {
-        if (annotationClass.isInstance(annotation)) return (T) annotation;
-      }
-      return null;
-    } else {
-      return getBootImageWriteTimeAnnotation(annotationClass);
+    if (null == annotationClass) {
+      throw new NullPointerException("annotationClass");
     }
+    final Annotation[] annotations = getAnnotationsInternal();
+    for (final Annotation annotation : annotations) {
+      if (annotationClass.isInstance(annotation)) return (T) annotation;
+    }
+    return null;
   }
-
-  /**
-   * Get the annotation implementing the specified class or null during boot
-   * image write time
-   */
-  protected abstract <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass);
 
   /**
    * Is there an annotation of this type implemented on this annotated

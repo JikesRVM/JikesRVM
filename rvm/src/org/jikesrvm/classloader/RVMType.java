@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.classloader;
 
-import java.lang.annotation.Annotation;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.SizeConstants;
@@ -620,14 +618,6 @@ public abstract class RVMType extends AnnotatedElement
     return methods[index];
   }
   // Methods implemented in Primitive, RVMArray or RVMClass
-
-  /**
-   * Get the annotation implementing the specified class or null during boot
-   * image write time
-   */
-  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
-    return getClassForType().getAnnotation(annotationClass);
-  }
 
   /**
    * Resolution status.

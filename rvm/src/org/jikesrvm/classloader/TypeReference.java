@@ -179,8 +179,6 @@ public final class TypeReference {
   public static final TypeReference Untraced = findOrCreate(org.vmmagic.pragma.Untraced.class);
   public static final TypeReference NonMoving = findOrCreate(org.vmmagic.pragma.NonMoving.class);
 
-  public static final TypeReference BaseAnnotation =
-      findOrCreate(org.jikesrvm.classloader.RVMAnnotation.BaseAnnotation.class);
   public static final TypeReference ReferenceMaps =
       findOrCreate(org.jikesrvm.compilers.baseline.ReferenceMaps.class);
   public static final TypeReference JNIFunctions = findOrCreate(org.jikesrvm.jni.JNIFunctions.class);

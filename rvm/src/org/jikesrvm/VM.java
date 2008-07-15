@@ -409,6 +409,8 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.nio.charset.EncodingHelper");
+      runClassInitializer("java.lang.reflect.Proxy");
+      runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
     runClassInitializer("java.util.logging.Logger");
 

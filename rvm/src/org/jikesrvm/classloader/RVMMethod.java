@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
+import org.jikesrvm.util.HashMapRVM;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -55,8 +56,8 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    * A table mapping to values present in the method info tables of annotation
    * types. It represents the default result from an annotation method.
    */
-  private static final ImmutableEntryHashMapRVM<RVMMethod, Object> annotationDefaults =
-    new ImmutableEntryHashMapRVM<RVMMethod, Object>();
+  private static final HashMapRVM<RVMMethod, Object> annotationDefaults =
+    new HashMapRVM<RVMMethod, Object>();
   /**
    * The offsets of virtual methods in the jtoc, if it's been placed
    * there by constant propagation.
@@ -102,7 +103,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   }
 
   /**
-   * Get the paramemter annotations for this method
+   * Get the parameter annotations for this method
    */
   @Pure
   private RVMAnnotation[][] getParameterAnnotations() {
@@ -117,7 +118,12 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   @Pure
   public Object getAnnotationDefault() {
     synchronized(annotationDefaults) {
-      return annotationDefaults.get(this);
+      Object value = annotationDefaults.get(this);
+      if (value instanceof TypeReference || value instanceof Object[]) {
+        value = RVMAnnotation.firstUse(value);
+        annotationDefaults.put(this, value);
+      }
+      return value;
     }
   }
 
@@ -632,21 +638,6 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    */
   public boolean isRuntimeServiceMethod() {
     return false; // only NormalMethods can be runtime service impls in Jikes RVM and they override this method
-  }
-
-  /**
-   * Get the annotation implementing the specified class or null during boot
-   * image write time
-   */
-  protected <T extends Annotation> T getBootImageWriteTimeAnnotation(Class<T> annotationClass) {
-    T ann;
-    try {
-      ann = getDeclaringClass().getClassForType().
-      getMethod(getName().toString(), getDescriptor().parseForParameterClasses(getDeclaringClass().getClassLoader())).getAnnotation(annotationClass);
-    } catch (NoSuchMethodException e) {
-      throw new BootImageMemberLookupError(this, null, annotationClass, e);
-    }
-    return ann;
   }
 
   //------------------------------------------------------------------//
