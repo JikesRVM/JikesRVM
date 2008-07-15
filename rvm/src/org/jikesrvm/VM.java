@@ -413,6 +413,19 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
     runClassInitializer("java.util.logging.Logger");
+    if (VM.BuildForHarmony) {
+      Entrypoints.luni1.setObjectValueUnchecked(null, null);
+      Entrypoints.luni2.setObjectValueUnchecked(null, null);
+      Entrypoints.luni3.setObjectValueUnchecked(null, null);
+      Entrypoints.luni4.setObjectValueUnchecked(null, null);
+      Entrypoints.luni5.setObjectValueUnchecked(null, null);
+      //runClassInitializer("java.lang.String$ConsolePrintStream");
+      runClassInitializer("org.apache.harmony.luni.util.Msg");
+      runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
+      runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
+      runClassInitializer("org.apache.harmony.nio.internal.nls.Messages");
+      runClassInitializer("org.apache.harmony.niochar.internal.nls.Messages");
+    }
 
     // Initialize compiler that compiles dynamically loaded classes.
     //
@@ -464,19 +477,6 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("java.lang.ClassLoader$StaticData");
     }
 
-    if (VM.BuildForHarmony) {
-      Entrypoints.luni1.setObjectValueUnchecked(null, null);
-      Entrypoints.luni2.setObjectValueUnchecked(null, null);
-      Entrypoints.luni3.setObjectValueUnchecked(null, null);
-      Entrypoints.luni4.setObjectValueUnchecked(null, null);
-      Entrypoints.luni5.setObjectValueUnchecked(null, null);
-      //runClassInitializer("java.lang.String$ConsolePrintStream");
-      runClassInitializer("org.apache.harmony.luni.util.Msg");
-      runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
-      runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
-      runClassInitializer("org.apache.harmony.nio.internal.nls.Messages");
-      runClassInitializer("org.apache.harmony.niochar.internal.nls.Messages");
-    }
     // Allow profile information to be read in from a file
     //
     EdgeCounts.boot(EdgeCounterFile);
