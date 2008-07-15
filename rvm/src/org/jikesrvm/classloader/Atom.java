@@ -331,7 +331,7 @@ public final class Atom {
 
   /**
    * Return class descriptor corresponding to "this" class name.
-   * this: class name       - something like "java/lang/Object"
+   * this: class name       - something like "java.lang.Object"
    * @return class descriptor - something like "Ljava/lang/Object;"
    */
   @Pure
@@ -343,7 +343,9 @@ public final class Atom {
     byte[] sig = new byte[1 + val.length + 1];
     sig[0] = (byte) 'L';
     for (int i = 0, n = val.length; i < n; ++i) {
-      sig[i + 1] = val[i];
+      byte b = val[i];
+      if (b == '.') b = '/';
+      sig[i + 1] = b;
     }
     sig[sig.length - 1] = (byte) ';';
     return findOrCreate(sig, true, null);
@@ -379,9 +381,9 @@ public final class Atom {
       VM._assert(val[0] == 'L' && val[val.length - 1] == ';');
     }
     if (unicodeStringOrJTOCoffset == null) {
-      return StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/', '.') + ".class";
+      return StringUtilities.asciiBytesToString(val, 1, val.length - 2) + ".class";
     } else {
-      return toUnicodeStringInternal().substring(1, val.length-1).replace('/','.') + ".class";
+      return toUnicodeStringInternal().substring(1, val.length-1) + ".class";
     }
   }
 
