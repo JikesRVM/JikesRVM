@@ -383,6 +383,12 @@ public abstract class StaticFieldReader implements SizeConstants {
   private static Field getJDKField(RVMField field) throws NoSuchFieldException {
     try {
       String cn = field.getDeclaringClass().toString();
+      if (VM.BuildForGnuClasspath &&
+          field.getDeclaringClass().getClassForType().equals(java.lang.reflect.Proxy.class) &&
+          field.getName().toString().equals("proxyClasses")) {
+        // Avoid confusing bootstrap JVM and classpath fields
+        throw new NoSuchFieldException(field.toString());
+      }
       Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
       f.setAccessible(true);
       return f;
