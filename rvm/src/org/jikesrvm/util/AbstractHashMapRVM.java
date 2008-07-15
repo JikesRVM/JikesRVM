@@ -83,6 +83,7 @@ abstract class AbstractHashMapRVM<K, V> {
   }
 
   public final V put(K key, V value) {
+    if (VM.VerifyAssertions) VM._assert(key != null);
     if (growMapAllowed() && numElems > (buckets.length * LOAD)) {
       growMap();
     }
