@@ -1,0 +1,19 @@
+java.lang.annotation.Retention
+test.org.jikesrvm.basic.core.annotation.TestAnnotations$A
+test.org.jikesrvm.basic.core.annotation.TestAnnotations$B
+interface test.org.jikesrvm.basic.core.annotation.TestAnnotations$B
+@test.org.jikesrvm.basic.core.annotation.TestAnnotations$B(value=interface test.org.jikesrvm.basic.core.annotation.TestAnnotations$B)
+test.org.jikesrvm.basic.core.annotation.TestAnnotations$C
+test.org.jikesrvm.basic.core.annotation.TestAnnotations$C
+one
+@test.org.jikesrvm.basic.core.annotation.TestAnnotations$C(value=one)
+two
+@test.org.jikesrvm.basic.core.annotation.TestAnnotations$C(value=two)
+test.org.jikesrvm.basic.core.annotation.TestAnnotations$D
+test.org.jikesrvm.basic.core.annotation.TestAnnotations$D
+interface test.org.jikesrvm.basic.core.annotation.TestAnnotations$D
+@test.org.jikesrvm.basic.core.annotation.TestAnnotations$D(value=[interface test.org.jikesrvm.basic.core.annotation.TestAnnotations$D])
+class test.org.jikesrvm.basic.core.annotation.TestAnnotations$testD_1
+class test.org.jikesrvm.basic.core.annotation.TestAnnotations$testD_2
+interface test.org.jikesrvm.basic.core.annotation.TestAnnotations$D
+@test.org.jikesrvm.basic.core.annotation.TestAnnotations$D(value=[class test.org.jikesrvm.basic.core.annotation.TestAnnotations$testD_1, class test.org.jikesrvm.basic.core.annotation.TestAnnotations$testD_2, interface test.org.jikesrvm.basic.core.annotation.TestAnnotations$D])

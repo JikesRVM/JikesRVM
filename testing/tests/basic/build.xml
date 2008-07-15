@@ -81,6 +81,7 @@
     <runCompareTest tag="TestFloatingRem" class="test.org.jikesrvm.basic.core.bytecode.TestFloatingRem"/>
     <runCompareTest tag="TestConstants" class="test.org.jikesrvm.basic.core.bytecode.TestConstants"/>
 
+    <runCompareTest tag="TestAnnotations" class="test.org.jikesrvm.basic.core.annotation.TestAnnotations"/>
     <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
 
     <runCompareTest tag="TestResolveOnInvokeInterface"
