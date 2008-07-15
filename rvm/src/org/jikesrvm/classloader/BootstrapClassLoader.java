@@ -137,6 +137,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   }
 
   public synchronized Class<?> loadClass(String className, boolean resolveClass) throws ClassNotFoundException {
+    if (!VM.runningVM) {
+      return super.loadClass(className, resolveClass);
+    }
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length() - 2);
     }
@@ -161,6 +164,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
   public Class<?> findClass(String className) throws ClassNotFoundException {
+    if (!VM.runningVM) {
+      return super.findClass(className);
+    }
     if (className.startsWith("[")) {
       TypeReference typeRef =
           TypeReference.findOrCreate(this, Atom.findOrCreateAsciiAtom(className.replace('.', '/')));
