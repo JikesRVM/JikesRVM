@@ -59,6 +59,11 @@ import org.apache.harmony.lang.RuntimePermissionCollection;
 public abstract class ClassLoader {
 
     /**
+     * Print extra debug info.
+     */
+    private static final boolean DEBUG = false;
+
+    /**
      * empty set of certificates
      */
     private static final Certificate[] EMPTY_CERTIFICATES = new Certificate[0];
@@ -434,7 +439,7 @@ public abstract class ClassLoader {
      *             if an IO exception occurs
      */
     public Enumeration<URL> getResources(String resName) throws IOException {
-	org.jikesrvm.VM.sysWriteln("getResources " + resName);
+	if (DEBUG) org.jikesrvm.VM.sysWriteln("getResources " + resName);
         ClassLoader cl = this;
         final ArrayList<Enumeration<URL>> foundResources = 
             new ArrayList<Enumeration<URL>>();
@@ -867,14 +872,16 @@ public abstract class ClassLoader {
         }
         String pathSeparator = System.getProperty("path.separator");
         String fileSeparator = System.getProperty("file.separator");
-	org.jikesrvm.VM.sysWriteln("path.separator=", pathSeparator);
-	org.jikesrvm.VM.sysWriteln("file.separator=", fileSeparator);
-	org.jikesrvm.VM.sysWriteln("libraryPath=", libraryPath);
+        if (DEBUG) {
+          org.jikesrvm.VM.sysWriteln("path.separator=", pathSeparator);
+          org.jikesrvm.VM.sysWriteln("file.separator=", fileSeparator);
+          org.jikesrvm.VM.sysWriteln("libraryPath=", libraryPath);
+        }
         String st[] = fracture(libraryPath, pathSeparator);
         int l = st.length;
         for (int i = 0; i < l; i++) {
 	    // TODO: support loader argument
-	    org.jikesrvm.VM.sysWriteln("load(" + st[i]+ fileSeparator + libName + ")");
+	    if (DEBUG) org.jikesrvm.VM.sysWriteln("load(" + st[i]+ fileSeparator + libName + ")");
 	    if (DynamicLibrary.load(st[i] + fileSeparator + libName) != 0) {
 		return;
 	    }
