@@ -524,7 +524,7 @@ public final class Magic {
 
     if (objectAddressRemapper == null) {
       // shouldn't create identity hash codes when we cannot record the effect, ignore if we're running a tool
-      VM._assert(VM.runningTool || VM.writingImage);
+      if (VM.VerifyAssertions) VM._assert(VM.runningTool || VM.writingImage);
       return System.identityHashCode(object);
     }
 
