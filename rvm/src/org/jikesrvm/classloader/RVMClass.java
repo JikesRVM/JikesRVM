@@ -1645,7 +1645,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
         RVMMethod method = methods[i];
 
         if (VM.VerifyUnint) {
-          if (method.isUninterruptible() && method.isSynchronized()) {
+          if (method.isSynchronized() && method.isUninterruptible()) {
             if (VM.ParanoidVerifyUnint || !method.hasLogicallyUninterruptibleAnnotation()) {
               VM.sysWriteln("WARNING: " + method + " cannot be both uninterruptible and synchronized");
             }

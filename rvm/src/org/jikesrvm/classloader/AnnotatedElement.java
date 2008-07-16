@@ -217,14 +217,6 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NoOptCompile annotation.
-   * @see org.vmmagic.pragma.NoOptCompile
-   */
-  public final boolean hasNoOptCompileAnnotation() {
-    return isAnnotationDeclared(TypeReference.NoOptCompile);
-  }
-
-  /**
    * Return true if this element has a Preemptible annotation.
    * @see org.vmmagic.pragma.Preemptible
    */
@@ -257,11 +249,19 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
+   * Return true if this element has a NoOptCompile annotation.
+   * @see org.vmmagic.pragma.NoOptCompile
+   */
+  public final boolean hasNoOptCompileAnnotation() {
+    return isAnnotationPresent(org.vmmagic.pragma.NoOptCompile.class);
+  }
+
+  /**
    * Return true if this element has a Inline annotation.
    * @see org.vmmagic.pragma.Inline
    */
   public final boolean hasInlineAnnotation() {
-    return isAnnotationDeclared(TypeReference.Inline);
+    return isAnnotationPresent(org.vmmagic.pragma.Inline.class);
   }
 
   /**
@@ -269,7 +269,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.NoInline
    */
   public final boolean hasNoInlineAnnotation() {
-    return isAnnotationDeclared(TypeReference.NoInline);
+    return isAnnotationPresent(org.vmmagic.pragma.NoInline.class);
   }
 
   /**
@@ -277,7 +277,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.BaselineNoRegisters
    */
   public final boolean hasBaselineNoRegistersAnnotation() {
-    return isAnnotationDeclared(TypeReference.BaselineNoRegisters);
+    return isAnnotationPresent(org.vmmagic.pragma.BaselineNoRegisters.class);
   }
 
   /**
@@ -285,7 +285,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.BaselineSaveLSRegisters
    */
   public final boolean hasBaselineSaveLSRegistersAnnotation() {
-    return isAnnotationDeclared(TypeReference.BaselineSaveLSRegisters);
+    return isAnnotationPresent(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
   }
 
   /**
@@ -293,7 +293,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.Pure
    */
   public final boolean hasPureAnnotation() {
-    return isAnnotationDeclared(TypeReference.Pure);
+    return isAnnotationPresent(org.vmmagic.pragma.Pure.class);
   }
 
   /**
@@ -301,7 +301,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.NoNullCheck
    */
   public final boolean hasNoNullCheckAnnotation() {
-    return isAnnotationDeclared(TypeReference.NoNullCheck);
+    return isAnnotationPresent(org.vmmagic.pragma.NoNullCheck.class);
   }
 
   /**
@@ -309,7 +309,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.NoBoundsCheck
    */
   public final boolean hasNoBoundsCheckAnnotation() {
-    return isAnnotationDeclared(TypeReference.NoBoundsCheck);
+    return isAnnotationPresent(org.vmmagic.pragma.NoBoundsCheck.class);
   }
 
   /**
@@ -317,7 +317,15 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.RuntimeFinal
    */
   public final boolean hasRuntimeFinalAnnotation() {
-    return isAnnotationDeclared(TypeReference.RuntimeFinal);
+    return isAnnotationPresent(org.vmmagic.pragma.RuntimeFinal.class);
+  }
+
+  /**
+   * Return true if this element has a NoEscapes annotation.
+   * @see org.vmmagic.pragma.NoEscapes
+   */
+  public final boolean hasNoEscapesAnnotation() {
+    return isAnnotationPresent(org.vmmagic.pragma.NoEscapes.class);
   }
 
   /**
@@ -334,13 +342,5 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    */
   public final boolean hasNonMovingAnnotation() {
     return isAnnotationDeclared(TypeReference.NonMoving);
-  }
-
-  /**
-   * Return true if this element has a NoEscapes annotation.
-   * @see org.vmmagic.pragma.NoEscapes
-   */
-  public final boolean hasNoEscapesAnnotation() {
-    return isAnnotationDeclared(TypeReference.NoEscapes);
   }
 }

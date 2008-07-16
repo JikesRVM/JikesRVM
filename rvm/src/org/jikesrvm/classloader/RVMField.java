@@ -66,7 +66,7 @@ public final class RVMField extends RVMMember {
     this.size = (byte)typeRef.getMemoryBytes();
     this.reference = typeRef.isReferenceType();
     this.madeTraced = false;
-    if (isUntraced() && VM.runningVM) {
+    if (VM.runningVM && isUntraced()) {
       VM.sysFail("Untraced field " + toString() + " created at runtime!");
     }
   }

@@ -158,23 +158,11 @@ public final class TypeReference {
   public static final TypeReference Interruptible = findOrCreate(org.vmmagic.pragma.Interruptible.class);
   public static final TypeReference LogicallyUninterruptible =
       findOrCreate(org.vmmagic.pragma.LogicallyUninterruptible.class);
-  public static final TypeReference NoOptCompile = findOrCreate(org.vmmagic.pragma.NoOptCompile.class);
   public static final TypeReference Preemptible = findOrCreate(org.vmmagic.pragma.Preemptible.class);
   public static final TypeReference UninterruptibleNoWarn =
       findOrCreate(org.vmmagic.pragma.UninterruptibleNoWarn.class);
   public static final TypeReference Uninterruptible = findOrCreate(org.vmmagic.pragma.Uninterruptible.class);
   public static final TypeReference Unpreemptible = findOrCreate(org.vmmagic.pragma.Unpreemptible.class);
-  public static final TypeReference Inline = findOrCreate(org.vmmagic.pragma.Inline.class);
-  public static final TypeReference NoInline = findOrCreate(org.vmmagic.pragma.NoInline.class);
-  public static final TypeReference BaselineNoRegisters =
-      VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineNoRegisters.class);
-  public static final TypeReference BaselineSaveLSRegisters =
-      VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
-  public static final TypeReference Pure = findOrCreate(org.vmmagic.pragma.Pure.class);
-  public static final TypeReference RuntimeFinal = findOrCreate(org.vmmagic.pragma.RuntimeFinal.class);
-  public static final TypeReference NoNullCheck = findOrCreate(org.vmmagic.pragma.NoNullCheck.class);
-  public static final TypeReference NoBoundsCheck = findOrCreate(org.vmmagic.pragma.NoBoundsCheck.class);
-  public static final TypeReference NoEscapes = findOrCreate(org.vmmagic.pragma.NoEscapes.class);
   public static final TypeReference SpecializedMethodInvoke = findOrCreate(org.vmmagic.pragma.SpecializedMethodInvoke.class);
   public static final TypeReference Untraced = findOrCreate(org.vmmagic.pragma.Untraced.class);
   public static final TypeReference NonMoving = findOrCreate(org.vmmagic.pragma.NonMoving.class);
