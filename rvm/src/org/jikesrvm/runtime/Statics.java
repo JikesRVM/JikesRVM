@@ -86,12 +86,12 @@ public class Statics implements Constants {
   /**
    * How many 32bit slots do we want in the JTOC to hold numeric (non-reference) values?
    */
-  private static final int numNumericSlots =   0x10000; // 64k
+  private static final int numNumericSlots =   0x20000; // 128k
 
   /**
    * How many reference-sized slots do we want in the JTOC to hold reference values?
    */
-  private static final int numReferenceSlots = 0x10000; // 64k
+  private static final int numReferenceSlots = 0x20000; // 128k
 
   /**
    * Static data values (pointed to by jtoc register).
