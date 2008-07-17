@@ -238,7 +238,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
 
     int allocator = MM_Interface.pickAllocator(cls);
     int align = ObjectModel.getAlignment(cls);
-    int offset = ObjectModel.getOffsetForAlignment(cls);
+    int offset = ObjectModel.getOffsetForAlignment(cls, false);
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -260,7 +260,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     int allocator = MM_Interface.pickAllocator(cls);
     int site = MM_Interface.getAllocationSite(false);
     int align = ObjectModel.getAlignment(cls);
-    int offset = ObjectModel.getOffsetForAlignment(cls);
+    int offset = ObjectModel.getOffsetForAlignment(cls, false);
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -345,7 +345,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
                             array.getTypeInformationBlock(),
                             MM_Interface.pickAllocator(array),
                             ObjectModel.getAlignment(array),
-                            ObjectModel.getOffsetForAlignment(array),
+                            ObjectModel.getOffsetForAlignment(array, false),
                             site);
   }
 

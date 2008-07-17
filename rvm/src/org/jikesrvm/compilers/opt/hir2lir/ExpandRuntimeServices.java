@@ -140,7 +140,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           RVMMethod callSite = inst.position.getMethod();
           IntConstantOperand allocator = IRTools.IC(MM_Interface.pickAllocator(cls, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(cls));
-          IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(cls));
+          IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(cls, false));
           Operand tib = ConvertToLowLevelIR.getTIB(inst, ir, Type);
           if (VM.BuildForIA32 && VM.runningVM) {
             // shield BC2IR from address constants
@@ -197,7 +197,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           RVMMethod callSite = inst.position.getMethod();
           IntConstantOperand allocator = IRTools.IC(MM_Interface.pickAllocator(array, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(array));
-          IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(array));
+          IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(array, false));
           Operand tib = ConvertToLowLevelIR.getTIB(inst, ir, Array);
           if (VM.BuildForIA32 && VM.runningVM) {
             // shield BC2IR from address constants

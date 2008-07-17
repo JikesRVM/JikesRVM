@@ -795,7 +795,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     RVMArray type = RVMType.CodeArrayType;
     int headerSize = ObjectModel.computeArrayHeaderSize(type);
     int align = ObjectModel.getAlignment(type);
-    int offset = ObjectModel.getOffsetForAlignment(type);
+    int offset = ObjectModel.getOffsetForAlignment(type, false);
     int width = type.getLogElementSize();
     TIB tib = type.getTypeInformationBlock();
     int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
@@ -818,7 +818,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
       RVMArray stackType = RVMArray.ByteArray;
       int headerSize = ObjectModel.computeArrayHeaderSize(stackType);
       int align = ObjectModel.getAlignment(stackType);
-      int offset = ObjectModel.getOffsetForAlignment(stackType);
+      int offset = ObjectModel.getOffsetForAlignment(stackType, false);
       int width = stackType.getLogElementSize();
       TIB stackTib = stackType.getTypeInformationBlock();
 
@@ -848,7 +848,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     RVMArray arrayType = RVMType.WordArrayType;
     int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
     int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
     int width = arrayType.getLogElementSize();
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
@@ -878,7 +878,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     RVMArray arrayType = RVMArray.DoubleArray;
     int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
     int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
     int width = arrayType.getLogElementSize();
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
@@ -908,7 +908,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     RVMArray arrayType = RVMArray.IntArray;
     int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
     int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
     int width = arrayType.getLogElementSize();
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
@@ -938,7 +938,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     RVMArray arrayType = RVMArray.ShortArray;
     int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
     int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
     int width = arrayType.getLogElementSize();
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
@@ -1050,7 +1050,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     TIB fakeTib = fakeType.getTypeInformationBlock();
     int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
     int align = ObjectModel.getAlignment(fakeType);
-    int offset = ObjectModel.getOffsetForAlignment(fakeType);
+    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
     int width = fakeType.getLogElementSize();
 
     /* Allocate a word array */

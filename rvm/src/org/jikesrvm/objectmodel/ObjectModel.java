@@ -678,8 +678,8 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * that must be aligned.
    * @param t RVMClass instance being created
    */
-  public static int getOffsetForAlignment(RVMClass t) {
-    return JavaHeader.getOffsetForAlignment(t);
+  public static int getOffsetForAlignment(RVMClass t, boolean needsIdentityHash) {
+    return JavaHeader.getOffsetForAlignment(t, needsIdentityHash);
   }
 
   /**
@@ -697,8 +697,8 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * be aligned.
    * @param t RVMArray instance being created
    */
-  public static int getOffsetForAlignment(RVMArray t) {
-    return JavaHeader.getOffsetForAlignment(t);
+  public static int getOffsetForAlignment(RVMArray t, boolean needsIdentityHash) {
+    return JavaHeader.getOffsetForAlignment(t, needsIdentityHash);
   }
 
   /**
@@ -752,7 +752,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
       }
     }
     int align = getAlignment(klass);
-    int offset = getOffsetForAlignment(klass);
+    int offset = getOffsetForAlignment(klass, needsIdentityHash);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size, needsIdentityHash, identityHashValue);
     MM_Interface.initializeHeader(bootImage, ref, tib, size, true);
@@ -817,7 +817,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
       }
     }
     int align = getAlignment(array);
-    int offset = getOffsetForAlignment(array);
+    int offset = getOffsetForAlignment(array, needsIdentityHash);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, needsIdentityHash, identityHashValue);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
@@ -841,7 +841,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     TIB tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
-    int offset = getOffsetForAlignment(array);
+    int offset = getOffsetForAlignment(array, false);
     Address ptr = bootImage.allocateCodeStorage(size, align, offset);
     Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, false, 0);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);

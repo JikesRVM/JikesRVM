@@ -1121,11 +1121,11 @@ public class BootImageWriter extends BootImageWriterMessages
       // allocate storage for boot record
       bootImage.allocateDataStorage(rvmBRType.getInstanceSize(),
                                     ObjectModel.getAlignment(rvmBRType),
-                                    ObjectModel.getOffsetForAlignment(rvmBRType));
+                                    ObjectModel.getOffsetForAlignment(rvmBRType, false));
       // allocate storeage for JTOC
       Address jtocAddress = bootImage.allocateDataStorage(intArrayType.getInstanceSize(0),
                                                           ObjectModel.getAlignment(intArrayType),
-                                                          ObjectModel.getOffsetForAlignment(intArrayType));
+                                                          ObjectModel.getOffsetForAlignment(intArrayType, false));
       bootImage.resetAllocator();
       bootRecord.tocRegister = jtocAddress.plus(intArrayType.getInstanceSize(Statics.middleOfTable));
 

@@ -2932,8 +2932,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
-    int align = ObjectModel.getAlignment(typeRef);
-    int offset = ObjectModel.getOffsetForAlignment(typeRef);
+    int align = ObjectModel.getAlignment(typeRef, false);
+    int offset = ObjectModel.getOffsetForAlignment(typeRef, false);
     int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(instanceSize);
     asm.emitPUSH_Abs(Magic.getTocPointer().plus(tibOffset));       // put tib on stack
@@ -2973,7 +2973,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     int site = MM_Interface.getAllocationSite(true);
     int align = ObjectModel.getAlignment(array);
-    int offset = ObjectModel.getOffsetForAlignment(array);
+    int offset = ObjectModel.getOffsetForAlignment(array, false);
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(width);                 // logElementSize
     asm.emitPUSH_Imm(headerSize);            // headerSize

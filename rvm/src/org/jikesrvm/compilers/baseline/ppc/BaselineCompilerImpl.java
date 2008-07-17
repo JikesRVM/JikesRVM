@@ -2970,7 +2970,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = ObjectModel.getAlignment(typeRef);
-    int offset = ObjectModel.getOffsetForAlignment(typeRef);
+    int offset = ObjectModel.getOffsetForAlignment(typeRef, false);
     int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc(T0, Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
@@ -3010,7 +3010,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     int site = MM_Interface.getAllocationSite(true);
     int align = ObjectModel.getAlignment(array);
-    int offset = ObjectModel.getOffsetForAlignment(array);
+    int offset = ObjectModel.getOffsetForAlignment(array, false);
     asm.emitLAddrToc(T0, Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0, 0);                    // T0 := number of elements

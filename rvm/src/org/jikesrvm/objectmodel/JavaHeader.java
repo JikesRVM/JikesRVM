@@ -764,9 +764,12 @@ public class JavaHeader implements JavaHeaderConstants {
    * that must be aligned.
    * @param t RVMClass instance being created
    */
-  public static int getOffsetForAlignment(RVMClass t) {
+  public static int getOffsetForAlignment(RVMClass t, boolean needsIdentityHash) {
     /* Align the first field - note that this is one word off from
        the reference. */
+    if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET && needsIdentityHash) {
+      return SCALAR_HEADER_SIZE + HASHCODE_BYTES;
+    }
     return SCALAR_HEADER_SIZE;
   }
 
@@ -791,9 +794,12 @@ public class JavaHeader implements JavaHeaderConstants {
    * be aligned.
    * @param t RVMArray instance being created
    */
-  public static int getOffsetForAlignment(RVMArray t) {
+  public static int getOffsetForAlignment(RVMArray t, boolean needsIdentityHash) {
     /* although array_header_size == object_ref_offset we say this
        because the whole point is to align the object ref */
+    if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET && needsIdentityHash) {
+        return OBJECT_REF_OFFSET + HASHCODE_BYTES;
+    }
     return OBJECT_REF_OFFSET;
   }
 
