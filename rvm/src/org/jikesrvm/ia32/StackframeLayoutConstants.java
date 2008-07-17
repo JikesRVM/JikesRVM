@@ -198,7 +198,7 @@ public interface StackframeLayoutConstants {
   int STACK_SIZE_BOOT =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
-      20 * 1024; // total   stack space to allocate for boot      thread (includes guard region)
+      30 * 1024; // total   stack space to allocate for boot      thread (includes guard region)
   int STACK_SIZE_COLLECTOR =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
