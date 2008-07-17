@@ -1632,6 +1632,7 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="-L${build.base}"/>
           <arg value="-ldl"/>
           <arg value="-lrvm"/>
+          <arg value="-lsyswrap"/>
 	</exec>
       </sequential>
     </if>
@@ -1648,6 +1649,7 @@ Check to make sure all required properties are specified. This includes properti
 	  <arg value="-L${harmony.lib.dir}"/>
           <arg value="-ldl"/>
           <arg value="-lrvm"/>
+          <arg value="-lsyswrap"/>
           <arg value="-lvmi"/>
           <arg value="-lhyarchive"/>
           <arg value="-lhyprt"/>

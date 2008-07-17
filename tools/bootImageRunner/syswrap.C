@@ -52,8 +52,8 @@
 #define C_LIBRARY_NAME "libc.so.6"
 
 // Pointers to actual syscall functions from C library.
-static SelectFunc_t libcSelect;
-static PollFunc_t libcPoll;
+static SelectFunc_t libcSelect = NULL;
+static PollFunc_t libcPoll = NULL;
 
 // Get a pointer to a symbol from the C library.
 //
@@ -67,7 +67,7 @@ getRealSymbol(const char *symbolName, void **pPtr)
     static void *libcHandle;
 
     // FIXME: should handle errors
-    if (*pPtr == 0) {
+    if (*pPtr == NULL) {
         if (libcHandle == 0)
             libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
         *pPtr = dlsym(libcHandle, symbolName);
@@ -222,11 +222,13 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
     // Call RVMThread.ioWaitSelect()
     jclass vmWaitClass = env->FindClass("org/jikesrvm/scheduler/greenthreads/Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
-                                                          "ioWaitSelect", "([I[I[IDZ)V");
-    env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
+                                                          "ioWaitSelect", "([I[I[IDZ)I");
+    jint result = env->CallStaticIntMethod(vmWaitClass, ioWaitSelectMethod,
                               readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
-
-    // TODO: should have return value from ioWaitSelect(), for returning errors
+    if (result == -1) {
+	// Error caused by VM having GC/threading disabled, fall back on libc select
+        return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
+    }
 
     // For each file descriptor set in the Java arrays,
     // mark the corresponding entry in the fd_sets (as appropriate).

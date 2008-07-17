@@ -2539,8 +2539,7 @@ sysNetSelect(
 
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
-#define realSelect(n, read, write, except, timeout) \
-    select(n, read, write, except, timeout)
+        SelectFunc_t realSelect = getLibcSelect();
 
         // interrogate
         //

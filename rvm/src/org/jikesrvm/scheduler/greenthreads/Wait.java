@@ -13,6 +13,8 @@
 package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.runtime.Time;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Scheduler;
 
 /**
  * A collection of static methods for waiting on some type of event.
@@ -130,10 +132,17 @@ class Wait {
    *   negative, wait indefinitely
    * @param fromNative true if this select is being called
    *   from native code
+   * @return 0 no error, -1 failure due to threading/GC disabled
    */
-  public static void ioWaitSelect(int[] readFds, int[] writeFds, int[] exceptFds, double totalWaitTime,
+  public static int ioWaitSelect(int[] readFds, int[] writeFds, int[] exceptFds, double totalWaitTime,
                                   boolean fromNative) {
-
+    // Check if we're entering from native we can sensibly wait
+    if (fromNative) {
+      if(!Processor.getCurrentProcessor().threadSwitchingEnabled() ||
+         Scheduler.getCurrentThread().getDisallowAllocationsByThisThread()) {
+        return -1;
+      }
+    }
     // Create wait data to represent the event that the thread is
     // waiting for
     long maxWaitNano = getMaxWaitNano(totalWaitTime);
@@ -152,6 +161,7 @@ class Wait {
     } else {
       GreenThread.ioWaitImpl(waitData);
     }
+    return 0;
   }
 
   /**
