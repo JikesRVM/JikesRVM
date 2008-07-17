@@ -1631,7 +1631,7 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
           <arg value="-ldl"/>
-	  <arg value="-lrvm"/>
+          <arg value="-lrvm"/>
 	</exec>
       </sequential>
     </if>
@@ -1647,7 +1647,7 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="-L${build.base}"/>
 	  <arg value="-L${harmony.lib.dir}"/>
           <arg value="-ldl"/>
-	  <arg value="-lrvm"/>
+          <arg value="-lrvm"/>
           <arg value="-lvmi"/>
           <arg value="-lhyarchive"/>
           <arg value="-lhyprt"/>
@@ -2089,6 +2089,55 @@ target.jni-suffix=${target.jni-suffix}
         private="true"
         windowtitle="Jikes RVM API">
 
+      <classpath>
+        <pathelement location="${build.dir}/javadoc/classes-ia32"/>
+      </classpath>
+
+      <group title="RVM" packages="org.jikesrvm*"/>
+      <group title="VM Magic" packages="org.vmmagic.*"/>
+      <group title="MMTk" packages="org.mmtk.*"/>
+      <group title="GNU Classpath Interface" packages="gnu.*"/>
+
+      <arg value="-linksource"/>
+      <arg value="-notimestamp"/>
+
+      <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**" excludes="**/ppc/**"/>
+      <packageset dir="${classlib.library-interface.common.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.non-cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.non-cpl2.java}" defaultexcludes="yes" includes="gnu/**"/>
+
+      <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${generated.java}" includes="org/**"/>
+      <packageset dir="${generated.arch.java}" includes="org/**"/>
+      <packageset dir="${generated.config.java}" includes="org/**"/>
+      <packageset dir="${generated.vmmagic.arch.java}" includes="org/**"/>
+
+      <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+    </javadoc>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
+  </target>
+
+  <target name="jdocs" depends="compile-for-apidocs" description="Generate the jdocs.">
+    <ant antfile="build/components/jdocs.xml" target="ensure"/>
+    <test-file name="jdocs.jar" location="${components.file}"/>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" append="true" emacsmode="true"/>
+    <javadoc
+        destdir="${build.dir}/javadoc"
+        author="true"
+        version="true"
+        use="true"
+        breakiterator="true"
+        maxmemory="300M"
+        source="1.5"
+        private="true"
+        windowtitle="Jikes RVM API">
+      <arg value="-docletpath"/>
+      <arg value="${jdocs.jar}"/>
+      <doclet name="com.dzone.jdocs.doclet.Doclet"/>
       <classpath>
         <pathelement location="${build.dir}/javadoc/classes-ia32"/>
       </classpath>
