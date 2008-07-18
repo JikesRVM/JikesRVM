@@ -122,21 +122,21 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Get the object identifier.
    */
   public static int getId(ObjectReference object) {
-    return object.toAddress().loadInt(ID_OFFSET);
+    return object.toAddress().loadInt(ID_OFFSET) >>> 2;
   }
 
   /**
    * Get the object identifier as a string.
    */
   public static String idString(ObjectReference object) {
-    return Address.formatInt(object.toAddress().loadInt(ID_OFFSET));
+    return Address.formatInt(getId(object));
   }
 
   /**
    * Set the object identifier.
    */
   private static void setId(ObjectReference object, int value) {
-    object.toAddress().store(value, ID_OFFSET);
+    object.toAddress().store(value << 2, ID_OFFSET);
   }
 
   /**
@@ -433,7 +433,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Return an object reference from knowledge of the low order word
    */
   public ObjectReference getObjectFromStartAddress(Address start) {
-    if (start.loadInt() == ALIGNMENT_VALUE) {
+    if ((start.loadInt() & ALIGNMENT_VALUE) != 0) {
       start = start.plus(SimulatedMemory.BYTES_IN_WORD);
     }
     return start.toObjectReference();
