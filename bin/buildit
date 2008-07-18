@@ -799,6 +799,8 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   $test = "$sshTargetCmdT '$shell \" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
+          "  rm -f results/buildit/latest && ".
+          "  ln -s $testsid results/buildit/latest && ".
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
