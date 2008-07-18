@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.*;
  * @see StickyImmix
  * @see StickyImmixCollector
  * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see Phase
  */
 @Uninterruptible
 public class StickyImmixMutator extends ImmixMutator {

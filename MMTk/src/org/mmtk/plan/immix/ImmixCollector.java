@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * @see org.mmtk.policy.immix.MutatorLocal
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see Phase
  */
 @Uninterruptible
 public class ImmixCollector extends StopTheWorldCollector {

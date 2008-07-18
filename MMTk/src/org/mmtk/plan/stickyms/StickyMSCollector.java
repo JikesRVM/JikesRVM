@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * @see StickyMSMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see Phase
  */
 @Uninterruptible
 public class StickyMSCollector extends MSCollector {

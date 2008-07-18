@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.generational.GenMutator
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
+ * @see org.mmtk.plan.Phase
  */
 @Uninterruptible
 public class GenImmixMutator extends GenMutator {

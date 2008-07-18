@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.*;
  * @see StickyMS
  * @see StickyMSCollector
  * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see Phase
  */
 @Uninterruptible
 public class StickyMSMutator extends MSMutator {

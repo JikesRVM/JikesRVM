@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
  * @see StickyImmixMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see Phase
  */
 @Uninterruptible
 public class StickyImmixCollector extends ImmixCollector {
