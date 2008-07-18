@@ -142,7 +142,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (Plan.SCAN_BOOT_IMAGE && Space.isInSpace(Plan.SPACE, object)) {
+    if (Plan.SCAN_BOOT_IMAGE && Space.isInSpace(Plan.VM_SPACE, object)) {
       return;
     }
 

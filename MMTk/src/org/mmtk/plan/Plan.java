@@ -143,7 +143,7 @@ public abstract class Plan implements Constants {
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
-  public static final int SPACE = vmSpace.getDescriptor();
+  public static final int VM_SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
   public static final int PLOS = ploSpace.getDescriptor();
@@ -972,7 +972,7 @@ public abstract class Plan implements Constants {
       return true;
     if (Space.isInSpace(IMMORTAL, object))
       return true;
-    if (Space.isInSpace(SPACE, object))
+    if (Space.isInSpace(VM_SPACE, object))
       return true;
     if (Space.isInSpace(NON_MOVING, object))
       return true;

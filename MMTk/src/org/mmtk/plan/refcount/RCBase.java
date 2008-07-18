@@ -244,7 +244,7 @@ import org.vmmagic.unboxed.*;
    * @return True if the object is in a reference counted space.
    */
   public static boolean isRCObject(ObjectReference object) {
-    return !object.isNull() && !Space.isInSpace(SPACE, object);
+    return !object.isNull() && !Space.isInSpace(VM_SPACE, object);
   }
 
   /**

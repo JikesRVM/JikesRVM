@@ -490,7 +490,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
   public static boolean mightBeFP(Address address) {
     return Space.isInSpace(Plan.LOS, address) ||
     Space.isInSpace(Plan.IMMORTAL, address) ||
-    Space.isInSpace(Plan.SPACE, address);
+    Space.isInSpace(Plan.VM_SPACE, address);
   }
   /***********************************************************************
    *
