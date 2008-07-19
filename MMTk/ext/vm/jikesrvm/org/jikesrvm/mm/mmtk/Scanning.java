@@ -17,6 +17,7 @@ import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 
 import org.jikesrvm.jni.JNIEnvironment;
+import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
@@ -259,6 +260,17 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
 
     for(int i=start; i < end; i++) {
       trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
+    }
+
+    /* scan jni global refs */
+    Address jniGlobalRefs = Magic.objectAsAddress(JNIGlobalRefTable.JNIGlobalRefs);
+    size = JNIGlobalRefTable.JNIGlobalRefs.length();
+    chunkSize = size / threads;
+    start = (ct.getGCOrdinal() - 1) * chunkSize;
+    end = (ct.getGCOrdinal() == threads) ? size : ct.getGCOrdinal() * chunkSize;
+
+    for(int i=start; i < end; i++) {
+      trace.processRootEdge(jniGlobalRefs.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
   }
 

@@ -14,9 +14,13 @@ package org.jikesrvm.jni;
 
 import java.lang.ref.WeakReference;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Weak Global References are global references (negative numbers), with the
@@ -25,20 +29,27 @@ import org.vmmagic.unboxed.ObjectReference;
 public class JNIGlobalRefTable {
 
   @Entrypoint
-  private static Object[] refs = new Object[100];
+  public static AddressArray JNIGlobalRefs = AddressArray.create(100);
   private static int free = 1;
 
   static int newGlobalRef(Object referent) {
     if (VM.VerifyAssertions) VM._assert(MM_Interface.validRef(ObjectReference.fromObject(referent)));
 
-    if (free >= refs.length) {
-      Object[] newrefs = new Object[refs.length * 2];
-      org.jikesrvm.classloader.RVMArray.arraycopy(refs, 0, newrefs, 0, refs.length);
-      refs = newrefs;
+    if (free >= JNIGlobalRefs.length()) {
+      AddressArray newGlobalRefs = AddressArray.create(JNIGlobalRefs.length() * 2);
+      copyAndReplaceGlobalRefs(newGlobalRefs);
     }
 
-    refs[free] = referent;
+    JNIGlobalRefs.set(free, Magic.objectAsAddress(referent));
     return -free++;
+  }
+
+  @Uninterruptible
+  private static void copyAndReplaceGlobalRefs(AddressArray newGlobalRefs) {
+    for(int i=0; i < JNIGlobalRefs.length(); i++) {
+      newGlobalRefs.set(i, JNIGlobalRefs.get(i));
+    }
+    JNIGlobalRefs = newGlobalRefs;
   }
 
   /* Weak references are returned with the STRONG_REF_BIT bit UNset.  */
@@ -51,7 +62,7 @@ public class JNIGlobalRefTable {
 
   static void deleteGlobalRef(int index) {
     if (VM.VerifyAssertions) VM._assert(!isWeakRef(index));
-    refs[-index] = null;
+    JNIGlobalRefs.set(-index, Address.zero());
   }
 
   static void deleteWeakRef(int index) {
@@ -63,13 +74,13 @@ public class JNIGlobalRefTable {
   static Object globalRef(int index) {
     if (VM.VerifyAssertions) VM._assert(!isWeakRef(index));
 
-    return refs[-index];
+    return Magic.addressAsObject(JNIGlobalRefs.get(-index));
   }
 
   static Object weakRef(int index) {
     if (VM.VerifyAssertions) VM._assert(isWeakRef(index));
     @SuppressWarnings("unchecked") // yes, we're being bad.
-        WeakReference<Object> ref = (WeakReference<Object>) refs[-(index | STRONG_REF_BIT)];
+    WeakReference<Object> ref = (WeakReference<Object>) globalRef(index | STRONG_REF_BIT);
     return ref.get();
   }
 
@@ -84,5 +95,4 @@ public class JNIGlobalRefTable {
   static boolean isWeakRef(int index) {
     return (index & STRONG_REF_BIT) == 0;
   }
-
 }

@@ -299,7 +299,7 @@ public class Entrypoints {
   public static final RVMField JNIEnvSavedPRField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "savedPRreg", org.jikesrvm.scheduler.Processor.class);
   public static final RVMField JNIGlobalRefsField =
-    getField(org.jikesrvm.jni.JNIGlobalRefTable.class, "refs", java.lang.Object[].class);
+    getField(org.jikesrvm.jni.JNIGlobalRefTable.class, "JNIGlobalRefs", org.vmmagic.unboxed.AddressArray.class);
   public static final RVMField JNIRefsField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefs", org.vmmagic.unboxed.AddressArray.class);
   public static final RVMField JNIRefsTopField = getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefsTop", int.class);
