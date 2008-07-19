@@ -109,9 +109,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include <pthread.h>
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS)
-# include "syswrap.h"
-#endif
+#include "syswrap.h"
 
 // #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
