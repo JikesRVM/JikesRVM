@@ -1620,6 +1620,10 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.include.perfctr}" arg2="true"/>
     </condition>
 
+    <condition property="syswrap.lib" value="-lsyswrap" else="">
+      <equals arg1="${include.syswrap}" arg2="true"/>
+    </condition>
+
     <if>
       <conditions>
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
@@ -1631,8 +1635,7 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
           <arg value="-ldl"/>
-          <arg value="-lrvm"/>
-          <arg value="-lsyswrap"/>
+          <arg line="-lrvm ${syswrap.lib}"/>
 	</exec>
       </sequential>
     </if>
@@ -1648,8 +1651,7 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="-L${build.base}"/>
 	  <arg value="-L${harmony.lib.dir}"/>
           <arg value="-ldl"/>
-          <arg value="-lrvm"/>
-          <arg value="-lsyswrap"/>
+          <arg line="-lrvm ${syswrap.lib}"/>
           <arg value="-lvmi"/>
           <arg value="-lhyarchive"/>
           <arg value="-lhyprt"/>

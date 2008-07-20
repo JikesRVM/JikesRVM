@@ -109,7 +109,10 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include <pthread.h>
 
-#include "syswrap.h"
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS)
+# define HAVE_SYSWRAP 1
+# include "syswrap.h"
+#endif
 
 // #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
@@ -2537,8 +2540,12 @@ sysNetSelect(
 
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
+#ifdef HAVE_SYSWRAP
         SelectFunc_t realSelect = getLibcSelect();
-
+#else
+        #define realSelect(n, read, write, except, timeout) \
+           select(n, read, write, except, timeout)
+#endif
         // interrogate
         //
         // timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = SelectDelay * 1000;
