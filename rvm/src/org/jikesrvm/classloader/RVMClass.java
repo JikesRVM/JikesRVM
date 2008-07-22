@@ -513,8 +513,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @return description (null --> not found)
    */
   public RVMField findDeclaredField(Atom fieldName, Atom fieldDescriptor) {
-    for (int i = 0, n = declaredFields.length; i < n; ++i) {
-      RVMField field = declaredFields[i];
+    for (RVMField field : declaredFields) {
       if (field.getName() == fieldName && field.getDescriptor() == fieldDescriptor) {
         return field;
       }
@@ -528,8 +527,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @return description (null --> not found)
    */
   public RVMField findDeclaredField(Atom fieldName) {
-    for (int i = 0, n = declaredFields.length; i < n; ++i) {
-      RVMField field = declaredFields[i];
+    for (RVMField field : declaredFields) {
       if (field.getName() == fieldName) {
         return field;
       }
@@ -544,8 +542,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @return description (null --> not found)
    */
   public RVMMethod findDeclaredMethod(Atom methodName, Atom methodDescriptor) {
-    for (int i = 0, n = declaredMethods.length; i < n; ++i) {
-      RVMMethod method = declaredMethods[i];
+    for (RVMMethod method : declaredMethods) {
       if (method.getName() == methodName && method.getDescriptor() == methodDescriptor) {
         return method;
       }
@@ -559,8 +556,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @return description (null --> not found)
    */
   public RVMMethod findDeclaredMethod(Atom methodName) {
-    for (int i = 0, n = declaredMethods.length; i < n; ++i) {
-      RVMMethod method = declaredMethods[i];
+    for (RVMMethod method : declaredMethods) {
       if (method.getName() == methodName) {
         return method;
       }
