@@ -63,12 +63,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   /** Generate array index out of bounds checks? */
   private final boolean generateBoundsChecks;
 
-  private static final Offset NO_SLOT = Offset.zero();
-  private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
-  private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
-  private static final Offset THREE_SLOTS = TWO_SLOTS.plus(WORDSIZE);
-  private static final Offset FOUR_SLOTS = THREE_SLOTS.plus(WORDSIZE);
-  private static final Offset FIVE_SLOTS = FOUR_SLOTS.plus(WORDSIZE);
+  static final Offset NO_SLOT = Offset.zero();
+  static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
+  static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
+  static final Offset THREE_SLOTS = TWO_SLOTS.plus(WORDSIZE);
+  static final Offset FOUR_SLOTS = THREE_SLOTS.plus(WORDSIZE);
+  static final Offset FIVE_SLOTS = FOUR_SLOTS.plus(WORDSIZE);
   private static final Offset MINUS_ONE_SLOT = NO_SLOT.minus(WORDSIZE);
 
   /**
@@ -467,10 +467,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_iaload() {
-    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // push [S0+T0<<2]
     asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
   }
@@ -481,10 +480,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_faload() {
     // identical to iaload - code replicated for BaseBase compiler performance
-    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // push [S0+T0<<2]
     asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
   }
@@ -495,13 +493,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_aaload() {
     // identical to iaload - code replicated for BaseBase compiler performance
-    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (MM_Constants.NEEDS_READ_BARRIER) {
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // rewind 2 args on stack
       Barriers.compileArrayLoadBarrier(asm, true);
     } else {
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
       asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT); // push [S0+T0<<2]
     }
   }
@@ -511,10 +509,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_caload() {
-    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, Assembler.SHORT, NO_SLOT);
     asm.emitPUSH_Reg(T1);        // push short onto stack
@@ -525,10 +522,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_saload() {
-    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, Assembler.SHORT, NO_SLOT);
     asm.emitPUSH_Reg(T1);        // push short onto stack
@@ -539,13 +535,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_baload() {
-    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, Assembler.BYTE, NO_SLOT);
-    asm.emitPUSH_Reg(T1);        // push short onto stack
+    asm.emitPUSH_Reg(T1);        // push byte onto stack
   }
 
   /**
@@ -553,12 +548,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_laload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);    // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0 is the array ref
-    if (!SSE2_BASE) {
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (SSE2_BASE) {
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // create space for result
     }
-    genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, Assembler.LONG, NO_SLOT);
       asm.emitMOVQ_RegInd_Reg(SP, XMM0);
@@ -574,12 +569,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_daload() {
     // identical to laload - code replicated for BaseBase compiler performance
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);    // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0 is the array ref
-    if (!SSE2_BASE) {
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (SSE2_BASE) {
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // create space for result
     }
-    genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, Assembler.LONG, NO_SLOT);
       asm.emitMOVQ_RegInd_Reg(SP, XMM0);
@@ -599,11 +594,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_iastore() {
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the byte value
-    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
-    genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1); // T1 is the value
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
   }
 
@@ -614,11 +608,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_fastore() {
     // identical to iastore - code replicated for BaseBase compiler performance
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the byte value
-    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
-    genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1); // T1 is the value
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
   }
 
@@ -631,18 +624,19 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Barriers.compileModifyCheck(asm, 8);
     asm.emitPUSH_RegDisp(SP, TWO_SLOTS); // duplicate array ref
     asm.emitPUSH_RegDisp(SP, ONE_SLOT);  // duplicate object value
-    genParameterRegisterLoad(2);         // pass 2 parameter
+    genParameterRegisterLoad(asm, 2);    // pass 2 parameter
     // call checkstore(array ref, value)
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkstoreMethod.getOffset()));
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
     if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
+      if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
       Barriers.compileArrayStoreBarrier(asm);
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 3); // complete popping the 3 args
     } else {
-      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT); // T1 is the object value
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 3); // complete popping the 3 args
+      asm.emitPOP_Reg(T1); // T1 is the value
+      asm.emitPOP_Reg(T0); // T0 is array index
+      asm.emitPOP_Reg(S0); // S0 is array ref
+      if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
@@ -653,11 +647,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_castore() {
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the char value
-    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
-    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1); // T1 is the value
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
     // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
     asm.emitMOV_RegIdx_Reg_Word(S0, T0, Assembler.SHORT, NO_SLOT, T1);
   }
@@ -669,11 +662,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_sastore() {
     // identical to castore - code replicated for BaseBase compiler performance
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the char value
-    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
-    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1); // T1 is the value
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
     // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
     asm.emitMOV_RegIdx_Reg_Word(S0, T0, Assembler.SHORT, NO_SLOT, T1);
   }
@@ -684,11 +676,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_bastore() {
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the byte value
-    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
-    genBoundsCheck(asm, T0, S0);         // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1); // T1 is the value
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);         // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg_Byte(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
   }
 
@@ -698,15 +689,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_lastore() {
     Barriers.compileModifyCheck(asm, 12);
-    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegInd(XMM0,SP);            // XMM0 is the value
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);       // remove index and ref from the stack
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);       // remove value from the stack
+      asm.emitPOP_Reg(T0); // T0 is array index
+      asm.emitPOP_Reg(S0); // S0 is array ref
     } else {
+      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
+      asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
       asm.emitMOV_Reg_RegInd(T1, SP);              // low part of long value
     }
-    genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_RegIdx_Reg(S0, T0, Assembler.LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
     } else {
@@ -726,15 +719,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_dastore() {
     // identical to lastore - code replicated for BaseBase compiler performance
     Barriers.compileModifyCheck(asm, 12);
-    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegInd(XMM0,SP);            // XMM0 is the value
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);       // remove index and ref from the stack
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);       // remove value from the stack
+      asm.emitPOP_Reg(T0); // T0 is array index
+      asm.emitPOP_Reg(S0); // S0 is array ref
     } else {
+      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
+      asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
       asm.emitMOV_Reg_RegInd(T1, SP);              // low part of long value
     }
-    genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
+    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_RegIdx_Reg(S0, T0, Assembler.LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
     } else {
@@ -1633,7 +1628,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       fr2.resolve(asm);
       fr4.resolve(asm);
     } else {
-      // TODO: use SSE/x87 operations to do this conversion inline taking care of
+      // TODO: use x87 operations to do this conversion inline taking care of
       // the boundary cases that differ between x87 and Java
 
       // (1) save RVM nonvolatiles
@@ -1724,7 +1719,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       fr2.resolve(asm);
       fr4.resolve(asm);
     } else {
-      // TODO: use SSE/x87 operations to do this conversion inline taking care of
+      // TODO: use x87 operations to do this conversion inline taking care of
       // the boundary cases that differ between x87 and Java
       // (1) save RVM nonvolatiles
       int numNonVols = NONVOLATILE_GPRS.length;
@@ -2394,7 +2389,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_getstatic(FieldReference fieldRef) {
-    emitDynamicLinkingSequence(T0, fieldRef, true);
+    emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compileGetstaticBarrier(asm, T0, fieldRef.getId());
       return;
@@ -2436,7 +2431,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
-    emitDynamicLinkingSequence(T0, fieldRef, true);
+    emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
       Barriers.compilePutstaticBarrier(asm, T0, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE);
@@ -2481,7 +2476,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_unresolved_getfield(FieldReference fieldRef) {
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    emitDynamicLinkingSequence(T0, fieldRef, true);
+    emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32bit reference load
       if (MM_Constants.NEEDS_READ_BARRIER) {
@@ -2600,7 +2595,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    emitDynamicLinkingSequence(T0, fieldRef, true);
+    emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32bit reference store
       if (MM_Constants.NEEDS_WRITE_BARRIER) {
@@ -2718,7 +2713,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_invokevirtual(MethodReference methodRef) {
-    emitDynamicLinkingSequence(T0, methodRef, true);
+    emitDynamicLinkingSequence(asm, T0, methodRef, true);
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     Offset objectOffset =
         Offset.fromIntZeroExtend(methodRefparameterWords << 2).minus(4);           // object offset into stack
@@ -2775,7 +2770,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_invokespecial(MethodReference methodRef) {
-    emitDynamicLinkingSequence(S0, methodRef, true);
+    emitDynamicLinkingSequence(asm, S0, methodRef, true);
     genParameterRegisterLoad(methodRef, true);
     asm.emitCALL_RegDisp(S0, Magic.getTocPointer().toWord().toOffset());
     genResultRegisterUnload(methodRef);
@@ -2787,7 +2782,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_invokestatic(MethodReference methodRef) {
-    emitDynamicLinkingSequence(S0, methodRef, true);
+    emitDynamicLinkingSequence(asm, S0, methodRef, true);
     genParameterRegisterLoad(methodRef, false);
     asm.emitCALL_RegDisp(S0, Magic.getTocPointer().toWord().toOffset());
     genResultRegisterUnload(methodRef);
@@ -2832,7 +2827,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
                                   Offset.fromIntZeroExtend((count - 1) << 2));                       // "this" object
           asm.emitPUSH_Imm(methodRef.getId());                                    // dict id of target
           asm.emitPUSH_Reg(T1);
-          genParameterRegisterLoad(2);                                            // pass 2 parameter word
+          genParameterRegisterLoad(asm, 2);                                            // pass 2 parameter word
           asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset()));// check that "this" class implements the interface
         } else {
           RVMClass interfaceClass = resolvedMethod.getDeclaringClass();
@@ -2893,7 +2888,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         // "this" parameter is obj
         asm.emitPUSH_RegDisp(SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
         asm.emitPUSH_Imm(methodRefId);             // id of method to call
-        genParameterRegisterLoad(2);               // pass 2 parameter words
+        genParameterRegisterLoad(asm, 2);               // pass 2 parameter words
         // invokeinterface(obj, id) returns address to call
         asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.invokeInterfaceMethod.getOffset()));
         asm.emitMOV_Reg_Reg(S0, T0);               // S0 has address of method
@@ -2908,7 +2903,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         baselineEmitLoadTIB(asm, S0, T0);
         asm.emitPUSH_Reg(S0);
         asm.emitPUSH_Imm(resolvedMethod.getDeclaringClass().getInterfaceId()); // interface id
-        genParameterRegisterLoad(2);                                  // pass 2 parameter words
+        genParameterRegisterLoad(asm, 2);                                  // pass 2 parameter words
         asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.findItableMethod.getOffset())); // findItableOffset(tib, id) returns iTable
         asm.emitMOV_Reg_Reg(S0, T0);                             // S0 has iTable
         genParameterRegisterLoad(methodRef, true);
@@ -2942,7 +2937,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
     asm.emitPUSH_Imm(site);
-    genParameterRegisterLoad(7);                  // pass 7 parameter words
+    genParameterRegisterLoad(asm, 7);                  // pass 7 parameter words
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.resolvedNewScalarMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
@@ -2956,7 +2951,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(typeRef.getId());
     asm.emitPUSH_Imm(site);                 // site
-    genParameterRegisterLoad(2);            // pass 2 parameter words
+    genParameterRegisterLoad(asm, 2);            // pass 2 parameter words
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unresolvedNewScalarMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
@@ -2982,7 +2977,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
     asm.emitPUSH_Imm(site);
-    genParameterRegisterLoad(8);             // pass 8 parameter words
+    genParameterRegisterLoad(asm, 8);             // pass 8 parameter words
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.resolvedNewArrayMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
@@ -2997,7 +2992,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(tRef.getId());
     asm.emitPUSH_Imm(site);                 // site
-    genParameterRegisterLoad(3);            // pass 3 parameter words
+    genParameterRegisterLoad(asm, 3);            // pass 3 parameter words
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unresolvedNewArrayMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
@@ -3021,7 +3016,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPUSH_Imm(typeRef.getId());          // type of array elements
     asm.emitPUSH_Imm((dimensions + OFFSET_WORDS) << LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray
 
-    genParameterRegisterLoad(PARAMETERS);
+    genParameterRegisterLoad(asm, PARAMETERS);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(ArchEntrypoints.newArrayArrayMethod.getOffset()));
     for (int i = 0; i < dimensions; i++) {
       asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
@@ -3034,9 +3029,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_arraylength() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                   // T0 is array reference
-    asm.emitMOV_Reg_RegDisp(T0, T0, ObjectModel.getArrayLengthOffset()); // T0 is array length
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);                   // replace reference with length on stack
+    asm.emitPOP_Reg(T0);                // T0 is array reference
+    asm.emitPUSH_RegDisp(T0, ObjectModel.getArrayLengthOffset());
   }
 
   /**
@@ -3044,7 +3038,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_athrow() {
-    genParameterRegisterLoad(1);          // pass 1 parameter word
+    genParameterRegisterLoad(asm, 1);          // pass 1 parameter word
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.athrowMethod.getOffset()));
   }
 
@@ -3056,7 +3050,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_checkcast(TypeReference typeRef) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(typeRef.getId());               // TypeReference id.
-    genParameterRegisterLoad(2);                     // pass 2 parameter words
+    genParameterRegisterLoad(asm, 2);                     // pass 2 parameter words
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkcastMethod.getOffset())); // checkcast(obj, type reference id);
   }
 
@@ -3156,7 +3150,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_instanceof(TypeReference typeRef) {
     asm.emitPUSH_Imm(typeRef.getId());
-    genParameterRegisterLoad(2);          // pass 2 parameter words
+    genParameterRegisterLoad(asm, 2);          // pass 2 parameter words
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.instanceOfMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
@@ -3271,7 +3265,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_monitorenter() {
     asm.emitMOV_Reg_RegInd(T0, SP);       // T0 is object reference
     genExplicitNullCheck(asm, T0);
-    genParameterRegisterLoad(1);          // pass 1 parameter word
+    genParameterRegisterLoad(asm, 1);          // pass 1 parameter word
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lockMethod.getOffset()));
   }
 
@@ -3280,7 +3274,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_monitorexit() {
-    genParameterRegisterLoad(1);          // pass 1 parameter word
+    genParameterRegisterLoad(asm, 1);          // pass 1 parameter word
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unlockMethod.getOffset()));
   }
 
@@ -3460,7 +3454,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPUSH_RegDisp(ESP, localOffset(0));
     }
     // pass 1 parameter
-    genParameterRegisterLoad(1);
+    genParameterRegisterLoad(asm, 1);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lockMethod.getOffset()));
     // after this instruction, the method has the monitor
     lockOffset = asm.getMachineCodeIndex();
@@ -3474,7 +3468,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     } else {
       asm.emitPUSH_RegDisp(ESP, localOffset(0));                    // push "this" object
     }
-    genParameterRegisterLoad(1); // pass 1 parameter
+    genParameterRegisterLoad(asm, 1); // pass 1 parameter
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unlockMethod.getOffset()));
   }
 
@@ -3506,20 +3500,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * @param indexReg the register containing the index
    * @param arrayRefReg the register containing the array reference
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
-  private void genBoundsCheck(Assembler asm, GPR indexReg, GPR arrayRefReg) {
-    if (generateBoundsChecks) {
-      // compare index to array length
-      asm.emitCMP_RegDisp_Reg(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);
-      // Jmp around trap if index is OK
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.LGT);
-      // "pass" index param to C trap handler
-      ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
-      // trap
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
-      fr.resolve(asm);
-    }
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  static void genBoundsCheck(Assembler asm, GPR indexReg, GPR arrayRefReg) {
+    // compare index to array length
+    asm.emitCMP_RegDisp_Reg(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);
+    // Jmp around trap if index is OK
+    asm.emitBranchLikelyNextInstruction();
+    ForwardReference fr = asm.forwardJcc(Assembler.LGT);
+    // "pass" index param to C trap handler
+    ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
+    // trap
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
+    fr.resolve(asm);
   }
 
   /**
@@ -3576,9 +3568,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * with SP pointing to the last parameter.
    * Also, this method is called before the generation of a "helper" method call.
    * Assumption: no floating-point parameters.
+   * @param asm TODO
    * @param params number of parameter words (including "this" if any).
    */
-  private void genParameterRegisterLoad(int params) {
+  static void genParameterRegisterLoad(Assembler asm, int params) {
     if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params - 1) << LG_WORDSIZE));
@@ -3838,7 +3831,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitSUB_RegDisp_Imm(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << 2), 1);
       ForwardReference notTaken = asm.forwardJcc(Assembler.GT);
       asm.emitPUSH_Imm(id);
-      genParameterRegisterLoad(1);
+      genParameterRegisterLoad(asm, 1);
       asm.emitCALL_Abs(Magic.getTocPointer().plus(AosEntrypoints.invocationCounterTrippedMethod.getOffset()));
       notTaken.resolve(asm);
     }
@@ -3861,293 +3854,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   private boolean genMagic(MethodReference m) {
-    Atom methodName = m.getName();
-
-    if (m.getType() == TypeReference.Address) {
-      // Address magic
-
-      TypeReference[] types = m.getParameterTypes();
-
-      // Loads all take the form:
-      // ..., Address, [Offset] -> ..., Value
-
-      if (methodName == MagicNames.loadAddress ||
-          methodName == MagicNames.prepareAddress ||
-          methodName == MagicNames.prepareObjectReference ||
-          methodName == MagicNames.loadWord ||
-          methodName == MagicNames.loadObjectReference ||
-          methodName == MagicNames.prepareWord ||
-          methodName == MagicNames.loadInt ||
-          methodName == MagicNames.prepareInt ||
-          methodName == MagicNames.loadFloat) {
-
-        if (types.length == 0) {
-          // No offset
-          asm.emitPOP_Reg(T0);                      // address
-          asm.emitPUSH_RegInd(T0);                  // pushes [T0+0]
-        } else {
-          // Load at offset
-          asm.emitPOP_Reg(S0);                  // offset
-          asm.emitPOP_Reg(T0);                  // object ref
-          asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
-        }
-        return true;
-      }
-
-      if (methodName == MagicNames.loadByte) {
-        if (types.length == 0) {
-          // No offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVSX_Reg_RegInd_Byte(T0, T0);
-          asm.emitPUSH_Reg(T0);
-        } else {
-          // Load at offset
-          asm.emitPOP_Reg(S0);                  // offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVSX_Reg_RegIdx_Byte(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and sign extend byte [T0+S0]
-          asm.emitPUSH_Reg(T0);
-        }
-        return true;
-      }
-
-      if (methodName == MagicNames.loadShort) {
-        if (types.length == 0) {
-          // No offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVSX_Reg_RegInd_Word(T0, T0);
-          asm.emitPUSH_Reg(T0);
-        } else {
-          // Load at offset
-          asm.emitPOP_Reg(S0);                  // offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and sign extend word [T0+S0]
-          asm.emitPUSH_Reg(T0);
-        }
-        return true;
-      }
-
-      if (methodName == MagicNames.loadChar) {
-
-        if (types.length == 0) {
-          // No offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVZX_Reg_RegInd_Word(T0, T0);
-          asm.emitPUSH_Reg(T0);
-        } else {
-          // Load at offset
-          asm.emitPOP_Reg(S0);                  // offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and zero extend word [T0+S0]
-          asm.emitPUSH_Reg(T0);
-        }
-        return true;
-      }
-
-      if (methodName == MagicNames.prepareLong ||
-          methodName == MagicNames.loadLong ||
-          methodName == MagicNames.loadDouble) {
-
-        if (types.length == 0) {
-          // No offset
-          asm.emitPOP_Reg(T0);                // base
-          asm.emitPUSH_RegDisp(T0, ONE_SLOT); // pushes [T0+4]
-          asm.emitPUSH_RegInd(T0);            // pushes [T0]
-        } else {
-          // Load at offset
-          asm.emitPOP_Reg(S0);                  // offset
-          asm.emitPOP_Reg(T0);                  // base
-          asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-          asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
-        }
-        return true;
-      }
-
-      // Stores all take the form:
-      // ..., Address, [Offset], Value -> ...
-      if (methodName == MagicNames.store) {
-        // Always at least one parameter to a store.
-        // First parameter is the type to be stored.
-        TypeReference storeType = types[0];
-
-        if (storeType == TypeReference.Int ||
-            storeType == TypeReference.Address ||
-            storeType == TypeReference.ObjectReference ||
-            storeType == TypeReference.Word ||
-            storeType == TypeReference.Float) {
-
-          if (types.length == 1) {
-            // No offset
-            asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(S0);                   // address
-            asm.emitMOV_RegInd_Reg(S0, T0);         // [S0+0] <- T0
-          } else {
-            // Store at offset
-            asm.emitPOP_Reg(S0);                   // offset
-            asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // address
-            asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-          }
-          return true;
-        }
-
-        if (storeType == TypeReference.Byte) {
-          if (types.length == 1) {
-            // No offset
-            asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base
-            asm.emitMOV_RegInd_Reg_Byte(T1, T0);
-          } else {
-            // Store at offset
-            asm.emitPOP_Reg(S0);                   // offset
-            asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base
-            asm.emitMOV_RegIdx_Reg_Byte(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
-          }
-          return true;
-        }
-
-        if (storeType == TypeReference.Short || storeType == TypeReference.Char) {
-
-          if (types.length == 1) {
-            // No offset
-            asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base
-            asm.emitMOV_RegInd_Reg_Word(T1, T0);
-          } else {
-            // Store at offset
-            asm.emitPOP_Reg(S0);                   // offset
-            asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base
-            asm.emitMOV_RegIdx_Reg_Word(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
-          }
-          return true;
-        }
-
-        if (storeType == TypeReference.Double || storeType == TypeReference.Long) {
-
-          if (types.length == 1) {
-            // No offset
-            asm.emitMOV_Reg_RegInd(T0, SP);             // value high
-            asm.emitMOV_Reg_RegDisp(T1, SP, TWO_SLOTS); // base
-            asm.emitMOV_RegInd_Reg(T1, T0);             // [T1] <- T0
-            asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // value low
-            asm.emitMOV_RegDisp_Reg(T1, ONE_SLOT, T0);  // [T1+4] <- T0
-            asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);      // pop stack locations
-          } else {
-            // Store at offset
-            asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);          // value high
-            asm.emitMOV_Reg_RegInd(S0, SP);     // offset
-            asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // base
-            asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-            asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // value low
-            asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-            asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
-          }
-          return true;
-        }
-      } else if (methodName == MagicNames.attempt) {
-        // All attempts are similar 32 bit values.
-        if (types.length == 3) {
-          // Offset passed
-          asm.emitPOP_Reg(S0);        // S0 = offset
-        }
-        asm.emitPOP_Reg(T1);          // newVal
-        asm.emitPOP_Reg(EAX);         // oldVal (EAX is implicit arg to LCMPX
-        if (types.length == 3) {
-          asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
-        } else {
-          // No offset
-          asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
-        }
-        asm.emitLockNextInstruction();
-        asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-        asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
-        asm.emitBranchLikelyNextInstruction();
-        ForwardReference fr = asm.forwardJcc(Assembler.EQ); // skip if compare fails
-        asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-        fr.resolve(asm);
-        return true;
-      }
-    }
-
-    if (methodName == MagicNames.attemptInt ||
-        methodName == MagicNames.attemptObject ||
-        methodName == MagicNames.attemptAddress ||
-        methodName == MagicNames.attemptWord) {
-      // attempt gets called with four arguments: base, offset, oldVal, newVal
-      // returns ([base+offset] == oldVal)
-      // if ([base+offset] == oldVal) [base+offset] := newVal
-      // (operation on memory is atomic)
-      asm.emitPOP_Reg(T1);            // newVal
-      asm.emitPOP_Reg(EAX);           // oldVal (EAX is implicit arg to LCMPXCNG
-      asm.emitPOP_Reg(S0);            // S0 = offset
-      asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
-      asm.emitLockNextInstruction();
-      asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-      asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.EQ); // skip if compare fails
-      asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-      fr.resolve(asm);
+    if (BaselineMagic.generateMagic(asm, m, method, fp2spOffset(NO_SLOT))) {
       return true;
-    }
-
-    if (methodName == MagicNames.attemptLong) {
-      // attempt gets called with four arguments: base, offset, oldVal, newVal
-      // returns ([base+offset] == oldVal)
-      // if ([base+offset] == oldVal) [base+offset] := newVal
-      // (operation on memory is atomic)
-      //t1:t0 with s0:ebx
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);
-      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // T1:T0 (EDX:EAX) -> oldVal
-      asm.emitMOV_RegDisp_Reg(SP, THREE_SLOTS, EBX);  // Save EBX
-      asm.emitMOV_RegDisp_Reg(SP, TWO_SLOTS, ESI);    // Save ESI
-      asm.emitMOV_Reg_RegInd(EBX, SP);
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);      // S0:EBX (ECX:EBX) -> newVal
-      asm.emitMOV_Reg_RegDisp(ESI, SP, FIVE_SLOTS);   // ESI := base
-      asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS);   // ESI += offset
-      asm.emitLockNextInstruction();
-      asm.emitCMPXCHG8B_RegInd(ESI);                  // atomic compare-and-exchange
-      ForwardReference fr1 = asm.forwardJcc(Assembler.NE); // skip if compare fails
-      asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 1);     // 'push' true (overwriting base)
-      ForwardReference fr2 = asm.forwardJMP();     // skip if compare fails
-      fr1.resolve(asm);
-      asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 0);     // 'push' false (overwriting base)
-      fr2.resolve(asm);
-      asm.emitMOV_Reg_RegDisp(EBX, SP, THREE_SLOTS);  // Restore EBX
-      asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);    // Restore ESI
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*5);            // adjust SP popping the 4 args (6 slots) and pushing the result
-      return true;
-    }
-
-    if (methodName == MagicNames.saveThreadState) {
-      Offset offset = ArchEntrypoints.saveThreadStateInstructionsField.getOffset();
-      genParameterRegisterLoad(1); // pass 1 parameter word
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      return true;
-    }
-
-    if (methodName == MagicNames.threadSwitch) {
-      Offset offset = ArchEntrypoints.threadSwitchInstructionsField.getOffset();
-      genParameterRegisterLoad(2); // pass 2 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      return true;
-    }
-
-    if (methodName == MagicNames.restoreHardwareExceptionState) {
-      Offset offset = ArchEntrypoints.restoreHardwareExceptionStateInstructionsField.getOffset();
-      genParameterRegisterLoad(1); // pass 1 parameter word
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      return true;
-    }
-
-    if (methodName == MagicNames.invokeClassInitializer) {
-      asm.emitPOP_Reg(S0);
-      asm.emitCALL_Reg(S0); // call address just popped
-      return true;
-    }
-
-    if (m.isSysCall()) {
+    } else if (m.isSysCall()) {
       TypeReference[] args = m.getParameterTypes();
       TypeReference rtype = m.getReturnType();
       Offset offsetToJavaArg = THREE_SLOTS; // the three regs saved in (2)
@@ -4206,603 +3915,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       }
 
       return true;
+    } else {
+      return false;
     }
-
-    if (methodName == MagicNames.getFramePointer) {
-      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(NO_SLOT));
-      asm.emitPUSH_Reg(S0);
-      return true;
-    }
-
-    if (methodName == MagicNames.getCallerFramePointer) {
-      asm.emitPOP_Reg(T0);                                       // Callee FP
-      asm.emitPUSH_RegDisp(T0, Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET)); // Caller FP
-      return true;
-    }
-
-    if (methodName == MagicNames.setCallerFramePointer) {
-      asm.emitPOP_Reg(T0);  // value
-      asm.emitPOP_Reg(S0);  // fp
-      asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET), T0); // [S0+SFPO] <- T0
-      return true;
-    }
-
-    if (methodName == MagicNames.getCompiledMethodID) {
-      asm.emitPOP_Reg(T0);                                   // Callee FP
-      asm.emitPUSH_RegDisp(T0, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)); // Callee CMID
-      return true;
-    }
-
-    if (methodName == MagicNames.setCompiledMethodID) {
-      asm.emitPOP_Reg(T0);  // value
-      asm.emitPOP_Reg(S0);  // fp
-      asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET), T0); // [S0+SMIO] <- T0
-      return true;
-    }
-
-    if (methodName == MagicNames.getReturnAddressLocation) {
-      asm.emitPOP_Reg(T0);                                        // Callee FP
-      asm.emitADD_Reg_Imm(T0, STACKFRAME_RETURN_ADDRESS_OFFSET);  // location containing callee return address
-      asm.emitPUSH_Reg(T0);                                       // Callee return address
-      return true;
-    }
-
-    if (methodName == MagicNames.getTocPointer || methodName == MagicNames.getJTOC) {
-      asm.emitPUSH_Imm((int)Magic.getTocPointer().toWord().toLong());
-      return true;
-    }
-
-    // get the processor register (PR)
-    if (methodName == MagicNames.getProcessorRegister) {
-      asm.emitPUSH_Reg(PR);
-      return true;
-    }
-
-    // set the processor register (PR)
-    if (methodName == MagicNames.setProcessorRegister) {
-      asm.emitPOP_Reg(PR);
-      return true;
-    }
-
-    // Get the value in ESI
-    if (methodName == MagicNames.getESIAsProcessor) {
-      asm.emitPUSH_Reg(ESI);
-      return true;
-    }
-
-    // Set the value in ESI
-    if (methodName == MagicNames.setESIAsProcessor) {
-      asm.emitPOP_Reg(ESI);
-      return true;
-    }
-
-    if (methodName == MagicNames.getIntAtOffset ||
-        methodName == MagicNames.getWordAtOffset ||
-        methodName == MagicNames.getObjectAtOffset ||
-        methodName == MagicNames.getTIBAtOffset ||
-        methodName == MagicNames.prepareInt ||
-        methodName == MagicNames.prepareObject ||
-        methodName == MagicNames.prepareAddress ||
-        methodName == MagicNames.prepareWord) {
-      if (m.getParameterTypes().length == 3) {
-        // discard locationMetadata parameter
-        asm.emitPOP_Reg(T0); // locationMetadata, not needed by baseline compiler.
-      }
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
-      return true;
-    }
-
-    if (methodName == MagicNames.getUnsignedByteAtOffset) {
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
-      asm.emitPUSH_Reg(T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.getByteAtOffset) {
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitMOVSX_Reg_RegIdx_Byte(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
-      asm.emitPUSH_Reg(T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.getCharAtOffset) {
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and zero extend char [T0+S0]
-      asm.emitPUSH_Reg(T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.getShortAtOffset) {
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and zero extend char [T0+S0]
-      asm.emitPUSH_Reg(T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.setIntAtOffset ||
-        methodName == MagicNames.setWordAtOffset ||
-        methodName == MagicNames.setObjectAtOffset) {
-      if (m.getParameterTypes().length == 4) {
-        // discard locationMetadata parameter
-        asm.emitPOP_Reg(T0); // locationMetadata, not needed by baseline compiler.
-      }
-      asm.emitPOP_Reg(T0);                   // value
-      asm.emitPOP_Reg(S0);                   // offset
-      asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      return true;
-    }
-
-    if (methodName == MagicNames.setByteAtOffset) {
-      asm.emitPOP_Reg(T0);                   // value
-      asm.emitPOP_Reg(S0);                   // offset
-      asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
-      return true;
-    }
-
-    if (methodName == MagicNames.setCharAtOffset) {
-      asm.emitPOP_Reg(T0);                   // value
-      asm.emitPOP_Reg(S0);                   // offset
-      asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Word(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (char) T0
-      return true;
-    }
-
-    if (methodName == MagicNames.prepareLong ||
-        methodName == MagicNames.getLongAtOffset || methodName == MagicNames.getDoubleAtOffset) {
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
-      return true;
-    }
-
-    if (methodName == MagicNames.setLongAtOffset || methodName == MagicNames.setDoubleAtOffset) {
-      asm.emitMOV_Reg_RegInd(T0, SP);          // value high
-      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
-      return true;
-    }
-
-    if (methodName == MagicNames.addressArrayCreate) {
-      // no resolution problem possible.
-      emit_resolved_newarray(m.getType().resolve().asArray());
-      return true;
-    }
-
-    if (methodName == MagicNames.addressArrayLength) {
-      emit_arraylength();  // argument order already correct
-      return true;
-    }
-
-    if (methodName == MagicNames.addressArrayGet) {
-      if (m.getType() == TypeReference.CodeArray) {
-        emit_baload();
-      } else {
-        if (VM.BuildFor32Addr) {
-          emit_iaload();
-        } else if (VM.BuildFor64Addr) {
-          emit_laload();
-        } else {
-          VM._assert(NOT_REACHED);
-        }
-      }
-      return true;
-    }
-
-    if (methodName == MagicNames.addressArraySet) {
-      if (m.getType() == TypeReference.CodeArray) {
-        emit_bastore();
-      } else {
-        if (VM.BuildFor32Addr) {
-          emit_iastore();
-        } else if (VM.BuildFor64Addr) {
-          VM._assert(false);  // not implemented
-        } else {
-          VM._assert(NOT_REACHED);
-        }
-      }
-      return true;
-    }
-
-    if (methodName == MagicNames.getMemoryInt ||
-        methodName == MagicNames.getMemoryWord ||
-        methodName == MagicNames.getMemoryAddress) {
-      asm.emitPOP_Reg(T0);      // address
-      asm.emitPUSH_RegInd(T0); // pushes [T0+0]
-      return true;
-    }
-
-    if (methodName == MagicNames.setMemoryInt || methodName == MagicNames.setMemoryWord) {
-      if (m.getParameterTypes().length == 3) {
-        // discard locationMetadata parameter
-        asm.emitPOP_Reg(T0); // locationMetadata, not needed by baseline compiler.
-      }
-      asm.emitPOP_Reg(T0);  // value
-      asm.emitPOP_Reg(S0);  // address
-      asm.emitMOV_RegInd_Reg(S0, T0); // [S0+0] <- T0
-      return true;
-    }
-
-    if (methodName == MagicNames.objectAsAddress ||
-        methodName == MagicNames.addressAsByteArray ||
-        methodName == MagicNames.addressAsObject ||
-        methodName == MagicNames.addressAsTIB ||
-        methodName == MagicNames.objectAsType ||
-        methodName == MagicNames.objectAsShortArray ||
-        methodName == MagicNames.objectAsIntArray ||
-        methodName == MagicNames.objectAsProcessor ||
-        methodName == MagicNames.objectAsThread ||
-        methodName == MagicNames.threadAsCollectorThread ||
-        methodName == MagicNames.floatAsIntBits ||
-        methodName == MagicNames.intBitsAsFloat ||
-        methodName == MagicNames.doubleAsLongBits ||
-        methodName == MagicNames.longBitsAsDouble) {
-      // no-op (a type change, not a representation change)
-      return true;
-    }
-
-    // code for      RVMType Magic.getObjectType(Object object)
-    if (methodName == MagicNames.getObjectType) {
-      asm.emitPOP_Reg(T0);                               // object ref
-      baselineEmitLoadTIB(asm, S0, T0);
-      asm.emitPUSH_RegDisp(S0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << LG_WORDSIZE)); // push RVMType slot of TIB
-      return true;
-    }
-
-    if (methodName == MagicNames.getArrayLength) {
-      asm.emitPOP_Reg(T0);                      // object ref
-      asm.emitPUSH_RegDisp(T0, ObjectModel.getArrayLengthOffset());
-      return true;
-    }
-
-    if (methodName == MagicNames.sync) {  // nothing required on IA32
-      return true;
-    }
-
-    if (methodName == MagicNames.isync) { // nothing required on IA32
-      return true;
-    }
-
-    // baseline compiled invocation only: all paramaters on the stack
-    // hi mem
-    //      Code
-    //      GPRs
-    //      FPRs
-    //      Spills
-    // low-mem
-    if (methodName == MagicNames.invokeMethodReturningVoid) {
-      Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
-      genParameterRegisterLoad(5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      return true;
-    }
-
-    if (methodName == MagicNames.invokeMethodReturningInt) {
-      Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
-      genParameterRegisterLoad(5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitPUSH_Reg(T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.invokeMethodReturningLong) {
-      Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
-      genParameterRegisterLoad(5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitPUSH_Reg(T0); // high half
-      asm.emitPUSH_Reg(T1); // low half
-      return true;
-    }
-
-    if (methodName == MagicNames.invokeMethodReturningFloat) {
-      Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
-      genParameterRegisterLoad(5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitSUB_Reg_Imm(SP, 4);
-      if (SSE2_FULL) {
-        asm.emitMOVSS_RegInd_Reg(SP, XMM0);
-      } else {
-        asm.emitFSTP_RegInd_Reg(SP, FP0);
-      }
-      return true;
-    }
-
-    if (methodName == MagicNames.invokeMethodReturningDouble) {
-      Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
-      genParameterRegisterLoad(5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitSUB_Reg_Imm(SP, 8);
-      if (SSE2_FULL) {
-        asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
-      } else {
-        asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-      }
-      return true;
-    }
-
-    if (methodName == MagicNames.invokeMethodReturningObject) {
-      Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
-      genParameterRegisterLoad(5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitPUSH_Reg(T0);
-      return true;
-    }
-
-    // baseline invocation
-    // one paramater, on the stack  -- actual code
-    if (methodName == MagicNames.dynamicBridgeTo) {
-      if (VM.VerifyAssertions) VM._assert(klass.hasDynamicBridgeAnnotation());
-
-      // save the branch address for later
-      asm.emitPOP_Reg(S0);             // S0<-code address
-
-      asm.emitADD_Reg_Imm(SP, fp2spOffset(NO_SLOT).toInt() - 4); // just popped 4 bytes above.
-
-      if (SSE2_FULL) {
-        // TODO: Restore SSE2 Control word?
-        asm.emitMOVQ_Reg_RegDisp(XMM0, SP, XMM_SAVE_OFFSET.plus(0));
-        asm.emitMOVQ_Reg_RegDisp(XMM1, SP, XMM_SAVE_OFFSET.plus(8));
-        asm.emitMOVQ_Reg_RegDisp(XMM2, SP, XMM_SAVE_OFFSET.plus(16));
-        asm.emitMOVQ_Reg_RegDisp(XMM3, SP, XMM_SAVE_OFFSET.plus(24));
-      } else {
-        // restore FPU state
-        asm.emitFRSTOR_RegDisp(SP, FPU_SAVE_OFFSET);
-      }
-
-      // restore GPRs
-      asm.emitMOV_Reg_RegDisp(T0, SP, T0_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(T1, SP, T1_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
-
-      // pop frame
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset()); // FP<-previous FP
-
-      // branch
-      asm.emitJMP_Reg(S0);
-      return true;
-    }
-
-    if (methodName == MagicNames.returnToNewStack) {
-      // SP gets frame pointer for new stack
-      asm.emitPOP_Reg(SP);
-
-      // restore nonvolatile registers
-      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
-
-      // discard current stack frame
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
-
-      // return to caller- pop parameters from stack
-      asm.emitRET_Imm(parameterWords << LG_WORDSIZE);
-      return true;
-    }
-
-    // software prefetch
-    if (methodName == MagicNames.prefetch || methodName == MagicNames.prefetchNTA) {
-      asm.emitPOP_Reg(T0);
-      asm.emitPREFETCHNTA_Reg(T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.getTimeBase) {
-      asm.emitRDTSC();       // read timestamp counter instruction
-      asm.emitPUSH_Reg(EDX); // upper 32 bits
-      asm.emitPUSH_Reg(EAX); // lower 32 bits
-      return true;
-    }
-
-    if (methodName == MagicNames.pause) {
-      asm.emitPAUSE();       // read timestamp counter instruction
-      return true;
-    }
-
-    if (methodName == MagicNames.sqrt) {
-      if (SSE2_BASE) {
-        TypeReference argType = method.getParameterTypes()[0];
-        if (argType == TypeReference.Float) {
-          asm.emitSQRTSS_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
-          asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
-        } else {
-          if (VM.VerifyAssertions)
-            VM._assert(argType == TypeReference.Double);
-          asm.emitSQRTSD_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
-          asm.emitMOVLPD_RegInd_Reg(SP, XMM0);            // set result on stack
-        }
-      } else {
-        if (VM.VerifyAssertions)
-          VM._assert(false,"Hardware SQRT is only supported in SSE");
-      }
-      return true;
-    }
-
-    if (methodName == MagicNames.wordFromInt ||
-        methodName == MagicNames.wordFromObject ||
-        methodName == MagicNames.wordFromIntZeroExtend ||
-        methodName == MagicNames.wordFromIntSignExtend ||
-        methodName == MagicNames.wordToInt ||
-        methodName == MagicNames.wordToAddress ||
-        methodName == MagicNames.wordToOffset ||
-        methodName == MagicNames.wordToObject ||
-        methodName == MagicNames.wordToObjectReference ||
-        methodName == MagicNames.wordToExtent ||
-        methodName == MagicNames.wordToWord ||
-        methodName == MagicNames.codeArrayAsObject ||
-        methodName == MagicNames.tibAsObject) {
-      if (VM.BuildFor32Addr) return true;     // no-op for 32-bit
-      if (VM.VerifyAssertions) VM._assert(false);
-    }
-
-    if (methodName == MagicNames.wordToLong) {
-      if (VM.BuildFor32Addr) {
-        asm.emitPOP_Reg(T0);
-        asm.emitPUSH_Imm(0); // upper 32 bits
-        asm.emitPUSH_Reg(T0); // lower 32 bits
-        return true;
-      } // else fill unused stackslot
-      if (VM.VerifyAssertions) VM._assert(false);
-    }
-
-    if (methodName == MagicNames.wordAnd) {
-      asm.emitPOP_Reg(T0);
-      asm.emitAND_RegInd_Reg(SP, T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordOr) {
-      asm.emitPOP_Reg(T0);
-      asm.emitOR_RegInd_Reg(SP, T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordXor) {
-      asm.emitPOP_Reg(T0);
-      asm.emitXOR_RegInd_Reg(SP, T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordNot) {
-      asm.emitNOT_RegInd(SP);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordPlus) {
-      asm.emitPOP_Reg(T0);
-      asm.emitADD_RegInd_Reg(SP, T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordMinus || methodName == MagicNames.wordDiff) {
-      asm.emitPOP_Reg(T0);
-      asm.emitSUB_RegInd_Reg(SP, T0);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordZero || methodName == MagicNames.wordNull) {
-      asm.emitPUSH_Imm(0);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordOne) {
-      asm.emitPUSH_Imm(1);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordMax) {
-      asm.emitPUSH_Imm(-1);
-      return true;
-    }
-
-    if (methodName == MagicNames.wordLT) {
-      generateAddrComparison(Assembler.LLT);
-      return true;
-    }
-    if (methodName == MagicNames.wordLE) {
-      generateAddrComparison(Assembler.LLE);
-      return true;
-    }
-    if (methodName == MagicNames.wordGT) {
-      generateAddrComparison(Assembler.LGT);
-      return true;
-    }
-    if (methodName == MagicNames.wordGE) {
-      generateAddrComparison(Assembler.LGE);
-      return true;
-    }
-    if (methodName == MagicNames.wordsLT) {
-      generateAddrComparison(Assembler.LT);
-      return true;
-    }
-    if (methodName == MagicNames.wordsLE) {
-      generateAddrComparison(Assembler.LE);
-      return true;
-    }
-    if (methodName == MagicNames.wordsGT) {
-      generateAddrComparison(Assembler.GT);
-      return true;
-    }
-    if (methodName == MagicNames.wordsGE) {
-      generateAddrComparison(Assembler.GE);
-      return true;
-    }
-    if (methodName == MagicNames.wordEQ) {
-      generateAddrComparison(Assembler.EQ);
-      return true;
-    }
-    if (methodName == MagicNames.wordNE) {
-      generateAddrComparison(Assembler.NE);
-      return true;
-    }
-    if (methodName == MagicNames.wordIsZero) {
-      asm.emitPUSH_Imm(0);
-      generateAddrComparison(Assembler.EQ);
-      return true;
-    }
-    if (methodName == MagicNames.wordIsNull) {
-      asm.emitPUSH_Imm(0);
-      generateAddrComparison(Assembler.EQ);
-      return true;
-    }
-    if (methodName == MagicNames.wordIsMax) {
-      asm.emitPUSH_Imm(-1);
-      generateAddrComparison(Assembler.EQ);
-      return true;
-    }
-    if (methodName == MagicNames.wordLsh) {
-      if (VM.BuildFor32Addr) {
-        asm.emitPOP_Reg(ECX);
-        asm.emitSHL_RegInd_Reg(SP, ECX);
-      } else {
-        VM._assert(false);
-      }
-      return true;
-    }
-    if (methodName == MagicNames.wordRshl) {
-      if (VM.BuildFor32Addr) {
-        asm.emitPOP_Reg(ECX);
-        asm.emitSHR_RegInd_Reg(SP, ECX);
-      } else {
-        VM._assert(false);
-      }
-      return true;
-    }
-    if (methodName == MagicNames.wordRsha) {
-      if (VM.BuildFor32Addr) {
-        asm.emitPOP_Reg(ECX);
-        asm.emitSAR_RegInd_Reg(SP, ECX);
-      } else {
-        VM._assert(false);
-      }
-      return true;
-    }
-    return false;
-
-  }
-
-  private void generateAddrComparison(byte comparator) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    ForwardReference fr1 = asm.forwardJcc(comparator);
-    asm.emitPUSH_Imm(0);
-    ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(1);
-    fr2.resolve(asm);
   }
 
   // Offset of Java local variable (off stack pointer)
@@ -4812,15 +3927,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     return Offset.fromIntZeroExtend((stackHeights[biStart] - local) << LG_WORDSIZE);
   }
 
-  // Translate a FP offset into an SP offset
-  // assuming ESP is still positioned as it was at the
-  // start of the current bytecode (biStart)
+  /**
+   * Translate a FP offset into an SP offset
+   * assuming ESP is still positioned as it was at the
+   * start of the current bytecode (biStart)
+   */
   private Offset fp2spOffset(Offset offset) {
     int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
     return offset.plus(offsetToFrameHead);
   }
 
-  private void emitDynamicLinkingSequence(GPR reg, MemberReference ref, boolean couldBeZero) {
+  static void emitDynamicLinkingSequence(Assembler asm, GPR reg, MemberReference ref, boolean couldBeZero) {
     int memberId = ref.getId();
     Offset memberOffset = Offset.fromIntZeroExtend(memberId << 2);
     Offset tableOffset = Entrypoints.memberOffsetsField.getOffset();
@@ -4838,7 +3955,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       }
       ForwardReference fr = asm.forwardJcc(Assembler.NE);       // if so, skip call instructions
       asm.emitPUSH_Imm(memberId);                            // pass member's dictId
-      genParameterRegisterLoad(1);                           // pass 1 parameter word
+      genParameterRegisterLoad(asm, 1);                           // pass 1 parameter word
       asm.emitCALL_Abs(Magic.getTocPointer().plus(resolverOffset));            // does class loading as sideffect
       asm.emitJMP_Imm(retryLabel);                          // reload reg with valid value
       fr.resolve(asm);                                       // come from Jcc above.
