@@ -37,6 +37,14 @@ public final class MethodReference extends MemberReference {
   private RVMMethod resolvedMember;
 
   /**
+   * Find or create a method reference
+   * @see MemberReference#findOrCreate(TypeReference, Atom, Atom)
+   */
+  public static MethodReference findOrCreate(TypeReference tRef, Atom mn, Atom md) {
+    return MemberReference.findOrCreate(tRef, mn, md).asMethodReference();
+  }
+
+  /**
    * @param tr a type reference to the defining class in which this method
    * appears. (e.g., "Ljava/lang/String;")
    * @param mn the name of this method (e.g., "equals")
@@ -293,11 +301,13 @@ public final class MethodReference extends MemberReference {
       declaringClass.getDescriptor().sysWrite();
       if (VM.runningVM) {
         VM.sysWriteln(", while booting the VM");
+        VM.sysFail("MethodReference.resolveInternal(): Unable to resolve a method during VM booting");
+
       } else {
         VM.sysWriteln(", while writing the boot image");
+        Thread.dumpStack();
+        throw new Error("MethodReference.resolveInternal(): Unable to resolve a method during boot image writing");
       }
-      VM.sysFail(
-          "MethodReference.resolveInternal(): Unable to resolve a method during VM booting or boot image writing");
     }
     throw new NoSuchMethodError(this.toString());
   }
