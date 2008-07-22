@@ -863,7 +863,7 @@ softwareSignalHandler(int signo,
 }
 
 static void*
-mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
+mapImageFile(const char *fileName, const void *targetAddress, int prot,
              unsigned *roundedImageSize) {
 
     /* open and mmap the image file.
@@ -886,7 +886,7 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
 
     void *bootRegion = 0;
     bootRegion = mmap((void*)targetAddress, *roundedImageSize,
-		      PROT_READ | PROT_WRITE | PROT_EXEC,
+		      prot,
 		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE,
 		      fileno(fin), 0);
     if (bootRegion == (void *) MAP_FAILED) {
@@ -929,7 +929,7 @@ createVM(int UNUSED vmInSeparateThread)
     unsigned roundedDataRegionSize;
     void *bootDataRegion = mapImageFile(bootDataFilename,
                                         bootImageDataAddress,
-                                        false,
+                                        PROT_READ | PROT_WRITE,
                                         &roundedDataRegionSize);
     if (bootDataRegion != bootImageDataAddress)
         return 1;
@@ -937,7 +937,7 @@ createVM(int UNUSED vmInSeparateThread)
     unsigned roundedCodeRegionSize;
     void *bootCodeRegion = mapImageFile(bootCodeFilename,
                                         bootImageCodeAddress,
-                                        true,
+                                        PROT_READ | PROT_WRITE | PROT_EXEC,
                                         &roundedCodeRegionSize);
     if (bootCodeRegion != bootImageCodeAddress)
         return 1;
@@ -945,7 +945,7 @@ createVM(int UNUSED vmInSeparateThread)
     unsigned roundedRMapRegionSize;
     void *bootRMapRegion = mapImageFile(bootRMapFilename,
                                         bootImageRMapAddress,
-                                        true,
+                                        PROT_READ,
                                         &roundedRMapRegionSize);
     if (bootRMapRegion != bootImageRMapAddress)
         return 1;
