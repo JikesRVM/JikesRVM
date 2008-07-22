@@ -23,8 +23,8 @@ import org.vmmagic.pragma.RawStorage;
 @Uninterruptible
 abstract class ArchitecturalWord {
 
- @32MASK@protected int value;
- @64MASK@protected long value;
+ @32MASK@protected final int value;
+ @64MASK@protected final long value;
 
   ArchitecturalWord() {
     this.value = 0;
@@ -36,6 +36,7 @@ abstract class ArchitecturalWord {
 
   ArchitecturalWord(long value) {
     @32MASK@VM._assert(VM.NOT_REACHED);
+    @32MASK@this.value = (int)value;
     @64MASK@this.value = value;
   }
 
