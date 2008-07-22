@@ -139,6 +139,7 @@ public class ScanBootImage implements Constants {
           if (DEBUG) refs++;
           if (!FILTER || slot.loadAddress().GT(mapEnd)) {
             if (DEBUG) roots++;
+            if (ScanThread.VALIDATE_REFS) ScanThread.checkReference(slot);
             trace.processRootEdge(slot, false);
           }
         }

@@ -65,6 +65,7 @@ public final class ScanStatics implements Constants {
     // Process region
     for (int slot=start; slot < end; slot+=refSlotSize) {
       Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
+      if (ScanThread.VALIDATE_REFS) ScanThread.checkReference(slots.plus(slotOffset));
       trace.processRootEdge(slots.plus(slotOffset), true);
     }
   }

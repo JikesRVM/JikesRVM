@@ -128,6 +128,15 @@ import org.vmmagic.unboxed.Offset;
   }
 
   /**
+   * Wrapper for {@link TraceLocal#reportDelayedRootEdge(Address)} that allows
+   * sanity checking of the address.
+   */
+  private static void reportDelayedRootEdge(TraceLocal trace, Address addr) {
+    if (VALIDATE_REFS) checkReference(addr);
+    trace.reportDelayedRootEdge(addr);
+  }
+
+  /**
    * A more general interface to thread scanning, which permits the
    * scanning of stack segments which are dislocated from the thread
    * structure.
@@ -156,15 +165,15 @@ import org.vmmagic.unboxed.Offset;
     }
 
     /* Registers */
-    trace.reportDelayedRootEdge(Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
-    trace.reportDelayedRootEdge(Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
+    reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
+    reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
 
     /* Scan the JNI Env field */
     if (thread.getJNIEnv() != null) {
-      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
-      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
-      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIEnvSavedPRField.getOffset()));
-      trace.reportDelayedRootEdge(Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
+      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
+      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
+      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIEnvSavedPRField.getOffset()));
+      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
     }
 
     /* Grab the ScanThread instance associated with this thread */
@@ -417,7 +426,7 @@ import org.vmmagic.unboxed.Offset;
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
       if (verbosity >= 3) dumpRef(refaddr, verbosity);
-      trace.reportDelayedRootEdge(refaddr);
+      reportDelayedRootEdge(trace, refaddr);
     }
   }
 
@@ -536,7 +545,7 @@ import org.vmmagic.unboxed.Offset;
       GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
       while(!refaddr.isZero()) {
-        trace.reportDelayedRootEdge(refaddr);
+        reportDelayedRootEdge(trace, refaddr);
         refaddr = iterator.getNextReferenceAddress();
       }
     }
@@ -627,6 +636,27 @@ import org.vmmagic.unboxed.Offset;
       Address top_ip = thread.getContextRegisters().getInnermostInstructionAddress();
       Address top_fp = thread.getContextRegisters().getInnermostFramePointer();
       Scheduler.dumpStack(top_ip, top_fp);
+      VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
+    }
+  }
+
+  /**
+   * Check that a reference encountered during scanning is valid.  If
+   * the reference is invalid, dump stack and die.
+   *
+   * @param refaddr The address of the reference in question.
+   * @param verbosity The level of verbosity to be used when
+   * performing the scan.
+   */
+  static void checkReference(Address refaddr) {
+    ObjectReference ref = refaddr.loadObjectReference();
+    if (!MM_Interface.validRef(ref)) {
+      Log.writeln();
+      Log.writeln("Invalid ref reported while scanning stack");
+      Log.write(refaddr); Log.write(":"); Log.flush(); MM_Interface.dumpRef(ref);
+      Log.writeln();
+      Log.writeln("Dumping stack:");
+      Scheduler.dumpStack();
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
