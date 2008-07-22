@@ -104,12 +104,12 @@ final class BaselineMagic {
    * When casting or loading object references should the reference be checked
    * to see if it is an object reference first?
    */
-  private static final boolean VALIDATE_OBJECT_REFERENCES = VM.VerifyAssertions;
+  private static final boolean VALIDATE_OBJECT_REFERENCES = false;
 
   /**
    * If a bad reference is encountered should we halt the VM?
    */
-  private static final boolean FAIL_ON_BAD_REFERENCES = VM.VerifyAssertions;
+  private static final boolean FAIL_ON_BAD_REFERENCES = true;
 
   /**
    * Entry point to generating magic
@@ -145,6 +145,7 @@ final class BaselineMagic {
       if (!MM_Interface.validRef(value) && FAIL_ON_BAD_REFERENCES) {
         VM.sysFail("Bad object reference encountered");
       }
+      inCheck = false;
     }
   }
 
