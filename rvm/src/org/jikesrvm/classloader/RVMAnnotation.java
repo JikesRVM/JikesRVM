@@ -579,10 +579,6 @@ public final class RVMAnnotation {
       if (method.getName().equals("annotationType")) {
         return type.resolve().getClassForType();
       }
-      Object value = getValue(method.getName(), method.getReturnType());
-      if (value != NO_VALUE) {
-        return value;
-      }
       if (method.getName().equals("hashCode")) {
         if (cachedHashCode == 0) {
           cachedHashCode = annotationHashCode();
@@ -594,6 +590,10 @@ public final class RVMAnnotation {
       }
       if (method.getName().equals("toString")) {
         return RVMAnnotation.this.toString();
+      }
+      Object value = getValue(method.getName(), method.getReturnType());
+      if (value != NO_VALUE) {
+        return value;
       }
       throw new IllegalArgumentException("Invalid method for annotation type: " + method);
     }
