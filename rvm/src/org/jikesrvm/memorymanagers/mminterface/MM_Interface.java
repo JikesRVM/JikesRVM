@@ -80,6 +80,11 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
 
+  /**
+   * Hash the interface been booted yet?
+   */
+  private static boolean booted = false;
+
   /***********************************************************************
    *
    * Initialization
@@ -122,6 +127,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     Selected.Plan.get().boot();
     SynchronizedCounter.boot();
     Monitor.boot();
+    booted = true;
   }
 
   /**
@@ -451,7 +457,11 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
    */
   @Inline
   public static boolean validRef(ObjectReference ref) {
-    return DebugUtil.validRef(ref);
+    if (booted) {
+      return DebugUtil.validRef(ref);
+    } else {
+      return true;
+    }
   }
 
   /**
