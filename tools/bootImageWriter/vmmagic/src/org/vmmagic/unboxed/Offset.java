@@ -27,13 +27,17 @@ import org.jikesrvm.VM;
  *
  * @see Address Word
  */
-@Uninterruptible public final class Offset extends ArchitecturalWord {
+@Uninterruptible
+public final class Offset extends ArchitecturalWord {
+
   Offset(int value) {
     super(value, false);
   }
+
   Offset(int value, boolean zeroExtend) {
     super(value, zeroExtend);
   }
+
   Offset(long value) {
     super(value);
   }

@@ -25,13 +25,17 @@ import org.vmmagic.pragma.*;
  *
  * @see Address Word Offset
  */
-@Uninterruptible public final class Extent extends ArchitecturalWord {
+@Uninterruptible
+public final class Extent extends ArchitecturalWord {
+
   Extent(int value) {
     super(value, false);
   }
+
   Extent(int value, boolean zeroExtend) {
     super(value, zeroExtend);
   }
+
   Extent(long value) {
     super(value);
   }

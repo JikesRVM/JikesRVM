@@ -23,7 +23,8 @@ import org.jikesrvm.SizeConstants;
  * objects that the VM is managing. No operations that can not be completed in
  * pure Java should be allowed on Object.
  */
-@Uninterruptible public final class ObjectReference extends ArchitecturalWord implements SizeConstants {
+@Uninterruptible
+public final class ObjectReference extends ArchitecturalWord implements SizeConstants {
   ObjectReference(int value) {
     super(value, true);
   }

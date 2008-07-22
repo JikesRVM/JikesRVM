@@ -27,13 +27,16 @@ import org.vmmagic.pragma.*;
  *
  * @see Address
  */
-@Uninterruptible public final class Word extends ArchitecturalWord {
+@Uninterruptible
+public final class Word extends ArchitecturalWord {
   Word(int value) {
     super(value, false);
   }
+
   Word(int value, boolean zeroExtend) {
     super(value, zeroExtend);
   }
+
   Word(long value) {
     super(value);
   }
@@ -235,6 +238,4 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value >> amt);
   }
-
 }
-

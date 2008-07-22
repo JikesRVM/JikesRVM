@@ -29,7 +29,8 @@ import org.vmmagic.pragma.*;
  * Address object is created run-time.
  *
  */
-@Uninterruptible public final class Address extends ArchitecturalWord implements SizeConstants {
+@Uninterruptible
+public final class Address extends ArchitecturalWord implements SizeConstants {
 
   Address(int value) {
     super(value, false);
