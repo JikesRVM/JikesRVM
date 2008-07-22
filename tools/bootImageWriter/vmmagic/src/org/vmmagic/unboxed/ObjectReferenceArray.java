@@ -14,14 +14,16 @@ package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.objectmodel.RuntimeTable;
 
 /**
  * The VM front end is not capable of correct handling an array
  * of ObjectReferences ...
  */
-@Uninterruptible public final class ObjectReferenceArray {
+@Uninterruptible
+public final class ObjectReferenceArray implements RuntimeTable<ObjectReference> {
 
-  private ObjectReference[] data;
+  private final ObjectReference[] data;
 
   @Interruptible
   public static ObjectReferenceArray create(int size) {
@@ -55,7 +57,7 @@ import org.jikesrvm.VM;
   }
 
   @Inline
-  public Object getBacking() {
+  public ObjectReference[] getBacking() {
     if (!VM.writingImage)
         VM.sysFail("ObjectReferenceArray.getBacking called when not writing boot image");
     return data;

@@ -38,15 +38,12 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.MiscHeader;
+import org.jikesrvm.objectmodel.RuntimeTable;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.objectmodel.ITableArray;
-import org.jikesrvm.objectmodel.ITable;
-import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.scheduler.ProcessorTable;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
@@ -235,17 +232,17 @@ public class BootImageWriter extends BootImageWriterMessages
   public static Address bootImageRMapAddress = Address.zero();
 
   public static Address getBootImageDataAddress()  {
-    if (bootImageDataAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    if (bootImageDataAddress.isZero()) fail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageDataAddress;
   }
 
   public static Address getBootImageCodeAddress()  {
-    if (bootImageCodeAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    if (bootImageCodeAddress.isZero()) fail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageCodeAddress;
   }
 
   public static Address getBootImageRMapAddress()  {
-    if (bootImageRMapAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    if (bootImageRMapAddress.isZero()) fail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageRMapAddress;
   }
 
@@ -1491,9 +1488,9 @@ public class BootImageWriter extends BootImageWriterMessages
     } else if (addr instanceof Offset) {
       value = ((Offset)addr).toWord();
     } else {
-      VM.sysWriteln("Unhandled supposed address value: " + addr);
-      VM.sysWriteln(msg);
-      VM.sysFail("incomplete boot image support");
+      say("Unhandled supposed address value: " + addr);
+      say(msg);
+      fail("incomplete boot image support");
     }
     if (warn) check(value, msg);
     return value;
@@ -1654,27 +1651,18 @@ public class BootImageWriter extends BootImageWriterMessages
           }
         }
       } else {
+        // Handle the code array that is represented as either byte or int arrays
+        if (rvmType == RVMType.CodeArrayType) {
+          if (verbose >= 2) depth--;
+          CodeArray codeArray = (CodeArray) jdkObject;
+          Object backing = codeArray.getBacking();
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
+        }
+
+        // Handle tables of objects
         if (rvmType == RVMType.ObjectReferenceArrayType || rvmType.getTypeRef().isRuntimeTable()) {
           if (verbose >= 2) depth--;
-          Object backing;
-          if (rvmType == RVMType.ObjectReferenceArrayType) {
-            backing = ((ObjectReferenceArray)jdkObject).getBacking();
-          } else if (rvmType == RVMType.TIBType) {
-            backing = ((TIB)jdkObject).getBacking();
-          } else if (rvmType == RVMType.IMTType) {
-            backing = ((IMT)jdkObject).getBacking();
-          } else if (rvmType == RVMType.ITableType) {
-            backing = ((ITable)jdkObject).getBacking();
-          } else if (rvmType == RVMType.ITableArrayType) {
-            backing = ((ITableArray)jdkObject).getBacking();
-          } else if (rvmType == RVMType.ProcessorTableType) {
-            backing = ((ProcessorTable)jdkObject).getBacking();
-          } else if (rvmType == RVMType.FunctionTableType) {
-            backing = ((FunctionTable)jdkObject).getBacking();
-          } else {
-            fail("unexpected runtime table type: " + rvmType);
-            backing = null;
-          }
+          Object backing = ((RuntimeTable)jdkObject).getBacking();
 
           /* Copy the backing array, and then replace its TIB */
           mapEntry.imageAddress = copyToBootImage(backing, allocOnly, overwriteAddress, jdkObject, rvmType.getTypeRef().isRuntimeTable());
@@ -1692,45 +1680,17 @@ public class BootImageWriter extends BootImageWriterMessages
           return mapEntry.imageAddress;
         }
 
-        if (rvmType == RVMType.AddressArrayType) {
+        // Handle tables of unboxed types that in the boot image writer are modelled using objects
+        if (jdkObject instanceof RuntimeTable) {
           if (verbose >= 2) depth--;
-          AddressArray addrArray = (AddressArray) jdkObject;
-          Object backing = addrArray.getBacking();
+          Object backing = ((RuntimeTable)jdkObject).getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
-        if (rvmType == RVMType.OffsetArrayType) {
-          if (verbose >= 2) depth--;
-          OffsetArray addrArray = (OffsetArray) jdkObject;
-          Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
-        }
-
-        if (rvmType == RVMType.WordArrayType) {
-          if (verbose >= 2) depth--;
-          WordArray addrArray = (WordArray) jdkObject;
-          Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
-        }
-
-        if (rvmType == RVMType.ExtentArrayType) {
-          if (verbose >= 2) depth--;
-          ExtentArray addrArray = (ExtentArray) jdkObject;
-          Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
-        }
-
-        if (rvmType == RVMType.CodeArrayType) {
-          if (verbose >= 2) depth--;
-          CodeArray codeArray = (CodeArray) jdkObject;
-          Object backing = codeArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
-        }
-
-        if (rvmType.getTypeRef().isMagicType()) {
-          VM.sysWriteln("Unhandled copying of magic type: " + rvmType.getDescriptor().toString() +
+        if (rvmType.getTypeRef().isMagicType() || rvmType instanceof RVMArray) {
+          say("Unhandled copying of magic type: " + rvmType.getDescriptor().toString() +
               " in object of type " + parentObject.getClass().toString());
-          VM.sysFail("incomplete boot image support");
+          fail("incomplete boot image support");
         }
 
         //

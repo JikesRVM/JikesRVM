@@ -13,6 +13,7 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.objectmodel.RuntimeTable;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
@@ -22,7 +23,7 @@ import org.vmmagic.pragma.UninterruptibleNoWarn;
  * This class represents an instance of a table of processors
  */
 @NonMoving
-public final class ProcessorTable {
+public final class ProcessorTable implements RuntimeTable<Processor> {
 
   /**
    * The backing data used during boot image writing.
@@ -50,7 +51,7 @@ public final class ProcessorTable {
   /**
    * Return the backing array (for boot image writing)
    */
-  public Object[] getBacking() {
+  public Processor[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return data;
   }

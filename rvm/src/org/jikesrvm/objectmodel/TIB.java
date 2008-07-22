@@ -31,13 +31,13 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * This class represents an instance of a type information block.
- *
- * #see {@link TIBLayoutConstants}
+ * This class represents an instance of a type information block, at runtime it
+ * is an array with Object elements.
+ * @see TIBLayoutConstants
  */
 @Uninterruptible
 @NonMoving
-public final class TIB implements TIBLayoutConstants, SizeConstants {
+public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, SizeConstants {
   /**
    * @return the number of words required to hold the lazy method invoker trampoline.
    */
@@ -140,7 +140,7 @@ public final class TIB implements TIBLayoutConstants, SizeConstants {
    */
   @Intrinsic
   @UninterruptibleNoWarn // hijacked at runtime
-  protected void set(int index, Object value) {
+  public void set(int index, Object value) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     data[index] = value;
   }

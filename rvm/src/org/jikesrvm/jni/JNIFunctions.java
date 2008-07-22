@@ -101,7 +101,7 @@ import org.vmmagic.unboxed.Offset;
  * </ol>
  */
 @SuppressWarnings({"unused", "UnusedDeclaration"})
-// called from native code
+// methods are called from native code
 @NativeBridge
 public class JNIFunctions implements SizeConstants {
   // one message for each JNI function called from native

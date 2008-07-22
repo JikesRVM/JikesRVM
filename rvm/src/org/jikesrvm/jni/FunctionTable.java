@@ -14,16 +14,18 @@ package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.objectmodel.RuntimeTable;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 
 /**
- * This class holds a JNI function table
+ * This class holds a JNI function table, at runtime it is an array with
+ * CodeArray elements
  */
 @NonMoving
-public final class FunctionTable {
+public final class FunctionTable implements RuntimeTable<CodeArray> {
 
   /**
    * The backing data used during boot image writing.
@@ -51,7 +53,7 @@ public final class FunctionTable {
   /**
    * Return the backing array (for boot image writing)
    */
-  public Object[] getBacking() {
+  public CodeArray[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return data;
   }

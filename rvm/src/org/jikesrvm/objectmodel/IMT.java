@@ -20,10 +20,11 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 
 /**
- * This class represents an instance of an interface method table.
+ * This class represents an instance of an interface method table, at runtime it
+ * is an array with CodeArray elements.
  */
 @NonMoving
-public final class IMT {
+public final class IMT implements RuntimeTable<CodeArray> {
 
   /**
    * The backing data used during boot image writing.
@@ -40,7 +41,7 @@ public final class IMT {
   /**
    * Return the backing array (for boot image writing)
    */
-  public Object[] getBacking() {
+  public CodeArray[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return data;
   }
