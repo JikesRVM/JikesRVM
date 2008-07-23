@@ -2095,6 +2095,7 @@ target.jni-suffix=${target.jni-suffix}
 
       <classpath>
         <pathelement location="${build.dir}/javadoc/classes-ia32"/>
+        <pathelement location="${classpath.lib.dir}/classpath.jar"/>
       </classpath>
 
       <group title="RVM" packages="org.jikesrvm*"/>
