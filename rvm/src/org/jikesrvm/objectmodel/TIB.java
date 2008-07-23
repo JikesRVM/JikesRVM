@@ -158,7 +158,11 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
    */
   @Inline
   public RVMType getType() {
-    return Magic.objectAsType(get(TIB_TYPE_INDEX));
+    if (VM.runningVM) {
+      return Magic.objectAsType(get(TIB_TYPE_INDEX));
+    } else {
+      return (RVMType)get(TIB_TYPE_INDEX);
+    }
   }
 
   /**
