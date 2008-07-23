@@ -49,7 +49,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.scheduler.greenthreads.FileSystem;
 
 /**
@@ -254,7 +254,7 @@ public final class VMChannel
    * @throws IOException If an error occurs or dst is not a direct buffers.
    */
   private int read(byte[] dst, int pos, int len) throws IOException {
-    if (MM_Interface.willNeverMove(dst)) {
+    if (MemoryManager.willNeverMove(dst)) {
       return read(nfd.getNativeFD(),dst,pos,len);
     } else {
       byte[] buffer;
@@ -280,7 +280,7 @@ public final class VMChannel
    * @throws IOException
    */
   private static int read(int fd, byte[] dst, int position, int len) throws IOException {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(dst));
+    if (VM.VerifyAssertions) VM._assert(MemoryManager.willNeverMove(dst));
     int bytes = FileSystem.readBytes(fd,dst,position,len);
     if (bytes < 0) {
       throw new IOException("Error code "+Integer.toString(bytes));
@@ -389,13 +389,13 @@ public final class VMChannel
    * @throws IOException
    */
   public int write(byte[] src, int pos, int len) throws IOException {
-    if (MM_Interface.willNeverMove(src)) {
+    if (MemoryManager.willNeverMove(src)) {
       return write(nfd.getNativeFD(), src, pos, len);
     } else {
       byte[] buffer;
       // Rebuffer the IO in a thread-local DirectBuffer
       buffer = localByteArray.get(len);
-      if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(buffer));
+      if (VM.VerifyAssertions) VM._assert(MemoryManager.willNeverMove(buffer));
       System.arraycopy(src, pos, buffer,0,len);
       return write(nfd.getNativeFD(),buffer,0,len);
     }

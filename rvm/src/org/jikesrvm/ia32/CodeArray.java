@@ -14,7 +14,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -67,7 +67,7 @@ public abstract class CodeArray {
      */
     public static ArchitectureSpecific.CodeArray create(int numInstrs, boolean isHot) {
       if (VM.runningVM) {
-        return MM_Interface.allocateCode(numInstrs, isHot);
+        return MemoryManager.allocateCode(numInstrs, isHot);
       } else {
         return ArchitectureSpecific.CodeArray.create(numInstrs);
       }

@@ -71,7 +71,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Entrypoints;
 
@@ -138,7 +138,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           RVMClass cls = (RVMClass) Type.getVMType();
           IntConstantOperand hasFinalizer = IRTools.IC(cls.hasFinalizer() ? 1 : 0);
           RVMMethod callSite = inst.position.getMethod();
-          IntConstantOperand allocator = IRTools.IC(MM_Interface.pickAllocator(cls, callSite));
+          IntConstantOperand allocator = IRTools.IC(MemoryManager.pickAllocator(cls, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(cls));
           IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(cls, false));
           Operand tib = ConvertToLowLevelIR.getTIB(inst, ir, Type);
@@ -148,7 +148,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
             tib = tmp.copyRO();
           }
-          IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
+          IntConstantOperand site = IRTools.IC(MemoryManager.getAllocationSite(true));
           RVMMethod target = Entrypoints.resolvedNewScalarMethod;
           Call.mutate7(inst,
                        CALL,
@@ -176,7 +176,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         case NEW_UNRESOLVED_opcode: {
           int typeRefId = New.getType(inst).getTypeRef().getId();
           RVMMethod target = Entrypoints.unresolvedNewScalarMethod;
-          IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
+          IntConstantOperand site = IRTools.IC(MemoryManager.getAllocationSite(true));
           Call.mutate2(inst,
                        CALL,
                        New.getClearResult(inst),
@@ -195,7 +195,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           Operand width = IRTools.IC(array.getLogElementSize());
           Operand headerSize = IRTools.IC(ObjectModel.computeArrayHeaderSize(array));
           RVMMethod callSite = inst.position.getMethod();
-          IntConstantOperand allocator = IRTools.IC(MM_Interface.pickAllocator(array, callSite));
+          IntConstantOperand allocator = IRTools.IC(MemoryManager.pickAllocator(array, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(array));
           IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(array, false));
           Operand tib = ConvertToLowLevelIR.getTIB(inst, ir, Array);
@@ -205,7 +205,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
             tib = tmp.copyRO();
           }
-          IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
+          IntConstantOperand site = IRTools.IC(MemoryManager.getAllocationSite(true));
           RVMMethod target = Entrypoints.resolvedNewArrayMethod;
           Call.mutate8(inst,
                        CALL,
@@ -235,7 +235,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           int typeRefId = NewArray.getType(inst).getTypeRef().getId();
           Operand numberElements = NewArray.getClearSize(inst);
           RVMMethod target = Entrypoints.unresolvedNewArrayMethod;
-          IntConstantOperand site = IRTools.IC(MM_Interface.getAllocationSite(true));
+          IntConstantOperand site = IRTools.IC(MemoryManager.getAllocationSite(true));
           Call.mutate3(inst,
                        CALL,
                        NewArray.getClearResult(inst),

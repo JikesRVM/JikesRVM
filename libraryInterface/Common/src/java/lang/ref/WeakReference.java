@@ -12,7 +12,7 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
  * Implementation of java.lang.ref.WeakReference for JikesRVM.
@@ -23,11 +23,11 @@ public class WeakReference<T> extends Reference<T> {
 
   public WeakReference(T referent) {
     super(referent);
-    MM_Interface.addWeakReference(this,referent);
+    MemoryManager.addWeakReference(this,referent);
   }
 
   public WeakReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addWeakReference(this,referent);
+    MemoryManager.addWeakReference(this,referent);
   }
 }

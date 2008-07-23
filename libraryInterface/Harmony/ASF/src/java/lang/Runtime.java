@@ -29,7 +29,7 @@ import org.apache.harmony.lang.RuntimePermissionCollection;
 import org.apache.harmony.kernel.vm.VM;
 
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.greenthreads.VMProcess;
@@ -295,7 +295,7 @@ public class Runtime {
    * 
    */
   public long freeMemory() {
-    return MM_Interface.freeMemory().toLong();
+    return MemoryManager.freeMemory().toLong();
   }
 
   /**
@@ -470,7 +470,7 @@ public class Runtime {
    * 
    */
   public long totalMemory() {
-    return MM_Interface.totalMemory().toLong();
+    return MemoryManager.totalMemory().toLong();
   }
 
   /**
@@ -590,6 +590,6 @@ public class Runtime {
    * Long.MAX_VALUE.
    */
   public long maxMemory() {
-    return MM_Interface.maxMemory().toLong();
+    return MemoryManager.maxMemory().toLong();
   }
 }

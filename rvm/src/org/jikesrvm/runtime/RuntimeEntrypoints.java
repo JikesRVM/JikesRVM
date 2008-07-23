@@ -26,7 +26,7 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.Scheduler;
@@ -236,7 +236,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       initializeClassForDynamicLink(cls);
     }
 
-    int allocator = MM_Interface.pickAllocator(cls);
+    int allocator = MemoryManager.pickAllocator(cls);
     int align = ObjectModel.getAlignment(cls);
     int offset = ObjectModel.getOffsetForAlignment(cls, false);
     return resolvedNewScalar(cls.getInstanceSize(),
@@ -257,8 +257,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    */
   public static Object resolvedNewScalar(RVMClass cls) {
 
-    int allocator = MM_Interface.pickAllocator(cls);
-    int site = MM_Interface.getAllocationSite(false);
+    int allocator = MemoryManager.pickAllocator(cls);
+    int site = MemoryManager.getAllocationSite(false);
     int align = ObjectModel.getAlignment(cls);
     int offset = ObjectModel.getOffsetForAlignment(cls, false);
     return resolvedNewScalar(cls.getInstanceSize(),
@@ -291,10 +291,10 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
     // Allocate the object and initialize its header
-    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
+    Object newObj = MemoryManager.allocateScalar(size, tib, allocator, align, offset, site);
 
     // Deal with finalization
-    if (hasFinalizer) MM_Interface.addFinalizer(newObj);
+    if (hasFinalizer) MemoryManager.addFinalizer(newObj);
 
     return newObj;
   }
@@ -333,7 +333,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    */
   public static Object resolvedNewArray(int numElements, RVMArray array)
       throws OutOfMemoryError, NegativeArraySizeException {
-    return resolvedNewArray(numElements, array, MM_Interface.getAllocationSite(false));
+    return resolvedNewArray(numElements, array, MemoryManager.getAllocationSite(false));
   }
 
   public static Object resolvedNewArray(int numElements, RVMArray array, int site)
@@ -343,7 +343,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
                             array.getLogElementSize(),
                             ObjectModel.computeArrayHeaderSize(array),
                             array.getTypeInformationBlock(),
-                            MM_Interface.pickAllocator(array),
+                            MemoryManager.pickAllocator(array),
                             ObjectModel.getAlignment(array),
                             ObjectModel.getOffsetForAlignment(array, false),
                             site);
@@ -373,7 +373,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
     // Allocate the array and initialize its header
-    return MM_Interface.allocateArray(numElements, logElementSize, headerSize, tib, allocator, align, offset, site);
+    return MemoryManager.allocateArray(numElements, logElementSize, headerSize, tib, allocator, align, offset, site);
   }
 
   /**
@@ -995,7 +995,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       callee_fp = fp;
       ip = Magic.getReturnAddress(fp);
       fp = Magic.getCallerFramePointer(fp);
-    } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
+    } while (!MemoryManager.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
       // We want to return fp, not callee_fp because we want the stack walkers

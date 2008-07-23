@@ -28,7 +28,7 @@ import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
@@ -183,7 +183,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       VM.sysWriteln("Setting up memory manager: bootrecord = ",
                     Magic.objectAsAddress(BootRecord.the_boot_record));
     }
-    MM_Interface.boot(BootRecord.the_boot_record);
+    MemoryManager.boot(BootRecord.the_boot_record);
 
     // Reset the options for the baseline compiler to avoid carrying
     // them over from bootimage writing time.
@@ -204,7 +204,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     // Allow Memory Manager to respond to its command line arguments
     //
     if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
-    MM_Interface.postBoot();
+    MemoryManager.postBoot();
 
     // Initialize class loader.
     //
@@ -403,7 +403,7 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // Inform interested subsystems that VM is fully booted.
     VM.fullyBooted = true;
-    MM_Interface.fullyBootedVM();
+    MemoryManager.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
@@ -2348,7 +2348,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     RuntimeEntrypoints.init();
     Scheduler.init();
-    MM_Interface.init();
+    MemoryManager.init();
   }
 
   /**

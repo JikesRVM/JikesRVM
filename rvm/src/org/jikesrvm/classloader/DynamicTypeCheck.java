@@ -13,7 +13,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.Magic;
@@ -111,10 +111,10 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
     short[] tsi;
     if (t.isJavaLangObjectType()) {
       if (VM.VerifyAssertions) VM._assert(depth == 0);
-      tsi = MM_Interface.newNonMovingShortArray(1);
+      tsi = MemoryManager.newNonMovingShortArray(1);
     } else {
       int size = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth + 1 : MIN_SUPERCLASS_IDS_SIZE;
-      tsi = MM_Interface.newNonMovingShortArray(size);
+      tsi = MemoryManager.newNonMovingShortArray(size);
       RVMType p;
       if (t.isArrayType() || t.asClass().isInterface()) {
         p = RVMType.JavaLangObjectType;
@@ -147,7 +147,7 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
       int serialIdx = RVMType.JavaIoSerializableType.getDoesImplementIndex();
       int size = Math.max(cloneIdx, serialIdx);
       size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size + 1);
-      int[] tmp = MM_Interface.newNonMovingIntArray(size);
+      int[] tmp = MemoryManager.newNonMovingIntArray(size);
       tmp[cloneIdx] = RVMType.JavaLangCloneableType.getDoesImplementBitMask();
       tmp[serialIdx] |= RVMType.JavaIoSerializableType.getDoesImplementBitMask();
       arrayDoesImplement = tmp;
@@ -164,7 +164,7 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
   static int[] buildDoesImplement(RVMClass t) {
     if (t.isJavaLangObjectType()) {
       // object implements no interfaces.
-      return MM_Interface.newNonMovingIntArray(MIN_DOES_IMPLEMENT_SIZE);
+      return MemoryManager.newNonMovingIntArray(MIN_DOES_IMPLEMENT_SIZE);
     }
 
     RVMClass[] superInterfaces = t.getDeclaredInterfaces();
@@ -186,7 +186,7 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
     }
 
     // then create and populate it
-    int[] mine = MM_Interface.newNonMovingIntArray(size);
+    int[] mine = MemoryManager.newNonMovingIntArray(size);
     if (t.isInterface()) {
       mine[t.getDoesImplementIndex()] = t.getDoesImplementBitMask();
     } else {

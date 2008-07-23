@@ -184,7 +184,7 @@ extern "C" char *sys_siglist[];
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
-#define NEED_MM_INTERFACE_DECLARATIONS
+#define NEED_MEMORY_MANAGER_DECLARATIONS
 #include <InterfaceDeclarations.h>
 extern "C" void setLinkage(BootRecord *);
 

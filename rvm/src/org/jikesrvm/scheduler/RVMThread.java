@@ -26,7 +26,7 @@ import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Entrypoints;
@@ -1166,10 +1166,10 @@ public abstract class RVMThread {
   @Interruptible
   public static void resizeCurrentStack(int newSize, Registers exceptionRegisters) {
     if (traceAdjustments) VM.sysWrite("Thread: resizeCurrentStack\n");
-    if (MM_Interface.gcInProgress()) {
+    if (MemoryManager.gcInProgress()) {
       VM.sysFail("system error: resizing stack while GC is in progress");
     }
-    byte[] newStack = MM_Interface.newStack(newSize, false);
+    byte[] newStack = MemoryManager.newStack(newSize, false);
     Processor.getCurrentProcessor().disableThreadSwitching("disabled for stack resizing");
     transferExecutionToNewStack(newStack, exceptionRegisters);
     Processor.getCurrentProcessor().enableThreadSwitching();

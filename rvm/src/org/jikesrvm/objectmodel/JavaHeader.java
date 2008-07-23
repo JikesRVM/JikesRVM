@@ -323,7 +323,7 @@ public class JavaHeader implements JavaHeaderConstants {
    * Get the next object in the heap under contiguous
    * allocation. Handles alignment issues only when there are no GC or
    * Misc header words. In the case there are we probably have to ask
-   * MM_Interface to distinguish this for us.
+   * MemoryManager to distinguish this for us.
    */
   protected static ObjectReference getNextObject(ObjectReference obj, int size) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);

@@ -52,7 +52,7 @@ public abstract class MachineCode {
   public void finish() {
     if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
-    /* NOTE: MM_Interface.pickAllocator() depends on the name of this
+    /* NOTE: MemoryManager.pickAllocator() depends on the name of this
        class and method to identify code allocation */
     int n = (next_bundle - 1) * size + next;
     instructions = ArchitectureSpecific.CodeArray.Factory.create(n, false);

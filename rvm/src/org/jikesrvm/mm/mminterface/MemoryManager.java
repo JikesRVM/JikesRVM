@@ -63,11 +63,10 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * The interface that the JMTk memory manager presents to the Jikes
- * research virtual machine.
+ * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MM_Interface implements HeapLayoutConstants, Constants {
+public final class MemoryManager implements HeapLayoutConstants, Constants {
 
   /***********************************************************************
    *
@@ -93,7 +92,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
-  private MM_Interface() {} // This constructor will never be invoked.
+  private MemoryManager() {} // This constructor will never be invoked.
 
   /**
    * Initialization that occurs at <i>build</i> time.  The value of
@@ -145,7 +144,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
 
     if (VM.BuildWithGCSpy) {
       // start the GCSpy interpreter server
-      MM_Interface.startGCspyServer();
+      MemoryManager.startGCspyServer();
     }
   }
 

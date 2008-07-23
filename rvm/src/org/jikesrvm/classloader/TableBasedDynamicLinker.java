@@ -14,7 +14,7 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;
@@ -43,7 +43,7 @@ public class TableBasedDynamicLinker implements Constants {
   private static int[] memberOffsets;
 
   static {
-    memberOffsets = MM_Interface.newContiguousIntArray(32000);
+    memberOffsets = MemoryManager.newContiguousIntArray(32000);
     if (NEEDS_DYNAMIC_LINK != 0) {
       java.util.Arrays.fill(memberOffsets, NEEDS_DYNAMIC_LINK);
     }
@@ -84,7 +84,7 @@ public class TableBasedDynamicLinker implements Constants {
   static synchronized void ensureCapacity(int id) {
     if (id >= memberOffsets.length) {
       int oldLen = memberOffsets.length;
-      int[] tmp1 = MM_Interface.newContiguousIntArray((oldLen * 3) / 2);
+      int[] tmp1 = MemoryManager.newContiguousIntArray((oldLen * 3) / 2);
       System.arraycopy(memberOffsets, 0, tmp1, 0, oldLen);
       if (NEEDS_DYNAMIC_LINK != 0) {
         java.util.Arrays.fill(tmp1, oldLen, tmp1.length, NEEDS_DYNAMIC_LINK);

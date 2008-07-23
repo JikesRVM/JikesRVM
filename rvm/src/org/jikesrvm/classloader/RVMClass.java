@@ -21,7 +21,7 @@ import org.jikesrvm.Callbacks;
 import org.jikesrvm.Constants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.FieldLayoutContext;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -1773,9 +1773,9 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     // record offsets of those instance fields that contain references
     //
     if (typeRef.isRuntimeTable()) {
-      referenceOffsets = MM_Interface.newNonMovingIntArray(0);
+      referenceOffsets = MemoryManager.newNonMovingIntArray(0);
     } else {
-      referenceOffsets = MM_Interface.newNonMovingIntArray(referenceFieldCount);
+      referenceOffsets = MemoryManager.newNonMovingIntArray(referenceFieldCount);
       for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
         RVMField field = instanceFields[i];
         if (field.isTraced()) {
@@ -1828,9 +1828,9 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     // allocate "type information block"
     TIB allocatedTib;
     if (isInterface()) {
-      allocatedTib = MM_Interface.newTIB(0);
+      allocatedTib = MemoryManager.newTIB(0);
     } else {
-      allocatedTib = MM_Interface.newTIB(virtualMethods.length);
+      allocatedTib = MemoryManager.newTIB(virtualMethods.length);
     }
 
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
@@ -1845,7 +1845,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     }
 
     Callbacks.notifyClassResolved(this);
-    MM_Interface.notifyClassResolved(this);
+    MemoryManager.notifyClassResolved(this);
 
     // check for a "finalize" method that overrides the one in java.lang.Object
     //
@@ -2015,7 +2015,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   public synchronized void makeFieldTraced(RVMField field) {
     int[] oldOffsets = referenceOffsets;
     int fieldOffset = field.getOffset().toInt();
-    referenceOffsets = MM_Interface.newNonMovingIntArray(oldOffsets.length + 1);
+    referenceOffsets = MemoryManager.newNonMovingIntArray(oldOffsets.length + 1);
     int i;
     for(i=0; i < oldOffsets.length && oldOffsets[i] < fieldOffset; i++) {
       referenceOffsets[i] = oldOffsets[i];

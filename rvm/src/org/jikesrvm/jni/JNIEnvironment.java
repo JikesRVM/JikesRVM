@@ -14,7 +14,7 @@ package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Processor;
 import org.vmmagic.pragma.Entrypoint;
@@ -225,7 +225,7 @@ public class JNIEnvironment implements SizeConstants {
     }
 
     if (VM.VerifyAssertions) {
-      VM._assert(MM_Interface.validRef(ObjectReference.fromObject(ref)));
+      VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
     }
 
     if ((JNIRefsTop >>> LOG_BYTES_IN_ADDRESS) >= JNIRefs.length()) {
@@ -305,7 +305,7 @@ public class JNIEnvironment implements SizeConstants {
       VM.sysWrite(" ");
       VM.sysWrite(Magic.objectAsAddress(JNIRefs).plus(jniRefOffset));
       VM.sysWrite(" ");
-      MM_Interface.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS).toObjectReference());
+      MemoryManager.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS).toObjectReference());
       jniRefOffset -= BYTES_IN_ADDRESS;
     }
     VM.sysWrite("\n* * end of dump * *\n");

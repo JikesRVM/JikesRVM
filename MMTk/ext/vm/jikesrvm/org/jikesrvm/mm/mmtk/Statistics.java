@@ -16,7 +16,7 @@ import org.mmtk.utility.Constants;
 import org.jikesrvm.runtime.Time;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import org.vmmagic.pragma.*;
 
@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
    */
   @Uninterruptible
   public int getCollectionCount() {
-    return MM_Interface.getCollectionCount();
+    return MemoryManager.getCollectionCount();
   }
 
   /**

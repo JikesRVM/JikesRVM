@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;
 import org.jikesrvm.util.ImmutableEntryIdentityHashMapRVM;
@@ -570,7 +570,7 @@ public class Statics implements Constants {
     // VM. We suppress the warning as we know the error can't happen.
 
     if (VM.runningVM && MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
-      MM_Interface.putstaticWriteBarrier(offset, object, 0);
+      MemoryManager.putstaticWriteBarrier(offset, object, 0);
     } else {
       setSlotContents(offset, Magic.objectAsAddress(object).toWord());
     }

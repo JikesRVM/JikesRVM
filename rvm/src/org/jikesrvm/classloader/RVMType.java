@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Entrypoint;
@@ -237,7 +237,7 @@ public abstract class RVMType extends AnnotatedElement
     this.dimension = dimension;
 
     /* install partial type information block (no method dispatch table) for use in type checking. */
-    TIB tib = MM_Interface.newTIB(0);
+    TIB tib = MemoryManager.newTIB(0);
     tib.setType(this);
     Statics.setSlotContents(getTibOffset(), tib);
   }
@@ -257,7 +257,7 @@ public abstract class RVMType extends AnnotatedElement
     this.dimension = dimension;
 
     /* install partial type information block (no method dispatch table) for use in type checking. */
-    TIB tib = MM_Interface.newTIB(0);
+    TIB tib = MemoryManager.newTIB(0);
     tib.setType(this);
     Statics.setSlotContents(getTibOffset(), tib);
   }

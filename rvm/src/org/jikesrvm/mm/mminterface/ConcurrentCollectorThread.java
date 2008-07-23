@@ -89,7 +89,7 @@ public final class ConcurrentCollectorThread extends GreenThread {
    */
   @Interruptible
   public static ConcurrentCollectorThread createConcurrentCollectorThread(GreenProcessor processorAffinity) {
-    byte[] stack = MM_Interface.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR, true);
+    byte[] stack = MemoryManager.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR, true);
     return new ConcurrentCollectorThread(stack, processorAffinity);
   }
 

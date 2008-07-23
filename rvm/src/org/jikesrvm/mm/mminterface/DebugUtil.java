@@ -160,7 +160,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
     }
     ObjectModel.dumpHeader(ref);
     ObjectReference tib = ObjectReference.fromObject(ObjectModel.getTIB(ref));
-    if (!MM_Interface.mightBeTIB(tib)) {
+    if (!MemoryManager.mightBeTIB(tib)) {
       VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
       return;
     }

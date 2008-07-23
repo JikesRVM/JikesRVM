@@ -35,15 +35,15 @@ public final class VMRuntime {
   }
 
   static long freeMemory() {
-    return MM_Interface.freeMemory().toLong();
+    return MemoryManager.freeMemory().toLong();
   }
 
   static long totalMemory() {
-    return MM_Interface.totalMemory().toLong();
+    return MemoryManager.totalMemory().toLong();
   }
 
   static long maxMemory() {
-    return MM_Interface.maxMemory().toLong();
+    return MemoryManager.maxMemory().toLong();
   }
 
   static void gc() {

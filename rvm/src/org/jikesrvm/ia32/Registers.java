@@ -14,7 +14,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
@@ -47,8 +47,8 @@ public abstract class Registers implements RegisterConstants {
   public boolean inuse; // do exception registers currently contain live values?
 
   public Registers() {
-    gprs = gprsShadow = MM_Interface.newNonMovingWordArray(NUM_GPRS);
-    fprs = fprsShadow = MM_Interface.newNonMovingDoubleArray(NUM_FPRS);
+    gprs = gprsShadow = MemoryManager.newNonMovingWordArray(NUM_GPRS);
+    fprs = fprsShadow = MemoryManager.newNonMovingDoubleArray(NUM_FPRS);
   }
 
   /**

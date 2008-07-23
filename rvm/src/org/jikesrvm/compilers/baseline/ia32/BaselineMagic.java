@@ -26,7 +26,7 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.jni.FunctionTable;
 import org.jikesrvm.mm.mminterface.CollectorThread;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -142,7 +142,7 @@ final class BaselineMagic {
   private static void check(ObjectReference value) {
     if (!inCheck) {
       inCheck = true;
-      if (!MM_Interface.validRef(value) && FAIL_ON_BAD_REFERENCES) {
+      if (!MemoryManager.validRef(value) && FAIL_ON_BAD_REFERENCES) {
         VM.sysFail("Bad object reference encountered");
       }
       inCheck = false;
@@ -1579,8 +1579,8 @@ final class BaselineMagic {
       int width = array.getLogElementSize();
       Offset tibOffset = array.getTibOffset();
       int headerSize = ObjectModel.computeHeaderSize(array);
-      int whichAllocator = MM_Interface.pickAllocator(array, cm);
-      int site = MM_Interface.getAllocationSite(true);
+      int whichAllocator = MemoryManager.pickAllocator(array, cm);
+      int site = MemoryManager.getAllocationSite(true);
       int align = ObjectModel.getAlignment(array);
       int offset = ObjectModel.getOffsetForAlignment(array, false);
       // count is already on stack- nothing required

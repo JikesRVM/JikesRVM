@@ -17,7 +17,7 @@ import org.jikesrvm.SizeConstants;
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM
  * package space so that they can be accessed by the VM in an
- * MM-neutral way.  It is separate from MM_Interface to break
+ * MM-neutral way.  It is separate from MemoryManager to break
  * cyclic class-loading dependencies.
  */
 public class MM_Constants implements SizeConstants {

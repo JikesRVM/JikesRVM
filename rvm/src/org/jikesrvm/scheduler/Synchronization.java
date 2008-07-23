@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -76,7 +76,7 @@ public class Synchronization {
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
     if (MM_Constants.NEEDS_WRITE_BARRIER) {
-      return MM_Interface.tryCompareAndSwapWriteBarrier(base, offset, testValue, newValue);
+      return MemoryManager.tryCompareAndSwapWriteBarrier(base, offset, testValue, newValue);
     } else {
       Object oldValue;
       do {

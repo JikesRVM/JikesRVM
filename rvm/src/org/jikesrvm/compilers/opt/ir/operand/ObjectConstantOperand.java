@@ -17,7 +17,7 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
  * Represents a constant object operand (for example, from an
@@ -54,7 +54,7 @@ public class ObjectConstantOperand extends ConstantOperand {
     offset = i;
     // prior to writing the boot image we don't know where objects will reside,
     // so we must treat them as movable when writing the boot image
-    movable = !VM.runningVM || !MM_Interface.willNeverMove(v);
+    movable = !VM.runningVM || !MemoryManager.willNeverMove(v);
   }
 
   /**

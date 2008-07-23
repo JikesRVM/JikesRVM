@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;
@@ -470,12 +470,12 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     // virtual method fields and substituting an appropriate type field.
     //
     TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
-    TIB allocatedTib = MM_Interface.newTIB(javaLangObjectTIB.numVirtualMethods());
+    TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods());
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
     doesImplement = DynamicTypeCheck.buildDoesImplement(this);
     publishResolved(allocatedTib, superclassIds, doesImplement);
 
-    MM_Interface.notifyClassResolved(this);
+    MemoryManager.notifyClassResolved(this);
   }
 
   /**
@@ -1010,7 +1010,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
 
     if (!MM_Constants.NEEDS_READ_BARRIER && ((src != dst) || loToHi)) {
       if (!MM_Constants.NEEDS_WRITE_BARRIER ||
-          !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, bytes)) {
+          !MemoryManager.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, bytes)) {
         Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset),
                                   Magic.objectAsAddress(src).plus(srcOffset),
                                   bytes);
@@ -1030,12 +1030,12 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
       while (len-- != 0) {
         Object value;
         if (MM_Constants.NEEDS_READ_BARRIER) {
-          value = MM_Interface.arrayLoadReadBarrier(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
+          value = MemoryManager.arrayLoadReadBarrier(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
         } else {
           value = Magic.getObjectAtOffset(src, srcOffset);
         }
         if (MM_Constants.NEEDS_WRITE_BARRIER) {
-          MM_Interface.arrayStoreWriteBarrier(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
+          MemoryManager.arrayStoreWriteBarrier(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
         } else {
           Magic.setObjectAtOffset(dst, dstOffset, value);
         }

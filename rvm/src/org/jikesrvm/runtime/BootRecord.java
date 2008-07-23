@@ -13,7 +13,7 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -101,7 +101,7 @@ public class BootRecord {
   public static BootRecord the_boot_record;
 
   public BootRecord() {
-    int len = 2 * (1 + MM_Interface.getMaxHeaps());
+    int len = 2 * (1 + MemoryManager.getMaxHeaps());
     heapRanges = AddressArray.create(len);
     // Indicate end of array with sentinel value
     heapRanges.set(len - 1, Address.fromIntSignExtend(-1));

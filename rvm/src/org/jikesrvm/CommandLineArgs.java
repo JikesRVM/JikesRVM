@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.BaselineOptions;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.Scheduler;
@@ -524,10 +524,10 @@ public class CommandLineArgs {
           // GC options
           // -------------------------------------------------------------------
         case GC_HELP_ARG:  // -X:gc passed 'help' as an option
-          MM_Interface.processCommandLineArg("help");
+          MemoryManager.processCommandLineArg("help");
           break;
         case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
-          MM_Interface.processCommandLineArg(arg);
+          MemoryManager.processCommandLineArg(arg);
           break;
 
           // ----------------------------------------------------

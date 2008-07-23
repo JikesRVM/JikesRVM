@@ -19,7 +19,7 @@ import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -414,7 +414,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
     for (int i = firstReg; i <= lastReg; i++) {
       Address regLocation = registerLocations.get(i).toAddress();
       Address regValue = regLocation.loadAddress();
-      if (MM_Interface.addressInVM(regValue)) {
+      if (MemoryManager.addressInVM(regValue)) {
         VM.sysWrite("  reg#", getCurrentRegister());
         VM.sysWrite(", location ==>", regLocation);
         VM.sysWriteln(", suspicious value ==>", regValue);
@@ -469,7 +469,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
         VM.sysWrite("\n");
       }
 
-      if (MM_Interface.addressInVM(ptr)) {
+      if (MemoryManager.addressInVM(ptr)) {
         VM.sysWrite("  spill location:");
         VM.sysWrite(i);
         VM.sysWrite(" contains a suspicious value ==>");

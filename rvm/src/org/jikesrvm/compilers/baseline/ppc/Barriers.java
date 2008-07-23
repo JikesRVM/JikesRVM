@@ -29,7 +29,7 @@ class Barriers implements BaselineConstants {
     Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
-    asm.emitBCCTRL();  // MM_Interface.arrayStoreWriteBarrier(Object ref, int index, Object value)
+    asm.emitBCCTRL();  // MemoryManager.arrayStoreWriteBarrier(Object ref, int index, Object value)
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
@@ -42,7 +42,7 @@ class Barriers implements BaselineConstants {
     asm.emitNullCheck(T0);
     comp.peekAddr(T2, 0);               // value to store
     asm.emitLVAL(T3, locationMetadata);
-    asm.emitBCCTRL(); // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
+    asm.emitBCCTRL(); // MemoryManager.putfieldWriteBarrier(T0,T1,T2,T3)
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
@@ -55,7 +55,7 @@ class Barriers implements BaselineConstants {
     asm.emitLVALAddr(T1, fieldOffset);       // offset
     comp.peekAddr(T2, 0);                 // value to store
     asm.emitLVAL(T3, locationMetadata);
-    asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
+    asm.emitBCCTRL();  // MemoryManager.putfieldWriteBarrier(T0,T1,T2,T3)
   }
 
   //  on entry java stack contains ...|ref_to_store|
@@ -66,7 +66,7 @@ class Barriers implements BaselineConstants {
     asm.emitMTCTR(S0);
     comp.peekAddr(T1, 0);                 // value to store
     asm.emitLVAL(T2, locationMetadata);
-    asm.emitBCCTRL(); // MM_Interface.putstaticWriteBarrier(T0,T1)
+    asm.emitBCCTRL(); // MemoryManager.putstaticWriteBarrier(T0,T1)
   }
 
   //  on entry java stack contains ...|ref_to_store|
@@ -77,7 +77,7 @@ class Barriers implements BaselineConstants {
     asm.emitLVALAddr(T0, fieldOffset);    // offset
     comp.peekAddr(T1, 0);                 // value to store
     asm.emitLVAL(T2, locationMetadata);
-    asm.emitBCCTRL();  // MM_Interface.putstaticWriteBarrier(T0,T1)
+    asm.emitBCCTRL();  // MemoryManager.putstaticWriteBarrier(T0,T1)
   }
 
   // on entry T0, T1 already contain the appropriate values
@@ -85,7 +85,7 @@ class Barriers implements BaselineConstants {
     Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, Entrypoints.arrayLoadReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
-    asm.emitBCCTRL();  // MM_Interface.arrayLoadReadBarrier(T0,T1)
+    asm.emitBCCTRL();  // MemoryManager.arrayLoadReadBarrier(T0,T1)
   }
 
   //  on entry java stack contains ...|source_ref|
@@ -97,7 +97,7 @@ class Barriers implements BaselineConstants {
     comp.peekAddr(T0, 0);               // object base
     asm.emitNullCheck(T0);
     asm.emitLVAL(T2, locationMetadata);
-    asm.emitBCCTRL(); // MM_Interface.getfieldReadBarrier(T0,T1,T2)
+    asm.emitBCCTRL(); // MemoryManager.getfieldReadBarrier(T0,T1,T2)
   }
 
   //  on entry java stack contains ...|source_ref|
@@ -109,7 +109,7 @@ class Barriers implements BaselineConstants {
     asm.emitNullCheck(T0);
     asm.emitLVALAddr(T1, fieldOffset);       // offset
     asm.emitLVAL(T2, locationMetadata);
-    asm.emitBCCTRL();  // MM_Interface.getfieldReadBarrier(T0,T1,T2)
+    asm.emitBCCTRL();  // MemoryManager.getfieldReadBarrier(T0,T1,T2)
   }
 
   //  on entry java stack contains ...|
@@ -119,7 +119,7 @@ class Barriers implements BaselineConstants {
     asm.emitLAddrToc(S0, Entrypoints.getstaticReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitLVAL(T1, locationMetadata);
-    asm.emitBCCTRL(); // MM_Interface.getstaticReadBarrier(T0,T1)
+    asm.emitBCCTRL(); // MemoryManager.getstaticReadBarrier(T0,T1)
   }
 
   //  on entry java stack contains ...|
@@ -129,6 +129,6 @@ class Barriers implements BaselineConstants {
     asm.emitMTCTR(S0);
     asm.emitLVALAddr(T0, fieldOffset);    // offset
     asm.emitLVAL(T1, locationMetadata);
-    asm.emitBCCTRL();  // MM_Interface.getstaticReadBarrier(T0,T1)
+    asm.emitBCCTRL();  // MemoryManager.getstaticReadBarrier(T0,T1)
   }
 }

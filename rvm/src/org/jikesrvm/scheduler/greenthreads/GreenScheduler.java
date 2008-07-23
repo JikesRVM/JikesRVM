@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.ConcurrentCollectorThread;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Entrypoints;
@@ -132,7 +132,7 @@ public final class GreenScheduler extends Scheduler {
     // allocate initial processor list
     //
     // first slot unused, then primordial, then extra
-    processors = MM_Interface.newProcessorTable(2 + NUM_EXTRA_PROCS);
+    processors = MemoryManager.newProcessorTable(2 + NUM_EXTRA_PROCS);
     processors.set(PRIMORDIAL_PROCESSOR_ID, new GreenProcessor(PRIMORDIAL_PROCESSOR_ID));
     for (int i = 1; i <= NUM_EXTRA_PROCS; i++) {
       processors.set(PRIMORDIAL_PROCESSOR_ID + i, new GreenProcessor(PRIMORDIAL_PROCESSOR_ID + i));
@@ -162,7 +162,7 @@ public final class GreenScheduler extends Scheduler {
     // was already created in the boot image by init(), above.
     //
     ProcessorTable origProcs = processors;
-    processors = MM_Interface.newProcessorTable(1 + numProcessors);
+    processors = MemoryManager.newProcessorTable(1 + numProcessors);
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
       GreenProcessor p = (i < origProcs.length()) ? (GreenProcessor)origProcs.get(i) : null;

@@ -18,7 +18,7 @@ import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.RVMThread;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.Word;
  * <li> The JavaHeader defined by {@link JavaHeader}. This portion of the
  *      object supports language-level functions such as locking, hashcodes,
  *      dynamic type checking, virtual function invocation, and array length.
- * <li> The GCHeader defined by {@link MM_Interface}. This portion
+ * <li> The GCHeader defined by {@link MemoryManager}. This portion
  *      of the object supports allocator-specific requirements such as
  *      mark/barrier bits, reference counts, etc.
  * <li> The MiscHeader defined by {@link MiscHeader}. This portion supports
@@ -121,7 +121,7 @@ import org.vmmagic.unboxed.Word;
  *
  * @see JavaHeader
  * @see MiscHeader
- * @see MM_Interface
+ * @see MemoryManager
  */
 @Uninterruptible
 public class ObjectModel implements JavaHeaderConstants, SizeConstants {
@@ -755,7 +755,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     int offset = getOffsetForAlignment(klass, needsIdentityHash);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size, needsIdentityHash, identityHashValue);
-    MM_Interface.initializeHeader(bootImage, ref, tib, size, true);
+    MemoryManager.initializeHeader(bootImage, ref, tib, size, true);
     MiscHeader.initializeHeader(bootImage, ref, tib, size, true);
     return ref;
   }
@@ -821,7 +821,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, needsIdentityHash, identityHashValue);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
-    MM_Interface.initializeHeader(bootImage, ref, tib, size, false);
+    MemoryManager.initializeHeader(bootImage, ref, tib, size, false);
     MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;
   }
@@ -845,7 +845,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     Address ptr = bootImage.allocateCodeStorage(size, align, offset);
     Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, false, 0);
     bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
-    MM_Interface.initializeHeader(bootImage, ref, tib, size, false);
+    MemoryManager.initializeHeader(bootImage, ref, tib, size, false);
     MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;
   }

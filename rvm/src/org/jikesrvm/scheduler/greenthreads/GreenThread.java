@@ -17,7 +17,7 @@ import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.OSRListener;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
@@ -96,7 +96,7 @@ public class GreenThread extends RVMThread {
    * Create a thread with default stack and with the given name.
    */
   public GreenThread(String name) {
-    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false),
+    this(MemoryManager.newStack(STACK_SIZE_NORMAL, false),
         null, // java.lang.Thread
         name,
         true, // daemon
@@ -123,7 +123,7 @@ public class GreenThread extends RVMThread {
    * isn't set.
    */
   public GreenThread(Thread thread, long stacksize, String name, boolean daemon, int priority) {
-    this(MM_Interface.newStack((stacksize <= 0) ? STACK_SIZE_NORMAL : (int)stacksize, false),
+    this(MemoryManager.newStack((stacksize <= 0) ? STACK_SIZE_NORMAL : (int)stacksize, false),
         thread, name, daemon, false, priority);
   }
 

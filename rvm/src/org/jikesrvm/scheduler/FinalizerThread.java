@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.vmmagic.pragma.NonMoving;
@@ -60,7 +60,7 @@ public class FinalizerThread extends Scheduler.ThreadModel {
         }
 
         while (true) {
-          Object o = MM_Interface.getFinalizedObject();
+          Object o = MemoryManager.getFinalizedObject();
           if (o == null) break;
           if (verbose >= 2) {
             VM.sysWrite("FinalizerThread finalizing object at ", Magic.objectAsAddress(o));

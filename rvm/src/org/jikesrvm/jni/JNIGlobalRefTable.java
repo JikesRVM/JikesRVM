@@ -15,7 +15,7 @@ package org.jikesrvm.jni;
 import java.lang.ref.WeakReference;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.ObjectReference;
@@ -33,7 +33,7 @@ public class JNIGlobalRefTable {
   private static int free = 1;
 
   static int newGlobalRef(Object referent) {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.validRef(ObjectReference.fromObject(referent)));
+    if (VM.VerifyAssertions) VM._assert(MemoryManager.validRef(ObjectReference.fromObject(referent)));
 
     if (free >= JNIGlobalRefs.length()) {
       AddressArray newGlobalRefs = AddressArray.create(JNIGlobalRefs.length() * 2);

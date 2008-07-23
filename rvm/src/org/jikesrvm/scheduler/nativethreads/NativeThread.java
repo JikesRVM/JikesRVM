@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler.nativethreads;
 
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_NORMAL;
 
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NonMoving;
@@ -26,7 +26,7 @@ public class NativeThread extends RVMThread {
    * Create a thread with default stack and with the given name.
    */
   public NativeThread(String name) {
-    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false),
+    this(MemoryManager.newStack(STACK_SIZE_NORMAL, false),
         null, // java.lang.Thread
         name,
         true, // daemon
@@ -53,7 +53,7 @@ public class NativeThread extends RVMThread {
    * isn't set.
    */
   public NativeThread(Thread thread, long stacksize, String name, boolean daemon, int priority) {
-    this(MM_Interface.newStack((stacksize <= 0) ? STACK_SIZE_NORMAL : (int)stacksize, false),
+    this(MemoryManager.newStack((stacksize <= 0) ? STACK_SIZE_NORMAL : (int)stacksize, false),
         thread, name, daemon, false, priority);
   }
 

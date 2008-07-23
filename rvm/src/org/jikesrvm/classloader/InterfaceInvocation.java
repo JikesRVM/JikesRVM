@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.InterfaceMethodConflictResolver;
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;
@@ -216,7 +216,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
    */
   private static void populateIMT(RVMClass klass, IMTDict d) {
     TIB tib = klass.getTypeInformationBlock();
-    IMT IMT = MM_Interface.newIMT();
+    IMT IMT = MemoryManager.newIMT();
     klass.setIMT(IMT);
     d.populateIMT(klass, tib, IMT);
     tib.setImt(IMT);
@@ -231,7 +231,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
     ITableArray iTables = tib.getITableArray();
 
     if (iTables == null) {
-      iTables = MM_Interface.newITableArray(2);
+      iTables = MemoryManager.newITableArray(2);
       tib.setITableArray(iTables);
     } else {
       for(int i=0; i < iTables.length(); i++) {
@@ -239,7 +239,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
           return; // some other thread just built the iTable
         }
       }
-      ITableArray tmp = MM_Interface.newITableArray(iTables.length() + 1);
+      ITableArray tmp = MemoryManager.newITableArray(iTables.length() + 1);
       for(int i=0; i < iTables.length(); i++) {
         tmp.set(i, iTables.get(i));
       }
@@ -260,7 +260,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
   private static ITable buildITable(RVMClass C, RVMClass I) {
     RVMMethod[] interfaceMethods = I.getDeclaredMethods();
     TIB tib = C.getTypeInformationBlock();
-    ITable iTable = MM_Interface.newITable(interfaceMethods.length + 1);
+    ITable iTable = MemoryManager.newITable(interfaceMethods.length + 1);
     iTable.set(0, I);
     for (RVMMethod im : interfaceMethods) {
       if (im.isClassInitializer()) continue;

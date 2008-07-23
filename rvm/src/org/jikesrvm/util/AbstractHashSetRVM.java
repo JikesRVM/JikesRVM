@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
  * Common super class for all VM hash sets
@@ -60,7 +60,7 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
    * to multiple sets of buckets that will be scanned
    */
   private boolean growMapAllowed() {
-    return !VM.runningVM || !MM_Interface.isImmortal(buckets);
+    return !VM.runningVM || !MemoryManager.isImmortal(buckets);
   }
 
   public void add(T key) {

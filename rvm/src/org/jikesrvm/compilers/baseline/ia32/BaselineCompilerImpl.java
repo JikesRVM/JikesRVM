@@ -40,7 +40,7 @@ import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.ia32.ProcessorLocalState;
 import org.jikesrvm.jni.ia32.JNICompiler;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
@@ -2926,10 +2926,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_resolved_new(RVMClass typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
-    int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
+    int whichAllocator = MemoryManager.pickAllocator(typeRef, method);
     int align = ObjectModel.getAlignment(typeRef, false);
     int offset = ObjectModel.getOffsetForAlignment(typeRef, false);
-    int site = MM_Interface.getAllocationSite(true);
+    int site = MemoryManager.getAllocationSite(true);
     asm.emitPUSH_Imm(instanceSize);
     asm.emitPUSH_Abs(Magic.getTocPointer().plus(tibOffset));       // put tib on stack
     asm.emitPUSH_Imm(typeRef.hasFinalizer() ? 1 : 0); // does the class have a finalizer?
@@ -2948,7 +2948,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_new(TypeReference typeRef) {
-    int site = MM_Interface.getAllocationSite(true);
+    int site = MemoryManager.getAllocationSite(true);
     asm.emitPUSH_Imm(typeRef.getId());
     asm.emitPUSH_Imm(site);                 // site
     genParameterRegisterLoad(asm, 2);            // pass 2 parameter words
@@ -2965,8 +2965,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int width = array.getLogElementSize();
     Offset tibOffset = array.getTibOffset();
     int headerSize = ObjectModel.computeHeaderSize(array);
-    int whichAllocator = MM_Interface.pickAllocator(array, method);
-    int site = MM_Interface.getAllocationSite(true);
+    int whichAllocator = MemoryManager.pickAllocator(array, method);
+    int site = MemoryManager.getAllocationSite(true);
     int align = ObjectModel.getAlignment(array);
     int offset = ObjectModel.getOffsetForAlignment(array, false);
     // count is already on stack- nothing required
@@ -2988,7 +2988,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_newarray(TypeReference tRef) {
-    int site = MM_Interface.getAllocationSite(true);
+    int site = MemoryManager.getAllocationSite(true);
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(tRef.getId());
     asm.emitPUSH_Imm(site);                 // site

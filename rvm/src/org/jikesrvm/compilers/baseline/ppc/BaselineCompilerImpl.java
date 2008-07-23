@@ -40,7 +40,7 @@ import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.ppc.TrapConstants;
@@ -2968,10 +2968,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_resolved_new(RVMClass typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
-    int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
+    int whichAllocator = MemoryManager.pickAllocator(typeRef, method);
     int align = ObjectModel.getAlignment(typeRef);
     int offset = ObjectModel.getOffsetForAlignment(typeRef, false);
-    int site = MM_Interface.getAllocationSite(true);
+    int site = MemoryManager.getAllocationSite(true);
     asm.emitLAddrToc(T0, Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
@@ -2990,7 +2990,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(TypeReference typeRef) {
-    int site = MM_Interface.getAllocationSite(true);
+    int site = MemoryManager.getAllocationSite(true);
     asm.emitLAddrToc(T0, Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, typeRef.getId());
@@ -3007,8 +3007,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     int width = array.getLogElementSize();
     Offset tibOffset = array.getTibOffset();
     int headerSize = ObjectModel.computeArrayHeaderSize(array);
-    int whichAllocator = MM_Interface.pickAllocator(array, method);
-    int site = MM_Interface.getAllocationSite(true);
+    int whichAllocator = MemoryManager.pickAllocator(array, method);
+    int site = MemoryManager.getAllocationSite(true);
     int align = ObjectModel.getAlignment(array);
     int offset = ObjectModel.getOffsetForAlignment(array, false);
     asm.emitLAddrToc(T0, Entrypoints.resolvedNewArrayMethod.getOffset());
@@ -3030,7 +3030,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_newarray(TypeReference typeRef) {
-    int site = MM_Interface.getAllocationSite(true);
+    int site = MemoryManager.getAllocationSite(true);
     asm.emitLAddrToc(T0, Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0, 0);                // T0 := number of elements

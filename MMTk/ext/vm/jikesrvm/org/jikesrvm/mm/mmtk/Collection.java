@@ -59,7 +59,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * the boot image.  Any objects referenced by those statics will be
    * transitively included in the boot image.
    *
-   * This is called from MM_Interface.
+   * This is called from MemoryManager.
    */
   @Interruptible
   public static void init() {

@@ -31,7 +31,7 @@ import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
@@ -4367,7 +4367,7 @@ public class JNIFunctions implements SizeConstants {
       byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         /* return a direct pointer */
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
@@ -4412,7 +4412,7 @@ public class JNIFunctions implements SizeConstants {
       char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
       } else {
@@ -4455,7 +4455,7 @@ public class JNIFunctions implements SizeConstants {
       short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
       } else {
@@ -4498,7 +4498,7 @@ public class JNIFunctions implements SizeConstants {
       int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
       } else {
@@ -4540,7 +4540,7 @@ public class JNIFunctions implements SizeConstants {
       long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
       } else {
@@ -4582,7 +4582,7 @@ public class JNIFunctions implements SizeConstants {
       float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
       } else {
@@ -4625,7 +4625,7 @@ public class JNIFunctions implements SizeConstants {
       double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.willNeverMove(sourceArray)) {
+      if (MemoryManager.willNeverMove(sourceArray)) {
         JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return Magic.objectAsAddress(sourceArray);
       } else {

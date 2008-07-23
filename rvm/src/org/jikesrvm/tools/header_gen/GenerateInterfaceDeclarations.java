@@ -238,9 +238,9 @@ public class GenerateInterfaceDeclarations {
     emitAssemblerDeclarations();
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
 
-    pln("#ifdef NEED_MM_INTERFACE_DECLARATIONS");
-    pln("#define MAXHEAPS " + org.jikesrvm.mm.mminterface.MM_Interface.getMaxHeaps());
-    pln("#endif /* NEED_MM_INTERFACE_DECLARATIONS */");
+    pln("#ifdef NEED_MEMORY_MANAGER_DECLARATIONS");
+    pln("#define MAXHEAPS " + org.jikesrvm.mm.mminterface.MemoryManager.getMaxHeaps());
+    pln("#endif /* NEED_MEMORY_MANAGER_DECLARATIONS */");
     pln();
 
   }

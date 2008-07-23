@@ -18,7 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.JavaHeader;
@@ -231,7 +231,7 @@ public class BootImage extends BootImageWriterMessages
   public Address allocateDataStorage(int size, int align, int offset) {
     size = roundAllocationSize(size);
     Offset unalignedOffset = freeDataOffset;
-    freeDataOffset = MM_Interface.alignAllocation(freeDataOffset, align, offset);
+    freeDataOffset = MemoryManager.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
       VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero());
       VM._assert(freeDataOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
@@ -264,7 +264,7 @@ public class BootImage extends BootImageWriterMessages
   public Address allocateCodeStorage(int size, int align, int offset) {
     size = roundAllocationSize(size);
     Offset unalignedOffset = freeCodeOffset;
-    freeCodeOffset = MM_Interface.alignAllocation(freeCodeOffset, align, offset);
+    freeCodeOffset = MemoryManager.alignAllocation(freeCodeOffset, align, offset);
     if (VM.ExtremeAssertions) {
       VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero());
       VM._assert(freeCodeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
@@ -385,7 +385,7 @@ public class BootImage extends BootImageWriterMessages
    */
   public void setAddressWord(Address address, Word value, boolean objField, boolean root) {
     if (VM.VerifyAssertions) VM._assert(!root || objField);
-    if (objField) value = MM_Interface.bootTimeWriteBarrier(value);
+    if (objField) value = MemoryManager.bootTimeWriteBarrier(value);
     if (root) markReferenceMap(address);
     if (VM.BuildFor32Addr)
       setFullWord(address, value.toInt());

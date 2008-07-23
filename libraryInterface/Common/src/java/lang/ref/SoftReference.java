@@ -12,7 +12,7 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
  * Implementation of java.lang.ref.SoftReference for JikesRVM.
@@ -21,11 +21,11 @@ public class SoftReference<T> extends Reference<T> {
 
   public SoftReference(T referent) {
     super(referent);
-    MM_Interface.addSoftReference(this,referent);
+    MemoryManager.addSoftReference(this,referent);
   }
 
   public SoftReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addSoftReference(this, referent);
+    MemoryManager.addSoftReference(this, referent);
   }
 }

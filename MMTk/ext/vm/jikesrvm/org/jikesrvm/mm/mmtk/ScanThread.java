@@ -22,7 +22,7 @@ import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.mm.mminterface.GCMapIteratorGroup;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -608,7 +608,7 @@ import org.vmmagic.unboxed.Offset;
     ObjectReference ref = refaddr.loadObjectReference();
     VM.sysWrite(refaddr);
     if (verbosity >= 4) {
-      VM.sysWrite(":"); MM_Interface.dumpRef(ref);
+      VM.sysWrite(":"); MemoryManager.dumpRef(ref);
     } else
       VM.sysWriteln();
   }
@@ -623,11 +623,11 @@ import org.vmmagic.unboxed.Offset;
    */
   private void checkReference(Address refaddr, int verbosity) {
     ObjectReference ref = refaddr.loadObjectReference();
-    if (!MM_Interface.validRef(ref)) {
+    if (!MemoryManager.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning stack");
       printMethodHeader();
-      Log.write(refaddr); Log.write(":"); Log.flush(); MM_Interface.dumpRef(ref);
+      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
       dumpStackFrame(verbosity);
       Log.writeln();
       Log.writeln("Dumping stack starting at frame with bad ref:");
@@ -650,10 +650,10 @@ import org.vmmagic.unboxed.Offset;
    */
   static void checkReference(Address refaddr) {
     ObjectReference ref = refaddr.loadObjectReference();
-    if (!MM_Interface.validRef(ref)) {
+    if (!MemoryManager.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning stack");
-      Log.write(refaddr); Log.write(":"); Log.flush(); MM_Interface.dumpRef(ref);
+      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
       Scheduler.dumpStack();
@@ -733,8 +733,8 @@ import org.vmmagic.unboxed.Offset;
       Log.write(value);
       Log.write(" ");
       Log.flush();
-      if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end))
-        MM_Interface.dumpRef(value);
+      if (verbosity >= 3 && MemoryManager.objectInVM(value) && loc.NE(start) && loc.NE(end))
+        MemoryManager.dumpRef(value);
       else
         Log.writeln();
     }

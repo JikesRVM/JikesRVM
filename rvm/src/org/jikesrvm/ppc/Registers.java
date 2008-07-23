@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
@@ -48,8 +48,8 @@ public abstract class Registers implements ArchConstants {
   static Address invalidIP = Address.max();
 
   public Registers() {
-    gprs = gprsShadow = MM_Interface.newNonMovingWordArray(NUM_GPRS);
-    fprs = fprsShadow = MM_Interface.newNonMovingDoubleArray(NUM_FPRS);
+    gprs = gprsShadow = MemoryManager.newNonMovingWordArray(NUM_GPRS);
+    fprs = fprsShadow = MemoryManager.newNonMovingDoubleArray(NUM_FPRS);
     ip = invalidIP;
   }
 

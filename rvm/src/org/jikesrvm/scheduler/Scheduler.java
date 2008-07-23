@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.mm.mminterface.MM_Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
@@ -182,7 +182,7 @@ public abstract class Scheduler {
             threadHighWatermark = index;
           }
           if (MM_Constants.NEEDS_WRITE_BARRIER) {
-            MM_Interface.arrayStoreWriteBarrier(Scheduler.threads,
+            MemoryManager.arrayStoreWriteBarrier(Scheduler.threads,
                 index, thread);
           } else {
             Magic.setObjectAtOffset(threads,
@@ -220,7 +220,7 @@ public abstract class Scheduler {
      *  store, but a reference counting collector sure does.
      */
     if (MM_Constants.NEEDS_WRITE_BARRIER)
-      MM_Interface.arrayStoreWriteBarrier(Scheduler.threads,
+      MemoryManager.arrayStoreWriteBarrier(Scheduler.threads,
           threadSlot, null);
     Magic.setObjectAtOffset(Scheduler.threads,
         Offset.fromIntZeroExtend(threadSlot << SizeConstants.LOG_BYTES_IN_ADDRESS), null);
@@ -722,14 +722,14 @@ public abstract class Scheduler {
         while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
 
           // if code is outside of RVM heap, assume it to be native code,
-          if (!MM_Interface.addressInVM(ip)) {
+          if (!MemoryManager.addressInVM(ip)) {
             // Loop until either we fall off the stack or we find an instruction address
             // in one of our heaps
             do {
               showMethod("native frame", fp);
               ip = Magic.getReturnAddress(fp);
               fp = Magic.getCallerFramePointer(fp);
-            } while (!MM_Interface.addressInVM(ip) && fp.NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP));
+            } while (!MemoryManager.addressInVM(ip) && fp.NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP));
             if (VM.BuildForPowerPC) {
               // skip over main frame to mini-frame
               fp = Magic.getCallerFramePointer(fp);
@@ -813,7 +813,7 @@ public abstract class Scheduler {
       return false; // Avoid hitting assertion failure in MMTk
     else
       return address.EQ(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
-             MM_Interface.mightBeFP(address);
+             MemoryManager.mightBeFP(address);
   }
 
   private static void showPrologue(Address fp) {

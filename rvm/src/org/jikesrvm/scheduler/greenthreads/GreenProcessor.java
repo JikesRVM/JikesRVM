@@ -15,7 +15,7 @@ package org.jikesrvm.scheduler.greenthreads;
 import org.jikesrvm.ArchitectureSpecific.ProcessorLocalState;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -221,7 +221,7 @@ public final class GreenProcessor extends Processor {
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) {
       VM._assert(threadSwitchingEnabledCount <= 1);
-      if (MM_Interface.gcInProgress()) {
+      if (MemoryManager.gcInProgress()) {
         VM._assert(threadSwitchingEnabledCount < 1 || getCurrentProcessorId() == 0);
       }
     }
@@ -330,7 +330,7 @@ public final class GreenProcessor extends Processor {
   private void processMutatorFlushRequest() {
     GreenScheduler.flushMutatorContextsMutex.lock("handling flush request");
     /* One context per processor under green threads */
-    MM_Interface.flushMutatorContext();
+    MemoryManager.flushMutatorContext();
     flushRequested = false;
     if (++GreenScheduler.flushedMutatorCount >= GreenScheduler.numProcessors) {
       while (!GreenScheduler.flushMutatorContextsQueue.isEmpty()) {
