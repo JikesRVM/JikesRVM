@@ -14,7 +14,7 @@ package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
@@ -44,7 +44,7 @@ public interface JavaHeaderConstants extends SizeConstants {
   /** Number of bytes used by the Java Header */
   int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
   /** Number of bytes used by the GC Header */
-  int GC_HEADER_BYTES = MM_Constants.GC_HEADER_BYTES;
+  int GC_HEADER_BYTES = MemoryManagerConstants.GC_HEADER_BYTES;
   /** Number of bytes used by the miscellaneous header */
   int MISC_HEADER_BYTES = MiscHeaderConstants.NUM_BYTES_HEADER;
   /** Size of GC and miscellaneous headers */
@@ -70,7 +70,7 @@ public interface JavaHeaderConstants extends SizeConstants {
    *     In a copying collector, this forces us to add a word
    *     to copied objects that have had their hashcode taken.
    */
-  boolean ADDRESS_BASED_HASHING = !MM_Constants.GENERATE_GC_TRACE;
+  boolean ADDRESS_BASED_HASHING = !MemoryManagerConstants.GENERATE_GC_TRACE;
 
   /** How many bits in the header are available for the GC and MISC headers? */
   int NUM_AVAILABLE_BITS = ADDRESS_BASED_HASHING ? 8 : 2;
@@ -85,7 +85,7 @@ public interface JavaHeaderConstants extends SizeConstants {
    * Does this object model place the hash for a hashed and moved object
    * after the data (at a dynamic offset)
    */
-  boolean DYNAMIC_HASH_OFFSET = ADDRESS_BASED_HASHING && MM_Constants.NEEDS_LINEAR_SCAN;
+  boolean DYNAMIC_HASH_OFFSET = ADDRESS_BASED_HASHING && MemoryManagerConstants.NEEDS_LINEAR_SCAN;
 
   /**
    * Can we perform a linear scan?

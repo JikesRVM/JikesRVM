@@ -15,7 +15,7 @@ package org.jikesrvm.scheduler;
 import org.jikesrvm.ArchitectureSpecific.ProcessorLocalState;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.MM_ProcessorContext;
+import org.jikesrvm.mm.mminterface.ProcessorContext;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Entrypoint;
@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  */
 @Uninterruptible
 @NonMoving
-public abstract class Processor extends MM_ProcessorContext implements Constants {
+public abstract class Processor extends ProcessorContext implements Constants {
   /*
    * definitions for VP status for implementation of jni
    */

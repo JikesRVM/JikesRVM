@@ -15,7 +15,7 @@ package org.jikesrvm.runtime;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;
@@ -569,7 +569,7 @@ public class Statics implements Constants {
     // happen as the fault would only ever occur when not running the
     // VM. We suppress the warning as we know the error can't happen.
 
-    if (VM.runningVM && MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+    if (VM.runningVM && MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
       MemoryManager.putstaticWriteBarrier(offset, object, 0);
     } else {
       setSlotContents(offset, Magic.objectAsAddress(object).toWord());

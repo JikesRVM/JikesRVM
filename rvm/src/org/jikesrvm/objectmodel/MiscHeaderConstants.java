@@ -13,7 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 
 /**
  * Defines other header words not used for
@@ -30,7 +30,7 @@ public interface MiscHeaderConstants extends Constants {
    */
 
   /* amount by which tracing causes headers to grow */ int GC_TRACING_HEADER_WORDS =
-      (MM_Constants.GENERATE_GC_TRACE ? 3 : 0);
+      (MemoryManagerConstants.GENERATE_GC_TRACE ? 3 : 0);
   int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS << LOG_BYTES_IN_ADDRESS;
 
   /**

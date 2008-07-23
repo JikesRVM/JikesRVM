@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
@@ -1008,8 +1008,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_ADDRESS);
     int bytes = len << LOG_BYTES_IN_ADDRESS;
 
-    if (!MM_Constants.NEEDS_READ_BARRIER && ((src != dst) || loToHi)) {
-      if (!MM_Constants.NEEDS_WRITE_BARRIER ||
+    if (!MemoryManagerConstants.NEEDS_READ_BARRIER && ((src != dst) || loToHi)) {
+      if (!MemoryManagerConstants.NEEDS_WRITE_BARRIER ||
           !MemoryManager.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, bytes)) {
         Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset),
                                   Magic.objectAsAddress(src).plus(srcOffset),
@@ -1029,12 +1029,12 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
       // perform the copy
       while (len-- != 0) {
         Object value;
-        if (MM_Constants.NEEDS_READ_BARRIER) {
+        if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
           value = MemoryManager.arrayLoadReadBarrier(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
         } else {
           value = Magic.getObjectAtOffset(src, srcOffset);
         }
-        if (MM_Constants.NEEDS_WRITE_BARRIER) {
+        if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
           MemoryManager.arrayStoreWriteBarrier(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
         } else {
           Magic.setObjectAtOffset(dst, dstOffset, value);

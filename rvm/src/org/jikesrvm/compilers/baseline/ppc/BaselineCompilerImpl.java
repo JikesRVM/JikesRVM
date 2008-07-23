@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
@@ -931,7 +931,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   @Override
   protected final void emit_aaload() {
     genBoundsCheck();
-    if (MM_Constants.NEEDS_READ_BARRIER) {
+    if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
       Barriers.compileArrayLoadBarrier(this);
       pushAddr(T0);
     } else {
@@ -1034,7 +1034,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitBCCTRL();   // checkstore(arrayref, value)
     popAddr(T2);        // T2 is value to store
     genBoundsCheck();
-    if (MM_Constants.NEEDS_WRITE_BARRIER) {
+    if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
       Barriers.compileArrayStoreBarrier(this);
     } else {
       asm.emitSLWI(T1, T1, LOG_BYTES_IN_ADDRESS);  // convert index to offset
@@ -2438,7 +2438,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_unresolved_getstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType()) {
+    if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetstaticBarrier(this, fieldType.getId());
       pushAddr(T0);
       return;
@@ -2468,7 +2468,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
+    if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldType.getId());
       pushAddr(T0);
       return;
@@ -2496,7 +2496,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
       discardSlots(1);
       return;
@@ -2525,7 +2525,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_resolved_putstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
+    if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
       discardSlots(1);
       return;
@@ -2555,7 +2555,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     TypeReference fieldType = fieldRef.getFieldContentsType();
     // T1 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (MM_Constants.NEEDS_READ_BARRIER && fieldType.isReferenceType()) {
+    if (MemoryManagerConstants.NEEDS_READ_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetfieldBarrier(this, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
@@ -2605,7 +2605,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = field.getOffset();
-    if (MM_Constants.NEEDS_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
+    if (MemoryManagerConstants.NEEDS_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
@@ -2656,7 +2656,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     emitDynamicLinkingSequence(T1, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
         // NOTE: offset is in T1 from emitDynamicLinkingSequence
         Barriers.compilePutfieldBarrier(this, fieldRef.getId());
         discardSlots(2);
@@ -2710,7 +2710,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     TypeReference fieldType = fieldRef.getFieldContentsType();
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      if (MM_Constants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
         Barriers.compilePutfieldBarrierImm(this, fieldOffset, fieldRef.getId());
         discardSlots(2);
       } else {

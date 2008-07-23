@@ -20,7 +20,7 @@ import org.jikesrvm.SizeConstants;
  * MM-neutral way.  It is separate from MemoryManager to break
  * cyclic class-loading dependencies.
  */
-public class MM_Constants implements SizeConstants {
+public class MemoryManagerConstants implements SizeConstants {
   /** True if the selected plan needs support for linearly scanning the heap */
   public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
   /** Number of bits in the GC header required by the selected plan */

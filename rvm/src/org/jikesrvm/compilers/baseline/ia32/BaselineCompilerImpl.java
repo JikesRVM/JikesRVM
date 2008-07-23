@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.ia32.ProcessorLocalState;
 import org.jikesrvm.jni.ia32.JNICompiler;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
@@ -496,7 +496,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
     if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
-    if (MM_Constants.NEEDS_READ_BARRIER) {
+    if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
       asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // rewind 2 args on stack
       Barriers.compileArrayLoadBarrier(asm, true);
     } else {
@@ -627,7 +627,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     genParameterRegisterLoad(asm, 2);    // pass 2 parameter
     // call checkstore(array ref, value)
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkstoreMethod.getOffset()));
-    if (MM_Constants.NEEDS_WRITE_BARRIER) {
+    if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
       asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
       asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
       if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
@@ -2390,7 +2390,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_unresolved_getstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
-    if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compileGetstaticBarrier(asm, T0, fieldRef.getId());
       return;
     }
@@ -2412,7 +2412,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_resolved_getstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
+    if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       Barriers.compileGetstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
       return;
     }
@@ -2432,7 +2432,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
-    if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
+    if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
       Barriers.compilePutstaticBarrier(asm, T0, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE);
     } else {
@@ -2455,7 +2455,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_resolved_putstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && field.isReferenceType() && !field.isUntraced()) {
+    if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && field.isReferenceType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE);
     } else {
@@ -2479,7 +2479,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32bit reference load
-      if (MM_Constants.NEEDS_READ_BARRIER) {
+      if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
         Barriers.compileGetfieldBarrier(asm, T0, fieldRef.getId());
       } else {
         asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
@@ -2539,7 +2539,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Offset fieldOffset = field.getOffset();
     if (field.isReferenceType()) {
       // 32bit reference load
-      if (MM_Constants.NEEDS_READ_BARRIER && !field.isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_READ_BARRIER && !field.isUntraced()) {
         Barriers.compileGetfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
       } else {
         asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
@@ -2598,7 +2598,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32bit reference store
-      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
         Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
         asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       } else {
@@ -2653,7 +2653,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Barriers.compileModifyCheck(asm, 4);
     if (field.isReferenceType()) {
       // 32bit reference store
-      if (MM_Constants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
         Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
         asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       } else {
@@ -3384,7 +3384,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
       if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
         // use (nonvolatile) EBX to hold base of this method's counter array
-        if (MM_Constants.NEEDS_READ_BARRIER) {
+        if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
           asm.emitPUSH_Abs(Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
           asm.emitPUSH_Imm(getEdgeCounterIndex());
           Barriers.compileArrayLoadBarrier(asm, false);

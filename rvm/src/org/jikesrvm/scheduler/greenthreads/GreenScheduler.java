@@ -17,7 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.ConcurrentCollectorThread;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.runtime.BootRecord;
@@ -273,7 +273,7 @@ public final class GreenScheduler extends Scheduler {
       t.start(getProcessor(i).readyQueue);
     }
 
-    if (MM_Constants.NEEDS_CONCURRENT_WORKERS) {
+    if (MemoryManagerConstants.NEEDS_CONCURRENT_WORKERS) {
       // Start concurrent collector threads on each Processor.
       for (int i = getFirstProcessorId(); i <= getLastProcessorId(); i++) {
         GreenThread t = ConcurrentCollectorThread.createConcurrentCollectorThread(getProcessor(i));

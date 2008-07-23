@@ -19,7 +19,7 @@ import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.Lock;
@@ -98,7 +98,7 @@ public class JavaHeader implements JavaHeaderConstants {
 
   static {
     if (VM.VerifyAssertions) {
-      VM._assert(MiscHeader.REQUESTED_BITS + MM_Constants.GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(MiscHeader.REQUESTED_BITS + MemoryManagerConstants.GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
     }
   }
 
@@ -218,7 +218,7 @@ public class JavaHeader implements JavaHeaderConstants {
    */
   public static int bytesUsed(Object obj, RVMClass type) {
     int size = type.getInstanceSize();
-    if (MM_Constants.MOVES_OBJECTS) {
+    if (MemoryManagerConstants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING) {
         Word hashState = Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -248,7 +248,7 @@ public class JavaHeader implements JavaHeaderConstants {
    */
   public static int bytesUsed(Object obj, RVMArray type, int numElements) {
     int size = type.getInstanceSize(numElements);
-    if (MM_Constants.MOVES_OBJECTS) {
+    if (MemoryManagerConstants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING) {
         Word hashState = Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -265,7 +265,7 @@ public class JavaHeader implements JavaHeaderConstants {
    */
   @Inline
   public static Address objectStartRef(ObjectReference obj) {
-    if (MM_Constants.MOVES_OBJECTS) {
+    if (MemoryManagerConstants.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
         Word hashState = obj.toAddress().loadWord(STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -493,7 +493,7 @@ public class JavaHeader implements JavaHeaderConstants {
   @Inline
   public static int getObjectHashCode(Object o) {
     if (ADDRESS_BASED_HASHING) {
-      if (MM_Constants.MOVES_OBJECTS) {
+      if (MemoryManagerConstants.MOVES_OBJECTS) {
         Word hashState = Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED)) {
           // HASHED, NOT MOVED

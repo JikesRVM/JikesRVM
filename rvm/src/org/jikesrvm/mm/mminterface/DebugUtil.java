@@ -91,7 +91,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
       Space.printVMMap();
       return false;
     }
-    if (MM_Constants.MOVES_OBJECTS) {
+    if (MemoryManagerConstants.MOVES_OBJECTS) {
       /*
       TODO: Work out how to check if forwarded
       if (Plan.isForwardedOrBeingForwarded(ref)) {

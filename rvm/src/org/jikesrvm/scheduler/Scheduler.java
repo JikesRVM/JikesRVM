@@ -26,7 +26,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
@@ -181,7 +181,7 @@ public abstract class Scheduler {
           if (index > threadHighWatermark) {
             threadHighWatermark = index;
           }
-          if (MM_Constants.NEEDS_WRITE_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
             MemoryManager.arrayStoreWriteBarrier(Scheduler.threads,
                 index, thread);
           } else {
@@ -219,7 +219,7 @@ public abstract class Scheduler {
      *  barrier. Generational collectors may not care about a null
      *  store, but a reference counting collector sure does.
      */
-    if (MM_Constants.NEEDS_WRITE_BARRIER)
+    if (MemoryManagerConstants.NEEDS_WRITE_BARRIER)
       MemoryManager.arrayStoreWriteBarrier(Scheduler.threads,
           threadSlot, null);
     Magic.setObjectAtOffset(Scheduler.threads,

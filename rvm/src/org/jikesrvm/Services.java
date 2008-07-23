@@ -12,7 +12,7 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -333,7 +333,7 @@ public class Services implements SizeConstants {
   @UninterruptibleNoWarn
   public static void setArrayUninterruptible(Object[] dst, int index, Object value) {
     if (VM.runningVM) {
-      if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
         MemoryManager.arrayStoreWriteBarrier(dst, index, value);
       } else {
         Magic.setObjectAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS), value);

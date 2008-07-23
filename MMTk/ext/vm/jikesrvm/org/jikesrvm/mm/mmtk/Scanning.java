@@ -20,7 +20,7 @@ import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.CollectorThread;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
@@ -293,7 +293,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    * @param trace The trace to use for computing roots.
    */
   public void computeThreadRoots(TraceLocal trace) {
-    boolean processCodeLocations = MM_Constants.MOVES_CODE;
+    boolean processCodeLocations = MemoryManagerConstants.MOVES_CODE;
 
     /* Set status flag */
     threadStacksScanned = true;

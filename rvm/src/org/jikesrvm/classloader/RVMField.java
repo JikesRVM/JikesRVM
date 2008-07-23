@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
@@ -295,13 +295,13 @@ public final class RVMField extends RVMMember {
    */
   public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
-      if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER && !isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && !isUntraced()) {
         return MemoryManager.getstaticReadBarrier(getOffset(), getId());
       } else {
         return Statics.getSlotContentsAsObject(getOffset());
       }
     } else {
-      if (MM_Constants.NEEDS_READ_BARRIER && !isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_READ_BARRIER && !isUntraced()) {
         return MemoryManager.getfieldReadBarrier(obj, getOffset(), getId());
       } else {
         return Magic.getObjectAtOffset(obj, getOffset());
@@ -390,13 +390,13 @@ public final class RVMField extends RVMMember {
    */
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
         MemoryManager.putstaticWriteBarrier(getOffset(), ref, getId());
       } else {
         Statics.setSlotContents(getOffset(), ref);
       }
     } else {
-      if (MM_Constants.NEEDS_WRITE_BARRIER && !isUntraced()) {
+      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !isUntraced()) {
         MemoryManager.putfieldWriteBarrier(obj, getOffset(), ref, getId());
       } else {
         Magic.setObjectAtOffset(obj, getOffset(), ref);

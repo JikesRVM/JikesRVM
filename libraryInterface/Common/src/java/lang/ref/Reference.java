@@ -12,7 +12,7 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
@@ -88,7 +88,7 @@ public abstract class Reference<T> {
   private Object getInternal(Address tmp) {
     Object ref = Magic.addressAsObject(tmp);
 
-    if (MM_Constants.NEEDS_REFTYPE_READ_BARRIER) {
+    if (MemoryManagerConstants.NEEDS_REFTYPE_READ_BARRIER) {
       ref = MemoryManager.referenceTypeReadBarrier(ref);
     }
 

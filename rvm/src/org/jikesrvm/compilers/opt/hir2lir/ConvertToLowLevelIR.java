@@ -141,7 +141,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
@@ -1191,7 +1191,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   /** get the class tib for type */
   static Operand getTIB(Instruction s, IR ir, TypeOperand type) {
     RVMType t = type.getVMType();
-    if (VM.BuildForIA32 && !MM_Constants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
+    if (VM.BuildForIA32 && !MemoryManagerConstants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
       Address addr = Magic.objectAsAddress(t.getTypeInformationBlock());
       return new AddressConstantOperand(addr);
     } else if (!t.isResolved()) {

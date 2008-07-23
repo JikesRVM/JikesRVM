@@ -70,7 +70,7 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Entrypoints;
@@ -372,7 +372,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case REF_ASTORE_opcode: {
-          if (MM_Constants.NEEDS_WRITE_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
             RVMMethod target = Entrypoints.arrayStoreWriteBarrierMethod;
             Instruction wb =
                 Call.create3(CALL,
@@ -395,7 +395,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case REF_ALOAD_opcode: {
-          if (MM_Constants.NEEDS_READ_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
             RVMMethod target = Entrypoints.arrayLoadReadBarrierMethod;
             Instruction rb =
               Call.create2(CALL,
@@ -415,7 +415,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case PUTFIELD_opcode: {
-          if (MM_Constants.NEEDS_WRITE_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
             LocationOperand loc = PutField.getLocation(inst);
             FieldReference fieldRef = loc.getFieldRef();
             if (!fieldRef.getFieldContentsType().isPrimitiveType()) {
@@ -446,7 +446,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case GETFIELD_opcode: {
-          if (MM_Constants.NEEDS_READ_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
             LocationOperand loc = GetField.getLocation(inst);
             FieldReference fieldRef = loc.getFieldRef();
             if (GetField.getResult(inst).getType().isReferenceType()) {
@@ -474,7 +474,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case PUTSTATIC_opcode: {
-          if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
             LocationOperand loc = PutStatic.getLocation(inst);
             FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
@@ -500,7 +500,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case GETSTATIC_opcode: {
-          if (MM_Constants.NEEDS_GETSTATIC_READ_BARRIER) {
+          if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER) {
             LocationOperand loc = GetStatic.getLocation(inst);
             FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {

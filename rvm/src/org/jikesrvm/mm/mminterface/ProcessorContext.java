@@ -17,6 +17,6 @@ import org.jikesrvm.scheduler.Processor;
 /**
  * Processor must extend this class to associate appropriate context with processor.
  */
-public abstract class MM_ProcessorContext extends Selected.Mutator {
+public abstract class ProcessorContext extends Selected.Mutator {
   public final Selected.Collector collectorContext = new Selected.Collector((Processor) this);
 }

@@ -14,7 +14,7 @@ package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.LogicallyUninterruptible;
@@ -88,7 +88,7 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   @Uninterruptible
   public static void initializeHeader(Object obj, TIB tib, int size, boolean isScalar) {
     /* Only perform initialization when it is required */
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       Address ref = Magic.objectAsAddress(obj);
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
@@ -108,7 +108,7 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
     /* Only perform initialization when it is required */
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false, false);
       bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time, false, false);
       bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress, false, false);
@@ -118,34 +118,34 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   }
 
   public static void updateDeathTime(Object object) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       Magic.objectAsAddress(object).store(time, OBJECT_DEATH_OFFSET);
     }
   }
 
   public static void setDeathTime(Object object, Word time_) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       Magic.objectAsAddress(object).store(time_, OBJECT_DEATH_OFFSET);
     }
   }
 
   public static void setLink(Object object, ObjectReference link) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       Magic.objectAsAddress(object).store(link, OBJECT_LINK_OFFSET);
     }
   }
 
   public static void updateTime(Word time_) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
     time = time_;
   }
 
   public static Word getOID(Object object) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       return Magic.objectAsAddress(object).plus(OBJECT_OID_OFFSET).loadWord();
     } else {
       return Word.zero();
@@ -153,8 +153,8 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   }
 
   public static Word getDeathTime(Object object) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       return Magic.objectAsAddress(object).plus(OBJECT_DEATH_OFFSET).loadWord();
     } else {
       return Word.zero();
@@ -162,8 +162,8 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   }
 
   public static ObjectReference getLink(Object ref) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       return ObjectReference.fromObject(Magic.getObjectAtOffset(ref, OBJECT_LINK_OFFSET));
     } else {
       return ObjectReference.nullReference();
@@ -171,8 +171,8 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   }
 
   public static Address getBootImageLink() {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       return prevAddress.toAddress();
     } else {
       return Address.zero();
@@ -180,8 +180,8 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   }
 
   public static Word getOID() {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       return oid;
     } else {
       return Word.zero();
@@ -189,8 +189,8 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   }
 
   public static void setOID(Word oid_) {
-    if (VM.VerifyAssertions) VM._assert(MM_Constants.GENERATE_GC_TRACE);
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (VM.VerifyAssertions) VM._assert(MemoryManagerConstants.GENERATE_GC_TRACE);
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       oid = oid_;
     }
   }
@@ -206,7 +206,7 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
    */
   public static void dumpHeader(Object ref) {
     // by default nothing to do, unless the misc header is required
-    if (MM_Constants.GENERATE_GC_TRACE) {
+    if (MemoryManagerConstants.GENERATE_GC_TRACE) {
       VM.sysWrite(" OID=", getOID(ref));
       VM.sysWrite(" LINK=", getLink(ref));
       VM.sysWrite(" DEATH=", getDeathTime(ref));
