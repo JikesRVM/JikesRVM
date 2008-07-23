@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -349,10 +350,21 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     // Insert moves from child.arguments to child's locals in prologue
     TypeReference[] params = child.method.getParameterTypes();
     int numParams = params.length;
+    if (VM.VerifyAssertions) {
+      // Check for violations causing RVM-597
+      int expectedTotalParams = numParams + (child.method.isStatic() ? 0 : 1);
+      if (expectedTotalParams != Call.getNumberOfParams(callSite)) {
+        VM._assert(false,
+        "Mismatch between number of parameters in " + callSite +
+        " (" + Call.getNumberOfParams(callSite) + ") and " +
+        child.method + " (" + expectedTotalParams + ")");
+      }
+    }
     int argIdx = 0;
     int localNum = 0;
     if (!child.method.isStatic()) {
-      Operand receiver = child.arguments[argIdx++];
+      Operand receiver = child.arguments[argIdx];
+      argIdx++;
       RegisterOperand local = null;
       if (receiver.isRegister()) {
         RegisterOperand objPtr = receiver.asRegister();
@@ -362,11 +374,13 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
           objPtr.clearPreciseType(); // Can be precise but not assignable if enough classes aren't loaded
           objPtr.setDeclaredType();
         }
-        local = child.makeLocal(localNum++, objPtr);
+        local = child.makeLocal(localNum, objPtr);
+        localNum++;
         child.arguments[0] = local; // Avoid confusion in BC2IR of callee
         // when objPtr is a local in the caller.
       } else if (receiver.isConstant()) {
-        local = child.makeLocal(localNum++, receiver.getType());
+        local = child.makeLocal(localNum, receiver.getType());
+        localNum++;
         local.setPreciseType();
         // Constants trivially non-null
         RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
@@ -393,11 +407,13 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
           rActual.setDeclaredType();
           rActual.setType(argType);
         }
-        formal = child.makeLocal(localNum++, rActual);
+        formal = child.makeLocal(localNum, rActual);
+        localNum++;
         child.arguments[argIdx] = formal;  // Avoid confusion in BC2IR of
         // callee when arg is a local in the caller.
       } else {
-        formal = child.makeLocal(localNum++, argType);
+        formal = child.makeLocal(localNum, argType);
+        localNum++;
       }
       Instruction s = Move.create(IRTools.getMoveOp(argType), formal, actual);
       s.bcIndex = PROLOGUE_BCI;
