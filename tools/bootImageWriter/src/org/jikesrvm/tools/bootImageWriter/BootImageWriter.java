@@ -2863,7 +2863,7 @@ public class BootImageWriter extends BootImageWriterMessages
           contents = VM.intAsHexString(ival) + pad;
         }
       }
-      out.println((jtocSlot + "      ").substring(0,6) +
+      out.println((jtocSlot + "        ").substring(0,8) +
                   VM.addressAsHexString(jtocOff.toWord().toAddress()) + " " +
                   category + "  " + contents + "  " + details);
     }
@@ -2890,10 +2890,10 @@ public class BootImageWriter extends BootImageWriterMessages
         } else if (obj instanceof String) {
           details = "\""+ obj + "\"";
         } else if (obj instanceof Class) {
-          details = "class "+ obj;
+          details = obj.toString();;
         } else if (obj instanceof TIB) {
           category = "literal tib  ";
-          RVMType type = Statics.findTypeOfTIBSlot(jtocOff);
+          RVMType type = ((TIB)obj).getType();
           details = (type == null) ? "?" : type.toString();
         } else {
           details = "object "+ obj.getClass();
@@ -2907,14 +2907,14 @@ public class BootImageWriter extends BootImageWriterMessages
       } else if (obj instanceof TIB) {
         // TIBs confuse the statics as their backing is written into the boot image
         category = "tib          ";
-        RVMType type = Statics.findTypeOfTIBSlot(jtocOff);
+        RVMType type = ((TIB)obj).getType();
         details = (type == null) ? "?" : type.toString();
       } else {
         category = "unknown      ";
         if (obj instanceof String) {
           details = "\""+ obj + "\"";
         } else if (obj instanceof Class) {
-          details = "class "+ obj;
+          details = obj.toString();
         } else {
           CompiledMethod m = findMethodOfCode(obj);
           if (m != null) {
@@ -2927,7 +2927,7 @@ public class BootImageWriter extends BootImageWriterMessages
           }
         }
       }
-      out.println((jtocSlot + "      ").substring(0,6) +
+      out.println((jtocSlot + "        ").substring(0,8) +
                   VM.addressAsHexString(jtocOff.toWord().toAddress()) + " " +
                   category + "  " + contents + "  " + details);
     }
@@ -2964,7 +2964,6 @@ public class BootImageWriter extends BootImageWriterMessages
         public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
           return Integer.valueOf(a.imageAddress.toInt()).compareTo(b.imageAddress.toInt());
         }
-        public boolean equals() { throw new Error("Unreached");}
       });
       for (Enumeration<BootImageMap.Entry> e = BootImageMap.elements(); e.hasMoreElements();) {
         BootImageMap.Entry entry = e.nextElement();
