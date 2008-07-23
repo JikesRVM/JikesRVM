@@ -13,7 +13,6 @@
 package java.nio;
 
 import org.apache.harmony.luni.platform.PlatformAddressFactory;
-import org.apache.harmony.nio.internal.DirectBuffer;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 

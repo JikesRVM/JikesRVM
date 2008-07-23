@@ -16,7 +16,6 @@ import java.security.ProtectionDomain;
 import java.lang.instrument.Instrumentation;
 
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;
 
