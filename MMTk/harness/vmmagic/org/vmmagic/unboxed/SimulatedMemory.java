@@ -48,10 +48,33 @@ public final class SimulatedMemory {
   private static final Offset ZERO = Offset.zero();
   private static final ArrayList<Address> watches = new ArrayList<Address>();
 
+  /**
+   * Watch mutations to an address (watches 4 byte values)
+   * @param watchAddress
+   */
   public static void addWatch(Address watchAddress) {
     watches.add(watchAddress);
   }
 
+  /**
+   * Watch an address range ('bytes' bytes starting from watchAddress).
+   * @param watchAddress
+   * @param bytes
+   */
+  public static void addWatch(Address watchAddress, int bytes) {
+    while (bytes > 0) {
+      watches.add(watchAddress);
+      bytes -= BYTES_IN_WORD;
+      watchAddress = watchAddress.plus(BYTES_IN_WORD);
+    }
+  }
+
+  /**
+   * Return the page corresponding to a specific (address+offset) value
+   * @param address
+   * @param offset
+   * @return
+   */
   public static MemoryPage getPage(Address address, Offset offset) {
     int page = (address.value + offset.value) >>> LOG_BYTES_IN_PAGE;
     return getPage(page);
@@ -300,12 +323,14 @@ public final class SimulatedMemory {
       ArrayList<Integer> watches = new ArrayList<Integer>();
       for(Address addr: SimulatedMemory.watches) {
         if ((addr.value >>> LOG_BYTES_IN_PAGE) == page) {
-          watches.add(new Integer(getIndex(addr, ZERO)));
+          int index = getIndex(addr, ZERO);
+          watches.add(index);
+          System.err.println("Watching address "+addr+" (index "+index+" in page "+page+")");
         }
       }
       watch = new int[watches.size()];
       for(int i=0; i < watches.size(); i++) {
-        watch[i] = (int)watches.get(i);
+        watch[i] = watches.get(i);
       }
     }
 
@@ -421,6 +446,12 @@ public final class SimulatedMemory {
      */
     private int read(int index) {
       int value = data[index];
+      for(int i=0; i < watch.length; i++) {
+        if (watch[i] == index) {
+          System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + "= " +
+                             Address.formatInt(data[index]));
+        }
+      }
       return value;
     }
 
@@ -430,7 +461,7 @@ public final class SimulatedMemory {
     private void write(int index, int value) {
       for(int i=0; i < watch.length; i++) {
         if (watch[i] == index) {
-          System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + index) + ": " +
+          System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + ": " +
                              Address.formatInt(data[index]) + " -> " +
                              Address.formatInt(value));
         }

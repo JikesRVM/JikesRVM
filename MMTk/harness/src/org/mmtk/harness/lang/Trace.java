@@ -15,12 +15,21 @@ package org.mmtk.harness.lang;
 import java.util.EnumSet;
 
 public class Trace {
-  public enum Item { ALLOC, CALL, OBJECT, INTRINSIC, LOAD, STORE, HASH, ENV, ROOTS, COLLECT }
+  public enum Item { ALLOC, CALL, OBJECT, INTRINSIC, LOAD, STORE, HASH, ENV, ROOTS, COLLECT, AVBYTE }
 
   private static EnumSet<Item> enabled = EnumSet.noneOf(Item.class);
 
   static {
     //enable(Item.ALLOC);
+  }
+
+  public static String[] itemNames() {
+    String[] result = new String[Item.values().length+1];
+    result[0] = "NONE";
+    for (int i=0; i < Item.values().length; i++) {
+      result[i+1] = Item.values()[i].toString();
+    }
+    return result;
   }
 
   public static void enable(String item) {
@@ -37,7 +46,15 @@ public class Trace {
 
   public static void trace(Item item, String pattern, Object...args) {
     if (isEnabled(item)) {
-      System.out.printf("["+item+"] "+pattern+"%n",args);
+      printf(prefix(item) + pattern + "%n",args);
     }
+  }
+
+  public static String prefix(Item item) {
+    return "["+item+"] ";
+  }
+
+  public static void printf(String pattern, Object...args) {
+    System.err.printf(pattern,args);
   }
 }

@@ -537,6 +537,10 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param val the new value of the byte
    */
   public void writeAvailableByte(ObjectReference object, byte val) {
+    if (Trace.isEnabled(Item.AVBYTE)) {
+      byte old = object.toAddress().loadByte(STATUS_OFFSET);
+      Trace.trace(Item.AVBYTE,"%s.gcbyte:%d->%d", object,old,val);
+    }
     object.toAddress().store(val, STATUS_OFFSET);
   }
 
@@ -557,6 +561,10 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param val the new value of the bits
    */
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
+    if (Trace.isEnabled(Item.AVBYTE)) {
+      byte old = object.toAddress().loadByte(STATUS_OFFSET);
+      Trace.trace(Item.AVBYTE,"%s.gcbyte:%d->%d", object,old,val.and(Word.fromIntZeroExtend(0xFF)).toInt());
+    }
     object.toAddress().store(val, STATUS_OFFSET);
   }
 
