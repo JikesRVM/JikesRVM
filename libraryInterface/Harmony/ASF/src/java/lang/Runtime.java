@@ -29,7 +29,7 @@ import org.apache.harmony.lang.RuntimePermissionCollection;
 import org.apache.harmony.kernel.vm.VM;
 
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.greenthreads.VMProcess;

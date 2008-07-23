@@ -15,7 +15,8 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.utility.Constants;
 import org.jikesrvm.runtime.Time;
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+
+import org.jikesrvm.mm.mminterface.MM_Interface;
 
 import org.vmmagic.pragma.*;
 

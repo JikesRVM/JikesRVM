@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.ia32.BaselineConstants;
-import org.jikesrvm.memorymanagers.mminterface.GCMapIterator;
+import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;

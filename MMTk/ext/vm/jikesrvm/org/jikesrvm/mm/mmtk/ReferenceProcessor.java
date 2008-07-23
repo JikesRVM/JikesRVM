@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
+import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.Scheduler;
 

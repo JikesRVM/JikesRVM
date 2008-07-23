@@ -60,10 +60,10 @@
 [Lorg/jikesrvm/util/AbstractHashMapRVM$AbstractBucket;
 [Lorg/jikesrvm/util/AbstractHashSetRVM$AbstractBucket;
 
-[Lorg/jikesrvm/memorymanagers/mminterface/CollectorThread;
-[Lorg/jikesrvm/memorymanagers/mminterface/ConcurrentCollectorThread;
-[Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;
-[Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
+[Lorg/jikesrvm/mm/mminterface/CollectorThread;
+[Lorg/jikesrvm/mm/mminterface/ConcurrentCollectorThread;
+[Lorg/jikesrvm/mm/mminterface/Selected$Collector;
+[Lorg/jikesrvm/mm/mminterface/Selected$Mutator;
 
 [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
 [Lorg/mmtk/utility/heap/FreeListPageResource;

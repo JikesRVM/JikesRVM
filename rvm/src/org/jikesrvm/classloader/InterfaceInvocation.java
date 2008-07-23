@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.InterfaceMethodConflictResolver;
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;

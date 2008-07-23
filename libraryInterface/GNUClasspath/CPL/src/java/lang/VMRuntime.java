@@ -18,7 +18,7 @@ import org.jikesrvm.*;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.scheduler.greenthreads.VMProcess;
 import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.memorymanagers.mminterface.*;
+import org.jikesrvm.mm.mminterface.*;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.

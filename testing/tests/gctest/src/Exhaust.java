@@ -12,7 +12,7 @@
  */
 
 import java.io.PrintStream;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.vmmagic.pragma.NoInline;
 
 class Exhaust {

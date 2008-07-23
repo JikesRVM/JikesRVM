@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
+import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.RVMThread;

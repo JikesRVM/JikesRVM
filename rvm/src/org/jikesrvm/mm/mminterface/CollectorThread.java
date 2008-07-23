@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.memorymanagers.mminterface;
+package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * System thread used to preform garbage collections.
+ * System thread used to perform garbage collections.
  *
  * These threads are created by VM.boot() at runtime startup. One is created for
  * each Processor that will (potentially) participate in garbage collection.

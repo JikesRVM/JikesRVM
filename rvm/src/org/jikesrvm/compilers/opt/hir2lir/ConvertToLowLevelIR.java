@@ -141,7 +141,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MM_Constants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;

@@ -18,10 +18,10 @@ import org.mmtk.utility.Constants;
 
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIGlobalRefTable;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.Selected;
-import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
-import org.jikesrvm.memorymanagers.mminterface.SpecializedScanMethod;
+import org.jikesrvm.mm.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.CollectorThread;
+import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;

@@ -26,7 +26,7 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.Scheduler;

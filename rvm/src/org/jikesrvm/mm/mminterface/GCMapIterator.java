@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.memorymanagers.mminterface;
+package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.RVMThread;

@@ -260,21 +260,21 @@ public class Entrypoints {
       getField(org.jikesrvm.mm.mmtk.SynchronizedCounter.class, "count", int.class);
 
   public static final NormalMethod arrayStoreWriteBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final NormalMethod putfieldWriteBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
   public static final NormalMethod putstaticWriteBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
 
   public static final NormalMethod arrayLoadReadBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "arrayLoadReadBarrier", "(Ljava/lang/Object;I)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "arrayLoadReadBarrier", "(Ljava/lang/Object;I)Ljava/lang/Object;");
   public static final NormalMethod getfieldReadBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "getfieldReadBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "getfieldReadBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
   public static final NormalMethod getstaticReadBarrierMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "getstaticReadBarrier", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "getstaticReadBarrier", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
 
   public static final NormalMethod modifyCheckMethod =
-      getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class, "modifyCheck", "(Ljava/lang/Object;)V");
+      getMethod(org.jikesrvm.mm.mminterface.MM_Interface.class, "modifyCheck", "(Ljava/lang/Object;)V");
 
   public static final RVMField outputLockField = getField(org.jikesrvm.scheduler.Scheduler.class, "outputLock", int.class);
 

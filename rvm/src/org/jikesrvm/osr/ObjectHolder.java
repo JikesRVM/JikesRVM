@@ -14,8 +14,8 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;

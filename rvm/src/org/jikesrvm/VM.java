@@ -28,7 +28,7 @@ import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;

@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.memorymanagers.mminterface.GCMapIterator;
+import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;

@@ -13,7 +13,8 @@
 package org.jikesrvm.scheduler.nativethreads;
 
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_NORMAL;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NonMoving;
@@ -35,7 +36,7 @@ public class NativeThread extends RVMThread {
 
   /**
    * Create a thread with the given stack and name. Used by
-   * {@link org.jikesrvm.memorymanagers.mminterface.CollectorThread} and the
+   * {@link org.jikesrvm.mm.mminterface.CollectorThread} and the
    * boot image writer for the boot thread.
    */
   public NativeThread(byte[] stack, String name) {

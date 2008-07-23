@@ -15,7 +15,7 @@ package org.jikesrvm.jni;
 import java.lang.ref.WeakReference;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.ObjectReference;

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 
 import org.jikesrvm.VM;
 

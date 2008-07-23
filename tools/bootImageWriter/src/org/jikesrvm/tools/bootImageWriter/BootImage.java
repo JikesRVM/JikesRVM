@@ -18,7 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.JavaHeader;

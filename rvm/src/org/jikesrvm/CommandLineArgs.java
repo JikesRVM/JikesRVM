@@ -19,7 +19,8 @@ import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.BaselineOptions;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
+
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;

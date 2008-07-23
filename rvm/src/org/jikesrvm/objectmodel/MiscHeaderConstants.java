@@ -13,7 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MM_Constants;
 
 /**
  * Defines other header words not used for

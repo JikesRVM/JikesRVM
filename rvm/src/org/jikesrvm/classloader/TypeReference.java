@@ -172,7 +172,7 @@ public final class TypeReference {
   public static final TypeReference JNIFunctions = findOrCreate(org.jikesrvm.jni.JNIFunctions.class);
 
   public static final TypeReference CollectorThread =
-      findOrCreate(org.jikesrvm.memorymanagers.mminterface.CollectorThread.class);
+      findOrCreate(org.jikesrvm.mm.mminterface.CollectorThread.class);
 
   public static final TypeReference RVMArray = findOrCreate(org.jikesrvm.classloader.RVMArray.class);
 

@@ -21,7 +21,7 @@ import org.jikesrvm.Callbacks;
 import org.jikesrvm.Constants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.FieldLayoutContext;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ObjectModel;

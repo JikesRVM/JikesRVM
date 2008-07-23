@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;

@@ -434,7 +434,7 @@ public class StackTrace {
      * at org.jikesrvm.scheduler.Processor.dispatch(Processor.java:211)
      * at org.jikesrvm.scheduler.RVMThread.morph(RVMThread.java:1125)
      * ...
-     * at org.jikesrvm.memorymanagers.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
+     * at org.jikesrvm.mm.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
      * ...
      * at org.jikesrvm.runtime.RuntimeEntrypoints.unresolvedNewArray(RuntimeEntrypoints.java:401)
      */

@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 
 /**
  * Common super class for all VM hash sets

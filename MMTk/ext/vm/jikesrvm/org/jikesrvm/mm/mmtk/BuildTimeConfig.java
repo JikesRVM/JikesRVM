@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.Selected;
 
 /**
  * Read build-time configuration information for MMTk from a Java properties

@@ -15,7 +15,7 @@ package org.jikesrvm.jni.ppc;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.jni.JNIEnvironment;
-import org.jikesrvm.memorymanagers.mminterface.GCMapIterator;
+import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;

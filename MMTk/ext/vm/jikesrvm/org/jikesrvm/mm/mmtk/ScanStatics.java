@@ -17,7 +17,7 @@ import org.mmtk.utility.Constants;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
+import org.jikesrvm.mm.mminterface.CollectorThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

@@ -26,7 +26,7 @@ import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Entrypoints;
@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.Offset;
  * A generic java thread's execution context.
  *
  * @see org.jikesrvm.scheduler.greenthreads.GreenThread
- * @see org.jikesrvm.memorymanagers.mminterface.CollectorThread
+ * @see org.jikesrvm.mm.mminterface.CollectorThread
  * @see DebuggerThread
  * @see FinalizerThread
  * @see org.jikesrvm.adaptive.measurements.organizers.Organizer
@@ -1800,7 +1800,7 @@ public abstract class RVMThread {
 
   /**
    * Get the thread to use for building stack traces.
-   * NB overridden by {@link org.jikesrvm.memorymanagers.mminterface.CollectorThread}
+   * NB overridden by {@link org.jikesrvm.mm.mminterface.CollectorThread}
    */
   @Uninterruptible
   public RVMThread getThreadForStackTrace() {

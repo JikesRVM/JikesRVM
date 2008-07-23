@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.memorymanagers.mminterface.GCMapIterator;
+import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;

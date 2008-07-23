@@ -49,7 +49,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.greenthreads.FileSystem;
 
 /**

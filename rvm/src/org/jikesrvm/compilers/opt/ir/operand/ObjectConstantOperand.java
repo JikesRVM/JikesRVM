@@ -17,7 +17,7 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 
 /**
  * Represents a constant object operand (for example, from an

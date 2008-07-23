@@ -12,8 +12,8 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Synchronization;

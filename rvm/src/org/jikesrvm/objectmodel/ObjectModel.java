@@ -18,7 +18,7 @@ import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.RVMThread;

@@ -21,9 +21,9 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.memorymanagers.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.DebugUtil;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

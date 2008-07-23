@@ -20,7 +20,6 @@ import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.*;
 
-import org.jikesrvm.VM;              // for VerifyAssertions and _assert()
 import org.jikesrvm.scheduler.RVMThread;
 
 /**

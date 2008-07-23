@@ -14,7 +14,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;

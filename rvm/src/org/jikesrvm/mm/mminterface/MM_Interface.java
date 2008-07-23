@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.memorymanagers.mminterface;
+package org.jikesrvm.mm.mminterface;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
@@ -584,7 +584,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
         return Plan.ALLOC_DEFAULT;
       if (isPrefix("Lorg/mmtk/", clsBA) ||
           isPrefix("Lorg/jikesrvm/mm/", clsBA) ||
-          isPrefix("Lorg/jikesrvm/memorymanagers/mminterface/GCMapIteratorGroup", clsBA)) {
+          isPrefix("Lorg/jikesrvm/mm/mminterface/GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
@@ -615,7 +615,7 @@ public final class MM_Interface implements HeapLayoutConstants, Constants {
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
         isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/memorymanagers/", typeBA) ||
+        isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/scheduler/Processor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/scheduler/greenthreads/GreenProcessor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {

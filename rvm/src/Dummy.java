@@ -31,7 +31,7 @@ class Dummy {
   static Reflection e;
   static VMProcess f;
   static org.vmmagic.pragma.SaveVolatile i;
-  static org.jikesrvm.memorymanagers.mminterface.MM_Interface l;
+  static org.jikesrvm.mm.mminterface.MM_Interface l;
   static RecompilationManager o;
   static org.jikesrvm.ArchitectureSpecific.MultianewarrayHelper r;
   static org.vmmagic.unboxed.Address s;

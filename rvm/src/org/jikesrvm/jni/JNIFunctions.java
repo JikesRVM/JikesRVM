@@ -31,7 +31,7 @@ import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;

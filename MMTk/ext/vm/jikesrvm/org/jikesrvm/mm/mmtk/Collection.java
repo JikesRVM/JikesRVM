@@ -28,8 +28,8 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.memorymanagers.mminterface.CollectorThread;
-import org.jikesrvm.memorymanagers.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.CollectorThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -63,7 +63,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
   @Interruptible
   public static void init() {
-    collectorThreadAtom = Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/memorymanagers/mminterface/CollectorThread;");
+    collectorThreadAtom = Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/mm/mminterface/CollectorThread;");
     runAtom = Atom.findOrCreateAsciiAtom("run");
   }
 

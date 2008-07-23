@@ -20,7 +20,7 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.Synchronization;

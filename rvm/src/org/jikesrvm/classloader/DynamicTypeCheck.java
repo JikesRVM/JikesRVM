@@ -13,7 +13,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.Magic;

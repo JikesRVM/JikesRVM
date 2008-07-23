@@ -14,7 +14,7 @@ package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MM_Constants;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 

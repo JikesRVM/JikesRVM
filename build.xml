@@ -825,7 +825,7 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="gen-config-source" depends="check-properties,get-svn-version">
 
-    <mkdir dir="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface"/>
+    <mkdir dir="${generated.config.java}/org/jikesrvm/mm/mminterface"/>
 
     <condition property="pp_RVM_ARCH_HELPER"
                value="org.jikesrvm.ppc.MachineSpecificPowerPC.PPC${target.address.size}">
@@ -915,7 +915,7 @@ Check to make sure all required properties are specified. This includes properti
     </copy>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Selected.template"
-          tofile="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface/Selected.java">
+          tofile="${generated.config.java}/org/jikesrvm/mm/mminterface/Selected.java">
       <filterset>
         <filter token="_PLAN_" value="${config.mmtk.plan}"/>
       </filterset>

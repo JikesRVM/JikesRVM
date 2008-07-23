@@ -14,7 +14,7 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.vmmagic.pragma.NonMoving;

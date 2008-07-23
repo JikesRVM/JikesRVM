@@ -27,9 +27,9 @@ public class JikesRVMSupport {
     throw new Error("TODO");
 /*
       if (buffer instanceof DirectBuffer) {
-	  return Address.fromLong(((DirectBuffer)buffer).getBaseAddress().toLong());
+          return Address.fromLong(((DirectBuffer)buffer).getBaseAddress().toLong());
       } else {
-	  return Address.fromIntSignExtend(-1);
+          return Address.fromIntSignExtend(-1);
       }
 */
   }

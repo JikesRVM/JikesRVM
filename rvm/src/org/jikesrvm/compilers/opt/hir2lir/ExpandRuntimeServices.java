@@ -70,8 +70,8 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Constants;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Entrypoints;
 

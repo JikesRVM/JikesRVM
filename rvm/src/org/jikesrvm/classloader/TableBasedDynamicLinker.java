@@ -14,7 +14,7 @@ package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;

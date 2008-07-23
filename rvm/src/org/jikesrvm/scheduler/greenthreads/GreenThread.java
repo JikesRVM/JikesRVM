@@ -17,7 +17,7 @@ import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.OSRListener;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
@@ -106,7 +106,7 @@ public class GreenThread extends RVMThread {
 
   /**
    * Create a thread with the given stack and name. Used by
-   * {@link org.jikesrvm.memorymanagers.mminterface.CollectorThread} and the
+   * {@link org.jikesrvm.mm.mminterface.CollectorThread} and the
    * boot image writer for the boot thread.
    */
   public GreenThread(byte[] stack, String name) {
