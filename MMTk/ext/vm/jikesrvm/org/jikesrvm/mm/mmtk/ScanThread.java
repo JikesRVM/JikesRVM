@@ -645,8 +645,6 @@ import org.vmmagic.unboxed.Offset;
    * the reference is invalid, dump stack and die.
    *
    * @param refaddr The address of the reference in question.
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
   static void checkReference(Address refaddr) {
     ObjectReference ref = refaddr.loadObjectReference();
