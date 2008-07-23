@@ -40,31 +40,37 @@ import org.jikesrvm.VM;
  */
 public abstract class ForwardReference {
 
-  int sourceMachinecodeIndex;
-  int targetBytecodeIndex;     // optional
+  final int sourceMachinecodeIndex;
+  final int targetBytecodeIndex;     // optional
 
-  /* support for priority queue of forward references */ ForwardReference next;  // has next larger targetBytecodeIndex
-  ForwardReference other; // has the same    targetBytecodeIndex
+  /* Support for priority queue of forward references */
+  /** Has next larger targetBytecodeIndex */
+  ForwardReference next;
+  /** Has the same targetBytecodeIndex */
+  ForwardReference other;
 
   protected ForwardReference(int source, int btarget) {
     sourceMachinecodeIndex = source;
     targetBytecodeIndex = btarget;
   }
 
-  /* no target;
-  * for use within cases of the main compiler loop
-  */
+  /**
+   * No target; for use within cases of the main compiler loop
+   */
   protected ForwardReference(int source) {
     sourceMachinecodeIndex = source;
+    targetBytecodeIndex = 0;
   }
 
-  // rewrite source to reference current machine code (in asm's machineCodes)
-  //
+  /**
+   * Rewrite source to reference current machine code (in asm's machineCodes)
+   */
   public abstract void resolve(AbstractAssembler asm);
 
-  // add a new reference r to a priority queue q
-  // return the updated queue
-  //
+  /**
+   * Add a new reference r to a priority queue q
+   * @return the updated queue
+   */
   public static ForwardReference enqueue(ForwardReference q, ForwardReference r) {
     if (q == null) return r;
     if (r.targetBytecodeIndex < q.targetBytecodeIndex) {
@@ -84,9 +90,10 @@ public abstract class ForwardReference {
 
   }
 
-  // resolve any forward references on priority queue q to bytecode index bi
-  // return queue of unresolved references
-  //
+  /**
+   * Resolve any forward references on priority queue q to bytecode index bi
+   * @return queue of unresolved references
+   */
   public static ForwardReference resolveMatching(AbstractAssembler asm, ForwardReference q, int bi) {
     if (q == null) return null;
     if (VM.VerifyAssertions) VM._assert(bi <= q.targetBytecodeIndex);
@@ -99,7 +106,7 @@ public abstract class ForwardReference {
     return r;
   }
 
-  public static class UnconditionalBranch extends ForwardReference {
+  public static final class UnconditionalBranch extends ForwardReference {
 
     public UnconditionalBranch(int source, int btarget) {
       super(source, btarget);
@@ -110,7 +117,7 @@ public abstract class ForwardReference {
     }
   }
 
-  public static class ConditionalBranch extends ForwardReference {
+  public static final class ConditionalBranch extends ForwardReference {
 
     public ConditionalBranch(int source, int btarget) {
       super(source, btarget);
@@ -121,7 +128,7 @@ public abstract class ForwardReference {
     }
   }
 
-  public static class ShortBranch extends ForwardReference {
+  public static final class ShortBranch extends ForwardReference {
 
     public ShortBranch(int source) {
       super(source);
@@ -136,7 +143,7 @@ public abstract class ForwardReference {
     }
   }
 
-  public static class SwitchCase extends ForwardReference {
+  public static final class SwitchCase extends ForwardReference {
 
     public SwitchCase(int source, int btarget) {
       super(source, btarget);
@@ -147,7 +154,7 @@ public abstract class ForwardReference {
     }
   }
 
-  public static class LoadReturnAddress extends ForwardReference {
+  public static final class LoadReturnAddress extends ForwardReference {
 
     public LoadReturnAddress(int source) {
       super(source);
