@@ -66,7 +66,7 @@ public abstract class Scheduler {
   }
 
   /** Toggle display of frame pointer address in stack dump */
-  private static final boolean SHOW_FP_IN_STACK_DUMP = true;
+  private static final boolean SHOW_FP_IN_STACK_DUMP = false;
 
   /** Index of thread in which "VM.boot()" runs */
   public static final int PRIMORDIAL_THREAD_INDEX = 1;
