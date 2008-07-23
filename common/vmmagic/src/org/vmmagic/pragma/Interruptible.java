@@ -25,4 +25,9 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Pragma
-public @interface Interruptible { }
+public @interface Interruptible {
+  /**
+   * @return Explanation of why code needs to be interruptible
+   */
+  String value() default "";
+}

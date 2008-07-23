@@ -25,4 +25,9 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Pragma
-public @interface Preemptible { }
+public @interface Preemptible {
+  /**
+   * @return Explanation of why code needs to be preemptible
+   */
+  String value() default "";
+}

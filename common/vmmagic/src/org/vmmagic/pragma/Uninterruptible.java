@@ -40,4 +40,9 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Pragma
-public @interface Uninterruptible { }
+public @interface Uninterruptible {
+  /**
+   * @return Explanation of why code needs to be uninterruptible
+   */
+  String value() default "";
+}

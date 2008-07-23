@@ -19,7 +19,7 @@ import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
 /**
- * A pragma that has the same direct effect as UninterruptiblePragma
+ * A pragma that has the same direct effect as {@link Uninterruptible}
  * but also suppresses checking of uninterruptibility violations for
  * the method.  This should be used with care and is only justified when
  * Uninterruptibility is ensured via some other mechansism.
@@ -31,4 +31,9 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Pragma
-public @interface UninterruptibleNoWarn { }
+public @interface UninterruptibleNoWarn {
+  /**
+   * @return Explanation of why uninterruptible warnings are disabled
+   */
+  String value() default "";
+}

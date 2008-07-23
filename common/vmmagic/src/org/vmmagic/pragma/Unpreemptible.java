@@ -32,4 +32,9 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Pragma
-public @interface Unpreemptible { }
+public @interface Unpreemptible {
+  /**
+   * @return Explanation of why code needs to be unpreemptible
+   */
+  String value() default "";
+}

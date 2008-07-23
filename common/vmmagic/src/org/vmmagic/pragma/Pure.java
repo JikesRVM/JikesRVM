@@ -20,8 +20,10 @@ import org.vmmagic.Pragma;
 
 /**
  * This pragma is used to indicate a method has no side effects. Use this pragma
- * with care as it will cause compile time invocation of the method it is placed
- * on.
+ * with care as it can cause compile time invocation of the method it is placed
+ * on. This pragma is used to imply weak purity of a method, and as such cannot
+ * remove calls to pure methods - as they may throw exceptions.
+ * {@link <a href="http://jira.codehaus.org/browse/RVM-503">RVM-503</a>}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
