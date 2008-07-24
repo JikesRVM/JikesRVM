@@ -128,7 +128,8 @@ public abstract class ForwardReference {
     }
   }
 
-  public static final class ShortBranch extends ForwardReference {
+  // Cannot be made final; subclassed for PPC
+  public static class ShortBranch extends ForwardReference {
 
     public ShortBranch(int source) {
       super(source);
