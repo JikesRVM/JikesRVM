@@ -36,6 +36,8 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -583,6 +585,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    */
   @NoInline
   @Entrypoint
+  @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public static void athrow(Throwable exceptionObject) {
     RVMThread myThread = Scheduler.getCurrentThread();
     Registers exceptionRegisters = myThread.getExceptionRegisters();
@@ -923,6 +926,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *  <li> <em> or </em> current thread is terminated if no catch block is found
    * </ul>
    */
+  @Unpreemptible("Deliver exception trying to avoid preemption")
   private static void deliverException(Throwable exceptionObject, Registers exceptionRegisters) {
     if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("RuntimeEntrypoints.deliverException() entered; just got an exception object.");
@@ -966,10 +970,13 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       VM.sysWriteln("RuntimeEntrypoints.deliverException() found no catch block.");
     }
     /* No appropriate catch block found. */
-
-    Scheduler.getCurrentThread().handleUncaughtException(exceptionObject);
+    handleUncaughtException(exceptionObject);
   }
 
+  @UnpreemptibleNoWarn("Uncaught exception handling that may cause preemption")
+  private static void handleUncaughtException(Throwable exceptionObject) {
+    Scheduler.getCurrentThread().handleUncaughtException(exceptionObject);
+  }
 
   /**
    * Skip over all frames below currfp with saved code pointers outside of heap
@@ -1030,6 +1037,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *  invokers save/restore any nonvolatiles, so we're probably ok.
    *  --dave 6/29/01
    */
+  @Uninterruptible
   private static void unwindInvisibleStackFrame(Registers registers) {
     registers.unwindStackFrame();
   }

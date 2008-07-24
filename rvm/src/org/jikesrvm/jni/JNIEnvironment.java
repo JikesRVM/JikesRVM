@@ -19,6 +19,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Processor;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -27,7 +28,7 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * A JNIEnvironment is created for each Java thread.
  */
-public class JNIEnvironment implements SizeConstants {
+public final class JNIEnvironment implements SizeConstants {
 
   /**
    * initial size for JNI refs, later grow as needed
@@ -179,6 +180,7 @@ public class JNIEnvironment implements SizeConstants {
    * terminating a thread that has a JNI environment allocated to it.
    * @param env the JNIEnvironment to deallocate
    */
+  @Unpreemptible("Deallocate environment but may contend with environment being allocated")
   public static synchronized void deallocateEnvironment(JNIEnvironment env) {
     env.next = pool;
     pool = env;
@@ -188,27 +190,27 @@ public class JNIEnvironment implements SizeConstants {
    * accessor methods
    */
   @Uninterruptible
-  public final boolean hasNativeStackFrame() {
+  public boolean hasNativeStackFrame() {
     return alwaysHasNativeFrame || JNIRefsTop != 0;
   }
 
   @Uninterruptible
-  public final Address topJavaFP() {
+  public Address topJavaFP() {
     return JNITopJavaFP;
   }
 
   @Uninterruptible
-  public final AddressArray refsArray() {
+  public AddressArray refsArray() {
     return JNIRefs;
   }
 
   @Uninterruptible
-  public final int refsTop() {
+  public int refsTop() {
     return JNIRefsTop;
   }
 
   @Uninterruptible
-  public final int savedRefsFP() {
+  public int savedRefsFP() {
     return JNIRefsSavedFP;
   }
 
@@ -219,7 +221,7 @@ public class JNIEnvironment implements SizeConstants {
    * @param ref the object to put on stack
    * @return offset of entry in JNIRefs stack
    */
-  public final int pushJNIRef(Object ref) {
+  public int pushJNIRef(Object ref) {
     if (ref == null) {
       return 0;
     }
@@ -252,7 +254,7 @@ public class JNIEnvironment implements SizeConstants {
    * @param offset in JNIRefs stack
    * @return reference at that offset
    */
-  public final Object getJNIRef(int offset) {
+  public Object getJNIRef(int offset) {
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
       VM.sysWrite(offset);
@@ -272,7 +274,7 @@ public class JNIEnvironment implements SizeConstants {
    * Remove a reference from the JNIRefs stack.
    * @param offset in JNIRefs stack
    */
-  public final void deleteJNIRef(int offset) {
+  public void deleteJNIRef(int offset) {
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
       VM.sysWrite(offset);
@@ -290,7 +292,7 @@ public class JNIEnvironment implements SizeConstants {
    * Dump the JNIRefs stack to the sysWrite stream
    */
   @Uninterruptible
-  public final void dumpJniRefsStack() {
+  public void dumpJniRefsStack() {
     int jniRefOffset = JNIRefsTop;
     VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
     VM.sysWrite("* JNIRefs = ");
@@ -316,7 +318,7 @@ public class JNIEnvironment implements SizeConstants {
    * to the Java caller;  clear the exception by recording null
    * @param e  An exception or error
    */
-  public final void recordException(Throwable e) {
+  public void recordException(Throwable e) {
     // don't overwrite the first exception except to clear it
     if (pendingException == null || e == null) {
       pendingException = e;
@@ -326,7 +328,7 @@ public class JNIEnvironment implements SizeConstants {
   /**
    * @return the pending exception
    */
-  public final Throwable getException() {
+  public Throwable getException() {
     return pendingException;
   }
 

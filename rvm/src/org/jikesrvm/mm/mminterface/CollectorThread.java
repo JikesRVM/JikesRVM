@@ -36,6 +36,7 @@ import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -280,7 +281,7 @@ public final class CollectorThread extends GreenThread {
    *
    * @param handshake Handshake for the requested collection
    */
-  @Uninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void asyncCollect(Handshake handshake, int why) {
     handshake.requestAndContinue(why);
   }

@@ -14,6 +14,7 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.compilers.common.CompiledMethod;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -59,6 +60,7 @@ public abstract class ExceptionDeliverer {
    * @param registers registers to be loaded before passing control to
    * catch block
    */
+  @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public abstract void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
                                         Throwable exceptionObject, Registers registers);
 
@@ -82,5 +84,6 @@ public abstract class ExceptionDeliverer {
    * @param registers thread state to be updated by restoring non-volatiles
    *                  and unwinding the stackframe
    */
+  @Unpreemptible("Unwind stack possibly from unpreemptible code")
   public abstract void unwindStackFrame(CompiledMethod compiledMethod, Registers registers);
 }

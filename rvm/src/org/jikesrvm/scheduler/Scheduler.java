@@ -32,9 +32,10 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -151,16 +152,9 @@ public abstract class Scheduler {
    * <b>Assumption:</b> call is guarded by threadCreationMutex.
    * @return the thread slot assigned this thread
    */
-  @LogicallyUninterruptible
   static int assignThreadSlot(RVMThread thread) {
     if (!VM.runningVM) {
-      // create primordial thread (in boot image)
-      int threadSlot = Scheduler.PRIMORDIAL_THREAD_INDEX;
-      Scheduler.threads[threadSlot] = (ThreadModel)thread;
-      // note that Scheduler.threadAllocationIndex (search hint)
-      // is out of date
-      Scheduler.numActiveThreads ++;
-      return PRIMORDIAL_THREAD_INDEX;
+      return bootImageAssignThreadSlot(thread);
     } else {
       Scheduler.threadCreationMutex.lock("thread creation mutex");
       for (int cnt = threads.length; --cnt >= 1;) {
@@ -197,6 +191,16 @@ public abstract class Scheduler {
     }
   }
 
+  @UninterruptibleNoWarn("Only called when writing the boot image")
+  private static int bootImageAssignThreadSlot(RVMThread thread) {
+    // create primordial thread (in boot image)
+    int threadSlot = Scheduler.PRIMORDIAL_THREAD_INDEX;
+    Scheduler.threads[threadSlot] = (ThreadModel)thread;
+    // note that Scheduler.threadAllocationIndex (search hint)
+    // is out of date
+    Scheduler.numActiveThreads ++;
+    return PRIMORDIAL_THREAD_INDEX;
+  }
     /**
      * Release this thread's threads[] slot.
      * Assumption: call is guarded by threadCreationMutex.
@@ -265,11 +269,13 @@ public abstract class Scheduler {
   /**
    * Schedule another thread
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected abstract void yieldInternal();
 
   /**
    * Schedule another thread
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yield() {
     getScheduler().yieldInternal();
   }
@@ -318,11 +324,9 @@ public abstract class Scheduler {
     getScheduler().bootInternal();
   }
   /** Scheduler specific sysExit shutdown */
-  @Interruptible
   protected abstract void sysExitInternal();
 
   /** Scheduler specific sysExit shutdown */
-  @Interruptible
   public static void sysExit() {
     getScheduler().sysExitInternal();
   }
@@ -657,19 +661,22 @@ public abstract class Scheduler {
   /**
    * Dump stack of calling thread, starting at callers frame
    */
-  @LogicallyUninterruptible
   public static void dumpStack() {
     if (VM.runningVM) {
       dumpStack(Magic.getFramePointer());
     } else {
-      StackTraceElement[] elements =
-        (new Throwable("--traceback from Jikes RVM's Scheduler class--")).getStackTrace();
-      for (StackTraceElement element: elements) {
-        System.err.println(element.toString());
-      }
+      bootImageDumpStack();
     }
   }
 
+  @UninterruptibleNoWarn("Only called when writing the boot image")
+  private static void bootImageDumpStack() {
+    StackTraceElement[] elements =
+      (new Throwable("--traceback from Jikes RVM's Scheduler class--")).getStackTrace();
+    for (StackTraceElement element: elements) {
+      System.err.println(element.toString());
+    }
+  }
   /**
    * Dump state of a (stopped) thread's stack.
    * @param fp address of starting frame. first frame output

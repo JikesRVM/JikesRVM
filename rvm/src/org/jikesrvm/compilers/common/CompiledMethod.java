@@ -27,6 +27,7 @@ import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -426,6 +427,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * gc disabled when called by RuntimeEntrypoints.deliverException().
    * </ul>
    */
+  @Unpreemptible
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType);
 
   /**

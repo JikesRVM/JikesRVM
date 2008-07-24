@@ -18,7 +18,8 @@ import org.jikesrvm.scheduler.Processor;
 
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public final class Strings extends org.mmtk.vm.Strings {
+@Uninterruptible
+public final class Strings extends org.mmtk.vm.Strings {
   /**
    * Log a message.
    *
@@ -46,24 +47,28 @@ import org.vmmagic.pragma.*;
    * <b>TODO:</b> There are special memory management semantics here that
    * someone should document.
    *
-   * @param src the source string
+   * @param str the source string
    * @param dst the destination array
    * @param dstBegin the start offset in the desination array
    * @param dstEnd the index after the last character in the
    * destination to copy to
    * @return the number of characters copied.
    */
-  @LogicallyUninterruptible
-  public int copyStringToChars(String src, char [] dst,
+  public int copyStringToChars(String str, char [] dst,
                                      int dstBegin, int dstEnd) {
-    if (VM.runningVM)
+    if (VM.runningVM) {
       Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
-    int len = src.length();
-    int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
-    for (int i = 0; i < n; i++)
-      Services.setArrayNoBarrier(dst, dstBegin + i, src.charAt(i));
-    if (VM.runningVM)
+    }
+    char[] str_backing = java.lang.JikesRVMSupport.getBackingCharArray(str);
+    int str_length = java.lang.JikesRVMSupport.getStringLength(str);
+    int str_offset = java.lang.JikesRVMSupport.getStringOffset(str);
+    int n = (dstBegin + str_length <= dstEnd) ? str_length : (dstEnd - dstBegin);
+    for (int i = 0; i < n; i++) {
+      Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset+i]);
+    }
+    if (VM.runningVM) {
       Processor.getCurrentProcessor().enableThreadSwitching();
+    }
     return n;
   }
 }

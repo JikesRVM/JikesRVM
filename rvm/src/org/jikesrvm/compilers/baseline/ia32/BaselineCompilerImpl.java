@@ -119,6 +119,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   /**
    * The last true local
    */
+  @Uninterruptible
   public static int getEmptyStackOffset(NormalMethod m) {
     return getFirstLocalOffset(m) - (m.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
   }

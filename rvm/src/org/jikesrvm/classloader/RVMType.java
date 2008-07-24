@@ -296,6 +296,18 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
+   * Instance of java.lang.Class corresponding to this type.
+   * This is commonly used for reflection.
+   */
+  @Uninterruptible
+  public final Class<?> getResolvedClassForType() {
+    // Resolve the class so that we don't need to resolve it
+    // in reflection code
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM && isResolved());
+    return classForType;
+  }
+
+  /**
    * Get offset of tib slot from start of jtoc, in bytes.
    */
   @Uninterruptible

@@ -20,6 +20,7 @@ import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * Handshake handles mutator requests to initiate a collection, and
@@ -82,7 +83,7 @@ public class Handshake {
    * caller continues until it yields to the GC.  It may thus make
    * this call at an otherwise unsafe point.
    */
-  @Uninterruptible
+  @Unpreemptible("Change state of thread possibly context switching if generating exception")
   public void requestAndContinue(int why) {
     request(why);
   }
@@ -119,7 +120,7 @@ public class Handshake {
    * for the collection. They reside in the thread dispatch queues of their
    * processors, until the collector threads re-enable thread switching.
    */
-  @Uninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private void initiateCollection() {
 
     /* check that scheduler initialization is complete */
@@ -174,7 +175,7 @@ public class Handshake {
    *
    * @return The number of GC threads.
    */
-  @Uninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private int waitForPrecedingGC() {
     /*
      * Get the number of GC threads.  Include NativeDaemonProcessor
@@ -228,7 +229,7 @@ public class Handshake {
    *
    * @return true if the completion flag is not already set.
    */
-  @Uninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private boolean request(int why) {
     lock.acquire();
     if (completionFlag) {
@@ -274,5 +275,3 @@ public class Handshake {
     lock.release();
   }
 }
-
-

@@ -12,27 +12,28 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.Plan;
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.MutatorContext;
-import org.mmtk.utility.Finalizer;
-import org.mmtk.utility.options.Options;
-
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.CollectorThread;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.Scheduler;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.Finalizer;
+import org.mmtk.utility.options.Options;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.unboxed.Address;
 
 @Uninterruptible
 public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utility.Constants,
@@ -73,7 +74,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final void triggerCollection(int why) {
     triggerCollectionStatic(why);
   }
@@ -81,7 +82,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   /**
    * Joins a collection.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final void joinCollection() {
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.joinCollection().  Stack:");
@@ -101,7 +102,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible("Change state of thread possibly context switching if generating exception")
   public static void triggerCollectionStatic(int why) {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
 
@@ -135,7 +136,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * Check if there is an out of memory error waiting.
    */
   @Inline
-  @LogicallyUninterruptible
+  @Unpreemptible("Exceptions may possibly cause yields")
   private static void checkForOutOfMemoryError(boolean afterCollection) {
     RVMThread myThread = Scheduler.getCurrentThread();
     OutOfMemoryError oome = myThread.getOutOfMemoryError();
@@ -193,6 +194,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final void triggerAsyncCollection(int why) {
     Plan.setCollectionTriggered();
     if (Options.verbose.getValue() >= 1) {
@@ -313,6 +315,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * true if yielded.
    */
   @Inline
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public boolean yieldpoint() {
     if (Processor.getCurrentProcessor().takeYieldpoint != 0) {
       RVMThread.yieldpointFromBackedge();

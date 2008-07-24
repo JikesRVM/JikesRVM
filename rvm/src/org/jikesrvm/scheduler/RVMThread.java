@@ -38,11 +38,12 @@ import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -556,8 +557,8 @@ public abstract class RVMThread {
    * @param oldState the previous thread state
    * @param newState the new thread state
    */
-  @LogicallyUninterruptible
   @Entrypoint
+  @UnpreemptibleNoWarn("Change state of thread possibly context switching if generating exception")
   protected final void changeThreadState(State oldState, State newState) {
     if (trace) {
       VM.sysWrite("Thread.changeThreadState: thread=", threadSlot, name);
@@ -568,8 +569,15 @@ public abstract class RVMThread {
     if (state == oldState) {
       state = newState;
     } else {
-      throw new IllegalThreadStateException("Illegal thread state change from " +
-          oldState + " to " + newState + " when in state " + state + " in thread " + name);
+      throw new IllegalThreadStateException(
+          Services.stringConcatenator("Illegal thread state change from ",
+              java.lang.JikesRVMSupport.getEnumName(oldState),
+              " to ",
+              java.lang.JikesRVMSupport.getEnumName(newState),
+              " when in state ",
+              java.lang.JikesRVMSupport.getEnumName(state),
+              " in thread ",
+              name));
     }
   }
 
@@ -644,6 +652,7 @@ public abstract class RVMThread {
    * Update internal state of Thread and Scheduler to indicate that
    * a thread is about to start
    */
+  @Unpreemptible("Exceptions may possibly cause yields")
   public final void registerThread() {
     changeThreadState(State.NEW, State.RUNNABLE);
     registerThreadInternal();
@@ -801,6 +810,7 @@ public abstract class RVMThread {
   // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
   //todo fix this -- related to SaveVolatile
   @Entrypoint
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yieldpointFromPrologue() {
     Address fp = Magic.getFramePointer();
     org.jikesrvm.scheduler.greenthreads.GreenThread.yieldpoint(PROLOGUE, fp);
@@ -816,6 +826,7 @@ public abstract class RVMThread {
   // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
   // TODO fix this -- related to SaveVolatile
   @Entrypoint
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yieldpointFromBackedge() {
     Address fp = Magic.getFramePointer();
     org.jikesrvm.scheduler.greenthreads.GreenThread.yieldpoint(BACKEDGE, fp);
@@ -831,6 +842,7 @@ public abstract class RVMThread {
   // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
   // TODO fix this -- related to SaveVolatile
   @Entrypoint
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yieldpointFromEpilogue() {
     Address fp = Magic.getFramePointer();
     org.jikesrvm.scheduler.greenthreads.GreenThread.yieldpoint(EPILOGUE, fp);
@@ -849,7 +861,7 @@ public abstract class RVMThread {
    * Suspend execution of current thread until it is resumed.
    * Call only if caller has appropriate security clearance.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible("Exceptions may possibly cause yields")
   public final void suspend() {
     Throwable rethrow = null;
     changeThreadState(State.RUNNABLE, State.SUSPENDED);
@@ -967,8 +979,7 @@ public abstract class RVMThread {
    * @param o the object synchronized on
    * @param millis the number of milliseconds to wait for notification
    */
-  @LogicallyUninterruptible
-  /* only loses control at expected points -- I think -dave */
+  @Interruptible
   public static void wait(Object o, long millis) {
     if (STATS) timedWaitOperations++;
     RVMThread t = Scheduler.getCurrentThread();
@@ -992,15 +1003,16 @@ public abstract class RVMThread {
    */
   protected abstract void notifyAllInternal(Object o, Lock l);
 
-  @LogicallyUninterruptible
-  private static void raiseIllegalMonitorStateException(String msg, Object o) {
-    throw new IllegalMonitorStateException(msg + o);
+  @UnpreemptibleNoWarn("Possible context when generating exception")
+  public static void raiseIllegalMonitorStateException(String msg, Object o) {
+    throw new IllegalMonitorStateException(Services.stringConcatenate(msg, o.toString()));
   }
   /**
    * Support for Java {@link java.lang.Object#notify()} synchronization primitive.
    *
    * @param o the object synchronized on
    */
+  @Interruptible
   public static void notify(Object o) {
     if (STATS) notifyOperations++;
     Lock l = ObjectModel.getHeavyLock(o, false);
@@ -1018,6 +1030,7 @@ public abstract class RVMThread {
    * @param o the object synchronized on
    * @see java.lang.Object#notifyAll
    */
+  @Interruptible
   public static void notifyAll(Object o) {
     if (STATS) notifyAllOperations++;
     Scheduler.LockModel l = (Scheduler.LockModel)ObjectModel.getHeavyLock(o, false);
@@ -1041,7 +1054,6 @@ public abstract class RVMThread {
   /**
    * Deliver the throwable stopping/interrupting this thread
    */
-  @LogicallyUninterruptible
   public void kill(Throwable cause, boolean throwImmediately) {
     // yield() will notice the following and take appropriate action
     this.causeOfThreadDeath = cause;
@@ -1141,7 +1153,6 @@ public abstract class RVMThread {
   /**
    * Get this thread's index in {@link Scheduler#threads}[].
    */
-  @LogicallyUninterruptible
   public final int getIndex() {
     if (VM.VerifyAssertions) VM._assert((state == State.TERMINATED) || Scheduler.threads[threadSlot] == this);
     return threadSlot;
@@ -1163,7 +1174,7 @@ public abstract class RVMThread {
    * @param exceptionRegisters register state at which stack overflow trap
    * was encountered (null --> normal method call, not a trap)
    */
-  @Interruptible
+  @Unpreemptible
   public static void resizeCurrentStack(int newSize, Registers exceptionRegisters) {
     if (traceAdjustments) VM.sysWrite("Thread: resizeCurrentStack\n");
     if (MemoryManager.gcInProgress()) {
@@ -1560,18 +1571,22 @@ public abstract class RVMThread {
   /**
    * Throw the external interrupt associated with the thread now it is running
    */
-  @LogicallyUninterruptible
+  @Unpreemptible("Exceptions may possibly cause yields")
   protected final void postExternalInterrupt() {
     throwInterruptWhenScheduled = false;
     Throwable t = causeOfThreadDeath;
     causeOfThreadDeath = null;
     if (t instanceof InterruptedException  && t != proxyInterruptException) {
-      t.fillInStackTrace();
+      fillInStackTrace(t);
     }
     state = State.RUNNABLE;
     RuntimeEntrypoints.athrow(t);
   }
 
+  @UnpreemptibleNoWarn("Call out to API possibly losing control")
+  private static void fillInStackTrace(Throwable t) {
+    t.fillInStackTrace();
+  }
   /**
    * Was this thread interrupted?
    * @return whether the thread has been interrupted

@@ -19,8 +19,8 @@ import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.ThinLock;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 @Uninterruptible
@@ -56,6 +56,7 @@ public class GreenLock extends Lock {
    * @return true, if the lock succeeds; false, otherwise
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final boolean lockHeavy(Object o) {
     if (tentativeMicrolocking) {
       if (!mutex.tryLock()) {
@@ -103,7 +104,7 @@ public class GreenLock extends Lock {
     Processor mine = Processor.getCurrentProcessor();
     if (ownerId != mine.threadId) {
       mutex.unlock(); // thread-switching benign
-      raiseIllegalMonitorStateException("heavy unlocking", o);
+      RVMThread.raiseIllegalMonitorStateException("heavy unlocking", o);
     }
     recursionCount--;
     if (0 < recursionCount) {
@@ -147,11 +148,6 @@ public class GreenLock extends Lock {
     ThinLock.deflate(o, lockOffset, this);
     lockedObject = null;
     free(this);
-  }
-
-  @LogicallyUninterruptible
-  private static void raiseIllegalMonitorStateException(String msg, Object o) {
-    throw new IllegalMonitorStateException(msg + o);
   }
 
   /**

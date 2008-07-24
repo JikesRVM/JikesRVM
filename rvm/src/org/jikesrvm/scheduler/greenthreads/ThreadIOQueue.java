@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.ProcessorLock;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * A list of threads waiting for i/o data to become available.
@@ -35,12 +36,6 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class ThreadIOQueue extends ThreadEventWaitQueue
     implements ThreadEventConstants, ThreadIOConstants {
 
-  // Note: this class was modified by David Hovemeyer
-  // for Extreme Blue 2002 to implement it as a subclass of
-  // ThreadEventWaitQueue, as part of making a more general
-  // interface for event notification.  It also now supports
-  // waiting on sets of file descriptors.
-
   /**
    * Class to safely downcast from <code>ThreadEventWaitData</code>
    * to <code>ThreadIOWaitData</code>.
@@ -49,7 +44,7 @@ public final class ThreadIOQueue extends ThreadEventWaitQueue
    * code.
    */
   @Uninterruptible
-  private static class WaitDataDowncaster extends ThreadEventWaitDataVisitor {
+  private static final class WaitDataDowncaster extends ThreadEventWaitDataVisitor {
 
     private ThreadIOWaitData waitData;
 
@@ -297,11 +292,14 @@ public final class ThreadIOQueue extends ThreadEventWaitQueue
     }
   }
 
+  /** Downcaster for dumping */
+  private static final WaitDataDowncaster downcaster = new WaitDataDowncaster();
+
   /**
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
-  @Interruptible
+  @Unpreemptible
   @Override
   void dumpWaitDescription(GreenThread thread) {
     // Safe downcast from ThreadEventWaitData to ThreadIOWaitData.
@@ -309,9 +307,11 @@ public final class ThreadIOQueue extends ThreadEventWaitQueue
     // locking (and thus execute concurrently with other methods), do NOT
     // use the queue's private downcaster object.  Instead, create one
     // from scratch.
-    WaitDataDowncaster downcaster = new WaitDataDowncaster();
-    thread.waitData.accept(downcaster);
-    ThreadIOWaitData waitData = downcaster.waitData;
+    ThreadIOWaitData waitData;
+    synchronized(downcaster) {
+      thread.waitData.accept(downcaster);
+      waitData = downcaster.waitData;
+    }
     if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     VM.sysWrite("(R");

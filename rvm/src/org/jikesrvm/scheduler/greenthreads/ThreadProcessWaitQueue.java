@@ -18,6 +18,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.ProcessorLock;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * A wait queue for threads that are waiting for a process
@@ -61,7 +62,7 @@ public class ThreadProcessWaitQueue extends ThreadEventWaitQueue implements Thre
    * code.
    */
   @Uninterruptible
-  private static class WaitDataDowncaster extends ThreadEventWaitDataVisitor {
+  private static final class WaitDataDowncaster extends ThreadEventWaitDataVisitor {
 
     public ThreadProcessWaitData waitData;
 
@@ -229,11 +230,14 @@ public class ThreadProcessWaitQueue extends ThreadEventWaitQueue implements Thre
     return ready;
   }
 
+  /** Downcaster for dumping */
+  private static final WaitDataDowncaster downcaster = new WaitDataDowncaster();
+
   /**
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
-  @Interruptible
+  @Unpreemptible
   @Override
   void dumpWaitDescription(GreenThread thread) {
     // Safe downcast from ThreadEventWaitData to ThreadProcessWaitData.
@@ -241,9 +245,11 @@ public class ThreadProcessWaitQueue extends ThreadEventWaitQueue implements Thre
     // locking (and thus execute concurrently with other methods), do NOT
     // use the queue's private downcaster object.  Instead, create one
     // from scratch.
-    WaitDataDowncaster downcaster = new WaitDataDowncaster();
-    thread.waitData.accept(downcaster);
-    ThreadProcessWaitData waitData = downcaster.waitData;
+    ThreadProcessWaitData waitData;
+    synchronized(downcaster) {
+      thread.waitData.accept(downcaster);
+      waitData = downcaster.waitData;
+    }
     if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     VM.sysWrite("pid=", waitData.pid);

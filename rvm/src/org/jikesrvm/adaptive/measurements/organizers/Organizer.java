@@ -18,6 +18,7 @@ import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.jikesrvm.scheduler.greenthreads.GreenThreadQueue;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * An Organizer acts an an intermediary between the low level
@@ -84,7 +85,7 @@ public abstract class Organizer extends GreenThread {
    * listener uses its own protocol to ensure that exactly 1
    * thread will attempt to activate the organizer.
    */
-  @Uninterruptible
+  @Unpreemptible
   private void passivate() {
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(!listener.isActive());

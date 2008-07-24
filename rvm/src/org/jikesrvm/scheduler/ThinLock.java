@@ -20,9 +20,9 @@ import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -74,6 +74,7 @@ public final class ThinLock implements ThinLockConstants {
    */
   @Inline
   @Entrypoint
+  @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
   static void inlineLock(Object o, Offset lockOffset) {
     Word old = Magic.prepareWord(o, lockOffset);
     if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) {
@@ -100,6 +101,7 @@ public final class ThinLock implements ThinLockConstants {
    */
   @Inline
   @Entrypoint
+  @Unpreemptible("No preemption normally, but may raise exceptions")
   static void inlineUnlock(Object o, Offset lockOffset) {
     Word old = Magic.prepareWord(o, lockOffset);
     Word threadId = Word.fromIntZeroExtend(Processor.getCurrentProcessor().threadId);
@@ -121,6 +123,7 @@ public final class ThinLock implements ThinLockConstants {
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
+  @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
   public static void lock(Object o, Offset lockOffset) {
     major:
     while (true) { // repeat only if attempt to lock a promoted lock fails
@@ -197,6 +200,7 @@ public final class ThinLock implements ThinLockConstants {
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
+  @Unpreemptible("No preemption normally, but may raise exceptions")
   public static void unlock(Object o, Offset lockOffset) {
     Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
@@ -212,7 +216,7 @@ public final class ThinLock implements ThinLockConstants {
         Scheduler.trace("Lock", "unlock error: thin lock word = ", old.toAddress());
         Scheduler.trace("Lock", "unlock error: thin lock word = ", Magic.objectAsAddress(o));
         // Scheduler.trace("Lock", Thread.getCurrentThread().toString(), 0);
-        raiseIllegalMonitorStateException("thin unlocking", o);
+        RVMThread.raiseIllegalMonitorStateException("thin unlocking", o);
       }
       if (old.and(TL_LOCK_COUNT_MASK).isZero()) { // get count, 0 is the last lock
         Word changed = old.and(TL_UNLOCK_MASK);
@@ -228,11 +232,6 @@ public final class ThinLock implements ThinLockConstants {
         return; // unlock succeeds
       }
     }
-  }
-
-  @LogicallyUninterruptible
-  private static void raiseIllegalMonitorStateException(String msg, Object o) {
-    throw new IllegalMonitorStateException(msg + o);
   }
 
   ////////////////////////////////////////////////////////////////

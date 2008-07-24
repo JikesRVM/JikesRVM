@@ -26,6 +26,7 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -462,6 +463,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * Generic lock
    */
   @Entrypoint
+  @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
   public static void genericLock(Object o) {
     JavaHeader.genericLock(o);
   }
@@ -470,6 +472,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * Generic unlock
    */
   @Entrypoint
+  @Unpreemptible("No preemption normally, but may raise exceptions")
   public static void genericUnlock(Object o) {
     JavaHeader.genericUnlock(o);
   }

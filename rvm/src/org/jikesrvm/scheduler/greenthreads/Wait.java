@@ -15,6 +15,7 @@ package org.jikesrvm.scheduler.greenthreads;
 import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.Scheduler;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A collection of static methods for waiting on some type of event.
@@ -31,6 +32,7 @@ class Wait {
    * The reason is that we can't be sure that thread switching
    * is possible during shutdown.
    */
+  @Uninterruptible
   public static void disableIoWait() {
     noIoWait = true;
   }

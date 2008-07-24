@@ -19,7 +19,6 @@ import org.mmtk.vm.VM;
 
 import org.jikesrvm.runtime.Magic;
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -32,8 +31,8 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util implements Constants {
   private static final boolean DEBUG_ = false;
-  private static final int LOG_BYTES_IN_WORD = LOG_BYTES_IN_INT;
-  private static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
+  public static final int KILOBYTE = 1024;
+  public static final int MEGABYTE = 1024 * 1024;
 
   /**
    * Allocate an array of bytes with malloc
@@ -63,27 +62,6 @@ import org.vmmagic.pragma.*;
         sysCall.sysFree(addr);
   }
 
-
-  // From VM.java
-  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"}) // Accessed by native code
-  private static int sysWriteLock = 0;
-  private static Offset sysWriteLockOffset = Offset.max();
-
-  private static void swLock() {
-    if (org.jikesrvm.VM.BuildWithGCSpy) {
-      if (sysWriteLockOffset.isMax()) return;
-      while (!Synchronization.testAndSet(Magic.getJTOC(), sysWriteLockOffset, 1))
-        ;
-    }
-  }
-
-  private static void swUnlock() {
-    if (org.jikesrvm.VM.BuildWithGCSpy) {
-      if (sysWriteLockOffset.isMax()) return;
-      Synchronization.fetchAndStore(Magic.getJTOC(), sysWriteLockOffset, 0);
-    }
-  }
-
   /**
    * Convert a String to a 0-terminated array of bytes
    *
@@ -94,7 +72,7 @@ import org.vmmagic.pragma.*;
    * which are interruptible. We protect these calls with a
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
-  @LogicallyUninterruptible
+  @Unpreemptible
   public final Address getBytes(String str) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (str == null)
@@ -106,35 +84,19 @@ import org.vmmagic.pragma.*;
 
       // Grab some memory sufficient to hold the null terminated string,
       // rounded up to an integral number of ints.
-      int len;
-      swLock();
-        len = str.length();
-      swUnlock();
-      int size = ((len >>> LOG_BYTES_IN_WORD) + 1) << LOG_BYTES_IN_WORD;
+      char[] str_backing = java.lang.JikesRVMSupport.getBackingCharArray(str);
+      int str_length = java.lang.JikesRVMSupport.getStringLength(str);
+      int str_offset = java.lang.JikesRVMSupport.getStringOffset(str);
+      int size = (str_length + 4) & -4;
       Address rtn = malloc(size);
 
-      // Write the string into it, one word at a time, being carefull about endianism
-      for (int w = 0; w <= (len >>> LOG_BYTES_IN_WORD); w++)  {
-        int value = 0;
-        int offset = w << LOG_BYTES_IN_WORD;
-        int shift = 0;
-        for (int b = 0; b < BYTES_IN_WORD; b++) {
-          byte byteVal = 0;
-          if (offset + b < len) {
-            swLock();
-              byteVal = (byte) str.charAt(offset + b);    // dodgy conversion!
-            swUnlock();
-          }
-          // Endianism matters
-          if (org.jikesrvm.VM.BuildForIA32) {
-            value = (byteVal << shift) | value;
-          } else {
-            org.jikesrvm.VM._assert(org.jikesrvm.VM.NOT_REACHED);
-            value = (value << shift) | byteVal; // not tested
-          }
-          shift += BITS_IN_BYTE;
-        }
-        rtn.store(value, Offset.fromIntSignExtend(offset));
+      // Write the string into it, one byte at a time (dodgy conversion)
+      for (int i=0; i < str_length; i++)  {
+        rtn.store((byte)str_backing[str_offset+i], Offset.fromIntSignExtend(i));
+      }
+      // Zero rest of byte[]
+      for (int i=str_length; i < size; i++)  {
+        rtn.store((byte)0, Offset.fromIntSignExtend(i-str_offset));
       }
       if (DEBUG_) {
         sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");
@@ -144,9 +106,6 @@ import org.vmmagic.pragma.*;
       return Address.zero();
     }
   }
-
-  public static final int KILOBYTE = 1024;
-  public static final int MEGABYTE = 1024 * 1024;
 
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
@@ -223,4 +182,3 @@ import org.vmmagic.pragma.*;
       return 0;
   }
 }
-

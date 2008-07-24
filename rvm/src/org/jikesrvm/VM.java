@@ -50,10 +50,11 @@ import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -982,15 +983,22 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
   }
 
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeField(int fieldWidth, String s) {
     write(s);
-    int len = s.length();
+    int len = getStringLength(s);
     while (fieldWidth > len++) write(" ");
   }
 
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
+  private static int getStringLength(String s) {
+    if (VM.runningVM) {
+      return java.lang.JikesRVMSupport.getStringLength(s);
+    } else {
+      return s.length();
+    }
+  }
   /**
    * Low level print to console.
    * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
@@ -2158,8 +2166,8 @@ public class VM extends Properties implements Constants, ExitStatus {
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  @LogicallyUninterruptible /* TODO: This is completely wrong.  This method is very much Interruptible */
   @NoInline
+  @UnpreemptibleNoWarn
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
     if (Options.stackTraceAtExit) {
@@ -2185,6 +2193,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * Should only be called if the VM is running.
    * @param value  exit value
    */
+  @Uninterruptible
   public static void shutdown(int value) {
     handlePossibleRecursiveShutdown();
 
@@ -2381,7 +2390,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * they are never called while gc is disabled.
    */
   @Inline
-  @Interruptible
+  @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
   public static void disableGC() {
     disableGC(false);           // Recursion is not allowed in this context.
   }
@@ -2393,7 +2402,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * enableGC().
    */
   @Inline
-  @Interruptible
+  @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
   public static void disableGC(boolean recursiveOK) {
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //

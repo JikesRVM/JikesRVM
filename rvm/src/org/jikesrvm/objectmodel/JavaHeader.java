@@ -29,6 +29,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
@@ -576,6 +577,7 @@ public class JavaHeader implements JavaHeaderConstants {
   /**
    * Generic lock
    */
+  @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
   public static void genericLock(Object o) {
     ThinLock.lock(o, STATUS_OFFSET);
   }
@@ -583,6 +585,7 @@ public class JavaHeader implements JavaHeaderConstants {
   /**
    * Generic unlock
    */
+  @Unpreemptible("No interruption unless of exceptions")
   public static void genericUnlock(Object o) {
     ThinLock.unlock(o, STATUS_OFFSET);
   }

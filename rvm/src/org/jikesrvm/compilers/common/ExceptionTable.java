@@ -17,6 +17,7 @@ import org.jikesrvm.Services;
 import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.TIB;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -42,6 +43,7 @@ public abstract class ExceptionTable {
    * @param exceptionType the type of exception that was raised
    * @return the machine code offset of the catch block.
    */
+  @Unpreemptible
   public static int findCatchBlockForInstruction(int[] eTable, Offset instructionOffset, RVMType exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
       // note that instructionOffset points to the instruction after the PEI

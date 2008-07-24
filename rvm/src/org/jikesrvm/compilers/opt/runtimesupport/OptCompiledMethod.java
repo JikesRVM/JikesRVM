@@ -41,6 +41,7 @@ import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -84,7 +85,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * Find "catch" block for a machine instruction of this method.
    */
-  @Interruptible
+  @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
       return -1;

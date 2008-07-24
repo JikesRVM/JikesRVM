@@ -30,17 +30,17 @@ import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * A green thread's Java execution context
  */
-@Uninterruptible
+@Uninterruptible("Default to uninterruptibility avoid unforeseen yieldpoints")
 @NonMoving
 public class GreenThread extends RVMThread {
   /** Offset of the lock field controlling the suspending of a thread */
@@ -167,6 +167,7 @@ public class GreenThread extends RVMThread {
    * Precondition: If the queue is global, caller must have the appropriate mutex.
    * @param q the ThreadQueue on which to enqueue this thread.
    */
+  @Interruptible
   public final void start(GreenThreadQueue q) {
     registerThread();
     q.enqueue(this);
@@ -179,6 +180,7 @@ public class GreenThread extends RVMThread {
    * Thread is blocked on a heavyweight lock
    * @see Lock#lockHeavy(Object)
    */
+  @Unpreemptible("Exceptions may possibly cause yields")
   public final void block(ThreadQueue entering, ProcessorLock mutex) {
     yield(entering, mutex);
   }
@@ -196,6 +198,7 @@ public class GreenThread extends RVMThread {
    * May result in threadswitch, depending on state of various control
    * flags on the processor object.
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yieldpoint(int whereFrom, Address yieldpointServiceMethodFP) {
     boolean threadSwitch = false;
     boolean cbsOverrun = false;
@@ -374,6 +377,7 @@ public class GreenThread extends RVMThread {
    *
    * @param whereFrom  backedge, prologue, epilogue?
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void timerTickYield(int whereFrom) {
     GreenThread myThread = GreenScheduler.getCurrentThread();
     // thread switch
@@ -387,6 +391,7 @@ public class GreenThread extends RVMThread {
    * Suspend execution of current thread, in favor of some other thread.
    */
   @NoInline
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yield() {
     GreenThread myThread = GreenScheduler.getCurrentThread();
     myThread.beingDispatched = true;
@@ -400,6 +405,7 @@ public class GreenThread extends RVMThread {
    * @param l lock guarding that queue (currently locked)
    */
   @NoInline
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final void yield(AbstractThreadQueue q, ProcessorLock l) {
     if (VM.VerifyAssertions) VM._assert(this == GreenScheduler.getCurrentThread());
     if (state == State.RUNNABLE)
@@ -417,6 +423,7 @@ public class GreenThread extends RVMThread {
    * @param newState state to change to
    */
   @NoInline
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final void yield(ProcessorLock l, State newState) {
     changeThreadState(State.RUNNABLE, newState);
     beingDispatched = true;
@@ -436,6 +443,7 @@ public class GreenThread extends RVMThread {
    * @param l2 the {@link ProcessorLock} guarding <code>q2</code> (currently locked)
    */
   @NoInline
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private static void yield(ThreadProxyWaitingQueue q1, ProcessorLock l1,
       ThreadProxyWakeupQueue q2, ProcessorLock l2) {
     GreenThread myThread = GreenScheduler.getCurrentThread();
@@ -447,6 +455,7 @@ public class GreenThread extends RVMThread {
     morph(false);
   }
 
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   static void morph() {
     morph(false);
   }
@@ -455,7 +464,7 @@ public class GreenThread extends RVMThread {
    * Current thread has been placed onto some queue. Become another thread.
    * @param timerTick   timer interrupted if true
    */
-  @LogicallyUninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   static void morph(boolean timerTick) {
     Magic.sync();  // to ensure beingDispatched flag written out to memory
     if (trace) Scheduler.trace("GreenThread", "morph ");
@@ -480,6 +489,7 @@ public class GreenThread extends RVMThread {
    * not guarded with a lock)
    */
   @NoInline
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yield(AbstractThreadQueue q) {
     GreenThread myThread = GreenScheduler.getCurrentThread();
     myThread.beingDispatched = true;
@@ -507,6 +517,7 @@ public class GreenThread extends RVMThread {
    * Uninterruptible portion of going to sleep
    * @return were we interrupted prior to going to sleep
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private boolean sleepImpl(ThreadProxy proxy) {
     if (isInterrupted()) {
       // we were interrupted before putting this thread to sleep
@@ -575,8 +586,9 @@ public class GreenThread extends RVMThread {
     return t;
   }
   /**
-   * Uninterruptible portion of waiting
+   * Unpreemptible portion of waiting
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private Throwable waitImpl(Object o, GreenLock l, boolean hasTimeout, long millis, ThreadProxy proxy) {
     // Check thread isn't already in interrupted state
     if (isInterrupted()) {
@@ -688,6 +700,7 @@ public class GreenThread extends RVMThread {
    * @param waitData the wait data specifying the file descriptor(s)
    * to wait for.
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void ioWaitImpl(ThreadIOWaitData waitData) {
     GreenThread myThread = GreenScheduler.getCurrentThread();
     myThread.waitData = waitData;
@@ -702,6 +715,7 @@ public class GreenThread extends RVMThread {
    * @param process the <code>Process</code> object associated
    *    with the process
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void processWaitImpl(ThreadProcessWaitData waitData, VMProcess process) {
     GreenThread myThread = GreenScheduler.getCurrentThread();
     myThread.waitData = waitData;
@@ -725,6 +739,7 @@ public class GreenThread extends RVMThread {
    * Thread model dependent part of stopping/interrupting a thread
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected final void killInternal() {
     // remove this thread from wakeup and/or waiting queue
     ThreadProxy p = threadProxy;
@@ -747,6 +762,7 @@ public class GreenThread extends RVMThread {
    * Thread model dependent part of thread suspension
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected final void suspendInternal() {
     if(Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 0, 1)) {
       // successful change from no suspend pending to suspend pending
@@ -755,6 +771,7 @@ public class GreenThread extends RVMThread {
     }
     if (this == GreenScheduler.getCurrentThread()) yield();
   }
+
   /**
    * Thread model dependent part of thread resumption
    */
@@ -791,6 +808,7 @@ public class GreenThread extends RVMThread {
    * Park the thread for OSR.
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public void osrPark() {
     osrParkLock.lock("locking in osrPark");
     if (osrParkingPermit) {
@@ -805,6 +823,7 @@ public class GreenThread extends RVMThread {
    * Unpark the thread from OSR.
    */
   @Override
+  @Unpreemptible("No preemption normally, but may raise exceptions")
   public void osrUnpark() {
     boolean schedule=false;
     osrParkLock.lock("locking in osrUnpark");

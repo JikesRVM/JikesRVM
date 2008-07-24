@@ -30,6 +30,7 @@ import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.StackBrowser;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -161,6 +162,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return exceptionDeliverer;
   }
 
+  @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
       return -1;
@@ -298,6 +300,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   }
 
   /** Get the lock acquisition offset */
+  @Uninterruptible
   public Offset getLockAcquisitionOffset() {
     return Offset.fromIntZeroExtend(lockOffset);
   }

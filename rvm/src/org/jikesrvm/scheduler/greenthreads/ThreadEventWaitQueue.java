@@ -17,6 +17,7 @@ import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * Queue of threads waiting for a specific kind of event to occur.
@@ -204,7 +205,7 @@ abstract class ThreadEventWaitQueue extends AbstractThreadQueue implements Threa
   /**
    * Dump state for debugging.
    */
-  @Interruptible
+  @Unpreemptible
   void dump() {
     dump(" ");
   }
@@ -212,7 +213,7 @@ abstract class ThreadEventWaitQueue extends AbstractThreadQueue implements Threa
   /**
    * Dump state for debugging.
    */
-  @Interruptible
+  @Unpreemptible
   void dump(String prefix) {
     VM.sysWrite(prefix);
     for (GreenThread t = head; t != null; t = t.getNext()) {
@@ -226,7 +227,7 @@ abstract class ThreadEventWaitQueue extends AbstractThreadQueue implements Threa
    * Dump description of what given thread is waiting for.
    * For debugging.
    */
-  @Interruptible
+  @Unpreemptible
   abstract void dumpWaitDescription(GreenThread thread);
 
   /**

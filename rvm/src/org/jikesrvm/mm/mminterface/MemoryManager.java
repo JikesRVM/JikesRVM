@@ -55,6 +55,8 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -669,7 +671,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Inline
-  @Interruptible
+  @Unpreemptible
   public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
                                      int align, int offset, int site) {
     int elemBytes = numElements << logElementSize;
@@ -688,7 +690,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * so it can be forced out of line.
    */
   @NoInline
-  @Interruptible
+  @UnpreemptibleNoWarn
   private static void throwLargeArrayOutOfMemoryError() {
     throw new OutOfMemoryError();
   }
@@ -819,7 +821,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @return The stack
    */
   @Inline
-  @Interruptible
+  @Unpreemptible
   public static byte[] newStack(int bytes, boolean immortal) {
     if (!VM.runningVM) {
       return new byte[bytes];

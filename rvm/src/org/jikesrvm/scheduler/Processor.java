@@ -22,6 +22,7 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -358,6 +359,7 @@ public abstract class Processor extends ProcessorContext implements Constants {
    * Note: This method is ONLY intended for use by Thread.
    * @param timerTick timer interrupted if true
    */
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public abstract void dispatch(boolean timerTick);
 
   /**

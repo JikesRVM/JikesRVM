@@ -24,16 +24,16 @@ import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.ProcessorLock;
 import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * Multiplex execution of large number of Threads on small
  * number of o/s kernel threads.
  */
-@Uninterruptible
+@Uninterruptible("Default to uninterruptibility avoid unforeseen yieldpoints")
 @NonMoving
 public final class GreenProcessor extends Processor {
 
@@ -283,6 +283,7 @@ public final class GreenProcessor extends Processor {
    * @param timerTick   timer interrupted if true
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public void dispatch(boolean timerTick) {
     // no processor locks should be held across a thread switch
     if (VM.VerifyAssertions) checkLockCount(0);
@@ -327,6 +328,7 @@ public final class GreenProcessor extends Processor {
   /**
    * Handle a request from the garbage collector to flush the mutator context.
    */
+  @Unpreemptible("Explicitly schedule other threads, don't preempt at the same time")
   private void processMutatorFlushRequest() {
     GreenScheduler.flushMutatorContextsMutex.lock("handling flush request");
     /* One context per processor under green threads */
@@ -575,8 +577,7 @@ public final class GreenProcessor extends Processor {
     return true;
   }
 
-  @LogicallyUninterruptible
-  /* GACK --dave */
+  @Unpreemptible
   public void dumpProcessorState() {
     VM.sysWrite("Processor ");
     VM.sysWriteInt(id);

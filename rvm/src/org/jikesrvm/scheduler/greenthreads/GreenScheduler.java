@@ -36,6 +36,7 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * Global variables used to implement virtual machine thread scheduler.
@@ -386,6 +387,7 @@ public final class GreenScheduler extends Scheduler {
    * @see org.jikesrvm.mm.mmtk.Collection
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected void requestMutatorFlushInternal() {
     flushMutatorContextsMutex.lock("requesting mutator flush");
     flushedMutatorCount = 0;
@@ -449,6 +451,7 @@ public final class GreenScheduler extends Scheduler {
    * Dump state of virtual machine.
    */
   @Override
+  @Unpreemptible
   public void dumpVirtualMachineInternal() {
     GreenProcessor processor;
     VM.sysWrite("\n-- Processors --\n");
@@ -515,7 +518,7 @@ public final class GreenScheduler extends Scheduler {
 
   /** Scheduler specific sysExit shutdown */
   @Override
-  @Interruptible
+  @Uninterruptible
   protected void sysExitInternal() {
     Wait.disableIoWait(); // we can't depend on thread switching being enabled
   }
@@ -620,11 +623,13 @@ public final class GreenScheduler extends Scheduler {
    * Schedule another thread
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected void yieldInternal() {
     GreenThread.yield();
   }
 
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected void suspendDebuggerThreadInternal() {
     debugRequested = false;
     debuggerMutex.lock("debugger queue mutex");
@@ -635,6 +640,7 @@ public final class GreenScheduler extends Scheduler {
    * Suspend a concurrent worker: it will resume when the garbage collector notifies.
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected void suspendConcurrentCollectorThreadInternal() {
     concurrentCollectorMutex.lock("suspend concurrent collector thread mutex");
     GreenScheduler.getCurrentThread().yield(concurrentCollectorQueue, concurrentCollectorMutex);
@@ -645,6 +651,7 @@ public final class GreenScheduler extends Scheduler {
    * places objects on the finalizer queue and notifies.
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected void suspendFinalizerThreadInternal() {
     finalizerMutex.lock("suspend finalizer mutex");
     GreenScheduler.getCurrentThread().yield(finalizerQueue, finalizerMutex);
@@ -655,6 +662,7 @@ public final class GreenScheduler extends Scheduler {
    * @param lock the lock to allow other thread chance to acquire
    */
   @Override
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   protected void yieldToOtherThreadWaitingOnLockInternal(Lock lock) {
     GreenLock l = (GreenLock)lock;
     GreenScheduler.getCurrentThread().yield(l.entering, l.mutex); // thread-switching benign

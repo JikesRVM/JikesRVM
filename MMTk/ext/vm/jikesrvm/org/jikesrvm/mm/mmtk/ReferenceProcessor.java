@@ -53,7 +53,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Class fields
    */
 
-  private static Lock lock = new Lock("ReferenceProcessor");
+  private static final Lock lock = new Lock("ReferenceProcessor");
 
   private static final ReferenceProcessor softReferenceProcessor =
     new ReferenceProcessor(Semantics.SOFT);
@@ -202,6 +202,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference to add
    */
   @NoInline
+  @Unpreemptible("Non-preemptible but yield when table needs to be grown")
   private void addCandidate(Reference<?> ref, ObjectReference referent) {
     if (TRACE) {
       ObjectReference referenceAsAddress = ObjectReference.fromObject(ref);
