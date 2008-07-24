@@ -113,6 +113,7 @@ Ljava/lang/IllegalArgumentException;
 Ljava/lang/IllegalAccessException;
 Ljava/lang/IllegalMonitorStateException;
 Ljava/lang/IllegalStateException;
+Ljava/lang/IllegalThreadStateException;
 Ljava/lang/IncompatibleClassChangeError;
 Ljava/lang/InstantiationException;
 Ljava/lang/InternalError;
