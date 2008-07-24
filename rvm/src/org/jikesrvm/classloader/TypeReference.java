@@ -160,7 +160,9 @@ public final class TypeReference {
       findOrCreate(org.vmmagic.pragma.LogicallyUninterruptible.class);
   public static final TypeReference Preemptible = findOrCreate(org.vmmagic.pragma.Preemptible.class);
   public static final TypeReference UninterruptibleNoWarn =
-      findOrCreate(org.vmmagic.pragma.UninterruptibleNoWarn.class);
+    findOrCreate(org.vmmagic.pragma.UninterruptibleNoWarn.class);
+  public static final TypeReference UnpreemptibleNoWarn =
+    findOrCreate(org.vmmagic.pragma.UnpreemptibleNoWarn.class);
   public static final TypeReference Uninterruptible = findOrCreate(org.vmmagic.pragma.Uninterruptible.class);
   public static final TypeReference Unpreemptible = findOrCreate(org.vmmagic.pragma.Unpreemptible.class);
   public static final TypeReference SpecializedMethodInvoke = findOrCreate(org.vmmagic.pragma.SpecializedMethodInvoke.class);

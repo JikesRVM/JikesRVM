@@ -233,6 +233,14 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
+   * Return true if this element has a UninterruptibleNoWarn annotation.
+   * @see org.vmmagic.pragma.UninterruptibleNoWarn
+   */
+  public final boolean hasUnpreemptibleNoWarnAnnotation() {
+    return isAnnotationDeclared(TypeReference.UnpreemptibleNoWarn);
+  }
+
+  /**
    * Return true if this element has a Uninterruptible annotation.
    * @see org.vmmagic.pragma.Uninterruptible
    */
