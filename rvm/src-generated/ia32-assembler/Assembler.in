@@ -468,7 +468,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regRegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((3 << 6) | (reg2.value() << 3) | reg1.value());
   }
@@ -482,7 +482,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regDisp32RegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((2 << 6) | (reg2.value() << 3) | reg1.value());
   }
@@ -496,7 +496,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regDisp8RegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((1 << 6) | (reg2.value() << 3) | reg1.value());
   }
@@ -509,7 +509,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    * @return the encoded ModRM byte.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regIndirectRegModRM(MachineRegister reg1, MachineRegister reg2) {
     return (byte) ((reg2.value() << 3) | reg1.value());
   }
@@ -525,7 +525,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param indexReg the index register.
    * @return the encoded SIB byte.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   private byte sib(short scale, MachineRegister baseReg, MachineRegister indexReg) {
     return (byte) ((scale << 6) | (indexReg.value() << 3) | baseReg.value());
   }
@@ -537,7 +537,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg1 the r/m operand.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private void emitRegRegOperands(MachineRegister reg1, MachineRegister reg2) {
     setMachineCodes(mi++, regRegModRM(reg1, reg2));
   }
@@ -555,7 +555,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param disp the 32 bit displacement.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   private void emitRegDisp32RegOperands(MachineRegister reg1, int disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
@@ -575,7 +575,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param disp the 8 bit displacement.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   private void emitRegDisp8RegOperands(MachineRegister reg1, byte disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
@@ -595,7 +595,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param disp the displacement.
    * @param reg2 the other register or extended opcode.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   private void emitRegDispRegOperands(MachineRegister reg1, Offset disp, MachineRegister reg2) {
     if (fits(disp,8))
       emitRegDisp8RegOperands(reg1, (byte)disp.toInt(), reg2);
@@ -620,7 +620,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg1 the r/m operand
    * @param reg2 the other register or extended opcode
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private void emitRegIndirectRegOperands(MachineRegister reg1, MachineRegister reg2) {
     if (reg1 == EBP) {
       emitRegDispRegOperands(reg1, Offset.zero(), reg2);
@@ -643,7 +643,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,4})
   private void emitRegOffRegOperands(MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));
     setMachineCodes(mi++, sib(scale, EBP, index));
@@ -657,7 +657,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private void emitAbsRegOperands(Address disp, MachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2));
     emitImm32(disp);
@@ -675,7 +675,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,5})
   private void emitSIBRegOperands(MachineRegister base, MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     if (VM.VerifyAssertions) VM._assert(index != ESP);
     if (disp.EQ(Offset.zero()) && base != EBP) {
@@ -698,7 +698,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *
    * @param disp the displacement to generate.
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline
   private void emitImm32(Offset disp) {
     emitImm32(disp.toWord());
   }
@@ -1204,7 +1204,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * if (cond) dst = src
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitCMOV_Cond_Reg_Reg(byte cond, GPR dst, GPR src) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1219,7 +1219,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * if (cond) dst = [src + disp]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitCMOV_Cond_Reg_RegDisp(byte cond, GPR dst, GPR src, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1234,7 +1234,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * if (cond) dst = [src]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitCMOV_Cond_Reg_RegInd(byte cond, GPR dst, GPR src) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1249,7 +1249,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * if (cond) dst = [index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitCMOV_Cond_Reg_RegOff(byte cond, GPR dst, GPR index2, short scale2, Offset disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1264,7 +1264,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * if (cond) dst = [disp2]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Address disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1279,7 +1279,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * if (cond) dst = [base2 + index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3,4})
   public final void emitCMOV_Cond_Reg_RegIdx(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1298,7 +1298,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param cond the condition to be tested
    * @param dst the destination register
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitSET_Cond_Reg_Byte(byte cond, GPR dst) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1307,7 +1307,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.R(miStart, "SET" + CONDITION[cond], dst);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitSET_Cond_RegDisp_Byte(byte cond, GPR dst, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1316,7 +1316,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RD(miStart, "SET" + CONDITION[cond], dst, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitSET_Cond_RegInd_Byte(byte cond, GPR dst) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1325,7 +1325,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RN(miStart, "SET" + CONDITION[cond], dst);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitSET_Cond_RegIdx_Byte(byte cond, GPR base, GPR index, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1334,7 +1334,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RXD(miStart, "SET" + CONDITION[cond], base, index, scale, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitSET_Cond_RegOff_Byte(byte cond, GPR index, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1343,7 +1343,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RFD(miStart, "SET" + CONDITION[cond], index, scale, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline
   public final void emitSET_Cond_Abs_Byte(byte cond, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1352,7 +1352,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RA(miStart, "SET" + CONDITION[cond], disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitIMUL2_Reg_Reg(GPR dstReg, GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1361,7 +1361,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RR(miStart, "IMUL", dstReg, srcReg);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitIMUL2_Reg_RegInd(GPR dstReg, GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1370,7 +1370,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRN(miStart, "IMUL", dstReg, srcReg);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitIMUL2_Reg_RegDisp(GPR dstReg, GPR srcReg, Offset srcDisp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1379,7 +1379,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRD(miStart, "IMUL", dstReg, srcReg, srcDisp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitIMUL2_Reg_RegOff(GPR dstReg, GPR srcIndex, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1388,7 +1388,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRFD(miStart, "IMUL", dstReg, srcIndex, scale, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitIMUL2_Reg_Abs(GPR dstReg, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1397,7 +1397,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRA(miStart, "IMUL", dstReg, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitIMUL2_Reg_RegIdx(GPR dstReg, GPR srcBase, GPR srcIndex, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1406,7 +1406,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRXD(miStart, "IMUL", dstReg, srcBase, srcIndex, scale, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitIMUL2_Reg_Imm(GPR dstReg, int imm) {
     int miStart = mi;
     if (fits(imm,8)) {
@@ -1523,7 +1523,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     }
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitLEA_Reg_RegDisp(GPR dstReg, GPR srcReg, Offset srcDisp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1531,7 +1531,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRD(miStart, "LEA", dstReg, srcReg, srcDisp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitLEA_Reg_RegInd(GPR dstReg, GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1539,7 +1539,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRN(miStart, "LEA", dstReg, srcReg);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitLEA_Reg_RegOff(GPR dstReg, GPR idx, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1547,7 +1547,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRFD(miStart, "LEA", dstReg, idx, scale, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitLEA_Reg_Abs(GPR dstReg, Address disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1555,7 +1555,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRA(miStart, "LEA", dstReg, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitLEA_Reg_RegIdx(GPR dstReg, GPR base, GPR idx, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x8D);
@@ -1563,7 +1563,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RRXD(miStart, "LEA", dstReg, base, idx, scale, disp);
   }
 
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitMOV_Reg_Imm(GPR dst, int imm) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) (0xB8 | dst.value()));
@@ -1618,7 +1618,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // software prefetch
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitPREFETCHNTA_Reg(GPR srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1647,7 +1647,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   ////////////////////////////////////////////
 
   // floating point conditional moves
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitFCMOV_Cond_Reg_Reg(byte cond, FPR reg1, FPR reg2) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(reg1 == FP0);
@@ -1691,7 +1691,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // floating point push of ST(i) into ST(0)
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitFLD_Reg_Reg(FPR destReg, FPR srcReg) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(destReg == FP0);
@@ -1701,7 +1701,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // floating point copy of ST(0) into ST(I)
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitFST_Reg_Reg(FPR destReg, FPR srcReg) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(srcReg == FP0);
@@ -1711,7 +1711,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // floating point pop of ST(0) into ST(I)
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitFSTP_Reg_Reg(FPR destReg, FPR srcReg) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(srcReg == FP0);
@@ -1721,7 +1721,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // Change Sign: Top of FPU register stack -= Top og FPU register stack
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFCHS () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xD9);
@@ -1729,8 +1728,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.OP(miStart, "FADD32");
   }
 
-
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFUCOMPP () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDA);
@@ -1739,7 +1736,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // Store Status Word into AX register/noexecptions
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFNSTSW () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDF);
@@ -1748,7 +1744,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // Store AH into Flags
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitSAHF () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x9E);
@@ -1759,7 +1754,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   // Top of FPU register stack <- ST(0) - (Q*ST(1)
   // Q is the interger value obtained from truncating
   // ST(0)/ST(1) toward 0
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFPREM () {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xD9);
@@ -1768,7 +1762,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // Blow away floating point state
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFINIT() {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x9B);
@@ -1779,7 +1772,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
 
   // Blow away floating point state
   // Pending exceptions??? Don't tell me about pending exceptions!!
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void emitFNINIT() {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDB);
@@ -1788,7 +1780,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   // Declare we are no longer using FP register
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitFFREE_Reg(FPR reg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xDD);
@@ -1798,7 +1790,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
 
   // The dreaded FXCH
   // (symbol of all that's wrong with Intel floating point :)
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitFXCH_Reg_Reg(FPR regOne, FPR regTwo) {
     int miStart = mi;
 
@@ -1827,7 +1819,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.R(miStart, "FXCH", nonZeroReg);
   }
   
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitXORPS_Reg_Reg(XMM dstReg, XMM srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
@@ -1836,7 +1828,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.RR(miStart, "XORPS", dstReg, srcReg);
   }
   
-    @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitXORPD_Reg_Reg(XMM dstReg, XMM srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x66);
@@ -1852,7 +1844,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * cmpxchg8b [dst + disp]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitCMPXCHG8B_RegDisp(GPR dst, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1867,7 +1859,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * cmpxchg8b [dst]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitCMPXCHG8B_RegInd(GPR dst) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1882,7 +1874,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * cmpxchg8b [index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitCMPXCHG8B_RegOff(GPR index2, short scale2, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1897,7 +1889,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * cmpxchg8b [base + index2<<scale2 + disp2]
    * </PRE>
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitCMPXCHG8B_RegIdx(GPR base2, GPR index2, short scale2, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
