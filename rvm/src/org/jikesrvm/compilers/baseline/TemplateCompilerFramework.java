@@ -743,7 +743,7 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "aastore");
           // Forbidden from uninterruptible code as may cause an {@link
           // ArrayStoreException}
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore", bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("aastore", bcodes.index());
           emit_aastore();
           break;
         }
@@ -1581,11 +1581,12 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
           RVMType type = typeRef.peekType();
           if (type != null && (type.isInitialized() || type.isInBootImage())) {
             emit_resolved_new(type.asClass());
           } else {
+            if (VM.VerifyUnint && isUnpreemptible) forbiddenBytecode("unresolved new ", typeRef, bcodes.index());
             emit_unresolved_new(typeRef);
           }
           break;
@@ -1598,7 +1599,7 @@ public abstract class TemplateCompilerFramework
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array, bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("newarray ", array, bcodes.index());
           emit_resolved_newarray(array);
           break;
         }
@@ -1610,7 +1611,7 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef, bcodes.index());
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("anewarray ", arrayRef, bcodes.index());
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
             VM._assert(false,
@@ -1653,7 +1654,7 @@ public abstract class TemplateCompilerFramework
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           // Forbidden from uninterruptible code as athrow causes calls into runtime
           // that are interruptible
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow", bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("athrow", bcodes.index());
           emit_athrow();
           break;
         }
@@ -1732,7 +1733,7 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");
           // Forbidden from uninterruptible code as calls interruptible object model
           // for its implementation
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter", bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("monitorenter", bcodes.index());
           emit_monitorenter();
           break;
         }
@@ -1741,7 +1742,7 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "monitorexit");
           // Forbidden from uninterruptible code as calls interruptible object model
           // for its implementation
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit", bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("monitorexit", bcodes.index());
           emit_monitorexit();
           break;
         }
@@ -2070,6 +2071,7 @@ public abstract class TemplateCompilerFramework
       // Respect programmer overrides of uninterruptibility checking
       if (method.hasLogicallyUninterruptibleAnnotation()) return;
       if (method.hasUninterruptibleNoWarnAnnotation()) return;
+      if (method.hasUnpreemptibleNoWarnAnnotation()) return;
     }
     // NB generate as a single string to avoid threads splitting output
     VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
@@ -2087,6 +2089,7 @@ public abstract class TemplateCompilerFramework
       // Respect programmer overrides of uninterruptibility checking
       if (method.hasLogicallyUninterruptibleAnnotation()) return;
       if (method.hasUninterruptibleNoWarnAnnotation()) return;
+      if (method.hasUnpreemptibleNoWarnAnnotation()) return;
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
