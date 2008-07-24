@@ -110,12 +110,14 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
+      ObjectModel.dumpHeader(ref);
       return false;
     }
     if (tibAddr.isZero()) {
       VM.sysWrite("validRef: TIB is Zero! ");
       VM.sysWrite(ref);
       VM.sysWrite("\n");
+      ObjectModel.dumpHeader(ref);
       return false;
     }
     if (tib.length() == 0) {
@@ -124,6 +126,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
+      ObjectModel.dumpHeader(ref);
       return false;
     }
 
@@ -136,6 +139,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
       VM.sysWrite(" type = ");
       VM.sysWrite(type);
       VM.sysWrite("\n");
+      ObjectModel.dumpHeader(ref);
       return false;
     }
     return true;
