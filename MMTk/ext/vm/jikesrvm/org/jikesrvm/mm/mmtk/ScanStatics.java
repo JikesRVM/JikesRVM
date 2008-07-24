@@ -14,9 +14,12 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.CollectorThread;
 
 import org.vmmagic.unboxed.*;
@@ -65,8 +68,30 @@ public final class ScanStatics implements Constants {
     // Process region
     for (int slot=start; slot < end; slot+=refSlotSize) {
       Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
-      if (ScanThread.VALIDATE_REFS) ScanThread.checkReference(slots.plus(slotOffset));
+      if (ScanThread.VALIDATE_REFS) checkReference(slots.plus(slotOffset), slot);
       trace.processRootEdge(slots.plus(slotOffset), true);
+    }
+  }
+
+  /**
+   * Check that a reference encountered during scanning is valid.  If
+   * the reference is invalid, dump stack and die.
+   *
+   * @param refaddr The address of the reference in question.
+   */
+  @Uninterruptible
+  private static void checkReference(Address refaddr, int slot) {
+    ObjectReference ref = org.mmtk.vm.VM.activePlan.collector().loadObjectReference(refaddr);
+    if (!MemoryManager.validRef(ref)) {
+      Log.writeln();
+      Log.writeln("Invalid ref reported while scanning statics");
+      Log.write("Static slot: "); Log.writeln(slot);
+      Log.writeln();
+      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.writeln();
+      Log.writeln("Dumping stack:");
+      Scheduler.dumpStack();
+      VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
 }

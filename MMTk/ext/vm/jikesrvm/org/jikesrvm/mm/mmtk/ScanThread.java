@@ -646,8 +646,8 @@ import org.vmmagic.unboxed.Offset;
    *
    * @param refaddr The address of the reference in question.
    */
-  static void checkReference(Address refaddr) {
-    ObjectReference ref = refaddr.loadObjectReference();
+  private static void checkReference(Address refaddr) {
+    ObjectReference ref = org.mmtk.vm.VM.activePlan.collector().loadObjectReference(refaddr);
     if (!MemoryManager.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning stack");

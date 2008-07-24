@@ -20,6 +20,7 @@ import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.mm.mminterface.CollectorThread;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -139,11 +140,32 @@ public class ScanBootImage implements Constants {
           if (DEBUG) refs++;
           if (!FILTER || slot.loadAddress().GT(mapEnd)) {
             if (DEBUG) roots++;
-            if (ScanThread.VALIDATE_REFS) ScanThread.checkReference(slot);
+            if (ScanThread.VALIDATE_REFS) checkReference(slot);
             trace.processRootEdge(slot, false);
           }
         }
       }
+    }
+  }
+
+  /**
+   * Check that a reference encountered during scanning is valid.  If
+   * the reference is invalid, dump stack and die.
+   *
+   * @param refaddr The address of the reference in question.
+   */
+  @Uninterruptible
+  private static void checkReference(Address refaddr) {
+    ObjectReference ref = org.mmtk.vm.VM.activePlan.collector().loadObjectReference(refaddr);
+    if (!MemoryManager.validRef(ref)) {
+      Log.writeln();
+      Log.writeln("Invalid ref reported while scanning boot image");
+      Log.writeln();
+      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.writeln();
+      Log.writeln("Dumping stack:");
+      Scheduler.dumpStack();
+      VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
 
