@@ -333,6 +333,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param addr the address of the Reference object
    * @return <code>true</code> if the reference was enqueued
    */
+  @Unpreemptible
   public boolean enqueueReference(ObjectReference addr) {
     Reference<?> reference = (Reference<?>)addr.toObject();
     return reference.enqueue();
@@ -377,6 +378,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
    */
+  @UnpreemptibleNoWarn("Call out to ReferenceQueue API")
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 

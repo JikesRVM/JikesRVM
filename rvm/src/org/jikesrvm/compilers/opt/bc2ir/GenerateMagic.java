@@ -102,6 +102,7 @@ import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -509,6 +510,10 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.objectAsProcessor) {
       RegisterOperand reg = gc.temps.makeTemp(Scheduler.getProcessorType());
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == MagicNames.processorAsGreenProcessor) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.findOrCreate(GreenProcessor.class));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.objectAsThread) {

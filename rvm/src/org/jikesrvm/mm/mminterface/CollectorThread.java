@@ -32,11 +32,11 @@ import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -267,8 +267,7 @@ public final class CollectorThread extends GreenThread {
    *
    * @param handshake Handshake for the requested collection
    */
-  @LogicallyUninterruptible
-  @Uninterruptible
+  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void collect(Handshake handshake, int why) {
     handshake.requestAndAwaitCompletion(why);
   }
@@ -338,15 +337,13 @@ public final class CollectorThread extends GreenThread {
    * different for the different allocators/collectors that the RVM
    * can be configured to use.
    */
-  @LogicallyUninterruptible
-  // due to call to snipObsoleteCompiledMethods
   @NoOptCompile
   // refs stored in registers by opt compiler will not be relocated by GC
   @BaselineNoRegisters
   // refs stored in registers by baseline compiler will not be relocated by GC, so use stack only
   @BaselineSaveLSRegisters
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
-  @Uninterruptible
+  @Unpreemptible
   public void run() {
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
@@ -513,8 +510,7 @@ public final class CollectorThread extends GreenThread {
    * Allocate an OutOfMemoryError for a given thread.
    * @param thread
    */
-  @LogicallyUninterruptible
-  @Uninterruptible
+  @UnpreemptibleNoWarn("Calls out to interruptible OOME constructor")
   public void allocateOOMEForThread(RVMThread thread) {
     /* We are running inside a gc thread, so we will allocate if physically possible */
     this.setThreadForStackTrace(thread);

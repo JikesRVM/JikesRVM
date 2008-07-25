@@ -486,15 +486,14 @@ public abstract class RVMThread {
    * String representation of thread
    */
   @Override
-  @Interruptible
+  @Unpreemptible
   public String toString() {
-    return (name == null) ? "Thread-" + getIndex() : name;
+    return (name == null) ? Services.stringConcatenate("Thread-", getIndex()) : name;
   }
 
   /**
    * Get the current java.lang.Thread.
    */
-  @Interruptible
   public final Thread getJavaLangThread() {
     return thread;
   }

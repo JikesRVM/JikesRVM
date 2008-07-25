@@ -430,9 +430,18 @@ public final class GreenScheduler extends Scheduler {
   /**
    * Get a Processor
    */
-  @UninterruptibleNoWarn
+  @Uninterruptible
   public static GreenProcessor getProcessor(int id) {
-    return (GreenProcessor)processors.get(id);
+    if (VM.runningVM) {
+      return Magic.processorAsGreenProcessor(processors.get(id));
+    } else {
+      return bootImageGreenProcessorCast(processors.get(id));
+    }
+  }
+
+  @UninterruptibleNoWarn("Only called during boot image compilation")
+  private static GreenProcessor bootImageGreenProcessorCast(Processor proc) {
+    return (GreenProcessor)proc;
   }
 
   /**

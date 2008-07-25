@@ -90,7 +90,6 @@ public class GreenThreadQueue extends AbstractThreadQueue {
 
   /** Add a thread to tail of queue. */
   @Override
-  @UninterruptibleNoWarn
   public void enqueue(GreenThread t) {
     if (debugName != null) {
       if (t==null) {
@@ -101,19 +100,7 @@ public class GreenThreadQueue extends AbstractThreadQueue {
     }
     // not currently on any other queue
     if (VM.VerifyAssertions && t.getNext() != null) {
-      VM.sysWrite("Thread sitting on >1 queue: ");
-      VM.sysWrite(Magic.getObjectType(t).getDescriptor());
-      VM.sysWrite(" ", t.getIndex());
-      VM.sysWrite(" ", t.toString());
-      VM.sysWrite(" ", t.getJavaLangThread().toString());
-      t = t.getNext();
-      VM.sysWrite(" on same queue as: ");
-      VM.sysWrite(Magic.getObjectType(t).getDescriptor());
-      VM.sysWrite(" ", t.getIndex());
-      VM.sysWrite(" ", t.toString());
-      VM.sysWrite(" ", t.getJavaLangThread().toString());
-      Scheduler.dumpVirtualMachine();
-      VM.sysFail("Thread sitting on >1 queue");
+      moreThanOneQueueFailure(t);
     }
     // not dead
     if (VM.VerifyAssertions) VM._assert(t.isQueueable());
@@ -125,6 +112,22 @@ public class GreenThreadQueue extends AbstractThreadQueue {
     tail = t;
   }
 
+  @UninterruptibleNoWarn("Handle error that kills VM in otherwise uninterruptible code")
+  private static void moreThanOneQueueFailure(GreenThread t) {
+    VM.sysWrite("Thread sitting on >1 queue: ");
+    VM.sysWrite(Magic.getObjectType(t).getDescriptor());
+    VM.sysWrite(" ", t.getIndex());
+    VM.sysWrite(" ", t.toString());
+    VM.sysWrite(" ", t.getJavaLangThread().toString());
+    t = t.getNext();
+    VM.sysWrite(" on same queue as: ");
+    VM.sysWrite(Magic.getObjectType(t).getDescriptor());
+    VM.sysWrite(" ", t.getIndex());
+    VM.sysWrite(" ", t.toString());
+    VM.sysWrite(" ", t.getJavaLangThread().toString());
+    Scheduler.dumpVirtualMachine();
+    VM.sysFail("Thread sitting on >1 queue");
+  }
   /**
    * Remove a thread from the head of the queue.
    * @return the thread (null --> queue is empty)

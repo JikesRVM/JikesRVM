@@ -21,9 +21,8 @@ import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -342,7 +341,7 @@ public abstract class Lock implements Constants {
    *
    * @return a free Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  @LogicallyUninterruptible // The caller is prepared to lose control when it allocates a lock -- dave
+  @UnpreemptibleNoWarn("Possible preemption when allocating a lock")
   static Lock allocate() {
     Processor mine = Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) {
@@ -404,7 +403,7 @@ public abstract class Lock implements Constants {
   /**
    * Grow the locks table by allocating a new spine chunk.
    */
-  @LogicallyUninterruptible // The caller is prepared to lose control when it allocates a lock -- dave
+  @UnpreemptibleNoWarn("Possible preemption when allocating lock array")
   static void growLocks(int id) {
     int spineId = id >> LOG_LOCK_CHUNK_SIZE;
     if (spineId >= LOCK_SPINE_SIZE) {
@@ -523,9 +522,11 @@ public abstract class Lock implements Constants {
    *
    * @param l The lock object
    */
-  @UninterruptibleNoWarn // aastore is ok in this case
+  @Uninterruptible
   public static void addLock(Lock l) {
-    locks[l.index >> LOG_LOCK_CHUNK_SIZE][l.index & LOCK_CHUNK_MASK] = l;
+    Lock[] chunk = locks[l.index >> LOG_LOCK_CHUNK_SIZE];
+    int index = l.index & LOCK_CHUNK_MASK;
+    Services.setArrayUninterruptible(chunk, index, l);
   }
 
   /**

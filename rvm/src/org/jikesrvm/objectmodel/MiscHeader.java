@@ -17,7 +17,7 @@ import org.jikesrvm.Constants;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Entrypoint;
-import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
@@ -104,7 +104,7 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  @LogicallyUninterruptible
+  @Interruptible("Only called during boot iamge creation")
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
     /* Only perform initialization when it is required */

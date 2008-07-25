@@ -20,6 +20,7 @@ import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
@@ -606,6 +607,17 @@ public final class Magic {
    * @return object reference as processor (no checking on cast)
    */
   public static Processor objectAsProcessor(Object object) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
+  }
+
+  /**
+   * Cast object.
+   * Note:     for use by gc to avoid checkcast during GC
+   * @param proc processor
+   * @return proc as green processor (no checking on cast)
+   */
+  public static GreenProcessor processorAsGreenProcessor(Processor proc) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }

@@ -39,6 +39,7 @@ import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.ProcessorTable;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -958,6 +959,7 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsShortArray, Object.class, short[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsIntArray, Object.class, int[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsProcessor, Object.class, Processor.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.processorAsGreenProcessor, Processor.class, GreenProcessor.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsThread, Object.class, RVMThread.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.threadAsCollectorThread, RVMThread.class, CollectorThread.class), g);
   }

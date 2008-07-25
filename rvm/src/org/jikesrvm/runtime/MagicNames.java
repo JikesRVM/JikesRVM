@@ -121,6 +121,7 @@ public class MagicNames {
   public static final Atom tibAsObject = Atom.findOrCreateAsciiAtom("tibAsObject");
 
   public static final Atom objectAsProcessor = Atom.findOrCreateAsciiAtom("objectAsProcessor");
+  public static final Atom processorAsGreenProcessor = Atom.findOrCreateAsciiAtom("processorAsGreenProcessor");
   public static final Atom objectAsThread = Atom.findOrCreateAsciiAtom("objectAsThread");
   public static final Atom threadAsCollectorThread = Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final Atom floatAsIntBits = Atom.findOrCreateAsciiAtom("floatAsIntBits");

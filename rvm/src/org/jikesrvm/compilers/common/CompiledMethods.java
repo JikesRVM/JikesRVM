@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
@@ -88,9 +89,11 @@ public class CompiledMethods implements SizeConstants {
   /**
    * Set entry in compiled method lookup
    */
+  @Uninterruptible
   private static void setCompiledMethod(int cmid, CompiledMethod cm) {
     int column = cmid >> LOG_ROW_SIZE;
-    compiledMethods[column][cmid & ROW_MASK] = cm;
+    CompiledMethod[] col = compiledMethods[column];
+    Services.setArrayUninterruptible(col, cmid & ROW_MASK, cm);
   }
 
   /**
@@ -220,6 +223,7 @@ public class CompiledMethods implements SizeConstants {
    * NOTE: It's expected that this is processed during GC, after scanning
    *    stacks to determine which methods are currently executing.
    */
+  @Uninterruptible
   public static void snipObsoleteCompiledMethods() {
     Magic.isync();
     if (!scanForObsoleteMethods) return;

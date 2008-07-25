@@ -18,7 +18,6 @@ import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 
@@ -65,8 +64,7 @@ public class Handshake {
    * collector thread, which will disable further thread switching on
    * the processor until it has completed the collection.
    */
-  @LogicallyUninterruptible
-  @Uninterruptible
+  @Unpreemptible
   public void requestAndAwaitCompletion(int why) {
     if (request(why)) {
       if (verbose >= 1) VM.sysWriteln("GC Message: Handshake.requestAndAwaitCompletion - yielding");

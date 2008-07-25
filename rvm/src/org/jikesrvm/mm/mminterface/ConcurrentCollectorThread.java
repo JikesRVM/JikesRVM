@@ -19,9 +19,9 @@ import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * Threads that perform collector work while mutators are active. these
@@ -106,8 +106,7 @@ public final class ConcurrentCollectorThread extends GreenThread {
   /**
    * Run method for concurrent collector thread.
    */
-  @LogicallyUninterruptible
-  @Uninterruptible
+  @Unpreemptible
   public void run() {
     if (verbose >= 1) VM.sysWriteln("GC Message: Concurrent collector thread entered run...");
 
