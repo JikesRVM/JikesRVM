@@ -332,7 +332,7 @@ public class Services implements SizeConstants {
    * @param index the index of the element to set
    * @param value the new value for the element
    */
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public static void setArrayUninterruptible(Object[] dst, int index, Object value) {
     if (VM.runningVM) {
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
@@ -437,7 +437,7 @@ public class Services implements SizeConstants {
       return src[index];
   }
 
-  @Unpreemptible("Creates arrays possibly causes scheduling")
+  @Unpreemptible("Call interruptible string API")
   public static String stringConcatenator(String... args) {
     String result="";
     for (String s:args) {
@@ -446,8 +446,13 @@ public class Services implements SizeConstants {
     return result;
   }
 
-  @UnpreemptibleNoWarn("Creates arrays possibly causes scheduling, no warning on call to string API")
+  @UnpreemptibleNoWarn("Call interruptible string API")
   public static String stringConcatenate(String a, String b) {
     return a.concat(b);
+  }
+
+  @UnpreemptibleNoWarn("Call interruptible string API")
+  public static String stringConcatenate(String a, int b) {
+    return a + b;
   }
 }

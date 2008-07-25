@@ -502,7 +502,7 @@ public class Statics implements Constants {
   /**
    * Fetch contents of a slot, as an Address.
    */
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public static Address getSlotContentsAsAddress(Offset offset) {
     if (VM.runningVM) {
       if (VM.BuildFor32Addr) {
@@ -562,7 +562,7 @@ public class Statics implements Constants {
   /**
    * Set contents of a slot, as an object.
    */
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public static void setSlotContents(Offset offset, Object object) {
     // NB uninterruptible warnings are disabled for this method due to
     // the array store which could cause a fault - this can't actually

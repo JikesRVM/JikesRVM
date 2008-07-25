@@ -76,7 +76,7 @@ public final class IMT implements RuntimeTable<CodeArray> {
    * @param value The value to set the entry to.
    */
   @Intrinsic
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, CodeArray value) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     data[index] = value;

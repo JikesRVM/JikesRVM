@@ -121,7 +121,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  @UninterruptibleNoWarn
+  @UnpreemptibleNoWarn("No point threading until threading is booted")
   public static void boot() {
     writingBootImage = false;
     runningVM = true;
@@ -611,7 +611,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void _assertionFailure(String msg1, String msg2) {
     if (msg1 == null && msg2 == null) {
       msg1 = "vm internal error at:";
@@ -769,7 +769,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       }
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeNotRunningVM(String value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(value);
@@ -809,7 +809,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       writeNotRunningVM(value);
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeNotRunningVM(char value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(value);
@@ -830,7 +830,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       writeNotRunningVM(value);
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeNotRunningVM(double value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(value);
@@ -850,7 +850,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       writeNotRunningVM(value);
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeNotRunningVM(int value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(value);
@@ -869,7 +869,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       writeHexNotRunningVM(value);
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeHexNotRunningVM(int value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(Integer.toHexString(value));
@@ -888,7 +888,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       writeHexNotRunningVM(value);
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeHexNotRunningVM(long value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(Long.toHexString(value));
@@ -951,7 +951,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       writeNotRunningVM(value);
     }
   }
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeNotRunningVM(long value) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     System.err.print(value);
@@ -2167,7 +2167,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @param value  value to pass to host o/s
    */
   @NoInline
-  @UnpreemptibleNoWarn
+  @UnpreemptibleNoWarn("We need to do preemptible operations but are accessed from unpreemptible code")
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
     if (Options.stackTraceAtExit) {

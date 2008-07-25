@@ -75,7 +75,7 @@ public final class ITableArray implements RuntimeTable<ITable> {
    * @param value The value to set the entry to.
    */
   @Intrinsic
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, ITable value) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     backingData[index] = value;

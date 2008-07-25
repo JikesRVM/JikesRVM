@@ -139,7 +139,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
    * @param value The value to set the entry to.
    */
   @Intrinsic
-  @UninterruptibleNoWarn // hijacked at runtime
+  @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, Object value) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     data[index] = value;

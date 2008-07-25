@@ -76,7 +76,7 @@ public final class ProcessorTable implements RuntimeTable<Processor> {
    * @param value The value to set the entry to.
    */
   @Intrinsic
-  @UninterruptibleNoWarn
+  @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public void set(int index, Processor value) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     data[index] = value;

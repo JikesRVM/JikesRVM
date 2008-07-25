@@ -47,7 +47,7 @@ public interface RegisterConstants {
       }
     }
     /** @return encoded value of this register */
-    @UninterruptibleNoWarn
+    @UninterruptibleNoWarn("Interruptible code only called during boot image creation")
     @Pure
     public byte value() {
       if (!org.jikesrvm.VM.runningVM) {
