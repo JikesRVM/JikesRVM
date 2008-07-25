@@ -44,7 +44,7 @@ public class Poisoned extends MS {
   }
 
   /**
-   * Poison a reference value.
+   * DePoison a reference value.
    */
   @Inline
   public static ObjectReference depoison(Word value) {
