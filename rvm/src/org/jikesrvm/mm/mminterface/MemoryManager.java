@@ -238,7 +238,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * reference by an aastore bytecode.
    *
    * @param ref the array containing the source of the new reference.
-   * @param index the index into the array were the new referece
+   * @param index the index into the array where the new reference
    * resides.  The index is the "natural" index into the array, for
    * example a[index].
    * @param value the object that is the target of the new reference.
