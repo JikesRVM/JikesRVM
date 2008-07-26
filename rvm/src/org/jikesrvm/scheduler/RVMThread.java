@@ -772,11 +772,21 @@ public abstract class RVMThread {
       jniEnv = null;
     }
 
+    // Switch to uninterruptible portion of termination
+    terminateUnpreemptible();
+  }
+
+  /**
+   * Unpreemptible portion of thread termination. Unpreemptible to avoid a
+   * dead thread from being scheduled.
+   */
+  @Unpreemptible
+  private void terminateUnpreemptible() {
     // release anybody waiting on this thread -
     // in particular, see {@link #join()}
     synchronized (this) {
+      notifyAllUninterruptible(this);
       state = State.TERMINATED;
-      notifyAll(this);
     }
     // become another thread
     //
@@ -1038,6 +1048,21 @@ public abstract class RVMThread {
     if (l.getOwnerId() != proc.threadId) {
       raiseIllegalMonitorStateException("notifyAll", o);
     }
+    Scheduler.getCurrentThread().notifyAllInternal(o, l);
+  }
+
+  /**
+   * Uninterruptible variant of Java synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @see java.lang.Object#notifyAll
+   */
+  public static void notifyAllUninterruptible(Object o) {
+    if (STATS) notifyAllOperations++;
+    Scheduler.LockModel l = (Scheduler.LockModel)ObjectModel.getHeavyLock(o, false);
+    if (l == null) return;
+    Processor proc = Processor.getCurrentProcessor();
+    if (VM.VerifyAssertions) VM._assert(l.getOwnerId() == proc.threadId);
     Scheduler.getCurrentThread().notifyAllInternal(o, l);
   }
 
