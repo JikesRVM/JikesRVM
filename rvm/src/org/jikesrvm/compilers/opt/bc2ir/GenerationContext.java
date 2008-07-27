@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -350,14 +349,14 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     // Insert moves from child.arguments to child's locals in prologue
     TypeReference[] params = child.method.getParameterTypes();
     int numParams = params.length;
-    if (VM.VerifyAssertions) {
+    {
       // Check for violations causing RVM-597
       int expectedTotalParams = numParams + (child.method.isStatic() ? 0 : 1);
       if (expectedTotalParams != Call.getNumberOfParams(callSite)) {
-        VM._assert(false,
-        "Mismatch between number of parameters in " + callSite +
-        " (" + Call.getNumberOfParams(callSite) + ") and " +
-        child.method + " (" + expectedTotalParams + ")");
+        throw new OptimizingCompilerException(
+          "Mismatch between number of parameters in " + callSite +
+          " (" + Call.getNumberOfParams(callSite) + ") and " +
+          child.method + " (" + expectedTotalParams + ")");
       }
     }
     int argIdx = 0;
