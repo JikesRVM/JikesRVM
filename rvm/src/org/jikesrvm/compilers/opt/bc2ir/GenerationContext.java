@@ -397,7 +397,16 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
       TypeReference argType = params[paramIdx];
       RegisterOperand formal;
-      Operand actual = child.arguments[argIdx];
+      Operand actual;
+      try {
+        actual = child.arguments[argIdx];
+      } catch (Exception e) {
+        // Extra check for RVM-597
+        OptimizingCompilerException e2 = new OptimizingCompilerException("Unexpected exception in: " +
+          child.method.toString() + " called from " + parent.method.toString() + " index: " + argIdx);
+        e2.initCause(e);
+        throw e2;
+      }
       if (actual.isRegister()) {
         RegisterOperand rActual = actual.asRegister();
         if (ClassLoaderProxy.includesType(argType, rActual.getType()) != YES) {
