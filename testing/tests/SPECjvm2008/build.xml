@@ -33,7 +33,7 @@
     <attribute name="heapsize" default=""/>
     <attribute name="requires-display" default="false"/>
     <sequential>
-      <rvm tag="@{name}" class="spec.harness.Launch" requires-display="@{requires-display}" dir="${specjvm.dir}" args="${specjvm.args} @{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}"/>
+      <rvm tag="@{name}" class="spec.harness.Launch" requires-display="@{requires-display}" dir="${specjvm.dir}" args="${specjvm.args} @{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}" exitCode=""/>
       <outputSingleStatisticResults tag="@{name}" key="time" pattern="Score on @{name}: (.*) ops/m"/>
     </sequential>
   </macrodef>
