@@ -3318,15 +3318,16 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       /*
        * NOTE: until the end of the prologue SP holds the framepointer.
        */
-      asm.emitMOV_RegDisp_Imm(SP,
-                              Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET),
-                              compiledMethod.getId()); // 3rd word of header
+      if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET == -4);
+      asm.emitPUSH_Imm(compiledMethod.getId());
 
       /*
-      * save registers
-      */
-      asm.emitMOV_RegDisp_Reg(SP, EDI_SAVE_OFFSET, EDI);          // save nonvolatile EDI register
-      asm.emitMOV_RegDisp_Reg(SP, EBX_SAVE_OFFSET, EBX);            // save nonvolatile EBX register
+       * save registers
+       */
+      if (VM.VerifyAssertions) VM._assert(EDI_SAVE_OFFSET.toInt() == -8);
+      asm.emitPUSH_Reg(EDI); // save nonvolatile EDI register
+      if (VM.VerifyAssertions) VM._assert(EBX_SAVE_OFFSET.toInt() == -12);
+      asm.emitPUSH_Reg(EBX); // save nonvolatile EBX register
 
       int savedRegistersSize = SAVED_GPRS << LG_WORDSIZE;       // default
       /* handle "dynamic brige" methods:
@@ -3336,28 +3337,36 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
       if (klass.hasDynamicBridgeAnnotation()) {
         savedRegistersSize += 2 << LG_WORDSIZE;
-        asm.emitMOV_RegDisp_Reg(SP, T0_SAVE_OFFSET, T0);
-        asm.emitMOV_RegDisp_Reg(SP, T1_SAVE_OFFSET, T1);
+        if (VM.VerifyAssertions) VM._assert(T0_SAVE_OFFSET.toInt() == -16);
+        asm.emitPUSH_Reg(T0);
+        if (VM.VerifyAssertions) VM._assert(T1_SAVE_OFFSET.toInt() == -20);
+        asm.emitPUSH_Reg(T1);
         if (SSE2_FULL) {
           // TODO: Store SSE2 Control word?
-          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(0),  XMM0);
-          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(8),  XMM1);
-          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(16), XMM2);
-          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(24), XMM3);
+          asm.emitADD_Reg_Imm(SP, -XMM_STATE_SIZE); // adjust stack to bottom of saved area
+          if (VM.VerifyAssertions) VM._assert(XMM_SAVE_OFFSET.toInt() == -20 - XMM_STATE_SIZE);
+          asm.emitMOVQ_RegDisp_Reg(SP, Offset.fromIntSignExtend(24), XMM3);
+          asm.emitMOVQ_RegDisp_Reg(SP, Offset.fromIntSignExtend(16), XMM2);
+          asm.emitMOVQ_RegDisp_Reg(SP, Offset.fromIntSignExtend(8), XMM1);
+          asm.emitMOVQ_RegInd_Reg(SP, XMM0);
           savedRegistersSize += XMM_STATE_SIZE;
         } else {
-          asm.emitFNSAVE_RegDisp(SP, FPU_SAVE_OFFSET);
+          if (VM.VerifyAssertions) VM._assert(FPU_SAVE_OFFSET.toInt() == -20 - FPU_STATE_SIZE);
+          asm.emitADD_Reg_Imm(SP, -FPU_STATE_SIZE); // adjust stack to bottom of saved area
+          asm.emitFNSAVE_RegInd(SP);
           savedRegistersSize += FPU_STATE_SIZE;
         }
       }
 
       // copy registers to callee's stackframe
       firstLocalOffset = STACKFRAME_BODY_OFFSET - savedRegistersSize;
-      Offset firstParameterOffset = Offset.fromIntSignExtend((parameterWords << LG_WORDSIZE) + WORDSIZE);
-      genParameterCopy(firstParameterOffset, Offset.fromIntSignExtend(firstLocalOffset));
+      Offset firstParameterOffset = Offset.fromIntSignExtend(savedRegistersSize + STACKFRAME_HEADER_SIZE + (parameterWords << LG_WORDSIZE) - WORDSIZE);
+      genParameterCopy(firstParameterOffset);
 
-      int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
-      asm.emitADD_Reg_Imm(SP, emptyStackOffset);               // set aside room for non parameter locals
+      int emptyStackOffset = (method.getLocalWords() << LG_WORDSIZE) - (parameterWords << LG_WORDSIZE);
+      if (emptyStackOffset != 0) {
+        asm.emitADD_Reg_Imm(SP, -emptyStackOffset);               // set aside room for non parameter locals
+      }
 
       /* defer generating code which may cause GC until
        * locals were initialized. see emit_deferred_prologue
@@ -3371,12 +3380,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
        */
       if (isInterruptible) {
         // S0<-limit
-        ProcessorLocalState.emitMoveFieldToReg(asm, S0, Entrypoints.activeThreadStackLimitField.getOffset());
-
-        asm.emitSUB_Reg_Reg(S0, SP);                                           // space left
-        asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);      // space left after this expression stack
+        asm.emitCMP_Reg_RegDisp(SP, PR, Entrypoints.activeThreadStackLimitField.getOffset());
         asm.emitBranchLikelyNextInstruction();
-        ForwardReference fr = asm.forwardJcc(Assembler.LT);        // Jmp around trap if OK
+        ForwardReference fr = asm.forwardJcc(Assembler.LGT);        // Jmp around trap if OK
         asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE);     // trap
         fr.resolve(asm);
       } else {
@@ -3437,9 +3443,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitINT_Imm(0xFF);
     } else {
       // normal method
-      asm.emitADD_Reg_Imm(SP, fp2spOffset(NO_SLOT).toInt() - bytesPopped);     // SP becomes frame pointer
-      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);           // restore nonvolatile EDI register
-      asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);             // restore nonvolatile EBX register
+      int spaceToRelease = fp2spOffset(NO_SLOT).toInt() - bytesPopped - 12;
+      if (spaceToRelease == 4) {
+        asm.emitPOP_Reg(S0);   // throw away one local
+      } else if (spaceToRelease != 0) {
+        asm.emitADD_Reg_Imm(SP, spaceToRelease);
+      }
+      if (VM.VerifyAssertions) VM._assert(EBX_SAVE_OFFSET.toInt() == -12);
+      asm.emitPOP_Reg(EBX);  // restore nonvolatile EBX register
+      if (VM.VerifyAssertions) VM._assert(EDI_SAVE_OFFSET.toInt() == -8);
+      asm.emitPOP_Reg(EDI); // restore nonvolatile EDI register
+      asm.emitPOP_Reg(S0);   // throw away CMID
+      // SP becomes frame pointer
       asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset()); // discard frame
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);    // return to caller- pop parameters from stack
     }
@@ -3661,110 +3676,114 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   /**
    * Store parameters into local space of the callee's stackframe.
    * Taken: srcOffset - offset from frame pointer of first parameter in caller's stackframe.
-   *        dstOffset - offset from frame pointer of first local in callee's stackframe
    * Assumption: although some parameters may be passed in registers,
    * space for all parameters is layed out in order on the caller's stackframe.
    */
-  private void genParameterCopy(Offset srcOffset, Offset dstOffset) {
+  private void genParameterCopy(Offset srcOffset) {
     int gpr = 0;  // number of general purpose registers unloaded
     int fpr = 0;  // number of floating point registers unloaded
     GPR T = T0; // next GPR to get a parameter
+    int dstOffset = 0; // offset from the bottom of the locals for the current parameter
     if (!method.isStatic()) { // handle "this" parameter
       if (gpr < NUM_PARAMETER_GPRS) {
-        asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
+        asm.emitPUSH_Reg(T);
         T = T1; // at most 2 parameters can be passed in general purpose registers
         gpr++;
       } else { // no parameters passed in registers
-        asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
-        asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
+        asm.emitPUSH_RegDisp(SP, srcOffset);
       }
-      srcOffset = srcOffset.minus(WORDSIZE);
-      dstOffset = dstOffset.minus(WORDSIZE);
+      dstOffset -= 4;
     }
-    // to handle floating point parameters in registers
-    int[] fprOffset = SSE2_FULL ? null : new int[NUM_PARAMETER_FPRS];
-    boolean[] is32bit = SSE2_FULL ? null : new boolean[NUM_PARAMETER_FPRS];
+    int[] fprOffset = new int[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
+    boolean[] is32bit = new boolean[NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
+    int spIsOffBy = 0; // in the case of doubles and floats SP may drift from the expected value as we don't use push/pop
     for (TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
+        if (spIsOffBy != 0) {
+          // fix up SP if it drifted
+          asm.emitADD_Reg_Imm(SP, -spIsOffBy);
+          spIsOffBy = 0;
+        }
         if (gpr < NUM_PARAMETER_GPRS) {
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);    // hi mem := lo register (== hi order word)
-          T =
-              T1;                                       // at most 2 parameters can be passed in general purpose registers
+          asm.emitPUSH_Reg(T);                          // hi mem := lo register (== hi order word)
+          T = T1;                                       // at most 2 parameters can be passed in general purpose registers
           gpr++;
-          srcOffset = srcOffset.minus(WORDSIZE);
-          dstOffset = dstOffset.minus(WORDSIZE);
           if (gpr < NUM_PARAMETER_GPRS) {
-            asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);  // lo mem := hi register (== lo order word)
+            asm.emitPUSH_Reg(T);  // lo mem := hi register (== lo order word)
             gpr++;
           } else {
-            asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset); // lo mem from caller's stackframe
-            asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
+            asm.emitPUSH_RegDisp(SP, srcOffset); // lo mem from caller's stackframe
           }
         } else {
-          asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
-          srcOffset = srcOffset.minus(WORDSIZE);
-          dstOffset = dstOffset.minus(WORDSIZE);
-          asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
+          asm.emitPUSH_RegDisp(SP, srcOffset);   // hi mem from caller's stackframe
+          asm.emitPUSH_RegDisp(SP, srcOffset);   // lo mem from caller's stackframe
         }
-        srcOffset = srcOffset.minus(WORDSIZE);
-        dstOffset = dstOffset.minus(WORDSIZE);
+        dstOffset -= 8;
       } else if (t.isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          if (SSE2_FULL) {
-            asm.emitMOVSS_RegDisp_Reg(SP, dstOffset, XMM.lookup(fpr));
-          } else {
-            fprOffset[fpr] = dstOffset.toInt();
-            is32bit[fpr] = true;
-          }
+          spIsOffBy += 4;
+          fprOffset[fpr] = dstOffset;
+          is32bit[fpr] = true;
           fpr++;
         } else {
-          asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
+          if (spIsOffBy != 0) {
+            // fix up SP if it drifted
+            asm.emitADD_Reg_Imm(SP, -spIsOffBy);
+            spIsOffBy = 0;
+          }
+          asm.emitPUSH_RegDisp(SP, srcOffset);
         }
-        srcOffset = srcOffset.minus(WORDSIZE);
-        dstOffset = dstOffset.minus(WORDSIZE);
+        dstOffset -= 4;
       } else if (t.isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          srcOffset = srcOffset.minus(WORDSIZE);
-          dstOffset = dstOffset.minus(WORDSIZE);
-          if (SSE2_FULL) {
-            asm.emitMOVLPD_RegDisp_Reg(SP, dstOffset, XMM.lookup(fpr));
-          } else {
-            fprOffset[fpr] = dstOffset.toInt();
-            is32bit[fpr] = false;
-          }
+          spIsOffBy += 8;
+          dstOffset -= 4;
+          fprOffset[fpr] = dstOffset;
+          is32bit[fpr] = false;
           fpr++;
         } else {
-          asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
-          srcOffset = srcOffset.minus(WORDSIZE);
-          dstOffset = dstOffset.minus(WORDSIZE);
-          asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
+          if (spIsOffBy != 0) {
+            // fix up SP if it drifted
+            asm.emitADD_Reg_Imm(SP, -spIsOffBy);
+            spIsOffBy = 0;
+          }
+          asm.emitPUSH_RegDisp(SP, srcOffset);   // hi mem from caller's stackframe
+          dstOffset -= 4;
+          asm.emitPUSH_RegDisp(SP, srcOffset);   // lo mem from caller's stackframe
         }
-        srcOffset = srcOffset.minus(WORDSIZE);
-        dstOffset = dstOffset.minus(WORDSIZE);
+        dstOffset -= 4;
       } else { // t is object, int, short, char, byte, or boolean
+        if (spIsOffBy != 0) {
+          // fix up SP if it drifted
+          asm.emitADD_Reg_Imm(SP, -spIsOffBy);
+          spIsOffBy = 0;
+        }
         if (gpr < NUM_PARAMETER_GPRS) {
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
+          asm.emitPUSH_Reg(T);
           T = T1; // at most 2 parameters can be passed in general purpose registers
           gpr++;
         } else {
-          asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
-          asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
+          asm.emitPUSH_RegDisp(SP, srcOffset);
         }
-        srcOffset = srcOffset.minus(WORDSIZE);
-        dstOffset = dstOffset.minus(WORDSIZE);
+        dstOffset -= 4;
       }
     }
-    if (!SSE2_FULL) {
-      for (int i = fpr - 1; 0 <= i; i--) { // unload the floating point register stack (backwards)
-        if (is32bit[i]) {
-          asm.emitFSTP_RegDisp_Reg(SP, Offset.fromIntSignExtend(fprOffset[i]), FP0);
+    if (spIsOffBy != 0) {
+      // fix up SP if it drifted
+      asm.emitADD_Reg_Imm(SP, -spIsOffBy);
+    }
+    for (int i = fpr - 1; 0 <= i; i--) { // unload the floating point register stack (backwards)
+      if (is32bit[i]) {
+        if (SSE2_BASE) {
+          asm.emitMOVSS_RegDisp_Reg(SP, Offset.fromIntSignExtend(fprOffset[i]-dstOffset-4), XMM.lookup(i));
         } else {
-          asm.emitFSTP_RegDisp_Reg_Quad(SP, Offset.fromIntSignExtend(fprOffset[i]), FP0);
+          asm.emitFSTP_RegDisp_Reg(SP, Offset.fromIntSignExtend(fprOffset[i]-dstOffset-4), FP0);
+        }
+      } else {
+        if (SSE2_BASE) {
+          asm.emitMOVSD_RegDisp_Reg(SP, Offset.fromIntSignExtend(fprOffset[i]-dstOffset-4), XMM.lookup(i));
+        } else {
+          asm.emitFSTP_RegDisp_Reg_Quad(SP, Offset.fromIntSignExtend(fprOffset[i]-dstOffset-4), FP0);
         }
       }
     }
