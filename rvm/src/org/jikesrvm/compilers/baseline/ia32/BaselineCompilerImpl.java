@@ -3555,7 +3555,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitJCC_Cond_ImmOrLabel(cond, mTarget, bTarget);
     }
   }
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   private void incEdgeCounter(GPR scratch, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((BaselineCompiledMethod) compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx << 2));
@@ -3566,7 +3566,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx << 2), scratch);
     fr1.resolve(asm);
   }
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private void incEdgeCounterIdx(GPR scratch, GPR idx, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((BaselineCompiledMethod) compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, Assembler.WORD, Offset.fromIntZeroExtend(counterIdx << 2));
