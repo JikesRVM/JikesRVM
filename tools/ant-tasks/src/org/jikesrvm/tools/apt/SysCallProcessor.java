@@ -147,7 +147,7 @@ public class SysCallProcessor implements AnnotationProcessor {
       String generatedClass;
       AnnotationMirror ann = getAnnotation(d,GEN_IMPL_ANNOTATION);
       if (ann != null) {
-        generatedClass = getAnnotationElementValue("generatedClass()", ann);
+        generatedClass = getAnnotationElementValue("value()", ann);
       } else {
         generatedClass = d.getQualifiedName()+"Impl";
       }
