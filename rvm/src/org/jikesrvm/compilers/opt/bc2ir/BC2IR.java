@@ -204,7 +204,7 @@ public final class BC2IR
   // OSR field
   private boolean osrGuardedInline = false;
 
-  /*
+  /**
    * OSR field: TODO rework this mechanism!
    * adjustment of bcIndex of instructions because of
    * specialized bytecode.
@@ -1806,7 +1806,8 @@ public final class BC2IR
               // Attempt to inline virtualized call.
               if (maybeInlineMethod(shouldInline(s,
                                                  receiver.isConstant() ||
-                                                 (receiver.isRegister() && receiver.asRegister().isExtant())), s)) {
+                                                 (receiver.isRegister() && receiver.asRegister().isExtant()),
+                                                 instrIndex - bciAdjustment), s)) {
                 return;
               }
             }
@@ -1877,7 +1878,7 @@ public final class BC2IR
             }
 
             // Consider inlining it.
-            if (maybeInlineMethod(shouldInline(s, isExtant), s)) {
+            if (maybeInlineMethod(shouldInline(s, isExtant, instrIndex - bciAdjustment), s)) {
               return;
             }
           }
@@ -1924,7 +1925,7 @@ public final class BC2IR
           Call.setGuard(s, getCurrentGuard());
 
           // Consider inlining it.
-          if (maybeInlineMethod(shouldInline(s, false), s)) {
+          if (maybeInlineMethod(shouldInline(s, false, instrIndex - bciAdjustment), s)) {
             return;
           }
 
@@ -1972,7 +1973,7 @@ public final class BC2IR
               }
 
               // Consider inlining it.
-              if (maybeInlineMethod(shouldInline(s, false), s)) {
+              if (maybeInlineMethod(shouldInline(s, false, instrIndex - bciAdjustment), s)) {
                 return;
               }
             }
@@ -2097,14 +2098,17 @@ public final class BC2IR
             }
 
             // Attempt to inline virtualized call.
-            if (maybeInlineMethod(shouldInline(s, receiver.isConstant() || receiver.asRegister().isExtant()), s)) {
+            if (maybeInlineMethod(shouldInline(s,
+                receiver.isConstant() || receiver.asRegister().isExtant(),
+                instrIndex - bciAdjustment), s)) {
               return;
             }
           } else {
             // We can't virtualize the call;
             // try to inline a predicted target for the interface invocation
             // inline code will include DTC to ensure receiver implements the interface.
-            if (resolvedMethod != null && maybeInlineMethod(shouldInline(s, false), s)) {
+            if (resolvedMethod != null &&
+                maybeInlineMethod(shouldInline(s, false, instrIndex - bciAdjustment), s)) {
               return;
             } else {
               if (requiresImplementsTest) {
@@ -2817,8 +2821,10 @@ public final class BC2IR
     }
     Call.setMethod(s, methOp);
 
-    /* need to set it up early because inlining oracle use it */
+    // need to set it up early because the inlining oracle use it
     s.position = gc.inlineSequence;
+    // no longer used by the inline oracle as it is incorrectly adjusted by OSR,
+    // can't adjust it here as it will effect the exception handler maps
     s.bcIndex = instrIndex;
 
     TypeReference rtype = meth.getReturnType();
@@ -4592,12 +4598,13 @@ public final class BC2IR
    *
    * @param call the call instruction being considered for inlining
    * @param isExtant is the receiver of a virtual method an extant object?
+   * @param realBCI the real bytecode index of the call instruction, not adjusted because of OSR
    */
-  private InlineDecision shouldInline(Instruction call, boolean isExtant) {
+  private InlineDecision shouldInline(Instruction call, boolean isExtant, int realBCI) {
     if (Call.getMethod(call).getTarget() == null) {
       return InlineDecision.NO("Target method is null");
     }
-    CompilationState state = new CompilationState(call, isExtant, gc.options, gc.original_cm);
+    CompilationState state = new CompilationState(call, isExtant, gc.options, gc.original_cm, realBCI);
     InlineDecision d = gc.inlinePlan.shouldInline(state);
     return d;
   }

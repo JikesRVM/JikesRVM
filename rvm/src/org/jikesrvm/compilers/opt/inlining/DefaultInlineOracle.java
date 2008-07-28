@@ -54,7 +54,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     final RVMMethod staticCallee = state.obtainTarget();
     final NormalMethod rootMethod = state.getRootMethod();
     final RVMMethod caller = state.getMethod();
-    final int bcIndex = state.getBytecodeIndex();
+    final int bcIndex = state.getRealBytecodeIndex();
 
     if (verbose) VM.sysWriteln("Begin inline decision for " + "<" + caller + "," + bcIndex + "," + staticCallee + ">");
 

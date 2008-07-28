@@ -349,16 +349,6 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     // Insert moves from child.arguments to child's locals in prologue
     TypeReference[] params = child.method.getParameterTypes();
     int numParams = params.length;
-    {
-      // Check for violations causing RVM-597
-      int expectedTotalParams = numParams + (child.method.isStatic() ? 0 : 1);
-      if (expectedTotalParams != Call.getNumberOfParams(callSite)) {
-        throw new OptimizingCompilerException(
-          "Mismatch between number of parameters in " + callSite +
-          " (" + Call.getNumberOfParams(callSite) + ") and " +
-          child.method + " (" + expectedTotalParams + ")");
-      }
-    }
     int argIdx = 0;
     int localNum = 0;
     if (!child.method.isStatic()) {
@@ -396,16 +386,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
       TypeReference argType = params[paramIdx];
       RegisterOperand formal;
-      Operand actual;
-      try {
-        actual = child.arguments[argIdx];
-      } catch (Exception e) {
-        // Extra check for RVM-597
-        OptimizingCompilerException e2 = new OptimizingCompilerException("Unexpected exception in: " +
-          child.method.toString() + " called from " + parent.method.toString() + " index: " + argIdx);
-        e2.initCause(e);
-        throw e2;
-      }
+      Operand actual = child.arguments[argIdx];
       if (actual.isRegister()) {
         RegisterOperand rActual = actual.asRegister();
         if (ClassLoaderProxy.includesType(argType, rActual.getType()) != YES) {

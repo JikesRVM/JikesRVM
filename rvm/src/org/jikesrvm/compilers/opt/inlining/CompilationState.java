@@ -32,6 +32,7 @@ public final class CompilationState {
   private final boolean isExtant;
   private final OptOptions options;
   private final CompiledMethod cm;
+  private final int realBCI;
 
   /*
    * Interface
@@ -42,12 +43,14 @@ public final class CompilationState {
    * @param isExtant is the receiver of a virtual call an extant object?
    * @param options controlling compiler options
    * @param cm compiled method of the IR object being compiled
+   * @param realBCI the real bytecode index of the call instruction, not adjusted because of OSR
    */
-  public CompilationState(Instruction call, boolean isExtant, OptOptions options, CompiledMethod cm) {
+  public CompilationState(Instruction call, boolean isExtant, OptOptions options, CompiledMethod cm, int realBCI) {
     this.call = call;
     this.isExtant = isExtant;
     this.options = options;
     this.cm = cm;
+    this.realBCI = realBCI;
   }
 
   /**
@@ -118,10 +121,10 @@ public final class CompilationState {
   }
 
   /**
-   * Return the current bytecode index
+   * Return the real bytecode index associated with this call
    */
-  public int getBytecodeIndex() {
-    return call.bcIndex;
+  public int getRealBytecodeIndex() {
+    return realBCI;
   }
 
   /**

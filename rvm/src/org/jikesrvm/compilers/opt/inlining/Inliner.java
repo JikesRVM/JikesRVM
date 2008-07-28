@@ -142,7 +142,7 @@ public class Inliner {
    *         inline decision in the given context
    */
   public static GenerationContext execute(InlineDecision inlDec, GenerationContext parent,
-                                              ExceptionHandlerBasicBlockBag ebag, Instruction callSite) {
+                                          ExceptionHandlerBasicBlockBag ebag, Instruction callSite) {
     if (inlDec.needsGuard()) {
       //Step 1: create the synthetic generation context we'll
       // return to our caller.
@@ -158,16 +158,9 @@ public class Inliner {
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.IG_CLASS_TEST ? " (class test) " : " (method test) ";
-          VM.sysWrite("\tGuarded inline" +
-                      guard +
-                      " " +
-                      callee +
-                      " into " +
-                      callSite.position.getMethod() +
-                      " at bytecode " +
-                      callSite
-                          .bcIndex +
-                                   "\n");
+          VM.sysWrite("\tGuarded inline" + guard + " " + callee +
+                      " into " + callSite.position.getMethod() +
+                      " at bytecode " + callSite.bcIndex + "\n");
         }
         // (b)
         children[i] = GenerationContext.createChildContext(parent, ebag, callee, callSite);
