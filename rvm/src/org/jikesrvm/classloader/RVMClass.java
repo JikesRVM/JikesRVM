@@ -407,6 +407,16 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
+   * Does this class directly define a final instance field (has implications for JMM).
+   */
+  public boolean declaresFinalInstanceField() {
+    for (RVMField f : declaredFields) {
+      if (f.isFinal() && !f.isStatic()) return true;
+    }
+    return false;
+  }
+
+  /**
    * Methods defined directly by this class (ie. not including superclasses).
    */
   @Uninterruptible

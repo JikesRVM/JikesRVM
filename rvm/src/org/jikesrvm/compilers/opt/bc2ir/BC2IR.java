@@ -2870,6 +2870,10 @@ public final class BC2IR
         gc.result = meet;
       }
     }
+    if (VM.BuildForPowerPC && gc.method.isObjectInitializer() && gc.method.getDeclaringClass().declaresFinalInstanceField()) {
+      /* JMM Compliance.  Must insert StoreStore barrier before returning from constructor of class with final instance fields */
+      appendInstruction(Empty.create(WRITE_FLOOR));
+    }
     appendInstruction(gc.epilogue.makeGOTO());
     currentBBLE.block.insertOut(gc.epilogue);
     if (DBG_CFG || DBG_SELECTED) {

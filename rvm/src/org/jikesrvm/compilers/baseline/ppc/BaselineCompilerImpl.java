@@ -2424,6 +2424,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   protected final void emit_return() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
+    if (method.isObjectInitializer() && method.getDeclaringClass().declaresFinalInstanceField()) {
+      /* JMM compliance. Emit StoreStore barrier */
+      asm.emitSYNC();
+    }
     genEpilogue();
   }
 
