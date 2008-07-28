@@ -72,7 +72,6 @@ import org.vmmagic.pragma.*;
    * which are interruptible. We protect these calls with a
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
-  @Unpreemptible
   public final Address getBytes(String str) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (str == null)
