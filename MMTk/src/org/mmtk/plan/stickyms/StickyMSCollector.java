@@ -17,7 +17,6 @@ import org.mmtk.plan.marksweep.MSCollector;
 import org.mmtk.plan.marksweep.MSTraceLocal;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -45,9 +44,6 @@ public class StickyMSCollector extends MSCollector {
    */
   private StickyMSNurseryTraceLocal nurseryTrace;
 
-  /* Sanity checking */
-  private StickyMSSanityCheckerLocal sanityChecker;
-
   /****************************************************************************
    * Initialization
    */
@@ -60,7 +56,6 @@ public class StickyMSCollector extends MSCollector {
     fullTrace = new  MSTraceLocal(global().msTrace, modBuffer);
     nurseryTrace = new StickyMSNurseryTraceLocal(global().msTrace, modBuffer);
     ms = new MarkSweepLocal(StickyMS.msSpace);
-    sanityChecker = new StickyMSSanityCheckerLocal();
   }
 
   /****************************************************************************
@@ -120,10 +115,5 @@ public class StickyMSCollector extends MSCollector {
   @Inline
   private static StickyMS global() {
     return (StickyMS) VM.activePlan.global();
-  }
-
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 }

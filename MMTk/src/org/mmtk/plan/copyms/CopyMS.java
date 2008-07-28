@@ -15,10 +15,13 @@ package org.mmtk.plan.copyms;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements the global state of a full-heap collector
@@ -170,6 +173,25 @@ public class CopyMS extends StopTheWorld {
   public int getPagesRequired() {
     return super.getPagesRequired() + msSpace.requiredPages() +
       (nurserySpace.requiredPages() << 1);
+  }
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+
+    // Nursery
+    if (space == CopyMS.nurserySpace) {
+      return SanityChecker.DEAD;
+    }
+
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
   /**

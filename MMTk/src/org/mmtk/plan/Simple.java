@@ -74,6 +74,7 @@ public abstract class Simple extends Plan implements Constants {
   public static final short SANITY_SET_POSTGC   = Phase.createSimple("sanity-setpost", null);
   public static final short SANITY_PREPARE      = Phase.createSimple("sanity-prepare", null);
   public static final short SANITY_ROOTS        = Phase.createSimple("sanity-roots", null);
+  public static final short SANITY_COPY_ROOTS   = Phase.createSimple("sanity-copy-roots", null);
   public static final short SANITY_BUILD_TABLE  = Phase.createSimple("sanity-build-table", null);
   public static final short SANITY_CHECK_TABLE  = Phase.createSimple("sanity-check-table", null);
   public static final short SANITY_RELEASE      = Phase.createSimple("sanity-release", null);
@@ -93,11 +94,12 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (SANITY_ROOTS),
       Phase.scheduleGlobal     (SANITY_ROOTS),
-      Phase.scheduleCollector  (SANITY_BUILD_TABLE));
+      Phase.scheduleCollector  (SANITY_COPY_ROOTS),
+      Phase.scheduleGlobal     (SANITY_BUILD_TABLE));
 
   /** Validate a sanity table */
   protected static final short sanityCheckPhase = Phase.createComplex("sanity-check", null,
-      Phase.scheduleCollector  (SANITY_CHECK_TABLE),
+      Phase.scheduleGlobal     (SANITY_CHECK_TABLE),
       Phase.scheduleCollector  (SANITY_RELEASE),
       Phase.scheduleGlobal     (SANITY_RELEASE));
 
@@ -175,8 +177,7 @@ public abstract class Simple extends Plan implements Constants {
 
   // CHECKSTYLE:ON
 
-  /* Basic GC sanity checker */
-  private SanityChecker sanityChecker = new SanityChecker();
+  private final SanityChecker sanityChecker = new SanityChecker();
 
   /**
    * The current collection attempt.
@@ -190,7 +191,7 @@ public abstract class Simple extends Plan implements Constants {
   /**
    * @return Return the current sanity checker.
    */
-  public SanityChecker getSanityChecker() {
+  public final SanityChecker getSanityChecker() {
     return sanityChecker;
   }
 
@@ -264,8 +265,7 @@ public abstract class Simple extends Plan implements Constants {
       return;
     }
 
-    if (Options.sanityCheck.getValue() &&
-        getSanityChecker().collectionPhase(phaseId)) {
+    if (Options.sanityCheck.getValue() && getSanityChecker().collectionPhase(phaseId)) {
       return;
     }
 

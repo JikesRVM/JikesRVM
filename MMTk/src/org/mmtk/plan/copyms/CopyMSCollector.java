@@ -14,7 +14,6 @@ package org.mmtk.plan.copyms;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -44,9 +43,6 @@ public class CopyMSCollector extends StopTheWorldCollector {
   private MarkSweepLocal mature;
   private CopyMSTraceLocal trace;
 
-  // Sanity checking
-  private CopyMSSanityCheckerLocal sanityChecker;
-
   /****************************************************************************
    *
    * Initialization
@@ -58,7 +54,6 @@ public class CopyMSCollector extends StopTheWorldCollector {
   public CopyMSCollector() {
     mature = new MarkSweepLocal(CopyMS.msSpace);
     trace = new CopyMSTraceLocal(global().trace);
-    sanityChecker = new CopyMSSanityCheckerLocal();
  }
 
   /****************************************************************************
@@ -143,11 +138,6 @@ public class CopyMSCollector extends StopTheWorldCollector {
   @Inline
   private static CopyMS global() {
     return (CopyMS) VM.activePlan.global();
-  }
-
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 
   /** @return The current trace instance. */

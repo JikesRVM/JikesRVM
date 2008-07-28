@@ -50,6 +50,7 @@ public abstract class SimpleMutator extends MutatorContext {
       if (!Plan.stacksPrepared()) {
         VM.collection.prepareMutator(this);
       }
+      flushRememberedSets();
       return;
     }
 

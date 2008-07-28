@@ -14,30 +14,56 @@ package org.mmtk.utility.sanitychecker;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements the simply sanity closure.
+ * This class implements the parallel root-gathering part of a sanity check.
  */
 @Uninterruptible
-public final class SanityTraceLocal extends TraceLocal {
-
-  private final SanityChecker sanityChecker;
+public final class SanityRootTraceLocal extends TraceLocal {
 
   /**
    * Constructor
    */
-  public SanityTraceLocal(Trace trace, SanityChecker sanityChecker) {
+  public SanityRootTraceLocal(Trace trace) {
     super(trace);
-    this.sanityChecker = sanityChecker;
   }
 
   /****************************************************************************
    *
    * Object processing and tracing
    */
+
+  /**
+   * Copy root values across to the 'real' single-threaded trace that will do
+   * the sanity checking.
+   */
+  @Inline
+  public void copyRootValuesTo(TraceLocal trace) {
+    while (!values.isEmpty()) {
+      trace.traceObject(values.pop(), true);
+    }
+  }
+
+  /**
+   * Process delayed roots. This does not make sense for SanityRootTraceLocal.
+   * are empty.
+   */
+  @Inline
+  public void processRoots() {
+    VM.assertions.fail("SanityRootTraceLocal.processRoots called.");
+  }
+
+  /**
+   * Finishing processing all GC work. This does not make sense for SanityRootTraceLocal.
+   */
+  @Inline
+  public void completeTrace() {
+    VM.assertions.fail("SanityRootTraceLocal.completeTrace called.");
+  }
 
   /**
    * This method is the core method during the trace of the object graph.
@@ -49,7 +75,10 @@ public final class SanityTraceLocal extends TraceLocal {
    */
   @Inline
   public ObjectReference traceObject(ObjectReference object, boolean root) {
-    sanityChecker.processObject(this, object, root);
+    if (!root) VM.assertions.fail("SanityRootTraceLocal.traceObject called for non-root object.");
+    if (!object.isNull()) {
+      values.push(object);
+    }
     return object;
   }
 

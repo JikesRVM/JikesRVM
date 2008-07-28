@@ -36,14 +36,14 @@ public abstract class StopTheWorld extends Simple {
 
   /** Build and validate a sanity table */
   protected static final short preSanityPhase = Phase.createComplex("pre-sanity", null,
-      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleGlobal     (SANITY_SET_PREGC),
+      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleComplex    (sanityCheckPhase));
 
   /** Build and validate a sanity table */
   protected static final short postSanityPhase = Phase.createComplex("post-sanity", null,
-      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleGlobal     (SANITY_SET_POSTGC),
+      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleComplex    (sanityCheckPhase));
 
   // CHECKSTYLE:ON

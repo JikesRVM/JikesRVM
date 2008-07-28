@@ -15,7 +15,6 @@ package org.mmtk.plan;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
 import org.mmtk.vm.VM;
 
@@ -38,9 +37,6 @@ public abstract class SimpleCollector extends CollectorContext {
   /****************************************************************************
    * Instance fields
    */
-
-  /** Basic sanity checker */
-  private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
 
   /****************************************************************************
    *
@@ -157,8 +153,7 @@ public abstract class SimpleCollector extends CollectorContext {
       return;
     }
 
-    if (Options.sanityCheck.getValue() &&
-        getSanityChecker().collectionPhase(phaseId, primary)) {
+    if (Options.sanityCheck.getValue() && sanityLocal.collectionPhase(phaseId, primary)) {
       return;
     }
 
@@ -176,10 +171,5 @@ public abstract class SimpleCollector extends CollectorContext {
   @Inline
   private static Simple global() {
     return (Simple) VM.activePlan.global();
-  }
-
-  /** @return The current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 }

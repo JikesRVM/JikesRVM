@@ -14,11 +14,15 @@ package org.mmtk.plan.stickyms;
 
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.marksweep.MS;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityChecker;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements the global state of a simple sticky mark bits collector,
@@ -169,6 +173,30 @@ public class StickyMS extends MS {
    */
   public final boolean isLastGCFull() {
     return collectWholeHeap;
+  }
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   *
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+
+    // Immortal spaces
+    if (space == StickyMS.immortalSpace || space == StickyMS.vmSpace) {
+      return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+    }
+
+    // Mature space (nursery collection)
+    if (VM.activePlan.global().isCurrentGCNursery() && space != StickyMS.msSpace) {
+      return SanityChecker.UNSURE;
+    }
+
+    return super.sanityExpectedRC(object, sanityRootRC);
   }
 
   /**

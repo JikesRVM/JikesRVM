@@ -375,6 +375,19 @@ public abstract class Plan implements Constants {
   }
 
   /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+  }
+
+  /**
    * @return True is a stress test GC is required
    */
   @Inline

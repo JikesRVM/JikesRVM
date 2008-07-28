@@ -71,13 +71,16 @@ import org.vmmagic.unboxed.*;
    * Instance fields
    */
   /** Unique collector identifier */
-  protected int id = VM.activePlan.registerCollector(this);
+  protected final int id = VM.activePlan.registerCollector(this);
 
   /** Per-collector allocator into the immortal space */
-  protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
+  protected final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
   /** Used for aborting concurrent phases pre-empted by stop the world collection */
   protected boolean resetConcurrentWork;
+
+  /** Used for sanity checking */
+  protected final SanityCheckerLocal sanityLocal = new SanityCheckerLocal();
 
   /****************************************************************************
    *

@@ -20,7 +20,6 @@ import org.mmtk.plan.immix.ImmixTraceLocal;
 import org.mmtk.policy.immix.CollectorLocal;
 import org.mmtk.utility.alloc.ImmixAllocator;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -49,9 +48,6 @@ public class StickyImmixCollector extends ImmixCollector {
   private StickyImmixNurseryTraceLocal nurseryTrace;
   private final ImmixAllocator nurseryCopy;
 
-  /* Sanity checking */
-  private StickyImmixSanityCheckerLocal sanityChecker;
-
   /****************************************************************************
    * Initialization
    */
@@ -66,7 +62,6 @@ public class StickyImmixCollector extends ImmixCollector {
     nurseryTrace = new StickyImmixNurseryTraceLocal(global().immixTrace, modBuffer);
     immix = new CollectorLocal(StickyImmix.immixSpace);
     nurseryCopy = new ImmixAllocator(Immix.immixSpace, true, true);
-    sanityChecker = new StickyImmixSanityCheckerLocal();
   }
 
   /****************************************************************************
@@ -128,10 +123,5 @@ public class StickyImmixCollector extends ImmixCollector {
   /** @return The active global plan as an <code>StickyImmix</code> instance. */
   private static StickyImmix global() {
     return (StickyImmix) VM.activePlan.global();
-  }
-
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 }

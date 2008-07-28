@@ -23,6 +23,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.EventCounter;
 
 import org.mmtk.vm.VM;
@@ -295,5 +296,24 @@ import org.vmmagic.unboxed.*;
     else if (Space.isInSpace(RC_SMALL_CODE, object))
       return true;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    if (RCBase.isRCObject(object)) {
+      if (!RCHeader.isLiveRC(object)) {
+        return SanityChecker.DEAD;
+      }
+      return RCHeader.getRC(object) - sanityRootRC;
+    } else {
+      return SanityChecker.UNSURE;
+    }
   }
 }

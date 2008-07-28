@@ -14,7 +14,6 @@ package org.mmtk.plan.markcompact;
 
 import org.mmtk.plan.*;
 
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -53,10 +52,6 @@ import org.vmmagic.unboxed.*;
   private final MCForwardTraceLocal forwardTrace;
   private boolean currentTrace;
 
-  // Sanity checking
-  private final MCSanityCheckerLocal sanityChecker;
-
-
   /****************************************************************************
    *
    * Initialization
@@ -68,7 +63,6 @@ import org.vmmagic.unboxed.*;
   public MCCollector() {
     markTrace = new MCMarkTraceLocal(global().markTrace);
     forwardTrace = new MCForwardTraceLocal(global().forwardTrace);
-    sanityChecker = new MCSanityCheckerLocal();
   }
 
 
@@ -172,11 +166,6 @@ import org.vmmagic.unboxed.*;
     } else {
       return forwardTrace;
     }
-  }
-
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 
   /** @return The active global plan as an <code>MC</code> instance. */

@@ -16,6 +16,7 @@ import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
@@ -192,6 +193,28 @@ import org.vmmagic.unboxed.ObjectReference;
     if (Space.isInSpace(MARK_COMPACT, object))
       return false;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   *
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+
+    // Nursery
+    if (space == MC.mcSpace) {
+      // We are never sure about objects in MC.
+      // This is not very satisfying but allows us to use the sanity checker to
+      // detect dangling pointers.
+      return SanityChecker.UNSURE;
+    } else {
+      return super.sanityExpectedRC(object, sanityRootRC);
+    }
   }
 
   /**

@@ -15,6 +15,7 @@ package org.mmtk.utility.sanitychecker;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.plan.Simple;
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
@@ -27,7 +28,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This class performs sanity checks for Simple collectors.
  */
-@Uninterruptible public final class SanityChecker implements Constants {
+@Uninterruptible
+public final class SanityChecker implements Constants {
 
   /* Counters */
   public static long referenceCount;
@@ -40,32 +42,25 @@ import org.vmmagic.unboxed.*;
   public static final int ALIVE = -1;
   public static final int UNSURE = 0;
 
-  public static final int LOG_SANITY_DATA_SIZE = 21;
-  /* Trace */
-  public Trace trace;
+  public static final int LOG_SANITY_DATA_SIZE = 24;
+
+  /* Tracing */
+  public Trace rootTrace;
+  public Trace checkTrace;
   private final SanityDataTable sanityTable;
   private boolean preGCSanity;
+
+  /* Local, but we only run the check trace single-threaded. */
+  final SanityTraceLocal checkTraceLocal;
 
   /****************************************************************************
    * Constants
    */
   public SanityChecker() {
     sanityTable = new SanityDataTable(Plan.sanitySpace, LOG_SANITY_DATA_SIZE);
-    trace = new Trace(Plan.sanitySpace);
-  }
-
-  /**
-   * @return The current sanity data table.
-   */
-  public SanityDataTable getSanityTable() {
-    return sanityTable;
-  }
-
-  /**
-   * @return True if this is pre-gc sanity, false if post-gc
-   */
-  public boolean preGCSanity() {
-    return preGCSanity;
+    checkTrace = new Trace(Plan.sanitySpace);
+    rootTrace = new Trace(Plan.sanitySpace);
+    checkTraceLocal = new SanityTraceLocal(checkTrace, this);
   }
 
   /**
@@ -90,7 +85,7 @@ import org.vmmagic.unboxed.*;
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");
       Log.writeln("==============================");
-      Log.writeln("Performing Sanity Checks...");
+      Log.writeln(preGCSanity ? "Performing Pre-GC Sanity Checks..." : "Performing Post-GC Sanity Checks...");
 
       // Reset counters
       referenceCount = 0;
@@ -102,7 +97,12 @@ import org.vmmagic.unboxed.*;
       // Clear data space
       sanityTable.acquireTable();
 
-      trace.prepareNonBlocking();
+      // Root trace
+      rootTrace.prepareNonBlocking();
+
+      // Checking trace
+      checkTrace.prepareNonBlocking();
+      checkTraceLocal.prepare();
       return true;
     }
 
@@ -111,9 +111,55 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
+    if (phaseId == Simple.SANITY_BUILD_TABLE) {
+      // Trace, checking for dangling pointers
+      checkTraceLocal.completeTrace();
+      return true;
+    }
+
+    if (phaseId == Simple.SANITY_CHECK_TABLE) {
+      // Iterate over the reachable objects.
+      Address curr = sanityTable.getFirst();
+      while (!curr.isZero()) {
+        ObjectReference ref = SanityDataTable.getObjectReference(curr);
+        int normalRC = SanityDataTable.getNormalRC(curr);
+        int rootRC = SanityDataTable.getRootRC(curr);
+        if (!preGCSanity) {
+          int expectedRC = VM.activePlan.global().sanityExpectedRC(ref, rootRC);
+          switch (expectedRC) {
+          case SanityChecker.ALIVE:
+          case SanityChecker.UNSURE:
+            // Always ok.
+            break;
+          case SanityChecker.DEAD:
+            // Never ok.
+            Log.write("ERROR: SanityRC = ");
+            Log.write(normalRC);
+            Log.write(", SpaceRC = 0 ");
+            SanityChecker.dumpObjectInformation(ref);
+            break;
+          default:
+            // A mismatch in an RC space
+            if (normalRC != expectedRC) {
+              Log.write("WARNING: SanityRC = ");
+              Log.write(normalRC);
+              Log.write(", SpaceRC = ");
+              Log.write(expectedRC);
+              Log.write(" ");
+              SanityChecker.dumpObjectInformation(ref);
+              break;
+            }
+          }
+        }
+        curr = sanityTable.getNext(curr);
+      }
+      return true;
+    }
+
     if (phaseId == Simple.SANITY_RELEASE) {
-      trace.release();
+      checkTrace.release();
       sanityTable.releaseTable();
+      checkTraceLocal.release();
 
       Log.writeln("roots\tobjects\trefs\tnull");
       Log.write(rootReferenceCount);Log.write("\t");
@@ -128,6 +174,36 @@ import org.vmmagic.unboxed.*;
     }
 
     return false;
+  }
+
+  /**
+   * Process an object during sanity checking, validating data,
+   * incrementing counters and enqueuing if this is the first
+   * visit to the object.
+   *
+   * @param object The object to mark.
+   * @param root True If the object is a root.
+   */
+  public void processObject(TraceLocal trace, ObjectReference object, boolean root) {
+    SanityChecker.referenceCount++;
+    if (root) SanityChecker.rootReferenceCount++;
+
+    if (object.isNull()) {
+      SanityChecker.nullReferenceCount++;
+      return;
+    }
+
+    if (Plan.SCAN_BOOT_IMAGE && Space.isInSpace(Plan.VM_SPACE, object)) {
+      return;
+    }
+
+    // Get the table entry.
+    Address tableEntry = sanityTable.getEntry(object, true);
+
+    if (SanityDataTable.incRC(tableEntry, root)) {
+      SanityChecker.liveObjectCount++;
+      trace.processNode(object);
+    }
   }
 
   /**
