@@ -43,6 +43,12 @@ public final class SanityRootTraceLocal extends TraceLocal {
    */
   @Inline
   public void copyRootValuesTo(TraceLocal trace) {
+    while (!rootLocations.isEmpty()) {
+      ObjectReference object = rootLocations.pop().loadObjectReference();
+      if (!object.isNull()) {
+        trace.traceObject(object, true);
+      }
+    }
     while (!values.isEmpty()) {
       trace.traceObject(values.pop(), true);
     }
