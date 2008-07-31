@@ -169,11 +169,6 @@ import org.vmmagic.unboxed.*;
   /** @return The current trace instance. */
   public abstract TraceLocal getCurrentTrace();
 
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return null;
-  }
-
   /**
    * Abort concurrent work due to pre-empt by stop the world collection.
    */

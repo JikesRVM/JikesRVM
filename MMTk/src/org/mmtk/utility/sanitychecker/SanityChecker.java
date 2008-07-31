@@ -53,6 +53,9 @@ public final class SanityChecker implements Constants {
   /* Local, but we only run the check trace single-threaded. */
   final SanityTraceLocal checkTraceLocal;
 
+  /* Linear scanning */
+  private final SanityLinearScan scanner = new SanityLinearScan(this);
+
   /****************************************************************************
    * Constants
    */
@@ -140,7 +143,7 @@ public final class SanityChecker implements Constants {
             break;
           default:
             // A mismatch in an RC space
-            if (normalRC != expectedRC) {
+            if (normalRC != expectedRC && VM.activePlan.global().lastCollectionFullHeap()) {
               Log.write("WARNING: SanityRC = ");
               Log.write(normalRC);
               Log.write(", SpaceRC = ");
@@ -152,6 +155,10 @@ public final class SanityChecker implements Constants {
           }
         }
         curr = sanityTable.getNext(curr);
+      }
+
+      if (!preGCSanity && VM.activePlan.global().lastCollectionFullHeap()) {
+        VM.activePlan.global().sanityLinearScan(scanner);
       }
       return true;
     }
@@ -174,6 +181,31 @@ public final class SanityChecker implements Constants {
     }
 
     return false;
+  }
+
+  /**
+   * Process an object during a linear scan of the heap. We have already checked
+   * all objects in the table. So we are only interested in objects that are not in
+   * the sanity table here. We are therefore only looking for leaks here.
+   *
+   * @param object The object being scanned.
+   */
+  public void scanProcessObject(ObjectReference object) {
+    if (sanityTable.getEntry(object, false).isZero()) {
+      // Is this a leak?
+      int expectedRC = VM.activePlan.global().sanityExpectedRC(object, 0);
+
+      if (expectedRC == SanityChecker.UNSURE) {
+        // Probably not.
+        return;
+      }
+
+      // Possibly
+      Log.write("WARNING: Possible leak, SpaceRC = ");
+      Log.write(expectedRC);
+      Log.write(" ");
+      SanityChecker.dumpObjectInformation(object);
+    }
   }
 
   /**

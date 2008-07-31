@@ -61,13 +61,9 @@ public abstract class StopTheWorld extends Simple {
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
-      if (getSanityChecker() == null) {
-        Log.writeln("Collector does not support sanity checking!");
-      } else {
-        Log.writeln("Collection sanity checking enabled.");
-        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),  Phase.scheduleComplex(preSanityPhase));
-        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), Phase.scheduleComplex(postSanityPhase));
-      }
+      Log.writeln("Collection sanity checking enabled.");
+      replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),  Phase.scheduleComplex(preSanityPhase));
+      replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), Phase.scheduleComplex(postSanityPhase));
     }
   }
 }

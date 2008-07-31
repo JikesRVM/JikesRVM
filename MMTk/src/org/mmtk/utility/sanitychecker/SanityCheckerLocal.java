@@ -28,14 +28,12 @@ public final class SanityCheckerLocal implements Constants {
 
   /* Trace */
   final SanityRootTraceLocal rootTraceLocal;
-  final SanityChecker global;
 
   /****************************************************************************
    * Constants
    */
   public SanityCheckerLocal() {
-    global = VM.activePlan.global().getSanityChecker();
-    rootTraceLocal = new SanityRootTraceLocal(global.rootTrace);
+    rootTraceLocal = new SanityRootTraceLocal(Plan.sanityChecker.rootTrace);
   }
 
   /**
@@ -65,7 +63,7 @@ public final class SanityCheckerLocal implements Constants {
 
     if (phaseId == Simple.SANITY_COPY_ROOTS) {
       if (primary) {
-        rootTraceLocal.copyRootValuesTo(global.checkTraceLocal);
+        rootTraceLocal.copyRootValuesTo(Plan.sanityChecker.checkTraceLocal);
       }
       return true;
     }

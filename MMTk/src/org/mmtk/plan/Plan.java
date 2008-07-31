@@ -19,6 +19,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -163,6 +164,9 @@ public abstract class Plan implements Constants {
 
   /** Support for allocation-site identification */
   protected static int allocationSiteCount = 0;
+
+  /** Global sanity checking state **/
+  public static final SanityChecker sanityChecker = new SanityChecker();
 
   /****************************************************************************
    * Constructor.
@@ -368,13 +372,6 @@ public abstract class Plan implements Constants {
   private long lastStressPages = 0;
 
   /**
-   * @return The current sanity checker.
-   */
-  public SanityChecker getSanityChecker() {
-    return null;
-  }
-
-  /**
    * Return the expected reference count. For non-reference counting
    * collectors this becomes a true/false relationship.
    *
@@ -385,6 +382,15 @@ public abstract class Plan implements Constants {
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
     return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+  }
+
+  /**
+   * Perform a linear scan of all spaces to check for possible leaks.
+   * This is only called after a full-heap GC.
+   *
+   * @param scanner The scanner callback to use.
+   */
+  public void sanityLinearScan(LinearScan scanner) {
   }
 
   /**

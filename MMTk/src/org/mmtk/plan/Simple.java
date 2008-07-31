@@ -16,7 +16,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
-import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.VM;
 
@@ -177,8 +176,6 @@ public abstract class Simple extends Plan implements Constants {
 
   // CHECKSTYLE:ON
 
-  private final SanityChecker sanityChecker = new SanityChecker();
-
   /**
    * The current collection attempt.
    */
@@ -187,13 +184,6 @@ public abstract class Simple extends Plan implements Constants {
   /****************************************************************************
    * Collection
    */
-
-  /**
-   * @return Return the current sanity checker.
-   */
-  public final SanityChecker getSanityChecker() {
-    return sanityChecker;
-  }
 
   /**
    * Perform a (global) collection phase.
@@ -265,7 +255,7 @@ public abstract class Simple extends Plan implements Constants {
       return;
     }
 
-    if (Options.sanityCheck.getValue() && getSanityChecker().collectionPhase(phaseId)) {
+    if (Options.sanityCheck.getValue() && sanityChecker.collectionPhase(phaseId)) {
       return;
     }
 
