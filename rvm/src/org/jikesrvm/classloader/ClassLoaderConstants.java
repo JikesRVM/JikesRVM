@@ -18,24 +18,24 @@ interface ClassLoaderConstants {
   //                                      applicability
   //           name        value       class  field  method
   //    ---------------   --------     -----  -----  ------
-  short ACC_PUBLIC = 0x0001;  //   X      X      X
-  short ACC_PRIVATE = 0x0002;  //   X      X      X (applicable to inner classes)
-  short ACC_PROTECTED = 0x0004;  //   X      X      X (applicable to inner classes)
-  short ACC_STATIC = 0x0008;  //   X      X      X (applicable to inner classes)
-  short ACC_FINAL = 0x0010;  //   X      X      X
+  short ACC_PUBLIC       = 0x0001;  //   X      X      X
+  short ACC_PRIVATE      = 0x0002;  //   X      X      X (applicable to inner classes)
+  short ACC_PROTECTED    = 0x0004;  //   X      X      X (applicable to inner classes)
+  short ACC_STATIC       = 0x0008;  //   X      X      X (applicable to inner classes)
+  short ACC_FINAL        = 0x0010;  //   X      X      X
   short ACC_SYNCHRONIZED = 0x0020;  //   -      -      X  <- same value as ACC_SUPER
-  short ACC_SUPER = 0x0020;  //   X      -      -  <- same value as ACC_SYNCHRONIZED
-  short ACC_VOLATILE = 0x0040;  //   -      X      -
-  short BRIDGE = 0x0040;  //   -      -      X  <- same value as ACC_VOLATILE
-  short ACC_TRANSIENT = 0x0080;  //   -      X      -
-  short VARARGS = 0x0080;  //   -      -      X  <- same value as ACC_TRANSIENT
-  short ACC_NATIVE = 0x0100;  //   -      -      X
-  short ACC_INTERFACE = 0x0200;  //   X      -      -
-  short ACC_ABSTRACT = 0x0400;  //   X      -      X
-  short ACC_STRICT = 0x0800;  //   -      -      X
-  short ACC_SYNTHETIC = 0x1000;  //   X      X      X
-  short ACC_ANNOTATION = 0x2000;  //   X      -      -
-  short ACC_ENUM = 0x4000;  //   X      X      -
+  short ACC_SUPER        = 0x0020;  //   X      -      -  <- same value as ACC_SYNCHRONIZED
+  short ACC_VOLATILE     = 0x0040;  //   -      X      -
+  short BRIDGE           = 0x0040;  //   -      -      X  <- same value as ACC_VOLATILE
+  short ACC_TRANSIENT    = 0x0080;  //   -      X      -
+  short VARARGS          = 0x0080;  //   -      -      X  <- same value as ACC_TRANSIENT
+  short ACC_NATIVE       = 0x0100;  //   -      -      X
+  short ACC_INTERFACE    = 0x0200;  //   X      -      -
+  short ACC_ABSTRACT     = 0x0400;  //   X      -      X
+  short ACC_STRICT       = 0x0800;  //   -      -      X
+  short ACC_SYNTHETIC    = 0x1000;  //   X      X      X
+  short ACC_ANNOTATION   = 0x2000;  //   X      -      -
+  short ACC_ENUM         = 0x4000;  //   X      X      -
 
   short APPLICABLE_TO_FIELDS =
       (ACC_PUBLIC |
@@ -74,14 +74,19 @@ interface ClassLoaderConstants {
        ACC_ANNOTATION |
        ACC_ENUM);
 
-  // Possible states of a class description.
-  //
-  byte CLASS_VACANT = 0; // nothing present yet
-  byte CLASS_LOADED = 1; // .class file contents read successfully
-  byte CLASS_RESOLVED = 2; // fields & methods layed out, tib & statics allocated
-  byte CLASS_INSTANTIATED = 3; // tib and jtoc populated
-  byte CLASS_INITIALIZING = 4; // <clinit> is running
-  byte CLASS_INITIALIZED = 5; // statics initialized
+  /* Possible states of a class description. */
+  /** nothing present yet */
+  byte CLASS_VACANT = 0;
+  /** .class file contents read successfully */
+  byte CLASS_LOADED = 1;
+  /** fields &amp; methods laid out, tib &amp; statics allocated */
+  byte CLASS_RESOLVED = 2;
+  /** tib and jtoc populated */
+  byte CLASS_INSTANTIATED = 3;
+  /** &lt;clinit&gt; running (allocations possible) */
+  byte CLASS_INITIALIZING = 4;
+  /** statics initialized */
+  byte CLASS_INITIALIZED = 5;
 
   // Constant pool entry tags.
   //

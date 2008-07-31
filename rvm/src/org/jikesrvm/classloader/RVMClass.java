@@ -1846,7 +1846,9 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
     doesImplement = DynamicTypeCheck.buildDoesImplement(this);
 
-    // can't move this beyond "finalize" code block
+    // can't move this beyond "finalize" code block as findVirtualMethod
+    // assumes state >= RESOLVED, no allocation occurs until
+    // state >= CLASS_INITIALIZING
     publishResolved(allocatedTib, superclassIds, doesImplement);
 
     // TODO: Make this into a more general listener interface
