@@ -89,7 +89,7 @@ final class ObjectReplacer implements AggregateReplacer {
     Register r = New.getResult(inst).getRegister();
     RVMClass klass = New.getType(inst).getVMType().asClass();
     // TODO :handle these cases
-    if (containsUnsupportedUse(ir, r, klass, null)) {
+    if (klass.hasFinalizer() || containsUnsupportedUse(ir, r, klass, null)) {
       return null;
     }
     return new ObjectReplacer(r, klass, ir);
