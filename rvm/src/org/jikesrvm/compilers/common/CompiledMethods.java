@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
-import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -107,7 +106,7 @@ public class CompiledMethods implements SizeConstants {
     if (VM.VerifyAssertions) {
       if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
         VM.sysWriteln("WARNING: attempt to get compiled method #", compiledMethodId);
-        Scheduler.dumpStack();
+        VM.sysWriteln("\treturning NULL; caller is likely to fail with NPE");
         return null;
       }
     }
