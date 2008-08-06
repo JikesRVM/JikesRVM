@@ -93,4 +93,12 @@ import org.vmmagic.pragma.*;
   public int getPagesUsed() {
     return (defSpace.reservedPages() + super.getPagesUsed());
   }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    super.registerSpecializedMethods();
+  }
 }

@@ -1,0 +1,642 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+options {
+  JDK_VERSION = "1.5";
+  LOOKAHEAD = 10;
+  FORCE_LA_CHECK=true;
+  STATIC = false;
+}
+PARSER_BEGIN(Parser)
+package org.mmtk.harness.lang.parser;
+
+// CHECKSTYLE:OFF
+import org.mmtk.harness.lang.*;
+import java.util.*;
+
+public class Parser {
+}
+PARSER_END(Parser)
+
+/* Lexical structure based from Java grammar */
+
+/* White space */
+
+SKIP : {
+  " " |
+  "\t" |
+  "\n" |
+  "\r" |
+  "\f"
+} 
+
+/* Comments */
+
+MORE : {
+  "//" : IN_SINGLE_LINE_COMMENT |
+  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN : {
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN : {
+  <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_MULTI_LINE_COMMENT>
+MORE : {
+  < ~[] >
+}
+
+/* Reserved words */
+
+TOKEN : {
+   < ALLOC : "alloc" > |
+   < ASSERT : "assert" > |
+   < BOOLEAN : "boolean" > |
+   < CLASS : "class" > |
+   < ELIF : "elif" > |
+   < ELSE : "else" > |
+   < EXPECT : "expect" > |
+   < IF : "if" > |
+   < INT : "int" > |
+   < INTRINSIC : "intrinsic" > |
+   < METHOD : "method" > |
+   < NULL : "null" > |
+   < OBJECT : "object" > |
+   < PRINT : "print" > |
+   < RETURN : "return" > |
+   < SIGNATURE : "signature" > |
+   < SPAWN : "spawn" > |
+   < STRING : "string" > |
+   < WHILE : "while" >
+}
+
+/* Literals */
+
+TOKEN : {
+  < INTEGER_LITERAL: (["0"-"9"])+ > |
+  < BOOLEAN_LITERAL: ("true" | "false") > |
+  < STRING_LITERAL: "\"" (~["\""])* "\"" >
+}
+
+/* Identifiers */
+
+TOKEN : {
+  <IDENTIFIER: ["a"-"z","A"-"Z","_"] (["a"-"z","A"-"Z","0"-"9","_"])* >
+}
+
+/* Separators */
+
+TOKEN : {
+  < LPAREN: "(" > |
+  < RPAREN: ")" > |
+  < LBRACE: "{" > |
+  < RBRACE: "}" > |
+  < LBRACKET: "[" > |
+  < RBRACKET: "]" > |
+  < SEMICOLON: ";" > |
+  < COMMA: "," > |
+  < DOT: "." >
+}
+
+/* Operators */
+
+TOKEN : {
+  < ASSIGN: "=" > |
+  < LT: "<" > |
+  < GT: ">" > |
+  < BANG: "!" > |
+  < EQ: "==" > |
+  < LE: "<=" > |
+  < GE: ">=" > |
+  < NE: "!=" > |
+  < SC_OR: "||" > |
+  < SC_AND: "&&" > |
+  < PLUS: "+" > |
+  < MINUS: "-" > |
+  < STAR: "*" > |
+  < SLASH: "/" > |
+  < REM: "%" >
+}
+
+Method main() : {
+  MethodTable methods = new MethodTable();
+  Method m;
+  
+  final String intrinsics = "org.mmtk.harness.lang.IntrinsicMethod";
+  methods.add(new IntrinsicMethod("gc",intrinsics,"gc"));
+  methods.add(new IntrinsicMethod("tid",intrinsics,"threadId"));
+  methods.add(new IntrinsicMethod("hash",intrinsics,"hash",
+    	new Class<?>[] { ObjectValue.class }));
+  methods.add(new IntrinsicMethod("random",intrinsics,"random",
+  		new Class<?>[] { int.class, int.class }));
+  methods.add(new IntrinsicMethod("setSeed",intrinsics,"setRandomSeed",
+  		new Class<?>[] { int.class }));
+  methods.add(new IntrinsicMethod("heapDump",intrinsics,"heapDump"));
+}
+{
+  ( m=method(methods) { methods.add(m); } )+
+  { return methods.get("main"); }
+}
+
+/**
+ * A program method with its own variable scope.
+ */
+Method method(MethodTable methods) : {
+    SymbolTable symbols = new SymbolTable();
+    Statement stmt;
+    String name;
+    int params = 0;
+    Type retType;
+    String javaClass, javaMethod, javaParam;
+    List<String> signature = new ArrayList<String>();
+}
+{
+  (retType=type())?
+  name=ident() <LPAREN>
+  ( declaration1(methods, symbols) { params++; } ( <COMMA> declaration1(methods, symbols) { params++; } )* )?
+  <RPAREN>
+  ( stmt=statements(methods, symbols)
+    { return new NormalMethod(name, params, symbols.declarations(), stmt); }
+  | <INTRINSIC>
+      <CLASS> javaClass=string()
+      <METHOD> javaMethod=string()
+      ( <SIGNATURE> <LPAREN>
+          (intrinsicParam(signature)
+          ( <COMMA> intrinsicParam(signature))*
+          )?
+        <RPAREN>
+      )? <SEMICOLON>
+      { return new IntrinsicMethod(name,javaClass,javaMethod,signature); }
+  )
+}
+
+void intrinsicParam(List<String> signature) : {
+	String javaParam;
+}
+{
+  javaParam=string()
+          { if (javaParam.equals("org.mmtk.harness.lang.Env")) {
+          	  throw new ParseException("Env parameter to intrinsic methods is implicit!");
+            }
+          	signature.add(javaParam); }
+}
+	
+
+/**
+ * A sequence of statements in braces, carrying an inner variable scope
+ */
+Statement statements(MethodTable methods, SymbolTable symbols) : {
+    Statement stmt;
+    List<Statement> stmts = new ArrayList<Statement>();
+}
+{
+  <LBRACE>
+  { symbols.pushScope(); }
+  ( stmt=statement(methods, symbols)
+    { stmts.add(stmt); }
+  )* 
+  { symbols.popScope(); }
+  <RBRACE>
+  { return new Sequence(stmts); }
+}
+
+/**
+ * A single statement
+ */
+Statement statement(MethodTable methods, SymbolTable symbols) : {
+    Statement stmt;
+}
+{
+  ( stmt=conditional(methods, symbols) |
+    stmt=declaration(methods, symbols) <SEMICOLON> |
+    stmt=expect(methods, symbols) <SEMICOLON> |
+    stmt=assignment(methods, symbols) <SEMICOLON> |
+    stmt=spawn(methods, symbols) <SEMICOLON> |
+    stmt=storeField(methods, symbols) <SEMICOLON> |
+    stmt=whileLoop(methods, symbols) |
+    stmt=print(methods, symbols) <SEMICOLON> |
+    stmt=assertTrue(methods, symbols) <SEMICOLON> |
+    stmt=callMethod(methods, symbols) <SEMICOLON> |
+    stmt=returnStmt(methods, symbols) <SEMICOLON> )
+  { return stmt; }
+}
+
+/**
+ * if - then - else
+ */
+Statement conditional(MethodTable methods, SymbolTable symbols) : {
+	Expression cond;
+    List<Expression> conds = new ArrayList<Expression>();
+    Statement stmt;
+    List<Statement> stmts = new ArrayList<Statement>();
+}
+{
+  <IF> <LPAREN> cond=expression(methods,symbols) { conds.add(cond); } <RPAREN> 
+  stmt=statements(methods, symbols) { stmts.add(stmt); }
+  ( <ELIF>  <LPAREN> cond=expression(methods,symbols) { conds.add(cond); } <RPAREN> 
+  	stmt=statements(methods, symbols) { stmts.add(stmt); })*
+  ( <ELSE>  stmt=statements(methods, symbols) { stmts.add(stmt); } )?
+  { return new IfStatement(conds,stmts); }
+}
+
+/**
+ * assert the expression in the first parameter,
+ * and print the remaining parameters if the assertion fails
+ */
+Statement assertTrue(MethodTable methods, SymbolTable symbols) : {
+    Expression cond;
+    List<Expression> exprs = new ArrayList<Expression>();
+    Expression expr;
+}
+{
+  <ASSERT> <LPAREN> cond=expression(methods,symbols)
+  ( <COMMA> expr=expression(methods,symbols)
+    { exprs.add(expr); } )+
+  <RPAREN> 
+  { return new Assert(cond, exprs); }
+}
+
+/**
+ * while loop
+ */
+Statement whileLoop(MethodTable methods, SymbolTable symbols) : {
+    Expression cond;
+    Statement body;
+}
+{
+  <WHILE> <LPAREN> cond=expression(methods,symbols) <RPAREN> 
+  body=statements(methods, symbols) 
+  { return new WhileStatement(cond,body); }
+}
+
+/**
+ * Variable declaration, and optional initializing assignment
+ *
+ * Adds a symbol to the symbol table, and returns either an
+ * assignment statement or an empty sequence.
+ */
+Statement declaration(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Expression expr;
+    Statement stmt;
+}
+{
+  name=declaration1(methods, symbols)
+  ( ( <ASSIGN> expr=expression(methods,symbols)
+        { return new Assignment(symbols.getLocation(name), expr); } 
+    )
+  )?
+  { return new Empty(); } 
+}
+
+/**
+ * First part of variable declaration (without initialization).
+ *
+ * Adds a symbol to the symbol table and returns the name.
+ */
+String declaration1(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Type type;
+}
+{
+  type=type() name=ident()
+      { symbols.declare(name,type);
+       return name; 
+      } 
+}
+
+Type type() : {
+}
+{
+	<INT> { return Type.INT; }
+|	<OBJECT> { return Type.OBJECT; }
+|	<BOOLEAN> { return Type.BOOLEAN; }
+|	<STRING> { return Type.STRING; }
+}
+
+/*
+ * Set up an expectation for an exception
+ */
+Statement expect(MethodTable methods, SymbolTable symbols) : {
+    String name;
+}
+{
+    <EXPECT> <LPAREN> name=ident() <RPAREN>
+    { return new Expect(name); }
+}
+
+/*
+ * Assign a value to a variable
+ */
+Statement assignment(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Expression expr;
+}
+{
+    name=ident() <ASSIGN> expr=expression(methods,symbols) 
+    { return new Assignment(symbols.getLocation(name),expr); }
+}
+
+/*
+ * Assign a value to a field of an object
+ */
+Statement storeField(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    Type type;
+    Expression index, rVal;
+}
+{
+  name=ident() 
+  <DOT> type = type()
+  <LBRACKET> index=expression(methods,symbols) <RBRACKET> <ASSIGN> rVal=expression(methods,symbols) 
+  { return new StoreField(symbols.getLocation(name), type, index, rVal); }
+}
+
+/**
+ * Procedure call, as a statement
+ */
+Statement callMethod(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    List<Expression> params = new ArrayList<Expression>();
+    Expression p;
+}
+{
+  name=ident() <LPAREN> 
+  ( p=expression(methods,symbols)
+      { params.add(p); }
+    ( <COMMA> p=expression(methods,symbols)
+      { params.add(p); }
+    )*
+  )?
+  <RPAREN>
+  { return new Call(methods, name, params); }
+}
+
+/**
+ * Return a value from a method
+ */
+Statement returnStmt(MethodTable methods, SymbolTable symbols) : {
+	Expression e;
+}
+{
+	<RETURN> e=expression(methods,symbols) 
+	  { return new Return(e); }
+}
+
+/*
+ * Create a new thread
+ */
+Statement spawn(MethodTable methods, SymbolTable symbols) : {
+    String name;
+    List<Expression> params = new ArrayList<Expression>();
+    Expression p;
+}
+{
+  <SPAWN> <LPAREN> name=ident() 
+  ( <COMMA> p=expression(methods,symbols)
+      { params.add(p); }
+    ( <COMMA> p=expression(methods,symbols)
+      { params.add(p); }
+    )*
+  )?
+  <RPAREN>
+  { return new Spawn(methods, name, params); }
+}
+
+Statement print(MethodTable methods, SymbolTable symbols) : {
+    List<Expression> exprs = new ArrayList<Expression>();
+    Expression expr;
+}
+{
+  <PRINT> <LPAREN> expr=expression(methods,symbols)
+    { exprs.add(expr); }
+  ( <COMMA> expr=expression(methods,symbols)
+    { exprs.add(expr); } )*
+  <RPAREN>
+  { return new PrintStatement(exprs); }
+}
+
+/*******************************************************************************
+ *              Arithmetic expressions
+ *
+ *  Complicated slightly by the fact that we don't (currently) have a mechanism
+ *  for enumerating temporaries at GC time.  Therefore, method calls as expressions
+ *  can only occur at the top level of an expression.
+ */
+Expression expression(MethodTable methods, SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr1(methods,symbols) 
+  ( <SC_OR> e2=expression(methods,symbols)
+      { return new BinaryExpression(e1, Operator.OR, e2); } |
+    <SC_AND> e2=expression(methods,symbols)
+      { return new BinaryExpression(e1, Operator.AND, e2); }
+  )?    
+  { return e1; }  
+}
+
+Expression expr1(MethodTable methods, SymbolTable symbols) : {
+    Expression e;
+}
+{
+  <BANG> e=expr1(methods,symbols)
+  { return new UnaryExpression(Operator.NOT,e); } |
+  <MINUS> e=expr1(methods,symbols) 
+  { return new UnaryExpression(Operator.MINUS,e); } |
+  e=expr2(methods,symbols) { return e; }
+}
+
+Expression expr2(MethodTable methods, SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr3(methods,symbols) 
+  ( <LT> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.LT,e2); } |
+    <GT> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.GT,e2); } |
+    <LE> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.LE,e2); } |
+    <GE> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.GE,e2); } |
+    <EQ> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.EQ,e2); } |
+    <NE> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.NE,e2); }
+  )?
+  { return e1; }
+}
+
+Expression expr3(MethodTable methods, SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr4(methods,symbols) 
+  ( <PLUS> e2=expr3(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.PLUS,e2); } |
+    <MINUS> e2=expr3(methods,symbols)
+      { return new BinaryExpression(e1,Operator.MINUS,e2); }
+  )?
+  { return e1; }
+}
+
+Expression expr4(MethodTable methods, SymbolTable symbols) : {
+    Expression e1,e2;
+}
+{
+  e1=expr5(methods,symbols) 
+  ( <STAR> e2=expr4(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.MULT,e2); } |
+    <SLASH> e2=expr4(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.DIV,e2); } |
+    <REM> e2=expr4(methods,symbols) 
+      { return new BinaryExpression(e1,Operator.REM,e2); }
+  )? 
+  { return e1; }
+}
+
+Expression expr5(MethodTable methods, SymbolTable symbols) : {
+    Expression e, index;
+    String id;
+    Type type;
+}
+{
+  /* constants of various types */
+  e=constant() { return e; } |
+  
+  /* intrinsic functions */
+  e=alloc(methods,symbols) { return e; } |
+    
+  /* An expression in parentheses */
+  <LPAREN> e=expression(methods,symbols) <RPAREN>
+    { return e; } |
+    
+  /* Field dereference */
+  ( id=ident() 
+  		(<DOT> type = type() 
+  		 <LBRACKET> index=expression(methods,symbols) <RBRACKET>
+              { return new LoadField(symbols.getLocation(id), type, index); } |
+  
+         e=callExpr(id,methods,symbols) { return e; } )?
+  
+          /* Variable substitution */
+          { return new Variable(symbols.getLocation(id)); }
+    )
+}
+
+Expression constant() : {
+    int i;
+    boolean b;
+    String s;
+} {
+  /* Null constant */
+  <NULL>
+    { return new ObjectValue(); } |
+    
+  /* Integer constant */
+  i=integer()
+    { return new IntValue(i); } |
+    
+  /* boolean constant */
+  b=bool()
+    { return new BoolValue(b); } |
+    
+  /* String constant */
+  s=string()
+    { return new StringValue(s); }
+}
+
+/**
+ * Procedure call, as an expression
+ */
+Expression callExpr(String name, MethodTable methods, SymbolTable symbols) : {
+    List<Expression> params = new ArrayList<Expression>();
+    Expression p;
+}
+{
+  <LPAREN> 
+  ( p=expression(methods,symbols)
+      { params.add(p); }
+    ( <COMMA> p=expression(methods,symbols)
+      { params.add(p); }
+    )*
+  )?
+  <RPAREN>
+  { return new Call(methods, name, params); }
+}
+
+
+Expression alloc(MethodTable methods, SymbolTable symbols) : {
+	Expression e,refCount,dataCount,doubleAlign = new BoolValue(false);
+	AllocationSite site;
+	Token tk;
+}
+{
+  tk=<ALLOC> { site = new AllocationSite(tk); } <LPAREN> 
+    refCount=expression(methods,symbols) <COMMA>
+    dataCount=expression(methods,symbols)
+    ( <COMMA> doubleAlign=expression(methods,symbols) )?
+  <RPAREN>
+    { return new Alloc(site.getId(), refCount, dataCount, doubleAlign); }
+}
+
+
+/***************************************************************************
+ *               Utility rules
+ */
+
+/*
+ * Match an identifier and return it as a string
+ */
+String ident() : {
+    Token t;
+}
+{
+  t=<IDENTIFIER> { return t.toString(); }
+}
+
+/*
+ * Match an integer literal and return it as an int
+ */
+int integer() : {
+    Token t;
+}
+{
+  t=<INTEGER_LITERAL> { return Integer.parseInt(t.toString()); }
+}
+/*
+ * Match a boolean literal and return it as a boolean
+ */
+boolean bool() : {
+    Token t;
+}
+{
+  t=<BOOLEAN_LITERAL> { return Boolean.parseBoolean(t.toString()); }
+}
+/*
+ * Match a string literal and return the contents as a string
+ */
+String string() : {
+    Token t;
+    String s;
+}
+{
+  t=<STRING_LITERAL> { s = t.toString(); return s.substring(1, s.length() - 1); }
+}

@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
-import org.jikesrvm.ia32.VM_ArchConstants;
+import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * At the beginning of each basic block, the register allocator expects
@@ -93,7 +93,7 @@ public final class ExpandFPRStackConvention extends CompilerPhase implements Ope
    * Insert the needed dummy defs and uses.
    */
   public void perform(IR ir) {
-    if (VM_ArchConstants.SSE2_FULL) {
+    if (ArchConstants.SSE2_FULL) {
       return;
     }
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();

@@ -17,7 +17,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 
 import java.util.Enumeration;
 
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.dfsolver.DF_Equation;
 import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
@@ -92,7 +92,7 @@ class IndexPropagationSystem extends DF_System {
     }
     DF_LatticeCell result = null;
     Object heapType = ((HeapVariable<?>) o).getHeapType();
-    if (heapType instanceof VM_TypeReference) {
+    if (heapType instanceof TypeReference) {
       result = new ArrayCell((HeapVariable<?>) o);
     } else {
       result = new ObjectCell((HeapVariable<?>) o);

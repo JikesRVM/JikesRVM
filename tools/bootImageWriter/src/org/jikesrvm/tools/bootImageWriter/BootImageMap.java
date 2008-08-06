@@ -126,6 +126,16 @@ public class BootImageMap extends BootImageWriterMessages
     Address imageAddress;
 
     /**
+     * Do we need space in the written object for an identity hash code
+     */
+    private boolean hasIdentityHashCode;
+
+    /**
+     * An identity hash code for this entry
+     */
+    private int identityHashCode;
+
+    /**
      * Constructor.
      * @param objectId unique id
      * @param jdkObject the JDK object
@@ -135,6 +145,28 @@ public class BootImageMap extends BootImageWriterMessages
       this.objectId     = objectId;
       this.jdkObject    = jdkObject;
       this.imageAddress = imageAddress;
+    }
+
+    /**
+     * Mark the entry as requiring an identity hash code
+     */
+    public void setHashed(int identityHashCode) {
+      this.hasIdentityHashCode = true;
+      this.identityHashCode = identityHashCode;
+    }
+
+    /**
+     * @return Does this entry require an identity hash code
+     */
+    public boolean requiresIdentityHashCode() {
+      return hasIdentityHashCode;
+    }
+
+    /**
+     * @return the identity hash code associated with this entry
+     */
+    public int getIdentityHashCode() {
+      return identityHashCode;
     }
   }
 

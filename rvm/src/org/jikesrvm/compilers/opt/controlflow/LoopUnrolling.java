@@ -53,7 +53,7 @@ import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 /*
  * Loop unrolling
@@ -116,7 +116,7 @@ public class LoopUnrolling extends CompilerPhase {
    * unroll the loops in the given IR.
    */
   void unrollLoops(IR ir) {
-    LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
 
     for (int i = 1; lstg != null && i <= 1; ++i) {
       unrollLoopTree((LSTNode) lstg.firstNode(), ir, i);
@@ -159,7 +159,7 @@ public class LoopUnrolling extends CompilerPhase {
   boolean unrollLeaf(LSTNode t, IR ir) {
     int instructionsInLoop = 0;
     BasicBlock exitBlock = null, backEdgeBlock = null, succBlock = null, predBlock = null;
-    VM_BitVector nloop = t.loop;
+    BitVector nloop = t.loop;
     BasicBlock header = t.header;
     Instruction tmp;
 
@@ -609,7 +609,7 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   private void naiveUnroller(LSTNode t, IR ir) {
-    VM_BitVector nloop = t.loop;
+    BitVector nloop = t.loop;
     BasicBlock seqStart = null;
     BasicBlockEnumeration bs;
 
@@ -775,7 +775,7 @@ public class LoopUnrolling extends CompilerPhase {
     return def;
   }
 
-  private static boolean loopInvariant(Operand op, VM_BitVector nloop, int depth) {
+  private static boolean loopInvariant(Operand op, BitVector nloop, int depth) {
     if (depth <= 0) {
       return false;
     } else if (op instanceof ConstantOperand) {
@@ -794,7 +794,7 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  private static boolean printDefs(Operand op, VM_BitVector nloop, int depth) {
+  private static boolean printDefs(Operand op, BitVector nloop, int depth) {
     if (depth <= 0) return false;
     if (op instanceof ConstantOperand) {
       VM.sysWrite(">> " + op + "\n");
@@ -848,7 +848,7 @@ public class LoopUnrolling extends CompilerPhase {
       e.next().scratchObject = null;
       e.next().scratch = 0;
     }
-    LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
+    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) markHeaders((LSTNode) lstg.firstNode());
   }
 
@@ -865,12 +865,12 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   // inserts unrollFactor copies of the loop after seqStart
-  static BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, VM_BitVector nloop, int blocks,
+  static BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, BitVector nloop, int blocks,
                                          BasicBlock header, BasicBlock exitBlock, BasicBlock seqStart) {
     // make some copies of the original loop
 
     // first, capture the blocks in the loop body.
-    VM_BitVector loop = new VM_BitVector(nloop);
+    BitVector loop = new BitVector(nloop);
     loop.clear(header.getNumber());
     loop.clear(exitBlock.getNumber());
     int bodyBlocks = 0;

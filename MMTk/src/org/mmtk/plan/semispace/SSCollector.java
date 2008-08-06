@@ -37,7 +37,8 @@ import org.vmmagic.pragma.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  */
-@Uninterruptible public abstract class SSCollector extends StopTheWorldCollector {
+@Uninterruptible
+public class SSCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields
@@ -63,7 +64,7 @@ import org.vmmagic.pragma.*;
    * @param tr The trace to use
    */
   protected SSCollector(SSTraceLocal tr) {
-    ss = new CopyLocal(SS.copySpace0);
+    ss = new CopyLocal();
     trace = tr;
   }
 

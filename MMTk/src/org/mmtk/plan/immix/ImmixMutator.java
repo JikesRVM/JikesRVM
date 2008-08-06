@@ -12,15 +12,11 @@
  */
 package org.mmtk.plan.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SEPARATE_HOT_ALLOC_SITES;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK;
-
 import org.mmtk.plan.*;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.immix.MutatorLocal;
 
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -35,18 +31,17 @@ import org.vmmagic.unboxed.*;
  * per-mutator allocator state).<p>
  *
  * @see Immix
- * @see CollectorLocal
+ * @see org.mmtk.policy.immix.CollectorLocal
  * @see StopTheWorldMutator
  * @see MutatorContext
  */
 @Uninterruptible
-public abstract class ImmixMutator extends StopTheWorldMutator {
+public class ImmixMutator extends StopTheWorldMutator {
 
   /****************************************************************************
    * Instance fields
    */
   protected final MutatorLocal immix;
-  protected final MutatorLocal immixHot;
 
   /****************************************************************************
    *
@@ -57,10 +52,7 @@ public abstract class ImmixMutator extends StopTheWorldMutator {
    * Constructor
    */
   public ImmixMutator() {
-    if (VM.VERIFY_ASSERTIONS && TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK && TMP_SEPARATE_HOT_ALLOC_SITES)
-      VM.assertions._assert(false); // above two options cannot co-exist
     immix = new org.mmtk.policy.immix.MutatorLocal(Immix.immixSpace, false);
-    immixHot = (TMP_SEPARATE_HOT_ALLOC_SITES ? new org.mmtk.policy.immix.MutatorLocal(Immix.immixSpace, false) : null);
   }
 
   /****************************************************************************
@@ -81,12 +73,8 @@ public abstract class ImmixMutator extends StopTheWorldMutator {
    */
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
-    if (allocator == Immix.ALLOC_DEFAULT) {
-      if (TMP_SEPARATE_HOT_ALLOC_SITES && site < 0)
-        return immixHot.alloc(bytes, align, offset);
-      else
-        return immix.alloc(bytes, align, offset);
-    }
+    if (allocator == Immix.ALLOC_DEFAULT)
+      return immix.alloc(bytes, align, offset);
     return super.alloc(bytes, align, offset, allocator, site);
   }
 
@@ -104,7 +92,7 @@ public abstract class ImmixMutator extends StopTheWorldMutator {
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
     if (allocator == Immix.ALLOC_DEFAULT)
-      Immix.immixSpace.postAlloc(ref, bytes, TMP_EXACT_ALLOC_TIME_STRADDLE_CHECK ? immix.getLastAllocLineStraddle() : false);
+      Immix.immixSpace.postAlloc(ref, bytes);
     else
       super.postAlloc(ref, typeRef, bytes, allocator);
   }
@@ -121,8 +109,10 @@ public abstract class ImmixMutator extends StopTheWorldMutator {
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == immix || (TMP_SEPARATE_HOT_ALLOC_SITES && a == immixHot)) return Immix.immixSpace;
-    return super.getSpaceFromAllocator(a);
+    if (a == immix)
+      return Immix.immixSpace;
+    else
+      return super.getSpaceFromAllocator(a);
   }
 
   /**
@@ -156,15 +146,11 @@ public abstract class ImmixMutator extends StopTheWorldMutator {
     if (phaseId == Immix.PREPARE) {
       super.collectionPhase(phaseId, primary);
       immix.prepare();
-      if (TMP_SEPARATE_HOT_ALLOC_SITES)
-        immixHot.prepare();
       return;
     }
 
     if (phaseId == Immix.RELEASE) {
       immix.release();
-      if (TMP_SEPARATE_HOT_ALLOC_SITES)
-        immixHot.release();
       super.collectionPhase(phaseId, primary);
       return;
     }

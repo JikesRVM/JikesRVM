@@ -12,8 +12,6 @@
  */
 package org.mmtk.plan.stickyimmix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-
 import org.mmtk.plan.*;
 import org.mmtk.plan.immix.Immix;
 import org.mmtk.plan.immix.ImmixCollector;
@@ -22,7 +20,6 @@ import org.mmtk.plan.immix.ImmixTraceLocal;
 import org.mmtk.policy.immix.CollectorLocal;
 import org.mmtk.utility.alloc.ImmixAllocator;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -40,19 +37,16 @@ import org.vmmagic.pragma.*;
  * @see StickyImmixMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see Phase
  */
 @Uninterruptible
-public abstract class StickyImmixCollector extends ImmixCollector {
+public class StickyImmixCollector extends ImmixCollector {
 
   /****************************************************************************
    * Instance fields
    */
   private StickyImmixNurseryTraceLocal nurseryTrace;
   private final ImmixAllocator nurseryCopy;
-
-  /* Sanity checking */
-  private StickyImmixSanityCheckerLocal sanityChecker;
 
   /****************************************************************************
    * Initialization
@@ -68,7 +62,6 @@ public abstract class StickyImmixCollector extends ImmixCollector {
     nurseryTrace = new StickyImmixNurseryTraceLocal(global().immixTrace, modBuffer);
     immix = new CollectorLocal(StickyImmix.immixSpace);
     nurseryCopy = new ImmixAllocator(Immix.immixSpace, true, true);
-    sanityChecker = new StickyImmixSanityCheckerLocal();
   }
 
   /****************************************************************************
@@ -96,10 +89,7 @@ public abstract class StickyImmixCollector extends ImmixCollector {
         immix.prepare(false);
         nurseryTrace.prepare();
         nurseryCopy.reset();
-        if (TMP_DEFRAG_TO_IMMORTAL)
-          immortal.reset();
-        else
-          copy.reset();
+        copy.reset();
         return;
       }
 
@@ -133,10 +123,5 @@ public abstract class StickyImmixCollector extends ImmixCollector {
   /** @return The active global plan as an <code>StickyImmix</code> instance. */
   private static StickyImmix global() {
     return (StickyImmix) VM.activePlan.global();
-  }
-
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 }

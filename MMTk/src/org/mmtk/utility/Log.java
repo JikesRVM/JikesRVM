@@ -20,7 +20,8 @@ import org.vmmagic.pragma.*;
 /**
  * Error and trace logging.
  */
-@Uninterruptible public class Log implements Constants {
+@Uninterruptible
+public class Log implements Constants {
 
   /****************************************************************************
    *
@@ -37,11 +38,9 @@ import org.vmmagic.pragma.*;
   private static final int MESSAGE_BUFFER_SIZE = 3000;
 
   /** message added when the write buffer has overflown */
-  private static final String OVERFLOW_MESSAGE =
-    "... WARNING: Text truncated.\n";
+  private static final String OVERFLOW_MESSAGE = "... WARNING: Text truncated.\n";
 
-  private static final char OVERFLOW_MESSAGE_FIRST_CHAR =
-    OVERFLOW_MESSAGE.charAt(0);
+  private static final char OVERFLOW_MESSAGE_FIRST_CHAR = OVERFLOW_MESSAGE.charAt(0);
 
   /** characters in the overflow message, including the (optional) final
    * newline  */
@@ -69,15 +68,13 @@ import org.vmmagic.pragma.*;
    * log2 of number of digits in the unsigned hexadecimal
    * representation of a byte
    */
-  private static final int LOG_HEX_DIGITS_IN_BYTE =
-    LOG_BITS_IN_BYTE - LOG_BITS_IN_HEX_DIGIT;
+  private static final int LOG_HEX_DIGITS_IN_BYTE = LOG_BITS_IN_BYTE - LOG_BITS_IN_HEX_DIGIT;
 
   /**
    * map of hexadecimal digit values to their character representations
    */
   private static final char [] hexDigitCharacter =
-  { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
-    'f' };
+  { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
   /** new line character. Emitted by writeln methods. */
   private static final char NEW_LINE_CHAR = '\n';
@@ -91,8 +88,7 @@ import org.vmmagic.pragma.*;
    */
 
   /** buffer to store written message until flushing */
-  private char [] buffer =
-    new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
+  private char [] buffer = new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
 
   /** location of next character to be written */
   private int bufferIndex = 0;
@@ -112,8 +108,9 @@ import org.vmmagic.pragma.*;
 
   /** constructor */
   public Log() {
-    for (int i = 0; i < OVERFLOW_SIZE; i++)
-      VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i, OVERFLOW_MESSAGE.charAt(i));
+    for (int i = 0; i < OVERFLOW_SIZE; i++) {
+      buffer[MESSAGE_BUFFER_SIZE + i] = OVERFLOW_MESSAGE.charAt(i);
+    }
   }
 
   /**
@@ -139,6 +136,7 @@ import org.vmmagic.pragma.*;
    * thousands seperator is logged.  If the value is negative a
    * leading minus sign (-) is logged.
    *
+   *
    * @param l long value to be logged
    */
   public static void write(long l) {
@@ -149,22 +147,24 @@ import org.vmmagic.pragma.*;
     char[] intBuffer = getIntBuffer();
 
     nextDigit = (int) (l % 10);
-    nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, negative ? - nextDigit : nextDigit);
-    VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+    nextChar = hexDigitCharacter[negative ? - nextDigit : nextDigit];
+    intBuffer[index--] = nextChar;
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
-      nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, negative ? - nextDigit : nextDigit);
-      VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+      nextChar = hexDigitCharacter[negative ? - nextDigit : nextDigit];
+      intBuffer[index--] = nextChar;
       l = l / 10;
     }
 
-    if (negative)
-      VM.barriers.setArrayNoBarrier(intBuffer, index--, '-');
+    if (negative) {
+      intBuffer[index--] = '-';
+    }
 
-    for (index++; index < TEMP_BUFFER_SIZE; index++)
-      add(VM.barriers.getArrayNoBarrier(intBuffer, index));
+    for (index++; index < TEMP_BUFFER_SIZE; index++) {
+      add(intBuffer[index]);
+    }
   }
 
   /**
@@ -245,8 +245,9 @@ import org.vmmagic.pragma.*;
    */
   public static void write(char[] c, int len) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(len <= c.length);
-    for (int i = 0; i < len; i++)
-      add(VM.barriers.getArrayNoBarrier(c, i));
+    for (int i = 0; i < len; i++) {
+      add(c[i]);
+    }
   }
 
   /**
@@ -256,8 +257,9 @@ import org.vmmagic.pragma.*;
    * @param b the array of bytes to be logged
    */
   public static void write(byte[] b) {
-    for (int i = 0; i < b.length; i++)
-      add((char)VM.barriers.getArrayNoBarrier(b, i));
+    for (int i = 0; i < b.length; i++) {
+      add((char)b[i]);
+    }
   }
 
   /**
@@ -285,10 +287,11 @@ import org.vmmagic.pragma.*;
    * @param w the word to be logged
    */
   public static void writeDec(Word w) {
-    if (BYTES_IN_ADDRESS == 4)
+    if (BYTES_IN_ADDRESS == 4) {
       write(w.toInt());
-    else
+    } else {
       write(w.toLong());
+    }
   }
 
   /**
@@ -710,8 +713,9 @@ import org.vmmagic.pragma.*;
    */
   private static void writelnWithFlush(boolean flush) {
     add(NEW_LINE_CHAR);
-    if (flush)
+    if (flush) {
       flush();
+    }
   }
 
   /**
@@ -730,7 +734,7 @@ import org.vmmagic.pragma.*;
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
       nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
-      char nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter, nextDigit);
+      char nextChar = hexDigitCharacter[nextDigit];
       add(nextChar);
     }
   }
@@ -754,10 +758,11 @@ import org.vmmagic.pragma.*;
   }
 
   private static Log getLog() {
-    if (VM.assertions.runningVM())
-      return VM.activePlan.collector().getLog();
-    else
+    if (VM.assertions.runningVM()) {
+      return VM.activePlan.log();
+    } else {
       return log;
+    }
   }
 
   /**
@@ -766,9 +771,9 @@ import org.vmmagic.pragma.*;
    * @param c the character to add
    */
   private void addToBuffer(char c) {
-    if (bufferIndex < MESSAGE_BUFFER_SIZE)
-      VM.barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
-    else {
+    if (bufferIndex < MESSAGE_BUFFER_SIZE) {
+      buffer[bufferIndex++] = c;
+    } else {
       overflow = true;
       overflowLastChar = c;
     }
@@ -781,18 +786,18 @@ import org.vmmagic.pragma.*;
    */
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
-      bufferIndex += VM.strings.copyStringToChars(s, buffer, bufferIndex,
-          MESSAGE_BUFFER_SIZE + 1);
+      bufferIndex += VM.strings.copyStringToChars(s, buffer, bufferIndex, MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
         // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
         // MMTk method that lets us peek into a string. Anyway, it's just a
         // convenience to get the newline right.
-        VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE, OVERFLOW_MESSAGE_FIRST_CHAR);
+        buffer[MESSAGE_BUFFER_SIZE] = OVERFLOW_MESSAGE_FIRST_CHAR;
         bufferIndex--;
       }
-    } else
+    } else {
       overflow = true;
+    }
   }
 
   /**
@@ -801,10 +806,11 @@ import org.vmmagic.pragma.*;
   private void flushBuffer() {
     int newlineAdjust = overflowLastChar == NEW_LINE_CHAR ? 0 : -1;
     int totalMessageSize = overflow ? (MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust) : bufferIndex;
-    if (threadIdFlag)
+    if (threadIdFlag) {
       VM.strings.writeThreadId(buffer, totalMessageSize);
-    else
+    } else {
       VM.strings.write(buffer, totalMessageSize);
+    }
     threadIdFlag = false;
     overflow = false;
     overflowLastChar = '\0';

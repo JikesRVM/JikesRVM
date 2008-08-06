@@ -13,14 +13,14 @@
 package java.lang;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_StackTrace;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.runtime.StackTrace;
+import org.jikesrvm.scheduler.Scheduler;
 /**
  * Implementation of throwables for JikesRVM.
  */
 public final class VMThrowable {
   /** The stack trace for this throwable */
-  private VM_StackTrace stackTrace;
+  private StackTrace stackTrace;
 
   /**
    * Zero length array of stack trace elements, returned when handling an OOM or
@@ -29,7 +29,7 @@ public final class VMThrowable {
   private static final StackTraceElement[] zeroLengthStackTrace = new StackTraceElement[0];
 
   /** Constructor called by fillInStackTrace*/
-  private VMThrowable(VM_StackTrace stackTrace) {
+  private VMThrowable(StackTrace stackTrace) {
     this.stackTrace = stackTrace;
   }
 
@@ -40,13 +40,13 @@ public final class VMThrowable {
   static VMThrowable fillInStackTrace(Throwable parent){
     if (!VM.fullyBooted) {
       return null;
-    } else if (VM_Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+    } else if (Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
       VM.sysWriteln("Exception in GC thread");
-      VM_Scheduler.dumpVirtualMachine();
+      Scheduler.dumpVirtualMachine();
       return null;
     }
     try {
-      VM_StackTrace stackTrace = new VM_StackTrace();
+      StackTrace stackTrace = new StackTrace();
       return new VMThrowable(stackTrace);
     } catch (OutOfMemoryError oome) {
       return null;
@@ -60,30 +60,30 @@ public final class VMThrowable {
   StackTraceElement[] getStackTrace(Throwable parent) {
     if (stackTrace == null) {
       return zeroLengthStackTrace;
-    } else if (VM_Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+    } else if (Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
       VM.sysWriteln("VMThrowable.getStackTrace called from GC thread: dumping stack using scheduler");
-      VM_Scheduler.dumpStack();
+      Scheduler.dumpStack();
       return zeroLengthStackTrace;
     }
 
-    VM_StackTrace.Element[] vmElements;
+    StackTrace.Element[] vmElements;
     try {
       vmElements = stackTrace.getStackTrace(parent);
     } catch (Throwable t) {
-      VM.sysWriteln("Error calling VM_StackTrace.getStackTrace: dumping stack using scheduler");
-      VM_Scheduler.dumpStack();
+      VM.sysWriteln("Error calling StackTrace.getStackTrace: dumping stack using scheduler");
+      Scheduler.dumpStack();
       return zeroLengthStackTrace;
     }
     if (vmElements == null) {
-      VM.sysWriteln("Error calling VM_StackTrace.getStackTrace returned null");
-      VM_Scheduler.dumpStack();
+      VM.sysWriteln("Error calling StackTrace.getStackTrace returned null");
+      Scheduler.dumpStack();
       return zeroLengthStackTrace;
     }
     if (VM.fullyBooted) {
       try {
         StackTraceElement[] elements = new StackTraceElement[vmElements.length];
         for (int i=0; i < vmElements.length; i++) {
-          VM_StackTrace.Element vmElement = vmElements[i];
+          StackTrace.Element vmElement = vmElements[i];
           String fileName = vmElement.getFileName();
           int lineNumber = vmElement.getLineNumber();
           String className = vmElement.getClassName();
@@ -98,10 +98,10 @@ public final class VMThrowable {
     } else {
       VM.sysWriteln("Dumping stack using sysWrite in not fullyBooted VM");
     }
-    for (VM_StackTrace.Element vmElement : vmElements) {
+    for (StackTrace.Element vmElement : vmElements) {
       if (vmElement == null) {
         VM.sysWriteln("Error stack trace with null entry");
-        VM_Scheduler.dumpStack();
+        Scheduler.dumpStack();
         return zeroLengthStackTrace;
       }
       String fileName = vmElement.getFileName();

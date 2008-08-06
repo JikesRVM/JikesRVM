@@ -52,7 +52,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ssa.GCP;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 /**
  * <p>A node in the LST (Loop Structure Tree) with added information
@@ -587,7 +587,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * @param header The loop header for determining if PEIs are invariant
    * @return Whether the operand is invariant or not
    */
-  private static boolean isLoopInvariant(Operand op, VM_BitVector loop, BasicBlock header) {
+  private static boolean isLoopInvariant(Operand op, BitVector loop, BasicBlock header) {
     boolean result;
     if (op.isConstant()) {
       result = true;
@@ -892,7 +892,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * @param blocksLeftToVisit blocks left to visit
    * @return Blocks in loop with header first and exit last
    */
-  private BBEnum getBasicBlocks(BasicBlock block, BBEnum bbs, VM_BitVector blocksLeftToVisit) {
+  private BBEnum getBasicBlocks(BasicBlock block, BBEnum bbs, BitVector blocksLeftToVisit) {
     if (block != exit) {
       bbs.add(block);
     }
@@ -914,7 +914,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * @return Blocks in loop with header first and exit last
    */
   public BasicBlockEnumeration getBasicBlocks() {
-    VM_BitVector blocksLeftToVisit = new VM_BitVector(loop);
+    BitVector blocksLeftToVisit = new BitVector(loop);
     BBEnum bbs = getBasicBlocks(header, new BBEnum(), blocksLeftToVisit);
     if (exit != null) {
       // place the exit block at the end of the list if we've recognized one

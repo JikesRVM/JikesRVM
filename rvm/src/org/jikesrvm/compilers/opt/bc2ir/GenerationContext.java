@@ -17,17 +17,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.baseline.VM_BranchProfile;
-import org.jikesrvm.compilers.baseline.VM_BranchProfiles;
-import org.jikesrvm.compilers.baseline.VM_ConditionalBranchProfile;
-import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
-import org.jikesrvm.compilers.baseline.VM_SwitchBranchProfile;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.baseline.BranchProfile;
+import org.jikesrvm.compilers.baseline.BranchProfiles;
+import org.jikesrvm.compilers.baseline.ConditionalBranchProfile;
+import org.jikesrvm.compilers.baseline.EdgeCounts;
+import org.jikesrvm.compilers.baseline.SwitchBranchProfile;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -57,8 +57,8 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class GenerationContext implements org.jikesrvm.compilers.opt.driver.Constants, Operators {
+public final class GenerationContext implements org.jikesrvm.compilers.opt.driver.OptConstants, Operators {
 
   //////////
   // These fields are used to communicate information from its
@@ -75,22 +75,22 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * The original method (root of the calling context tree)
    */
-  VM_NormalMethod original_method;
+  NormalMethod original_method;
 
   /**
    * The compiled method assigned for this compilation of original_method
    */
-  VM_CompiledMethod original_cm;
+  CompiledMethod original_cm;
 
   /**
    * The method to be generated
    */
-  public VM_NormalMethod method;
+  public NormalMethod method;
 
   /**
    * The BranchProfile data for method, if available
    */
-  VM_BranchProfiles branchProfiles;
+  BranchProfiles branchProfiles;
 
   /**
    * The options to control the generation
@@ -208,18 +208,18 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * Use this constructor to create an outermost (non-inlined)
    * GenerationContext.
    *
-   * @param meth The VM_NormalMethod whose IR will be generated
+   * @param meth The NormalMethod whose IR will be generated
    * @param params The known types of the parameters to the method. For method specialization.
    * @param cm   The compiled method id to be used for this compilation
    * @param opts The Options to be used for the generation
    * @param ip   The InlineOracle to be used for the generation
    */
-  GenerationContext(VM_NormalMethod meth, VM_TypeReference[] params, VM_CompiledMethod cm, OptOptions opts, InlineOracle ip) {
+  GenerationContext(NormalMethod meth, TypeReference[] params, CompiledMethod cm, OptOptions opts, InlineOracle ip) {
     original_method = meth;
     original_cm = cm;
     method = meth;
     if (opts.frequencyCounters() || opts.inverseFrequencyCounters()) {
-      branchProfiles = VM_EdgeCounts.getBranchProfiles(meth);
+      branchProfiles = EdgeCounts.getBranchProfiles(meth);
     }
     options = opts;
     inlinePlan = ip;
@@ -238,7 +238,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     temps = new RegisterPool(meth);
     _ncGuards = new HashMap<Register, RegisterOperand>();
     initLocalPool();
-    VM_TypeReference[] definedParams = meth.getParameterTypes();
+    TypeReference[] definedParams = meth.getParameterTypes();
     if (params == null) params = definedParams;
     int numParams = params.length;
     int argIdx = 0;
@@ -249,7 +249,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     appendInstruction(prologue, prologueInstr, PROLOGUE_BCI);
 
     if (!method.isStatic()) {
-      VM_TypeReference thisType = meth.getDeclaringClass().getTypeRef();
+      TypeReference thisType = meth.getDeclaringClass().getTypeRef();
       RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
       RegisterOperand guard = makeNullCheckGuard(thisOp.getRegister());
@@ -266,7 +266,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       localNum++;
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++) {
-      VM_TypeReference argType = params[paramIdx];
+      TypeReference argType = params[paramIdx];
       RegisterOperand argOp = makeLocal(localNum, argType);
       argOp.setDeclaredType();
       if (argType.isClassType()) {
@@ -280,8 +280,8 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
         localNum++; // longs & doubles take two words of local space
       }
     }
-    VM_TypeReference returnType = meth.getReturnType();
-    if (returnType != VM_TypeReference.Void) {
+    TypeReference returnType = meth.getReturnType();
+    if (returnType != TypeReference.Void) {
       resultReg = temps.makeTemp(returnType).getRegister();
     }
 
@@ -305,11 +305,11 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * @return the child context
    */
   public static GenerationContext createChildContext(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag,
-                                                  VM_NormalMethod callee, Instruction callSite) {
+                                                  NormalMethod callee, Instruction callSite) {
     GenerationContext child = new GenerationContext();
     child.method = callee;
     if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
-      child.branchProfiles = VM_EdgeCounts.getBranchProfiles(callee);
+      child.branchProfiles = EdgeCounts.getBranchProfiles(callee);
     }
     child.original_method = parent.original_method;
     child.original_cm = parent.original_cm;
@@ -347,12 +347,13 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     child.initLocalPool();
 
     // Insert moves from child.arguments to child's locals in prologue
-    VM_TypeReference[] params = child.method.getParameterTypes();
+    TypeReference[] params = child.method.getParameterTypes();
     int numParams = params.length;
     int argIdx = 0;
     int localNum = 0;
     if (!child.method.isStatic()) {
-      Operand receiver = child.arguments[argIdx++];
+      Operand receiver = child.arguments[argIdx];
+      argIdx++;
       RegisterOperand local = null;
       if (receiver.isRegister()) {
         RegisterOperand objPtr = receiver.asRegister();
@@ -362,11 +363,13 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
           objPtr.clearPreciseType(); // Can be precise but not assignable if enough classes aren't loaded
           objPtr.setDeclaredType();
         }
-        local = child.makeLocal(localNum++, objPtr);
+        local = child.makeLocal(localNum, objPtr);
+        localNum++;
         child.arguments[0] = local; // Avoid confusion in BC2IR of callee
         // when objPtr is a local in the caller.
       } else if (receiver.isConstant()) {
-        local = child.makeLocal(localNum++, receiver.getType());
+        local = child.makeLocal(localNum, receiver.getType());
+        localNum++;
         local.setPreciseType();
         // Constants trivially non-null
         RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
@@ -381,7 +384,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       child.prologue.appendInstruction(s);
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
-      VM_TypeReference argType = params[paramIdx];
+      TypeReference argType = params[paramIdx];
       RegisterOperand formal;
       Operand actual = child.arguments[argIdx];
       if (actual.isRegister()) {
@@ -393,11 +396,13 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
           rActual.setDeclaredType();
           rActual.setType(argType);
         }
-        formal = child.makeLocal(localNum++, rActual);
+        formal = child.makeLocal(localNum, rActual);
+        localNum++;
         child.arguments[argIdx] = formal;  // Avoid confusion in BC2IR of
         // callee when arg is a local in the caller.
       } else {
-        formal = child.makeLocal(localNum++, argType);
+        formal = child.makeLocal(localNum, argType);
+        localNum++;
       }
       Instruction s = Move.create(IRTools.getMoveOp(argType), formal, actual);
       s.bcIndex = PROLOGUE_BCI;
@@ -493,12 +498,12 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     doubleLocals = new Register[numLocals];
   }
 
-  private Register[] getPool(VM_TypeReference type) {
-    if (type == VM_TypeReference.Float) {
+  private Register[] getPool(TypeReference type) {
+    if (type == TypeReference.Float) {
       return floatLocals;
-    } else if (type == VM_TypeReference.Long) {
+    } else if (type == TypeReference.Long) {
       return longLocals;
-    } else if (type == VM_TypeReference.Double) {
+    } else if (type == TypeReference.Double) {
       return doubleLocals;
     } else if (type.isReferenceType() || type.isWordType()) {
       return addressLocals;
@@ -508,9 +513,9 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
-   * Return the Register used to for local i of VM_TypeReference type
+   * Return the Register used to for local i of TypeReference type
    */
-  public Register localReg(int i, VM_TypeReference type) {
+  public Register localReg(int i, TypeReference type) {
     Register[] pool = getPool(type);
     if (pool[i] == null) {
       pool[i] = temps.getReg(type);
@@ -540,7 +545,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * @param i local variable number
    * @param type desired data type
    */
-  public RegisterOperand makeLocal(int i, VM_TypeReference type) {
+  public RegisterOperand makeLocal(int i, TypeReference type) {
     return new RegisterOperand(localReg(i, type), type);
   }
 
@@ -561,7 +566,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Get the local number for a given register
    */
-  public int getLocalNumberFor(Register reg, VM_TypeReference type) {
+  public int getLocalNumberFor(Register reg, TypeReference type) {
     Register[] pool = getPool(type);
     for (int i = 0; i < pool.length; i++) {
       if (pool[i] == reg) return i;
@@ -572,7 +577,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Is the operand a particular bytecode local?
    */
-  public boolean isLocal(Operand op, int i, VM_TypeReference type) {
+  public boolean isLocal(Operand op, int i, TypeReference type) {
     if (op instanceof RegisterOperand) {
       if (getPool(type)[i] == ((RegisterOperand) op).getRegister()) return true;
     }
@@ -608,8 +613,8 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   public BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
     float prob;
     if (branchProfiles != null) {
-      VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
-      prob = ((VM_ConditionalBranchProfile) bp).getTakenProbability();
+      BranchProfile bp = branchProfiles.getEntry(bcIndex);
+      prob = ((ConditionalBranchProfile) bp).getTakenProbability();
     } else if (backwards) {
       prob = 0.9f;
     } else {
@@ -623,10 +628,10 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     return new BranchProfileOperand(prob);
   }
 
-  public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {
+  public SwitchBranchProfile getSwitchProfile(int bcIndex) {
     if (branchProfiles != null) {
-      VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
-      return (VM_SwitchBranchProfile) bp;
+      BranchProfile bp = branchProfiles.getEntry(bcIndex);
+      return (SwitchBranchProfile) bp;
     } else {
       return null;
     }
@@ -687,7 +692,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     }
 
     if (isOutermost) {
-      VM_TypeReference returnType = method.getReturnType();
+      TypeReference returnType = method.getReturnType();
       Operand retVal = returnType.isVoidType() ? null : new RegisterOperand(resultReg, returnType);
       Instruction s = Return.create(RETURN, retVal);
       appendInstruction(epilogue, s, EPILOGUE_BCI);
@@ -704,15 +709,15 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       ExceptionHandlerBasicBlock rethrow =
           new ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI,
                                              inlineSequence,
-                                             new TypeOperand(VM_Type.JavaLangThrowableType),
+                                             new TypeOperand(RVMType.JavaLangThrowableType),
                                              cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
-      RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
+      RegisterOperand ceo = temps.makeTemp(TypeReference.JavaLangThrowable);
       Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
       Operand lockObject = getLockObject();
 
-      VM_Method target = VM_Entrypoints.unlockAndThrowMethod;
+      RVMMethod target = Entrypoints.unlockAndThrowMethod;
       MethodOperand methodOp = MethodOperand.STATIC(target);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
       s =
@@ -755,7 +760,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   private Operand getLockObject() {
     if (method.isStatic()) {
       Class<?> klass = method.getDeclaringClass().getClassForType();
-      Offset offs = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass));
+      Offset offs = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(klass));
       return new ClassConstantOperand(klass, offs);
     } else {
       return makeLocal(0, arguments[0].getType());

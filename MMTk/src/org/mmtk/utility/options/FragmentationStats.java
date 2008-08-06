@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Option to print fragmentation information for the free list.
  */
-public final class FragmentationStats extends BooleanOption {
+public final class FragmentationStats extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public FragmentationStats() {
-    super("Fragmentation Stats",
+    super(Options.set, "Fragmentation Stats",
         "Should we print fragmentation statistics for the free list allocator?",
         false);
   }

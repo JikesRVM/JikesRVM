@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan;
-import org.jikesrvm.osr.OSR_VariableMap;
+import org.jikesrvm.osr.VariableMap;
 
 /**
  * Wrapper class around IR info that is valid on the MIR
@@ -24,7 +24,7 @@ public final class MIRInfo {
   /**
    * The generated machinecodes produced by this compilation of 'method'
    */
-  public VM_CodeArray machinecode;
+  public CodeArray machinecode;
 
   /**
    * Estimate produced by FinalMIRExpansion and used by
@@ -37,7 +37,7 @@ public final class MIRInfo {
    */
   public GCIRMap gcIRMap;
 
-  public OSR_VariableMap osrVarMap;
+  public VariableMap osrVarMap;
   /**
    * The frame size of the current method
    */
@@ -50,19 +50,19 @@ public final class MIRInfo {
   public int fpStackHeight;
 
   /**
-   * A basic block holding the call to VM_Thread.threadSwitch for a
+   * A basic block holding the call to Thread.threadSwitch for a
    * prologue.
    */
   public BasicBlock prologueYieldpointBlock = null;
 
   /**
-   * A basic block holding the call to VM_Thread.threadSwitch for an
+   * A basic block holding the call to Thread.threadSwitch for an
    * epilogue.
    */
   public BasicBlock epilogueYieldpointBlock = null;
 
   /**
-   * A basic block holding the call to VM_Thread.threadSwitch for a
+   * A basic block holding the call to Thread.threadSwitch for a
    * backedge.
    */
   public BasicBlock backedgeYieldpointBlock = null;

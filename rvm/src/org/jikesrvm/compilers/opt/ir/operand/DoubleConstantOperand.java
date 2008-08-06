@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  * @see Operand
  */
 
-public final class DoubleConstantOperand extends ConstantOperand implements VM_SizeConstants {
+public final class DoubleConstantOperand extends ConstantOperand implements SizeConstants {
 
   /**
    * Value of this operand.
@@ -44,9 +44,9 @@ public final class DoubleConstantOperand extends ConstantOperand implements VM_S
   public DoubleConstantOperand(double v) {
     value = v;
     if (v == 0.) {
-      offset = VM_Entrypoints.zeroDoubleField.getOffset();
+      offset = Entrypoints.zeroDoubleField.getOffset();
     } else if (v == 1.) {
-      offset = VM_Entrypoints.oneDoubleField.getOffset();
+      offset = Entrypoints.oneDoubleField.getOffset();
     } else {
       offset = Offset.zero();
     }
@@ -73,12 +73,12 @@ public final class DoubleConstantOperand extends ConstantOperand implements VM_S
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
-   * @return VM_TypeReference.Double
+   * @return TypeReference.Double
    */
-  public VM_TypeReference getType() {
-    return VM_TypeReference.Double;
+  public TypeReference getType() {
+    return TypeReference.Double;
   }
 
   /**

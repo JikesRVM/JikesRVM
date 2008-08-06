@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.SSA_SYNTH_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SSA_SYNTH_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -63,7 +63,7 @@ import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 import org.jikesrvm.compilers.opt.liveness.LiveSet;
 import org.jikesrvm.compilers.opt.util.Pair;
 import org.jikesrvm.compilers.opt.util.TreeNode;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 /**
  * This compiler phase constructs SSA form.
@@ -313,7 +313,7 @@ public class EnterSSA extends CompilerPhase {
       for (Pair copy : needed) {
         BasicBlock inBlock = (BasicBlock) copy.first;
         RegisterOperand registerOp = (RegisterOperand) copy.second;
-        VM_TypeReference type = registerOp.getType();
+        TypeReference type = registerOp.getType();
         Register register = registerOp.getRegister();
         Register temp = ir.regpool.getReg(register);
         inBlock.prependInstruction(SSA.makeMoveInstruction(ir, register, temp, type));
@@ -378,7 +378,7 @@ public class EnterSSA extends CompilerPhase {
     //    for each symbolic register (more efficient than using register
     //  lists)
     if (DEBUG) System.out.println("Find defs for each register...");
-    VM_BitVector[] defSets = getDefSets();
+    BitVector[] defSets = getDefSets();
 
     // 4. Insert phi functions for scalars
     if (DEBUG) System.out.println("Insert phi functions...");
@@ -515,10 +515,10 @@ public class EnterSSA extends CompilerPhase {
       if (DEBUG) System.out.println("Inserting phis for Heap " + H);
       if (DEBUG) System.out.println("Start iterated frontier...");
 
-      VM_BitVector defH = H.getDefBlocks();
+      BitVector defH = H.getDefBlocks();
       if (DEBUG) System.out.println(H + " DEFINED IN " + defH);
 
-      VM_BitVector needsPhi = DominanceFrontier.
+      BitVector needsPhi = DominanceFrontier.
           getIteratedDominanceFrontier(ir, defH);
       if (DEBUG) System.out.println(H + " NEEDS PHI " + needsPhi);
 
@@ -541,12 +541,12 @@ public class EnterSSA extends CompilerPhase {
    * @return an array of BitVectors, where element <em>i</em> represents the
    *    basic blocks that contain defs for symbolic register <em>i</em>
    */
-  private VM_BitVector[] getDefSets() {
+  private BitVector[] getDefSets() {
     int nBlocks = ir.getMaxBasicBlockNumber();
-    VM_BitVector[] result = new VM_BitVector[ir.getNumberOfSymbolicRegisters()];
+    BitVector[] result = new BitVector[ir.getNumberOfSymbolicRegisters()];
 
     for (int i = 0; i < result.length; i++) {
-      result[i] = new VM_BitVector(nBlocks + 1);
+      result[i] = new BitVector(nBlocks + 1);
     }
 
     // loop over each basic block
@@ -588,7 +588,7 @@ public class EnterSSA extends CompilerPhase {
    *            symbolic register i.
    * @param symbolics symbolics[i] is symbolic register number i
    */
-  private void insertPhiFunctions(IR ir, VM_BitVector[] defs, Register[] symbolics, boolean excludeGuards) {
+  private void insertPhiFunctions(IR ir, BitVector[] defs, Register[] symbolics, boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
       if (symbolics[r] == null) continue;
       if (symbolics[r].isSSA()) continue;
@@ -596,7 +596,7 @@ public class EnterSSA extends CompilerPhase {
       if (excludeGuards && symbolics[r].isValidation()) continue;
       if (DEBUG) System.out.println("Inserting phis for register " + r);
       if (DEBUG) System.out.println("Start iterated frontier...");
-      VM_BitVector needsPhi = DominanceFrontier.getIteratedDominanceFrontier(ir, defs[r]);
+      BitVector needsPhi = DominanceFrontier.getIteratedDominanceFrontier(ir, defs[r]);
       removePhisThatDominateAllDefs(needsPhi, ir, defs[r]);
       if (DEBUG) System.out.println("Done.");
 
@@ -621,7 +621,7 @@ public class EnterSSA extends CompilerPhase {
    * @param ir the governing IR
    * @param defs set of nodes that define register r
    */
-  private void removePhisThatDominateAllDefs(VM_BitVector needsPhi, IR ir, VM_BitVector defs) {
+  private void removePhisThatDominateAllDefs(BitVector needsPhi, IR ir, BitVector defs) {
     for (int i = 0; i < needsPhi.length(); i++) {
       if (!needsPhi.get(i)) {
         continue;
@@ -655,7 +655,7 @@ public class EnterSSA extends CompilerPhase {
   private Instruction makePhiInstruction(Register r, BasicBlock bb) {
     int n = bb.getNumberOfIn();
     BasicBlockEnumeration in = bb.getIn();
-    VM_TypeReference type = null;
+    TypeReference type = null;
     Instruction s = Phi.create(PHI, new RegisterOperand(r, type), n);
     for (int i = 0; i < n; i++) {
       RegisterOperand junk = new RegisterOperand(r, type);
@@ -1048,7 +1048,7 @@ public class EnterSSA extends CompilerPhase {
         Instruction phi = i.next();
         phi.scratch = NO_NULL_TYPE;
         if (DEBUG) System.out.println("PHI: " + phi);
-        VM_TypeReference meet = meetPhiType(phi);
+        TypeReference meet = meetPhiType(phi);
         if (DEBUG) System.out.println("MEET: " + meet);
         if (meet != null) {
           didSomething = true;
@@ -1145,24 +1145,24 @@ public class EnterSSA extends CompilerPhase {
    *
    * SIDE EFFECT: bashes the Instruction scratch field.
    */
-  private static VM_TypeReference meetPhiType(Instruction s) {
+  private static TypeReference meetPhiType(Instruction s) {
 
-    VM_TypeReference result = null;
+    TypeReference result = null;
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
       Operand val = Phi.getValue(s, i);
       if (val instanceof UnreachableOperand) continue;
-      VM_TypeReference t = val.getType();
+      TypeReference t = val.getType();
       if (t == null) {
         s.scratch = FOUND_NULL_TYPE;
       } else if (result == null) {
         result = t;
       } else {
-        VM_TypeReference meet = ClassLoaderProxy.findCommonSuperclass(result, t);
+        TypeReference meet = ClassLoaderProxy.findCommonSuperclass(result, t);
         if (meet == null) {
           // TODO: This horrific kludge should go away once we get rid of Address.toInt()
           if ((result.isIntLikeType() && (t.isReferenceType() || t.isWordType())) ||
               ((result.isReferenceType() || result.isWordType()) && t.isIntLikeType())) {
-            meet = VM_TypeReference.Int;
+            meet = TypeReference.Int;
           } else if (result.isReferenceType() && t.isWordType()) {
             meet = t;
           } else if (result.isWordType() && t.isReferenceType()) {
@@ -1185,7 +1185,7 @@ public class EnterSSA extends CompilerPhase {
    * use chain to find the type of the parameter
    */
   @SuppressWarnings("unused")
-  private VM_TypeReference findParameterType(Register p) {
+  private TypeReference findParameterType(Register p) {
     RegisterOperand firstUse = p.useList;
     if (firstUse == null) {
       return null;             // parameter has no uses

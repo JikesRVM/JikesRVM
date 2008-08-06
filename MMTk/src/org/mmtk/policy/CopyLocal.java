@@ -34,4 +34,11 @@ import org.vmmagic.pragma.*;
   public CopyLocal(CopySpace space) {
     super(space, true);
   }
+
+  /**
+   * Constructor
+   */
+  public CopyLocal() {
+    super(null, true);
+  }
 }

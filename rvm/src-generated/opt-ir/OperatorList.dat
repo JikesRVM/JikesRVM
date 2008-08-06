@@ -1419,7 +1419,7 @@ store
 
 
 # Prepare for an atomic operation (aka an attempt)
-# Implements VM_Magic.prepare (see VM_Magic.java)
+# Implements Magic.prepare (see Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the prepare instruction can except.
 PREPARE_INT
@@ -1429,7 +1429,7 @@ load | acquire
 
 
 # Prepare for an atomic operation (aka an attempt)
-# Implements VM_Magic.prepare (see VM_Magic.java)
+# Implements Magic.prepare (see Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the prepare instruction can except.
 PREPARE_ADDR
@@ -1439,7 +1439,7 @@ load | acquire
 
 
 # Prepare for an atomic operation (aka an attempt)
-# Implements VM_Magic.prepare (see VM_Magic.java)
+# Implements Magic.prepare (see Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the prepare instruction can except.
 PREPARE_LONG
@@ -1449,7 +1449,7 @@ load | acquire
 
 
 # Attempt an atomic operation.
-# Implements VM_Magic.attempt (see VM_Magic.java)
+# Implements Magic.attempt (see Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the attempt instruction can except.
 ATTEMPT_INT
@@ -1459,7 +1459,7 @@ load | store | compare | release
 
 
 # Attempt an atomic operation.
-# Implements VM_Magic.attempt (see VM_Magic.java)
+# Implements Magic.attempt (see Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the attempt instruction can except.
 ATTEMPT_ADDR
@@ -1469,7 +1469,7 @@ load | store | compare | release
 
 
 # Attempt an atomic operation.
-# Implements VM_Magic.attempt (see VM_Magic.java)
+# Implements Magic.attempt (see Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the attempt instruction can except.
 ATTEMPT_LONG
@@ -1537,7 +1537,7 @@ immedPEI
 
 
 # LIR operator for resolution. Expanded very late in MIR
-# to a call to VM_OptSaveVolatile.resolve.
+# to a call to OptSaveVolatile.resolve.
 RESOLVE
 CacheOp
 tsp | dynLink | immedPEI

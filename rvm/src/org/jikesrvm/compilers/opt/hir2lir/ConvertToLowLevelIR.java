@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.hir2lir;
 
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.compilers.opt.driver.Constants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
@@ -86,20 +86,19 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.VM_AosEntrypoints;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_InterfaceInvocation;
-import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.adaptive.AosEntrypoints;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.InterfaceInvocation;
+import org.jikesrvm.classloader.InterfaceMethodSignature;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
-import org.jikesrvm.compilers.opt.SpecializedMethod;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
@@ -141,9 +140,10 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -395,7 +395,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
               InsertGuardedUnary(s,
                                  ir,
                                  ARRAYLENGTH,
-                                 VM_TypeReference.Int,
+                                 TypeReference.Int,
                                  BoundsCheck.getClearRef(s),
                                  BoundsCheck.getClearGuard(s));
           //  In UN-signed comparison, a negative index will look like a very
@@ -469,7 +469,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     /******* First basic block */
     RegisterOperand t;
     if (lowLimit != 0) {
-      t = InsertBinary(s, ir, INT_ADD, VM_TypeReference.Int, reg, IC(-lowLimit));
+      t = insertBinary(s, ir, INT_ADD, TypeReference.Int, reg, IC(-lowLimit));
     } else {
       t = reg.copyU2U();
     }
@@ -741,10 +741,10 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         offset = AC(Address.fromIntZeroExtend(((IntConstantOperand) index).value << logwidth));
       } else {
         if (logwidth != 0) {
-          offset = InsertBinary(s, ir, INT_SHL, VM_TypeReference.Int, index, IC(logwidth));
-          offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, offset.copy());
+          offset = insertBinary(s, ir, INT_SHL, TypeReference.Int, index, IC(logwidth));
+          offset = InsertUnary(s, ir, INT_2ADDRZerExt, TypeReference.Offset, offset.copy());
         } else {
-          offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, index);
+          offset = InsertUnary(s, ir, INT_2ADDRZerExt, TypeReference.Offset, index);
         }
       }
       Load.mutate(s, op, result, array, offset, loc, ALoad.getClearGuard(s));
@@ -769,10 +769,10 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         offset = AC(Address.fromIntZeroExtend(((IntConstantOperand) index).value << logwidth));
       } else {
         if (logwidth != 0) {
-          offset = InsertBinary(s, ir, INT_SHL, VM_TypeReference.Int, index, IC(logwidth));
-          offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, offset.copy());
+          offset = insertBinary(s, ir, INT_SHL, TypeReference.Int, index, IC(logwidth));
+          offset = InsertUnary(s, ir, INT_2ADDRZerExt, TypeReference.Offset, offset.copy());
         } else {
-          offset = InsertUnary(s, ir, INT_2ADDRZerExt, VM_TypeReference.Offset, index);
+          offset = InsertUnary(s, ir, INT_2ADDRZerExt, TypeReference.Offset, index);
         }
       }
       Store.mutate(s, op, value, array, offset, loc, AStore.getClearGuard(s));
@@ -813,23 +813,23 @@ public abstract class ConvertToLowLevelIR extends IRTools {
 
     // Used mainly (only?) by OSR
     if (methOp.hasDesignatedTarget()) {
-      Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, VM_TypeReference.CodeArray, methOp.jtocOffset));
+      Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, methOp.jtocOffset));
       return v;
     }
 
     if (methOp.isStatic()) {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));
-      Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, VM_TypeReference.CodeArray, Call.getClearAddress(v)));
+      Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, Call.getClearAddress(v)));
     } else if (methOp.isVirtual()) {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));
       if (CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
         // Call to precise type can go via JTOC
-        VM_Method target = methOp.getTarget();
+        RVMMethod target = methOp.getTarget();
         Call.setAddress(v,
                         InsertLoadOffsetJTOC(v,
                                              ir,
                                              REF_LOAD,
-                                             VM_TypeReference.CodeArray,
+                                             TypeReference.CodeArray,
                                              target.findOrCreateJtocOffset()));
       } else {
         Operand tib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
@@ -837,24 +837,24 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                         InsertLoadOffset(v,
                                          ir,
                                          REF_LOAD,
-                                         VM_TypeReference.CodeArray,
+                                         TypeReference.CodeArray,
                                          tib,
                                          Call.getClearAddress(v),
                                          null,
                                          TG()));
       }
     } else if (methOp.isSpecial()) {
-      VM_Method target = methOp.getTarget();
+      RVMMethod target = methOp.getTarget();
       if (target == null || target.isObjectInitializer() || target.isStatic()) {
         // target == null => we are calling an unresolved <init> method.
-        Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, VM_TypeReference.CodeArray, Call.getClearAddress(v)));
+        Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, Call.getClearAddress(v)));
       } else {
         if (CALL_VIA_JTOC) {
           Call.setAddress(v,
                           InsertLoadOffsetJTOC(v,
                                                ir,
                                                REF_LOAD,
-                                               VM_TypeReference.CodeArray,
+                                               TypeReference.CodeArray,
                                                target.findOrCreateJtocOffset()));
         } else {
           // invoking a virtual method; do it via TIB of target's declaring class.
@@ -863,7 +863,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                           InsertLoadOffset(v,
                                            ir,
                                            REF_LOAD,
-                                           VM_TypeReference.CodeArray,
+                                           TypeReference.CodeArray,
                                            tib,
                                            Call.getClearAddress(v),
                                            null,
@@ -876,26 +876,26 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       if (VM.BuildForIMTInterfaceInvocation) {
         // SEE ALSO: FinalMIRExpansion (for hidden parameter)
         Operand RHStib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
-        VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methOp.getMemberRef());
+        InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(methOp.getMemberRef());
         Offset offset = sig.getIMTOffset();
         RegisterOperand address = null;
         RegisterOperand IMT =
           InsertLoadOffset(v,
                            ir,
                            REF_LOAD,
-                           VM_TypeReference.IMT,
+                           TypeReference.IMT,
                            RHStib.copy(),
                            Offset.fromIntZeroExtend(TIB_INTERFACE_DISPATCH_TABLE_INDEX << LOG_BYTES_IN_ADDRESS));
-        address = InsertLoadOffset(v, ir, REF_LOAD, VM_TypeReference.CodeArray, IMT.copyD2U(), offset);
+        address = InsertLoadOffset(v, ir, REF_LOAD, TypeReference.CodeArray, IMT.copyD2U(), offset);
 
         Call.setAddress(v, address);
       } else {
         int itableIndex = -1;
         if (VM.BuildForITableInterfaceInvocation && methOp.hasTarget()) {
-          VM_Class I = methOp.getTarget().getDeclaringClass();
+          RVMClass I = methOp.getTarget().getDeclaringClass();
           // search ITable variant
           itableIndex =
-              VM_InterfaceInvocation.getITableIndex(I,
+              InterfaceInvocation.getITableIndex(I,
                                                     methOp.getMemberRef().getName(),
                                                     methOp.getMemberRef().getDescriptor());
         }
@@ -903,8 +903,8 @@ public abstract class ConvertToLowLevelIR extends IRTools {
           // itable index is not known at compile-time.
           // call "invokeinterface" to resolve the object and method id
           // into a method address
-          RegisterOperand realAddrReg = ir.regpool.makeTemp(VM_TypeReference.CodeArray);
-          VM_Method target = VM_Entrypoints.invokeInterfaceMethod;
+          RegisterOperand realAddrReg = ir.regpool.makeTemp(TypeReference.CodeArray);
+          RVMMethod target = Entrypoints.invokeInterfaceMethod;
           Instruction vp =
               Call.create2(CALL,
                            realAddrReg,
@@ -922,9 +922,9 @@ public abstract class ConvertToLowLevelIR extends IRTools {
           // itable index is known at compile-time.
           // call "findITable" to resolve object + interface id into
           // itable address
-          RegisterOperand iTable = ir.regpool.makeTemp(VM_TypeReference.ITable);
+          RegisterOperand iTable = ir.regpool.makeTemp(TypeReference.ITable);
           Operand RHStib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
-          VM_Method target = VM_Entrypoints.findItableMethod;
+          RVMMethod target = Entrypoints.findItableMethod;
           Instruction fi =
               Call.create2(CALL,
                            iTable,
@@ -940,7 +940,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
               InsertLoadOffset(v,
                                ir,
                                REF_LOAD,
-                               VM_TypeReference.CodeArray,
+                               TypeReference.CodeArray,
                                iTable.copyD2U(),
                                Offset.fromIntZeroExtend(itableIndex << LOG_BYTES_IN_ADDRESS));
           Call.setAddress(v, address);
@@ -974,14 +974,14 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
     s.remove();
 
-    // Get the offset from the appropriate VM_ClassLoader array
+    // Get the offset from the appropriate RVMClassLoader array
     // and check to see if it is valid
-    RegisterOperand offsetTable = getStatic(testBB.lastInstruction(), ir, VM_Entrypoints.memberOffsetsField);
+    RegisterOperand offsetTable = getStatic(testBB.lastInstruction(), ir, Entrypoints.memberOffsetsField);
     testBB.appendInstruction(Load.create(INT_LOAD,
                                          offset.copyRO(),
                                          offsetTable,
                                          AC(Offset.fromIntZeroExtend(dictId << LOG_BYTES_IN_INT)),
-                                         new LocationOperand(VM_TypeReference.Int),
+                                         new LocationOperand(TypeReference.Int),
                                          TG()));
     testBB.appendInstruction(Unary.create(INT_2ADDRSigExt, offset, offset.copy()));
     testBB.appendInstruction(IfCmp.create(REF_IFCMP,
@@ -1017,8 +1017,8 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param o2 the second operand
    * @return the result operand of the inserted instruction
    */
-  public static RegisterOperand InsertBinary(Instruction s, IR ir, Operator operator,
-                                                 VM_TypeReference type, Operand o1, Operand o2) {
+  public static RegisterOperand insertBinary(Instruction s, IR ir, Operator operator,
+                                                 TypeReference type, Operand o1, Operand o2) {
     RegisterOperand t = ir.regpool.makeTemp(type);
     s.insertBefore(Binary.create(operator, t, o1, o2));
     return t.copyD2U();
@@ -1033,7 +1033,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param o1 the operand
    * @return the result operand of the inserted instruction
    */
-  static RegisterOperand InsertUnary(Instruction s, IR ir, Operator operator, VM_TypeReference type,
+  static RegisterOperand InsertUnary(Instruction s, IR ir, Operator operator, TypeReference type,
                                          Operand o1) {
     RegisterOperand t = ir.regpool.makeTemp(type);
     s.insertBefore(Unary.create(operator, t, o1));
@@ -1051,7 +1051,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertGuardedUnary(Instruction s, IR ir, Operator operator,
-                                                VM_TypeReference type, Operand o1, Operand guard) {
+                                                TypeReference type, Operand o1, Operand guard) {
     RegisterOperand t = ir.regpool.makeTemp(type);
     s.insertBefore(GuardedUnary.create(operator, t, o1, guard));
     return t.copyD2U();
@@ -1067,7 +1067,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertLoadOffsetJTOC(Instruction s, IR ir, Operator operator,
-                                                  VM_TypeReference type, Offset offset) {
+                                                  TypeReference type, Offset offset) {
     return InsertLoadOffset(s,
                             ir,
                             operator,
@@ -1088,7 +1088,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertLoadOffsetJTOC(Instruction s, IR ir, Operator operator,
-                                                  VM_TypeReference type, Operand offset) {
+                                                  TypeReference type, Operand offset) {
     return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(ir, s), offset, null, null);
   }
 
@@ -1103,7 +1103,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertLoadOffset(Instruction s, IR ir, Operator operator,
-                                              VM_TypeReference type, Operand reg2, Offset offset) {
+                                              TypeReference type, Operand reg2, Offset offset) {
     return InsertLoadOffset(s, ir, operator, type, reg2, offset, null, null);
   }
 
@@ -1119,7 +1119,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertLoadOffset(Instruction s, IR ir, Operator operator,
-                                              VM_TypeReference type, Operand reg2, Offset offset,
+                                              TypeReference type, Operand reg2, Offset offset,
                                               Operand guard) {
     return InsertLoadOffset(s, ir, operator, type, reg2, offset, null, guard);
   }
@@ -1137,7 +1137,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertLoadOffset(Instruction s, IR ir, Operator operator,
-                                              VM_TypeReference type, Operand reg2, Offset offset,
+                                              TypeReference type, Operand reg2, Offset offset,
                                               LocationOperand loc, Operand guard) {
     return InsertLoadOffset(s, ir, operator, type, reg2, AC(offset), loc, guard);
   }
@@ -1155,7 +1155,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @return the result operand of the inserted instruction
    */
   static RegisterOperand InsertLoadOffset(Instruction s, IR ir, Operator operator,
-                                              VM_TypeReference type, Operand reg2, Operand offset,
+                                              TypeReference type, Operand reg2, Operand offset,
                                               LocationOperand loc, Operand guard) {
     RegisterOperand regTarget = ir.regpool.makeTemp(type);
     Instruction s2 = Load.create(operator, regTarget, reg2, offset, loc, guard);
@@ -1168,7 +1168,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     if (obj.isObjectConstant()) {
       // NB Constant types must already be resolved
       try {
-        VM_Type type = obj.getType().resolve();
+        RVMType type = obj.getType().resolve();
         return new TIBConstantOperand(type);
       } catch (NoClassDefFoundError e) {
         if (VM.runningVM) throw e;
@@ -1176,26 +1176,26 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         // only valid in the bootstrap JVM
       }
     }
-    RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.TIB);
+    RegisterOperand res = ir.regpool.makeTemp(TypeReference.TIB);
     Instruction s2 = GuardedUnary.create(GET_OBJ_TIB, res, obj, guard);
     s.insertBefore(s2);
     return res.copyD2U();
   }
 
   /** get the class tib for type */
-  static Operand getTIB(Instruction s, IR ir, VM_Type type) {
+  static Operand getTIB(Instruction s, IR ir, RVMType type) {
     return new TIBConstantOperand(type);
     //return getTIB(s, ir, new TypeOperand(type));
   }
 
   /** get the class tib for type */
   static Operand getTIB(Instruction s, IR ir, TypeOperand type) {
-    VM_Type t = type.getVMType();
-    if (VM.BuildForIA32 && !MM_Constants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
-      Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
+    RVMType t = type.getVMType();
+    if (VM.BuildForIA32 && !MemoryManagerConstants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
+      Address addr = Magic.objectAsAddress(t.getTypeInformationBlock());
       return new AddressConstantOperand(addr);
     } else if (!t.isResolved()) {
-      RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.TIB);
+      RegisterOperand res = ir.regpool.makeTemp(TypeReference.TIB);
       s.insertBefore(Unary.create(GET_CLASS_TIB, res, type));
       return res.copyD2U();
     } else {
@@ -1206,8 +1206,8 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   /**
    * Get an instance method from a TIB
    */
-  static RegisterOperand getInstanceMethod(Instruction s, IR ir, Operand tib, VM_Method method) {
-    return InsertLoadOffset(s, ir, REF_LOAD, VM_TypeReference.CodeArray, tib, method.getOffset());
+  static RegisterOperand getInstanceMethod(Instruction s, IR ir, Operand tib, RVMMethod method) {
+    return InsertLoadOffset(s, ir, REF_LOAD, TypeReference.CodeArray, tib, method.getOffset());
   }
 
   /**
@@ -1217,7 +1217,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param obj
    * @param field
    */
-  public static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, VM_Field field) {
+  public static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, RVMField field) {
     return getField(s, ir, obj, field, null);
   }
 
@@ -1229,7 +1229,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param field
    * @param guard
    */
-  static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, VM_Field field,
+  static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, RVMField field,
                                       Operand guard) {
     return InsertLoadOffset(s,
                             ir,
@@ -1252,13 +1252,13 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         InsertLoadOffsetJTOC(s,
                              ir,
                              REF_LOAD,
-                             VM_TypeReference.JavaLangObjectArray,
-                             VM_AosEntrypoints.specializedMethodsField.getOffset());
+                             TypeReference.JavaLangObjectArray,
+                             AosEntrypoints.specializedMethodsField.getOffset());
     RegisterOperand instr =
         InsertLoadOffset(s,
                          ir,
                          REF_LOAD,
-                         VM_TypeReference.CodeArray,
+                         TypeReference.CodeArray,
                          reg,
                          Offset.fromIntZeroExtend(smid << LOG_BYTES_IN_INT));
     return instr;
@@ -1271,8 +1271,8 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   public static void expandSysCallTarget(Instruction s, IR ir) {
     MethodOperand sysM = Call.getMethod(s);
     if (sysM.getMemberRef().isFieldReference()) {
-      RegisterOperand t1 = getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-      VM_Field target = sysM.getMemberRef().asFieldReference().resolve();
+      RegisterOperand t1 = getStatic(s, ir, Entrypoints.the_boot_recordField);
+      RVMField target = sysM.getMemberRef().asFieldReference().resolve();
       Operand ip = getField(s, ir, t1, target);
       Call.setAddress(s, ip);
     }
@@ -1284,7 +1284,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param ir
    * @param field
    */
-  public static RegisterOperand getStatic(Instruction s, IR ir, VM_Field field) {
+  public static RegisterOperand getStatic(Instruction s, IR ir, RVMField field) {
     return InsertLoadOffsetJTOC(s,
                                 ir,
                                 IRTools.getLoadOp(field.getType(), field.isStatic()),

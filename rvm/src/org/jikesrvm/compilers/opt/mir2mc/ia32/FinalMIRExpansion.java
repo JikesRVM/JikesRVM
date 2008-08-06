@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
@@ -100,9 +100,9 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -115,8 +115,8 @@ import org.vmmagic.unboxed.Offset;
  * table switch.  The code looks like a mess (which it is), but there
  * is little choice for relocatable IA32 code that does this.  And the
  * details of this code are shared with the baseline compiler and
- * dependent in detail on the VM_Assembler (see {@link
- * org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
+ * dependent in detail on the Assembler (see {@link
+ * org.jikesrvm.compilers.common.assembler.ia32.Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
  * it, you will probably need to mess with them as well.
  */
 public class FinalMIRExpansion extends IRTools {
@@ -152,29 +152,29 @@ public class FinalMIRExpansion extends IRTools {
           // on the top of the stack
           Register regS = MIR_LowTableSwitch.getIndex(p).getRegister();
           nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL,
-                                                           new RegisterOperand(regS, VM_TypeReference.Int),
+                                                           new RegisterOperand(regS, TypeReference.Int),
                                                            IC(2)));
           nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_ADD,
-                                                           new RegisterOperand(regS, VM_TypeReference.Int),
+                                                           new RegisterOperand(regS, TypeReference.Int),
                                                            MemoryOperand.I(new RegisterOperand(phys.getESP(),
-                                                                                                       VM_TypeReference.Int),
+                                                                                                       TypeReference.Int),
                                                                                (byte) 4,
                                                                                null,
                                                                                null)));
           nextBlock.appendInstruction(MIR_Move.create(IA32_MOV,
-                                                      new RegisterOperand(regS, VM_TypeReference.Int),
+                                                      new RegisterOperand(regS, TypeReference.Int),
                                                       MemoryOperand.I(new RegisterOperand(regS,
-                                                                                                  VM_TypeReference.Int),
+                                                                                                  TypeReference.Int),
                                                                           (byte) 4,
                                                                           null,
                                                                           null)));
           nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_ADD,
                                                            MemoryOperand.I(new RegisterOperand(phys.getESP(),
-                                                                                                       VM_TypeReference.Int),
+                                                                                                       TypeReference.Int),
                                                                                (byte) 4,
                                                                                null,
                                                                                null),
-                                                           new RegisterOperand(regS, VM_TypeReference.Int)));
+                                                           new RegisterOperand(regS, TypeReference.Int)));
           // ``return'' to mangled return address
           nextBlock.appendInstruction(MIR_Return.create(IA32_RET, IC(0), null, null));
 
@@ -245,7 +245,7 @@ public class FinalMIRExpansion extends IRTools {
             }
             MemoryOperand mo =
                 MemoryOperand.BD(ir.regpool.makePROp(),
-                                     VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset(),
+                                     ArchEntrypoints.arrayIndexTrapParamField.getOffset(),
                                      (byte) 4,
                                      null,
                                      null);
@@ -399,12 +399,12 @@ public class FinalMIRExpansion extends IRTools {
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
-                         value.index == null && value.index.getRegister() == result.getRegister() &&
+                         value.index != null && value.index.getRegister() == result.getRegister() &&
                          value.scale == 0) {
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
-                         value.index == null && value.index.getRegister() == result.getRegister() &&
+                         value.index != null && value.index.getRegister() == result.getRegister() &&
                          value.disp.isZero()) {
                 // reg1 = lea [reg1 << scale] -> shl reg1, scale
                 MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));
@@ -445,20 +445,20 @@ public class FinalMIRExpansion extends IRTools {
           break;
 
         case YIELDPOINT_PROLOGUE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod, IA32ConditionOperand.NE());
+          expandYieldpoint(p, ir, Entrypoints.optThreadSwitchFromPrologueMethod, IA32ConditionOperand.NE());
           break;
 
         case YIELDPOINT_EPILOGUE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod, IA32ConditionOperand.NE());
+          expandYieldpoint(p, ir, Entrypoints.optThreadSwitchFromEpilogueMethod, IA32ConditionOperand.NE());
           break;
 
         case YIELDPOINT_BACKEDGE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod, IA32ConditionOperand.GT());
+          expandYieldpoint(p, ir, Entrypoints.optThreadSwitchFromBackedgeMethod, IA32ConditionOperand.GT());
           break;
 
         case YIELDPOINT_OSR_opcode:
           // must yield, does not check threadSwitch request
-          expandUnconditionalYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromOsrOptMethod);
+          expandUnconditionalYieldpoint(p, ir, Entrypoints.optThreadSwitchFromOsrOptMethod);
           break;
 
       }
@@ -558,7 +558,7 @@ public class FinalMIRExpansion extends IRTools {
     }
   }
 
-  private static void expandYieldpoint(Instruction s, IR ir, VM_Method meth, IA32ConditionOperand ypCond) {
+  private static void expandYieldpoint(Instruction s, IR ir, RVMMethod meth, IA32ConditionOperand ypCond) {
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
@@ -576,7 +576,7 @@ public class FinalMIRExpansion extends IRTools {
     Offset offset = meth.getOffset();
     LocationOperand loc = new LocationOperand(offset);
     Operand guard = TG();
-    Operand target = MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    Operand target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);
@@ -584,7 +584,7 @@ public class FinalMIRExpansion extends IRTools {
     yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP, nextBlock.makeJumpTarget()));
 
     // Check to see if threadSwitch requested
-    Offset tsr = VM_Entrypoints.takeYieldpointField.getOffset();
+    Offset tsr = Entrypoints.takeYieldpointField.getOffset();
     MemoryOperand M =
         MemoryOperand.BD(ir.regpool.makePROp(), tsr, (byte) 4, null, null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
@@ -596,7 +596,7 @@ public class FinalMIRExpansion extends IRTools {
 
   /* generate yieldpoint without checking threadSwith request
    */
-  private static void expandUnconditionalYieldpoint(Instruction s, IR ir, VM_Method meth) {
+  private static void expandUnconditionalYieldpoint(Instruction s, IR ir, RVMMethod meth) {
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
@@ -614,7 +614,7 @@ public class FinalMIRExpansion extends IRTools {
     Offset offset = meth.getOffset();
     LocationOperand loc = new LocationOperand(offset);
     Operand guard = TG();
-    Operand target = MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    Operand target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);

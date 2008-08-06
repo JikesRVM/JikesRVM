@@ -14,7 +14,6 @@ package org.mmtk.plan.generational;
 
 import org.mmtk.plan.*;
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
 import org.mmtk.vm.VM;
 
@@ -46,9 +45,6 @@ import org.vmmagic.pragma.*;
   protected final AddressDeque remset;
   protected final AddressPairDeque arrayRemset;
 
-  // Sanity checking
-  private GenSanityCheckerLocal sanityChecker;
-
   /****************************************************************************
    *
    * Initialization
@@ -66,7 +62,6 @@ import org.vmmagic.pragma.*;
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
     remset = new AddressDeque("remset", global().remsetPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
-    sanityChecker = new GenSanityCheckerLocal();
   }
 
   /****************************************************************************
@@ -134,11 +129,6 @@ import org.vmmagic.pragma.*;
   public final TraceLocal getCurrentTrace() {
     if (global().traceFullHeap()) return getFullHeapTrace();
     return nurseryTrace;
-  }
-
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 
   /** @return The trace to use when collecting the mature space */

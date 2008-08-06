@@ -56,7 +56,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
-import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
@@ -167,7 +166,7 @@ public class LocalCSE extends CompilerPhase {
       // instruction kills
       cache.eliminate(inst);
       // Non-pure CALL instructions and synchronizations KILL all memory locations!
-      if (Call.conforms(inst) && !isPureCall(inst)) {
+      if (inst.isNonPureCall()) {
         cache.invalidateAllLoads();
       } else if (isSynchronizing(inst) || inst.isDynamicLinkingPoint()) {
         cache.invalidateAllLoads();
@@ -205,19 +204,6 @@ public class LocalCSE extends CompilerPhase {
   }
 
   /**
-   * Is a given instruction a CSE-able pure call?
-   */
-  private static boolean isPureCall(Instruction inst) {
-    if (Call.conforms(inst)) {
-      MethodOperand methOp = Call.getMethod(inst);
-      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Is a given instruction a CSE-able load?
    */
   public static boolean isLoadInstruction(Instruction s) {
@@ -247,7 +233,7 @@ public class LocalCSE extends CompilerPhase {
       case InstructionFormat.InstanceOf_format:
         return true;
       case InstructionFormat.Call_format:
-        return isPureCall(inst);
+        return inst.isPureCall();
       default:
         return false;
     }
@@ -537,9 +523,11 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.Call_format:
           int numParams = Call.getNumberOfParams(inst);
-          ops = new Operand[numParams];
+          ops = new Operand[numParams+2];
+          ops[0] = Call.getAddress(inst);
+          ops[1] = Call.getMethod(inst);
           for (int i=0; i < numParams; i++) {
-            ops[i] = Call.getParam(inst, i);
+            ops[i+2] = Call.getParam(inst, i);
           }
           break;
         default:
@@ -618,9 +606,11 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.Call_format:
           int numParams = Call.getNumberOfParams(inst);
-          ops = new Operand[numParams];
+          ops = new Operand[numParams+2];
+          ops[0] = Call.getAddress(inst);
+          ops[1] = Call.getMethod(inst);
           for (int i=0; i < numParams; i++) {
-            ops[i] = Call.getParam(inst, i);
+            ops[i+2] = Call.getParam(inst, i);
           }
           break;
         default:
@@ -748,13 +738,13 @@ public class LocalCSE extends CompilerPhase {
      * @param t temporary register holding the result of the available
      * expression
      */
-    AvailableExpression(Instruction i, Operator op, Operand[] os,
+    AvailableExpression(Instruction i, Operator op, Operand[] ops,
                         LocationOperand loc, Register t) {
-      inst = i;
-      opr = op;
-      ops = os;
-      location = loc;
-      tmp = t;
+      this.inst = i;
+      this.opr = op;
+      this.ops = ops;
+      this.location = loc;
+      this.tmp = t;
     }
 
     /**
@@ -827,6 +817,12 @@ public class LocalCSE extends CompilerPhase {
           }
         }
       }
+    }
+    /**
+     * Unused hashcode method
+     */
+    public int hashCode() {
+      return opr.hashCode();
     }
 
     /**

@@ -17,13 +17,13 @@ import org.vmmagic.pragma.*;
 /**
  * The granularity of the trace being produced.
  */
-public final class TraceRate extends IntOption
+public final class TraceRate extends org.vmutil.options.IntOption
   implements org.mmtk.utility.Constants {
   /**
    * Create the option.
    */
   public TraceRate() {
-    super("Trace Rate",
+    super(Options.set, "Trace Rate",
         "The granularity of the trace being produced.  By default, the trace has the maximum possible granularity.",
         Integer.MAX_VALUE);
   }

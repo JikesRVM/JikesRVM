@@ -18,32 +18,31 @@ import org.mmtk.utility.Constants;
 import org.mmtk.utility.heap.VMRequest;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_BootRecord;
-import org.jikesrvm.VM_HeapLayoutConstants;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.HeapLayoutConstants;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.objectmodel.JavaHeader;
+import org.jikesrvm.SizeConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory
-  implements Constants, VM_HeapLayoutConstants, VM_SizeConstants {
+  implements Constants, HeapLayoutConstants, SizeConstants {
 
   protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }
   protected final Address getHeapEndConstant() { return MAXIMUM_MAPPABLE; }
   protected final Address getAvailableStartConstant() { return BOOT_IMAGE_CODE_END; }
   protected final Address getAvailableEndConstant() { return MAXIMUM_MAPPABLE; }
-  protected final byte getLogBytesInAddressConstant() { return VM_SizeConstants.LOG_BYTES_IN_ADDRESS; }
-  protected final byte getLogBytesInWordConstant() { return VM_SizeConstants.LOG_BYTES_IN_WORD; }
-  protected final byte getLogBytesInPageConstant() { return 12; }
-  protected final byte getLogMinAlignmentConstant() { return VM_JavaHeader.LOG_MIN_ALIGNMENT;}
-  protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; }
-  protected final int getAlignmentValueConstant() { return VM_JavaHeader.ALIGNMENT_VALUE;}
+  protected final byte getLogBytesInAddressConstant() { return SizeConstants.LOG_BYTES_IN_ADDRESS; }
+  protected final byte getLogBytesInWordConstant() { return SizeConstants.LOG_BYTES_IN_WORD; }
+  protected final byte getLogBytesInPageConstant() { return SizeConstants.LOG_BYTES_IN_PAGE; }
+  protected final byte getLogMinAlignmentConstant() { return JavaHeader.LOG_MIN_ALIGNMENT;}
+  protected final int getMaxBytesPaddingConstant() { return SizeConstants.BYTES_IN_DOUBLE; }
+  protected final int getAlignmentValueConstant() { return JavaHeader.ALIGNMENT_VALUE;}
 
   /* On Intel we align code to 16 bytes as recommended in the optimization manual */
-  protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + VM_SizeConstants.LOG_BYTES_IN_LONG - VM_SizeConstants.LOG_BYTES_IN_INT; }
+  protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT; }
 
   private static ImmortalSpace bootSpace;
 
@@ -95,7 +94,7 @@ import org.vmmagic.pragma.*;
    * @param end the address of the end of the heap
    */
   public final void setHeapRange(int id, Address start, Address end) {
-    VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
+    BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 
  /**
@@ -106,7 +105,7 @@ import org.vmmagic.pragma.*;
    * @return 0 if successful, otherwise the system errno
    */
   public final int dzmmap(Address start, int size) {
-    Address result = VM_Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
+    Address result = org.jikesrvm.runtime.Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
     if (result.EQ(start)) return 0;
     if (result.GT(Address.fromIntZeroExtend(127))) {
       VM.sysWrite("demand zero mmap with MAP_FIXED on ", start);
@@ -125,8 +124,8 @@ import org.vmmagic.pragma.*;
    * <code>false</code>
    */
   public final boolean mprotect(Address start, int size) {
-    return VM_Memory.mprotect(start, Extent.fromIntZeroExtend(size),
-                              VM_Memory.PROT_NONE);
+    return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
+                                                   org.jikesrvm.runtime.Memory.PROT_NONE);
   }
 
   /**
@@ -138,8 +137,10 @@ import org.vmmagic.pragma.*;
    * <code>false</code>
    */
   public final boolean munprotect(Address start, int size) {
-    return VM_Memory.mprotect(start, Extent.fromIntZeroExtend(size),
-                              VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
+    return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
+                                                   org.jikesrvm.runtime.Memory.PROT_READ |
+                                                   org.jikesrvm.runtime.Memory.PROT_WRITE |
+                                                   org.jikesrvm.runtime.Memory.PROT_EXEC);
   }
 
   /**
@@ -149,7 +150,7 @@ import org.vmmagic.pragma.*;
    * Returned: nothing
    */
   public final void zero(Address start, Extent len) {
-    VM_Memory.zero(start,len);
+    org.jikesrvm.runtime.Memory.zero(start,len);
   }
 
   /**
@@ -159,7 +160,7 @@ import org.vmmagic.pragma.*;
    */
   public final void zeroPages(Address start, int len) {
       /* AJG: Add assertions to check conditions documented above. */
-    VM_Memory.zeroPages(start,len);
+    org.jikesrvm.runtime.Memory.zeroPages(start,len);
   }
 
   /**
@@ -174,7 +175,7 @@ import org.vmmagic.pragma.*;
    */
   public final void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {
-    VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
+    org.jikesrvm.runtime.Memory.dumpMemory(start,beforeBytes,afterBytes);
   }
 
   /*
@@ -183,11 +184,11 @@ import org.vmmagic.pragma.*;
 
   @Inline
   public final void sync() {
-    VM_Magic.sync();
+    Magic.sync();
   }
 
   @Inline
   public final void isync() {
-    VM_Magic.isync();
+    Magic.isync();
   }
 }

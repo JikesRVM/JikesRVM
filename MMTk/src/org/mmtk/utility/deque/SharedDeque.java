@@ -242,7 +242,7 @@ public class SharedDeque extends Deque implements Constants {
    *
    * @param waiting
    * @param fromTail
-   * @return
+   * @return the Address of the block
    */
   private Address dequeue(boolean waiting, boolean fromTail) {
     lock();
@@ -251,7 +251,7 @@ public class SharedDeque extends Deque implements Constants {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
-        int ordinal = VM.activePlan.collector().getId();
+        int ordinal = TRACE ? 0 : VM.activePlan.collector().getId();
         setNumConsumersWaiting(numConsumersWaiting + 1);
         while (rtn.isZero()) {
           if (numConsumersWaiting == numConsumers)
@@ -323,7 +323,6 @@ public class SharedDeque extends Deque implements Constants {
    * Spinwait for GC work to arrive
    *
    * @param fromTail Check the head or the tail ?
-   * @return
    */
   private void spinWait(boolean fromTail) {
     long startNano = 0;

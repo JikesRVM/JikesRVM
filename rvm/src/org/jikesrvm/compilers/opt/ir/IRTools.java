@@ -13,10 +13,10 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.Configuration;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
@@ -77,7 +77,7 @@ public abstract class IRTools {
    * @return integer register operand
    */
   public static RegisterOperand A(Register reg) {
-    return new RegisterOperand(reg, VM_TypeReference.Address);
+    return new RegisterOperand(reg, TypeReference.Address);
   }
 
   /**
@@ -90,7 +90,7 @@ public abstract class IRTools {
    * @return integer register operand
    */
   public static RegisterOperand I(Register reg) {
-    return new RegisterOperand(reg, VM_TypeReference.Int);
+    return new RegisterOperand(reg, TypeReference.Int);
   }
 
   /**
@@ -104,7 +104,7 @@ public abstract class IRTools {
    * @return float register operand
    */
   public static RegisterOperand F(Register reg) {
-    return new RegisterOperand(reg, VM_TypeReference.Float);
+    return new RegisterOperand(reg, TypeReference.Float);
   }
 
   /**
@@ -118,7 +118,7 @@ public abstract class IRTools {
    * @return double register operand
    */
   public static RegisterOperand D(Register reg) {
-    return new RegisterOperand(reg, VM_TypeReference.Double);
+    return new RegisterOperand(reg, TypeReference.Double);
   }
 
   /**
@@ -132,7 +132,7 @@ public abstract class IRTools {
    * @return long register operand
    */
   public static RegisterOperand L(Register reg) {
-    return new RegisterOperand(reg, VM_TypeReference.Long);
+    return new RegisterOperand(reg, TypeReference.Long);
   }
 
   /**
@@ -146,7 +146,7 @@ public abstract class IRTools {
    * @return condition register operand
    */
   public static RegisterOperand CR(Register reg) {
-    return new RegisterOperand(reg, VM_TypeReference.Int);
+    return new RegisterOperand(reg, TypeReference.Int);
   }
 
   /**
@@ -259,7 +259,7 @@ public abstract class IRTools {
    * @param type desired type
    * @return a constant operand with the default value for type
    */
-  public static Operand getDefaultOperand(VM_TypeReference type) {
+  public static Operand getDefaultOperand(TypeReference type) {
     if (type.isBooleanType()) return new IntConstantOperand(0);
     if (type.isByteType()) return new IntConstantOperand(0);
     if (type.isCharType()) return new IntConstantOperand(0);
@@ -277,11 +277,11 @@ public abstract class IRTools {
    * @param type desired type to move
    * @return the Operator to use for moving a value of the given type
    */
-  public static Operator getMoveOp(VM_TypeReference type) {
+  public static Operator getMoveOp(TypeReference type) {
     if (type.isLongType()) return LONG_MOVE;
     if (type.isFloatType()) return FLOAT_MOVE;
     if (type.isDoubleType()) return DOUBLE_MOVE;
-    if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
+    if (type == TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
     if (type.isReferenceType() || type.isWordType()) return REF_MOVE;
     return INT_MOVE;
   }
@@ -293,11 +293,11 @@ public abstract class IRTools {
    * @param type desired type to move
    * @return the Operator to use for moving a value of the given type
    */
-  public static Operator getCondMoveOp(VM_TypeReference type) {
+  public static Operator getCondMoveOp(TypeReference type) {
     if (type.isLongType()) return LONG_COND_MOVE;
     if (type.isFloatType()) return FLOAT_COND_MOVE;
     if (type.isDoubleType()) return DOUBLE_COND_MOVE;
-    if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
+    if (type == TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
     if (type.isReferenceType() || type.isWordType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
@@ -309,7 +309,7 @@ public abstract class IRTools {
    * @param isStatic is the field static
    * @return the Operator to use when loading the given field
    */
-  public static Operator getLoadOp(VM_FieldReference field, boolean isStatic) {
+  public static Operator getLoadOp(FieldReference field, boolean isStatic) {
     return getLoadOp(field.getFieldContentsType(), isStatic);
   }
 
@@ -320,8 +320,8 @@ public abstract class IRTools {
    * @param isStatic is the field static
    * @return the Operator to use when loading the given field
    */
-  public static Operator getLoadOp(VM_TypeReference type, boolean isStatic) {
-    if (!VM_Configuration.LittleEndian && isStatic) {
+  public static Operator getLoadOp(TypeReference type, boolean isStatic) {
+    if (!Configuration.LittleEndian && isStatic) {
       // Handle the statics table hold subword values in ints
       if (type.isByteType()) return INT_LOAD;
       if (type.isBooleanType()) return INT_LOAD;
@@ -347,7 +347,7 @@ public abstract class IRTools {
    * @param isStatic is the field static
    * @return the Operator to use when storing to the given field
    */
-  public static Operator getStoreOp(VM_FieldReference field, boolean isStatic) {
+  public static Operator getStoreOp(FieldReference field, boolean isStatic) {
     return getStoreOp(field.getFieldContentsType(), isStatic);
   }
 
@@ -358,8 +358,8 @@ public abstract class IRTools {
    * @param isStatic is the field static
    * @return the Operator to use when storing to the given field
    */
-  public static Operator getStoreOp(VM_TypeReference type, boolean isStatic) {
-    if (!VM_Configuration.LittleEndian && isStatic) {
+  public static Operator getStoreOp(TypeReference type, boolean isStatic) {
+    if (!Configuration.LittleEndian && isStatic) {
       // Handle the statics table hold subword values in ints
       if (type.isByteType()) return INT_STORE;
       if (type.isBooleanType()) return INT_STORE;
@@ -391,7 +391,7 @@ public abstract class IRTools {
     if (op instanceof RegisterOperand) {
       return (RegisterOperand) op;
     }
-    VM_TypeReference type = op.getType();
+    TypeReference type = op.getType();
     Operator move_op = IRTools.getMoveOp(type);
     return moveIntoRegister(type, move_op, pool, s, op);
   }
@@ -407,7 +407,7 @@ public abstract class IRTools {
    * @param op operand to copy to a register
    * @return last use register operand that we copied into
    */
-  public static RegisterOperand moveIntoRegister(VM_TypeReference type, Operator move_op, RegisterPool pool,
+  public static RegisterOperand moveIntoRegister(TypeReference type, Operator move_op, RegisterPool pool,
                                                      Instruction s, Operand op) {
     RegisterOperand rop = pool.makeTemp(type);
     s.insertBefore(Move.create(move_op, rop, op));

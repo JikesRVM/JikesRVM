@@ -25,19 +25,29 @@ import org.jikesrvm.VM;
  * For efficiency and to avoid meta-circularity, the Offset class is intercepted like
  * magic and converted into the base type so no Offset object is created run-time.
  *
- * @author Perry Cheng
  * @see Address Word
  */
-@Uninterruptible public final class Offset extends ArchitecturalWord {
+@Uninterruptible
+public final class Offset extends ArchitecturalWord {
+
   Offset(int value) {
     super(value, false);
   }
+
   Offset(int value, boolean zeroExtend) {
     super(value, zeroExtend);
   }
+
   Offset(long value) {
     super(value);
   }
+
+  /* Compensate for some java compilers helpfully defining this synthetically */
+  @Interruptible
+  public String toString() {
+    return super.toString();
+  }
+
   public boolean equals(Object o) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (o instanceof Offset) && ((Offset) o).value == value;

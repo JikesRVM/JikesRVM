@@ -42,23 +42,23 @@ import org.vmmagic.unboxed.*;
    * Class variables
    */
 
-  private static final int VM_TYPE_BITS = 2;
-  private static final int VM_TYPE_SHARED = 0;
-  private static final int VM_TYPE_CONTIGUOUS = 1;
-  private static final int VM_TYPE_CONTIGUOUS_HI = 3;
-  private static final int VM_TYPE_MASK = (1 << VM_TYPE_BITS) - 1;
-  private static final int VM_SIZE_SHIFT = VM_TYPE_BITS;
-  private static final int VM_SIZE_BITS = 10;
-  private static final int VM_SIZE_MASK = ((1 << VM_SIZE_BITS) - 1) << VM_SIZE_SHIFT;
-  private static final int VM_EXPONENT_SHIFT = VM_SIZE_SHIFT + VM_SIZE_BITS;
-  private static final int VM_EXPONENT_BITS = 5;
-  private static final int VM_EXPONENT_MASK = ((1 << VM_EXPONENT_BITS) - 1) << VM_EXPONENT_SHIFT;
-  private static final int VM_MANTISSA_SHIFT = VM_EXPONENT_SHIFT + VM_EXPONENT_BITS;
-  private static final int VM_MANTISSA_BITS = 14;
-  private static final int VM_BASE_EXPONENT = BITS_IN_INT - VM_MANTISSA_BITS;
+  private static final int TYPE_BITS = 2;
+  private static final int TYPE_SHARED = 0;
+  private static final int TYPE_CONTIGUOUS = 1;
+  private static final int TYPE_CONTIGUOUS_HI = 3;
+  private static final int TYPE_MASK = (1 << TYPE_BITS) - 1;
+  private static final int SIZE_SHIFT = TYPE_BITS;
+  private static final int SIZE_BITS = 10;
+  private static final int SIZE_MASK = ((1 << SIZE_BITS) - 1) << SIZE_SHIFT;
+  private static final int EXPONENT_SHIFT = SIZE_SHIFT + SIZE_BITS;
+  private static final int EXPONENT_BITS = 5;
+  private static final int EXPONENT_MASK = ((1 << EXPONENT_BITS) - 1) << EXPONENT_SHIFT;
+  private static final int MANTISSA_SHIFT = EXPONENT_SHIFT + EXPONENT_BITS;
+  private static final int MANTISSA_BITS = 14;
+  private static final int BASE_EXPONENT = BITS_IN_INT - MANTISSA_BITS;
 
   private static int discontiguousSpaceIndex = 0;
-  private static int DISCONTIG_INDEX_INCREMENT = 1<<VM_TYPE_BITS;
+  private static int DISCONTIG_INDEX_INCREMENT = 1<<TYPE_BITS;
 
   /****************************************************************************
    *
@@ -76,10 +76,10 @@ import org.vmmagic.unboxed.*;
   public static int createDescriptor(Address start, Address end) {
     int chunks = end.diff(start).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << VM_SIZE_BITS));
+      VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << SIZE_BITS));
     boolean top = end.EQ(Space.HEAP_END);
     Word tmp = start.toWord();
-    tmp = tmp.rshl(VM_BASE_EXPONENT);
+    tmp = tmp.rshl(BASE_EXPONENT);
     int exponent = 0;
     while (!tmp.isZero() && tmp.and(Word.one()).isZero()) {
       tmp = tmp.rshl(1);
@@ -87,11 +87,11 @@ import org.vmmagic.unboxed.*;
     }
     int mantissa = tmp.toInt();
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
-    return (mantissa<<VM_MANTISSA_SHIFT) |
-           (exponent<<VM_EXPONENT_SHIFT) |
-           (chunks << VM_SIZE_SHIFT) |
-           ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
+      VM.assertions._assert(tmp.lsh(BASE_EXPONENT + exponent).EQ(start.toWord()));
+    return (mantissa<<MANTISSA_SHIFT) |
+           (exponent<<EXPONENT_SHIFT) |
+           (chunks << SIZE_SHIFT) |
+           ((top) ? TYPE_CONTIGUOUS_HI : TYPE_CONTIGUOUS);
   }
 
   /**
@@ -103,7 +103,7 @@ import org.vmmagic.unboxed.*;
    */
   public static int createDescriptor() {
     discontiguousSpaceIndex += DISCONTIG_INDEX_INCREMENT;
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((discontiguousSpaceIndex & VM_TYPE_CONTIGUOUS) != VM_TYPE_CONTIGUOUS);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((discontiguousSpaceIndex & TYPE_CONTIGUOUS) != TYPE_CONTIGUOUS);
     return discontiguousSpaceIndex;
   }
 
@@ -120,7 +120,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public static boolean isContiguous(int descriptor) {
-    return ((descriptor & VM_TYPE_CONTIGUOUS) == VM_TYPE_CONTIGUOUS);
+    return ((descriptor & TYPE_CONTIGUOUS) == TYPE_CONTIGUOUS);
   }
 
   /**
@@ -133,7 +133,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public static boolean isContiguousHi(int descriptor) {
-    return ((descriptor & VM_TYPE_MASK) == VM_TYPE_CONTIGUOUS_HI);
+    return ((descriptor & TYPE_MASK) == TYPE_CONTIGUOUS_HI);
   }
 
   /**
@@ -145,9 +145,9 @@ import org.vmmagic.unboxed.*;
   @Inline
   public static Address getStart(int descriptor) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
-    Word mantissa = Word.fromIntSignExtend(descriptor >>> VM_MANTISSA_SHIFT);
-    int exponent = (descriptor & VM_EXPONENT_MASK) >>> VM_EXPONENT_SHIFT;
-    return mantissa.lsh(VM_BASE_EXPONENT + exponent).toAddress();
+    Word mantissa = Word.fromIntSignExtend(descriptor >>> MANTISSA_SHIFT);
+    int exponent = (descriptor & EXPONENT_MASK) >>> EXPONENT_SHIFT;
+    return mantissa.lsh(BASE_EXPONENT + exponent).toAddress();
   }
 
   /**
@@ -161,6 +161,6 @@ import org.vmmagic.unboxed.*;
   @Inline
   public static int getChunks(int descriptor) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
-    return (descriptor & VM_SIZE_MASK) >>> VM_SIZE_SHIFT;
+    return (descriptor & SIZE_MASK) >>> SIZE_SHIFT;
   }
 }

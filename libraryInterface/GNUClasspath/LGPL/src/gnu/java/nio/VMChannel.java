@@ -49,8 +49,8 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.scheduler.greenthreads.FileSystem;
 
 /**
  * Native interface to support configuring of channel to run in a non-blocking
@@ -202,7 +202,7 @@ public final class VMChannel
    * Read the specified byte buffer.
    *
    * @param dst
-   * @return
+   * @return the number of bytes actually read
    * @throws IOException
    */
   public int read(ByteBuffer dst) throws IOException {
@@ -219,13 +219,13 @@ public final class VMChannel
    * @param dst
    * @param pos
    * @param len
-   * @return
+   * @return the number of bytes actually read
    * @throws IOException
    */
   private int read(ByteBuffer dst, int pos, int len) throws IOException {
     int bytes;
     if (len == 1) {
-      int b = VM_FileSystem.readByte(nfd.getNativeFD());
+      int b = FileSystem.readByte(nfd.getNativeFD());
       if (b >= 0) {
         dst.put((byte)(b & 0xFF));
         dst.position(pos+1);
@@ -254,7 +254,7 @@ public final class VMChannel
    * @throws IOException If an error occurs or dst is not a direct buffers.
    */
   private int read(byte[] dst, int pos, int len) throws IOException {
-    if (MM_Interface.willNeverMove(dst)) {
+    if (MemoryManager.willNeverMove(dst)) {
       return read(nfd.getNativeFD(),dst,pos,len);
     } else {
       byte[] buffer;
@@ -280,8 +280,8 @@ public final class VMChannel
    * @throws IOException
    */
   private static int read(int fd, byte[] dst, int position, int len) throws IOException {
-    if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(dst));
-    int bytes = VM_FileSystem.readBytes(fd,dst,position,len);
+    if (VM.VerifyAssertions) VM._assert(MemoryManager.willNeverMove(dst));
+    int bytes = FileSystem.readBytes(fd,dst,position,len);
     if (bytes < 0) {
       throw new IOException("Error code "+Integer.toString(bytes));
     }
@@ -296,7 +296,7 @@ public final class VMChannel
    *
    * @param fd
    * @param dst
-   * @return
+   * @return the number of bytes actually read
    * @throws IOException
    */
   private static native int read(int fd, ByteBuffer dst) throws IOException;
@@ -310,7 +310,7 @@ public final class VMChannel
   public int read() throws IOException
   {
     //return read(nfd.getNativeFD());
-    int result = VM_FileSystem.readByte(nfd.getNativeFD());
+    int result = FileSystem.readByte(nfd.getNativeFD());
     if (result < -1) {
       throw new IOException("Error code "+Integer.toString(result));
     }
@@ -389,13 +389,13 @@ public final class VMChannel
    * @throws IOException
    */
   public int write(byte[] src, int pos, int len) throws IOException {
-    if (MM_Interface.willNeverMove(src)) {
+    if (MemoryManager.willNeverMove(src)) {
       return write(nfd.getNativeFD(), src, pos, len);
     } else {
       byte[] buffer;
       // Rebuffer the IO in a thread-local DirectBuffer
       buffer = localByteArray.get(len);
-      if (VM.VerifyAssertions) VM._assert(MM_Interface.willNeverMove(buffer));
+      if (VM.VerifyAssertions) VM._assert(MemoryManager.willNeverMove(buffer));
       System.arraycopy(src, pos, buffer,0,len);
       return write(nfd.getNativeFD(),buffer,0,len);
     }
@@ -404,7 +404,7 @@ public final class VMChannel
   public int write(ByteBuffer src, int pos, int len) throws IOException {
     int bytes;
     if (len == 1) {
-      bytes = VM_FileSystem.writeByte(nfd.getNativeFD(),src.get(pos));
+      bytes = FileSystem.writeByte(nfd.getNativeFD(),src.get(pos));
     } else if (src.hasArray()) {
       bytes = write(src.array(),pos,len);
     } else {
@@ -428,13 +428,13 @@ public final class VMChannel
    *
    * @param fd File descriptor
    * @param src SOurce buffer
-   * @param position Starting offset in the buffer
+   * @param pos Starting offset in the buffer
    * @param len Number of bytes to write
    * @return Number of bytes written.
    * @throws IOException
    */
   private static int write(int fd, byte[] src, int pos, int len) throws IOException {
-    int bytes = VM_FileSystem.writeBytes(fd,src,pos,len);
+    int bytes = FileSystem.writeBytes(fd,src,pos,len);
     if (bytes < 0)
       throw new IOException("Error code "+Integer.toString(bytes));
     return bytes;
@@ -445,17 +445,16 @@ public final class VMChannel
    *
    * @param fd
    * @param src
-   * @return
+   * @return Number of bytes written
    * @throws IOException
    */
   private static native int write(int fd, ByteBuffer src) throws IOException;
 
   /**
    * Writes from byte buffers directly using the supplied file descriptor.
-   * Assumes the that buffer list constains DirectBuffers.  Will perform
+   * Assumes the that buffer list contains DirectBuffers.  Will perform
    * as gathering write.
    *
-   * @param fd
    * @param srcs
    * @param offset
    * @param length
@@ -529,7 +528,7 @@ public final class VMChannel
   public void write(int b) throws IOException
   {
     //write(nfd.getNativeFD(), b);
-    int result = VM_FileSystem.writeByte(nfd.getNativeFD(), b);
+    int result = FileSystem.writeByte(nfd.getNativeFD(), b);
     if (result < 0) {
       throw new IOException("Error code "+Integer.toString(result));
     }
@@ -835,7 +834,7 @@ public final class VMChannel
    * <p>Provides a simple mean for the JNI code to find out whether the
    * current thread was interrupted by a call to Thread.interrupt().</p>
    *
-   * @return
+   * @return true if the current thread was interrupted, false otherwise
    */
   static boolean isThreadInterrupted()
   {

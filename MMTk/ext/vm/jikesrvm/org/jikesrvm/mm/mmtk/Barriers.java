@@ -12,32 +12,33 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.VM_Services;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.runtime.Magic;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
+public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of the write barrier.
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    */
   @Inline
   public final void performWriteInBarrier(ObjectReference ref, Address slot,
-                                           ObjectReference target, Offset offset,
-                                           int locationMetadata, int mode) {
+                                           ObjectReference target, Word metaDataA,
+                                           Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    VM_Magic.setObjectAtOffset(obj, offset, target.toObject(), locationMetadata);
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    Magic.setObjectAtOffset(obj, offset, target.toObject(), location);
   }
 
   /**
@@ -46,16 +47,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param rawTarget The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    */
   @Inline
   public final void performRawWriteInBarrier(ObjectReference ref, Address slot,
-                                             Word rawTarget, Offset offset,
-                                             int locationMetadata, int mode) {
+                                             Word rawTarget, Word metaDataA,
+                                             Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    VM_Magic.setWordAtOffset(obj, offset, rawTarget, locationMetadata);
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    Magic.setWordAtOffset(obj, offset, rawTarget, location);
   }
 
   /**
@@ -63,16 +66,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    * @return the read value
    */
   @Inline
   public final ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
-                                                    Offset offset, int locationMetadata, int mode) {
+                                                    Word metaDataA, Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(obj, offset, locationMetadata));
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    return ObjectReference.fromObject(Magic.getObjectAtOffset(obj, offset, location));
   }
 
   /**
@@ -80,16 +85,18 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB The index of the FieldReference
    * @param mode The context in which the write is occuring
    * @return the read value
    */
   @Inline
   public final Word performRawReadInBarrier(ObjectReference ref, Address slot,
-                                            Offset offset, int locationMetadata, int mode) {
+                                            Word metaDataA, Word metaDataB, int mode) {
     Object obj = ref.toObject();
-    return VM_Magic.getWordAtOffset(obj, offset, locationMetadata);
+    Offset offset = metaDataA.toOffset();
+    int location = metaDataB.toInt();
+    return Magic.getWordAtOffset(obj, offset, location);
   }
 
   /**
@@ -99,22 +106,23 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
   @Inline
   public final ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
-                                           ObjectReference target, Offset offset,
-                                           int locationMetadata, int mode) {
+                                           ObjectReference target, Word metaDataA,
+                                           Word metaDataB, int mode) {
     Object obj = ref.toObject();
     Object newObject = target.toObject();
+    Offset offset = metaDataA.toOffset();
     Object oldObject;
     do {
-      oldObject = VM_Magic.prepareObject(obj, offset);
-    } while (!VM_Magic.attemptObject(obj, offset, oldObject, newObject));
+      oldObject = Magic.prepareObject(obj, offset);
+    } while (!Magic.attemptObject(obj, offset, oldObject, newObject));
     return ObjectReference.fromObject(oldObject);
   }
 
@@ -126,21 +134,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param rawTarget The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
   @Inline
   public final Word performRawWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
-                                           Word rawTarget, Offset offset,
-                                           int locationMetadata, int mode) {
+                                           Word rawTarget, Word metaDataA,
+                                           Word metaDataB, int mode) {
     Object obj = ref.toObject();
+    Offset offset = metaDataA.toOffset();
     Word oldValue;
     do {
-      oldValue = VM_Magic.prepareWord(obj, offset);
-    } while (!VM_Magic.attemptWord(obj, offset, oldValue, rawTarget));
+      oldValue = Magic.prepareWord(obj, offset);
+    } while (!Magic.attemptWord(obj, offset, oldValue, rawTarget));
     return oldValue;
   }
 
@@ -151,20 +160,21 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    * @param slot The slot that holds the reference
    * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
   @Inline
   public final boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                        ObjectReference old, ObjectReference target,
-                                                       Offset offset, int locationMetadata, int mode) {
+                                                       Word metaDataA, Word metaDataB, int mode) {
     Object oldValue;
+    Offset offset = metaDataA.toOffset();
     do {
-      oldValue = VM_Magic.prepareObject(ref, offset);
+      oldValue = Magic.prepareObject(ref, offset);
       if (oldValue != old) return false;
-    } while (!VM_Magic.attemptObject(ref, offset, oldValue, target));
+    } while (!Magic.attemptObject(ref, offset, oldValue, target));
     return true;
   }
 
@@ -174,35 +184,23 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
    *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param old The old reference to be swapped out
-   * @param target The value that the slot will be updated to
-   * @param offset The offset from the ref (metaDataA)
-   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param rawOld The old reference to be swapped out
+   * @param rawTarget The value that the slot will be updated to
+   * @param metaDataA The offset from the ref
+   * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
   @Inline
   public final boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
-                                                          Word rawOld, Word rawTarget, Offset offset,
-                                                          int locationMetadata, int mode) {
+                                                          Word rawOld, Word rawTarget, Word metaDataA,
+                                                          Word metaDataB, int mode) {
+    Offset offset = metaDataA.toOffset();
     do {
-      Word currentValue = VM_Magic.prepareWord(ref, offset);
+      Word currentValue = Magic.prepareWord(ref, offset);
       if (currentValue != rawOld) return false;
-    } while (!VM_Magic.attemptObject(ref, offset, rawOld, rawTarget));
+    } while (!Magic.attemptObject(ref, offset, rawOld, rawTarget));
     return true;
-  }
-
-  /**
-   * Sets an element of a object array without invoking any write
-   * barrier.
-   *
-   * @param dst the destination array
-   * @param index the index of the element to set
-   * @param value the new value for the element
-   */
-  @Override
-  public final void setArrayUninterruptible(Object [] dst, int index, Object value) {
-    VM_Services.setArrayUninterruptible(dst, index, value);
   }
 
   /**
@@ -224,79 +222,5 @@ public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
     } else {
       dst[index] = value;
     }
-  }
-
-  /**
-   * Sets an element of a char array without invoking any write
-   * barrier.  This method is called by the Log method, as it will be
-   * used during garbage collection and needs to manipulate character
-   * arrays without causing a write barrier operation.
-   *
-   * @param dst the destination array
-   * @param index the index of the element to set
-   * @param value the new value for the element
-   */
-  public final void setArrayNoBarrier(char [] dst, int index, char value) {
-    VM_Services.setArrayNoBarrier(dst, index, value);
-  }
-
-  /**
-   * Gets an element of a char array without invoking any read barrier
-   * or performing bounds check.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public final char getArrayNoBarrier(char [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
-  }
-
-  /**
-   * Gets an element of a byte array without invoking any read barrier
-   * or bounds check.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public final byte getArrayNoBarrier(byte [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
-  }
-  /**
-   * Gets an element of an int array without invoking any read barrier
-   * or performing bounds checks.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public final int getArrayNoBarrier(int [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
-  }
-
-  /**
-   * Gets an element of an Object array without invoking any read
-   * barrier or performing bounds checks.
-   *
-   * @param src the source array
-   * @param index the natural array index of the element to get
-   * @return the new value of element
-   */
-  public final Object getArrayNoBarrier(Object [] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
-  }
-
-
-  /**
-   * Gets an element of an array of byte arrays without causing the potential
-   * thread switch point that array accesses normally cause.
-   *
-   * @param src the source array
-   * @param index the index of the element to get
-   * @return the new value of element
-   */
-  public final byte[] getArrayNoBarrier(byte[][] src, int index) {
-    return VM_Services.getArrayNoBarrier(src, index);
   }
 }

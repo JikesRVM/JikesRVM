@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ssa;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 /**
  * An HeapVariable represents a heap variable for heap array SSA form
@@ -29,17 +29,17 @@ public class HeapVariable<T> {
    * a bit vector representing the basic blocks that write to this
    * variable
    */
-  private final VM_BitVector definedIn;
+  private final BitVector definedIn;
   /**
    * The type of this heap variable.  Must be either a
-   * VM_TypeReference, VM_FieldReference, VM_Field or a String
+   * TypeReference, FieldReference, RVMField or a String
    */
   private final T type;
 
   /**
    * Create a new Heap variable of a given type, with a given number.
    *
-   * @param type a VM_FieldReference or VM_TypeReference object, naming the type of this
+   * @param type a FieldReference or TypeReference object, naming the type of this
    *              heap
    * @param number second part of the name of this heap variable
    * @param ir the governing IR
@@ -47,7 +47,7 @@ public class HeapVariable<T> {
   public HeapVariable(T type, int number, IR ir) {
     this.type = type;
     this.number = number;
-    definedIn = new VM_BitVector(ir.getMaxBasicBlockNumber() + 1);
+    definedIn = new BitVector(ir.getMaxBasicBlockNumber() + 1);
   }
 
   /**
@@ -61,7 +61,7 @@ public class HeapVariable<T> {
 
   /**
    * Return the type representing this heap object.
-   * @return either a VM_TypeReference, VM_FieldReference, VM_Field or
+   * @return either a TypeReference, FieldReference, RVMField or
    * String object
    */
   public T getHeapType() {
@@ -82,7 +82,7 @@ public class HeapVariable<T> {
    * @return a bit vector that represents the basic blocks that define
    * this heap variable.
    */
-  public VM_BitVector getDefBlocks() {
+  public BitVector getDefBlocks() {
     return definedIn;
   }
 

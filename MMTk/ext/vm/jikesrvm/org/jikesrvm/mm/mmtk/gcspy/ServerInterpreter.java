@@ -16,8 +16,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
 import org.mmtk.utility.gcspy.GCspy;
 
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.objectmodel.VM_JavaHeaderConstants;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+import org.jikesrvm.objectmodel.JavaHeaderConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * Mostly it forwards calls to the C gcspy library.
  */
 @Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
-  implements VM_JavaHeaderConstants {
+  implements JavaHeaderConstants {
 
 
   /**

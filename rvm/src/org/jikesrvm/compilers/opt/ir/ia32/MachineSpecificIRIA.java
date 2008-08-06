@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
@@ -31,7 +31,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
 import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_DEF;
 import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_USE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CURRENT_PROCESSOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_JTOC_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCLEAR;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV_ENDING_LIVE_RANGE;
@@ -74,7 +73,6 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
       switch (instruction.getOpcode()) {
         case PREFETCH_opcode:
           return false;
-        case GET_JTOC_opcode:
         case GET_CURRENT_PROCESSOR_opcode:
           return true;
         default:
@@ -100,7 +98,6 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
       switch (instruction.getOpcode()) {
         case PREFETCH_opcode:
           return false;
-        case GET_JTOC_opcode:
         case GET_CURRENT_PROCESSOR_opcode:
         case LONG_OR_opcode:
         case LONG_AND_opcode:
@@ -241,7 +238,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
             }
           } else if (op instanceof BURSManagedFPROperand) {
             int regNum = ((BURSManagedFPROperand) op).regNum;
-            s.replaceOperand(op, new RegisterOperand(phys.getFPR(regNum), VM_TypeReference.Double));
+            s.replaceOperand(op, new RegisterOperand(phys.getFPR(regNum), TypeReference.Double));
           }
         }
         // account for any effect s has on the floating point stack

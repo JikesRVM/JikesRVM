@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should we print verbose fragmentation statistics for the free list allocator?
  */
-public final class VerboseFragmentationStats extends BooleanOption {
+public final class VerboseFragmentationStats extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public VerboseFragmentationStats() {
-    super("Verbose Fragmentation Stats",
+    super(Options.set, "Verbose Fragmentation Stats",
         "Should we print verbose fragmentation statistics for the free list allocator?",
         false);
   }

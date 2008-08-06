@@ -23,6 +23,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.EventCounter;
 
 import org.mmtk.vm.VM;
@@ -40,7 +41,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
  * allocation and collection.
  *
@@ -100,9 +101,10 @@ import org.vmmagic.unboxed.*;
    * Constructor.
  */
   public RCBase() {
-    if (!SCAN_BOOT_IMAGE) {
-      VM.assertions.fail("RC currently requires scan boot image");
-    }
+    if (!SCAN_BOOT_IMAGE)VM.assertions.fail("RC requires scan boot image");
+    /* Change defaults */
+    Options.noReferenceTypes.setDefaultValue(true);
+    Options.noFinalizer.setDefaultValue(true);
     if (GATHER_WRITE_BARRIER_STATS) {
       wbFast = new EventCounter("wbFast");
       wbSlow = new EventCounter("wbSlow");
@@ -294,5 +296,24 @@ import org.vmmagic.unboxed.*;
     else if (Space.isInSpace(RC_SMALL_CODE, object))
       return true;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    if (RCBase.isRCObject(object)) {
+      if (!RCHeader.isLiveRC(object)) {
+        return SanityChecker.DEAD;
+      }
+      return RCHeader.getRC(object) - sanityRootRC;
+    } else {
+      return SanityChecker.UNSURE;
+    }
   }
 }

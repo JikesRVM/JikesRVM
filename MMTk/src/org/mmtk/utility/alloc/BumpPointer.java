@@ -244,6 +244,11 @@ import org.vmmagic.pragma.*;
    * zero on failure
    */
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
+    /* Check we have been bound to a space */
+    if (space == null) {
+      VM.assertions.fail("Allocation on unbound bump pointer.");
+    }
+
     /* Check if we already have a chunk to use */
     if (allowScanning && !region.isZero()) {
       Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);

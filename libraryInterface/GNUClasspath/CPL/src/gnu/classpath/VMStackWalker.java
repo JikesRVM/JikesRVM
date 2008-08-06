@@ -13,7 +13,7 @@
 package gnu.classpath;
 
 /** This is a cheap stack browser.  Better would be something like
- * the Jikes RVM {@link VM_StackBrowser} class.
+ * the Jikes RVM {@link StackBrowser} class.
  *
  * This is our interface to GNU Classpath.  We quote the official
  * Classpath Javadoc here, as part of clearly describing the interface.
@@ -23,10 +23,10 @@ package gnu.classpath;
  */
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_StackBrowser;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.StackBrowser;
+import org.jikesrvm.runtime.Entrypoints;
 
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.classloader.RVMType;
 
 
 public final class VMStackWalker {
@@ -64,7 +64,7 @@ public final class VMStackWalker {
    * </blockquote>
    */
   public static Class<?>[] getClassContext() {
-    VM_StackBrowser b = new VM_StackBrowser();
+    StackBrowser b = new StackBrowser();
     int frames = 0;
     VM.disableGC();
 
@@ -72,7 +72,7 @@ public final class VMStackWalker {
     b.up(); // skip VMStackWalker.getClassContext (this call)
 
     boolean reflected;  // Were we invoked by reflection?
-    if (b.getMethod() == VM_Entrypoints.java_lang_reflect_Method_invokeMethod){
+    if (b.getMethod() == Entrypoints.java_lang_reflect_Method_invokeMethod){
       reflected = true;
       b.up();         // Skip Method.invoke, (if we were called by reflection)
     } else {
@@ -88,10 +88,10 @@ public final class VMStackWalker {
     VM.enableGC();
 
 
-    VM_Type[] iclasses = new VM_Type[ frames ];
+    RVMType[] iclasses = new RVMType[ frames ];
 
     int i = 0;
-    b = new VM_StackBrowser();
+    b = new StackBrowser();
 
     VM.disableGC();
     b.init();
@@ -132,7 +132,7 @@ public final class VMStackWalker {
   }
 
   public static Class<?> getCallingClass(int skip) {
-    VM_StackBrowser b = new VM_StackBrowser();
+    StackBrowser b = new StackBrowser();
     VM.disableGC();
 
     b.init();
@@ -141,7 +141,7 @@ public final class VMStackWalker {
       b.up();
 
     /* Skip Method.invoke, (if the caller was called by reflection) */
-    if (b.getMethod() == VM_Entrypoints.java_lang_reflect_Method_invokeMethod){
+    if (b.getMethod() == Entrypoints.java_lang_reflect_Method_invokeMethod){
       b.up();
     }
     /* skip past another frame, whatever getClassContext()[0] would be. */
@@ -150,7 +150,7 @@ public final class VMStackWalker {
     b.up();
 
     /* OK, we're there at getClassContext()[1] now.  Return it. */
-    VM_Type ret = b.getCurrentClass();
+    RVMType ret = b.getCurrentClass();
     VM.enableGC();
 
     return ret.getClassForType();

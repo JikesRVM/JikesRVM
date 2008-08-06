@@ -18,12 +18,12 @@ import org.mmtk.plan.Plan;
  * Provide an upper bound on nursery size. This option is not intended to
  * be created directly, but via NurserySize.
  */
-public final class BoundedNursery extends PagesOption {
+public final class BoundedNursery extends org.vmutil.options.PagesOption {
   /**
    * Create the option.
    */
   public BoundedNursery() {
-    super("Bounded Nursery",
+    super(Options.set, "Bounded Nursery",
         "Bound the maximum size of the nursery to this value",
         Plan.DEFAULT_MAX_NURSERY);
   }

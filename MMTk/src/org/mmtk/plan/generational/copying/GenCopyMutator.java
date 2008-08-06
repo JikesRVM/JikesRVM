@@ -40,7 +40,8 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible public abstract class GenCopyMutator extends GenMutator {
+@Uninterruptible
+public class GenCopyMutator extends GenMutator {
   /******************************************************************
    * Instance fields
    */
@@ -61,7 +62,16 @@ import org.vmmagic.pragma.*;
    * Constructor
    */
   public GenCopyMutator() {
-    mature = new CopyLocal(GenCopy.toSpace());
+    mature = new CopyLocal();
+  }
+
+  /**
+   * Called before the MutatorContext is used, but after the context has been
+   * fully registered and is visible to collection.
+   */
+  public void initMutator() {
+    super.initMutator();
+    mature.rebind(GenCopy.toSpace());
   }
 
   /****************************************************************************

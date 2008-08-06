@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Port number for GCSpy server to connect with visualiser.
  */
-public final class GCspyPort extends IntOption {
+public final class GCspyPort extends org.vmutil.options.IntOption {
   /**
    * Create the option.
    */
   public GCspyPort() {
-    super("GCSpy Port",
+    super(Options.set, "GCSpy Port",
           "Port number for GCSpy server to connect with visualiser",
           0);
   }

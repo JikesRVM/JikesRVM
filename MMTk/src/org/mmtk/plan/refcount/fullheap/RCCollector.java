@@ -41,8 +41,8 @@ import org.vmmagic.pragma.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  */
-@Uninterruptible public abstract class RCCollector extends RCBaseCollector
-  implements Constants {
+@Uninterruptible
+public class RCCollector extends RCBaseCollector implements Constants {
   /****************************************************************************
    * Instance fields
    */

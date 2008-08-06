@@ -14,10 +14,10 @@ package org.jikesrvm.compilers.opt.util;
 
 import java.util.Iterator;
 
-import org.jikesrvm.util.VM_LinkedList;
+import org.jikesrvm.util.LinkedListRVM;
 
 public final class Queue<T> implements Iterable<T> {
-  private final VM_LinkedList<T> elements = new VM_LinkedList<T>();
+  private final LinkedListRVM<T> elements = new LinkedListRVM<T>();
 
   public Queue() { }
 

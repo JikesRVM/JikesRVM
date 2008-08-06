@@ -12,17 +12,17 @@
  */
 package org.jikesrvm.tools.header_gen;
 
-import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.RVMField;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * Utility class to help sort fields.
  */
 class SortableField implements Comparable<SortableField> {
-  final VM_Field f;
+  final RVMField f;
   final Offset offset;
 
-  SortableField(VM_Field ff) {
+  SortableField(RVMField ff) {
     f = ff;
     offset = f.getOffset();
   }

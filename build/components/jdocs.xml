@@ -1,0 +1,55 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="jdocs" default="build" basedir=".">
+
+  <import file="base.xml"/>
+
+  <property name="jdocs.version" value="1.0"/>
+  <property name="jdocs.description" value="JDocs.com AJAX javadoc viewer"/>
+
+  <property name="jdocs.dir" location="${components.dir}/jdocs/${jdocs.version}/"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing JDocs                           * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-jdocs-properties" depends="prepare-ant-tasks">
+    <condition property="jdocs.from-web" value="true">
+      <or>
+        <not>
+          <available file="${jdocs.dir}/jdocs.jar"/>
+        </not>
+        <isset property="jdocs.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-jdocs-properties" if="jdocs.from-web">
+    <mkdir dir="${jdocs.dir}"/>
+    <cachedGet key="jdocs-${jdocs.version}.jar"
+         src="http://www.jdocs.com/downloads/ant/jdocs.jar"
+         dest="${jdocs.dir}/jdocs.jar"/>
+    <writeComponentConstants dir="${jdocs.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="jdocs.jar" value="${jdocs.dir}/jdocs.jar"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="jdocs" dir="${jdocs.dir}"/>
+  </target>
+
+</project>

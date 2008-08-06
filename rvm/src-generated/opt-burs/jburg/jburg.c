@@ -612,7 +612,7 @@ emitheader(void)
     /* obsolete, now part of burg.template
        print("// program generated file, do not edit\n\n");
        print("import java.io.*;\n");
-       print("\npublic class BURS_STATE implements Operators, BURS_Definitions, VM_BaselineConstants {\n\n");
+       print("\npublic class BURS_STATE implements Operators, BURS_Definitions, BaselineConstants {\n\n");
        print("#include \"burg.template\"\n");
     */
     /*

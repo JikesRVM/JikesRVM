@@ -47,8 +47,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
  */
-@Uninterruptible public abstract class GenRCCollector extends RCBaseCollector
-implements Constants {
+@Uninterruptible
+public class GenRCCollector extends RCBaseCollector implements Constants {
 
   /****************************************************************************
    * Instance fields

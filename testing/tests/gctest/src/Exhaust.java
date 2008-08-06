@@ -12,7 +12,7 @@
  */
 
 import java.io.PrintStream;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.NoInline;
 
 class Exhaust {
@@ -29,7 +29,7 @@ class Exhaust {
 
 
   public static void main(String[] args) {
-    long mhs = MM_Interface.getMaxHeapSize().toLong();
+    long mhs = MemoryManager.getMaxHeapSize().toLong();
 
     o.println("Max heap size: " + mhs + " bytes");
     if (mhs > 1024 * 1024)

@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BBend;
@@ -90,7 +90,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose
@@ -182,7 +182,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // that would require 2 jccs
     RegisterOperand result = Unary.getResult(s);
     RegisterOperand value = Unary.getVal(s).asRegister();
-    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(VM_Entrypoints.maxintFloatField.getOffset(), (byte)4);
+    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(Entrypoints.maxintFloatField.getOffset(), (byte)4);
     RegisterOperand maxintReg = ir.regpool.makeTempFloat();
     s.insertBefore(CPOS(s,MIR_Move.create(IA32_MOVSS, maxintReg, maxint)));
     MIR_Compare.mutate(s, IA32_UCOMISS, maxintReg.copyRO(), value);
@@ -253,24 +253,24 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // branch if they are <= or unordered.
     RegisterOperand resultHi = Unary.getResult(s);
     RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
-        VM_TypeReference.Int);
+        TypeReference.Int);
     RegisterOperand value = Unary.getVal(s).asRegister();
     RegisterOperand cw = ir.regpool.makeTempInt();
-    MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(VM_Entrypoints.maxlongFloatField.getOffset(), (byte)4);
+    MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
     RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
-        VM_TypeReference.Float);
+        TypeReference.Float);
     RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
-        VM_TypeReference.Float);
+        TypeReference.Float);
     int offset = -ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
     StackLocationOperand slHi = new StackLocationOperand(true, offset+4, 4);
     StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
     MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
-        VM_Entrypoints.scratchStorageField.getOffset(), (byte)4,
-        new LocationOperand(VM_Entrypoints.scratchStorageField), null);
+        Entrypoints.scratchStorageField.getOffset(), (byte)4,
+        new LocationOperand(Entrypoints.scratchStorageField), null);
     MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
-        VM_Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
-        new LocationOperand(VM_Entrypoints.scratchStorageField), null);
+        Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+        new LocationOperand(Entrypoints.scratchStorageField), null);
 
     s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSS, slLo, value)));
     s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, slLo.copy())));
@@ -360,7 +360,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // that would require 2 jccs
     RegisterOperand result = Unary.getResult(s);
     RegisterOperand value = Unary.getVal(s).asRegister();
-    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(VM_Entrypoints.maxintField.getOffset(), (byte)8);
+    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(Entrypoints.maxintField.getOffset(), (byte)8);
     RegisterOperand maxintReg = ir.regpool.makeTempFloat();
     s.insertBefore(CPOS(s,MIR_Move.create(IA32_MOVSD, maxintReg, maxint)));
     MIR_Compare.mutate(s, IA32_UCOMISD, maxintReg.copyRO(), value);
@@ -431,24 +431,24 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // branch if they are <= or unordered.
     RegisterOperand resultHi = Unary.getResult(s);
     RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
-        VM_TypeReference.Int);
+        TypeReference.Int);
     RegisterOperand value = Unary.getVal(s).asRegister();
     RegisterOperand cw = ir.regpool.makeTempInt();
-    MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(VM_Entrypoints.maxlongField.getOffset(), (byte)8);
+    MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
     RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
-        VM_TypeReference.Double);
+        TypeReference.Double);
     RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
-        VM_TypeReference.Double);
+        TypeReference.Double);
     int offset = -ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
     StackLocationOperand slHi = new StackLocationOperand(true, offset+4, 4);
     StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
     MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
-        VM_Entrypoints.scratchStorageField.getOffset(), (byte)4,
-        new LocationOperand(VM_Entrypoints.scratchStorageField), null);
+        Entrypoints.scratchStorageField.getOffset(), (byte)4,
+        new LocationOperand(Entrypoints.scratchStorageField), null);
     MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
-        VM_Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
-        new LocationOperand(VM_Entrypoints.scratchStorageField), null);
+        Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+        new LocationOperand(Entrypoints.scratchStorageField), null);
 
     s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, value)));
     s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
@@ -541,10 +541,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       int high = val1.asLongConstant().upper32();
 
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          new RegisterOperand(lowlhsReg, TypeReference.Int),
           IC(low))));
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new RegisterOperand(lhsReg, TypeReference.Int),
           IC(high))));
       rhsReg = lhsReg;
       lowrhsReg = lowlhsReg;
@@ -553,12 +553,12 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // ecx = shift amount
     Register ecx = ir.regpool.getPhysicalRegisterSet().getECX();
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(ecx, VM_TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int),
         Binary.getVal2(s))));
 
     // Determine shift of 32 to 63 or 0 to 31
     testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
-        new RegisterOperand(ecx, VM_TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int),
         IC(32))));
 
     // if (ecx & 32 == 0) goto shift32BB
@@ -572,13 +572,13 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
     // Perform shift in the range 32 to 63
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(lowrhsReg, TypeReference.Int))));
     shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHL,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
         IC(0))));
 
     shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
@@ -588,19 +588,19 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // Perform shift in the range 0 to 31
     if (lhsReg != rhsReg) {
       shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
-          new RegisterOperand(rhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lhsReg, TypeReference.Int),
+          new RegisterOperand(rhsReg, TypeReference.Int))));
       shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-          new RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lowlhsReg, TypeReference.Int),
+          new RegisterOperand(lowrhsReg, TypeReference.Int))));
     }
     shift32BB.appendInstruction(CPOS(s, MIR_DoubleShift.create(IA32_SHLD,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
     shift32BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHL,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
 
     shift32BB.insertOut(nextBB);
 
@@ -641,10 +641,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       int high = val1.asLongConstant().upper32();
 
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          new RegisterOperand(lowlhsReg, TypeReference.Int),
           IC(low))));
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new RegisterOperand(lhsReg, TypeReference.Int),
           IC(high))));
       rhsReg = lhsReg;
       lowrhsReg = lowlhsReg;
@@ -653,12 +653,12 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // ecx = shift amount
     Register ecx = ir.regpool.getPhysicalRegisterSet().getECX();
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(ecx, VM_TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int),
         Binary.getVal2(s))));
 
     // Determine shift of 32 to 63 or 0 to 31
     testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
-        new RegisterOperand(ecx, VM_TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int),
         IC(32))));
 
     // if (ecx & 32 == 0) goto shift32BB
@@ -672,18 +672,18 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
     // Perform shift in the range 32 to 63
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(rhsReg, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(rhsReg, TypeReference.Int))));
     if (lhsReg != rhsReg) {
       shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
-          new RegisterOperand(rhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lhsReg, TypeReference.Int),
+          new RegisterOperand(rhsReg, TypeReference.Int))));
     }
     shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
     shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new RegisterOperand(lhsReg, TypeReference.Int),
         IC(31))));
 
     shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
@@ -693,19 +693,19 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // Perform shift in the range 0 to 31
     if (lhsReg != rhsReg) {
       shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
-          new RegisterOperand(rhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lhsReg, TypeReference.Int),
+          new RegisterOperand(rhsReg, TypeReference.Int))));
       shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-          new RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lowlhsReg, TypeReference.Int),
+          new RegisterOperand(lowrhsReg, TypeReference.Int))));
     }
     shift32BB.appendInstruction(CPOS(s, MIR_DoubleShift.create(IA32_SHRD,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
     shift32BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
 
     shift32BB.insertOut(nextBB);
 
@@ -746,10 +746,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       int high = val1.asLongConstant().upper32();
 
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          new RegisterOperand(lowlhsReg, TypeReference.Int),
           IC(low))));
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new RegisterOperand(lhsReg, TypeReference.Int),
           IC(high))));
       rhsReg = lhsReg;
       lowrhsReg = lowlhsReg;
@@ -758,12 +758,12 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // ecx = shift amount
     Register ecx = ir.regpool.getPhysicalRegisterSet().getECX();
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(ecx, VM_TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int),
         Binary.getVal2(s))));
 
     // Determine shift of 32 to 63 or 0 to 31
     testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
-        new RegisterOperand(ecx, VM_TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int),
         IC(32))));
 
     // if (ecx & 32 == 0) goto shift32BB
@@ -777,13 +777,13 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
     // Perform shift in the range 32 to 63
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(rhsReg, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(rhsReg, TypeReference.Int))));
     shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHR,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new RegisterOperand(lhsReg, TypeReference.Int),
         IC(0))));
 
     shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
@@ -793,19 +793,19 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // Perform shift in the range 0 to 31
     if (lhsReg != rhsReg) {
       shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lhsReg, VM_TypeReference.Int),
-          new RegisterOperand(rhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lhsReg, TypeReference.Int),
+          new RegisterOperand(rhsReg, TypeReference.Int))));
       shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-          new RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+          new RegisterOperand(lowlhsReg, TypeReference.Int),
+          new RegisterOperand(lowrhsReg, TypeReference.Int))));
     }
     shift32BB.appendInstruction(CPOS(s, MIR_DoubleShift.create(IA32_SHRD,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
     shift32BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHR,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(ecx, VM_TypeReference.Int))));
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(ecx, TypeReference.Int))));
 
     shift32BB.insertOut(nextBB);
 
@@ -816,7 +816,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
   private static Instruction long_mul(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
     while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
-      nextInstr = s.nextInstructionInCodeOrder();
+      nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 4 basic blocks
     // 1: the current block and a test for 32bit or 64bit multiply
@@ -853,20 +853,20 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // eax = b
     // if ((a | c) != 0) goto mul64BB
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(rhsReg2, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(rhsReg2, TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(tmp, VM_TypeReference.Int),
-        new RegisterOperand(rhsReg1, VM_TypeReference.Int))));
+        new RegisterOperand(tmp, TypeReference.Int),
+        new RegisterOperand(rhsReg1, TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(tmp, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(tmp, TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(lowrhsReg1, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(lowrhsReg1, TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(eax, VM_TypeReference.Int),
-        new RegisterOperand(lowrhsReg2, VM_TypeReference.Int))));
+        new RegisterOperand(eax, TypeReference.Int),
+        new RegisterOperand(lowrhsReg2, TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
         IA32ConditionOperand.NE(),
         mul64BB.makeJumpTarget(),
@@ -877,9 +877,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // multiply 32: on entry EAX = d, EDX = b, tmp = a
     // edx:eax = b * d
     mul32BB.appendInstruction(CPOS(s, MIR_Multiply.create(IA32_MUL,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(eax, VM_TypeReference.Int),
-        new RegisterOperand(edx, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(eax, TypeReference.Int),
+        new RegisterOperand(edx, TypeReference.Int))));
     mul32BB.appendInstruction(MIR_Branch.create(IA32_JMP, nextBB.makeJumpTarget()));
     mul32BB.insertOut(nextBB);
 
@@ -890,30 +890,30 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // edx:eax = b * d
     // edx = u(b mul d) + l(a imul d) + l(b imul c)
     mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_IMUL2,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(rhsReg2, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(rhsReg2, TypeReference.Int))));
     mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_IMUL2,
-        new RegisterOperand(tmp, VM_TypeReference.Int),
-        new RegisterOperand(eax, VM_TypeReference.Int))));
+        new RegisterOperand(tmp, TypeReference.Int),
+        new RegisterOperand(eax, TypeReference.Int))));
     mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_ADD,
-        new RegisterOperand(tmp, VM_TypeReference.Int),
-        new RegisterOperand(edx, VM_TypeReference.Int))));
+        new RegisterOperand(tmp, TypeReference.Int),
+        new RegisterOperand(edx, TypeReference.Int))));
     mul64BB.appendInstruction(CPOS(s, MIR_Multiply.create(IA32_MUL,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(eax, VM_TypeReference.Int),
-        new RegisterOperand(lowrhsReg1, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(eax, TypeReference.Int),
+        new RegisterOperand(lowrhsReg1, TypeReference.Int))));
     mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_ADD,
-        new RegisterOperand(edx, VM_TypeReference.Int),
-        new RegisterOperand(tmp, VM_TypeReference.Int))));
+        new RegisterOperand(edx, TypeReference.Int),
+        new RegisterOperand(tmp, TypeReference.Int))));
     mul64BB.insertOut(nextBB);
 
     // move result from edx:eax to lhsReg:lowlhsReg
-    nextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lhsReg, VM_TypeReference.Int),
-        new RegisterOperand(edx, VM_TypeReference.Int))));
-    nextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lowlhsReg, VM_TypeReference.Int),
-        new RegisterOperand(eax, VM_TypeReference.Int))));
+    nextBB.prependInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new RegisterOperand(lhsReg, TypeReference.Int),
+        new RegisterOperand(edx, TypeReference.Int))));
+    nextBB.prependInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new RegisterOperand(lowlhsReg, TypeReference.Int),
+        new RegisterOperand(eax, TypeReference.Int))));
     s.remove();
     return nextInstr;
   }
@@ -924,7 +924,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     Register xh = ((RegisterOperand) IfCmp.getVal1(s)).getRegister();
     Register xl = ir.regpool.getSecondReg(xh);
     RegisterOperand yh = (RegisterOperand) IfCmp.getClearVal2(s);
-    RegisterOperand yl = new RegisterOperand(ir.regpool.getSecondReg(yh.getRegister()), VM_TypeReference.Int);
+    RegisterOperand yl = new RegisterOperand(ir.regpool.getSecondReg(yh.getRegister()), TypeReference.Int);
     basic_long_ifcmp(s, ir, cond, xh, xl, yh, yl);
     return nextInstr;
   }
@@ -947,95 +947,95 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       if (high == 0) {
         if (low == 0) { // 0,0
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(xl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(xl, TypeReference.Int)));
         } else if (low == -1) { // 0,-1
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(tl, VM_TypeReference.Int),
-                                         new RegisterOperand(xl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(tl, VM_TypeReference.Int)));
+                                         new RegisterOperand(tl, TypeReference.Int),
+                                         new RegisterOperand(xl, TypeReference.Int)));
+          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(tl, TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(tl, VM_TypeReference.Int),
-                                              new RegisterOperand(xh, VM_TypeReference.Int)));
+                                              new RegisterOperand(tl, TypeReference.Int),
+                                              new RegisterOperand(xh, TypeReference.Int)));
         } else { // 0,*
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(tl, VM_TypeReference.Int),
-                                         new RegisterOperand(xl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(tl, VM_TypeReference.Int), yl));
+                                         new RegisterOperand(tl, TypeReference.Int),
+                                         new RegisterOperand(xl, TypeReference.Int)));
+          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(tl, TypeReference.Int), yl));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(tl, VM_TypeReference.Int),
-                                              new RegisterOperand(xh, VM_TypeReference.Int)));
+                                              new RegisterOperand(tl, TypeReference.Int),
+                                              new RegisterOperand(xh, TypeReference.Int)));
         }
       } else if (high == -1) {
         if (low == 0) { // -1,0
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(th, VM_TypeReference.Int)));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
+          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(th, TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(xl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(xl, TypeReference.Int)));
         } else if (low == -1) { // -1,-1
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(th, VM_TypeReference.Int)));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
+          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(th, TypeReference.Int)));
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(tl, VM_TypeReference.Int),
-                                         new RegisterOperand(xl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(tl, VM_TypeReference.Int)));
+                                         new RegisterOperand(tl, TypeReference.Int),
+                                         new RegisterOperand(xl, TypeReference.Int)));
+          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(tl, TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(tl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(tl, TypeReference.Int)));
         } else { // -1,*
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(th, VM_TypeReference.Int)));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
+          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(th, TypeReference.Int)));
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(tl, VM_TypeReference.Int),
-                                         new RegisterOperand(xl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(tl, VM_TypeReference.Int), yl));
+                                         new RegisterOperand(tl, TypeReference.Int),
+                                         new RegisterOperand(xl, TypeReference.Int)));
+          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(tl, TypeReference.Int), yl));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(tl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(tl, TypeReference.Int)));
         }
       } else {
         if (low == 0) { // *,0
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(th, VM_TypeReference.Int), yh));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
+          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(th, TypeReference.Int), yh));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(xl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(xl, TypeReference.Int)));
         } else if (low == -1) { // *,-1
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(th, VM_TypeReference.Int), yh));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
+          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(th, TypeReference.Int), yh));
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(tl, VM_TypeReference.Int),
-                                         new RegisterOperand(xl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(tl, VM_TypeReference.Int)));
+                                         new RegisterOperand(tl, TypeReference.Int),
+                                         new RegisterOperand(xl, TypeReference.Int)));
+          s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new RegisterOperand(tl, TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(tl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(tl, TypeReference.Int)));
         } else { // neither high nor low is special
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(th, VM_TypeReference.Int),
-                                         new RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(th, VM_TypeReference.Int), yh));
+                                         new RegisterOperand(th, TypeReference.Int),
+                                         new RegisterOperand(xh, TypeReference.Int)));
+          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(th, TypeReference.Int), yh));
           s.insertBefore(MIR_Move.create(IA32_MOV,
-                                         new RegisterOperand(tl, VM_TypeReference.Int),
-                                         new RegisterOperand(xl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(tl, VM_TypeReference.Int), yl));
+                                         new RegisterOperand(tl, TypeReference.Int),
+                                         new RegisterOperand(xl, TypeReference.Int)));
+          s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new RegisterOperand(tl, TypeReference.Int), yl));
           s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
-                                              new RegisterOperand(th, VM_TypeReference.Int),
-                                              new RegisterOperand(tl, VM_TypeReference.Int)));
+                                              new RegisterOperand(th, TypeReference.Int),
+                                              new RegisterOperand(tl, TypeReference.Int)));
         }
       }
       MIR_CondBranch.mutate(s,
@@ -1049,7 +1049,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       if (rhs.value == 0L) {
         if (cond.isLESS()) {
           // xh < 0 implies true
-          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, VM_TypeReference.Int), IC(0)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, TypeReference.Int), IC(0)));
           MIR_CondBranch.mutate(s,
                                 IA32_JCC,
                                 IA32ConditionOperand.LT(),
@@ -1057,7 +1057,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
                                 IfCmp.getBranchProfile(s));
           return nextInstr;
         } else if (cond.isGREATER_EQUAL()) {
-          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, VM_TypeReference.Int), IC(0)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, TypeReference.Int), IC(0)));
           MIR_CondBranch.mutate(s,
                                 IA32_JCC,
                                 IA32ConditionOperand.GE(),
@@ -1067,7 +1067,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
         }
       } else if (rhs.value == -1L) {
         if (cond.isLESS_EQUAL()) {
-          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, VM_TypeReference.Int), IC(-1)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, TypeReference.Int), IC(-1)));
           MIR_CondBranch.mutate(s,
                                 IA32_JCC,
                                 IA32ConditionOperand.LE(),
@@ -1075,7 +1075,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
                                 IfCmp.getBranchProfile(s));
           return nextInstr;
         } else if (cond.isGREATER()) {
-          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, VM_TypeReference.Int), IC(0)));
+          s.insertBefore(MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, TypeReference.Int), IC(0)));
           MIR_CondBranch.mutate(s,
                                 IA32_JCC,
                                 IA32ConditionOperand.GE(),
@@ -1096,9 +1096,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       RegisterOperand th = ir.regpool.makeTempInt();
       RegisterOperand tl = ir.regpool.makeTempInt();
       // tricky... ((xh^yh)|(xl^yl) == 0) <==> (lhll == rhrl)!!
-      s.insertBefore(MIR_Move.create(IA32_MOV, th, new RegisterOperand(xh, VM_TypeReference.Int)));
+      s.insertBefore(MIR_Move.create(IA32_MOV, th, new RegisterOperand(xh, TypeReference.Int)));
       s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, th.copyD2D(), yh));
-      s.insertBefore(MIR_Move.create(IA32_MOV, tl, new RegisterOperand(xl, VM_TypeReference.Int)));
+      s.insertBefore(MIR_Move.create(IA32_MOV, tl, new RegisterOperand(xl, TypeReference.Int)));
       s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, tl.copyD2D(), yl));
       s.insertBefore(MIR_BinaryAcc.create(IA32_OR, th.copyD2D(), tl.copyD2U()));
       MIR_CondBranch.mutate(s,
@@ -1150,7 +1150,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
       s.remove();
 
-      myBlock.appendInstruction(CPOS(s, MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, VM_TypeReference.Int), yh)));
+      myBlock.appendInstruction(CPOS(s, MIR_Compare.create(IA32_CMP, new RegisterOperand(xh, TypeReference.Int), yh)));
       myBlock.appendInstruction(CPOS(s, MIR_CondBranch2.create(IA32_JCC2,
                                                        cond1,
                                                        trueBlock.makeJumpTarget(),
@@ -1158,7 +1158,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
                                                        cond2,
                                                        falseBlock.makeJumpTarget(),
                                                        new BranchProfileOperand())));
-      test2Block.appendInstruction(CPOS(s, MIR_Compare.create(IA32_CMP, new RegisterOperand(xl, VM_TypeReference.Int), yl)));
+      test2Block.appendInstruction(CPOS(s, MIR_Compare.create(IA32_CMP, new RegisterOperand(xl, TypeReference.Int), yl)));
       test2Block.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
                                                          cond3,
                                                          trueBlock.makeJumpTarget(),

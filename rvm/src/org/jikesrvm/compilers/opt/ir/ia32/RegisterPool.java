@@ -12,14 +12,14 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -27,16 +27,16 @@ import org.vmmagic.unboxed.Address;
  * Intel specific implementation where JTOC is stored in the processor object
  * and accessed through the processor register.
  *
- * @see Register
+ * @see org.jikesrvm.compilers.opt.ir.Register
  */
 public abstract class RegisterPool extends GenericRegisterPool implements Operators {
 
   /**
    * Initializes a new register pool for the method meth.
    *
-   * @param meth the VM_Method of the outermost method
+   * @param meth the RVMMethod of the outermost method
    */
-  protected RegisterPool(VM_Method meth) {
+  protected RegisterPool(RVMMethod meth) {
     super(meth);
   }
 
@@ -51,7 +51,7 @@ public abstract class RegisterPool extends GenericRegisterPool implements Operat
    * @return a register operand that holds the JTOC
    */
   public Operand makeJTOCOp(IR ir, Instruction s) {
-    Address jtoc = VM_Magic.getTocPointer();
+    Address jtoc = Magic.getTocPointer();
     return new IntConstantOperand(jtoc.toInt());
   }
 }

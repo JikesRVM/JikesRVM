@@ -114,7 +114,6 @@ public abstract class Space implements Constants {
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
    * @param vmRequest An object describing the virtual memory requested.
-   * @param pr The page resource associated with this space
    */
   protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
     this.name = name;
@@ -426,8 +425,7 @@ public abstract class Space implements Constants {
    * space.  This simply involves requesting a suitable number of chunks
    * from the pool of chunks available to discontiguous spaces.
    *
-   * @param bytes The amount by which the space needs to be extended
-   * (will be rounded up to chunks)
+   * @param chunks The number of chunks by which the space needs to be extended
    * @return The address of the new discontiguous space.
    */
   public Address growDiscontiguousSpace(int chunks) {
@@ -466,6 +464,9 @@ public abstract class Space implements Constants {
    */
   public int releaseDiscontiguousChunks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
+    if (chunk.EQ(lastDiscontiguousRegion)) {
+      lastDiscontiguousRegion = Map.getNextContiguousRegion(chunk);
+    }
     return Map.freeContiguousChunks(chunk);
   }
 
@@ -542,8 +543,7 @@ public abstract class Space implements Constants {
         Log.writeln();
       } else {
         Log.write("D [");
-        for(Address a = space.lastDiscontiguousRegion; a != Address.zero();
-            a = Map.getNextContiguousRegion(a)) {
+        for(Address a = space.lastDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
           if (Map.getNextContiguousRegion(a) != Address.zero())

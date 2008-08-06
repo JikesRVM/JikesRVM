@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
  * Encode the semantic reason for a trap instruction.
@@ -39,7 +39,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand NullPtr() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_NULL_POINTER);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_NULL_POINTER);
   }
 
   /**
@@ -47,7 +47,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand ArrayBounds() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_ARRAY_BOUNDS);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_ARRAY_BOUNDS);
   }
 
   /**
@@ -55,7 +55,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand DivByZero() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_DIVIDE_BY_ZERO);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO);
   }
 
   /**
@@ -63,7 +63,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand StackOverflow() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_STACK_OVERFLOW);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_STACK_OVERFLOW);
   }
 
   /**
@@ -71,7 +71,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand CheckCast() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_CHECKCAST);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_CHECKCAST);
   }
 
   /**
@@ -79,7 +79,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand MustImplement() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_MUST_IMPLEMENT);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_MUST_IMPLEMENT);
   }
 
   /**
@@ -87,7 +87,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand StoreCheck() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_STORE_CHECK);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_STORE_CHECK);
   }
 
   /**
@@ -95,7 +95,7 @@ public final class TrapCodeOperand extends Operand {
    * @return the newly created trap code operand
    */
   public static TrapCodeOperand Regenerate() {
-    return new TrapCodeOperand((byte) VM_Runtime.TRAP_REGENERATE);
+    return new TrapCodeOperand((byte) RuntimeEntrypoints.TRAP_REGENERATE);
   }
 
   /**
@@ -104,7 +104,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isNullPtr() {
-    return trapCode == VM_Runtime.TRAP_NULL_POINTER;
+    return trapCode == RuntimeEntrypoints.TRAP_NULL_POINTER;
   }
 
   /**
@@ -113,7 +113,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isArrayBounds() {
-    return trapCode == VM_Runtime.TRAP_ARRAY_BOUNDS;
+    return trapCode == RuntimeEntrypoints.TRAP_ARRAY_BOUNDS;
   }
 
   /**
@@ -122,7 +122,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isDivByZero() {
-    return trapCode == VM_Runtime.TRAP_DIVIDE_BY_ZERO;
+    return trapCode == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO;
   }
 
   /**
@@ -131,7 +131,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isStackOverflow() {
-    return trapCode == VM_Runtime.TRAP_STACK_OVERFLOW;
+    return trapCode == RuntimeEntrypoints.TRAP_STACK_OVERFLOW;
   }
 
   /**
@@ -140,7 +140,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isCheckCast() {
-    return trapCode == VM_Runtime.TRAP_CHECKCAST;
+    return trapCode == RuntimeEntrypoints.TRAP_CHECKCAST;
   }
 
   /**
@@ -149,7 +149,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isDoesImplement() {
-    return trapCode == VM_Runtime.TRAP_MUST_IMPLEMENT;
+    return trapCode == RuntimeEntrypoints.TRAP_MUST_IMPLEMENT;
   }
 
   /**
@@ -158,7 +158,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isStoreCheck() {
-    return trapCode == VM_Runtime.TRAP_STORE_CHECK;
+    return trapCode == RuntimeEntrypoints.TRAP_STORE_CHECK;
   }
 
   /**
@@ -167,7 +167,7 @@ public final class TrapCodeOperand extends Operand {
    *         if it does not
    */
   public boolean isRegenerate() {
-    return trapCode == VM_Runtime.TRAP_REGENERATE;
+    return trapCode == RuntimeEntrypoints.TRAP_REGENERATE;
   }
 
   /**
@@ -198,21 +198,21 @@ public final class TrapCodeOperand extends Operand {
    */
   public String toString() {
     switch (trapCode) {
-      case VM_Runtime.TRAP_NULL_POINTER:
+      case RuntimeEntrypoints.TRAP_NULL_POINTER:
         return "<NULL PTR>";
-      case VM_Runtime.TRAP_ARRAY_BOUNDS:
+      case RuntimeEntrypoints.TRAP_ARRAY_BOUNDS:
         return "<ARRAY BOUNDS>";
-      case VM_Runtime.TRAP_DIVIDE_BY_ZERO:
+      case RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO:
         return "<DIV BY ZERO>";
-      case VM_Runtime.TRAP_STACK_OVERFLOW:
+      case RuntimeEntrypoints.TRAP_STACK_OVERFLOW:
         return "<STACK OVERFLOW>";
-      case VM_Runtime.TRAP_CHECKCAST:
+      case RuntimeEntrypoints.TRAP_CHECKCAST:
         return "<CLASSCAST>";
-      case VM_Runtime.TRAP_MUST_IMPLEMENT:
+      case RuntimeEntrypoints.TRAP_MUST_IMPLEMENT:
         return "<MUST IMPLEMENT>";
-      case VM_Runtime.TRAP_STORE_CHECK:
+      case RuntimeEntrypoints.TRAP_STORE_CHECK:
         return "<OBJARRAY STORE CHECK>";
-      case VM_Runtime.TRAP_REGENERATE:
+      case RuntimeEntrypoints.TRAP_REGENERATE:
         return "<REGENERATE>";
       default:
         return "<UNKNOWN TRAP>";

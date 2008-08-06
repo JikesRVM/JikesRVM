@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
 import org.jikesrvm.compilers.opt.util.EmptyEnumerator;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
-import org.jikesrvm.ppc.VM_RegisterConstants;
+import org.jikesrvm.ppc.RegisterConstants;
 
 /**
  * This class represents a set of Registers corresponding to the
@@ -54,7 +54,7 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  * <P> TODO; clean up all this and provide appropriate enumerators
  */
 public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
-    implements VM_RegisterConstants, PhysicalRegisterConstants {
+    implements RegisterConstants, PhysicalRegisterConstants {
 
   /**
    * This array holds a pool of objects representing physical registers

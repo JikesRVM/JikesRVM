@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.MAYBE;
-import static org.jikesrvm.compilers.opt.driver.Constants.NO;
-import static org.jikesrvm.compilers.opt.driver.Constants.YES;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 
 import java.util.Enumeration;
 
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
@@ -31,7 +31,7 @@ import org.jikesrvm.compilers.opt.liveness.LiveSet;
 public final class ExceptionHandlerBasicBlock extends BasicBlock {
 
   /**
-   * The VM_Type(s) of the exception(s) caught by this block.
+   * The RVMType(s) of the exception(s) caught by this block.
    */
   private TypeOperand[] exceptionTypes;
 
@@ -83,10 +83,10 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    * Return YES/NO/MAYBE values that answer the question is it possible for
    * this handler block to catch an exception of the type et.
    *
-   * @param cand the VM_TypeReference of the exception in question.
+   * @param cand the TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
-  public byte mayCatchException(VM_TypeReference cand) {
+  public byte mayCatchException(TypeReference cand) {
     boolean seenMaybe = false;
     byte t;
     for (TypeOperand exceptionType : exceptionTypes) {
@@ -104,10 +104,10 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    * Return YES/NO/MAYBE values that answer the question is it guarenteed that
    * this handler block will catch an exception of type <code>cand</code>
    *
-   * @param cand  the VM_TypeReference of the exception in question.
+   * @param cand  the TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
-  public byte mustCatchException(VM_TypeReference cand) {
+  public byte mustCatchException(TypeReference cand) {
     boolean seenMaybe = false;
     byte t;
     for (TypeOperand exceptionType : exceptionTypes) {
@@ -150,7 +150,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    * Get how many table entires this EHBB needs.
    * Really only of interest during final assembly.
    *
-   * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptExceptionTable
+   * @see org.jikesrvm.compilers.opt.runtimesupport.OptExceptionTable
    *
    * @return the number of table entries for this basic block
    */

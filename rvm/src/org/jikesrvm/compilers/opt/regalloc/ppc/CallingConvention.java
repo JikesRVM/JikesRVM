@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.regalloc.ppc;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Load;
@@ -67,8 +67,8 @@ import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.NUMBER_DOUBLE_PARAM;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.NUMBER_INT_PARAM;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
-import static org.jikesrvm.ppc.VM_StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -227,13 +227,13 @@ public abstract class CallingConvention extends IRTools {
     int int_index = 0;
     int double_index = 0;
     int spilledArgumentCounter =
-        (-256 - ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
+        (-256 - ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
     for (OperandEnumeration symParams = prologueInstr.getDefs(); symParams.hasMoreElements();) {
       RegisterOperand symParamOp = (RegisterOperand) symParams.next();
       Register symParam = symParamOp.getRegister();
-      VM_TypeReference t = symParamOp.getType();
+      TypeReference t = symParamOp.getType();
       if (t.isFloatType()) {
         // if optimizing, skip dead parameters
         // SJF: This optimization current breaks the paranoid sanity test.

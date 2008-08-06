@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.Selected;
 
 /**
  * Read build-time configuration information for MMTk from a Java properties
@@ -65,7 +65,9 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
     File propFile = new File(propFileName);
 
     try {
-      props.load(new BufferedInputStream(new FileInputStream(propFile)));
+      BufferedInputStream propFileStream = new BufferedInputStream(new FileInputStream(propFile));
+      props.load(propFileStream);
+      propFileStream.close();
     } catch (FileNotFoundException e) {
       if (!propFileName.equals(default_property_file)) {
         System.err.println(propFileName+" not found.");

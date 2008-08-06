@@ -24,7 +24,7 @@ public class Config {
 
   Config(BuildTimeConfig config) {
     ACTIVE_PLAN            = config.getPlanName();
-    HEADER_MARK_BITS        = config.getBooleanProperty("mmtk.headerMarkBit",false);
+    HEADER_MARK_BITS        = config.getBooleanProperty("mmtk.headerMarkBit",true);
   }
 
   public void printConfig() {

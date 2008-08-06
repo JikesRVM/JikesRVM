@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import org.jikesrvm.ArchitectureSpecific.BURS_Debug;
-import org.jikesrvm.ArchitectureSpecific.BURS_STATE;
-import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.depgraph.DepGraph;
@@ -59,7 +59,7 @@ final class NormalBURS extends BURS {
   /**
    * Create a BURS object for the given IR.
    *
-   * @param IR the IR to translate from LIR to MIR.
+   * @param ir the IR to translate from LIR to MIR.
    */
   NormalBURS(IR ir) {
     super(ir);

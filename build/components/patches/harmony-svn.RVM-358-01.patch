@@ -1,0 +1,9 @@
+Index: modules/archive/src/main/native/archive/unix/exports.txt
+===================================================================
+--- modules/archive/src/main/native/archive/unix/exports.txt	(revision 653525)
++++ modules/archive/src/main/native/archive/unix/exports.txt	(working copy)
+@@ -33,3 +33,4 @@
+ Java_java_util_zip_ZipFile_openZipImpl
+ JNI_OnLoad
+ JNI_OnUnload
++zipCachePool_new

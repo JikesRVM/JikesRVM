@@ -1,0 +1,60 @@
+main() {
+  object tree = insert(null,10);
+  tree = insert(tree,5);
+  tree = insert(tree,6);
+  tree = insert(tree,4);
+  tree = insert(tree,11);
+  tree = insert(tree,4);
+  tree = insert(tree,3);
+  tree = insert(tree,7);
+  tree = insert(tree,1);
+  tree = insert(tree,2);
+  tree = insert(tree,0);
+  tree = insert(tree,12);
+  tree = insert(tree,13);
+  tree = insert(tree,14);
+  tree = insert(tree,15);
+  printTree(tree);
+}
+
+object insert(object tree, int value) {
+  if (tree == null) {
+    //print("insert leaf");
+    object result = alloc(2,1);
+    result.int[0] = value;
+    return result;
+  }
+  assert(tree != null, "tree is null");
+  assert(!(tree == null), "tree is null");
+
+  if (tree.int[0] == value) {
+    //print("unchanged");
+    return tree;
+  } elif (value < tree.int[0]) {
+    //print("insert left ",tree);
+    object result = alloc(2,1);
+    result.object[0] = insert(tree.object[0],value);
+    result.object[1] = tree.object[1];
+    result.int[0] = tree.int[0];
+    return result;
+  } else {
+    //print("insert right");
+    object result = alloc(2,1);
+    result.object[0] = tree.object[0];
+    result.object[1] = insert(tree.object[1],value);
+    result.int[0] = tree.int[0];
+    return result;
+  }
+}
+
+
+printTree(object tree) {
+    if (tree == null) {
+      return 6;
+    }
+    object left = tree.object[0];
+    object right = tree.object[1];
+    printTree(left);
+    print(tree.int[0]);
+    printTree(right);
+}

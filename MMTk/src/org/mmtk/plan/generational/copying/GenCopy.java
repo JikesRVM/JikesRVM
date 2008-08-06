@@ -16,6 +16,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.vm.VM;
 
@@ -43,7 +44,7 @@ import org.vmmagic.pragma.*;
  * <i>thread-local</i> activities.  Global activities must be
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  Instances of Plan map 1:1 to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods allow fast, unsychronized access to Plan utilities such as
  * allocation and collection.  Each instance rests on static resources
  * (such as memory and virtual memory resources) which are "global"
@@ -218,5 +219,14 @@ import org.vmmagic.pragma.*;
   @Inline
   public Space activeMatureSpace() {
     return toSpace();
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_MATURE, GenCopyMatureTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

@@ -14,6 +14,7 @@ package org.mmtk.plan.semispace.gcspy;
 
 import org.mmtk.plan.GCspyPlan;
 import org.mmtk.plan.Phase;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.semispace.SS;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.LargeObjectSpace;
@@ -39,7 +40,7 @@ import org.vmmagic.pragma.*;
  * <i>thread-local</i> activities.  Global activities must be
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  Instances of Plan map 1:1 to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods allow fast, unsychronized access to Plan utilities such as
  * allocation and collection.  Each instance rests on static resources
  * (such as memory and virtual memory resources) which are "global"
@@ -341,5 +342,14 @@ import org.vmmagic.pragma.*;
     Log.write(SSGCspy.copySpace1.getStart()
         .plus(SSGCspy.copySpace1.getExtent()));
     Log.flush();
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    super.registerSpecializedMethods();
+    TransitiveClosure.registerSpecializedScan(SCAN_SS, SSGCspyTraceLocal.class);
   }
 }

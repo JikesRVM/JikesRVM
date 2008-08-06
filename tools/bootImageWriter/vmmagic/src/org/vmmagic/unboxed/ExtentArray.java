@@ -14,14 +14,13 @@ package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.objectmodel.RuntimeTable;
 
 /**
- * The VM front end is not capable of correct handling an array of Address, VM_Word, ....
- * For now, we provide special types to handle these situations.
- *
- * @author Perry Cheng
+ * The VM front end is not capable of correct handling an array of Address, Word, ....
+ * In the boot image writer we provide special types to handle these situations.
  */
-@Uninterruptible public final class ExtentArray {
+@Uninterruptible public final class ExtentArray implements RuntimeTable<Extent> {
 
   private Extent[] data;
 
@@ -58,7 +57,7 @@ import org.jikesrvm.VM;
   }
 
   @Inline
-  public Object getBacking() {
+  public Extent[] getBacking() {
     if (!VM.writingImage)
       VM.sysFail("ExtentArray.getBacking called when not writing boot image");
     return data;

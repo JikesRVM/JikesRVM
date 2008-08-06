@@ -19,6 +19,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -49,7 +50,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsynchronized access to functions such as
  * allocation and collection.
  *
@@ -164,6 +165,9 @@ public abstract class Plan implements Constants {
   /** Support for allocation-site identification */
   protected static int allocationSiteCount = 0;
 
+  /** Global sanity checking state **/
+  public static final SanityChecker sanityChecker = new SanityChecker();
+
   /****************************************************************************
    * Constructor.
    */
@@ -185,6 +189,7 @@ public abstract class Plan implements Constants {
     Options.debugAddress = new DebugAddress();
     Options.perfMetric = new PerfMetric();
     Map.finalizeStaticSpaceMap();
+    registerSpecializedMethods();
   }
 
   /****************************************************************************
@@ -367,10 +372,25 @@ public abstract class Plan implements Constants {
   private long lastStressPages = 0;
 
   /**
-   * @return The current sanity checker.
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
    */
-  public SanityChecker getSanityChecker() {
-    return null;
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+  }
+
+  /**
+   * Perform a linear scan of all spaces to check for possible leaks.
+   * This is only called after a full-heap GC.
+   *
+   * @param scanner The scanner callback to use.
+   */
+  public void sanityLinearScan(LinearScan scanner) {
   }
 
   /**
@@ -1009,7 +1029,7 @@ public abstract class Plan implements Constants {
     * counting where duplicates would lead to incorrect reference
     * counts).
     *
-    * @param src The object to be marked as logged
+    * @param object The object to be marked as logged
     */
    public static final void markAsLogged(ObjectReference object) {
      int value = VM.objectModel.readAvailableByte(object);
@@ -1019,7 +1039,7 @@ public abstract class Plan implements Constants {
    /**
     * Mark an object as unlogged.
     *
-    * @param src The object to be marked as unlogged
+    * @param object The object to be marked as unlogged
     */
    public static final void markAsUnlogged(ObjectReference object) {
      int value = VM.objectModel.readAvailableByte(object);
@@ -1027,8 +1047,15 @@ public abstract class Plan implements Constants {
    }
 
   /****************************************************************************
-   * Specialized Scanning
+   * Specialized Methods
    */
+
+  /**
+   * Register specialized methods.
+   */
+   @Interruptible
+  protected void registerSpecializedMethods() {
+  }
 
   /**
    * Get the specialized scan with the given id.

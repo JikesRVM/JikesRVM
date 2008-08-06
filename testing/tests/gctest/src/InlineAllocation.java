@@ -13,7 +13,7 @@
 
 import java.lang.reflect.Method;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.RVMMethod;
 
 /**
  * A test to detect regressions in the quality of the optimizing compiler's
@@ -94,11 +94,11 @@ class InlineAllocation {
     Method alloc3J = clazz.getDeclaredMethod("alloc3", (Class[])null);
     Method alloc4J = clazz.getDeclaredMethod("alloc4", new Class[] {Integer.TYPE});
 
-    VM_Method trivial = java.lang.reflect.JikesRVMSupport.getMethodOf(trivialJ);
-    VM_Method alloc1 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc1J);
-    VM_Method alloc2 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc2J);
-    VM_Method alloc3 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc3J);
-    VM_Method alloc4 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc4J);
+    RVMMethod trivial = java.lang.reflect.JikesRVMSupport.getMethodOf(trivialJ);
+    RVMMethod alloc1 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc1J);
+    RVMMethod alloc2 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc2J);
+    RVMMethod alloc3 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc3J);
+    RVMMethod alloc4 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc4J);
 
     trivial.compile();
     int trivialSize = trivial.getCurrentCompiledMethod().numberOfInstructions();

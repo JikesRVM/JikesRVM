@@ -16,12 +16,12 @@ import static org.mmtk.policy.immix.ImmixConstants.DEFAULT_DEFRAG_HEADROOM;
 
 /**
  */
-public class DefragHeadroom extends PagesOption {
+public class DefragHeadroom extends org.vmutil.options.PagesOption {
   /**
    * Create the option.
    */
   public DefragHeadroom() {
-    super("Defrag Headroom",
+    super(Options.set, "Defrag Headroom",
           "Allow the defragmenter this amount of headroom during defrag.",
           DEFAULT_DEFRAG_HEADROOM);
   }

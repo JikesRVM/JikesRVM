@@ -17,6 +17,8 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
 
+import org.mmtk.utility.Log;
+
 import org.vmmagic.pragma.*;
 
 /**
@@ -35,6 +37,9 @@ import org.vmmagic.pragma.*;
 
   /** @return The active <code>MutatorContext</code> instance. */
   public abstract MutatorContext mutator();
+
+  /** @return The log for the active thread */
+  public abstract Log log();
 
   /**
    * Return the <code>CollectorContext</code> instance given its unique identifier.

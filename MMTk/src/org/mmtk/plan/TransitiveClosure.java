@@ -39,8 +39,7 @@ public abstract class TransitiveClosure {
    * @param specializedScanClass The class to register.
    */
   @Interruptible
-  protected static synchronized void registerSpecializedScan(int id, Class<?> specializedScanClass) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(specializedScans[id] == null || specializedScans[id] == specializedScanClass);
+  public static synchronized void registerSpecializedScan(int id, Class<?> specializedScanClass) {
     specializedScans[id] = specializedScanClass;
   }
 
@@ -70,7 +69,7 @@ public abstract class TransitiveClosure {
   protected TransitiveClosure(int specializedScan) {
     this.specializedScan = specializedScan;
     if (specializedScan >= 0) {
-      registerSpecializedScan(specializedScan, getClass());
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getClass() == getSpecializedScanClass(specializedScan));
     }
   }
 

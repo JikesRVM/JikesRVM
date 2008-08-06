@@ -15,9 +15,9 @@ package org.jikesrvm.tools.bootImageWriter;
 import java.util.HashMap;
 import org.vmmagic.unboxed.Address;
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_ObjectAddressRemapper;
+import org.jikesrvm.runtime.ObjectAddressRemapper;
 
-final class BootImageObjectAddressRemapper implements VM_ObjectAddressRemapper {
+final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
   static final HashMap<Integer,Integer> uniqueIntegers = new HashMap<Integer,Integer>();
 
   static final BootImageObjectAddressRemapper singleton = new BootImageObjectAddressRemapper();
@@ -62,5 +62,18 @@ final class BootImageObjectAddressRemapper implements VM_ObjectAddressRemapper {
       }
     }
     return obj;
+  }
+
+  /**
+   * Identity hash code of an object
+   *
+   * @param obj the object to generate the identity hash code for
+   * @return the identity hash code
+   */
+  public int identityHashCode(Object obj) {
+    BootImageMap.Entry entry = BootImageMap.findOrCreateEntry(obj);
+    int identityHashCode = System.identityHashCode(obj);
+    entry.setHashed(identityHashCode);
+    return identityHashCode;
   }
 }

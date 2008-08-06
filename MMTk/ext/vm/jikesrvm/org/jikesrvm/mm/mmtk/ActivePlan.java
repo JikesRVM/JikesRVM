@@ -16,8 +16,9 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
+import org.mmtk.utility.Log;
 
-import org.jikesrvm.memorymanagers.mminterface.Selected;
+import org.jikesrvm.mm.mminterface.Selected;
 
 import org.vmmagic.pragma.*;
 
@@ -57,6 +58,11 @@ import org.vmmagic.pragma.*;
   @Inline
   public MutatorContext mutator() {
     return Selected.Mutator.get();
+  }
+
+  /** @return The log for the active thread */
+  public Log log() {
+    return Selected.Mutator.get().getLog();
   }
 
   /** Flush the mutator remembered sets (if any) for this active plan */

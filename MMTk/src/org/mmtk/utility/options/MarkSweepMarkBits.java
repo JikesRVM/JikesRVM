@@ -17,12 +17,12 @@ import org.mmtk.policy.MarkSweepSpace;
 /**
  * Number of bits to use for the header cycle of mark sweep spaces.
  */
-public final class MarkSweepMarkBits extends IntOption {
+public final class MarkSweepMarkBits extends org.vmutil.options.IntOption {
   /**
    * Create the option.
    */
   public MarkSweepMarkBits() {
-    super("Mark Sweep Mark Bits",
+    super(Options.set, "Mark Sweep Mark Bits",
           "Number of bits to use for the header cycle of mark sweep spaces",
           MarkSweepSpace.DEFAULT_MARKCOUNT_BITS);
   }

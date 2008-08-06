@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.vmutil.options.OptionSet;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.ReferenceProcessor.Semantics;
@@ -28,6 +29,15 @@ public final class Factory extends org.mmtk.vm.Factory {
 
   private static final String DEFAULT_MMTK_PROPERTIES = ".mmtk.properties";
   private static final String CONFIG_FILE_PROPERTY = "mmtk.properties";
+
+  /**
+   * Create or retrieve the OptionSet used for MMTk options.
+   *
+   * @return A concrete VM-specific OptionSet instance
+   */
+  public OptionSet getOptionSet() {
+    return org.jikesrvm.options.OptionSet.gc;
+  }
 
   /**
    * Create a new ActivePlan instance using the appropriate VM-specific
@@ -155,22 +165,6 @@ public final class Factory extends org.mmtk.vm.Factory {
       return new ObjectModel();
     } catch (Exception e) {
       VM.sysFail("Failed to allocate new ObjectModel!");
-      return null; // never get here
-    }
-  }
-
-  /**
-   * Create a new Options instance using the appropriate VM-specific
-   * concrete Options sub-class.
-   *
-   * @see Options
-   * @return A concrete VM-specific Options instance.
-   */
-  public org.mmtk.vm.Options newOptions() {
-    try {
-      return new Options();
-    } catch (Exception e) {
-      VM.sysFail("Failed to allocate new Options!");
       return null; // never get here
     }
   }

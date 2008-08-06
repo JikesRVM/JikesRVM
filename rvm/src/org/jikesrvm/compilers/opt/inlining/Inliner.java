@@ -22,19 +22,19 @@ import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE;
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.database.VM_AOSDatabase;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.database.AOSDatabase;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Call;
@@ -142,7 +142,7 @@ public class Inliner {
    *         inline decision in the given context
    */
   public static GenerationContext execute(InlineDecision inlDec, GenerationContext parent,
-                                              ExceptionHandlerBasicBlockBag ebag, Instruction callSite) {
+                                          ExceptionHandlerBasicBlockBag ebag, Instruction callSite) {
     if (inlDec.needsGuard()) {
       //Step 1: create the synthetic generation context we'll
       // return to our caller.
@@ -150,24 +150,17 @@ public class Inliner {
       container.cfg.breakCodeOrder(container.prologue, container.epilogue);
       // Step 2: (a) Print a message (optional)
       //         (b) Generate the child GC for each target
-      VM_Method[] targets = inlDec.getTargets();
+      RVMMethod[] targets = inlDec.getTargets();
       byte[] guards = inlDec.getGuards();
       GenerationContext[] children = new GenerationContext[targets.length];
       for (int i = 0; i < targets.length; i++) {
-        VM_NormalMethod callee = (VM_NormalMethod) targets[i];
+        NormalMethod callee = (NormalMethod) targets[i];
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.IG_CLASS_TEST ? " (class test) " : " (method test) ";
-          VM.sysWrite("\tGuarded inline" +
-                      guard +
-                      " " +
-                      callee +
-                      " into " +
-                      callSite.position.getMethod() +
-                      " at bytecode " +
-                      callSite
-                          .bcIndex +
-                                   "\n");
+          VM.sysWrite("\tGuarded inline" + guard + " " + callee +
+                      " into " + callSite.position.getMethod() +
+                      " at bytecode " + callSite.bcIndex + "\n");
         }
         // (b)
         children[i] = GenerationContext.createChildContext(parent, ebag, callee, callSite);
@@ -198,7 +191,7 @@ public class Inliner {
       call.bcIndex = callSite.bcIndex;
       call.position = callSite.position;
 
-      if (COUNT_FAILED_GUARDS && VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
+      if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
         // Need a name for the event to count.  In this example, a
         // separate counter for each method by using the method name
@@ -207,7 +200,7 @@ public class Inliner {
         String eventName = "Guarded inline failed: " + callSite.position.getMethod().toString();
         // Create instruction that will increment the counter
         // corresponding to the named event.
-        Instruction counterInst = VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
+        Instruction counterInst = AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
         testFailed.appendInstruction(counterInst);
       }
 
@@ -249,15 +242,15 @@ public class Inliner {
       boolean isInterface = mo.isInterface();
       if (isInterface) {
         if (VM.BuildForIMTInterfaceInvocation) {
-          VM_Type interfaceType = mo.getTarget().getDeclaringClass();
-          VM_TypeReference recTypeRef = receiver.getType();
-          VM_Class recType = (VM_Class) recTypeRef.peekType();
+          RVMType interfaceType = mo.getTarget().getDeclaringClass();
+          TypeReference recTypeRef = receiver.getType();
+          RVMClass recType = (RVMClass) recTypeRef.peekType();
           // Attempt to avoid inserting the check by seeing if the
           // known static type of the receiver implements the interface.
           boolean requiresImplementsTest = true;
           if (recType != null && recType.isResolved() && !recType.isInterface()) {
             byte doesImplement = ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
-            requiresImplementsTest = doesImplement != Constants.YES;
+            requiresImplementsTest = doesImplement != OptConstants.YES;
           }
           if (requiresImplementsTest) {
             RegisterOperand checkedReceiver = parent.temps.makeTemp(receiver);
@@ -282,11 +275,11 @@ public class Inliner {
         firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
         firstIfBlock.exceptionHandlers = ebag;
         BasicBlock lastIfBlock = firstIfBlock;
-        VM_Method target = children[i].method;
+        RVMMethod target = children[i].method;
         Instruction tmp;
 
         if (isInterface) {
-          VM_Class callDeclClass = mo.getTarget().getDeclaringClass();
+          RVMClass callDeclClass = mo.getTarget().getDeclaringClass();
           if (!callDeclClass.isInterface()) {
             // Part of ensuring that we catch IncompatibleClassChangeErrors
             // is making sure that we know that callDeclClass is an
@@ -317,7 +310,7 @@ public class Inliner {
           // (2) at runtime.
           byte doesImplement = ClassLoaderProxy.
               includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
-          if (doesImplement != Constants.YES) {
+          if (doesImplement != OptConstants.YES) {
             // We can't be sure at compile time that the receiver implements
             // the interface. So, inject a test to make sure that it does.
             // Unlike the above case, this can actually happen (when
@@ -433,7 +426,7 @@ public class Inliner {
       return container;
     } else {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
-      VM_NormalMethod callee = (VM_NormalMethod) inlDec.getTargets()[0];
+      NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " +
                     callee +

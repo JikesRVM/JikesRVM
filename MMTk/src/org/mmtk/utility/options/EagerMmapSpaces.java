@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should spaces be eagerly demand zero mmapped?
  */
-public final class EagerMmapSpaces extends BooleanOption {
+public final class EagerMmapSpaces extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public EagerMmapSpaces() {
-    super("Eager Mmap Spaces",
+    super(Options.set, "Eager Mmap Spaces",
           "If true, all spaces are eagerly demand zero mmapped at boot time",
           false);
   }

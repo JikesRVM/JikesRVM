@@ -13,9 +13,9 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.util.ArrayList;
-import org.jikesrvm.adaptive.controller.VM_Controller;
-import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
-import org.jikesrvm.adaptive.util.VM_AOSOptions;
+import org.jikesrvm.adaptive.controller.Controller;
+import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
+import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -46,7 +46,7 @@ public class LowerInstrumentation extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    VM_AOSOptions opts = VM_Controller.options;
+    AOSOptions opts = Controller.options;
     return opts
         .INSERT_INSTRUCTION_COUNTERS ||
                                      opts
@@ -114,7 +114,7 @@ public class LowerInstrumentation extends CompilerPhase {
       // manager.  Ideally it should be stored in the instruction,
       // (to allow multiple counter managers.  It would also make this
       // code independant of the adaptive system..)
-      InstrumentedEventCounterManager counterManager = VM_Instrumentation.eventCounterManager;
+      InstrumentedEventCounterManager counterManager = Instrumentation.eventCounterManager;
 
       counterManager.mutateOptEventCounterInstruction(i, ir);
     }

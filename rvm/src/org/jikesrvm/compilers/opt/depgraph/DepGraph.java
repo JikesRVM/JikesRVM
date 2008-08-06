@@ -34,7 +34,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
-import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;

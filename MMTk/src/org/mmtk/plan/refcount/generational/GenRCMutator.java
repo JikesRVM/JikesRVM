@@ -47,7 +47,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible public abstract class GenRCMutator extends RCBaseMutator implements Constants {
+@Uninterruptible
+public class GenRCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
    * Instance fields
    */
@@ -166,14 +167,14 @@ import org.vmmagic.unboxed.*;
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
-                                 ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode) {
+                                 ObjectReference tgt, Word metaDataA,
+                                 Word metaDataB, int mode) {
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
@@ -190,14 +191,14 @@ import org.vmmagic.unboxed.*;
    * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+      ObjectReference old, ObjectReference tgt, Word metaDataA,
+      Word metaDataB, int mode) {
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
     return VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);

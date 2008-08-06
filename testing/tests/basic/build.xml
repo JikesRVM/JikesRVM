@@ -81,6 +81,7 @@
     <runCompareTest tag="TestFloatingRem" class="test.org.jikesrvm.basic.core.bytecode.TestFloatingRem"/>
     <runCompareTest tag="TestConstants" class="test.org.jikesrvm.basic.core.bytecode.TestConstants"/>
 
+    <runCompareTest tag="TestAnnotations" class="test.org.jikesrvm.basic.core.annotation.TestAnnotations"/>
     <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
 
     <runCompareTest tag="TestResolveOnInvokeInterface"
@@ -107,7 +108,7 @@
     <runCompareTest tag="TestInterruptedSleep" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep"/>
     <runCompareTest tag="TestInterruptedSleep2" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep2"/>
     <runCompareTest tag="TestInterruptedWait" class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
-    <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap" timeLimit="20"/>
+    <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap"/>
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
     <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
@@ -146,6 +147,7 @@
     <runCompareTest tag="R1644449" class="test.org.jikesrvm.basic.bugs.R1644449"/>
     <runCompareTest tag="R1657236" class="test.org.jikesrvm.basic.bugs.R1657236"/>
     <runCompareTest tag="R1722506" class="test.org.jikesrvm.basic.bugs.R1722506"/>
+    <runCompareTest tag="RVM_550" class="test.org.jikesrvm.basic.bugs.RVM_550"/>
     <finishResults/>
   </target>
 

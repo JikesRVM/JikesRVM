@@ -14,10 +14,13 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
-import org.jikesrvm.runtime.VM_Statics;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.mmtk.utility.Log;
+import org.jikesrvm.VM;
+import org.jikesrvm.runtime.Statics;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.CollectorThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -30,7 +33,7 @@ public final class ScanStatics implements Constants {
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
    * 64bit addresses =2)
    */
-  private static final int refSlotSize = VM_Statics.getReferenceSlotSize();
+  private static final int refSlotSize = Statics.getReferenceSlotSize();
   /**
    * Mask used when calculating the chunkSize to ensure chunks are
    * 64bit aligned on 64bit architectures
@@ -45,14 +48,14 @@ public final class ScanStatics implements Constants {
   @Uninterruptible
   public static void scanStatics(TraceLocal trace) {
     // The address of the statics table
-    // equivalent to VM_Statics.getSlots()
-    final Address slots = VM_Magic.getJTOC();
+    // equivalent to Statics.getSlots()
+    final Address slots = Magic.getJTOC();
     // The number of collector threads
-    final int numberOfCollectors = VM_CollectorThread.numCollectors();
+    final int numberOfCollectors = CollectorThread.numCollectors();
     // This thread as a collector
-    final VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
+    final CollectorThread ct = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
     // The number of static references
-    final int numberOfReferences = VM_Statics.getNumberOfReferenceSlots();
+    final int numberOfReferences = Statics.getNumberOfReferenceSlots();
     // The size to give each thread
     final int chunkSize = (numberOfReferences / numberOfCollectors) & chunkSizeMask;
     // The number of this collector thread (1...n)
@@ -65,7 +68,30 @@ public final class ScanStatics implements Constants {
     // Process region
     for (int slot=start; slot < end; slot+=refSlotSize) {
       Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
+      if (ScanThread.VALIDATE_REFS) checkReference(slots.plus(slotOffset), slot);
       trace.processRootEdge(slots.plus(slotOffset), true);
+    }
+  }
+
+  /**
+   * Check that a reference encountered during scanning is valid.  If
+   * the reference is invalid, dump stack and die.
+   *
+   * @param refaddr The address of the reference in question.
+   */
+  @Uninterruptible
+  private static void checkReference(Address refaddr, int slot) {
+    ObjectReference ref = refaddr.loadObjectReference();
+    if (!MemoryManager.validRef(ref)) {
+      Log.writeln();
+      Log.writeln("Invalid ref reported while scanning statics");
+      Log.write("Static slot: "); Log.writeln(slot);
+      Log.writeln();
+      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.writeln();
+      Log.writeln("Dumping stack:");
+      Scheduler.dumpStack();
+      VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
 }

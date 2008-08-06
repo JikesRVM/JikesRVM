@@ -13,7 +13,8 @@
 package org.jikesrvm.tools.ant;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 import org.apache.tools.ant.BuildException;
@@ -26,6 +27,7 @@ public class SelectRegexTask
     extends Task {
 
   private RegularExpression pattern;
+  private int patternLines;
   private String select;
 
   private String property;
@@ -38,14 +40,13 @@ public class SelectRegexTask
   public void setPattern(final String pattern) {
     this.pattern = new RegularExpression();
     this.pattern.setPattern(pattern);
+    this.patternLines = pattern.split(System.getProperty("line.separator")).length;
   }
 
   public void execute() {
     validate();
 
-    final byte[] bytes = readFully();
-    final String input = new String(bytes);
-    final String output = performMatching(input);
+    final String output = matchFile();
     if (output != null) {
       Property p = (Property) getProject().createTask("property");
       p.setName(property);
@@ -54,23 +55,37 @@ public class SelectRegexTask
     }
   }
 
-  private byte[] readFully() {
-    FileInputStream inputStream = null;
+  private String matchFile() {
+    BufferedReader input = null;
     try {
-      inputStream = new FileInputStream(file);
-      final int size = (int) file.length();
-      final byte[] bytes = new byte[size];
-      int count = 0;
-      while (count < size) {
-        count += inputStream.read(bytes, count, size - count);
+      final Regexp regexp = this.pattern.getRegexp(getProject());
+      input = new BufferedReader(new FileReader(file));
+      String[] lines = new String[patternLines];
+      String sep = System.getProperty("line.separator");
+      for(int i=0; i < lines.length; i++) {
+        lines[i] = "";
       }
-      return bytes;
+      int nextLine = 0;
+      while((lines[nextLine] = input.readLine()) != null) {
+        StringBuilder sb = new StringBuilder();
+        for(int i=nextLine+1; i <= nextLine + lines.length ; i++) {
+          String line = lines[i % lines.length];
+          sb.append(line);
+          sb.append(sep);
+        }
+        String result = performMatching(sb.toString());
+        if (result != null) {
+          return result;
+        }
+        nextLine = (nextLine + 1) % lines.length;
+      }
+      return null;
     } catch (IOException ioe) {
       throw new BuildException("Error loading file " + file, ioe, getLocation());
     } finally {
-      if (null != inputStream) {
+      if (input != null) {
         try {
-          inputStream.close();
+          input.close();
         } catch (final IOException ioe) {
           //ignore
         }

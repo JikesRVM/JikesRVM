@@ -36,12 +36,12 @@ import java.util.HashSet;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.ArchitectureSpecific.StackManager;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -57,10 +57,10 @@ import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ssa.HeapVariable;
 import org.jikesrvm.compilers.opt.ssa.SSAOptions;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 import org.vmmagic.pragma.NoInline;
 
 /**
@@ -123,33 +123,33 @@ public final class IR {
   public static final byte MIR = 3;
 
   /**
-   * The {@link VM_NormalMethod} object corresponding to the
+   * The {@link NormalMethod} object corresponding to the
    * method being compiled. Other methods may have been inlined into
    * the IR during compilation, so method really only represents the
    * primary or outermost method being compiled.
    */
-  public final VM_NormalMethod method;
+  public final NormalMethod method;
 
   /**
    * The specialized parameters to be used in place of those defined
-   * in the VM_NormalMethod.
+   * in the NormalMethod.
    */
-  public final VM_TypeReference[] params;
+  public final TypeReference[] params;
 
   /**
-   * @return The {@link VM_NormalMethod} object corresponding to the
+   * @return The {@link NormalMethod} object corresponding to the
    * method being compiled. Other methods may have been inlined into
    * the IR during compilation, so method really only represents the
    * primary or outermost method being compiled.
    */
-  public VM_NormalMethod getMethod() {
+  public NormalMethod getMethod() {
     return method;
   }
 
   /**
    * The compiled method created to hold the result of this compilation.
    */
-  public final VM_OptCompiledMethod compiledMethod;
+  public final OptCompiledMethod compiledMethod;
 
   /**
    * The compiler {@link OptOptions options} that apply
@@ -275,26 +275,26 @@ public final class IR {
    * @param ip   The inlining oracle to use for the compilation
    * @param opts The options to use for the compilation
    */
-  public IR(VM_NormalMethod m, InlineOracle ip, OptOptions opts) {
+  public IR(NormalMethod m, InlineOracle ip, OptOptions opts) {
     method = m;
     params = null;
     options = opts;
     inlinePlan = ip;
     instrumentationPlan = null;
-    compiledMethod = (VM_OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
+    compiledMethod = (OptCompiledMethod) CompiledMethods.createCompiledMethod(method, CompiledMethod.OPT);
   }
 
   /**
    * @param m    The method to compile
    * @param cp   The compilation plan to execute
    */
-  public IR(VM_NormalMethod m, CompilationPlan cp) {
+  public IR(NormalMethod m, CompilationPlan cp) {
     method = m;
     params = cp.params;
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     instrumentationPlan = cp.instrumentationPlan;
-    compiledMethod = (VM_OptCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
+    compiledMethod = (OptCompiledMethod) CompiledMethods.createCompiledMethod(method, CompiledMethod.OPT);
   }
 
   /**
@@ -488,7 +488,7 @@ public final class IR {
    *             enumerate.
    * @return an enumeration of said blocks.
    */
-  public BasicBlockEnumeration getBasicBlocks(VM_BitVector bits) {
+  public BasicBlockEnumeration getBasicBlocks(BitVector bits) {
     return new BitSetBBEnum(this, bits);
   }
 
@@ -498,7 +498,7 @@ public final class IR {
   private static final class BitSetBBEnum implements BasicBlockEnumeration {
     private final Stack<BasicBlock> stack;
 
-    BitSetBBEnum(IR ir, VM_BitVector bits) {
+    BitSetBBEnum(IR ir, BitVector bits) {
       stack = new Stack<BasicBlock>();
       int size = bits.length();
       Enumeration<BasicBlock> bbEnum = ir.getBasicBlocks();
@@ -691,7 +691,10 @@ public final class IR {
     if (IRStage < MIR) {
       // In HIR or LIR:
       // Simple def-use tests
-      verifyRegisterDefs(where);
+      if (VM.BuildForPowerPC) {
+        // only on PPC as def use doesn't consider def-use
+        verifyRegisterDefs(where);
+      }
 
       // Verify registers aren't in use for 2 different types
       verifyRegisterTypes(where);
@@ -1067,8 +1070,8 @@ public final class IR {
   @SuppressWarnings("unused")
   // used when needed for debugging
   private void verifyAllBlocksAreReachable(String where) {
-    VM_BitVector reachableNormalBlocks = new VM_BitVector(cfg.numberOfNodes());
-    VM_BitVector reachableExceptionBlocks = new VM_BitVector(cfg.numberOfNodes());
+    BitVector reachableNormalBlocks = new BitVector(cfg.numberOfNodes());
+    BitVector reachableExceptionBlocks = new BitVector(cfg.numberOfNodes());
     resetBasicBlockMap();
     verifyAllBlocksAreReachable(where, cfg.entry(), reachableNormalBlocks, reachableExceptionBlocks, false);
     boolean hasUnreachableBlocks = false;
@@ -1102,8 +1105,8 @@ public final class IR {
    * @param visitedExceptionalBBs the blocks already visited (to avoid cycles) on exceptional out edges
    * @param fromExceptionEdge should paths from exceptions be validated?
    */
-  private void verifyAllBlocksAreReachable(String where, BasicBlock curBB, VM_BitVector visitedNormalBBs,
-                                           VM_BitVector visitedExceptionalBBs, boolean fromExceptionEdge) {
+  private void verifyAllBlocksAreReachable(String where, BasicBlock curBB, BitVector visitedNormalBBs,
+                                           BitVector visitedExceptionalBBs, boolean fromExceptionEdge) {
     // Set visited information
     if (fromExceptionEdge) {
       visitedExceptionalBBs.set(curBB.getNumber());
@@ -1201,7 +1204,7 @@ public final class IR {
     verifyUseFollowsDef(where,
                         definedVariables,
                         cfg.entry(),
-                        new VM_BitVector(cfg.numberOfNodes()),
+                        new BitVector(cfg.numberOfNodes()),
                         new ArrayList<BasicBlock>(),
                         5,
                         // <-- maximum number of basic blocks followed
@@ -1222,7 +1225,7 @@ public final class IR {
    * @param traceExceptionEdges    should paths from exceptions be validated?
    */
   private void verifyUseFollowsDef(String where, HashSet<Object> definedVariables, BasicBlock curBB,
-                                   VM_BitVector visitedBBs, ArrayList<BasicBlock> path, int maxPathLength,
+                                   BitVector visitedBBs, ArrayList<BasicBlock> path, int maxPathLength,
                                    boolean traceExceptionEdges) {
     if (path.size() > maxPathLength) {
       return;
@@ -1265,6 +1268,8 @@ public final class IR {
         while (useOperands.hasMoreElements()) {
           Object variable = getVariableUse(where, useOperands.next());
           if ((variable != null) && (!definedVariables.contains(variable))) {
+            if (instruction.operator.toString().indexOf("xor") != -1)
+              continue;
             StringBuffer pathString = new StringBuffer();
             for (int i = 0; i < path.size(); i++) {
               pathString.append(path.get(i).getNumber());
@@ -1305,7 +1310,7 @@ public final class IR {
         verifyUseFollowsDef(where,
                             new HashSet<Object>(definedVariables),
                             out,
-                            new VM_BitVector(visitedBBs),
+                            new BitVector(visitedBBs),
                             new ArrayList<BasicBlock>(path),
                             maxPathLength,
                             traceExceptionEdges);

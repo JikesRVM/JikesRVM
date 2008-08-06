@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-public final class FloatConstantOperand extends ConstantOperand implements VM_SizeConstants {
+public final class FloatConstantOperand extends ConstantOperand implements SizeConstants {
 
   /**
    * Value of this operand.
@@ -43,11 +43,11 @@ public final class FloatConstantOperand extends ConstantOperand implements VM_Si
   public FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
-      offset = VM_Entrypoints.zeroFloatField.getOffset();
+      offset = Entrypoints.zeroFloatField.getOffset();
     } else if (v == 1.f) {
-      offset = VM_Entrypoints.oneFloatField.getOffset();
+      offset = Entrypoints.oneFloatField.getOffset();
     } else if (v == 2.f) {
-      offset = VM_Entrypoints.twoFloatField.getOffset();
+      offset = Entrypoints.twoFloatField.getOffset();
     } else {
       offset = Offset.zero();
     }
@@ -74,12 +74,12 @@ public final class FloatConstantOperand extends ConstantOperand implements VM_Si
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
-   * @return VM_TypeReference.Float
+   * @return TypeReference.Float
    */
-  public VM_TypeReference getType() {
-    return VM_TypeReference.Float;
+  public TypeReference getType() {
+    return TypeReference.Float;
   }
 
   /**

@@ -13,19 +13,12 @@
 package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_WITHOUT_BUDGET;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_DEFRAG;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_BLOCK_LIVE_BYTE_COUNTS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_LINE_MARKS;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Extent;
 
 /**
  * This class implements unsynchronized (local) elements of an
@@ -84,10 +77,10 @@ public final class CollectorLocal implements Constants {
         clearAllBlockMarkState(ordinal);
     } else {
       if (majorGC) {
-        if (!TMP_SUPPORT_DEFRAG || TMP_DEFRAG_TO_IMMORTAL || TMP_DEFRAG_WITHOUT_BUDGET || !immixSpace.inImmixDefragCollection())
+        if (!immixSpace.inImmixDefragCollection())
           clearAllLineMarks(ordinal);
         else {
-          short threshold = TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS ? Defrag.defragSpillThreshold : ImmixSpace.getReusuableMarkStateThreshold(true);
+          short threshold = Defrag.defragSpillThreshold;
           resetLineMarksAndDefragStateTable(ordinal, threshold);
         }
       }
@@ -95,19 +88,17 @@ public final class CollectorLocal implements Constants {
   }
 
   private void resetLineMarksAndDefragStateTable(int ordinal, final short threshold) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC && TMP_USE_LINE_MARKS && immixSpace.inImmixDefragCollection());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC && immixSpace.inImmixDefragCollection());
     int stride = VM.collection.activeGCThreads();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {
       Chunk.resetLineMarksAndDefragStateTable(chunk, threshold);
-      if (TMP_USE_BLOCK_LIVE_BYTE_COUNTS)
-        VM.memory.zero(chunk.plus(Chunk.BLOCK_LIVE_BYTE_TABLE_OFFSET), Extent.fromIntZeroExtend(Block.BLOCK_LIVE_BYTE_TABLE_BYTES));
       chunk = chunkMap.nextChunk(chunk, ordinal, stride);
     }
   }
 
   private void clearAllLineMarks(int ordinal) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC && TMP_USE_LINE_MARKS);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC);
     int stride = VM.collection.activeGCThreads();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {

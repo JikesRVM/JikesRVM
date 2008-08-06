@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_REM_opcode;
@@ -32,17 +32,17 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_INDEX;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
-import static org.jikesrvm.objectmodel.VM_TIBLayoutConstants.TIB_TYPE_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.CallingConvention;
-import org.jikesrvm.ArchitectureSpecific.ComplexLIR2MIRExpansion;
-import org.jikesrvm.ArchitectureSpecific.ConvertALUOperators;
-import org.jikesrvm.ArchitectureSpecific.NormalizeConstants;
-import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
+import org.jikesrvm.ArchitectureSpecificOpt.ComplexLIR2MIRExpansion;
+import org.jikesrvm.ArchitectureSpecificOpt.ConvertALUOperators;
+import org.jikesrvm.ArchitectureSpecificOpt.NormalizeConstants;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.NullCheckCombining;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -72,9 +72,9 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
-import org.jikesrvm.objectmodel.VM_JavaHeader;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.objectmodel.JavaHeader;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -137,12 +137,12 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
       for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         switch (s.getOpcode()) {
           case ARRAYLENGTH_opcode: {
-            // array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
+            // array_ref[ObjectModel.getArrayLengthOffset()] contains the length
             Load.mutate(s,
                         INT_LOAD,
                         GuardedUnary.getClearResult(s),
                         GuardedUnary.getClearVal(s),
-                        IRTools.AC(VM_ObjectModel.getArrayLengthOffset()),
+                        IRTools.AC(ObjectModel.getArrayLengthOffset()),
                         new LocationOperand(),
                         GuardedUnary.getClearGuard(s));
           }
@@ -155,13 +155,13 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                         Operators.REF_LOAD,
                         GuardedUnary.getClearResult(s),
                         address,
-                        new AddressConstantOperand(VM_JavaHeader.getTibOffset()),
+                        new AddressConstantOperand(JavaHeader.getTibOffset()),
                         null,
                         GuardedUnary.getClearGuard(s));
             break;
 
           case GET_CLASS_TIB_opcode: {
-            VM_Type type = ((TypeOperand) Unary.getVal(s)).getVMType();
+            RVMType type = ((TypeOperand) Unary.getVal(s)).getVMType();
             Offset offset = type.getTibOffset();
             Load.mutate(s,
                         REF_LOAD,
@@ -222,7 +222,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          SYSCALL,
                          GuardedBinary.getClearResult(s),
                          null,
-                         MethodOperand.STATIC(VM_Entrypoints.sysLongDivideIPField),
+                         MethodOperand.STATIC(Entrypoints.sysLongDivideIPField),
                          GuardedBinary.getClearVal1(s),
                          GuardedBinary.getClearVal2(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
@@ -236,7 +236,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          SYSCALL,
                          GuardedBinary.getClearResult(s),
                          null,
-                         MethodOperand.STATIC(VM_Entrypoints.sysLongRemainderIPField),
+                         MethodOperand.STATIC(Entrypoints.sysLongRemainderIPField),
                          GuardedBinary.getClearVal1(s),
                          GuardedBinary.getClearVal2(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
@@ -251,7 +251,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                            SYSCALL,
                            Binary.getClearResult(s),
                            null,
-                           MethodOperand.STATIC(VM_Entrypoints.sysDoubleRemainderIPField),
+                           MethodOperand.STATIC(Entrypoints.sysDoubleRemainderIPField),
                            Binary.getClearVal1(s),
                            Binary.getClearVal2(s));
               ConvertToLowLevelIR.expandSysCallTarget(s, ir);
@@ -266,7 +266,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                            SYSCALL,
                            Unary.getClearResult(s),
                            null,
-                           MethodOperand.STATIC(VM_Entrypoints.sysLongToFloatIPField),
+                           MethodOperand.STATIC(Entrypoints.sysLongToFloatIPField),
                            Unary.getClearVal(s));
               ConvertToLowLevelIR.expandSysCallTarget(s, ir);
               CallingConvention.expandSysCall(s, ir);
@@ -280,7 +280,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                            SYSCALL,
                            Unary.getClearResult(s),
                            null,
-                           MethodOperand.STATIC(VM_Entrypoints.sysLongToDoubleIPField),
+                           MethodOperand.STATIC(Entrypoints.sysLongToDoubleIPField),
                            Unary.getClearVal(s));
               ConvertToLowLevelIR.expandSysCallTarget(s, ir);
               CallingConvention.expandSysCall(s, ir);
@@ -294,7 +294,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          SYSCALL,
                          Unary.getClearResult(s),
                          null,
-                         MethodOperand.STATIC(VM_Entrypoints.sysFloatToLongIPField),
+                         MethodOperand.STATIC(Entrypoints.sysFloatToLongIPField),
                          Unary.getClearVal(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
             CallingConvention.expandSysCall(s, ir);
@@ -307,7 +307,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          SYSCALL,
                          Unary.getClearResult(s),
                          null,
-                         MethodOperand.STATIC(VM_Entrypoints.sysDoubleToLongIPField),
+                         MethodOperand.STATIC(Entrypoints.sysDoubleToLongIPField),
                          Unary.getClearVal(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
             CallingConvention.expandSysCall(s, ir);

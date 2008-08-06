@@ -1,0 +1,34 @@
+main() {
+  int initial = 1;
+  recurse(initial,10);
+  print(initial);
+
+  object initial_o = alloc(0,1);
+  initial_o.int[0] = 1;
+  recurse_o(initial_o,10);
+  print(initial_o.int[0]);
+}
+
+recurse(int v1, int depth) {
+  v1 = v1 * 2;
+  int saved_depth = depth + 0;
+  if (depth > 0) {
+    print(v1,",",depth);
+    recurse(v1,depth-1);
+  }
+  if (saved_depth != depth) {
+    print("help! variables escaping scope!!");
+  }
+}
+
+recurse_o(object v1, int depth) {
+  object v2 = alloc(0,1);
+  v2.int[0] = v1.int[0] * 2;
+  if (depth > 0) {
+    print(v2.int[0],",",depth);
+    recurse_o(v2,depth-1);
+  }
+  if (v2.int[0] != v1.int[0] * 2) {
+    print("help! variables escaping scope!!");
+  }
+}

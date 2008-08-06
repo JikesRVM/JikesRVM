@@ -228,7 +228,6 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * live. This is only used when maintainSideBitmap is false.
    *
    * @param object The object to query
-   * @param markState The markState ot compare against
    * @return True if the cell should be reclaimed
    */
   @Inline

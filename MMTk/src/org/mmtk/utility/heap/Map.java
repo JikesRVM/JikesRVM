@@ -239,7 +239,7 @@ public class Map {
     /* set up the global page map and place chunks on free list */
     int firstPage = 0;
     for (int chunk = start; chunk < end; chunk++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.barriers.getArrayNoBarrier(spaceMap, chunk) == null);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunk] == null);
       totalAvailableDiscontiguousChunks++;
       regionMap.free(chunk);  // put this chunk on the free list
       globalPageMap.setUncoalescable(firstPage);

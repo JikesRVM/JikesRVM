@@ -32,9 +32,9 @@ extern "C" {
 #include "../../include/jni.h"
 
 #ifdef RVM_FOR_32_ADDR
-#define VM_Offset int32_t
+#define Offset int32_t
 #else
-#define VM_Offset int64_t
+#define Offset int64_t
 #endif
 // Sink for messages relating to serious errors detected by C runtime.
 extern FILE *SysErrorFile;    // sink for serious error messages
@@ -67,10 +67,12 @@ extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
 
 /* Defined in RunBootImage.C */
+#ifdef __cplusplus
 unsigned int parse_memory_size(
     const char *sizeName, const char *sizeFlag,
     const char *defaultFactor, unsigned roundTo,
     const char *token, const char *subtoken, bool *fastExit);
+#endif
 
 extern int verboseBoot;
 
@@ -87,14 +89,14 @@ extern void findMappable(void);
 
 #ifdef RVM_FOR_POWERPC
 /* Used in libvm.C, sys.C.  Defined in assembly code: */
-extern void bootThread(int jtoc, int pr, int ti_or_ip, int fp); // assembler routine
+extern void bootThread(int jtoc,int pr, int ti_or_ip, int fp); // assembler routine
 #else
-extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler routine
+extern int bootThread(int ti_or_ip, int pr, int sp); // assembler routine
 #endif
 
 // These are defined in libvm.C.
 extern void *getJTOC(void);
-extern VM_Offset getProcessorsOffset(void);
+extern Offset getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
 extern jint GetEnv(JavaVM *, void **, jint);
@@ -109,6 +111,8 @@ extern void processTimerTick(void);
 extern mach_timebase_info_data_t timebaseInfo;
 #endif
 
+// Defined in jvm.C. Used in harmony.c
+extern struct JavaVM_ sysJavaVM;
 #ifdef __cplusplus
 }
 #endif

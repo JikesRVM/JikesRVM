@@ -188,7 +188,7 @@ import org.vmmagic.unboxed.*;
       if (MERLIN_ANALYSIS) {
         ObjectReference oldTgt = slot.loadObjectReference();
         if (!oldTgt.isNull())
-          VM.traceInterface.updateDeathTime(oldTgt.toObject());
+          VM.traceInterface.updateDeathTime(oldTgt);
       }
 
       traceBusy = true;
@@ -245,7 +245,7 @@ import org.vmmagic.unboxed.*;
        trace.push(VM.traceInterface.getOID(ref));
        trace.push(Word.fromIntZeroExtend(bytes - VM.traceInterface.getHeaderSize()));
        trace.push(fp.toWord());
-       trace.push(Word.zero()); /* VM_Magic.getThreadId() */
+       trace.push(Word.zero()); /* Magic.getThreadId() */
        trace.push(TRACE_TIB_SET);
        trace.push(VM.traceInterface.getOID(ref));
        trace.push(VM.traceInterface.getOID(typeRef));
@@ -273,7 +273,7 @@ import org.vmmagic.unboxed.*;
        trace.push(VM.traceInterface.getOID(ref));
        trace.push(Word.fromIntZeroExtend(bytes - VM.traceInterface.getHeaderSize()));
        trace.push(fp.toWord());
-       trace.push(Word.zero()); /* VM_Magic.getThreadId() */
+       trace.push(Word.zero()); /* Magic.getThreadId() */
        trace.push(TRACE_TIB_SET);
        trace.push(VM.traceInterface.getOID(ref));
        trace.push(VM.traceInterface.getOID(typeRef));
@@ -354,7 +354,7 @@ import org.vmmagic.unboxed.*;
    * @param obj The root-referenced object
    */
   public static void rootEnumerate(ObjectReference obj) {
-    VM.traceInterface.updateDeathTime(obj.toObject());
+    VM.traceInterface.updateDeathTime(obj);
   }
 
   /**

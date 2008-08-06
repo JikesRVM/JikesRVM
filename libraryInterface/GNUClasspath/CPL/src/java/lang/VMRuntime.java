@@ -15,15 +15,10 @@ package java.lang;
 import java.io.File;
 
 import org.jikesrvm.*;
-import org.jikesrvm.runtime.VM_DynamicLibrary;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.greenthreads.VM_Process;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.memorymanagers.mminterface.*;
-
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.pragma.Entrypoint;
+import org.jikesrvm.runtime.DynamicLibrary;
+import org.jikesrvm.scheduler.greenthreads.VMProcess;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.mm.mminterface.*;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
@@ -33,39 +28,26 @@ public final class VMRuntime {
 
   private static boolean runFinalizersOnExit = false;
 
-  static {
-    instance = new VMRuntime();
-    gcLockOffset = VM_Entrypoints.gcLockField.getOffset();
-  }
-  private static final VMRuntime instance;
-  @SuppressWarnings("unused") // Accessed from VM_EntryPoints
-  @Entrypoint
-  private int gcLock;
-  private static final Offset gcLockOffset;
-
   private VMRuntime() { }
 
   static int availableProcessors() {
-    return VM_Scheduler.availableProcessors();
+    return Scheduler.availableProcessors();
   }
 
   static long freeMemory() {
-    return MM_Interface.freeMemory().toLong();
+    return MemoryManager.freeMemory().toLong();
   }
 
   static long totalMemory() {
-    return MM_Interface.totalMemory().toLong();
+    return MemoryManager.totalMemory().toLong();
   }
 
   static long maxMemory() {
-    return MM_Interface.maxMemory().toLong();
+    return MemoryManager.maxMemory().toLong();
   }
 
   static void gc() {
-    if (VM_Synchronization.testAndSet(instance, gcLockOffset, 1)) {
-      MM_Interface.gc();
-      VM_Synchronization.fetchAndStore(instance, gcLockOffset, 0);
-    }
+    VMCommonLibrarySupport.gc();
   }
 
   static void runFinalization() {
@@ -77,7 +59,7 @@ public final class VMRuntime {
   static void runFinalizationForExit() {
     if (runFinalizersOnExit) {
       // TODO: talk to Steve B & Perry and figure out what to do.
-      throw new VM_UnimplementedError();
+      throw new UnimplementedError();
     }
   }
 
@@ -102,28 +84,21 @@ public final class VMRuntime {
    * @param loader Ignored.  null means the bootstrap class loader.
    * @return nonzero on success, zero on failure. */
   static int nativeLoad(String libName, ClassLoader loader) {
-    return VM_DynamicLibrary.load(libName);
+    return DynamicLibrary.load(libName);
   }
 
 
-  /** Mangle a short-name to the file name (not the full pathname) for a
-   *  dynamically loadable library.
+  /**
+   * Mangle a short-name to the file name (not the full pathname) for a
+   * dynamically loadable library.
    */
   static String mapLibraryName(String libname) {
-    String libSuffix;
-    if (VM.BuildForLinux || VM.BuildForSolaris) {
-      libSuffix = ".so";
-    } else if (VM.BuildForOsx) {
-      libSuffix = ".jnilib";
-    } else {
-      libSuffix = ".a";
-    }
-    return "lib" + libname + libSuffix;
+    return VMCommonLibrarySupport.mapLibraryName(libname);
   }
 
   static Process exec(String[] cmd, String[] env, File dir) {
     String dirPath = (dir != null) ? dir.getPath() : null;
-    return new VM_Process(cmd[0], cmd, env, dirPath);
+    return new VMProcess(cmd[0], cmd, env, dirPath);
   }
 
   /**

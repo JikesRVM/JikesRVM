@@ -5,6 +5,128 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+* Jikes RVM 3.0.0  (August 7, 2008)
+
+We're very happy to announce the release of Jikes RVM version 3.0.0.
+The road towards 3.0 began just about two years ago and a large number of
+people, both on the core team and from our user community at large,
+have contributed to making it a success. Thank You!
+
+The detailed release notes for major changes since 2.9.3 can be found
+below, but we'd like to highlight some of the larger themes that went
+into the 3.0 release (many of which have already been released in 
+the 2.9.x releases we've made along the way).
+  ** Normalization of source code and build process
+    *** Complete rewrite of the build/test systems to use ant.
+    *** Jikes RVM can be developed in Eclipse using the JDT
+    *** Extensive restructuring of package structure
+    *** Removal of VM_ and OPT_ prefixes from all source files.
+  ** Increased system stability and performance
+    *** A new continuous testing system (http://jikesrvm.anu.edu.au/cattrack)
+    *** Concerted stability and performance drives
+  ** Java 5 support
+    *** Support for Java 5 language features
+    *** Use of Java 5 language features throughout the code base
+    
+Detailed list (89 issues closed in the 3 months since 2.9.3)
+
+** New Feature
+    * [RVM-358] - Initial support for Apache Harmony class library
+    * [RVM-480] - Spec JVM 2008 regression test
+    * [RVM-534] - MMTk Test harness
+    * [RVM-540] - Implement java.lang.Compiler
+    * [RVM-591] - Support for jdocs.com javadoc
+    * [RVM-592] - Checks on creating ObjectReferences
+
+** Improvement
+    * [RVM-72] - NonMoving annotations for classes instances of which should be allocated to the immortal heap
+    * [RVM-273] - Remove VM_ prefix from all VM classes
+    * [RVM-275] - Remove VMOpt prefix from opt compiler classes that go into bootimage
+    * [RVM-282] - Make dumpVirtualMachine more defensive
+    * [RVM-329] - Specialize IA32 assembler for lister vs. non-lister
+    * [RVM-333] - Annotations used for VM Pragmas (NoInline, Uninterruptible, etc) probably should not be as closed linked to classloaders
+    * [RVM-445] - Clean up handling of JTOC
+    * [RVM-449] - Handle instanceof and checkcast in ShortArray scalar replacer
+    * [RVM-477] - Gather new compiler DNA
+    * [RVM-501] - BuildWithAllClasses is (practically) unused
+    * [RVM-502] - Dead code elimination of pure calls
+    * [RVM-505] - Eliminate calls to VM_Class.getClass..FromStackFrame when stack frame is determinable
+    * [RVM-508] - Have hash map where entries are completely immutable saving references from boot image root set
+    * [RVM-510] - Create top level common directory to make it easier to split out and share useful components from rvm and MMTk
+    * [RVM-511] - Split out MMTk option processing support
+    * [RVM-512] - Experiment with freezing bucket array in VM_HashMap/VM_HashSet
+    * [RVM-513] - Large arrays in boot image cause memory leak
+    * [RVM-525] - Upgrade to GNU classpath 0.97.2
+    * [RVM-537] - Implement inline mustImplementInterface sequence for invokeinterface in baseline compilers
+    * [RVM-538] - Inline checkcast/instanceof sequences in baseline compiler for simple cases
+    * [RVM-572] - Remove OSR_ and BC_ prefixes from OnStackReplacement code
+    * [RVM-593] - Extra checks on references being traced in rvm
+    * [RVM-603] - Improve intel baseline prologue/epilogue/call by use push/pop instead of mov [sp]
+    * [RVM-594] - Naming of MM_Interface
+
+** Bug
+    * [RVM-46] - CaffieneMark failures on AIX/PPC
+    * [RVM-47] - DaCapo regressions on AIX/PPC
+    * [RVM-58] - Linker errors under AIX/ppc
+    * [RVM-105] - sysNetSelect doesnt seem to be avoiding the syswrap select
+    * [RVM-187] - VM_OptGenericMapIterator: findGCMapIndex failed
+    * [RVM-221] - Specialized scanning broken on ppc64-aix?
+    * [RVM-234] - Annotation issues: not implemented via proxy classes, support for serialization
+    * [RVM-269] - unresolved invokeinterface on <null> should force classloading before rasiing NPE
+    * [RVM-271] - Timeouts for stress are not correct
+    * [RVM-303] - Cannot modify accessible final instance fields
+    * [RVM-325] - Spec JVM 98 jack failing with OOMs
+    * [RVM-327] - Performance degredation in IA32 assembler
+    * [RVM-332] - Eclipse 3.2 fails to run on the RVM
+    * [RVM-369] - PPC32-OSX - Crash in GC when a stack contains native frames
+    * [RVM-372] - Integer overflow in sysNanoTime
+    * [RVM-423] - Fop performance strangeness
+    * [RVM-442] - All poisoned tests fail PPC 32
+    * [RVM-454] - The sub-test TestAnnotationInheritance of the basic tests is excluded until it can be fixed
+    * [RVM-458] - Poisoned bit test highlights JNI problem
+    * [RVM-469] - Fix IA32 assembler to use Address instead of Offset for absolute addressing
+    * [RVM-482] - Crash when running Production_Opt0_perf portion of compiler-dna test run
+    * [RVM-483] - Conditionalize fsqrt generation on PowerPC
+    * [RVM-492] - Dumping empty stack kills VM
+    * [RVM-493] - VM_Annotation.readValue doesn't use the correct classloader
+    * [RVM-494] - Conversion between type descriptors, class names, and file names in VM_Atom behaves inconsistently
+    * [RVM-495] - Crash during first major GC on PPC64 tests when running with -X:processors=2
+    * [RVM-497] - New scan boot image assertion failing poisoned tests
+    * [RVM-499] - Overflowing JTOC during DaCapo eclipse run on PPC64 AIX
+    * [RVM-500] - No such field error: TreeMap$SubMap.minKey
+    * [RVM-504] - Increase time out on DaCapo eclipse for rvmppclnx64
+    * [RVM-506] - The field last in VM_HashMap and VM_HashSet is only ever set to null
+    * [RVM-514] - Pure on mathMagic breaks dacapo sunflow
+    * [RVM-521] - Freshly checked out r14346 fails to build with an uninterruptible violation
+    * [RVM-526] - GNU Classpath build: paths too long in check_jni.sh
+    * [RVM-527] - Harmony doesn't build 32bit libraries as necessary for x86_64 build
+    * [RVM-529] - Implement reflection API for Harmony
+    * [RVM-531] - Boot image stack size too small
+    * [RVM-541] - gc stress failures
+    * [RVM-542] - Incorrect encoding of inner class native method names
+    * [RVM-543] - Invoking JNI_OnLoad of unrelated libraries when loading a library with no JNI_OnLoad
+    * [RVM-544] - Class argument in NewObject ignored
+    * [RVM-547] - Building the boot image with the opt compiler and Harmony fails
+    * [RVM-550] - Implementation of isZero magic in PPC baseline compiler can overflow expression stack and corrupt stack frame
+    * [RVM-571] - BigDecimal Pure annotations causes crash on SPECjbb2005 for FullAdaptiveMarkSweep
+    * [RVM-582] - Fix all javadoc "syntax" errors
+    * [RVM-583] - Incorrect rounding on simplified integer divide
+    * [RVM-585] - RVM Identity HashMap doesn't use identity hashCode.. only identity.equals
+    * [RVM-587] - IdentityHashMaps in the bootimage
+    * [RVM-588] - Assertion failure in BC2IR for primitive array load
+    * [RVM-597] - Array index out of bounds in BC2IR generation context
+    * [RVM-598] - Increase use of unpreemptible
+    * [RVM-599] - New poisoned test failures on x86
+    * [RVM-608] - Object replacement ignores finalizer methods
+
+** Task and Sub-Task
+    * [RVM-37] - Doccument the command line options
+    * [RVM-42] - Build/Test infrastructiure to compute compiler DNA
+    * [RVM-490] - Null Pointer Exception in gnu.xml.transform.ParameterNode.clone
+    * [RVM-518] - Change build logic so that the VM prefix on a class name does not control inclusion in the bootimage
+    * [RVM-519] - Rename classes currently with VM_ prefix that will be confusing without it
+    * [RVM-520] - Update userguide to remove VM_ (and OPT_) prefix globally.
+
 *Jikes RVM 2.9.3 Release Notes (May 9, 2008)
 
 ** Sub-task

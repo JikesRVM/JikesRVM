@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
-import org.jikesrvm.classloader.VM_NormalMethod;
+import org.jikesrvm.classloader.NormalMethod;
 
 /**
  * An instance of this class acts instructs the optimizing
@@ -26,10 +26,10 @@ public abstract class InstrumentationPlan {
   /**
    * Called before at the beginning of compilation
    */
-  public abstract void initInstrumentation(VM_NormalMethod method);
+  public abstract void initInstrumentation(NormalMethod method);
 
   /**
    * Called after compilation completes, but before method is executed
    */
-  public abstract void finalizeInstrumentation(VM_NormalMethod method);
+  public abstract void finalizeInstrumentation(NormalMethod method);
 }

@@ -1,0 +1,231 @@
+Index: gnu/xml/transform/ForEachNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ForEachNode.java,v
+retrieving revision 1.7
+diff -u -u -r1.7 ForEachNode.java
+--- gnu/xml/transform/ForEachNode.java	17 Mar 2008 01:28:15 -0000	1.7
++++ gnu/xml/transform/ForEachNode.java	23 Jun 2008 22:22:24 -0000
+@@ -59,9 +59,9 @@
+ {
+ 
+   final Expr select;
+-  final List sortKeys;
++  final List<SortKey> sortKeys;
+ 
+-  ForEachNode(Expr select, List sortKeys)
++  ForEachNode(Expr select, List<SortKey> sortKeys)
+   {
+     this.select = select;
+     this.sortKeys = sortKeys;
+@@ -69,10 +69,10 @@
+ 
+   TemplateNode clone(Stylesheet stylesheet)
+   {
+-    int len = sortKeys != null ? sortKeys.size() : 0;
+-    List sortKeys2 = new ArrayList(len);
++    int len = sortKeys.size();
++    List<SortKey> sortKeys2 = new ArrayList<SortKey>(len);
+     for (int i = 0; i < len; i++)
+-      sortKeys2.add(((Key) sortKeys.get(i)).clone(stylesheet));
++      sortKeys2.add(sortKeys.get(i).clone(stylesheet));
+     TemplateNode ret = new ForEachNode(select.clone(stylesheet),
+                                        sortKeys2);
+     if (children != null)
+@@ -82,6 +82,7 @@
+     return ret;
+   }
+ 
++  @Override
+   void doApply(Stylesheet stylesheet, QName mode,
+              Node context, int pos, int len,
+              Node parent, Node nextSibling)
+@@ -96,26 +97,26 @@
+         //System.err.println(toString() + ": " + context+" -> "+ret);
+         if (ret instanceof Collection)
+           {
+-            Collection ns = (Collection) ret;
+-            List list = new ArrayList(ns);
+-            if (sortKeys != null)
+-              {
+-                for (Iterator i = sortKeys.iterator(); i.hasNext(); )
+-                  {
+-                    SortKey sortKey = (SortKey) i.next();
+-                    sortKey.init(stylesheet, mode, context, pos, len, parent,
+-                                 nextSibling);
+-                  }
+-                Collections.sort(list, new XSLComparator(sortKeys));
+-              }
+-            else
++	    /* Suppression is safe, as we know context produces Collection<Node> */
++	    @SuppressWarnings("unchecked")
++	      Collection<Node> ns = (Collection<Node>) ret;
++            List<Node> list = new ArrayList<Node>(ns);
++	    if (!sortKeys.isEmpty())
++	      {
++		for (SortKey sortKey : sortKeys)
++		  {
++		    sortKey.init(stylesheet, mode, context, pos, len, parent,
++				 nextSibling);
++		  }
++		Collections.sort(list, new XSLComparator(sortKeys));
++	      }
++	    else
+               Collections.sort(list, documentOrderComparator);
+             // Perform children for each node
+             int l = list.size();
+             int p = 1;
+-            for (Iterator i = list.iterator(); i.hasNext(); )
++	    for (Node node : list)
+               {
+-                Node node = (Node) i.next();
+                 stylesheet.current = node;
+                 children.apply(stylesheet, mode,
+                                node, p++, l,
+@@ -131,21 +132,20 @@
+                  parent, nextSibling);
+   }
+ 
++  @Override
+   public boolean references(QName var)
+   {
+     if (select != null && select.references(var))
+       return true;
+-    if (sortKeys != null)
++    for (Iterator<SortKey> i = sortKeys.iterator(); i.hasNext(); )
+       {
+-        for (Iterator i = sortKeys.iterator(); i.hasNext(); )
+-          {
+-            if (((SortKey) i.next()).references(var))
+-              return true;
+-          }
++	if (i.next().references(var))
++	  return true;
+       }
+     return super.references(var);
+   }
+-  
++
++  @Override
+   public String toString()
+   {
+     CPStringBuilder buf = new CPStringBuilder("for-each");
+Index: gnu/xml/transform/SortKey.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/SortKey.java,v
+retrieving revision 1.3
+diff -u -u -r1.3 SortKey.java
+--- gnu/xml/transform/SortKey.java	9 Jul 2005 20:38:35 -0000	1.3
++++ gnu/xml/transform/SortKey.java	23 Jun 2008 22:22:24 -0000
+@@ -45,7 +45,22 @@
+ import gnu.xml.xpath.Expr;
+ 
+ /**
+- * An XSL sort key.
++ * <p>
++ * An XSL sort key, as specified by section 10 of the XSL
++ * Transformations specification.  This takes the form:
++ * </p>
++ * <pre>
++ * &lt;xsl:sort
++ * select = string-expression
++ * lang = { nmtoken }
++ * data-type = { "text" | "number" | qname-but-not-ncname }
++ * order = { "ascending" | "descending" }
++ * case-order = { "upper-first" | "lower-first" } /&rt;
++ * </pre>
++ * <p>
++ * Note that all but the selection expression are optional,
++ * and so may be {@code null}.
++ * </p>
+  *
+  * @author <a href='mailto:dog@gnu.org'>Chris Burdess</a>
+  */
+@@ -67,6 +82,20 @@
+   transient boolean descending;
+   transient int caseOrder;
+ 
++  /**
++   * Constructs a new {@link SortKey} to represent an &lt;xsl:sort&rt;
++   * tag.
++   *
++   * @param select the XPath expression which selects the nodes to be sorted.
++   * @param lang the language of the sort keys or {@code null} if unspecified.
++   * @param dataType the data type of the strings.  May be "string", "number",
++   *                 a QName or {@code null} if unspecified.
++   * @param order the ordering of the nodes, which may be "ascending", "descending"
++   *              or {@code null} if unspecified.
++   * @param caseOrder the treatment of case when the data type is a string.  This
++   *                  may be "upper-first", "lower-first" or {@code null} if
++   *                  unspecified.
++   */ 
+   SortKey(Expr select, TemplateNode lang, TemplateNode dataType,
+           TemplateNode order, TemplateNode caseOrder)
+   {
+@@ -176,4 +205,35 @@
+     return false;
+   }
+ 
++  /**
++   * Provides a clone of this {@link SortKey}, using the given
++   * stylesheet as a context.
++   *
++   * @param stylesheet the stylesheet which provides context for the cloning.
++   * @return a clone of this instance.
++   */
++  SortKey clone(Stylesheet stylesheet)
++  {
++    return new SortKey(select.clone(stylesheet),
++		       langTemplate == null ? null : cloneAttributeValueTemplate(langTemplate, stylesheet),
++		       dataTypeTemplate == null ? null : cloneAttributeValueTemplate(dataTypeTemplate, stylesheet),
++		       orderTemplate == null ? null : cloneAttributeValueTemplate(orderTemplate, stylesheet),
++		       caseOrderTemplate == null ? null : cloneAttributeValueTemplate(caseOrderTemplate, stylesheet));
++  }
++
++  /**
++   * Clones an attribute value template as created by
++   * {@link Stylesheet#parseAttributeValueTemplate(String, Node)}.
++   * The node may either by a literal node or an xsl:value-of expression.
++   *
++   * @param node the node to clone.
++   * @param stylesheet the stylesheet which provides context for the cloning.
++   * @return the cloned node.
++   */
++  private TemplateNode cloneAttributeValueTemplate(TemplateNode node, Stylesheet stylesheet)
++  {
++    if (node instanceof ValueOfNode)
++      return ((ValueOfNode) node).clone(stylesheet);
++    return ((LiteralNode) node).clone(stylesheet);
++  }
+ }
+Index: gnu/xml/transform/Stylesheet.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/Stylesheet.java,v
+retrieving revision 1.14
+diff -u -u -r1.14 Stylesheet.java
+--- gnu/xml/transform/Stylesheet.java	23 Jun 2008 18:57:59 -0000	1.14
++++ gnu/xml/transform/Stylesheet.java	23 Jun 2008 22:22:27 -0000
+@@ -1644,7 +1644,7 @@
+           }
+         node = node.getNextSibling();
+       }
+-    return ret.isEmpty() ? null : ret;
++    return ret;
+   }
+ 
+   final List<WithParam> parseWithParams(Node node)
+Index: gnu/xml/transform/TemplateNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/TemplateNode.java,v
+retrieving revision 1.6
+diff -u -u -r1.6 TemplateNode.java
+--- gnu/xml/transform/TemplateNode.java	13 Jan 2006 17:23:31 -0000	1.6
++++ gnu/xml/transform/TemplateNode.java	23 Jun 2008 22:22:27 -0000
+@@ -52,7 +52,7 @@
+ abstract class TemplateNode
+ {
+ 
+-  static final Comparator documentOrderComparator =
++  static final Comparator<Node> documentOrderComparator =
+     new DocumentOrderComparator();
+ 
+   TemplateNode children;

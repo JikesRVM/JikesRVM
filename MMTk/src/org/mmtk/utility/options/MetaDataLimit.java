@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Provide a bound on how much metadata is allowed before a GC is triggered.
  */
-public final class MetaDataLimit extends PagesOption {
+public final class MetaDataLimit extends org.vmutil.options.PagesOption {
   /**
    * Create the option.
    */
   public MetaDataLimit() {
-    super("Meta Data Limit",
+    super(Options.set, "Meta Data Limit",
           "Trigger a GC if the meta data volume grows to this limit",
           4096);
   }

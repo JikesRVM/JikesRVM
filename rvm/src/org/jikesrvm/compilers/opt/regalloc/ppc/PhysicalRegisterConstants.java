@@ -12,14 +12,14 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import org.jikesrvm.ppc.VM_RegisterConstants;
+import org.jikesrvm.ppc.RegisterConstants;
 
 /**
  * This class holds constants that describe PowerPC register set.
  *
  * @see org.jikesrvm.compilers.opt.RegisterAllocator
  */
-public interface PhysicalRegisterConstants extends VM_RegisterConstants {
+public interface PhysicalRegisterConstants extends RegisterConstants {
 
   // Types of values stored in physical registers;
   // These affect instruction selection for accessing

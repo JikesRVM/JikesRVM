@@ -36,7 +36,7 @@ import org.vmmagic.pragma.*;
  * case when marking, while also allowing for fast sweeping, with
  * minimal space overhead (2 bits per object).
  *
- * @see SegregatedFreeList
+ * @see org.mmtk.utility.alloc.SegregatedFreeList
  * @see MarkSweepSpace
  */
 @Uninterruptible

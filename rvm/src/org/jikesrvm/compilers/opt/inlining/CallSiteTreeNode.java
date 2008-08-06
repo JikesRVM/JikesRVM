@@ -19,13 +19,13 @@ import org.jikesrvm.compilers.opt.util.TreeNode;
  * sites of a given method code body; a node stands for a single call
  * site.  These trees are used to construct the persistent runtime
  * encoding of inlining information, which is stored in
- * VM_OptMachineCodeMap objects.
+ * OptMachineCodeMap objects.
  *
  *
  * @see CallSiteTree
  * @see InlineSequence
- * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptMachineCodeMap
- * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree
+ * @see org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap
+ * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
  */
 public class CallSiteTreeNode extends TreeNode {
   /**
@@ -35,9 +35,9 @@ public class CallSiteTreeNode extends TreeNode {
 
   /**
    * The position of this call site in the binary encoding.  It is set
-   * by VM_OptEncodedCallSiteTree.getEncoding.
+   * by OptEncodedCallSiteTree.getEncoding.
    *
-   * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree#getEncoding
+   * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree#getEncoding
    */
   public int encodedOffset;
 

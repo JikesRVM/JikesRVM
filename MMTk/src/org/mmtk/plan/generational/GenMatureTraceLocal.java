@@ -25,7 +25,8 @@ import org.vmmagic.pragma.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
  */
-@Uninterruptible public abstract class GenMatureTraceLocal extends TraceLocal {
+@Uninterruptible
+public abstract class GenMatureTraceLocal extends TraceLocal {
 
   /****************************************************************************
    *

@@ -124,7 +124,7 @@ import org.vmmagic.unboxed.*;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
-    // if (VM_Interface.VerifyAssertions) enqueued++;
+    // if (Interface.VerifyAssertions) enqueued++;
   }
 
   /**

@@ -14,19 +14,19 @@ package org.jikesrvm.compilers.opt.mir2mc;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.Assembler;
+import org.jikesrvm.Constants;
+import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Memory;
 
 /**
  * A compiler phase that generates machine code instructions and maps.
  */
-final class AssemblerDriver extends CompilerPhase implements VM_Constants {
+final class AssemblerDriver extends CompilerPhase implements Constants {
 
   public String getName() {
     return "Assembler Driver";
@@ -57,7 +57,7 @@ final class AssemblerDriver extends CompilerPhase implements VM_Constants {
     // As part of the generation, the machinecode offset
     // of every instruction will be set by calling setmcOffset.
     //////////
-    int codeLength = Assembler.generateCode(ir, shouldPrint);
+    int codeLength = AssemblerOpt.generateCode(ir, shouldPrint);
 
     //////////
     // STEP 3: Generate all the mapping information
@@ -81,8 +81,8 @@ final class AssemblerDriver extends CompilerPhase implements VM_Constants {
     }
 
     if (VM.runningVM) {
-      VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode),
-                     codeLength << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+      Memory.sync(Magic.objectAsAddress(ir.MIRInfo.machinecode),
+                     codeLength << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
   }
 

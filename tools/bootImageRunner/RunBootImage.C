@@ -18,7 +18,7 @@
  * basic processing of command line arguments, and branching to VM.boot.
  *
  * The file "sys.C" contains the o/s support services to match
- * the entrypoints declared by VM_SysCall.java
+ * the entrypoints declared by SysCall.java
  *
  * 17 Oct 2000 The system code (everything except command line parsing in main)
  *             are moved into libvm.C to accomodate the JNI call CreateJVM
@@ -126,7 +126,7 @@ nonstandard_usage()
 static void
 shortVersion()
 {
-    fprintf(SysTraceFile, "%s %s using GNU Classpath %s\n",rvm_configuration, rvm_version, classpath_version);
+    fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
 }
 
 static void
@@ -356,7 +356,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 
         // All VM directives that take one token
         if (strnequal(token, "-D", 2)
-            || strnequal(token, nonStandardArgs[VM_INDEX], 5)
+            || strnequal(token, nonStandardArgs[INDEX], 5)
             || strnequal(token, nonStandardArgs[GC_INDEX], 5)
             || strnequal(token, nonStandardArgs[AOS_INDEX],6)
             || strnequal(token, nonStandardArgs[IRC_INDEX], 6)

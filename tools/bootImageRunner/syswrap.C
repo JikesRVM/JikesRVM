@@ -52,8 +52,8 @@
 #define C_LIBRARY_NAME "libc.so.6"
 
 // Pointers to actual syscall functions from C library.
-static SelectFunc_t libcSelect;
-static PollFunc_t libcPoll;
+static SelectFunc_t libcSelect = NULL;
+static PollFunc_t libcPoll = NULL;
 
 // Get a pointer to a symbol from the C library.
 //
@@ -67,7 +67,7 @@ getRealSymbol(const char *symbolName, void **pPtr)
     static void *libcHandle;
 
     // FIXME: should handle errors
-    if (*pPtr == 0) {
+    if (*pPtr == NULL) {
         if (libcHandle == 0)
             libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
         *pPtr = dlsym(libcHandle, symbolName);
@@ -142,8 +142,8 @@ updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
         jint *elements = env->GetIntArrayElements(fdArray, 0);
         for (jsize i = 0; i < length; ++i) {
             int fd = elements[i];
-            if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
-                fd &= VM_ThreadIOConstants_FD_MASK;
+            if ((fd & ThreadIOConstants_FD_READY_BIT) != 0) {
+                fd &= ThreadIOConstants_FD_MASK;
                 FD_SET(fd, fdSet);
                 ++readyCount;
             }
@@ -174,7 +174,7 @@ getLibcSelect(void)
 
 // Wrapper for the select() system call.
 // If the call might block for a long time, puts the Java thread on
-// the VM_ThreadIOQueue, to avoid blocking the entire virtual processor.
+// the ThreadIOQueue, to avoid blocking the entire virtual processor.
 //
 // Taken:
 // maxFd - value of highest-numbered file descriptor passed in,
@@ -201,7 +201,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
         return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
     }
 
-    // Get the JNIEnv from the VM_Processor object
+    // Get the JNIEnv from the Processor object
     JNIEnv *env;
     GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
 
@@ -213,20 +213,22 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
     // Figure out how many seconds to wait
     double totalWaitTime;
     if (timeout == NULL)
-        totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
+        totalWaitTime = ThreadEventConstants_WAIT_INFINITE;
     else {
         totalWaitTime = ((double) timeout->tv_sec);
         totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
     }
 
-    // Call VM_Thread.ioWaitSelect()
-    jclass vmWaitClass = env->FindClass("org/jikesrvm/scheduler/greenthreads/VM_Wait");
+    // Call RVMThread.ioWaitSelect()
+    jclass vmWaitClass = env->FindClass("org/jikesrvm/scheduler/greenthreads/Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
-                                                          "ioWaitSelect", "([I[I[IDZ)V");
-    env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
+                                                          "ioWaitSelect", "([I[I[IDZ)I");
+    jint result = env->CallStaticIntMethod(vmWaitClass, ioWaitSelectMethod,
                               readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
-
-    // TODO: should have return value from ioWaitSelect(), for returning errors
+    if (result == -1) {
+	// Error caused by VM having GC/threading disabled, fall back on libc select
+        return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
+    }
 
     // For each file descriptor set in the Java arrays,
     // mark the corresponding entry in the fd_sets (as appropriate).

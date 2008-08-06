@@ -39,12 +39,13 @@ import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
-import org.jikesrvm.classloader.VM_ClassLoader;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.NoEscapes;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Add annotations to classes using the ASM framework.
@@ -94,6 +95,11 @@ public final class AnnotationAdder {
    */
   private static final Map<ElementTriple, Set<Class<? extends Annotation>>> thingsToAnnotate2 =
     new HashMap<ElementTriple, Set<Class<? extends Annotation>>>();
+
+  /**
+   * Name of class library
+   */
+  private static String classLibrary;
 
   /**
    * Destination directory for annotated classes
@@ -151,37 +157,38 @@ public final class AnnotationAdder {
   /** Set up things to adapt */
   private static void setup() {
     try {
-      // java.lang.Throwable
-      for (Constructor c : Throwable.class.getConstructors()) {
-        addToAdapt(NoEscapes.class, c);
+      if (classLibrary.toLowerCase().equals("gnu classpath")) {
+        // java.lang.Throwable
+        for (Constructor c : Throwable.class.getConstructors()) {
+          addToAdapt(NoEscapes.class, c);
+        }
+
+        // java.nio.Buffer
+        addToAdapt(Inline.class,
+                   "java/nio/Buffer",
+                   "<init>",
+                   "(IIIILgnu/classpath/Pointer;)V");
+
+        // gnu.java.nio.charset.ByteEncodeLoopHelper
+        addToAdapt(Inline.class,
+                   "gnu/java/nio/charset/ByteEncodeLoopHelper",
+                   "normalEncodeLoop",
+                   "(Ljava/nio/CharBuffer;Ljava/nio/ByteBuffer;)Ljava/nio/charset/CoderResult;");
+        addToAdapt(Inline.class,
+                   "gnu/java/nio/charset/ByteEncodeLoopHelper",
+                   "arrayEncodeLoop",
+                   "(Ljava/nio/CharBuffer;Ljava/nio/ByteBuffer;)Ljava/nio/charset/CoderResult;");
+
+        // gnu.java.nio.charset.ByteDecodeLoopHelper
+        addToAdapt(Inline.class,
+                   "gnu/java/nio/charset/ByteDecodeLoopHelper",
+                   "normalDecodeLoop",
+                   "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
+        addToAdapt(Inline.class,
+                   "gnu/java/nio/charset/ByteDecodeLoopHelper",
+                   "arrayDecodeLoop",
+                   "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
       }
-
-      // java.nio.Buffer
-      addToAdapt(Inline.class,
-                 "java/nio/Buffer",
-                 "<init>",
-                 "(IIIILgnu/classpath/Pointer;)V");
-
-      // gnu.java.nio.charset.ByteEncodeLoopHelper
-      addToAdapt(Inline.class,
-                 "gnu/java/nio/charset/ByteEncodeLoopHelper",
-                 "normalEncodeLoop",
-                 "(Ljava/nio/CharBuffer;Ljava/nio/ByteBuffer;)Ljava/nio/charset/CoderResult;");
-      addToAdapt(Inline.class,
-                 "gnu/java/nio/charset/ByteEncodeLoopHelper",
-                 "arrayEncodeLoop",
-                 "(Ljava/nio/CharBuffer;Ljava/nio/ByteBuffer;)Ljava/nio/charset/CoderResult;");
-
-      // gnu.java.nio.charset.ByteDecodeLoopHelper
-      addToAdapt(Inline.class,
-                 "gnu/java/nio/charset/ByteDecodeLoopHelper",
-                 "normalDecodeLoop",
-                 "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
-      addToAdapt(Inline.class,
-                 "gnu/java/nio/charset/ByteDecodeLoopHelper",
-                 "arrayDecodeLoop",
-                 "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
-
       // BigDecimal
       addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[0]));
       addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[]{MathContext.class}));
@@ -386,51 +393,60 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{String.class}));
       addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{String.class, int.class}));
 
+      // Enum
+      if (classLibrary.toLowerCase().equals("harmony")) {
+        addToAdapt(Uninterruptible.class, Enum.class.getMethod("ordinal", new Class[0]));
+        addToAdapt(Uninterruptible.class, Enum.class.getMethod("name", new Class[0]));
+      }
+
       // String
-      addToAdapt(Pure.class, String.class.getMethod("charAt", new Class[]{int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("equals", new Class[]{Object.class}));
-      addToAdapt(Pure.class, String.class.getMethod("equalsIgnoreCase", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("compareTo", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("compareToIgnoreCase", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("regionMatches", new Class[]{int.class, String.class, int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("regionMatches", new Class[]{boolean.class, int.class, String.class, int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("startsWith", new Class[]{String.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("startsWith", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("endsWith", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("hashCode", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{String.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{String.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("subSequence", new Class[]{int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("concat", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("replace", new Class[]{char.class, char.class}));
-      addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("matches", new Class[]{String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("replaceFirst", new Class[]{String.class, String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("replaceAll", new Class[]{String.class, String.class}));
-      addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[]{Locale.class}));
-      addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[]{Locale.class}));
-      addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("trim", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{boolean.class}));
-      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{char.class}));
-      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{long.class}));
-      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{float.class}));
-      addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{double.class}));
-      addToAdapt(Pure.class, String.class.getMethod("intern", new Class[0]));
-      addToAdapt(Pure.class, String.class.getMethod("codePointCount", new Class[]{int.class, int.class}));
-      addToAdapt(Pure.class, String.class.getMethod("offsetByCodePoints", new Class[]{int.class, int.class}));
+      if (!classLibrary.toLowerCase().equals("harmony")) {
+          addToAdapt(Pure.class, String.class.getMethod("charAt", new Class[]{int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[0]));
+          addToAdapt(Pure.class, String.class.getMethod("equals", new Class[]{Object.class}));
+          addToAdapt(Pure.class, String.class.getMethod("equalsIgnoreCase", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("compareTo", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("compareToIgnoreCase", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("regionMatches", new Class[]{int.class, String.class, int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("regionMatches", new Class[]{boolean.class, int.class, String.class, int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("startsWith", new Class[]{String.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("startsWith", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("endsWith", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("hashCode", new Class[0]));
+          addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("indexOf", new Class[]{String.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("lastIndexOf", new Class[]{String.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("subSequence", new Class[]{int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("concat", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("replace", new Class[]{char.class, char.class}));
+          addToAdapt(Pure.class, String.class.getMethod("substring", new Class[]{int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("matches", new Class[]{String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("replaceFirst", new Class[]{String.class, String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("replaceAll", new Class[]{String.class, String.class}));
+          addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[]{Locale.class}));
+          addToAdapt(Pure.class, String.class.getMethod("toLowerCase", new Class[0]));
+          addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[]{Locale.class}));
+          addToAdapt(Pure.class, String.class.getMethod("toUpperCase", new Class[0]));
+          addToAdapt(Pure.class, String.class.getMethod("trim", new Class[0]));
+          addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{boolean.class}));
+          addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{char.class}));
+          addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{long.class}));
+          addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{float.class}));
+          addToAdapt(Pure.class, String.class.getMethod("valueOf", new Class[]{double.class}));
+          addToAdapt(Pure.class, String.class.getMethod("intern", new Class[0]));
+          addToAdapt(Pure.class, String.class.getMethod("codePointCount", new Class[]{int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("offsetByCodePoints", new Class[]{int.class, int.class}));
+          addToAdapt(Pure.class, String.class.getMethod("length", new Class[0]));
+      }
     } catch (Exception e) {
       System.out.println("Exception " + e);
       throw new Error(e);
@@ -479,8 +495,9 @@ public final class AnnotationAdder {
   public static void main(final String[] args) {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
 
-    VM_ClassLoader.init(args[0]);
-    destinationDir = args[1] + "/";
+    classLibrary = args[0];
+    RVMClassLoader.init(args[1]);
+    destinationDir = args[2] + "/";
 
     setup();
 
@@ -549,7 +566,7 @@ public final class AnnotationAdder {
 
     // gets an input stream to read the bytecode of the class
     String resource = fromName.replace('.', '/') + ".class";
-    InputStream is = VM_BootstrapClassLoader.getBootstrapClassLoader().getResourceAsStream(resource);
+    InputStream is = BootstrapClassLoader.getBootstrapClassLoader().getResourceAsStream(resource);
     byte[] b;
 
     // adapts the class on the fly

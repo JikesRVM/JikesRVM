@@ -77,14 +77,6 @@ none
 
 
 
-# Acquire the JTOC from the processor object.
-# Make unary operator to simplify CSE.
-GET_JTOC
-Unary
-none
-
-
-
 # Acquire a pointer to the current processor object.
 GET_CURRENT_PROCESSOR
 Nullary
@@ -223,7 +215,7 @@ compare
 
 ####################
 # A call whose target is in a class that implements
-# the VM_SaveVolatile interface.  Therefore, this
+# the SaveVolatile interface.  Therefore, this
 # call will not kill volatile registers
 # (the callee will save/restore them).
 # Used for expansion of yield points and resolve.

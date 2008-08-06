@@ -16,8 +16,9 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.VM_AosEntrypoints;
+import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
@@ -323,8 +324,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
                                HashSet<BasicBlock> exceptionHandlerBlocks) {
 
     // Iterate through the basic blocks in the original code
-    for (BasicBlock bb : origToDupMap.keySet()) {
-      BasicBlock dup = origToDupMap.get(bb);
+    for (Map.Entry<BasicBlock, BasicBlock> entry : origToDupMap.entrySet()) {
+      BasicBlock bb = entry.getKey();
+      BasicBlock dup = entry.getValue();
 
       if (dup == null) {
         // Getting here means that for some reason the block was not duplicated.
@@ -449,20 +451,20 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
             Load.create(INT_LOAD,
                         cbsReg.copyRO(),
                         ir.regpool.makePROp(),
-                        IRTools.AC(VM_AosEntrypoints.processorCBSField.getOffset()),
-                        new LocationOperand(VM_AosEntrypoints.processorCBSField));
+                        IRTools.AC(AosEntrypoints.processorCBSField.getOffset()),
+                        new LocationOperand(AosEntrypoints.processorCBSField));
 
         bb.appendInstruction(load);
       }
     } else {
       // Use global counter
       if (ir.IRStage == IR.HIR) {
-        Operand offsetOp = new AddressConstantOperand(VM_AosEntrypoints.globalCBSField.getOffset());
+        Operand offsetOp = new AddressConstantOperand(AosEntrypoints.globalCBSField.getOffset());
         load =
             GetStatic.create(GETSTATIC,
                              cbsReg.copyRO(),
                              offsetOp,
-                             new LocationOperand(VM_AosEntrypoints.globalCBSField));
+                             new LocationOperand(AosEntrypoints.globalCBSField));
         bb.appendInstruction(load);
       } else {
         // LIR
@@ -473,8 +475,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
             Load.create(INT_LOAD,
                         cbsReg.copyRO(),
                         ir.regpool.makeJTOCOp(ir, dummy),
-                        IRTools.AC(VM_AosEntrypoints.globalCBSField.getOffset()),
-                        new LocationOperand(VM_AosEntrypoints.globalCBSField));
+                        IRTools.AC(AosEntrypoints.globalCBSField.getOffset()),
+                        new LocationOperand(AosEntrypoints.globalCBSField));
 
         dummy.insertBefore(load);
         dummy.remove();
@@ -498,8 +500,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
           Store.create(INT_STORE,
                        cbsReg.copyRO(),
                        ir.regpool.makePROp(),
-                       IRTools.AC(VM_AosEntrypoints.processorCBSField.getOffset()),
-                       new LocationOperand(VM_AosEntrypoints.processorCBSField));
+                       IRTools.AC(AosEntrypoints.processorCBSField.getOffset()),
+                       new LocationOperand(AosEntrypoints.processorCBSField));
 
       bb.prependInstruction(store);
     } else {
@@ -507,8 +509,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         store =
             PutStatic.create(PUTSTATIC,
                              cbsReg.copyRO(),
-                             new AddressConstantOperand(VM_AosEntrypoints.globalCBSField.getOffset()),
-                             new LocationOperand(VM_AosEntrypoints.globalCBSField));
+                             new AddressConstantOperand(AosEntrypoints.globalCBSField.getOffset()),
+                             new LocationOperand(AosEntrypoints.globalCBSField));
 
         bb.prependInstruction(store);
       } else {
@@ -519,8 +521,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
                          ir.regpool.makeJTOCOp(ir, dummy),
-                         IRTools.AC(VM_AosEntrypoints.globalCBSField.getOffset()),
-                         new LocationOperand(VM_AosEntrypoints.globalCBSField));
+                         IRTools.AC(AosEntrypoints.globalCBSField.getOffset()),
+                         new LocationOperand(AosEntrypoints.globalCBSField));
 
         dummy.insertBefore(store);
         dummy.remove();
@@ -559,17 +561,17 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
     if (ir.IRStage == IR.HIR) {
       // Not tested
-      Operand offsetOp = new AddressConstantOperand(VM_AosEntrypoints.cbsResetValueField.getOffset());
+      Operand offsetOp = new AddressConstantOperand(AosEntrypoints.cbsResetValueField.getOffset());
       load =
           GetStatic.create(GETSTATIC,
                            cbsReg.copyRO(),
                            offsetOp,
-                           new LocationOperand(VM_AosEntrypoints.cbsResetValueField));
+                           new LocationOperand(AosEntrypoints.cbsResetValueField));
       store =
           PutStatic.create(PUTSTATIC,
                            cbsReg.copyRO(),
-                           new AddressConstantOperand(VM_AosEntrypoints.globalCBSField.getOffset()),
-                           new LocationOperand(VM_AosEntrypoints.globalCBSField));
+                           new AddressConstantOperand(AosEntrypoints.globalCBSField.getOffset()),
+                           new LocationOperand(AosEntrypoints.globalCBSField));
       bb.prependInstruction(store);
       bb.prependInstruction(load);
     } else {
@@ -581,8 +583,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
           Load.create(INT_LOAD,
                       cbsReg.copyRO(),
                       ir.regpool.makeJTOCOp(ir, dummy),
-                      IRTools.AC(VM_AosEntrypoints.cbsResetValueField.getOffset()),
-                      new LocationOperand(VM_AosEntrypoints.cbsResetValueField));
+                      IRTools.AC(AosEntrypoints.cbsResetValueField.getOffset()),
+                      new LocationOperand(AosEntrypoints.cbsResetValueField));
 
       dummy.insertBefore(load);
 
@@ -592,16 +594,16 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
                          ir.regpool.makePROp(),
-                         IRTools.AC(VM_AosEntrypoints.processorCBSField.getOffset()),
-                         new LocationOperand(VM_AosEntrypoints.processorCBSField));
+                         IRTools.AC(AosEntrypoints.processorCBSField.getOffset()),
+                         new LocationOperand(AosEntrypoints.processorCBSField));
       } else {
         // Use global counter
         store =
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
                          ir.regpool.makeJTOCOp(ir, dummy),
-                         IRTools.AC(VM_AosEntrypoints.globalCBSField.getOffset()),
-                         new LocationOperand(VM_AosEntrypoints.globalCBSField));
+                         IRTools.AC(AosEntrypoints.globalCBSField.getOffset()),
+                         new LocationOperand(AosEntrypoints.globalCBSField));
       }
       dummy.insertBefore(store);
       dummy.remove();

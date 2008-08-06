@@ -13,12 +13,12 @@
 package org.jikesrvm.compilers.opt.hir2lir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Array;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_DynamicTypeCheck;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.DynamicTypeCheck;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -69,14 +69,14 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * Expansion of Dynamic Type Checking operations.
  *
- * @see VM_DynamicTypeCheck
+ * @see DynamicTypeCheck
  */
 abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
 
@@ -90,7 +90,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    */
   static Instruction instanceOf(Instruction s, IR ir) {
     RegisterOperand result = InstanceOf.getClearResult(s);
-    VM_TypeReference LHStype = InstanceOf.getType(s).getTypeRef();
+    TypeReference LHStype = InstanceOf.getType(s).getTypeRef();
     Operand ref = InstanceOf.getClearRef(s);
     Instruction next = s.nextInstructionInCodeOrder();
     if (next.operator() == INT_IFCMP &&
@@ -172,7 +172,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    */
   static Instruction instanceOfNotNull(Instruction s, IR ir) {
     RegisterOperand result = InstanceOf.getClearResult(s);
-    VM_TypeReference LHStype = InstanceOf.getType(s).getTypeRef();
+    TypeReference LHStype = InstanceOf.getType(s).getTypeRef();
     Operand ref = InstanceOf.getClearRef(s);
     Operand guard = InstanceOf.getClearGuard(s);
     Instruction next = s.nextInstructionInCodeOrder();
@@ -235,7 +235,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    */
   static Instruction checkcast(Instruction s, IR ir) {
     Operand ref = TypeCheck.getClearRef(s);
-    VM_TypeReference LHStype = TypeCheck.getType(s).getTypeRef();
+    TypeReference LHStype = TypeCheck.getType(s).getTypeRef();
     RegisterOperand guard = ir.regpool.makeTempValidation();
     Instruction nullCond =
         IfCmp.create(REF_IFCMP,
@@ -286,7 +286,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    */
   static Instruction checkcastNotNull(Instruction s, IR ir) {
     Operand ref = TypeCheck.getClearRef(s);
-    VM_TypeReference LHStype = TypeCheck.getType(s).getTypeRef();
+    TypeReference LHStype = TypeCheck.getType(s).getTypeRef();
     Operand guard = TypeCheck.getClearGuard(s);
     BasicBlock myBlock = s.getBasicBlock();
     BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
@@ -323,7 +323,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    */
   static Instruction mustImplementInterface(Instruction s, IR ir) {
     Operand ref = TypeCheck.getClearRef(s);
-    VM_Class LHSClass = (VM_Class) TypeCheck.getType(s).getVMType();
+    RVMClass LHSClass = (RVMClass) TypeCheck.getType(s).getVMType();
     if (VM.VerifyAssertions) VM._assert(LHSClass != null, "Should be resolvable...");
     int interfaceIndex = LHSClass.getDoesImplementIndex();
     int interfaceMask = LHSClass.getDoesImplementBitMask();
@@ -341,11 +341,11 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     failBlock.appendInstruction(raiseError);
 
     Operand RHStib = getTIB(s, ir, ref, guard);
-    RegisterOperand doesImpl = InsertUnary(s, ir, GET_DOES_IMPLEMENT_FROM_TIB, VM_TypeReference.IntArray, RHStib);
+    RegisterOperand doesImpl = InsertUnary(s, ir, GET_DOES_IMPLEMENT_FROM_TIB, TypeReference.IntArray, RHStib);
 
-    if (VM_DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+    if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
       RegisterOperand doesImplLength =
-          InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copyD2U(), TG());
+          InsertGuardedUnary(s, ir, ARRAYLENGTH, TypeReference.Int, doesImpl.copyD2U(), TG());
       Instruction lengthCheck =
           IfCmp.create(INT_IFCMP,
               ir.regpool.makeTempValidation(),
@@ -362,12 +362,12 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
         InsertLoadOffset(s,
                          ir,
                          INT_LOAD,
-                         VM_TypeReference.Int,
+                         TypeReference.Int,
                          doesImpl,
                          Offset.fromIntZeroExtend(interfaceIndex << 2),
-                         new LocationOperand(VM_TypeReference.Int),
+                         new LocationOperand(TypeReference.Int),
                          TG());
-    RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
+    RegisterOperand bit = insertBinary(s, ir, INT_AND, TypeReference.Int, entry, IC(interfaceMask));
     IfCmp.mutate(s,
                  INT_IFCMP,
                  ir.regpool.makeTempValidation(),
@@ -448,11 +448,11 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     // we lost type information due to unloaded classes causing
     // imprecise meets.  This should only happen once in a blue moon,
     // so don't bother trying anything clever when it does.
-    VM_Type compType = arrayRef.getType().peekType();
+    RVMType compType = arrayRef.getType().peekType();
     if (compType != null && !compType.isJavaLangObjectType()) {
       // optionally (1) from above
       if (compType.getDimensionality() == 1) {
-        VM_Class etc = (VM_Class) compType.asArray().getElementType();
+        RVMClass etc = (RVMClass) compType.asArray().getElementType();
         if (etc.isResolved() && etc.isFinal()) {
           if (VM.VerifyAssertions) VM._assert(!etc.isInterface());
           Operand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
@@ -474,7 +474,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       // optionally (2) from above
       Operand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
       if (((arrayRef instanceof RegisterOperand) && ((RegisterOperand) arrayRef).isDeclaredType()) ||
-          compType == VM_Type.JavaLangObjectArrayType) {
+          compType == RVMType.JavaLangObjectArrayType) {
         Operand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
         curBlock.appendInstruction(IfCmp.create(REF_IFCMP,
                                                 guardResult.copyRO(),
@@ -494,7 +494,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
           InsertUnary(curBlock.lastInstruction(),
                       ir,
                       GET_ARRAY_ELEMENT_TIB_FROM_TIB,
-                      VM_TypeReference.TIB,
+                      TypeReference.TIB,
                       lhsTIB.copy());
       curBlock.appendInstruction(IfCmp.create(REF_IFCMP,
                                               guardResult.copyRO(),
@@ -508,27 +508,27 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
 
       // Optionally (3) from above
       if (compType.getDimensionality() == 1) {
-        VM_Class etc = (VM_Class) compType.asArray().getElementType();
+        RVMClass etc = (RVMClass) compType.asArray().getElementType();
         if (etc.isResolved() && !etc.isInterface() && !etc.isJavaLangObjectType()) {
           RegisterOperand lhsElemType =
               InsertUnary(curBlock.lastInstruction(),
                           ir,
                           GET_TYPE_FROM_TIB,
-                          VM_TypeReference.VM_Type,
+                          TypeReference.Type,
                           lhsElemTIB.copyU2U());
           RegisterOperand rhsSuperclassIds =
               InsertUnary(curBlock.lastInstruction(),
                           ir,
                           GET_SUPERCLASS_IDS_FROM_TIB,
-                          VM_TypeReference.ShortArray,
+                          TypeReference.ShortArray,
                           rhsTIB.copy());
           RegisterOperand lhsElemDepth =
-              getField(curBlock.lastInstruction(), ir, lhsElemType, VM_Entrypoints.depthField, TG());
+              getField(curBlock.lastInstruction(), ir, lhsElemType, Entrypoints.depthField, TG());
           RegisterOperand rhsSuperclassIdsLength =
               InsertGuardedUnary(curBlock.lastInstruction(),
                                  ir,
                                  ARRAYLENGTH,
-                                 VM_TypeReference.Int,
+                                 TypeReference.Int,
                                  rhsSuperclassIds.copyD2U(),
                                  TG());
           curBlock.appendInstruction(IfCmp.create(INT_IFCMP,
@@ -542,22 +542,22 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
           curBlock = advanceBlock(s.bcIndex, curBlock, ir);
 
           RegisterOperand lhsElemId =
-              getField(curBlock.lastInstruction(), ir, lhsElemType.copyD2U(), VM_Entrypoints.idField, TG());
-          RegisterOperand refCandidate = ir.regpool.makeTemp(VM_TypeReference.Short);
-          LocationOperand loc = new LocationOperand(VM_TypeReference.Short);
+              getField(curBlock.lastInstruction(), ir, lhsElemType.copyD2U(), Entrypoints.idField, TG());
+          RegisterOperand refCandidate = ir.regpool.makeTemp(TypeReference.Short);
+          LocationOperand loc = new LocationOperand(TypeReference.Short);
           if (LOWER_ARRAY_ACCESS) {
             RegisterOperand lhsDepthOffset =
-                InsertBinary(curBlock.lastInstruction(),
+                insertBinary(curBlock.lastInstruction(),
                              ir,
                              INT_SHL,
-                             VM_TypeReference.Int,
+                             TypeReference.Int,
                              lhsElemDepth.copyD2U(),
                              IC(1));
             lhsDepthOffset =
                 InsertUnary(curBlock.lastInstruction(),
                             ir,
                             INT_2ADDRZerExt,
-                            VM_TypeReference.Offset,
+                            TypeReference.Offset,
                             lhsDepthOffset.copy());
             curBlock.appendInstruction(Load.create(USHORT_LOAD,
                                                    refCandidate,
@@ -588,8 +588,8 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       }
     }
 
-    // Call VM_Runtime.checkstore.
-    VM_Method target = VM_Entrypoints.checkstoreMethod;
+    // Call RuntimeEntrypoints.checkstore.
+    RVMMethod target = Entrypoints.checkstoreMethod;
     Instruction call =
         Call.create2(CALL,
                      null,
@@ -615,7 +615,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *                  a value producing type check
    * @param ir       The IR containing the instruction to be expanded.
    * @param RHSobj   The RegisterOperand containing the rhs object.
-   * @param LHStype  The VM_Type to be tested against.
+   * @param LHStype  The RVMType to be tested against.
    * @param RHStib   The Operand containing the TIB of the rhs.
    * @param result   The RegisterOperand that the result of dynamic
    *                 type check is to be stored in.
@@ -623,30 +623,30 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *         instruction to continue expansion.
    */
   private static Instruction generateValueProducingTypeCheck(Instruction s, IR ir, Operand RHSobj,
-                                                                 VM_TypeReference LHStype, Operand RHStib,
+                                                                 TypeReference LHStype, Operand RHStib,
                                                                  RegisterOperand result) {
     // Is LHStype a class?
     if (LHStype.isClassType()) {
-      VM_Class LHSclass = (VM_Class) LHStype.peekType();
+      RVMClass LHSclass = (RVMClass) LHStype.peekType();
       if (LHSclass != null && LHSclass.isResolved()) {
-        // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a
+        // Cases 4, 5, and 6 of DynamicTypeCheck: LHSclass is a
         // resolved class or interface
         if (LHSclass.isInterface()) {
           // A resolved interface (case 4)
           int interfaceIndex = LHSclass.getDoesImplementIndex();
           int interfaceMask = LHSclass.getDoesImplementBitMask();
           RegisterOperand doesImpl =
-              InsertUnary(s, ir, GET_DOES_IMPLEMENT_FROM_TIB, VM_TypeReference.IntArray, RHStib);
+              InsertUnary(s, ir, GET_DOES_IMPLEMENT_FROM_TIB, TypeReference.IntArray, RHStib);
           RegisterOperand entry =
               InsertLoadOffset(s,
                                ir,
                                INT_LOAD,
-                               VM_TypeReference.Int,
+                               TypeReference.Int,
                                doesImpl,
                                Offset.fromIntZeroExtend(interfaceIndex << 2),
-                               new LocationOperand(VM_TypeReference.Int),
+                               new LocationOperand(TypeReference.Int),
                                TG());
-          RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
+          RegisterOperand bit = insertBinary(s, ir, INT_AND, TypeReference.Int, entry, IC(interfaceMask));
           //save to use the cheaper ADDR version of BOOLEAN_CMP
           s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR,
                                            result,
@@ -655,9 +655,9 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                            ConditionOperand.NOT_EQUAL(),
                                            new BranchProfileOperand()));
 
-          if (VM_DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+          if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
             RegisterOperand doesImplLength =
-                InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copy(), TG());
+                InsertGuardedUnary(s, ir, ARRAYLENGTH, TypeReference.Int, doesImpl.copy(), TG());
             RegisterOperand boundscheck = ir.regpool.makeTempInt();
             //save to use the cheaper ADDR version of BOOLEAN_CMP
             s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR,
@@ -672,7 +672,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
           s.remove();
           return continueAt;
         } else {
-          // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)
+          // A resolved class (cases 5 and 6 in DynamicTypeCheck)
           if (LHSclass.isFinal()) {
             // For a final class, we can do a PTR compare of
             // rhsTIB and the TIB of the class
@@ -690,15 +690,15 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
             int LHSDepth = LHSclass.getTypeDepth();
             int LHSId = LHSclass.getId();
             RegisterOperand superclassIds =
-                InsertUnary(s, ir, GET_SUPERCLASS_IDS_FROM_TIB, VM_TypeReference.ShortArray, RHStib);
+                InsertUnary(s, ir, GET_SUPERCLASS_IDS_FROM_TIB, TypeReference.ShortArray, RHStib);
             RegisterOperand refCandidate =
                 InsertLoadOffset(s,
                                  ir,
                                  USHORT_LOAD,
-                                 VM_TypeReference.Short,
+                                 TypeReference.Short,
                                  superclassIds,
                                  Offset.fromIntZeroExtend(LHSDepth << 1),
-                                 new LocationOperand(VM_TypeReference.Short),
+                                 new LocationOperand(TypeReference.Short),
                                  TG());
             //save to use the cheaper ADDR version of BOOLEAN_CMP
             s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR,
@@ -707,9 +707,9 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                              AC(Address.fromIntZeroExtend(LHSId)),
                                              ConditionOperand.EQUAL(),
                                              new BranchProfileOperand()));
-            if (VM_DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
+            if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
               RegisterOperand superclassIdsLength =
-                  InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, superclassIds.copyD2U(), TG());
+                  InsertGuardedUnary(s, ir, ARRAYLENGTH, TypeReference.Int, superclassIds.copyD2U(), TG());
               RegisterOperand boundscheck = ir.regpool.makeTempInt();
               //save to use the cheaper ADDR version of BOOLEAN_CMP
               s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR,
@@ -728,8 +728,8 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       } else {
         // A non-resolved class or interface.
         // We expect these to be extremely uncommon in opt code in AOS.
-        // Mutate s into a call to VM_Runtime.instanceOf
-        VM_Method target = VM_Entrypoints.instanceOfMethod;
+        // Mutate s into a call to RuntimeEntrypoints.instanceOf
+        RVMMethod target = Entrypoints.instanceOfMethod;
         Call.mutate2(s,
                      CALL,
                      result,
@@ -741,10 +741,10 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       }
     }
     if (LHStype.isArrayType()) {
-      // Case 2 of VM_DynamicTypeCheck: LHS is an array.
-      VM_Array LHSArray = (VM_Array) LHStype.peekType();
+      // Case 2 of DynamicTypeCheck: LHS is an array.
+      RVMArray LHSArray = (RVMArray) LHStype.peekType();
       if (LHSArray != null) {
-        VM_Type innermostElementType = LHSArray.getInnermostElementType();
+        RVMType innermostElementType = LHSArray.getInnermostElementType();
         if (innermostElementType.isPrimitiveType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
@@ -775,14 +775,14 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *                  a value producing type check
    * @param ir       The IR containing the instruction to be expanded.
    * @param RHSobj   The RegisterOperand containing the rhs object.
-   * @param LHStype  The VM_TypeReference to be tested against.
+   * @param LHStype  The TypeReference to be tested against.
    * @param RHStib   The Operand containing the TIB of the rhs.
    * @param result   The RegisterOperand that the result of dynamic
    * @return the opt instruction immediately before the instruction to
    *         continue expansion.
    */
   private static Instruction convertToBranchingTypeCheck(Instruction s, IR ir, Operand RHSobj,
-                                                             VM_TypeReference LHStype, Operand RHStib,
+                                                             TypeReference LHStype, Operand RHStib,
                                                              RegisterOperand result) {
     BasicBlock myBlock = s.getBasicBlock();
     BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
@@ -819,7 +819,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *                   branching type check
    * @param ir         The IR containing the instruction to be expanded.
    * @param RHSobj     The RegisterOperand containing the rhs object.
-   * @param LHStype    The VM_TypeReference to be tested against.
+   * @param LHStype    The TypeReference to be tested against.
    * @param RHStib     The Operand containing the TIB of the rhs.
    * @param trueBlock  The BasicBlock to continue at if the typecheck
    *                   evaluates to true
@@ -830,7 +830,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *         continue expansion.
    */
   private static Instruction generateBranchingTypeCheck(Instruction s, IR ir, Operand RHSobj,
-                                                            VM_TypeReference LHStype, Operand RHStib,
+                                                            TypeReference LHStype, Operand RHStib,
                                                             BasicBlock trueBlock, BasicBlock falseBlock,
                                                             RegisterOperand oldGuard,
                                                             BranchProfileOperand falseProb) {
@@ -840,20 +840,20 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     s.remove();
 
     if (LHStype.isClassType()) {
-      VM_Class LHSclass = (VM_Class) LHStype.peekType();
+      RVMClass LHSclass = (RVMClass) LHStype.peekType();
       if (LHSclass != null && LHSclass.isResolved()) {
-        // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a resolved
+        // Cases 4, 5, and 6 of DynamicTypeCheck: LHSclass is a resolved
         // class or interface
         if (LHSclass.isInterface()) {
           // A resolved interface (case 4)
           int interfaceIndex = LHSclass.getDoesImplementIndex();
           int interfaceMask = LHSclass.getDoesImplementBitMask();
           RegisterOperand doesImpl =
-              InsertUnary(continueAt, ir, GET_DOES_IMPLEMENT_FROM_TIB, VM_TypeReference.IntArray, RHStib);
+              InsertUnary(continueAt, ir, GET_DOES_IMPLEMENT_FROM_TIB, TypeReference.IntArray, RHStib);
 
-          if (VM_DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+          if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
             RegisterOperand doesImplLength =
-                InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copyD2U(), TG());
+                InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, TypeReference.Int, doesImpl.copyD2U(), TG());
             Instruction lengthCheck =
                 IfCmp.create(INT_IFCMP,
                              oldGuard,
@@ -874,13 +874,13 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
               InsertLoadOffset(continueAt,
                                ir,
                                INT_LOAD,
-                               VM_TypeReference.Int,
+                               TypeReference.Int,
                                doesImpl,
                                Offset.fromIntZeroExtend(interfaceIndex << 2),
-                               new LocationOperand(VM_TypeReference.Int),
+                               new LocationOperand(TypeReference.Int),
                                TG());
           RegisterOperand bit =
-              InsertBinary(continueAt, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
+              insertBinary(continueAt, ir, INT_AND, TypeReference.Int, entry, IC(interfaceMask));
           continueAt.insertBefore(IfCmp.create(INT_IFCMP,
                                                oldGuard,
                                                bit,
@@ -890,7 +890,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                                falseProb));
           return continueAt;
         } else {
-          // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)
+          // A resolved class (cases 5 and 6 in DynamicTypeCheck)
           if (LHSclass.isFinal()) {
             // For a final class, we can do a PTR compare of
             // rhsTIB and the TIB of the class
@@ -908,10 +908,10 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
             int LHSDepth = LHSclass.getTypeDepth();
             int LHSId = LHSclass.getId();
             RegisterOperand superclassIds =
-                InsertUnary(continueAt, ir, GET_SUPERCLASS_IDS_FROM_TIB, VM_TypeReference.ShortArray, RHStib);
-            if (VM_DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
+                InsertUnary(continueAt, ir, GET_SUPERCLASS_IDS_FROM_TIB, TypeReference.ShortArray, RHStib);
+            if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
               RegisterOperand superclassIdsLength =
-                  InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, VM_TypeReference.Int, superclassIds.copyD2U(), TG());
+                  InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, TypeReference.Int, superclassIds.copyD2U(), TG());
               Instruction lengthCheck =
                   IfCmp.create(INT_IFCMP,
                                oldGuard,
@@ -932,10 +932,10 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                 InsertLoadOffset(continueAt,
                                  ir,
                                  USHORT_LOAD,
-                                 VM_TypeReference.Short,
+                                 TypeReference.Short,
                                  superclassIds,
                                  Offset.fromIntZeroExtend(LHSDepth << 1),
-                                 new LocationOperand(VM_TypeReference.Short),
+                                 new LocationOperand(TypeReference.Short),
                                  TG());
             continueAt.insertBefore(IfCmp.create(INT_IFCMP,
                                                  oldGuard,
@@ -948,11 +948,11 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
           }
         }
       } else {
-        // A non-resolved class or interface. Case 3 of VM_DynamicTypeCheck
+        // A non-resolved class or interface. Case 3 of DynamicTypeCheck
         // Branch on the result of a call to
-        // VM_Runtime.instance
+        // RuntimeEntrypoints.instance
         RegisterOperand result = ir.regpool.makeTempInt();
-        VM_Method target = VM_Entrypoints.instanceOfMethod;
+        RVMMethod target = Entrypoints.instanceOfMethod;
         Instruction call =
             Call.create2(CALL,
                          result,
@@ -975,11 +975,11 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     }
 
     if (LHStype.isArrayType()) {
-      // Case 2 of VM_DynamicTypeCheck: LHS is an array.
-      VM_Array LHSArray = (VM_Array) LHStype.peekType();
+      // Case 2 of DynamicTypeCheck: LHS is an array.
+      RVMArray LHSArray = (RVMArray) LHStype.peekType();
       if (LHSArray != null) {
         Operand classTIB = getTIB(continueAt, ir, LHSArray);
-        VM_Type innermostElementType = LHSArray.getInnermostElementType();
+        RVMType innermostElementType = LHSArray.getInnermostElementType();
         if (innermostElementType.isPrimitiveType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
@@ -1010,10 +1010,10 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
         BasicBlock mainBlock = myBlock.splitNodeWithLinksAt(shortcircuit, ir);
         myBlock.insertOut(trueBlock);       // must come after the splitNodeAt
         RegisterOperand rhsType =
-            InsertUnary(continueAt, ir, GET_TYPE_FROM_TIB, VM_TypeReference.VM_Type, RHStib.copy());
+            InsertUnary(continueAt, ir, GET_TYPE_FROM_TIB, TypeReference.Type, RHStib.copy());
         if (innermostElementType.isJavaLangObjectType()) {
           IntConstantOperand lhsDimension = IC(LHStype.getDimensionality());
-          RegisterOperand rhsDimension = getField(continueAt, ir, rhsType, VM_Entrypoints.dimensionField);
+          RegisterOperand rhsDimension = getField(continueAt, ir, rhsType, Entrypoints.dimensionField);
           Instruction dimTest =
               IfCmp2.create(INT_IFCMP2,
                             oldGuard,
@@ -1034,7 +1034,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
           mainBlock.insertOut(trueBlock);
           mainBlock.insertOut(falseBlock);
           RegisterOperand rhsInnermostElementTypeDimension =
-              getField(continueAt, ir, rhsType.copyU2U(), VM_Entrypoints.innermostElementTypeDimensionField);
+              getField(continueAt, ir, rhsType.copyU2U(), Entrypoints.innermostElementTypeDimensionField);
           continueAt.insertBefore(IfCmp.create(INT_IFCMP,
                                                oldGuard,
                                                rhsInnermostElementTypeDimension,
@@ -1047,7 +1047,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       }
 
       // Not a case we want to handle inline
-      VM_Method target = VM_Entrypoints.instanceOfMethod;
+      RVMMethod target = Entrypoints.instanceOfMethod;
       RegisterOperand callResult = ir.regpool.makeTempInt();
       Instruction call =
           Call.create2(CALL,

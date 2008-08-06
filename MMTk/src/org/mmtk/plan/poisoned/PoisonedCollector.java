@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * case for read and write barriers in the VM.
  */
 @Uninterruptible
-public abstract class PoisonedCollector extends MSCollector {
+public class PoisonedCollector extends MSCollector {
   /****************************************************************************
    *
    * Collector read/write barriers.
@@ -44,7 +44,7 @@ public abstract class PoisonedCollector extends MSCollector {
    * Load an object reference
    *
    * @param slot The location of the reference
-   * @param value The value to store
+   * @return the object reference loaded from slot
    */
   @Inline
   public ObjectReference loadObjectReference(Address slot) {

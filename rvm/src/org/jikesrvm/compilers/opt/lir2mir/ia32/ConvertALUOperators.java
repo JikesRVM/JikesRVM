@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
-import org.jikesrvm.ia32.VM_ArchConstants;
+import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * <ul>
@@ -89,7 +89,7 @@ import org.jikesrvm.ia32.VM_ArchConstants;
  *
  * </pre>
  */
-public class ConvertALUOperators extends CompilerPhase implements Operators, VM_ArchConstants {
+public class ConvertALUOperators extends CompilerPhase implements Operators, ArchConstants {
 
   private static final boolean OPTIMIZE = true;
 

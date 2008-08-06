@@ -21,10 +21,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the thread-local functionality for a transitive
+ * This class implments the thread-local functionality for a transitive
  * closure over a mark-compact space during the forwarding phase.
  */
-@Uninterruptible public final class MCForwardTraceLocal extends TraceLocal {
+@Uninterruptible
+public final class MCForwardTraceLocal extends TraceLocal {
   /**
    * Constructor
    */

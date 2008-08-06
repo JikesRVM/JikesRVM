@@ -83,15 +83,15 @@ import org.vmmagic.pragma.*;
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA an int that encodes the source location
-   * @param metaDataB an int that encodes the source location
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+      ObjectReference tgt, Word metaDataA,
+      Word metaDataB, int mode) {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
         src, slot, tgt);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -109,15 +109,15 @@ import org.vmmagic.pragma.*;
    * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   @Inline
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) {
+      ObjectReference old, ObjectReference tgt, Word metaDataA,
+      Word metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
     if (result) {
       TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER, src, slot, tgt);

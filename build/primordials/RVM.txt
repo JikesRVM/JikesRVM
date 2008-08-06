@@ -19,46 +19,51 @@
 [Lorg/vmmagic/unboxed/AddressArray;
 [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
-[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;
+[Lorg/jikesrvm/ArchitectureSpecific$CodeArray;
 
-[Lorg/jikesrvm/VM_CommandLineArgs$Prefix;
-[Lorg/jikesrvm/VM_CommandLineArgs$PrefixType;
+[Lorg/jikesrvm/CommandLineArgs$Prefix;
+[Lorg/jikesrvm/CommandLineArgs$PrefixType;
 
-[Lorg/jikesrvm/classloader/VM_Class;
-[Lorg/jikesrvm/classloader/VM_InterfaceMethodSignature;
-[Lorg/jikesrvm/classloader/VM_Annotation;
-[Lorg/jikesrvm/classloader/VM_Annotation$AnnotationMember;
-[Lorg/jikesrvm/classloader/VM_Atom;
-[Lorg/jikesrvm/classloader/VM_Field;
-[Lorg/jikesrvm/classloader/VM_Method;
-[Lorg/jikesrvm/classloader/VM_MemberReference;
-[Lorg/jikesrvm/classloader/VM_Type;
-[Lorg/jikesrvm/classloader/VM_TypeReference;
-[Lorg/jikesrvm/classloader/VM_InterfaceInvocation$IMTDict$Link;
-[Lorg/jikesrvm/classloader/VM_SpecializedMethod;
+[Lorg/jikesrvm/classloader/RVMAnnotation;
+[Lorg/jikesrvm/classloader/RVMAnnotation$AnnotationMember;
+[Lorg/jikesrvm/classloader/RVMClass;
+[Lorg/jikesrvm/classloader/RVMField;
+[Lorg/jikesrvm/classloader/RVMMethod;
+[Lorg/jikesrvm/classloader/RVMType;
+[[Lorg/jikesrvm/classloader/RVMType;
+[Lorg/jikesrvm/classloader/InterfaceMethodSignature;
+[Lorg/jikesrvm/classloader/Atom;
+[[Lorg/jikesrvm/classloader/Atom;
+[Lorg/jikesrvm/classloader/MemberReference;
+[[Lorg/jikesrvm/classloader/MemberReference;
+[Lorg/jikesrvm/classloader/TypeReference;
+[[Lorg/jikesrvm/classloader/TypeReference;
+[Lorg/jikesrvm/classloader/InterfaceInvocation$IMTDict$Link;
+[Lorg/jikesrvm/classloader/SpecializedMethod;
 
-[Lorg/jikesrvm/compilers/baseline/VM_BasicBlock;
-[Lorg/jikesrvm/compilers/baseline/VM_UnusualMaps;
-[Lorg/jikesrvm/compilers/common/VM_CompiledMethod;
+[Lorg/jikesrvm/compilers/baseline/BasicBlock;
+[Lorg/jikesrvm/compilers/baseline/UnusualMaps;
+[Lorg/jikesrvm/compilers/common/CompiledMethod;
+[[Lorg/jikesrvm/compilers/common/CompiledMethod;
 
-[Lorg/jikesrvm/runtime/VM_DynamicLibrary;
+[Lorg/jikesrvm/runtime/DynamicLibrary;
 
-[Lorg/jikesrvm/scheduler/VM_Processor;
-[Lorg/jikesrvm/scheduler/VM_Thread;
-[Lorg/jikesrvm/scheduler/VM_Lock;
-[[Lorg/jikesrvm/scheduler/VM_Lock;
-[Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;
-[Lorg/jikesrvm/scheduler/greenthreads/VM_GreenThread;
-[Lorg/jikesrvm/scheduler/greenthreads/VM_GreenLock;
-[Lorg/jikesrvm/scheduler/VM_Scheduler$ThreadModel;
+[Lorg/jikesrvm/scheduler/Processor;
+[Lorg/jikesrvm/scheduler/RVMThread;
+[Lorg/jikesrvm/scheduler/Lock;
+[[Lorg/jikesrvm/scheduler/Lock;
+[Lorg/jikesrvm/scheduler/greenthreads/GreenProcessor;
+[Lorg/jikesrvm/scheduler/greenthreads/GreenThread;
+[Lorg/jikesrvm/scheduler/greenthreads/GreenLock;
+[Lorg/jikesrvm/scheduler/Scheduler$ThreadModel;
 
-[Lorg/jikesrvm/util/VM_HashMap$Bucket;
-[Lorg/jikesrvm/util/VM_HashSet$Bucket;
+[Lorg/jikesrvm/util/AbstractHashMapRVM$AbstractBucket;
+[Lorg/jikesrvm/util/AbstractHashSetRVM$AbstractBucket;
 
-[Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
-[Lorg/jikesrvm/memorymanagers/mminterface/VM_ConcurrentCollectorThread;
-[Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;
-[Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
+[Lorg/jikesrvm/mm/mminterface/CollectorThread;
+[Lorg/jikesrvm/mm/mminterface/ConcurrentCollectorThread;
+[Lorg/jikesrvm/mm/mminterface/Selected$Collector;
+[Lorg/jikesrvm/mm/mminterface/Selected$Mutator;
 
 [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
 [Lorg/mmtk/utility/heap/FreeListPageResource;
@@ -69,10 +74,9 @@
 [Lorg/mmtk/utility/statistics/Stats$Phase;
 [Lorg/mmtk/utility/statistics/Counter;
 [Lorg/mmtk/utility/statistics/Timer;
-[Lorg/mmtk/utility/options/Option;
 [Lorg/mmtk/vm/ReferenceProcessor$Semantics;
 
-[Lorg/jikesrvm/scheduler/VM_Thread$State;
+[Lorg/jikesrvm/scheduler/RVMThread$State;
 
 [Lorg/vmmagic/pragma/Inline$When;
 Lsun/misc/Unsafe;

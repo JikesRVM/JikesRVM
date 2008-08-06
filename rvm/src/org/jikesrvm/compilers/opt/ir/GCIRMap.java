@@ -19,13 +19,13 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveSet;
 import org.jikesrvm.compilers.opt.liveness.LiveSetEnumerator;
-import org.jikesrvm.util.VM_LinkedList;
+import org.jikesrvm.util.LinkedListRVM;
 
 /**
  *
  *  This class holds GC maps for various program points.
  *  This data structure is IR-based.  In a later phase, this information
- *  will be used to create the final GC map (see VM_OptMachineCodeMap.java)
+ *  will be used to create the final GC map (see OptMachineCodeMap.java)
  */
 public final class GCIRMap implements Iterable<GCIRMapElement> {
   /**
@@ -37,7 +37,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
    *               (these are expanded to either physical regs or spills
    *                by the register allocator)
    */
-  private VM_LinkedList<GCIRMapElement> list = new VM_LinkedList<GCIRMapElement>();
+  private LinkedListRVM<GCIRMapElement> list = new LinkedListRVM<GCIRMapElement>();
 
   /**
    *  Used for class-wide debugging
@@ -84,7 +84,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
     }
 
     // construct register list
-    List<RegSpillListElement> regList = new VM_LinkedList<RegSpillListElement>();
+    List<RegSpillListElement> regList = new LinkedListRVM<RegSpillListElement>();
     LiveSetEnumerator lsEnum = set.enumerator();
     while (lsEnum.hasMoreElements()) {
       RegisterOperand regOp = lsEnum.nextElement();

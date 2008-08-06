@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * GC verbosity level.
  */
-public final class Verbose extends IntOption {
+public final class Verbose extends org.vmutil.options.IntOption {
   /**
    * Create the option.
    */
   public Verbose() {
-    super("Verbose",
+    super(Options.set, "Verbose",
           "GC verbosity level",
           0);
   }

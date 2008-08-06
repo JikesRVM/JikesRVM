@@ -12,12 +12,12 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -31,7 +31,7 @@ public abstract class Reference<T> {
    *
    * Set and maintained by the ReferenceProcessor class.
    */
-  private Address referent;
+  private Address _referent;
 
   /**
    * Link to the next entry on the queue.  If this is null, this
@@ -43,7 +43,7 @@ public abstract class Reference<T> {
    * classpath release.
    * @see java.lang.ref.ReferenceQueue
  */
-  Reference<?> nextOnQueue;
+  Reference nextOnQueue;
 
 
   /**
@@ -68,7 +68,7 @@ public abstract class Reference<T> {
    */
   @SuppressWarnings("unchecked") // This method requires an unchecked cast
   public T get() {
-    Address tmp = referent;
+    Address tmp = _referent;
 
     if (tmp.isZero())
         return null;
@@ -86,17 +86,17 @@ public abstract class Reference<T> {
   @Uninterruptible
   @Inline
   private Object getInternal(Address tmp) {
-    Object ref = VM_Magic.addressAsObject(tmp);
+    Object ref = Magic.addressAsObject(tmp);
 
-    if (MM_Constants.NEEDS_REFTYPE_READ_BARRIER) {
-      ref = MM_Interface.referenceTypeReadBarrier(ref);
+    if (MemoryManagerConstants.NEEDS_REFTYPE_READ_BARRIER) {
+      ref = MemoryManager.referenceTypeReadBarrier(ref);
     }
 
     return ref;
   }
 
   public void clear() {
-    referent = Address.zero();
+    _referent = Address.zero();
   }
 
   public boolean isEnqueued() {
@@ -110,8 +110,7 @@ public abstract class Reference<T> {
    * that users might find confusing. We think the problem is actually
    * not a 'real' problem...
    */
-  @LogicallyUninterruptible
-  @Uninterruptible
+  @UnpreemptibleNoWarn("Call out to ReferenceQueue API")
   public boolean enqueue() {
     if (nextOnQueue == null && queue != null) {
       queue.enqueue(this);
@@ -119,5 +118,10 @@ public abstract class Reference<T> {
       return true;
     }
     return false;
+  }
+
+  // TODO: Harmony
+  void dequeue() {
+    return;
   }
 }

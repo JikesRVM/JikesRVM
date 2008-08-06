@@ -21,16 +21,17 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the simply sanity closure.
  */
-@Uninterruptible public final class SanityTraceLocal extends TraceLocal {
+@Uninterruptible
+public final class SanityTraceLocal extends TraceLocal {
 
-  private final SanityCheckerLocal sanityChecker;
+  private final SanityChecker sanityChecker;
 
   /**
    * Constructor
    */
-  public SanityTraceLocal(Trace trace, SanityCheckerLocal scl) {
+  public SanityTraceLocal(Trace trace, SanityChecker sanityChecker) {
     super(trace);
-    sanityChecker = scl;
+    this.sanityChecker = sanityChecker;
   }
 
   /****************************************************************************
@@ -62,5 +63,4 @@ import org.vmmagic.unboxed.*;
     // We never move objects!
     return true;
   }
-
 }

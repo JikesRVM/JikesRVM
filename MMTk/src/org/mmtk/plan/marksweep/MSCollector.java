@@ -40,7 +40,8 @@ import org.vmmagic.pragma.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  */
-@Uninterruptible public abstract class MSCollector extends StopTheWorldCollector {
+@Uninterruptible
+public class MSCollector extends StopTheWorldCollector {
 
   /****************************************************************************
    * Instance fields

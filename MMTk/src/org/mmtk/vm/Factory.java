@@ -12,6 +12,7 @@
  */
 package org.mmtk.vm;
 
+import org.vmutil.options.OptionSet;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.gcspy.ByteStream;
@@ -28,6 +29,13 @@ import org.mmtk.vm.gcspy.Util;
  * to perform the object instantiation.
  */
 public abstract class Factory {
+
+  /**
+   * Create or retrieve the OptionSet used for MMTk options.
+   *
+   * @return A concrete VM-specific OptionSet instance
+   */
+  public abstract OptionSet getOptionSet();
 
   /**
    * Create a new ActivePlan instance using the appropriate VM-specific
@@ -101,15 +109,6 @@ public abstract class Factory {
    * @return A concrete VM-specific ObjectModel instance.
    */
   public abstract ObjectModel newObjectModel();
-
-  /**
-   * Create a new Options instance using the appropriate VM-specific
-   * concrete Options sub-class.
-   *
-   * @see Options
-   * @return A concrete VM-specific Options instance.
-   */
-  public abstract Options newOptions();
 
   /**
    * Create a new ReferenceProcessor instance using the appropriate VM-specific

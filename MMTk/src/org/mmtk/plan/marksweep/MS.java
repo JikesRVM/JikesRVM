@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
  * allocation and collection.
  *
@@ -133,5 +133,14 @@ public class MS extends StopTheWorld {
     if (Space.isInSpace(MARK_SWEEP, object))
       return true;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_MARK, MSTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

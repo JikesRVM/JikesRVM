@@ -17,7 +17,6 @@ import org.mmtk.plan.refcount.cd.CDCollector;
 import org.mmtk.plan.refcount.cd.NullCDCollector;
 import org.mmtk.plan.refcount.cd.TrialDeletionCollector;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -57,7 +56,6 @@ import org.vmmagic.unboxed.*;
 
   private NullCDCollector nullCD;
   private TrialDeletionCollector trialDeletionCD;
-  private RCSanityCheckerLocal sanityChecker;
 
   /****************************************************************************
    * Initialization
@@ -71,7 +69,6 @@ import org.vmmagic.unboxed.*;
     oldRootSet = new ObjectReferenceDeque("old root", global().oldRootPool);
     modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
     decBuffer = new DecBuffer(global().decPool);
-    sanityChecker = new RCSanityCheckerLocal();
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       nullCD = new NullCDCollector();
@@ -203,11 +200,6 @@ import org.vmmagic.unboxed.*;
   @Inline
   private static RCBase global() {
     return (RCBase) VM.activePlan.global();
-  }
-
-  /** @return The current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 
   /** @return The TraceStep to use when processing modified objects. */

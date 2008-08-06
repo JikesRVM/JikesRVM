@@ -41,7 +41,7 @@ JNIEXPORT void JNICALL Java_Allocation_setVerboseOff
 /*
  * Class:     Allocation
  * Method:    testNewObjectA
- * Signature: (LVM_Class;[C)Ljava/lang/String;
+ * Signature: (LClass;[C)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Allocation_testNewObjectA
   (JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
@@ -65,7 +65,7 @@ JNIEXPORT jstring JNICALL Java_Allocation_testNewObjectA
 /*
  * Class:     Allocation
  * Method:    testNewObject
- * Signature: (LVM_Class;[C)Ljava/lang/String;
+ * Signature: (LClass;[C)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Allocation_testNewObjectV
   (JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
@@ -98,7 +98,7 @@ jstring testNewObjectV_part2(JNIEnv *env, jclass cls, jobject stringClass, ...) 
 /*
  * Class:     Allocation
  * Method:    testNewObject
- * Signature: (LVM_Class;[C)Ljava/lang/String;
+ * Signature: (LClass;[C)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Allocation_testNewObject
   (JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {

@@ -1,0 +1,56 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package org.jikesrvm.adaptive.util;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.CommandLineArgs;
+
+/**
+ * Class to handle command-line arguments and options for the
+ * adaptive system.
+ * <p>
+ * Note: This file is mechanically generated from AOSOptions.template
+ *       and MasterOptions.template
+ * <p>
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES
+ *       All other options are defined in VALUE_DAT_FILES
+ *       (value, enumeration, bitmask)
+ *
+ **/
+public class AOSExternalOptions implements Cloneable {
+
+  private void printOptionsHeader() {
+    VM.sysWriteln("Current value of options:");
+  }
+
+$$$$ LET USE_OPT_LEVELS "NO"
+// BEGIN CODE GENERATED FROM MasterOptions.template
+    $$$$ INCLUDE MasterOptions.template
+// END CODE GENERATED FROM MasterOptions.template
+$$$$ END LET USE_OPT_LEVELS
+
+  private boolean instanceProcessAsOption(String arg) {
+    return false;
+  }
+
+  private static void instancePrintHelpHeader(String prefix) {
+    VM.sysWrite("Commands\n");
+    VM.sysWrite(prefix+"[:help]       Print a brief description of AOS command-line options\n");
+    VM.sysWrite(prefix+":printOptions Print the current option values of AOS\n");
+    VM.sysWrite(prefix+":o=v          Pass the option-value pair, o=v, to AOS\n");
+    VM.sysWrite("\n");
+  }
+
+  private static void instancePrintHelpFooter(String prefix) {
+  }
+}

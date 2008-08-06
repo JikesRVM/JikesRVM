@@ -13,17 +13,17 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Services;
+import org.jikesrvm.Services;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.Synchronization;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.runtime.Time;
 
 import org.mmtk.utility.Log;
 
@@ -43,13 +43,13 @@ import org.mmtk.utility.Log;
 @Uninterruptible public class Lock extends org.mmtk.vm.Lock {
 
   // Internal class fields
-  private static final Offset dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
-  private static final Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
-  private static final Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
+  private static final Offset dispenserFieldOffset = Entrypoints.dispenserField.getOffset();
+  private static final Offset servingFieldOffset = Entrypoints.servingField.getOffset();
+  private static final Offset threadFieldOffset = Entrypoints.lockThreadField.getOffset();
 
   /**
-   * VM_Time.nanoTime is expensive and accurate; VM_Time.cycles is cheap but inaccurate.
-   * How many cycles to we let go by in between calls to VM_Time.nanoTime?
+   * Time.nanoTime is expensive and accurate; Time.cycles is cheap but inaccurate.
+   * How many cycles to we let go by in between calls to Time.nanoTime?
    * To hold timing overhead to acceptable levels, this should be a number that is
    * highly likely to correspond to at least 1 millisecond of real time.
    */
@@ -57,13 +57,13 @@ import org.mmtk.utility.Log;
 
   /**
    * A lock operation is considered slow if it takes more than 200 milliseconds.
-   * The value is represented in nanoSeconds (for use with VM_Time.nanoTime()).
+   * The value is represented in nanoSeconds (for use with Time.nanoTime()).
    */
   private static long SLOW_THRESHOLD = 200 * ((long)1e6);
 
   /**
    * A lock operation times out if it takes more than 10x SLOW_THRESHOLD.
-   * The value is represented in nanoSeconds (for use with VM_Time.nanoTime()).
+   * The value is represented in nanoSeconds (for use with Time.nanoTime()).
    */
   private static long TIME_OUT = 10 * SLOW_THRESHOLD;
 
@@ -75,7 +75,7 @@ import org.mmtk.utility.Log;
   private String name;        // logical name of lock
   private final int id;       // lock id (based on a non-resetting counter)
 
-  @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"}) // Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"}) // Accessed via EntryPoints
   @Entrypoint
   private int dispenser;      // ticket number of next customer
   @Entrypoint
@@ -83,7 +83,7 @@ import org.mmtk.utility.Log;
 
   // Diagnosis Instance fields
   @Entrypoint
-  private VM_Thread thread;   // if locked, who locked it?
+  private RVMThread thread;   // if locked, who locked it?
   private int where = -1;     // how far along has the lock owner progressed?
 
   public Lock(String name) {
@@ -107,14 +107,14 @@ import org.mmtk.utility.Log;
   //
   public void acquire() {
 
-    int ticket = VM_Synchronization.fetchAndAdd(this, dispenserFieldOffset, 1);
+    int ticket = Synchronization.fetchAndAdd(this, dispenserFieldOffset, 1);
 
     long approximateStartNano = 0;
     long lastSlowReportNano = 0;
     long lastSlowReportCycles = 0;
 
     while (ticket != serving) {
-      long nowCycles = VM_Time.cycles();
+      long nowCycles = Time.cycles();
 
       if (lastSlowReportCycles == 0) {
         lastSlowReportCycles = nowCycles;
@@ -127,7 +127,7 @@ import org.mmtk.utility.Log;
       }
       if (delta > CHECK_NANOTIME_CYCLE_THRESHOLD) {
         lastSlowReportCycles = nowCycles;
-        long nowNano = VM_Time.nanoTime();
+        long nowNano = Time.nanoTime();
         if (approximateStartNano == 0) {
           approximateStartNano = nowNano;
           lastSlowReportNano = nowNano;
@@ -137,16 +137,16 @@ import org.mmtk.utility.Log;
           lastSlowReportNano = nowNano;
 
           Log.write("GC Warning: slow/deadlock - thread ");
-          writeThreadIdToLog(VM_Scheduler.getCurrentThread());
+          writeThreadIdToLog(Scheduler.getCurrentThread());
           Log.write(" with ticket "); Log.write(ticket);
           Log.write(" failed to acquire lock "); Log.write(id);
           Log.write(" ("); Log.write(name);
           Log.write(") serving "); Log.write(serving);
           Log.write(" after ");
-          Log.write(VM_Time.nanosToMillis(nowNano - approximateStartNano)); Log.write(" ms");
+          Log.write(Time.nanosToMillis(nowNano - approximateStartNano)); Log.write(" ms");
           Log.writelnNoFlush();
 
-          VM_Thread t = thread;
+          RVMThread t = thread;
           if (t == null) {
             Log.writeln("GC Warning: Locking thread unknown", false);
           } else {
@@ -162,9 +162,9 @@ import org.mmtk.utility.Log;
 
         if (nowNano - approximateStartNano > TIME_OUT) {
           Log.write("GC Warning: Locked out thread: ");
-          writeThreadIdToLog(VM_Scheduler.getCurrentThread());
+          writeThreadIdToLog(Scheduler.getCurrentThread());
           Log.writeln();
-          VM_Scheduler.dumpStack();
+          Scheduler.dumpStack();
           VM.sysFail("Deadlock or someone holding on to lock for too long");
         }
       }
@@ -178,13 +178,13 @@ import org.mmtk.utility.Log;
       Log.writeln();
     }
 
-    setLocker(VM_Scheduler.getCurrentThread(), -1);
+    setLocker(Scheduler.getCurrentThread(), -1);
 
-    VM_Magic.isync();
+    Magic.isync();
   }
 
   public void check(int w) {
-    if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == thread);
+    if (VM.VerifyAssertions) VM._assert(Scheduler.getCurrentThread() == thread);
     if (verbose) {
       Log.write("Thread ");
       writeThreadIdToLog(thread);
@@ -211,14 +211,14 @@ import org.mmtk.utility.Log;
 
     setLocker(null, -1);
 
-    VM_Magic.sync();
-    VM_Synchronization.fetchAndAdd(this, servingFieldOffset, 1);
+    Magic.sync();
+    Synchronization.fetchAndAdd(this, servingFieldOffset, 1);
   }
 
   // want to avoid generating a putfield so as to avoid write barrier recursion
   @Inline
-  private void setLocker(VM_Thread thread, int w) {
-    VM_Magic.setObjectAtOffset(this, threadFieldOffset, thread);
+  private void setLocker(RVMThread thread, int w) {
+    Magic.setObjectAtOffset(this, threadFieldOffset, thread);
     where = w;
   }
 
@@ -228,12 +228,12 @@ import org.mmtk.utility.Log;
    *  This function may be called during GC; it avoids write barriers and
    *  allocation.
    *
-   *  @param t  The {@link VM_Thread} we are interested in.
+   *  @param t  The {@link RVMThread} we are interested in.
    */
-  private static void writeThreadIdToLog(VM_Thread t) {
-    char[] buf = VM_Services.grabDumpBuffer();
+  private static void writeThreadIdToLog(RVMThread t) {
+    char[] buf = Services.grabDumpBuffer();
     int len = t.dump(buf);
     Log.write(buf, len);
-    VM_Services.releaseDumpBuffer();
+    Services.releaseDumpBuffer();
   }
 }

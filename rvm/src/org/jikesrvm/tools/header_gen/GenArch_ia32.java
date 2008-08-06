@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.tools.header_gen;
 
-import org.jikesrvm.ia32.VM_ArchConstants;
-import org.jikesrvm.ia32.VM_BaselineConstants;
-import org.jikesrvm.ia32.VM_RegisterConstants;
-import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
-import org.jikesrvm.ia32.VM_TrapConstants;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.ia32.ArchConstants;
+import org.jikesrvm.ia32.BaselineConstants;
+import org.jikesrvm.ia32.RegisterConstants;
+import org.jikesrvm.ia32.StackframeLayoutConstants;
+import org.jikesrvm.ia32.TrapConstants;
+import org.jikesrvm.runtime.ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -29,39 +29,36 @@ final class GenArch_ia32 extends GenArch {
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;
 
-    offset = VM_ArchEntrypoints.registersFPField.getOffset();
-    pln("VM_Registers_fp_offset = ", offset);
+    offset = ArchEntrypoints.registersFPField.getOffset();
+    pln("Registers_fp_offset = ", offset);
 
-    p("static const int VM_Constants_EAX                    = " + VM_RegisterConstants.EAX.value() + ";\n");
-    p("static const int VM_Constants_ECX                    = " + VM_RegisterConstants.ECX.value() + ";\n");
-    p("static const int VM_Constants_EDX                    = " + VM_RegisterConstants.EDX.value() + ";\n");
-    p("static const int VM_Constants_EBX                    = " + VM_RegisterConstants.EBX.value() + ";\n");
-    p("static const int VM_Constants_ESP                    = " + VM_RegisterConstants.ESP.value() + ";\n");
-    p("static const int VM_Constants_EBP                    = " + VM_RegisterConstants.EBP.value() + ";\n");
-    p("static const int VM_Constants_ESI                    = " + VM_RegisterConstants.ESI.value() + ";\n");
-    p("static const int VM_Constants_EDI                    = " + VM_RegisterConstants.EDI.value() + ";\n");
-    p("static const int VM_Constants_STACKFRAME_BODY_OFFSET             = " +
-      VM_StackframeLayoutConstants
+    p("static const int Constants_EAX                    = " + RegisterConstants.EAX.value() + ";\n");
+    p("static const int Constants_ECX                    = " + RegisterConstants.ECX.value() + ";\n");
+    p("static const int Constants_EDX                    = " + RegisterConstants.EDX.value() + ";\n");
+    p("static const int Constants_EBX                    = " + RegisterConstants.EBX.value() + ";\n");
+    p("static const int Constants_ESP                    = " + RegisterConstants.ESP.value() + ";\n");
+    p("static const int Constants_EBP                    = " + RegisterConstants.EBP.value() + ";\n");
+    p("static const int Constants_ESI                    = " + RegisterConstants.ESI.value() + ";\n");
+    p("static const int Constants_EDI                    = " + RegisterConstants.EDI.value() + ";\n");
+    p("static const int Constants_STACKFRAME_BODY_OFFSET             = " +
+      StackframeLayoutConstants
           .STACKFRAME_BODY_OFFSET +
                                   ";\n");
-    p("static const int VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = " +
-      VM_StackframeLayoutConstants
+    p("static const int Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = " +
+      StackframeLayoutConstants
           .STACKFRAME_RETURN_ADDRESS_OFFSET +
                                             ";\n");
-    p("static const int VM_Constants_RVM_TRAP_BASE  = " + VM_TrapConstants.RVM_TRAP_BASE + ";\n");
+    p("static const int Constants_RVM_TRAP_BASE  = " + TrapConstants.RVM_TRAP_BASE + ";\n");
 
-    offset = VM_ArchEntrypoints.framePointerField.getOffset();
-    pln("VM_Processor_framePointer_offset = ", offset);
-    offset = VM_ArchEntrypoints.jtocField.getOffset();
-    pln("VM_Processor_jtoc_offset = ", offset);
-    offset = VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset();
-    pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
+    offset = ArchEntrypoints.framePointerField.getOffset();
+    pln("Processor_framePointer_offset = ", offset);
+    offset = ArchEntrypoints.arrayIndexTrapParamField.getOffset();
+    pln("Processor_arrayIndexTrapParam_offset = ", offset);
 
-    p("static const int VM_ArchConstants_SSE2 = " + (VM_ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));
+    p("static const int ArchConstants_SSE2 = " + (ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));
   }
 
   public void emitArchAssemblerDeclarations() {
-    p("#define JTOC %" + VM_BaselineConstants.JTOC + ";\n");
-    p("#define PR %" + VM_BaselineConstants.ESI + ";\n");
+    p("#define PR %" + BaselineConstants.ESI + ";\n");
   }
 }

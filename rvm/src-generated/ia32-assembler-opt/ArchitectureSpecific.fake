@@ -11,23 +11,24 @@
  *  regarding copyright ownership.
  */
 package org.jikesrvm;
+
 public class ArchitectureSpecific {
-  public static final class VM_Assembler extends org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler {
-    public VM_Assembler (int bytecodeSize) {
+  public static final class Assembler extends org.jikesrvm.compilers.common.assembler.ia32.Assembler {
+    public Assembler (int bytecodeSize) {
       super(bytecodeSize, false);
     }
-    public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler compiler) {
+    public Assembler (int bytecodeSize, boolean shouldPrint, BaselineCompilerImpl compiler) {
       super(bytecodeSize, shouldPrint, compiler);
     }
-    public VM_Assembler (int bytecodeSize, boolean shouldPrint) {
+    public Assembler (int bytecodeSize, boolean shouldPrint) {
       super(bytecodeSize, shouldPrint);
     }
   }
-  public static final class VM_CodeArray extends org.jikesrvm.ia32.VM_CodeArray {}
-  public static final class VM_Compiler extends org.jikesrvm.compilers.baseline.ia32.VM_Compiler {}
-  public static final class VM_MachineCode extends org.jikesrvm.ia32.VM_MachineCode {
-    public VM_MachineCode(ArchitectureSpecific.VM_CodeArray array, int[] bm) {
+  public static final class CodeArray extends org.jikesrvm.ia32.CodeArray {}
+  public static final class BaselineCompilerImpl extends org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl {}
+  public static final class MachineCode extends org.jikesrvm.ia32.MachineCode {
+    public MachineCode(ArchitectureSpecific.CodeArray array, int[] bm) {
       super(array, bm);
     }}
-  public interface VM_RegisterConstants extends org.jikesrvm.ia32.VM_RegisterConstants {}
+  public interface RegisterConstants extends org.jikesrvm.ia32.RegisterConstants {}
 }

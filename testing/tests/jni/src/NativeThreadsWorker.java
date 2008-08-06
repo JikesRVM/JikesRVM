@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 
 class NativeThreadsWorker extends Thread {
 
@@ -31,7 +31,7 @@ class NativeThreadsWorker extends Thread {
      //
      public void
        run()   {
-       int tid = VM_Magic.getThreadIdRegister() >>  VM_ObjectLayoutConstants.OBJECT_THREAD_ID_SHIFT;
+       int tid = Magic.getThreadIdRegister() >>  ObjectLayoutConstants.OBJECT_THREAD_ID_SHIFT;
        int retval = 0;
        int loopcntr = 75;
        float fp  = (float)17.8;
@@ -40,7 +40,7 @@ class NativeThreadsWorker extends Thread {
            if ((name == "ping") ||(name == "ping2")) {
              //  call a native function
              say(name, "calling nativeFoo");
-             retval = tNativeThreads.nativeFoo(VM_Processor.getCurrentProcessor().id);
+             retval = tNativeThreads.nativeFoo(Processor.getCurrentProcessor().id);
              //      retval = tNativeThreads.nativeFoo(tid);
              ////             System.out.println(1.0f);
              say(name, "return from nativeFoo");
@@ -74,7 +74,7 @@ class NativeThreadsWorker extends Thread {
              // someone calls gc
              say(name, "about to call gc");
              //      say(name, "first dump VM");
-             //      VM_Scheduler.dumpVirtualMachine();
+             //      Scheduler.dumpVirtualMachine();
              //      say(name, "skipping gc");
                      System.gc();
              say(name, "gc completed");
@@ -82,16 +82,16 @@ class NativeThreadsWorker extends Thread {
          }
        //test complete
        ///     say(name, "dump before -bye");
-       ///       VM_Scheduler.dumpVirtualMachine();
+       ///       Scheduler.dumpVirtualMachine();
        say(name, "complete -bye");
        isFinished = true;
      }
 
 
    static synchronized void say(String who, String what) {
-      int pid = VM_Processor.getCurrentProcessorId();
+      int pid = Processor.getCurrentProcessorId();
       //      System.out.println("pid- " + pid + " " + who + ": " + what);
-      VM_Scheduler.trace(who,what);
+      Scheduler.trace(who,what);
       }
    }
 

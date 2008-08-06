@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="common/options/src"/>
+	<classpathentry excluding="org/vmmagic/unboxed/" kind="src" path="common/vmmagic/src"/>
+	<classpathentry kind="src" path="MMTk/ext/vm/harness"/>
+	<classpathentry kind="src" path="MMTk/harness/src"/>
+	<classpathentry kind="src" path="MMTk/harness/vmmagic"/>
+	<classpathentry kind="src" path="MMTk/src"/>
+	<classpathentry kind="src" path="generated/mmtk-harness-parser/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="eclipse/bin"/>
+</classpath>

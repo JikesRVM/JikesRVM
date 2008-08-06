@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Try to limit reference counting collections to this time cap.
  */
-public final class GCTimeCap extends MicrosecondsOption {
+public final class GCTimeCap extends org.vmutil.options.MicrosecondsOption {
   /**
    * Create the option.
    */
   public GCTimeCap() {
-    super("GC Time Cap",
+    super(Options.set, "GC Time Cap",
           "Try to limit reference counting collections to this time cap",
           1000000);
   }

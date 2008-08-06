@@ -1,0 +1,53 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="javacc" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="javacc.version" value="4.0"/>
+  <property name="javacc.description" value="Java CC"/>
+
+  <property name="javacc.package.dir" value="${components.dir}/javacc/${javacc.version}"/>
+  <property name="javacc.dir" location="${javacc.package.dir}/javacc-${javacc.version}"/>
+
+  <target name="init-javacc-properties" depends="prepare-ant-tasks">
+    <condition property="javacc.from-web" value="true">
+      <or>
+        <not>
+          <available file="${javacc.dir}/constants.properties"/>
+        </not>
+        <isset property="javacc.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-javacc-properties" if="javacc.from-web">
+    <property name="javacc.web-archive" value="javacc-${javacc.version}.zip"/>
+    <mkdir dir="${javacc.package.dir}"/>
+    <cachedGet key="${javacc.web-archive}"
+         src="https://javacc.dev.java.net/files/documents/17/26777/${javacc.web-archive}"
+         dest="${javacc.package.dir}/${javacc.web-archive}"/>
+    <unzip src="${javacc.package.dir}/${javacc.web-archive}" dest="${javacc.package.dir}"/>
+    <writeComponentConstants dir="${javacc.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="javacc.dir" value="${javacc.dir}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="javacc" dir="${javacc.dir}"/>
+  </target>
+
+</project>

@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.vmmagic.unboxed.Address;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 
 /**
  * Encodes the condition codes for branches.
@@ -455,7 +455,7 @@ public final class ConditionOperand extends Operand {
         return evaluate(v1.asAddressConstant().value, Address.fromIntSignExtend(v2.asIntConstant().value));
       } else if (v2.isObjectConstant() && !v2.isMovableObjectConstant()) {
         return evaluate(v1.asAddressConstant().value,
-            VM_Magic.objectAsAddress(v2.asObjectConstant().value));
+            Magic.objectAsAddress(v2.asObjectConstant().value));
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
@@ -466,7 +466,7 @@ public final class ConditionOperand extends Operand {
         return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value), v2.asAddressConstant().value);
       } else if (v2.isObjectConstant() && !v2.isMovableObjectConstant()) {
         return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value),
-            VM_Magic.objectAsAddress(v2.asObjectConstant().value));
+            Magic.objectAsAddress(v2.asObjectConstant().value));
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
@@ -483,8 +483,8 @@ public final class ConditionOperand extends Operand {
     } else if (v1.isObjectConstant()) {
       if (v2.isObjectConstant()) {
         if (!v1.isMovableObjectConstant() && !v2.isMovableObjectConstant()) {
-          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
-              VM_Magic.objectAsAddress(v2.asObjectConstant().value));
+          return evaluate(Magic.objectAsAddress(v1.asObjectConstant().value),
+              Magic.objectAsAddress(v2.asObjectConstant().value));
         } else if (isEQUAL()) {
           return (v1.asObjectConstant().value == v2.asObjectConstant().value) ? TRUE : FALSE;
         } else if (isNOT_EQUAL()) {
@@ -496,13 +496,13 @@ public final class ConditionOperand extends Operand {
       }
       if (!v1.isMovableObjectConstant()) {
         if (v2.isIntConstant()) {
-          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+          return evaluate(Magic.objectAsAddress(v1.asObjectConstant().value),
               Address.fromIntSignExtend(v2.asIntConstant().value));
         } else if (v2.isAddressConstant()) {
-          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+          return evaluate(Magic.objectAsAddress(v1.asObjectConstant().value),
               v2.asAddressConstant().value);
         } else if (v2.isNullConstant()) {
-          return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
+          return evaluate(Magic.objectAsAddress(v1.asObjectConstant().value),
               Address.zero());
         }
       }
@@ -516,7 +516,7 @@ public final class ConditionOperand extends Operand {
       } else if (v2.isObjectConstant()) {
         if (!v2.isMovableObjectConstant()) {
           return evaluate(Address.zero(),
-              VM_Magic.objectAsAddress(v2.asObjectConstant().value));
+              Magic.objectAsAddress(v2.asObjectConstant().value));
         } else if (isEQUAL()) {
           return FALSE;
         } else if (isNOT_EQUAL()) {

@@ -15,7 +15,6 @@ package org.mmtk.plan;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
 import org.mmtk.vm.VM;
 
@@ -38,9 +37,6 @@ public abstract class SimpleCollector extends CollectorContext {
   /****************************************************************************
    * Instance fields
    */
-
-  /** Basic sanity checker */
-  private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
 
   /****************************************************************************
    *
@@ -90,22 +86,29 @@ public abstract class SimpleCollector extends CollectorContext {
     }
 
     if (phaseId == Simple.SOFT_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue()) {
-        VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      if (primary) {
+        if (Options.noReferenceTypes.getValue())
+          VM.softReferences.clear();
+        else
+          VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
       }
       return;
     }
 
     if (phaseId == Simple.WEAK_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      if (primary) {
+        if (Options.noReferenceTypes.getValue())
+          VM.weakReferences.clear();
+        else
+          VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      }
       return;
     }
 
     if (phaseId == Simple.FINALIZABLE) {
       if (primary) {
         if (Options.noFinalizer.getValue())
-          Finalizer.kill();
+          Finalizer.clear();
         else
           Finalizer.moveToFinalizable(getCurrentTrace());
       }
@@ -113,8 +116,12 @@ public abstract class SimpleCollector extends CollectorContext {
     }
 
     if (phaseId == Simple.PHANTOM_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      if (primary) {
+        if (Options.noReferenceTypes.getValue())
+          VM.phantomReferences.clear();
+        else
+          VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      }
       return;
     }
 
@@ -146,8 +153,7 @@ public abstract class SimpleCollector extends CollectorContext {
       return;
     }
 
-    if (Options.sanityCheck.getValue() &&
-        getSanityChecker().collectionPhase(phaseId, primary)) {
+    if (Options.sanityCheck.getValue() && sanityLocal.collectionPhase(phaseId, primary)) {
       return;
     }
 
@@ -165,10 +171,5 @@ public abstract class SimpleCollector extends CollectorContext {
   @Inline
   private static Simple global() {
     return (Simple) VM.activePlan.global();
-  }
-
-  /** @return The current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return sanityChecker;
   }
 }

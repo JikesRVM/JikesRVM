@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.YES;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
@@ -329,7 +329,7 @@ public final class Simple extends CompilerPhase {
         if (ClassLoaderProxy.includesType(rhs.getType(), use.getType()) == YES) {
           continue;
         }
-        // If VM_Magic has been employed to convert an int to a reference,
+        // If Magic has been employed to convert an int to a reference,
         // don't undo the effects!
         if (rhs.getType().isPrimitiveType() && !use.getType().isPrimitiveType()) {
           continue;
@@ -436,7 +436,7 @@ public final class Simple extends CompilerPhase {
    * Simple conservative dead code elimination.
    * An instruction is eliminated if:
    * <ul>
-   *  <li> 1. it is not a PEI, store or call
+   *  <li> 1. it is not a PEI, store or non-pure call
    *  <li> 2. it DEFs only registers
    *  <li> 3. all registers it DEFS are dead
    * </ul>
@@ -456,7 +456,7 @@ public final class Simple extends CompilerPhase {
       prevInstr = instr.prevInstructionInCodeOrder(); // cache because
       // remove nulls next/prev fields
       // if instr is a PEI, store, branch, or call, then it's not dead ...
-      if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch() || instr.isCall()) {
+      if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch() || instr.isNonPureCall()) {
         continue;
       }
       if (preserveImplicitSSA && (instr.isImplicitLoad() || instr.isAllocation() || instr.operator() == PHI)) {

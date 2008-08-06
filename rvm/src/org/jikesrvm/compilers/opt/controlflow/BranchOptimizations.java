@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.controlflow;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
 import org.jikesrvm.compilers.opt.ir.CondMove;
@@ -357,7 +357,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
         // g: if (...) goto L
         // ...
         // L: goto L
-        // This happens in VM_GCUtil in some systems due to a while(true) {}
+        // This happens in GCUtil in some systems due to a while(true) {}
         return false;
       }
       IfCmp.setTarget(cb, (BranchOperand) Goto.getTarget(targetInst).copy());
@@ -1184,7 +1184,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       if (!((tv == 1 && fv == 0) || (tv == 1 && fv == 0))) {
         return false;
       }
-      RegisterOperand t = ir.regpool.makeTemp(VM_TypeReference.Boolean);
+      RegisterOperand t = ir.regpool.makeTemp(TypeReference.Boolean);
       // Cases 1) and 2)
       if (tv == 0) {
         condition = condition.flipCode();

@@ -16,7 +16,6 @@ import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
 
@@ -72,16 +71,16 @@ import org.vmmagic.unboxed.*;
    * Instance fields
    */
   /** Unique collector identifier */
-  protected int id = VM.activePlan.registerCollector(this);
-
-  /** Used for printing log information in a thread safe manner */
-  protected Log log = new Log();
+  protected final int id = VM.activePlan.registerCollector(this);
 
   /** Per-collector allocator into the immortal space */
-  protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
+  protected final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
   /** Used for aborting concurrent phases pre-empted by stop the world collection */
   protected boolean resetConcurrentWork;
+
+  /** Used for sanity checking */
+  protected final SanityCheckerLocal sanityLocal = new SanityCheckerLocal();
 
   /****************************************************************************
    *
@@ -170,11 +169,6 @@ import org.vmmagic.unboxed.*;
   /** @return The current trace instance. */
   public abstract TraceLocal getCurrentTrace();
 
-  /** @return Return the current sanity checker. */
-  public SanityCheckerLocal getSanityChecker() {
-    return null;
-  }
-
   /**
    * Abort concurrent work due to pre-empt by stop the world collection.
    */
@@ -192,11 +186,6 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Miscellaneous.
    */
-
-  /** @return the <code>Log</code> instance for this PlanLocal */
-  public final Log getLog() {
-    return log;
-  }
 
   /** @return the unique identifier for this collector context. */
   @Inline
@@ -221,7 +210,7 @@ import org.vmmagic.unboxed.*;
    * Load an object reference
    *
    * @param slot The location of the reference
-   * @param value The value to store
+   * @return the object reference loaded from slot
    */
   @Inline
   public ObjectReference loadObjectReference(Address slot) {

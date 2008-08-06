@@ -13,14 +13,15 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.ArchitectureSpecific.PhysicalDefUse;
+import org.jikesrvm.Constants;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
+import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.vmmagic.pragma.Inline;
@@ -120,7 +121,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements VM_Constants, Operators, Constants {
+public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.
@@ -162,7 +163,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
    * A single postion operator can be shared by many instruction objects.
    *
    * @see InlineSequence
-   * @see org.jikesrvm.compilers.opt.runtimesupport.VM_OptEncodedCallSiteTree
+   * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
    */
   public InlineSequence position;
 
@@ -433,7 +434,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
    * Get the offset into the machine code array (in bytes) that
    * corresponds to the first byte after this instruction.
    * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecific.Assembler#generateCode final assembly}.
+   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.
    * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
    *
    * @return the offset (in bytes) of the machinecode instruction
@@ -444,7 +445,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
   }
 
   /**
-   * Only for use by {@link org.jikesrvm.ArchitectureSpecific.Assembler#generateCode}; sets the machine
+   * Only for use by {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode}; sets the machine
    * code offset of the instruction as described in {@link #getmcOffset}.
    *
    * @param mcOffset the offset (in bytes) for this instruction.
@@ -579,7 +580,11 @@ public final class Instruction implements VM_Constants, Operators, Constants {
       }
       return numOps;
     } else {
-      return operator.getNumberOfFixedPureUses();
+      if (operator.hasVarUses()) {
+        return getNumberOfOperands() - operator.getNumberOfDefs();
+      } else {
+        return operator.getNumberOfFixedPureUses();
+      }
     }
   }
 
@@ -860,6 +865,37 @@ public final class Instruction implements VM_Constants, Operators, Constants {
    */
   public boolean isCall() {
     return operator.isCall();
+  }
+
+  /**
+   * Is the instruction a pure call (one kind of interprocedural branch)?
+   *
+   * @return <code>true</code> if the instruction is a pure call
+   *         or <code>false</code> if it is not.
+   */
+  public boolean isPureCall() {
+    if (operator.isCall()) {
+      MethodOperand methOp = Call.getMethod(this);
+      if (methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Is the instruction a call but not a pure call (one kind of interprocedural branch)?
+   *
+   * @return <code>true</code> if the instruction is a nonpure call
+   *         or <code>false</code> if it is not.
+   */
+  public boolean isNonPureCall() {
+    if (operator.isCall()) {
+      MethodOperand methOp = Call.getMethod(this);
+      boolean isPure = methOp != null && methOp.hasPreciseTarget() && methOp.getTarget().isPure();
+      return !isPure;
+    }
+    return false;
   }
 
   /**
@@ -1878,7 +1914,7 @@ public final class Instruction implements VM_Constants, Operators, Constants {
           if ((op1 == null) && (op2 == null)) {
             return true;
           }
-          if (!op1.similar(op2)) {
+          if ((op1 == null) || (op2 == null) || !op1.similar(op2)) {
             return false;
           }
         }

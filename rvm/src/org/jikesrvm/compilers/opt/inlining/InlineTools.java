@@ -15,22 +15,22 @@ package org.jikesrvm.compilers.opt.inlining;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.compilers.opt.driver.Constants;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.pragma.Inline;
 
 /**
  * This class provides some utilities that are useful for inlining.
  */
-public abstract class InlineTools implements Constants {
+public abstract class InlineTools implements OptConstants {
 
   /**
    * Does class <code>A</code> directly implement the interface <code>B</code>?
@@ -49,7 +49,7 @@ public abstract class InlineTools implements Constants {
    * @param callee The callee method
    * @return <code>true</code> if it has bytecodes, false otherwise.
    */
-  public static boolean hasBody(VM_Method callee) {
+  public static boolean hasBody(RVMMethod callee) {
     return !(callee.isNative() || callee.isAbstract());
   }
 
@@ -59,7 +59,7 @@ public abstract class InlineTools implements Constants {
    *
    * @param callee the callee method
    */
-  public static boolean needsGuard(VM_Method callee) {
+  public static boolean needsGuard(RVMMethod callee) {
     return !(callee.isFinal() ||
              callee.getDeclaringClass().isFinal() ||
              callee.isPrivate() ||
@@ -72,29 +72,29 @@ public abstract class InlineTools implements Constants {
    * Note that this says nothing about whether or not the method will
    * be overriden by future dynamically loaded classes.
    */
-  public static boolean isCurrentlyFinal(VM_Method callee, boolean searchSubclasses) {
-    VM_Class klass = callee.getDeclaringClass();
+  public static boolean isCurrentlyFinal(RVMMethod callee, boolean searchSubclasses) {
+    RVMClass klass = callee.getDeclaringClass();
     if (klass.isInterface()) {
       // interface methods are not final.
       return false;
     }
-    VM_Class[] subClasses = klass.getSubClasses();
+    RVMClass[] subClasses = klass.getSubClasses();
     if (subClasses.length == 0) {
       //  Currently no subclasses, so trivially not overridden
       return true;
     } else if (searchSubclasses) {
       // see if any subclasses have overridden the method
-      Stack<VM_Class> s = new Stack<VM_Class>();
-      for (VM_Class subClass1 : subClasses) {
+      Stack<RVMClass> s = new Stack<RVMClass>();
+      for (RVMClass subClass1 : subClasses) {
         s.push(subClass1);
       }
       while (!s.isEmpty()) {
-        VM_Class subClass = s.pop();
+        RVMClass subClass = s.pop();
         if (subClass.findDeclaredMethod(callee.getName(), callee.getDescriptor()) != null) {
           return false;        // found an overridding method
         }
         subClasses = subClass.getSubClasses();
-        for (VM_Class subClass1 : subClasses) {
+        for (RVMClass subClass1 : subClasses) {
           s.push(subClass1);
         }
       }
@@ -112,7 +112,7 @@ public abstract class InlineTools implements Constants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate(VM_NormalMethod callee, CompilationState state) {
+  public static int inlinedSizeEstimate(NormalMethod callee, CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations
     // that are typically enabled by constant parameters.
@@ -123,7 +123,7 @@ public abstract class InlineTools implements Constants {
       Operand op = Call.getParam(callInstr, i);
       if (op instanceof RegisterOperand) {
         RegisterOperand rop = (RegisterOperand)op;
-        VM_TypeReference type = rop.getType();
+        TypeReference type = rop.getType();
         if (type.isReferenceType()) {
           if (type.isArrayType()) {
             // Reductions only come from optimization of dynamic type checks; all virtual methods on arrays are defined on Object.
@@ -162,7 +162,7 @@ public abstract class InlineTools implements Constants {
    * @param state the compilation state of the caller.
    * @return whether or not the callee should be unconditionally inlined.
    */
-  public static boolean hasInlinePragma(VM_Method callee, CompilationState state) {
+  public static boolean hasInlinePragma(RVMMethod callee, CompilationState state) {
     if (callee.hasInlineAnnotation()) {
       Inline ann = callee.getAnnotation(Inline.class);
       if (ann == null) {
@@ -211,9 +211,9 @@ public abstract class InlineTools implements Constants {
     // TODO: clean this hack up
     // Hack to inline java.lang.VMSystem.arraycopy in the case that
     // arg 0 isn't an Object
-    if (callee == VM_Entrypoints.sysArrayCopy) {
+    if (callee == Entrypoints.sysArrayCopy) {
       Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return src.getType() != VM_TypeReference.JavaLangObject;
+      return src.getType() != TypeReference.JavaLangObject;
     }
     return false;
   }
@@ -226,7 +226,7 @@ public abstract class InlineTools implements Constants {
    * @return whether or not the callee should be unconditionally barred
    *         from being inlined.
    */
-  public static boolean hasNoInlinePragma(VM_Method callee, CompilationState state) {
+  public static boolean hasNoInlinePragma(RVMMethod callee, CompilationState state) {
     return callee.hasNoInlinePragma();
   }
 
@@ -247,7 +247,7 @@ public abstract class InlineTools implements Constants {
    * @return Whether or not we are allowed to speculatively inline
    *         the callee into the caller.
    */
-  public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
+  public static boolean isForbiddenSpeculation(RVMMethod caller, RVMMethod callee) {
     return caller.getDeclaringClass().isInBootImage() && !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
   }
 }

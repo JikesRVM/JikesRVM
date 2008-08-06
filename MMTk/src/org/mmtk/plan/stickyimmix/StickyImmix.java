@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.stickyimmix;
 
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.immix.Immix;
 import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.utility.Log;
@@ -33,13 +34,16 @@ import org.vmmagic.pragma.*;
  * in a conservative collector, here we have an exact collector, so we can use
  * a regular write barrier, and don't need to use page protection etc.
  *
+ * See the PLDI'08 paper by Blackburn and McKinley for a description
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
  * allocation and collection.
  *
@@ -139,7 +143,7 @@ public class StickyImmix extends Immix {
         ploSpace.release(collectWholeHeap);
       lastCommittedPLOSpages = ploSpace.committedPages();
       lastCommittedImmixPages = immixSpace.committedPages();
-      nextGCWholeHeap = false;
+      nextGCWholeHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       return;
     }
 
@@ -234,5 +238,14 @@ public class StickyImmix extends Immix {
    */
   public final boolean isLastGCFull() {
     return collectWholeHeap;
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, StickyImmixNurseryTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

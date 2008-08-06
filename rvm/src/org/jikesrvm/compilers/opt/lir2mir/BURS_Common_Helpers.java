@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import org.jikesrvm.ArchitectureSpecific.BURS_TreeNode;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterTools;
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
+import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterTools;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;

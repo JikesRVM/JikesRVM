@@ -18,27 +18,27 @@ import java.io.PrintStream;
 import java.util.Iterator;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_ClassLoadingListener;
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.compilers.common.VM_CompiledMethod;
-import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.compilers.opt.runtimesupport.VM_OptCompiledMethod;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.ClassLoadingListener;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
- * This class acts as an intermediary between VM_ClassLoader and the
+ * This class acts as an intermediary between RVMClassLoader and the
  * optimizing compiler's dependency database.  Just before a class
- * is marked as INITIALIZED, VM_Class.initialize() invokes
+ * is marked as INITIALIZED, RVMClass.initialize() invokes
  * ClassLoadingDependencyManager.classInitialized(), which is responsible
  * for identifying and performing all necessary invalidations of
  * opt compiler code.
  */
-public final class ClassLoadingDependencyManager implements VM_ClassLoadingListener {
+public final class ClassLoadingDependencyManager implements ClassLoadingListener {
 
   ////////////////////////
-  // Entrypoints from VM_Class
+  // Entrypoints from RVMClass
   ////////////////////////
-  public synchronized void classInitialized(VM_Class c, boolean writingBootImage) {
+  public synchronized void classInitialized(RVMClass c, boolean writingBootImage) {
     // Process any dependencies on methods not being overridden.
     if (!writingBootImage) {
       if (DEBUG) {
@@ -58,7 +58,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
    * Record that the code currently being compiled (cm) must be
    * invalidated if source is overridden.
    */
-  public synchronized void addNotOverriddenDependency(VM_Method source, VM_CompiledMethod cm) {
+  public synchronized void addNotOverriddenDependency(RVMMethod source, CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG) {
       report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not being overridden\n");
@@ -70,7 +70,7 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
    * Record that the code currently being compiled (cm) must be
    * invalidated if source ever has a subclass.
    */
-  public synchronized void addNoSubclassDependency(VM_Class source, VM_CompiledMethod cm) {
+  public synchronized void addNoSubclassDependency(RVMClass source, CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG) {
       report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not having a subclass\n");
@@ -86,13 +86,13 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
    * Take action when a method is overridden.
    * @param c a class that has just been loaded.
    */
-  private void handleOverriddenMethods(VM_Class c) {
+  private void handleOverriddenMethods(RVMClass c) {
     if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do.
-    VM_Class sc = c.getSuperClass();
+    RVMClass sc = c.getSuperClass();
     // for each virtual method of sc, if it is overriden by
     // a virtual method declared by c, then handle any required invalidations.
-    VM_Method[] sc_methods = sc.getVirtualMethods();
-    VM_Method[] c_methods = c.getVirtualMethods();
+    RVMMethod[] sc_methods = sc.getVirtualMethods();
+    RVMMethod[] c_methods = c.getVirtualMethods();
     for (int i = 0; i < sc_methods.length; i++) {
       if (sc_methods[i] != c_methods[i]) {
         processOverride(sc_methods[i]);
@@ -100,19 +100,19 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
     }
     // for each interface implmented by c, note that c provides an overridding
     // implementation
-    for (VM_Class intf : c.getAllImplementedInterfaces()) {
-      for (VM_Method m : intf.getVirtualMethods()) {
+    for (RVMClass intf : c.getAllImplementedInterfaces()) {
+      for (RVMMethod m : intf.getVirtualMethods()) {
         processOverride(m);
       }
     }
   }
 
-  private void processOverride(VM_Method overridden) {
+  private void processOverride(RVMMethod overridden) {
     Iterator<Integer> invalidatedMethods = db.invalidatedByOverriddenMethod(overridden);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = invalidatedMethods.next();
-        VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
+        CompiledMethod im = CompiledMethods.getCompiledMethod(cmid);
         if (im != null) { // im == null implies that the code has been GCed already
           invalidate(im);
         }
@@ -121,14 +121,14 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
     }
   }
 
-  private void handleSubclassing(VM_Class c) {
+  private void handleSubclassing(RVMClass c) {
     if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do
-    VM_Class sc = c.getSuperClass();
+    RVMClass sc = c.getSuperClass();
     Iterator<Integer> invalidatedMethods = db.invalidatedBySubclass(sc);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = invalidatedMethods.next();
-        VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
+        CompiledMethod im = CompiledMethods.getCompiledMethod(cmid);
         if (im != null) { // im == null implies that the code has been GCed already
           invalidate(im);
         }
@@ -140,8 +140,8 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
   /**
    * helper method to invalidate a particular compiled method
    */
-  private void invalidate(VM_CompiledMethod cm) {
-    VM_Method m = cm.getMethod();
+  private void invalidate(CompiledMethod cm) {
+    RVMMethod m = cm.getMethod();
     if (TRACE || DEBUG) {
       report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
     }
@@ -155,12 +155,12 @@ public final class ClassLoadingDependencyManager implements VM_ClassLoadingListe
 
       // (2) Apply any code patches to protect invocations already executing
       //     in the soon to be invalid code.
-      ((VM_OptCompiledMethod)cm).applyCodePatches(cm);
+      ((OptCompiledMethod)cm).applyCodePatches(cm);
 
       cm.setInvalid();
     }
 
-    // (3) Inform its VM_Method that cm is invalid;
+    // (3) Inform its RVMMethod that cm is invalid;
     //     This will update all the dispatching entries (TIB, JTOC, IMTs)
     //     so that no new invocations will reach the invalid compiled code.
     //     It also marks cm as obsolete so it can eventually be reclaimed by GC.

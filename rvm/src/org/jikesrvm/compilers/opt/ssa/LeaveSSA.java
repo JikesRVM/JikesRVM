@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.SSA_SYNTH_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SSA_SYNTH_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 
@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -381,9 +381,9 @@ public class LeaveSSA extends CompilerPhase {
       while (!workList.isEmpty()) {
         Copy c = workList.remove(0);
         Register r = c.destination.getRegister();
-        VM_TypeReference tt = c.destination.getType();
+        TypeReference tt = c.destination.getType();
         if (VM.VerifyAssertions && tt == null) {
-          tt = VM_TypeReference.Int;
+          tt = TypeReference.Int;
           VM.sysWrite("SSA, warning: null type in " + c.destination + "\n");
         }
 

@@ -39,10 +39,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.jikesrvm.ArchitectureSpecific.RegisterPool;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_FieldReference;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.dfsolver.DF_Solution;
@@ -207,7 +207,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
         // .. if H{valueNumber} is available ...
         if (cell.contains(valueNumber)) {
           result.add(H[0].getHeapVariable(), valueNumber);
-          VM_TypeReference type = ResultCarrier.getResult(s).getType();
+          TypeReference type = ResultCarrier.getResult(s).getType();
           Register r = findOrCreateRegister(H[0].getHeapType(), valueNumber, registers, ir.regpool, type);
           if (DEBUG) {
             System.out.println("ELIMINATING LOAD " + s);
@@ -226,7 +226,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
         // .. if H{<v1,v2>} is available ...
         if (cell.contains(v1, v2)) {
           result.add(H[0].getHeapVariable(), v1, v2);
-          VM_TypeReference type = ALoad.getResult(s).getType();
+          TypeReference type = ALoad.getResult(s).getType();
           Register r =
               findOrCreateRegister(H[0].getHeapVariable().getHeapType(), v1, v2, registers, ir.regpool, type);
           if (DEBUG) {
@@ -310,7 +310,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
           } else if (GetField.conforms(s) || GetStatic.conforms(s)) {
             value = ResultCarrier.getResult(s);
           }
-          VM_TypeReference type = value.getType();
+          TypeReference type = value.getType();
           Register r = findOrCreateRegister(H[0].getHeapType(), valueNumber, registers, ir.regpool, type);
           appendMove(r, value, s);
         }
@@ -325,7 +325,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
           } else if (ALoad.conforms(s)) {
             value = ALoad.getResult(s);
           }
-          VM_TypeReference type = value.getType();
+          TypeReference type = value.getType();
           Register r = findOrCreateRegister(H[0].getHeapType(), v1, v2, registers, ir.regpool, type);
           appendMove(r, value, s);
         }
@@ -338,7 +338,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * value in register r.
    */
   static void appendMove(Register r, Operand src, Instruction store) {
-    VM_TypeReference type = src.getType();
+    TypeReference type = src.getType();
     RegisterOperand rop = new RegisterOperand(r, type);
     store.insertAfter(Move.create(IRTools.getMoveOp(type), rop, src.copy()));
   }
@@ -347,7 +347,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * Given a value number, return the temporary register allocated
    * for that value number.  Create one if necessary.
    *
-   * @param heapType a VM_TypeReference or VM_Field identifying the array SSA
+   * @param heapType a TypeReference or RVMField identifying the array SSA
    *                    heap type
    * @param valueNumber
    * @param registers a mapping from value number to temporary register
@@ -355,7 +355,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * @param type the type to store in the new register
    */
   static Register findOrCreateRegister(Object heapType, int valueNumber, HashMap<UseRecord, Register> registers,
-                                           RegisterPool pool, VM_TypeReference type) {
+                                           RegisterPool pool, TypeReference type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     Register result = registers.get(key);
     if (result == null) {
@@ -370,7 +370,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * Given a pair of value numbers, return the temporary register
    * allocated for that pair.  Create one if necessary.
    *
-   * @param heapType a VM_TypeReference identifying the array SSA
+   * @param heapType a TypeReference identifying the array SSA
    *                    heap type
    * @param v1 first value number
    * @param v2 second value number
@@ -379,7 +379,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * @param type the type to store in the new register
    */
   static Register findOrCreateRegister(Object heapType, int v1, int v2, HashMap<UseRecord, Register> registers,
-                                           RegisterPool pool, VM_TypeReference type) {
+                                           RegisterPool pool, TypeReference type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     Register result = registers.get(key);
     if (result == null) {
@@ -392,7 +392,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   // A UseRecord represents a load that will be eliminated
   static class UseRecord {
-    final Object type;        // may be either a VM_TypeReference or a VM_Field
+    final Object type;        // may be either a TypeReference or a RVMField
     final int v1;             // first value number (object pointer)
     final int v2;             // second value number (array index)
     static final int NONE = -2;
@@ -410,8 +410,11 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     }
 
     public boolean equals(Object o) {
-      UseRecord u = (UseRecord) o;
-      return ((u.type.equals(type)) && (u.v1 == v1) && (u.v2 == v2));
+      if (o instanceof UseRecord) {
+        UseRecord u = (UseRecord) o;
+        return ((u.type.equals(type)) && (u.v1 == v1) && (u.v2 == v2));
+      }
+      return false;
     }
 
     public int hashCode() {
@@ -473,7 +476,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    *    1) there's a load L(i) of type T
    *    2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
    *
-   * The result contains objects of type VM_Field and VM_TypeReference, whose
+   * The result contains objects of type RVMField and TypeReference, whose
    * narrowest common ancestor is Object.
    */
   @SuppressWarnings("unchecked")
@@ -482,9 +485,9 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     // which types have we seen loads for?
     HashSet<Object> seenLoad = new HashSet<Object>(10);
     // which static fields have we seen stores for?
-    HashSet<VM_Field> seenStore = new HashSet<VM_Field>(10);
+    HashSet<RVMField> seenStore = new HashSet<RVMField>(10);
     HashSet<Object> resultSet = new HashSet<Object>(10);
-    HashSet<VM_FieldReference> forbidden = new HashSet<VM_FieldReference>(10);
+    HashSet<FieldReference> forbidden = new HashSet<FieldReference>(10);
     // for each type T, indices(T) gives the set of value number (pairs)
     // that identify the indices seen in memory accesses to type T.
     HashMap indices = new HashMap(10);
@@ -497,8 +500,8 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
           switch (s.operator().opcode) {
             case GETFIELD_opcode: {
               Operand ref = GetField.getRef(s);
-              VM_FieldReference fr = GetField.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              FieldReference fr = GetField.getLocation(s).getFieldRef();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -516,8 +519,8 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             break;
             case PUTFIELD_opcode: {
               Operand ref = PutField.getRef(s);
-              VM_FieldReference fr = PutField.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              FieldReference fr = PutField.getLocation(s).getFieldRef();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -535,8 +538,8 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             }
             break;
             case GETSTATIC_opcode: {
-              VM_FieldReference fr = GetStatic.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              FieldReference fr = GetStatic.getLocation(s).getFieldRef();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -548,8 +551,8 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             }
             break;
             case PUTSTATIC_opcode: {
-              VM_FieldReference fr = PutStatic.getLocation(s).getFieldRef();
-              VM_Field f = fr.peekResolvedField();
+              FieldReference fr = PutStatic.getLocation(s).getFieldRef();
+              RVMField f = fr.peekResolvedField();
               if (f == null) {
                 forbidden.add(fr);
               } else {
@@ -570,10 +573,10 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
             case USHORT_ALOAD_opcode:
             case SHORT_ALOAD_opcode: {
               Operand ref = ALoad.getArray(s);
-              VM_TypeReference type = ref.getType();
+              TypeReference type = ref.getType();
               if (type.isArrayType()) {
                 if (!type.getArrayElementType().isPrimitiveType()) {
-                  type = VM_TypeReference.JavaLangObjectArray;
+                  type = TypeReference.JavaLangObjectArray;
                 }
               }
               Operand index = ALoad.getIndex(s);
@@ -602,10 +605,10 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
             {
               Operand ref = AStore.getArray(s);
-              VM_TypeReference type = ref.getType();
+              TypeReference type = ref.getType();
               if (type.isArrayType()) {
                 if (!type.getArrayElementType().isPrimitiveType()) {
-                  type = VM_TypeReference.JavaLangObjectArray;
+                  type = TypeReference.JavaLangObjectArray;
                 }
               }
               Operand index = AStore.getIndex(s);
@@ -634,11 +637,11 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
     // If we have found an unresolved field reference, then conservatively
     // remove all fields that it might refer to from the resultSet.
-    for (final VM_FieldReference fieldReference : forbidden) {
+    for (final FieldReference fieldReference : forbidden) {
       for (Iterator i2 = resultSet.iterator(); i2.hasNext();) {
         Object it = i2.next();
-        if (it instanceof VM_Field) {
-          final VM_Field field = (VM_Field) it;
+        if (it instanceof RVMField) {
+          final RVMField field = (RVMField) it;
           if (!fieldReference.definitelyDifferent(field.getMemberRef().asFieldReference())) {
             i2.remove();
           }

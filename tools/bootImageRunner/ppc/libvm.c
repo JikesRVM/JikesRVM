@@ -184,18 +184,18 @@ extern "C" char *sys_siglist[];
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
-#define NEED_MM_INTERFACE_DECLARATIONS
+#define NEED_MEMORY_MANAGER_DECLARATIONS
 #include <InterfaceDeclarations.h>
-extern "C" void setLinkage(VM_BootRecord *);
+extern "C" void setLinkage(BootRecord *);
 
 #ifdef RVM_FOR_OSX
 #define GET_GPR(info, r) (*getRegAddress((info), (r)))
 #define SET_GPR(info, r, value) (*getRegAddress((info), (r))=(value))
 
-VM_Word *
+Word *
 getRegAddress(ppc_thread_state_t *state, int r)
 {
-    VM_Word *result = 0;
+    Word *result = 0;
     switch (r) {
     case  0:
         result = &state->r0;
@@ -306,8 +306,8 @@ getRegAddress(ppc_thread_state_t *state, int r)
 //  }
 #endif
 
-VM_BootRecord *theBootRecord;
-#define VM_NULL 0
+BootRecord *theBootRecord;
+#define NULL 0
 
 #include "../bootImageRunner.h" // In tools/bootImageRunner
 
@@ -338,11 +338,11 @@ static uintptr_t VmToc;                 // Location of VM's JTOC
 /* Method id for inserting stackframes at sites of hardware traps. */
 int HardwareTrapMethodId;
 
-/* TOC offset of VM_Runtime.deliverHardwareException */
-VM_Offset DeliverHardwareExceptionOffset;
-VM_Offset DumpStackAndDieOffset;      // TOC offset of VM_Scheduler.dumpStackAndDie
-static VM_Offset ProcessorsOffset;    // TOC offset of VM_Scheduler.processors[]
-VM_Offset DebugRequestedOffset;       // TOC offset of VM_Scheduler.debugRequested
+/* TOC offset of Runtime.deliverHardwareException */
+Offset DeliverHardwareExceptionOffset;
+Offset DumpStackAndDieOffset;      // TOC offset of Scheduler.dumpStackAndDie
+static Offset ProcessorsOffset;    // TOC offset of Scheduler.processors[]
+Offset DebugRequestedOffset;       // TOC offset of Scheduler.debugRequested
 
 typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
 
@@ -352,15 +352,15 @@ pthread_t vm_pthreadid;         // pthread id of the main RVM pthread
 
 
 static int
-inRVMAddressSpace(VM_Address addr)
+inRVMAddressSpace(Address addr)
 {
     /* get the boot record */
-    VM_Address *heapRanges = theBootRecord->heapRanges;
+    Address *heapRanges = theBootRecord->heapRanges;
     for (int which = 0; which < MAXHEAPS; which++) {
-        VM_Address start = heapRanges[2 * which];
-        VM_Address end = heapRanges[2 * which + 1];
+        Address start = heapRanges[2 * which];
+        Address end = heapRanges[2 * which + 1];
         // Test against sentinel.
-        if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
+        if (start == ~(Address) 0 && end == ~ (Address) 0) break;
         if (start <= addr  && addr < end) {
             return true;
         }
@@ -374,7 +374,7 @@ inRVMAddressSpace(VM_Address addr)
    Returned: 1 --> vm code was running
              0 --> non-vm (eg. C library) code was running
 */
-static int isVmSignal(VM_Address iar, VM_Address jtoc)
+static int isVmSignal(Address iar, Address jtoc)
 {
     return inRVMAddressSpace(iar) && inRVMAddressSpace(jtoc);
 }
@@ -431,7 +431,7 @@ void
 cSignalHandler(int signum, siginfo_t* siginfo, void* arg3)
 {
     pt_regs *save = getLinuxSavedRegisters(signum, arg3);
-    VM_Word iar  =  save->nip;
+    Word iar  =  save->nip;
 #endif
 #if 0
 } // so emacs knows to match up { and } nicely :)
@@ -446,7 +446,7 @@ cSignalHandler(int signum, int UNUSED zero, sigcontext *context)
 #ifdef RVM_FOR_64_ADDR
     context64 *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/context.h"
 #endif
-    VM_Word iar  =  save->iar;
+    Word iar  =  save->iar;
 #endif
 #if 0
 } // so emacs knows to match up { and } nicely :)
@@ -457,9 +457,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
 {
     struct mcontext* info = context->uc_mcontext;
     ppc_thread_state_t *save = &info->ss;
-    VM_Word iar  =  save->srr0;
+    Word iar  =  save->srr0;
 #endif
-    // UNUSED: // VM_Address jtoc =  GET_GPR(save, VM_Constants_JTOC_POINTER);
+    // UNUSED: // Address jtoc =  GET_GPR(save, Constants_JTOC_POINTER);
 
     if (signum == SIGALRM) {
         processTimerTick();
@@ -521,15 +521,15 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
         }
 
         fprintf(SysTraceFile, "%s: kill requested: invoking dumpStackAndDie\n", Me);
-        /* Dump the stack by returning to VM_Scheduler.dumpStackAndDie(),
+        /* Dump the stack by returning to Scheduler.dumpStackAndDie(),
            passing it the FP of the current thread.
 
            Note that "jtoc" is not necessarily valid, because we might have
            interrupted C-library code, so we use the boot image's jtoc address
            (== VmToc) instead.
         */
-        VM_Address dumpStack
-            = *(VM_Address *)((char *)VmToc + DumpStackAndDieOffset);
+        Address dumpStack
+            = *(Address *)((char *)VmToc + DumpStackAndDieOffset);
 #ifdef RVM_FOR_LINUX
         save->link = save->nip + 4; // +4 so it looks like a return address
         save->nip = dumpStack;
@@ -540,8 +540,8 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
         save->lr = save->iar + 4; // +4 so it looks like a return address
         save->iar = dumpStack;
 #endif
-        SET_GPR(save, VM_Constants_FIRST_VOLATILE_GPR,
-                GET_GPR(save, VM_Constants_FRAME_POINTER));
+        SET_GPR(save, Constants_FIRST_VOLATILE_GPR,
+                GET_GPR(save, Constants_FRAME_POINTER));
 #if defined RVM_FOR_OSX
         sigreturn((struct sigcontext*)context);
 #endif
@@ -621,7 +621,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
     pt_regs *save = getLinuxSavedRegisters(signum, arg3);
     uintptr_t ip = save->nip;
     uintptr_t lr = save->link;
-    VM_Address jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
+    Address jtoc =  save->gpr[Constants_JTOC_POINTER];
 #endif // RVM_FOR_LINUX
 #if 0
 } // for balancing braces { } in the text editor; ignore.
@@ -636,7 +636,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     ppc_float_state_t       *fs = &info->fs;
     unsigned ip  =  save->srr0;
     uintptr_t lr = save->lr;
-    VM_Address jtoc =  GET_GPR(save, VM_Constants_JTOC_POINTER);
+    Address jtoc =  GET_GPR(save, Constants_JTOC_POINTER);
     if (isVmSignal(ip, jtoc)) {
         if ((signum == SIGSEGV || signum == SIGBUS) &&
             siginfo->si_addr == (void*)save->srr0) {
@@ -664,17 +664,17 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     }
     uintptr_t ip = save->iar;
     uintptr_t lr = save->lr;
-    VM_Address jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
+    Address jtoc =  save->gpr[Constants_JTOC_POINTER];
 #endif // RVM_FOR_AIX
 
     // fetch address of java exception handler
     //
-    VM_Address javaExceptionHandler
-        = *(VM_Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
+    Address javaExceptionHandler
+        = *(Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
 
-    const int FP  = VM_Constants_FRAME_POINTER;
-    const int P0  = VM_Constants_FIRST_VOLATILE_GPR;
-    const int P1  = VM_Constants_FIRST_VOLATILE_GPR+1;
+    const int FP  = Constants_FRAME_POINTER;
+    const int P0  = Constants_FIRST_VOLATILE_GPR;
+    const int P1  = Constants_FIRST_VOLATILE_GPR+1;
 
     // We are prepared to handle these kinds of "recoverable" traps.
     // (Anything else indicates some sort of unrecoverable vm error)
@@ -713,7 +713,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         fprintf(SysTraceFile,"             fp=" FMTrvmPTR "\n",
                 rvmPTR_ARG(GET_GPR(save,FP)));
        fprintf(SysTraceFile,"             pr=" FMTrvmPTR "\n",
-               rvmPTR_ARG(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER)));
+               rvmPTR_ARG(GET_GPR(save,Constants_PROCESSOR_REGISTER)));
        fprintf(SysTraceFile,"trap/exception: type=%s\n", strsignal(signum));
        fprintf(SysTraceFile,"             ip=" FMTrvmPTR "\n", rvmPTR_ARG(ip));
        fprintf(SysTraceFile,"          instr=0x%08x\n", instruction);
@@ -738,35 +738,35 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 
    /* Copy the trapped register set into the current thread's "hardware
       exception registers" save area. */
-    VM_Address thread =
-      *(VM_Address *)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +
-                      VM_Processor_activeThread_offset);
-    VM_Address *registers = *(VM_Address **)
-        ((char *)thread + VM_Thread_exceptionRegisters_offset);
+    Address thread =
+      *(Address *)(GET_GPR(save,Constants_PROCESSOR_REGISTER) +
+                      Processor_activeThread_offset);
+    Address *registers = *(Address **)
+        ((char *)thread + RVMThread_exceptionRegisters_offset);
 
-    VM_Word *gprs
-        = *(VM_Word **)((char *)registers + VM_Registers_gprs_offset);
+    Word *gprs
+        = *(Word **)((char *)registers + Registers_gprs_offset);
     double   *fprs
-        = *(double   **)((char *)registers + VM_Registers_fprs_offset);
-    VM_Word *ipLoc
-        =  (VM_Word  *)((char *)registers + VM_Registers_ip_offset);
-    VM_Word *lrLoc
-        =  (VM_Word  *)((char *)registers + VM_Registers_lr_offset);
+        = *(double   **)((char *)registers + Registers_fprs_offset);
+    Word *ipLoc
+        =  (Word  *)((char *)registers + Registers_ip_offset);
+    Word *lrLoc
+        =  (Word  *)((char *)registers + Registers_lr_offset);
     unsigned char *inuse
-        =  (unsigned  char*)((char *)registers + VM_Registers_inuse_offset);
+        =  (unsigned  char*)((char *)registers + Registers_inuse_offset);
 
     if (*inuse) {
         fprintf(SysTraceFile, "%s: internal error: recursive use of hardware exception registers (exiting)\n", Me);
         /* Things went badly wrong, so attempt to generate a useful error
-           dump before exiting by returning to VM_Scheduler.dumpStackAndDie,
+           dump before exiting by returning to Scheduler.dumpStackAndDie,
            passing it the fp of the offending thread.
 
            We could try to continue, but sometimes doing so results in
            cascading failures and it's hard to tell what the real problem
            was.
         */
-        VM_Address dumpStack
-            = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
+        Address dumpStack
+            = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
         SET_GPR(save, P0, GET_GPR(save, FP));
 #ifdef RVM_FOR_LINUX
         save->link = save->nip + 4; // +4 so it looks like a return address
@@ -816,22 +816,22 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     // Insert artificial stackframe at site of trap.
     // This frame marks the place where "hardware exception registers" were saved.
     //
-    VM_Address   oldFp = GET_GPR(save, FP);
-    VM_Address   newFp = oldFp - VM_Constants_STACKFRAME_HEADER_SIZE;
+    Address   oldFp = GET_GPR(save, FP);
+    Address   newFp = oldFp - Constants_STACKFRAME_HEADER_SIZE;
 #ifdef RVM_FOR_LINUX
-    *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->nip + 4; // +4 so it looks like return address
+    *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->nip + 4; // +4 so it looks like return address
 #endif
 
 #ifdef RVM_FOR_OSX
-    *(int *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
+    *(int *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
 #endif
 
 #ifdef RVM_FOR_AIX
-    *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
+    *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
 #endif
-    *(int *)(newFp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET)
+    *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
         = HardwareTrapMethodId;
-    *(VM_Address *)(newFp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)
+    *(Address *)(newFp + Constants_STACKFRAME_FRAME_POINTER_OFFSET)
         = oldFp;
     SET_GPR(save, FP, newFp);
 
@@ -839,7 +839,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
        re-executing the instruction that caused the trap.
     */
 
-    int      trapCode    = VM_Runtime_TRAP_UNKNOWN;
+    int      trapCode    = Runtime_TRAP_UNKNOWN;
     int      trapInfo    = 0;
     int      haveFrame   = 1;
 
@@ -854,79 +854,79 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     case SIGSEGV:
         if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
             if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
-            trapCode = VM_Runtime_TRAP_NULL_POINTER;
+            trapCode = Runtime_TRAP_NULL_POINTER;
             break;
         }
         if (lib_verbose) fprintf(SysTraceFile, "%s: unknown seg fault\n", Me);
-        trapCode = VM_Runtime_TRAP_UNKNOWN;
+        trapCode = Runtime_TRAP_UNKNOWN;
         break;
 
     case SIGTRAP:
-        if ((instruction & VM_Constants_ARRAY_INDEX_MASK) == VM_Constants_ARRAY_INDEX_TRAP) {
+        if ((instruction & Constants_ARRAY_INDEX_MASK) == Constants_ARRAY_INDEX_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: array bounds trap\n", Me);
-            trapCode = VM_Runtime_TRAP_ARRAY_BOUNDS;
-            trapInfo = gprs[(instruction & VM_Constants_ARRAY_INDEX_REG_MASK)
-                            >> VM_Constants_ARRAY_INDEX_REG_SHIFT];
+            trapCode = Runtime_TRAP_ARRAY_BOUNDS;
+            trapInfo = gprs[(instruction & Constants_ARRAY_INDEX_REG_MASK)
+                            >> Constants_ARRAY_INDEX_REG_SHIFT];
             break;
-        } else if ((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_MASK) == VM_Constants_CONSTANT_ARRAY_INDEX_TRAP) {
+        } else if ((instruction & Constants_CONSTANT_ARRAY_INDEX_MASK) == Constants_CONSTANT_ARRAY_INDEX_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: array bounds trap\n", Me);
-            trapCode = VM_Runtime_TRAP_ARRAY_BOUNDS;
-            trapInfo = ((int)((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
+            trapCode = Runtime_TRAP_ARRAY_BOUNDS;
+            trapInfo = ((int)((instruction & Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
             break;
-        } else if ((instruction & VM_Constants_DIVIDE_BY_ZERO_MASK) == VM_Constants_DIVIDE_BY_ZERO_TRAP) {
+        } else if ((instruction & Constants_DIVIDE_BY_ZERO_MASK) == Constants_DIVIDE_BY_ZERO_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: divide by zero trap\n", Me);
-            trapCode = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
+            trapCode = Runtime_TRAP_DIVIDE_BY_ZERO;
             break;
-        } else if ((instruction & VM_Constants_MUST_IMPLEMENT_MASK) == VM_Constants_MUST_IMPLEMENT_TRAP) {
+        } else if ((instruction & Constants_MUST_IMPLEMENT_MASK) == Constants_MUST_IMPLEMENT_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: must implement trap\n", Me);
-            trapCode = VM_Runtime_TRAP_MUST_IMPLEMENT;
+            trapCode = Runtime_TRAP_MUST_IMPLEMENT;
             break;
-        } else if ((instruction & VM_Constants_STORE_CHECK_MASK) == VM_Constants_STORE_CHECK_TRAP) {
+        } else if ((instruction & Constants_STORE_CHECK_MASK) == Constants_STORE_CHECK_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: objarray store check trap\n", Me);
-            trapCode = VM_Runtime_TRAP_STORE_CHECK;
+            trapCode = Runtime_TRAP_STORE_CHECK;
             break;
-        } else if ((instruction & VM_Constants_CHECKCAST_MASK ) == VM_Constants_CHECKCAST_TRAP) {
+        } else if ((instruction & Constants_CHECKCAST_MASK ) == Constants_CHECKCAST_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: checkcast trap\n", Me);
-            trapCode = VM_Runtime_TRAP_CHECKCAST;
+            trapCode = Runtime_TRAP_CHECKCAST;
             break;
-        } else if ((instruction & VM_Constants_REGENERATE_MASK) == VM_Constants_REGENERATE_TRAP) {
+        } else if ((instruction & Constants_REGENERATE_MASK) == Constants_REGENERATE_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: regenerate trap\n", Me);
-            trapCode = VM_Runtime_TRAP_REGENERATE;
+            trapCode = Runtime_TRAP_REGENERATE;
             break;
-        } else if ((instruction & VM_Constants_NULLCHECK_MASK) == VM_Constants_NULLCHECK_TRAP) {
+        } else if ((instruction & Constants_NULLCHECK_MASK) == Constants_NULLCHECK_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
-            trapCode = VM_Runtime_TRAP_NULL_POINTER;
+            trapCode = Runtime_TRAP_NULL_POINTER;
             break;
-        } else if ((instruction & VM_Constants_JNI_STACK_TRAP_MASK) == VM_Constants_JNI_STACK_TRAP) {
+        } else if ((instruction & Constants_JNI_STACK_TRAP_MASK) == Constants_JNI_STACK_TRAP) {
             if (lib_verbose) fprintf(SysTraceFile, "%s: resize stack for JNI call\n", Me);
-            trapCode = VM_Runtime_TRAP_JNI_STACK;
+            trapCode = Runtime_TRAP_JNI_STACK;
             /* We haven't actually bought the stackframe yet, so pretend that
                we are actually trapping directly from the call instruction
                that invoked the native method that caused the stackoverflow
                trap. */
             haveFrame = 0;
             break;
-        } else if ((instruction & VM_Constants_WRITE_BUFFER_OVERFLOW_MASK) == VM_Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
+        } else if ((instruction & Constants_WRITE_BUFFER_OVERFLOW_MASK) == Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
             //!!TODO: someday use logic similar to stack guard page to force a gc
             if (lib_verbose) fprintf(SysTraceFile, "%s: write buffer overflow trap\n", Me);
             fprintf(SysErrorFile,"%s: write buffer overflow trap\n", Me);
             exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-        } else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK)
-                    == VM_Constants_STACK_OVERFLOW_TRAP)
-                 || ((instruction & VM_Constants_STACK_OVERFLOW_MASK)
-                    == VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP))
+        } else if (((instruction & Constants_STACK_OVERFLOW_MASK)
+                    == Constants_STACK_OVERFLOW_TRAP)
+                 || ((instruction & Constants_STACK_OVERFLOW_MASK)
+                    == Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP))
         {
             if (lib_verbose) fprintf(SysTraceFile, "%s: stack overflow trap\n", Me);
-            trapCode = VM_Runtime_TRAP_STACK_OVERFLOW;
-            haveFrame = ((instruction & VM_Constants_STACK_OVERFLOW_MASK)
-                         == VM_Constants_STACK_OVERFLOW_TRAP);
+            trapCode = Runtime_TRAP_STACK_OVERFLOW;
+            haveFrame = ((instruction & Constants_STACK_OVERFLOW_MASK)
+                         == Constants_STACK_OVERFLOW_TRAP);
 
             /* Adjust the stack limit downward to give the exception handler
                 some space in which to run.
             */
-            VM_Address stackLimit = *(VM_Address *)((char *)thread + VM_Thread_stackLimit_offset);
-            VM_Address stackStart = *(VM_Address *)((char *)thread + VM_Thread_stack_offset);
-            stackLimit -= VM_Constants_STACK_SIZE_GUARD;
+            Address stackLimit = *(Address *)((char *)thread + RVMThread_stackLimit_offset);
+            Address stackStart = *(Address *)((char *)thread + RVMThread_stack_offset);
+            stackLimit -= Constants_STACK_SIZE_GUARD;
             if (stackLimit < stackStart) {
                 /* double fault - stack overflow exception handler used too
                    much stack space */
@@ -936,14 +936,14 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
                 /* Go ahead and get all the stack space we need to generate
                  * the error dump (since we're crashing anyways)
                  */
-                *(VM_Address *)((char *)thread + VM_Thread_stackLimit_offset) = 0;
+                *(Address *)((char *)thread + RVMThread_stackLimit_offset) = 0;
 
                 /* Things are very badly wrong anyways, so attempt to generate
                    a useful error dump before exiting by returning to
-                   VM_Scheduler.dumpStackAndDie, passing it the fp of the
+                   Scheduler.dumpStackAndDie, passing it the fp of the
                    offending thread. */
-                VM_Address dumpStack
-                    = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
+                Address dumpStack
+                    = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
                 SET_GPR(save, P0, GET_GPR(save, FP));
 #ifdef RVM_FOR_LINUX
                 save->link = save->nip + 4; // +4 so it looks like a return address
@@ -957,23 +957,23 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #endif
                 return;
             }
-            *(VM_Address *)((char *)thread + VM_Thread_stackLimit_offset)
+            *(Address *)((char *)thread + RVMThread_stackLimit_offset)
                 = stackLimit;
-            VM_Address *limit_address =
-                (VM_Address *)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +
-                               VM_Processor_activeThreadStackLimit_offset);
+            Address *limit_address =
+                (Address *)(GET_GPR(save,Constants_PROCESSOR_REGISTER) +
+                               Processor_activeThreadStackLimit_offset);
 
             *limit_address = stackLimit;
 
             break;
         }
         if (lib_verbose) fprintf(SysTraceFile, "%s: unknown trap\n", Me);
-        trapCode = VM_Runtime_TRAP_UNKNOWN;
+        trapCode = Runtime_TRAP_UNKNOWN;
         break;
 
     default:
         if (lib_verbose) fprintf(SysTraceFile, "%s: unknown trap\n", Me);
-        trapCode = VM_Runtime_TRAP_UNKNOWN;
+        trapCode = Runtime_TRAP_UNKNOWN;
         break;
     }
 
@@ -1016,9 +1016,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
            invoked the method whose prologue caused the stackoverflow.
         */
 #ifdef RVM_FOR_LINUX
-        *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->link;
+        *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->link;
 #elif defined RVM_FOR_AIX || defined RVM_FOR_OSX
-        *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
+        *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
 #endif
     }
 
@@ -1142,8 +1142,8 @@ createVM(int vmInSeparateThread)
 
     // fetch contents of boot record which is at beginning of data portion of boot image
     //
-    theBootRecord               = (VM_BootRecord *) bootDataRegion;
-    VM_BootRecord& bootRecord   = *theBootRecord;
+    theBootRecord               = (BootRecord *) bootDataRegion;
+    BootRecord& bootRecord   = *theBootRecord;
 
 
     if ((bootRecord.spRegister % 4) != 0) {
@@ -1168,19 +1168,19 @@ createVM(int vmInSeparateThread)
         return 1;
     }
 
-    if (bootRecord.bootImageDataStart != (VM_Address)bootDataRegion) {
+    if (bootRecord.bootImageDataStart != (Address)bootDataRegion) {
         fprintf(SysErrorFile, "%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
                 Me, bootRecord.bootImageDataStart, bootDataRegion);
         return 1;
     }
 
-    if (bootRecord.bootImageCodeStart != (VM_Address)bootCodeRegion) {
+    if (bootRecord.bootImageCodeStart != (Address)bootCodeRegion) {
         fprintf(SysErrorFile, "%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
                 Me, bootRecord.bootImageCodeStart, bootCodeRegion);
         return 1;
     }
 
-    if (bootRecord.bootImageRMapStart != (VM_Address)bootRMapRegion) {
+    if (bootRecord.bootImageRMapStart != (Address)bootRMapRegion) {
         fprintf(SysErrorFile, "%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
                 Me, bootRecord.bootImageRMapStart, bootRMapRegion);
         return 1;
@@ -1194,12 +1194,12 @@ createVM(int vmInSeparateThread)
     //
     bootRecord.initialHeapSize  = initialHeapSize;
     bootRecord.maximumHeapSize  = maximumHeapSize;
-    bootRecord.bootImageDataStart   = (VM_Address) bootDataRegion;
-    bootRecord.bootImageDataEnd     = (VM_Address) bootDataRegion + roundedDataRegionSize;
-    bootRecord.bootImageCodeStart   = (VM_Address) bootCodeRegion;
-    bootRecord.bootImageCodeEnd     = (VM_Address) bootCodeRegion + roundedCodeRegionSize;
-    bootRecord.bootImageRMapStart   = (VM_Address) bootRMapRegion;
-    bootRecord.bootImageRMapEnd     = (VM_Address) bootRMapRegion + roundedRMapRegionSize;
+    bootRecord.bootImageDataStart   = (Address) bootDataRegion;
+    bootRecord.bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
+    bootRecord.bootImageCodeStart   = (Address) bootCodeRegion;
+    bootRecord.bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
+    bootRecord.bootImageRMapStart   = (Address) bootRMapRegion;
+    bootRecord.bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
     bootRecord.verboseBoot      = verboseBoot;
 
     // set host o/s linkage information into boot record
@@ -1212,8 +1212,8 @@ createVM(int vmInSeparateThread)
     DeliverHardwareExceptionOffset = bootRecord.deliverHardwareExceptionOffset;
     HardwareTrapMethodId           = bootRecord.hardwareTrapMethodId;
 
-    // remember JTOC offset of VM_Scheduler.dumpStackAndDie, VM_Scheduler.processors[],
-    //    VM_Scheduler.threads[], VM_Scheduler.DebugRequested
+    // remember JTOC offset of Scheduler.dumpStackAndDie, Scheduler.processors[],
+    //    Scheduler.threads[], Scheduler.DebugRequested
     //
     DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
     ProcessorsOffset = bootRecord.greenProcessorsOffset;
@@ -1348,26 +1348,26 @@ createVM(int vmInSeparateThread)
 
     // set up initial stack frame
     //
-    VM_Address  jtoc = bootRecord.tocRegister;
-    VM_Address *processors = *(VM_Address **)(bootRecord.tocRegister +
+    Address  jtoc = bootRecord.tocRegister;
+    Address *processors = *(Address **)(bootRecord.tocRegister +
                                               bootRecord.greenProcessorsOffset);
-    VM_Address  pr = processors[VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
-    VM_Address tid = bootRecord.tiRegister;
-    VM_Address  ip = bootRecord.ipRegister;
-    VM_Address  sp = bootRecord.spRegister;
+    Address  pr = processors[GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
+    Address tid = bootRecord.tiRegister;
+    Address  ip = bootRecord.ipRegister;
+    Address  sp = bootRecord.spRegister;
 
     // initialize the thread id in the primordial processor object.
     //
-    *(unsigned int *) (pr + VM_Processor_threadId_offset)
-      = VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
+    *(unsigned int *) (pr + Processor_threadId_offset)
+      = Scheduler_PRIMORDIAL_THREAD_INDEX << ThinLockConstants_TL_THREAD_ID_SHIFT;
 
     // Set up thread stack
-    VM_Address  fp = sp - VM_Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
-    fp = fp & ~(VM_Constants_STACKFRAME_ALIGNMENT -1);     // align fp
+    Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
+    fp = fp & ~(Constants_STACKFRAME_ALIGNMENT -1);     // align fp
 
-    *(VM_Address *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
-    *(int *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;
-    *(VM_Address *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINEL_FP;
+    *(Address *)(fp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
+    *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
+    *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
 
     // force any machine code within image that's still in dcache to be
     // written out to main memory so that it will be seen by icache when
@@ -1451,8 +1451,8 @@ getJTOC()
     return (void*) VmToc;
 }
 
-// Get offset of VM_Scheduler.processors in JTOC.
-extern "C" VM_Offset
+// Get offset of Scheduler.processors in JTOC.
+extern "C" Offset
 getProcessorsOffset()
 {
     return ProcessorsOffset;
@@ -1460,7 +1460,7 @@ getProcessorsOffset()
 
 
 // We do not have this yet on the PowerPC
-extern VM_Address
+extern Address
 createJavaVM()
 {
     fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");

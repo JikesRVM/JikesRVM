@@ -15,7 +15,7 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.policy.Space;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.Scheduler;
 
 import org.vmmagic.pragma.*;
 
@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
   }
 
   public final void dumpStack() {
-    VM_Scheduler.dumpStack();
+    Scheduler.dumpStack();
   }
 
   /**

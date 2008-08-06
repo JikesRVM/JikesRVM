@@ -29,20 +29,7 @@ import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
  * @see DepGraph
  */
 public class DepGraphStats {
-  /**
-   * The number of nodes in the dependence graph
-   */
-  int numNodes;
-  /**
-   * The total volume (expected cycles) of work represented by nodes in
-   * the dependence graph.
-   */
-  int totalTime;
-  /**
-   * The length of the critical path through the dependence graph
-   */
-  int critPathLength;
-  static final boolean debug = false;
+  private static final boolean debug = false;
 
   /**
    * Create a statistical summary of a dependence graph for a given basic

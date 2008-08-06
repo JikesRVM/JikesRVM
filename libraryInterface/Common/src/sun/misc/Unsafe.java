@@ -14,11 +14,11 @@ package sun.misc;
 
 import java.lang.reflect.Field;
 
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Synchronization;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 public final class Unsafe {
@@ -38,83 +38,83 @@ public final class Unsafe {
   }
 
   public long objectFieldOffset(Field field) {
-    VM_Field vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
+    RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     return vmfield.getOffset().toLong();
   }
 
   public boolean compareAndSwapInt(Object obj,long offset,int expect,int update) {
     Offset off = longToOffset(offset);
-    return VM_Synchronization.tryCompareAndSwap(obj, off, expect, update);
+    return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   public boolean compareAndSwapLong(Object obj,long offset,long expect,long update) {
     Offset off = Offset.fromIntSignExtend((int)offset);
-    return VM_Synchronization.tryCompareAndSwap(obj, off, expect, update);
+    return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   public boolean compareAndSwapObject(Object obj,long offset,Object expect,Object update) {
     Offset off = Offset.fromIntSignExtend((int)offset);
-    return VM_Synchronization.tryCompareAndSwap(obj, off, expect, update);
+    return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setIntAtOffset(obj,off,value);
+    Magic.setIntAtOffset(obj,off,value);
   }
 
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setLongAtOffset(obj,off,value);
+    Magic.setLongAtOffset(obj,off,value);
   }
 
   public void putOrderedObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setObjectAtOffset(obj,off,value);
+    Magic.setObjectAtOffset(obj,off,value);
    }
 
   public void putIntVolatile(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setIntAtOffset(obj,off,value);
+    Magic.setIntAtOffset(obj,off,value);
   }
 
   public int getIntVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return VM_Magic.getIntAtOffset(obj,off);
+    return Magic.getIntAtOffset(obj,off);
   }
 
   public void putLongVolatile(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setLongAtOffset(obj,off,value);
+    Magic.setLongAtOffset(obj,off,value);
    }
 
   public void putLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setLongAtOffset(obj,off,value);
+    Magic.setLongAtOffset(obj,off,value);
   }
 
   public long getLongVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return VM_Magic.getLongAtOffset(obj,off);
+    return Magic.getLongAtOffset(obj,off);
   }
 
   public long getLong(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return VM_Magic.getLongAtOffset(obj,off);
+    return Magic.getLongAtOffset(obj,off);
   }
 
   public void putObjectVolatile(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setObjectAtOffset(obj,off,value);
+    Magic.setObjectAtOffset(obj,off,value);
   }
 
   public void putObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    VM_Magic.setObjectAtOffset(obj,off,value);
+    Magic.setObjectAtOffset(obj,off,value);
   }
 
   public Object getObjectVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return VM_Magic.getObjectAtOffset(obj,off);
+    return Magic.getObjectAtOffset(obj,off);
   }
 
   public int arrayBaseOffset(Class<?> arrayClass) {
@@ -122,7 +122,7 @@ public final class Unsafe {
   }
 
   public int arrayIndexScale(Class<?> arrayClass) {
-    VM_Type arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
+    RVMType arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
     if (!arrayType.isArrayType()) {
       return 0;
     } else {
@@ -131,14 +131,14 @@ public final class Unsafe {
   }
 
   public void unpark(Object thread) {
-    VM_Thread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
+    RVMThread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
     if (vmthread != null) {
       vmthread.unpark();
     }
   }
 
   public void park(boolean isAbsolute,long time) throws Throwable  {
-    VM_Thread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
+    RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
     vmthread.park(isAbsolute, time);
   }
 }

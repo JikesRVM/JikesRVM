@@ -12,7 +12,7 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
  * Implementation of java.lang.ref.PhantomReference for JikesRVM.
@@ -21,7 +21,7 @@ public class PhantomReference<T> extends Reference<T> {
 
   public PhantomReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addPhantomReference(this,referent);
+    MemoryManager.addPhantomReference(this,referent);
   }
 
   /**

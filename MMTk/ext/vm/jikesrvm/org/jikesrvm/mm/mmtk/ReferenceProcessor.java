@@ -20,9 +20,9 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.mm.mminterface.DebugUtil;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.Scheduler;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -53,7 +53,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Class fields
    */
 
-  private static Lock lock = new Lock("ReferenceProcessor");
+  private static final Lock lock = new Lock("ReferenceProcessor");
 
   private static final ReferenceProcessor softReferenceProcessor =
     new ReferenceProcessor(Semantics.SOFT);
@@ -126,7 +126,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Factory method.
    * Creates an instance of the appropriate reference type processor.
-   * @return
+   * @return the reference processor
    */
   @Interruptible
   public static ReferenceProcessor get(Semantics semantics) {
@@ -202,6 +202,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference to add
    */
   @NoInline
+  @Unpreemptible("Non-preemptible but yield when table needs to be grown")
   private void addCandidate(Reference<?> ref, ObjectReference referent) {
     if (TRACE) {
       ObjectReference referenceAsAddress = ObjectReference.fromObject(ref);
@@ -226,7 +227,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     while (growingTable || maxIndex >= references.length()) {
       if (growingTable) {
         lock.release();
-        VM_Scheduler.yield(); // (1) Allow another thread to grow the table
+        Scheduler.yield(); // (1) Allow another thread to grow the table
         lock.acquire();
       } else {
         growingTable = true;  // Prevent other threads from growing table while lock is released
@@ -269,6 +270,15 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       setReference(i, newReference);
     }
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
+  }
+
+  /**
+   * Clear the contents of the table. This is called when reference types are
+   * disabled to make it easier for VMs to change this setting at runtime.
+   */
+  @Override
+  public void clear() {
+    maxIndex = 0;
   }
 
   /**
@@ -323,6 +333,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param addr the address of the Reference object
    * @return <code>true</code> if the reference was enqueued
    */
+  @Unpreemptible
   public boolean enqueueReference(ObjectReference addr) {
     Reference<?> reference = (Reference<?>)addr.toObject();
     return reference.enqueue();
@@ -367,6 +378,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
    */
+  @UnpreemptibleNoWarn("Call out to ReferenceQueue API")
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
@@ -496,7 +508,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @return the referent object reference.
    */
   protected ObjectReference getReferent(ObjectReference object) {
-    return object.toAddress().loadObjectReference(VM_Entrypoints.referenceReferentField.getOffset());
+    return object.toAddress().loadObjectReference(Entrypoints.referenceReferentField.getOffset());
   }
 
   /**
@@ -506,7 +518,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param referent the referent object reference.
    */
   protected void setReferent(ObjectReference ref, ObjectReference referent) {
-    ref.toAddress().store(referent, VM_Entrypoints.referenceReferentField.getOffset());
+    ref.toAddress().store(referent, Entrypoints.referenceReferentField.getOffset());
   }
 
   /***********************************************************************

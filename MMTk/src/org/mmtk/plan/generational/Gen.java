@@ -20,9 +20,11 @@ import org.mmtk.utility.deque.*;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.*;
 
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -384,5 +386,44 @@ public abstract class Gen extends StopTheWorld {
     if (Space.isInSpace(NURSERY, object))
       return false;
     return super.willNeverMove(object);
+  }
+
+  /**
+   * Return the expected reference count. For non-reference counting
+   * collectors this becomes a true/false relationship.
+   *
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
+   * @return The expected (root excluded) reference count.
+   */
+  public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+    Space space = Space.getSpaceForObject(object);
+
+    // Nursery
+    if (space == Gen.nurserySpace) {
+      return SanityChecker.DEAD;
+    }
+
+    // Immortal spaces
+    if (space == Gen.immortalSpace || space == Gen.vmSpace) {
+      return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+    }
+
+    // Mature space (nursery collection)
+    if (VM.activePlan.global().isCurrentGCNursery()) {
+      return SanityChecker.UNSURE;
+    }
+
+    // Mature space (full heap collection)
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, GenNurseryTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

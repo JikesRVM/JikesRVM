@@ -12,7 +12,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Pure;
 
 /**
@@ -27,15 +27,15 @@ final class VMDouble {
   static long doubleToLongBits(double value) {
     // Check for NaN and return canonical NaN value
     if (value != value) return 0x7ff8000000000000L;
-    else return VM_Magic.doubleAsLongBits(value);
+    else return Magic.doubleAsLongBits(value);
   }
 
   static long doubleToRawLongBits(double value) {
-    return VM_Magic.doubleAsLongBits(value);
+    return Magic.doubleAsLongBits(value);
   }
 
   static double longBitsToDouble(long bits) {
-    return VM_Magic.longBitsAsDouble(bits);
+    return Magic.longBitsAsDouble(bits);
   }
 
   @Pure

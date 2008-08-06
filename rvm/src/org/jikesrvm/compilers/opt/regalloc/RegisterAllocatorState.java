@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Register;
 

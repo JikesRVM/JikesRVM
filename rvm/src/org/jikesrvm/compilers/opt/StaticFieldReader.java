@@ -14,10 +14,10 @@ package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Field;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
@@ -28,8 +28,8 @@ import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StringConstantOperand;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
@@ -41,19 +41,19 @@ import org.vmmagic.unboxed.Word;
  * getstatic's of initialized static fields
  * by replacing the getstatic with a constant operand.
  */
-public abstract class StaticFieldReader implements VM_SizeConstants {
+public abstract class StaticFieldReader implements SizeConstants {
 
   /**
    * Read the field from obj and return as the appropriate constant
    */
-  public static ConstantOperand getFieldValueAsConstant(VM_Field field, Object obj) throws NoSuchFieldException {
+  public static ConstantOperand getFieldValueAsConstant(RVMField field, Object obj) throws NoSuchFieldException {
     if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
     if (VM.VerifyAssertions) {
       VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),
                  "Error reading field " + field);
     }
 
-    VM_TypeReference type = field.getType();
+    TypeReference type = field.getType();
     if (VM.runningVM) {
       if (type.isReferenceType() && !type.isMagicType()) {
         Object value = field.getObjectValueUnchecked(obj);
@@ -98,13 +98,13 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
           }
         } else if (type.isWordType()) {
           Object value = f.get(obj);
-          if (type.equals(VM_TypeReference.Word))
+          if (type.equals(TypeReference.Word))
             return new AddressConstantOperand((Word)value);
-          else if (type.equals(VM_TypeReference.Address))
+          else if (type.equals(TypeReference.Address))
             return new AddressConstantOperand((Address)value);
-          else if (type.equals(VM_TypeReference.Offset))
+          else if (type.equals(TypeReference.Offset))
             return new AddressConstantOperand((Offset)value);
-          else if (type.equals(VM_TypeReference.Extent))
+          else if (type.equals(TypeReference.Extent))
             return new AddressConstantOperand((Extent)value);
           else {
             OptimizingCompilerException.UNREACHABLE("Unknown word type " + type);
@@ -152,7 +152,7 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field the static field whose current value we want to read
    * @return a constant operand representing the current value of the field.
    */
-  public static ConstantOperand getStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static ConstantOperand getStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
     if (VM.VerifyAssertions) VM._assert(field.isStatic(), "Error reading field " + field);
     if (VM.VerifyAssertions) {
@@ -160,12 +160,12 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
                  "Error reading field " + field);
     }
 
-    VM_TypeReference fieldType = field.getType();
+    TypeReference fieldType = field.getType();
     Offset off = field.getOffset();
-    if ((fieldType == VM_TypeReference.Address) ||
-        (fieldType == VM_TypeReference.Word) ||
-        (fieldType == VM_TypeReference.Offset) ||
-        (fieldType == VM_TypeReference.Extent)) {
+    if ((fieldType == TypeReference.Address) ||
+        (fieldType == TypeReference.Word) ||
+        (fieldType == TypeReference.Offset) ||
+        (fieldType == TypeReference.Extent)) {
       Address val = getAddressStaticFieldValue(field);
       return new AddressConstantOperand(val);
     } else if (fieldType.isIntLikeType()) {
@@ -185,15 +185,15 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
       Object val = getObjectStaticFieldValue(field);
       if (val == null) {
         return new NullConstantOperand();
-      } else if (fieldType == VM_TypeReference.JavaLangString) {
+      } else if (fieldType == TypeReference.JavaLangString) {
         return new StringConstantOperand((String) val, off);
-      } else if (fieldType == VM_TypeReference.JavaLangClass) {
+      } else if (fieldType == TypeReference.JavaLangClass) {
         Class<?> klass = (Class<?>) getObjectStaticFieldValue(field);
-        VM_Type type;
+        RVMType type;
         if (VM.runningVM) {
           type = java.lang.JikesRVMSupport.getTypeForClass(klass);
         } else {
-          type = VM_TypeReference.findOrCreate(klass).resolve();
+          type = TypeReference.findOrCreate(klass).resolve();
         }
         return new ClassConstantOperand(type.getClassForType(), off);
       } else {
@@ -208,13 +208,13 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static int getIntStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static int getIntStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
-      return VM_Statics.getSlotContentsAsInt(field.getOffset());
+      return Statics.getSlotContentsAsInt(field.getOffset());
     } else {
       try {
         Field f = getJDKField(field);
-        VM_TypeReference fieldType = field.getType();
+        TypeReference fieldType = field.getType();
         if (fieldType.isBooleanType()) {
           boolean val = f.getBoolean(null);
           return val ? 1 : 0;
@@ -243,10 +243,10 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static float getFloatStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static float getFloatStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
-      int bits = VM_Statics.getSlotContentsAsInt(field.getOffset());
-      return VM_Magic.intBitsAsFloat(bits);
+      int bits = Statics.getSlotContentsAsInt(field.getOffset());
+      return Magic.intBitsAsFloat(bits);
     } else {
       try {
         return getJDKField(field).getFloat(null);
@@ -264,9 +264,9 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static long getLongStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static long getLongStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
-      return VM_Statics.getSlotContentsAsLong(field.getOffset());
+      return Statics.getSlotContentsAsLong(field.getOffset());
     } else {
       try {
         return getJDKField(field).getLong(null);
@@ -284,10 +284,10 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static double getDoubleStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static double getDoubleStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
-      long bits = VM_Statics.getSlotContentsAsLong(field.getOffset());
-      return VM_Magic.longBitsAsDouble(bits);
+      long bits = Statics.getSlotContentsAsLong(field.getOffset());
+      return Magic.longBitsAsDouble(bits);
     } else {
       try {
         return getJDKField(field).getDouble(null);
@@ -305,9 +305,9 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static Object getObjectStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static Object getObjectStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
-      return VM_Statics.getSlotContentsAsObject(field.getOffset());
+      return Statics.getSlotContentsAsObject(field.getOffset());
     } else {
       try {
         return getJDKField(field).get(null);
@@ -325,9 +325,9 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static Address getAddressStaticFieldValue(VM_Field field) throws NoSuchFieldException {
+  public static Address getAddressStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
-      return VM_Statics.getSlotContentsAsAddress(field.getOffset());
+      return Statics.getSlotContentsAsAddress(field.getOffset());
     } else {
       try {
         Object unboxed = getJDKField(field).get(null);
@@ -357,7 +357,7 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return true if the field contains null, false otherwise
    */
-  public static boolean isStaticFieldNull(VM_Field field) throws NoSuchFieldException {
+  public static boolean isStaticFieldNull(RVMField field) throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
   }
 
@@ -367,22 +367,28 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return type of value contained in the field
    */
-  public static VM_TypeReference getTypeFromStaticField(VM_Field field) throws NoSuchFieldException {
+  public static TypeReference getTypeFromStaticField(RVMField field) throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
-    if (o == null) return VM_TypeReference.NULL_TYPE;
+    if (o == null) return TypeReference.NULL_TYPE;
     if (VM.runningVM) {
-      return VM_Magic.getObjectType(o).getTypeRef();
+      return Magic.getObjectType(o).getTypeRef();
     } else {
-      return VM_TypeReference.findOrCreate(o.getClass());
+      return TypeReference.findOrCreate(o.getClass());
     }
   }
 
   /**
-   * Utilitiy to convert a VM_Field to a java.lang.reflect.Field
+   * Utilitiy to convert a RVMField to a java.lang.reflect.Field
    */
-  private static Field getJDKField(VM_Field field) throws NoSuchFieldException {
+  private static Field getJDKField(RVMField field) throws NoSuchFieldException {
     try {
       String cn = field.getDeclaringClass().toString();
+      if (VM.BuildForGnuClasspath &&
+          field.getDeclaringClass().getClassForType().equals(java.lang.reflect.Proxy.class) &&
+          field.getName().toString().equals("proxyClasses")) {
+        // Avoid confusing bootstrap JVM and classpath fields
+        throw new NoSuchFieldException(field.toString());
+      }
       Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
       f.setAccessible(true);
       return f;
@@ -394,6 +400,12 @@ public abstract class StaticFieldReader implements VM_SizeConstants {
       throw new NoSuchFieldException(field.toString());
     } catch (IllegalAccessError e) {
       throw new NoSuchFieldException(field.toString());
+    } catch (UnsatisfiedLinkError e) {
+      if (VM.BuildForHarmony) {
+        throw new NoSuchFieldException(field.toString());
+      } else {
+        throw e;
+      }
     }
   }
 }

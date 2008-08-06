@@ -10,10 +10,10 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-[Lorg/jikesrvm/ia32/VM_Code;
-[Lorg/jikesrvm/ia32/VM_CodeArray;
-[Lorg/jikesrvm/ia32/VM_RegisterConstants$GPR;
-[Lorg/jikesrvm/ia32/VM_RegisterConstants$FPR;
-[Lorg/jikesrvm/ia32/VM_RegisterConstants$XMM;
-[Lorg/jikesrvm/ia32/VM_RegisterConstants$MM;
-[Lorg/jikesrvm/compilers/common/assembler/ia32/VM_Lister$Prefix;
+[Lorg/jikesrvm/ia32/Code;
+[Lorg/jikesrvm/ia32/CodeArray;
+[Lorg/jikesrvm/ia32/RegisterConstants$GPR;
+[Lorg/jikesrvm/ia32/RegisterConstants$FPR;
+[Lorg/jikesrvm/ia32/RegisterConstants$XMM;
+[Lorg/jikesrvm/ia32/RegisterConstants$MM;
+[Lorg/jikesrvm/compilers/common/assembler/ia32/Lister$Prefix;

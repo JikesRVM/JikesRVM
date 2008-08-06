@@ -14,7 +14,6 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.BLOCKS_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.BLOCK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_LINE;
 import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
 import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
@@ -22,21 +21,6 @@ import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
 import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
 import static org.mmtk.policy.immix.ImmixConstants.SANITY_CHECK_LINE_MARKS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_CHECK_REUSE_EFFICIENCY;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_TO_IMMORTAL;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_DEFRAG_WITHOUT_BUDGET;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_EAGER_SPILL_AVAIL_HISTO_CONSTRUCTION;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_EAGER_SPILL_MARK_HISTO_CONSTRUCTION;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_EXACT_LINE_MARKS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_MARK_HISTO_SCALING;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_DEFRAG;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_TRIAL_MARK_HISTO;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_BLOCK_COUNT_META;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_BLOCK_LIVE_BYTE_COUNTS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_CONSERVATIVE_BLOCK_MARKS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_USE_LINE_MARKS;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_VERBOSE_MARK_STATS;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -46,25 +30,29 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
+/**
+ * This class defines operations over block-granularity meta-data
+ *
+ */
 @Uninterruptible
 public class Block implements Constants {
 
-  static Address align(Address ptr) {
+  static Address align(final Address ptr) {
     return ptr.toWord().and(BLOCK_MASK.not()).toAddress();
   }
 
-  public static boolean isAligned(Address address) {
+  public static boolean isAligned(final Address address) {
     return address.EQ(align(address));
   }
 
-  private static int getChunkIndex(Address block) {
+  private static int getChunkIndex(final Address block) {
     return block.toWord().and(CHUNK_MASK).rshl(LOG_BYTES_IN_BLOCK).toInt();
   }
 
   /***************************************************************************
    * Block marking
    */
-  public static boolean isUnused(Address address) {
+  public static boolean isUnused(final Address address) {
     return getBlockMarkState(address) == UNALLOCATED_BLOCK_STATE;
   }
 
@@ -93,11 +81,6 @@ public class Block implements Constants {
 
   public static short getBlockMarkState(Address address) {
     return getBlockMarkStateAddress(address).loadShort();
-  }
-
-  static void markBlock(Address address) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!TMP_USE_LINE_MARKS);
-    setBlockState(address, MARKED_BLOCK_STATE);
   }
 
   static void setBlockAsInUse(Address address) {
@@ -157,10 +140,9 @@ public class Block implements Constants {
 
       if (mark != Line.LINE_UNMARKED_VALUE)
         markCount++;
-      else if ((TMP_USE_CONSERVATIVE_BLOCK_MARKS || TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS) && lastMark != 0)
+      else if (lastMark != 0)
         conservativeSpillCount++;
-      else if (SANITY_CHECK_LINE_MARKS && (TMP_EXACT_LINE_MARKS || lastMark == 0)) {
-        if (TMP_CHECK_REUSE_EFFICIENCY) ImmixSpace.TMPreusableLineCount++;
+      else if (SANITY_CHECK_LINE_MARKS && lastMark == 0) {
         VM.memory.zero(block.plus(l<<LOG_BYTES_IN_LINE),Extent.fromIntZeroExtend(BYTES_IN_LINE));
       }
 
@@ -171,63 +153,14 @@ public class Block implements Constants {
       VM.assertions._assert(markCount + conservativeSpillCount <= LINES_IN_BLOCK);
       VM.assertions._assert(markCount == 0 || !isUnused(block));
     }
-    if (TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS) {
-      short bucket = (short) (TMP_TRIAL_MARK_HISTO ? (markCount/TMP_MARK_HISTO_SCALING) : conservativeSpillCount);
-      getDefragStateAddress(block).store(conservativeSpillCount);
-      if (TMP_EAGER_SPILL_MARK_HISTO_CONSTRUCTION) {
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markCount >= conservativeSpillCount);
-        markHistogram[bucket] += markCount;
-      }
-      if (TMP_EAGER_SPILL_AVAIL_HISTO_CONSTRUCTION) {
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markCount >= conservativeSpillCount);
-        availHistogram[bucket] += (LINES_IN_BLOCK - (markCount + conservativeSpillCount));
-      }
-    }
 
-    if (TMP_VERBOSE_MARK_STATS && markCount != 0) {
-      ImmixSpace.bytesMarkedLines.inc((markCount + conservativeSpillCount)<<LOG_BYTES_IN_LINE);
-      ImmixSpace.bytesConsvMarkedLines.inc(conservativeSpillCount<<LOG_BYTES_IN_LINE);
-      ImmixSpace.bytesMarkedBlocks.inc(BYTES_IN_BLOCK);
-    }
+    getDefragStateAddress(block).store(conservativeSpillCount);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markCount >= conservativeSpillCount);
+    markHistogram[conservativeSpillCount] += markCount;
 
-    if (TMP_USE_CONSERVATIVE_BLOCK_MARKS)
-      markCount = (short) (markCount + conservativeSpillCount);
+    markCount = (short) (markCount + conservativeSpillCount);
 
-    if (TMP_CHECK_REUSE_EFFICIENCY) {
-      if (markCount == 0) {
-        ImmixSpace.TMPreusableLineCount -= LINES_IN_BLOCK;
-      } else if (markCount <= ImmixSpace.getReusuableMarkStateThreshold(false)) {
-        ImmixSpace.TMPreusableBlockCount++;
-      }
-    }
     return markCount;
-  }
-
-
-  /****************************************************************************
-   * Per-block live byte count
-   */
-  static void incrementLiveCount(Address block, int value) {
-    Address address = getLiveCountAddress(block);
-    short old = address.loadShort();
-    if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(old + value <= Short.MAX_VALUE);
-    old += value;
-    address.store(value);
-  }
-
-  private static Address getLiveCountAddress(Address address) {
-    Address chunk = Chunk.align(address);
-    int index = getChunkIndex(address);
-    Address rtn = chunk.plus(Chunk.BLOCK_LIVE_BYTE_TABLE_OFFSET).plus(index);
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(TMP_USE_BLOCK_LIVE_BYTE_COUNTS);
-      Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
-      VM.assertions._assert(Block.isAligned(block));
-      boolean valid = rtn.GE(chunk.plus(Chunk.BLOCK_LIVE_BYTE_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.BLOCK_LIVE_BYTE_TABLE_OFFSET+Block.BLOCK_LIVE_BYTE_TABLE_BYTES));
-      VM.assertions._assert(valid);
-    }
-    return rtn;
   }
 
   /****************************************************************************
@@ -261,18 +194,9 @@ public class Block implements Constants {
   static void resetLineMarksAndDefragStateTable(short threshold, Address markStateBase, Address defragStateBase,
       Address lineMarkBase, int block) {
     Offset csOffset = Offset.fromIntZeroExtend(block<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
-    Offset msOffset = Offset.fromIntZeroExtend(block<<LOG_BYTES_IN_BLOCK_STATE_ENTRY);
-    short state = (TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS && !TMP_TRIAL_MARK_HISTO) ? defragStateBase.loadShort(csOffset) : markStateBase.loadShort(msOffset);
+    short state = defragStateBase.loadShort(csOffset);
     short defragState = BLOCK_IS_NOT_DEFRAG_SOURCE;
-    if (TMP_DEFRAG_TO_IMMORTAL)
-      defragState = BLOCK_IS_DEFRAG_SOURCE;
-    else if (TMP_DEFRAG_WITHOUT_BUDGET) {
-      if (state != UNALLOCATED_BLOCK_STATE) defragState = BLOCK_IS_DEFRAG_SOURCE;
-    } else if (TMP_USE_CONSERVATIVE_SPILLS_FOR_DEFRAG_TARGETS) {
-      if ((TMP_TRIAL_MARK_HISTO && state <= threshold && state != UNALLOCATED_BLOCK_STATE) || (!TMP_TRIAL_MARK_HISTO && state >= threshold)) defragState = BLOCK_IS_DEFRAG_SOURCE;
-    } else {
-      if (!TMP_DEFRAG_WITHOUT_BUDGET && state > threshold && state <= MAX_BLOCK_MARK_STATE) defragState = BLOCK_IS_DEFRAG_SOURCE;
-    }
+    if (state >= threshold) defragState = BLOCK_IS_DEFRAG_SOURCE;
     defragStateBase.store(defragState, csOffset);
     if (defragState == BLOCK_IS_DEFRAG_SOURCE) {
       VM.memory.zero(lineMarkBase.plus(block<<Line.LOG_LINE_MARK_BYTES_PER_BLOCK), Extent.fromIntZeroExtend(Line.LINE_MARK_BYTES_PER_BLOCK));
@@ -292,13 +216,9 @@ public class Block implements Constants {
   static final int BYTES_IN_BLOCK_STATE_ENTRY = 1<<LOG_BYTES_IN_BLOCK_STATE_ENTRY;
   static final int BLOCK_STATE_TABLE_BYTES = BLOCKS_IN_CHUNK<<LOG_BYTES_IN_BLOCK_STATE_ENTRY;
 
-  /* per-block live byte counts */
-  static final int LOG_BYTES_IN_BLOCK_LIVE_COUNT_ENTRY = LOG_BYTES_IN_SHORT;
-  static final int BLOCK_LIVE_BYTE_TABLE_BYTES = (TMP_USE_BLOCK_COUNT_META || TMP_USE_BLOCK_LIVE_BYTE_COUNTS) ? BLOCKS_IN_CHUNK<<LOG_BYTES_IN_BLOCK_LIVE_COUNT_ENTRY : 0;
-
   /* per-block defrag state */
   static final int LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY = LOG_BYTES_IN_SHORT;
   static final int BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY = 1<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY;
 
-  static final int BLOCK_DEFRAG_STATE_TABLE_BYTES = TMP_SUPPORT_DEFRAG ? BLOCKS_IN_CHUNK<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY : 0;
+  static final int BLOCK_DEFRAG_STATE_TABLE_BYTES = BLOCKS_IN_CHUNK<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY;
 }

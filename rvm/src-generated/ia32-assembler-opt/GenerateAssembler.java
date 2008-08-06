@@ -28,28 +28,28 @@ import java.lang.reflect.*;
  *
  * <P>
  * In order for this to work, both the optimizing compiler tables and the
- * VM_Assembler must use stylized formats. On the optimizing com[piler side, the
+ * Assembler must use stylized formats. On the optimizing com[piler side, the
  * major stylization is that the low-level operators that represent assembly
  * code must correspond directly to the official IA32 assembler pneumonics; i.e.
  * since there is an ADD assembler pneumonic in the Intel assembly
  * specification, there must be a correponding IA32_ADD operator in the opt
- * compiler tables. The stylization of the VM_Assembler side is more
- * thoroughgoing, and the reader is referred to the VM_Assembler header comments
+ * compiler tables. The stylization of the Assembler side is more
+ * thoroughgoing, and the reader is referred to the Assembler header comments
  * for a definition.
  * </P>
  *
  * <P>
  * Given these stylizations, GenerateAssembler reads the set of assembler
- * pneumonics supported by the VM_Assembler using reflection to examinme its
+ * pneumonics supported by the Assembler using reflection to examinme its
  * stylized method signitures. GenerateAssembler also reads the set of IA32
  * operators that the opt compiler defines, using the helper classes
  * InstructionFormatTable and OperatorFormatTable. It then, for each
- * operator, generates a handler method to call the appropriate VM_Assembler
- * emit method given an Instruction. The VM_Assembler will have a family of
+ * operator, generates a handler method to call the appropriate Assembler
+ * emit method given an Instruction. The Assembler will have a family of
  * emit methods named for each opcode, each such emit method takes a specific
  * set of operand addressing modes and sizes. The handler methods that the
  * GenerateAssembler emits examine the operands to an Instruction, and
- * determine which VM_Assembler method to call for the operand addressing modes
+ * determine which Assembler method to call for the operand addressing modes
  * and sizes that it finds. GenerateAssembler also generates a top-level
  * dispatch method that examines the operator and calls the appropriate handler.
  * </P>
@@ -57,11 +57,11 @@ import java.lang.reflect.*;
  * <P>
  * GenerateAssembler generates the opt assembler as part of the normal build
  * process; this poses a slight problem in that it needs to examine the
- * VM_Assembler via reflection to generate the Assembler, but that is not
+ * Assembler via reflection to generate the Assembler, but that is not
  * possible until the VM sources (including, of course, the Assembler) have
  * been compiled. The current hack to get around this is to compile the
- * VM_Assembler in advance, and read the resulting class file. This utilizies
- * some supporting files to make the VM_Assembler compile in isolation. This is
+ * Assembler in advance, and read the resulting class file. This utilizies
+ * some supporting files to make the Assembler compile in isolation. This is
  * the purpose of the .fake files in the optimizing compiler's assembler
  * directory.
  * </P>
@@ -76,7 +76,7 @@ import java.lang.reflect.*;
  * @see org.jikesrvm.compilers.opt.mir2mc.AssemblerBase
  * @see org.jikesrvm.compilers.opt.ir.Instruction
  * @see org.jikesrvm.compilers.opt.Assembler
- * @see VM_Assembler
+ * @see Assembler
  */
 public class GenerateAssembler {
 
@@ -154,7 +154,7 @@ public class GenerateAssembler {
    * of Instruction operands that are to be used as arguments to the IA32
    * architecture instruction. This is used when an instruction has extra
    * operands that are not used in assembly. The array is indexed by the desired
-   * argument for the instruction/VM_Assembler method, the value in the array
+   * argument for the instruction/Assembler method, the value in the array
    * states which operand of the intruction contains the operand for the
    * instruction. For example, an array of "new int{2}" means the instruction
    * has 1 operand and it is read from the 2 operand of the instruction.
@@ -197,31 +197,31 @@ public class GenerateAssembler {
       Field f = formats.getDeclaredField(currentFormat + "ParameterNames");
       currentOpcodeSymbolicNames = (String[]) f.get(null);
     } catch (Throwable e) {
-      throw new Error("Cannot handle VM_Assembler opcode " + opcode, e);
+      throw new Error("Cannot handle Assembler opcode " + opcode, e);
     }
   }
 
   enum ArgumentType {
     /**
-     * Constant representing immediate arguments to VM_Assembler calls
+     * Constant representing immediate arguments to Assembler calls
      */
     Immediate("Imm"),
     /**
-     * Constant representing register arguments to VM_Assembler calls. This
+     * Constant representing register arguments to Assembler calls. This
      * covers the cases when a general purpose register is encoded into the
-     * mod/rm byte; the VM_Assembler handles the detais of generating either the
+     * mod/rm byte; the Assembler handles the detais of generating either the
      * reg bits of the mod/rm byte or encoding a register as mod 11.
      */
     GPRegister("Reg", "GPR_Reg"), FPRegister("Reg", "FPR_Reg"), MMRegister(
         "Reg", "MM_Reg"), XMMRegister("Reg", "XMM_Reg"),
     /**
-     * Constant representing condition arguments to VM_Assembler calls. Such
+     * Constant representing condition arguments to Assembler calls. Such
      * operands are not arguments to the ultimate IA32 machine code instruction,
      * but they are used to calculate the opcode that is generated.
      */
     Condition("Cond"),
     /**
-     * Constant representing arguments to VM_Assembler calls that use the
+     * Constant representing arguments to Assembler calls that use the
      * scaled-index-base (SIB) addressing mode in the special way that uses
      * neither a base not an index to generate an absolute address
      */
@@ -229,28 +229,28 @@ public class GenerateAssembler {
     /**
      * Constant representing IA32 memory operands that use register-
      * displacement addressing mode (usually mod bits 01 and 10) arguments to
-     * VM_Assembler calls. The VM_Assembler takes care of choosing the right
+     * Assembler calls. The Assembler takes care of choosing the right
      * mode for the size of the displacement, so this one mode covers two of the
-     * four addressing modes the IA32 has. The VM_Assembler also handles the
+     * four addressing modes the IA32 has. The Assembler also handles the
      * special cases in which this mode requires weird SIB bytes.
      */
     RegisterDisplacement(2, "RegDisp"),
     /**
-     * Constant representing arguments to VM_Assembler calls that use the
+     * Constant representing arguments to Assembler calls that use the
      * scaled-index-base (SIB) addressing mode in the special way that does not
      * use a base register. The Assembler simply assumes it has an [index < <
-     * scale + disp] addressing mode, and the VM_Assembler takes care of
+     * scale + disp] addressing mode, and the Assembler takes care of
      * generating the special mod/rm that causes the base register to be
      * ignored.
      */
     RegisterOffset(3, "RegOff"),
     /**
      * Constant representing scaled-index-base (SIB) mode arguments to
-     * VM_Assembler calls.
+     * Assembler calls.
      */
     RegisterIndexed(4, "RegIdx"),
     /**
-     * Constant representing register-indirect arguments to VM_Assembler calls.
+     * Constant representing register-indirect arguments to Assembler calls.
      * This mode handles what is (usually) mod 00 in the mod/rm byte.
      */
     RegisterIndirect("RegInd"),
@@ -260,12 +260,12 @@ public class GenerateAssembler {
      * general, be computed as the target code has not been generated yet. The
      * Assembler uses synthetic code offsets, based upon the order of
      * Instructions in the code being compiled, to communicate forward
-     * branch targets to the VM_Assembler. These synthetic offsets are passed to
-     * the VM_Assembler where it expected Label arguments.
+     * branch targets to the Assembler. These synthetic offsets are passed to
+     * the Assembler where it expected Label arguments.
      */
     Label("Label"),
     /**
-     * Constant representing arguments to VM_Assembler calls in which it may be
+     * Constant representing arguments to Assembler calls in which it may be
      * either a backward branch target (resolved to an immediate being the exact
      * branch displacement) or a forward branch (which will be a synthetic
      * Label).
@@ -381,11 +381,11 @@ public class GenerateAssembler {
 
   /**
    * For a given string representing a valid operand encoding for the
-   * VM_Assembler, return the corresponding Assembler constant. This
+   * Assembler, return the corresponding Assembler constant. This
    * function only looks for encodings of operand types, and will not accept
    * strings that correspond to size encodings.
    *
-   * @param str A valid VM_Assembler encoding of operand type
+   * @param str A valid Assembler encoding of operand type
    * @return The Assembler constant corresponding to str, or -1 if none
    */
   private static ArgumentType getEncoding(String str, Class<?> type) {
@@ -454,10 +454,10 @@ public class GenerateAssembler {
    * Generate code to verify that a given operand matches a given encoding.
    * Since the IA32 architecture is not exactly orthogonal (please note the
    * charitable understatement), there are cases when the opt assembler can
-   * determine the VM_Assembler emitter to call without looking at all (or, in
+   * determine the Assembler emitter to call without looking at all (or, in
    * some cases, any) of the arguments of the Instruction. An example is the
    * ENTER instruction that only takes one immediate parameter, so the opt
-   * assembler could simply call that VM_Assembler emiiter without checking that
+   * assembler could simply call that Assembler emiiter without checking that
    * argument is really an immediate. In such cases, the opt assembler generates
    * guarded tests that verify that Instruction operand actually matches the
    * required encoding. This function emits such tests to the assembler being
@@ -477,7 +477,7 @@ public class GenerateAssembler {
 
   /**
    * Generate code to fetch all the arguments needed for a given operand number
-   * and encoding. The different argument encodings of the VM_Assembler need
+   * and encoding. The different argument encodings of the Assembler need
    * different arguments to be passed to the emitter function. For instance, a
    * register-displacement mode operand needs to be given a base register and an
    * immediate displacement. This function generates the appropriate arguments
@@ -498,7 +498,7 @@ public class GenerateAssembler {
       emit("getBase(" + op + "), getDisp(" + op + ")");
       break;
     case Absolute:
-      emit("getDisp(" + op + ")");
+      emit("getDisp(" + op + ").toWord().toAddress()");
       break;
     case RegisterOffset:
       emit("getIndex(" + op + "), getScale(" + op + "), getDisp(" + op + ")");
@@ -515,17 +515,17 @@ public class GenerateAssembler {
   }
 
   /**
-   * An EmitterDescriptor represents a single emit method from the VM_Assembler:
+   * An EmitterDescriptor represents a single emit method from the Assembler:
    * it explicitly represents the types of operands the method expects, their
    * number, and the size of the data it uses. When GenerateAssembler encounters
-   * an emit* method from the VM_Assembler, it creates an EmitterDescriptor for
+   * an emit* method from the Assembler, it creates an EmitterDescriptor for
    * it. Based upon the stlyized form the method name is required to have, the
    * EmitterDexcriptor represents information about its arguments. This
    * information is stored in terms of the GenerateAssembler constants that
    * represent operand type and size.
    * <P>
    * The EmitterDescriptor class encapsulates the logic for parsing the stylized
-   * emit* method names that the VM_Assembler has, and turning them into the
+   * emit* method names that the Assembler has, and turning them into the
    * explicit representation that GenerateAssembler uses. If parsing a name
    * fails, a {@link GenerateAssembler.BadEmitMethod} runtime exception is
    * thrown and assembler generation is aborted.
@@ -682,9 +682,9 @@ public class GenerateAssembler {
   }
 
   /**
-   * An EmitterSet represents a set of emit methods from the VM_Assembler for
+   * An EmitterSet represents a set of emit methods from the Assembler for
    * the same IA32 assembler opcode. These sets are used when generating the do<opcode>
-   * method for a given IA32 opcde: first an EmitterSet of all the VM_Assembler
+   * method for a given IA32 opcde: first an EmitterSet of all the Assembler
    * emit methods for that opcode is built, and then the do method is
    * recursively generated by emitting operand type and size tests that
    * partition the set of emitters into two smaller sets. This continues until
@@ -693,7 +693,7 @@ public class GenerateAssembler {
   static class EmitterSet {
 
     /**
-     * The VM_Assembler emit methods that this set represents. This is a set of
+     * The Assembler emit methods that this set represents. This is a set of
      * EmitterDescriptor objects.
      */
     private final Set<EmitterDescriptor> emitters = new HashSet<EmitterDescriptor>();
@@ -1019,15 +1019,15 @@ public class GenerateAssembler {
   }
 
   /**
-   * the Class object of the VM_Assembler. This is used for reflective inquiries
+   * the Class object of the Assembler. This is used for reflective inquiries
    * about emit methods.
    *
    * @see #main
    */
-  static final Class<org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler> lowLevelAsm = org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler.class;
+  static final Class<org.jikesrvm.compilers.common.assembler.ia32.Assembler> lowLevelAsm = org.jikesrvm.compilers.common.assembler.ia32.Assembler.class;
 
   /**
-   * Computes the set of emit methods in the VM_Assembler for a given IA32
+   * Computes the set of emit methods in the Assembler for a given IA32
    * opcode.
    *
    * @param emitters the set of all emit methods
@@ -1048,7 +1048,7 @@ public class GenerateAssembler {
 
   /**
    * the set of IA32 opcodes to ignore. Some opcode are not used by the opt
-   * compiler (NOP is a good example) but may be present in the VM_Assembler if
+   * compiler (NOP is a good example) but may be present in the Assembler if
    * other compilers use them. We keep an explicit list of such opcodes to
    * ignore.
    */
@@ -1074,12 +1074,12 @@ public class GenerateAssembler {
 
   /**
    * Compute the set of all IA32 opcodes that have emit methods in the
-   * VM_Assembler. This method uses the stylized form of all emit method names
-   * in the VM_Assembler to extract the opcode of each one. It returns a set of
+   * Assembler. This method uses the stylized form of all emit method names
+   * in the Assembler to extract the opcode of each one. It returns a set of
    * all such distinct names, as a set of Strings.
    *
-   * @param emitters the set of all emit methods in the VM_Assembler
-   * @return the set of all opcodes handled by the VM_Assembler
+   * @param emitters the set of all emit methods in the Assembler
+   * @return the set of all opcodes handled by the Assembler
    */
   private static Set<String> getOpcodes(Method[] emitters) {
     Set<String> s = new HashSet<String>();
@@ -1157,8 +1157,7 @@ public class GenerateAssembler {
    */
   public static void main(String[] args) {
     try {
-      out = new FileWriter(System.getProperty("generateToDir") +
-           "/Assembler.java");
+      out = new FileWriter(System.getProperty("generateToDir") + "/AssemblerOpt.java");
     } catch (IOException e) {
       throw new Error(e);
     }
@@ -1174,21 +1173,21 @@ public class GenerateAssembler {
     emit(" * the optimizing compiler.  It consists of methods that\n");
     emit(" * understand the possible operand combinations of each\n");
     emit(" * instruction type, and how to translate those operands to\n");
-    emit(" * calls to the VM_Assember low-level emit method\n");
+    emit(" * calls to the Assember low-level emit method\n");
     emit(" *\n");
     emit(" * It is generated by GenerateAssembler.java\n");
     emit(" *\n");
     emit(" */\n");
-    emit("public abstract class Assembler extends AssemblerBase {\n\n");
+    emit("public abstract class AssemblerOpt extends AssemblerBase {\n\n");
 
     emitTab(1);
     emit("/**\n");
     emitTab(1);
-    emit(" * @see VM_Assembler\n");
+    emit(" * @see org.jikesrvm.ArchitectureSpecific.Assembler\n");
     emitTab(1);
     emit(" */\n");
     emitTab(1);
-    emit("public Assembler(int bcSize, boolean print, IR ir) {\n");
+    emit("public AssemblerOpt(int bcSize, boolean print, IR ir) {\n");
     emitTab(2);
     emit("super(bcSize, print, ir);\n");
     emitTab(1);

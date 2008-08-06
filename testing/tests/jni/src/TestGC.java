@@ -12,7 +12,7 @@
  */
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -55,16 +55,16 @@ class TestGC {
 
     if (!runningUnderJDK) {
 
-        Address oldAddress1 = VM_Magic.objectAsAddress(str1);
-        Address oldAddress2 = VM_Magic.objectAsAddress(str2);
+        Address oldAddress1 = Magic.objectAsAddress(str1);
+        Address oldAddress2 = Magic.objectAsAddress(str2);
         printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
         printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
 
         returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");
 
-        Address newAddress1 = VM_Magic.objectAsAddress(str1);
-        Address newAddress2 = VM_Magic.objectAsAddress(str2);
+        Address newAddress1 = Magic.objectAsAddress(str1);
+        Address newAddress2 = Magic.objectAsAddress(str2);
         if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
             printVerbose("Objects have been moved by GC:");
         } else {
@@ -72,7 +72,7 @@ class TestGC {
         }
         printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));
         printVerbose("  str2 address = " + VM.addressAsHexString(newAddress2));
-        printVerbose("  returnobj address = " + VM.addressAsHexString(VM_Magic.objectAsAddress(returnobj)));
+        printVerbose("  returnobj address = " + VM.addressAsHexString(Magic.objectAsAddress(returnobj)));
     } else {
         returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");

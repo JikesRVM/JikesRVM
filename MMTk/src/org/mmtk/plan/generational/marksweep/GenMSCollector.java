@@ -42,7 +42,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
  */
-@Uninterruptible public abstract class GenMSCollector extends GenCollector {
+@Uninterruptible
+public class GenMSCollector extends GenCollector {
 
   /*****************************************************************************
    *

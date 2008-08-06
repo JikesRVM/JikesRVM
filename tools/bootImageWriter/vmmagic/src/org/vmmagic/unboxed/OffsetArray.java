@@ -14,16 +14,16 @@ package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.objectmodel.RuntimeTable;
 
 /**
  * The VM front end is not capable of correct handling an array of Address, Word, ....
- * For now, we provide special types to handle these situations.
- *
- * @author Perry Cheng
+ * In the boot image writer we provide special types to handle these situations.
  */
-@Uninterruptible public final class OffsetArray {
+@Uninterruptible
+public final class OffsetArray implements RuntimeTable<Offset> {
 
-  private Offset[] data;
+  private final Offset[] data;
 
   @Interruptible
   public static OffsetArray create(int size) {
@@ -58,9 +58,9 @@ import org.jikesrvm.VM;
   }
 
   @Inline
-  public Object getBacking() {
+  public Offset[] getBacking() {
     if (!VM.writingImage)
-      VM.sysFail("VM_OffsetArray.getBacking called when not writing boot image");
+      VM.sysFail("OffsetArray.getBacking called when not writing boot image");
     return data;
   }
 

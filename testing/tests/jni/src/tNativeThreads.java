@@ -27,7 +27,7 @@ class tNativeThreads {
 
   public static void main(String[] args) {
 
-    // VM_Scheduler.dumpVirtualMachine();
+    // Scheduler.dumpVirtualMachine();
 
     System.out.println("Attempting to load dynamic library ...");
     System.out.println("(the LIBPATH env variable must be set for this directory)");
@@ -59,7 +59,7 @@ class tNativeThreads {
       }
       if (cntr < NUMBER_OF_WORKERS) {
 
-        //     VM_Scheduler.dumpVirtualMachine();
+        //     Scheduler.dumpVirtualMachine();
       }
 
 
@@ -72,7 +72,7 @@ class tNativeThreads {
           Thread.currentThread().yield();
         }
 
-      //      VM_Scheduler.dumpVirtualMachine();
+      //      Scheduler.dumpVirtualMachine();
   }
 }
 

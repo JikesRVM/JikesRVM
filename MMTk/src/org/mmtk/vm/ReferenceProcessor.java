@@ -25,6 +25,12 @@ public abstract class ReferenceProcessor {
   public enum Semantics { SOFT, WEAK, PHANTOM }
 
   /**
+   * Clear the contents of the table. This is called when reference types are
+   * disabled to make it easier for VMs to change this setting at runtime.
+   */
+  public abstract void clear();
+
+  /**
    * Scan through the list of references.
    *
    * @param trace the thread local trace element.
@@ -38,9 +44,7 @@ public abstract class ReferenceProcessor {
   public abstract void forward(TraceLocal trace, boolean nursery);
 
   /**
-   * Return the number of references objects on the queue
-   *
-   * @return
+   * @return the number of references objects on the queue
    */
   public abstract int countWaitingReferences();
 }

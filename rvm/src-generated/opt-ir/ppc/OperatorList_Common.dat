@@ -72,7 +72,7 @@ none
 
 ########################################
 # We begin with machine specific HIR/LIR instructions.
-# These operators are only used to implement VM_Magics.
+# These operators are only used to implement Magics.
 ########################################
 # PowerPC dcbf instruction
 DCBF
@@ -132,7 +132,7 @@ memAsLoad | memAsStore
 
 ####################
 # A call whose target is in a class that implements
-# the VM_SaveVolatile interface.  Therefore, this
+# the SaveVolatile interface.  Therefore, this
 # call will not kill volatile registers
 # (the callee will save/restore them).
 #

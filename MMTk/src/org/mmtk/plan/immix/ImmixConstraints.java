@@ -12,8 +12,6 @@
  */
 package org.mmtk.plan.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_DEFRAG;
-
 import org.mmtk.plan.StopTheWorldConstraints;
 import org.mmtk.policy.immix.ObjectHeader;
 
@@ -35,7 +33,7 @@ public class ImmixConstraints extends StopTheWorldConstraints {
   public int gcHeaderWords() { return ObjectHeader.GC_HEADER_WORDS_REQUIRED; }
 
   /** @return True if this plan moves objects. */
-  public boolean movesObjects() { return TMP_SUPPORT_DEFRAG;}
+  public boolean movesObjects() { return true;}
 
   /** @return The specialized scan methods required */
   public int numSpecializedScans() { return 2; }

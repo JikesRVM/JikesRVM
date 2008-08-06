@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Trigger cycle buffer filtering if the space available falls below this threshold.
  */
-public final class CycleFilterThreshold extends PagesOption {
+public final class CycleFilterThreshold extends org.vmutil.options.PagesOption {
   /**
    * Create the option.
    */
   public CycleFilterThreshold() {
-    super("Cycle Filter Threshold",
+    super(Options.set, "Cycle Filter Threshold",
         "Trigger cycle buffer filtering if the space available falls below this threshold",
         512);
   }

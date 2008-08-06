@@ -147,7 +147,7 @@ public class SysCallProcessor implements AnnotationProcessor {
       String generatedClass;
       AnnotationMirror ann = getAnnotation(d,GEN_IMPL_ANNOTATION);
       if (ann != null) {
-        generatedClass = getAnnotationElementValue("generatedClass()", ann);
+        generatedClass = getAnnotationElementValue("value()", ann);
       } else {
         generatedClass = d.getQualifiedName()+"Impl";
       }
@@ -221,7 +221,7 @@ public class SysCallProcessor implements AnnotationProcessor {
       out.print("    ");
       if (!isVoid)
         out.print("return ");
-      out.print(methodName+"(VM_BootRecord.the_boot_record.");
+      out.print(methodName+"(BootRecord.the_boot_record.");
       out.print(methodName+"IP");
       if (!methodDecl.getParameters().isEmpty()) {
         params = methodDecl.getParameters().iterator();
@@ -238,7 +238,7 @@ public class SysCallProcessor implements AnnotationProcessor {
        * Generate the private native stub
        */
       out.println();
-      out.println("  @SysCall");
+      out.println("  @SysCallNative");
       out.print("  private static native "+returnType+" "+methodName+"(Address nativeIP");
       params = methodDecl.getParameters().iterator();
       while (params.hasNext()) {

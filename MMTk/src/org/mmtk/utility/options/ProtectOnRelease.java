@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should memory be protected on release?
  */
-public final class ProtectOnRelease extends BooleanOption {
+public final class ProtectOnRelease extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public ProtectOnRelease() {
-    super("Protect On Release",
+    super(Options.set, "Protect On Release",
           "Should memory be protected on release?",
           false);
   }

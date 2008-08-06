@@ -14,12 +14,12 @@ package org.mmtk.utility.options;
 
 import static org.mmtk.policy.immix.ImmixConstants.DEFAULT_DEFRAG_FREE_HEADROOM_FRACTION;
 
-public class DefragFreeHeadroomFraction extends FloatOption {
+public class DefragFreeHeadroomFraction extends org.vmutil.options.FloatOption {
   /**
    * Create the option.
    */
   public DefragFreeHeadroomFraction() {
-    super("Defrag Free Headroom Fraction",
+    super(Options.set, "Defrag Free Headroom Fraction",
           "Allow the defragmenter this fraction of the heap size as free headroom during defrag. For analysis purposes only!",
           DEFAULT_DEFRAG_FREE_HEADROOM_FRACTION);
   }

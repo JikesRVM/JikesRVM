@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Class;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
 
 /**
@@ -41,7 +41,7 @@ public final class RegisterOperand extends Operand {
    * Inferred data type of the contents of the register.
    * TODO: make this field private, it is accessed via generated code
    */
-  public VM_TypeReference type;
+  public TypeReference type;
 
   /**
    * Optimizations can use it for different purposes, as long as they
@@ -112,7 +112,7 @@ public final class RegisterOperand extends Operand {
    * @param reg register object
    * @param typ data type
    */
-  public RegisterOperand(Register reg, VM_TypeReference typ) {
+  public RegisterOperand(Register reg, TypeReference typ) {
     setRegister(reg);
     setType(typ);
   }
@@ -126,7 +126,7 @@ public final class RegisterOperand extends Operand {
    * @param isPrecise is this a precise type
    * @param isDeclared is this a declared type
    */
-  public RegisterOperand(Register reg, VM_TypeReference typ, byte inFlags,
+  public RegisterOperand(Register reg, TypeReference typ, byte inFlags,
       boolean isPrecise, boolean isDeclared) {
     setRegister(reg);
     setType(typ);
@@ -165,7 +165,7 @@ public final class RegisterOperand extends Operand {
     temp.scratchObject = scratchObject;
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -226,7 +226,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of an int-like data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
+   *         is int-like as defined by {@link TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -238,7 +238,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of an int data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
+   *         is int-like as defined by {@link TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -250,7 +250,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of the long data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a long as defined by {@link VM_TypeReference#isLongType}
+   *         is a long as defined by {@link TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -262,7 +262,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of the float data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a float as defined by {@link VM_TypeReference#isFloatType}
+   *         is a float as defined by {@link TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -274,7 +274,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of the double data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a double as defined by {@link VM_TypeReference#isDoubleType}
+   *         is a double as defined by {@link TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -286,7 +286,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of the reference data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
+   *         is a reference as defined by {@link TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -298,7 +298,7 @@ public final class RegisterOperand extends Operand {
    * Does the operand represent a value of the address data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is an address as defined by {@link VM_TypeReference#isWordType}
+   *         is an address as defined by {@link TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */
   @Override
@@ -314,7 +314,7 @@ public final class RegisterOperand extends Operand {
    */
   @Override
   public boolean isDefinitelyNull() {
-    return type == VM_TypeReference.NULL_TYPE;
+    return type == TypeReference.NULL_TYPE;
   }
 
   /** Does this register hold a parameter */
@@ -368,7 +368,7 @@ public final class RegisterOperand extends Operand {
   /** Set this register as having a precise type */
   public void setPreciseType() {
     if (VM.VerifyAssertions && type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -402,7 +402,7 @@ public final class RegisterOperand extends Operand {
     flags |= inFlag;
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -413,7 +413,7 @@ public final class RegisterOperand extends Operand {
     flags = src.getFlags();
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
@@ -510,7 +510,7 @@ public final class RegisterOperand extends Operand {
   public String toString() {
     String s = getRegister().toString();
     if (type != null) {
-      if (type != VM_TypeReference.VALIDATION_TYPE) {
+      if (type != TypeReference.VALIDATION_TYPE) {
         s = s + "(" + type.getName();
         if (isExtant()) s += ",x";
         if (isDeclaredType()) s += ",d";
@@ -539,27 +539,27 @@ public final class RegisterOperand extends Operand {
   }
 
   /**
-   * Set the {@link VM_TypeReference} of the value represented by the operand.
+   * Set the {@link TypeReference} of the value represented by the operand.
    *
-   * @param the inferred data type of the contents of the register
+   * @param t the inferred data type of the contents of the register
    */
-  public void setType(VM_TypeReference t) {
+  public void setType(TypeReference t) {
     type = t;
     if (VM.VerifyAssertions && isPreciseType() && type != null &&
         type.isClassType() && type.isResolved()) {
-      VM_Class preciseClass = type.resolve().asClass();
+      RVMClass preciseClass = type.resolve().asClass();
       VM._assert(!preciseClass.isInterface());
       VM._assert(!preciseClass.isAbstract());
     }
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
    * @return the inferred data type of the contents of the register
    */
   @Override
-  public VM_TypeReference getType() {
+  public TypeReference getType() {
     return type;
   }
 
@@ -569,7 +569,7 @@ public final class RegisterOperand extends Operand {
    *
    * @param t type to try to refine to
    */
-  public void refine(VM_TypeReference t) {
+  public void refine(TypeReference t) {
     // TODO: see JIRA RVM-137
     if (!isPreciseType()) {
       setType(t);

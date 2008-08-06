@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
@@ -53,8 +53,8 @@ import org.jikesrvm.compilers.opt.ir.operand.ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 
@@ -2509,7 +2509,7 @@ public class ExpressionFolding extends IRTools {
       }
       case INSTANCEOF_opcode: {
         if (FOLD_CHECKS) {
-          VM_TypeReference newType;
+          TypeReference newType;
           if (def.operator == NEW) {
             // x = new xxx; y = instanceof x, zzz;
             newType = New.getType(def).getTypeRef();
@@ -2519,11 +2519,11 @@ public class ExpressionFolding extends IRTools {
           } else {
             return null;
           }
-          VM_TypeReference instanceofType = InstanceOf.getType(s).getTypeRef();
+          TypeReference instanceofType = InstanceOf.getType(s).getTypeRef();
           if (newType == instanceofType) {
             return Move.create(INT_MOVE, y.copyRO(), IC(1));
           } else {
-            return Move.create(INT_MOVE, y.copyRO(), IC(VM_Runtime.isAssignableWith(instanceofType.resolve(), newType.resolve()) ? 1 : 0));
+            return Move.create(INT_MOVE, y.copyRO(), IC(RuntimeEntrypoints.isAssignableWith(instanceofType.resolve(), newType.resolve()) ? 1 : 0));
           }
         }
         return null;
@@ -2977,7 +2977,7 @@ public class ExpressionFolding extends IRTools {
     }
     if (op instanceof ObjectConstantOperand) {
       if (VM.VerifyAssertions) VM._assert(!op.isMovableObjectConstant());
-      return VM_Magic.objectAsAddress(op.asObjectConstant().value);
+      return Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OptimizingCompilerException(
         "Cannot getAddressValue from this operand " + op +

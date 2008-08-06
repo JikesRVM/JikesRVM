@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.InterfaceMethodSignature;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_Binary;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
@@ -70,8 +70,8 @@ import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
 import org.jikesrvm.compilers.opt.util.Bits;
-import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -143,7 +143,7 @@ public abstract class FinalMIRExpansion extends IRTools {
             if (MIR_Call.hasMethod(p)) {
               MethodOperand mo = MIR_Call.getMethod(p);
               if (mo.isInterface()) {
-                VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
+                InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
                 int signatureId = sig.getId();
                 Instruction s;
                 if (Bits.fits(signatureId, 16)) {
@@ -183,7 +183,7 @@ public abstract class FinalMIRExpansion extends IRTools {
           if (VM.VerifyAssertions) {
             VM._assert(p.bcIndex >= 0 && p.position != null);
           }
-          Offset offset = VM_Entrypoints.optResolveMethod.getOffset();
+          Offset offset = Entrypoints.optResolveMethod.getOffset();
           if (Bits.fits(offset, 16)) {
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(Bits.PPCMaskLower16(offset))));
           } else {
@@ -202,7 +202,7 @@ public abstract class FinalMIRExpansion extends IRTools {
         }
         case YIELDPOINT_PROLOGUE_opcode: {
           Register TSR = phys.getTSR();
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.PROLOGUE);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.PROLOGUE);
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
@@ -218,11 +218,11 @@ public abstract class FinalMIRExpansion extends IRTools {
         }
         break;
         case YIELDPOINT_BACKEDGE_opcode: {
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.BACKEDGE);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.BACKEDGE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
           Register PR = phys.getPR();
-          Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+          Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
           p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
@@ -242,11 +242,11 @@ public abstract class FinalMIRExpansion extends IRTools {
         }
         break;
         case YIELDPOINT_EPILOGUE_opcode: {
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.EPILOGUE);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.EPILOGUE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
           Register PR = phys.getPR();
-          Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+          Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
           p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
@@ -267,7 +267,7 @@ public abstract class FinalMIRExpansion extends IRTools {
         break;
         case YIELDPOINT_OSR_opcode: {
           // unconditionally branch to yield point.
-          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.OSROPT);
+          BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.OSROPT);
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
@@ -289,14 +289,14 @@ public abstract class FinalMIRExpansion extends IRTools {
 
     // this is conservative but pretty close, especially for
     // reasonably sized methods
-    if ((instructionCount + conditionalBranchCount) > Assembler.MAX_COND_DISPL) {
+    if ((instructionCount + conditionalBranchCount) > AssemblerOpt.MAX_COND_DISPL) {
       machinecodeLength = instructionCount + 2 * conditionalBranchCount;
     } else {
       machinecodeLength = instructionCount + conditionalBranchCount;
     }
 
-    if ((machinecodeLength & ~Assembler.MAX_24_BITS) != 0) {
-      throw new OptimizingCompilerException("CodeGen", "method too large to compile:", Assembler.MAX_24_BITS);
+    if ((machinecodeLength & ~AssemblerOpt.MAX_24_BITS) != 0) {
+      throw new OptimizingCompilerException("CodeGen", "method too large to compile:", AssemblerOpt.MAX_24_BITS);
     }
     return machinecodeLength;
   }
@@ -310,35 +310,35 @@ public abstract class FinalMIRExpansion extends IRTools {
    * BACKEDGE?
    */
   static BasicBlock findOrCreateYieldpointBlock(IR ir, int whereFrom) {
-    VM_Method meth = null;
+    RVMMethod meth = null;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register zero = phys.getGPR(0);
 
     // first see if the requested block exists. If not, set up some
     // state for creating the block
-    if (whereFrom == VM_Thread.PROLOGUE) {
+    if (whereFrom == RVMThread.PROLOGUE) {
       if (ir.MIRInfo.prologueYieldpointBlock != null) {
         return ir.MIRInfo.prologueYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
+        meth = Entrypoints.optThreadSwitchFromPrologueMethod;
       }
-    } else if (whereFrom == VM_Thread.BACKEDGE) {
+    } else if (whereFrom == RVMThread.BACKEDGE) {
       if (ir.MIRInfo.backedgeYieldpointBlock != null) {
         return ir.MIRInfo.backedgeYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
+        meth = Entrypoints.optThreadSwitchFromBackedgeMethod;
       }
-    } else if (whereFrom == VM_Thread.EPILOGUE) {
+    } else if (whereFrom == RVMThread.EPILOGUE) {
       if (ir.MIRInfo.epilogueYieldpointBlock != null) {
         return ir.MIRInfo.epilogueYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
+        meth = Entrypoints.optThreadSwitchFromEpilogueMethod;
       }
-    } else if (whereFrom == VM_Thread.OSROPT) {
+    } else if (whereFrom == RVMThread.OSROPT) {
       if (ir.MIRInfo.osrYieldpointBlock != null) {
         return ir.MIRInfo.osrYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
+        meth = Entrypoints.optThreadSwitchFromOsrOptMethod;
       }
     }
 
@@ -360,13 +360,13 @@ public abstract class FinalMIRExpansion extends IRTools {
     result.appendInstruction(MIR_Branch.create(PPC_BCTR));
 
     // cache the create block and then return it
-    if (whereFrom == VM_Thread.PROLOGUE) {
+    if (whereFrom == RVMThread.PROLOGUE) {
       ir.MIRInfo.prologueYieldpointBlock = result;
-    } else if (whereFrom == VM_Thread.BACKEDGE) {
+    } else if (whereFrom == RVMThread.BACKEDGE) {
       ir.MIRInfo.backedgeYieldpointBlock = result;
-    } else if (whereFrom == VM_Thread.EPILOGUE) {
+    } else if (whereFrom == RVMThread.EPILOGUE) {
       ir.MIRInfo.epilogueYieldpointBlock = result;
-    } else if (whereFrom == VM_Thread.OSROPT) {
+    } else if (whereFrom == RVMThread.OSROPT) {
       ir.MIRInfo.osrYieldpointBlock = result;
     }
 

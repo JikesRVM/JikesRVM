@@ -15,12 +15,12 @@ package org.mmtk.utility.options;
 /**
  * Should we eagerly finish sweeping at the start of a collection
  */
-public final class EagerCompleteSweep extends BooleanOption {
+public final class EagerCompleteSweep extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public EagerCompleteSweep() {
-    super("Eager Complete Sweep",
+    super(Options.set, "Eager Complete Sweep",
           "Should we eagerly finish sweeping at the start of a collection",
           false);
   }

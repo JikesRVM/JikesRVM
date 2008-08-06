@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
@@ -68,12 +68,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.GenerateMachineSpecificMagic;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Field;
-import org.jikesrvm.classloader.VM_MemberReference;
-import org.jikesrvm.classloader.VM_MethodReference;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -98,10 +98,11 @@ import org.jikesrvm.compilers.opt.ir.operand.ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
-import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.objectmodel.TIBLayoutConstants;
+import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.MagicNames;
+import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -113,19 +114,19 @@ import org.vmmagic.unboxed.Offset;
  * It does not mean that the eventual MIR that implements the magic
  * won't differ from architecture to architecture.
  */
-public class GenerateMagic implements VM_TIBLayoutConstants  {
+public class GenerateMagic implements TIBLayoutConstants  {
 
   /**
-   * "Semantic inlining" of methods of the VM_Magic class.
+   * "Semantic inlining" of methods of the Magic class.
    * Based on the methodName, generate a sequence of opt instructions
    * that implement the magic, updating the expression stack as necessary.
    *
    * @param bc2ir the bc2ir object that is generating the
    *              ir containing this magic
    * @param gc must be bc2ir.gc
-   * @param meth the VM_Method that is the magic method
+   * @param meth the RVMMethod that is the magic method
    */
-  static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, VM_MethodReference meth)
+  static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth)
       throws MagicNotImplementedException {
 
     if (gc.method.hasNoInlinePragma()) gc.allocFrame = true;
@@ -134,13 +135,13 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
     // TODO: move this to individual magics that are unsafe.
     // -- igor 08/13/1999
     bc2ir.markBBUnsafeForScheduling();
-    VM_Atom methodName = meth.getName();
+    Atom methodName = meth.getName();
 
-    boolean address = (meth.getType() == VM_TypeReference.Address);
+    boolean address = (meth.getType() == TypeReference.Address);
 
     // Address magic
-    VM_TypeReference[] types = meth.getParameterTypes();
-    VM_TypeReference returnType = meth.getReturnType();
+    TypeReference[] types = meth.getParameterTypes();
+    TypeReference returnType = meth.getReturnType();
 
     if (address && isLoad(methodName)) {
       // LOAD
@@ -158,9 +159,9 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       bc2ir.appendInstruction(Prepare.create(getOperator(returnType, PREPARE_OP), result, base, offset, null));
       bc2ir.push(result.copyD2U(), returnType);
 
-    } else if (address && methodName == VM_MagicNames.attempt) {
+    } else if (address && methodName == MagicNames.attempt) {
       // ATTEMPT
-      VM_TypeReference attemptType = types[0];
+      TypeReference attemptType = types[0];
 
       Operand offset = (types.length == 2) ? new AddressConstantOperand(Address.zero()) : bc2ir.popAddress();
 
@@ -177,9 +178,9 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
                                              null));
       bc2ir.push(test.copyD2U(), returnType);
 
-    } else if (address && methodName == VM_MagicNames.store) {
+    } else if (address && methodName == MagicNames.store) {
       // STORE
-      VM_TypeReference storeType = types[0];
+      TypeReference storeType = types[0];
 
       Operand offset = (types.length == 1) ? new AddressConstantOperand(Address.zero()) : bc2ir.popAddress();
 
@@ -187,22 +188,22 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       Operand base = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(getOperator(storeType, STORE_OP), val, base, offset, null));
 
-    } else if (methodName == VM_MagicNames.getProcessorRegister) {
+    } else if (methodName == MagicNames.getProcessorRegister) {
       RegisterOperand rop = gc.temps.makePROp();
       bc2ir.markGuardlessNonNull(rop);
       bc2ir.push(rop);
-    } else if (methodName == VM_MagicNames.setProcessorRegister) {
+    } else if (methodName == MagicNames.setProcessorRegister) {
       Operand val = bc2ir.popRef();
       if (val instanceof RegisterOperand) {
         bc2ir.appendInstruction(Move.create(REF_MOVE, gc.temps.makePROp(), val));
       } else {
-        String msg = " Unexpected operand VM_Magic.setProcessorRegister";
+        String msg = " Unexpected operand Magic.setProcessorRegister";
         throw MagicNotImplementedException.UNEXPECTED(msg);
       }
-    } else if (methodName == VM_MagicNames.addressArrayCreate) {
+    } else if (methodName == MagicNames.addressArrayCreate) {
       Instruction s = bc2ir.generateAnewarray(null, meth.getType().getArrayElementType());
       bc2ir.appendInstruction(s);
-    } else if (methodName == VM_MagicNames.addressArrayLength) {
+    } else if (methodName == MagicNames.addressArrayLength) {
       Operand op1 = bc2ir.pop();
       bc2ir.clearCurrentGuard();
       if (bc2ir.do_NullCheck(op1)) {
@@ -212,10 +213,10 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       Instruction s = GuardedUnary.create(ARRAYLENGTH, t, op1, bc2ir.getCurrentGuard());
       bc2ir.push(t.copyD2U());
       bc2ir.appendInstruction(s);
-    } else if (methodName == VM_MagicNames.addressArrayGet) {
-      VM_TypeReference elementType = meth.getReturnType();
-      if (meth.getType() == VM_TypeReference.ProcessorTable) {
-        elementType = VM_Scheduler.getProcessorType();
+    } else if (methodName == MagicNames.addressArrayGet) {
+      TypeReference elementType = meth.getReturnType();
+      if (meth.getType() == TypeReference.ProcessorTable) {
+        elementType = Scheduler.getProcessorType();
       }
       Operand index = bc2ir.popInt();
       Operand ref = bc2ir.popRef();
@@ -224,7 +225,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       RegisterOperand result;
       if (meth.getType().isCodeArrayType()) {
         if (VM.BuildForIA32) {
-          result = gc.temps.makeTemp(VM_TypeReference.Byte);
+          result = gc.temps.makeTemp(TypeReference.Byte);
           bc2ir.appendInstruction(Load.create(BYTE_LOAD,
                                               result,
                                               ref,
@@ -232,7 +233,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
                                               new LocationOperand(elementType),
                                               new TrueGuardOperand()));
         } else if (VM.BuildForPowerPC) {
-          result = gc.temps.makeTemp(VM_TypeReference.Int);
+          result = gc.temps.makeTemp(TypeReference.Int);
           bc2ir.appendInstruction(Binary.create(INT_SHL, offsetI, index, new IntConstantOperand(LOG_BYTES_IN_INT)));
           bc2ir.appendInstruction(Unary.create(INT_2ADDRZerExt, offset, offsetI.copy()));
           bc2ir.appendInstruction(Load.create(INT_LOAD,
@@ -257,8 +258,8 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
                                             new TrueGuardOperand()));
       }
       bc2ir.push(result.copyD2U());
-    } else if (methodName == VM_MagicNames.addressArraySet) {
-      VM_TypeReference elementType = meth.getParameterTypes()[1];
+    } else if (methodName == MagicNames.addressArraySet) {
+      TypeReference elementType = meth.getParameterTypes()[1];
       Operand val = bc2ir.pop();
       Operand index = bc2ir.popInt();
       Operand ref = bc2ir.popRef();
@@ -295,28 +296,28 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
                                              new LocationOperand(elementType),
                                              new TrueGuardOperand()));
       }
-    } else if (methodName == VM_MagicNames.getIntAtOffset) {
+    } else if (methodName == MagicNames.getIntAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setIntAtOffset) {
+    } else if (methodName == MagicNames.setIntAtOffset) {
       Operand val = bc2ir.popInt();
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, object, offset, null));
-    } else if (methodName == VM_MagicNames.getWordAtOffset) {
+    } else if (methodName == MagicNames.getWordAtOffset) {
       LocationOperand loc = null;
       if (meth.getParameterTypes().length == 3) {
         loc = mapToMetadata(bc2ir.popInt());
       }
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Word);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, loc));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setWordAtOffset) {
+    } else if (methodName == MagicNames.setWordAtOffset) {
       LocationOperand loc = null;
       if (meth.getParameterTypes().length == 4) {
         loc = mapToMetadata(bc2ir.popInt());
@@ -325,45 +326,45 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(REF_STORE, val, object, offset, loc));
-    } else if (methodName == VM_MagicNames.getLongAtOffset) {
+    } else if (methodName == MagicNames.getLongAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       RegisterOperand val = gc.temps.makeTempLong();
       bc2ir.appendInstruction(Load.create(LONG_LOAD, val, object, offset, null));
       bc2ir.pushDual(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setLongAtOffset) {
+    } else if (methodName == MagicNames.setLongAtOffset) {
       Operand val = bc2ir.popLong();
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(LONG_STORE, val, object, offset, null));
-    } else if (methodName == VM_MagicNames.getDoubleAtOffset) {
+    } else if (methodName == MagicNames.getDoubleAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       RegisterOperand val = gc.temps.makeTempDouble();
       bc2ir.appendInstruction(Load.create(DOUBLE_LOAD, val, object, offset, null));
       bc2ir.pushDual(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setDoubleAtOffset) {
+    } else if (methodName == MagicNames.setDoubleAtOffset) {
       Operand val = bc2ir.popDouble();
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(DOUBLE_STORE, val, object, offset, null));
-    } else if (methodName == VM_MagicNames.getObjectAtOffset) {
+    } else if (methodName == MagicNames.getObjectAtOffset) {
       LocationOperand loc = null;
       if (meth.getParameterTypes().length == 3) {
         loc = mapToMetadata(bc2ir.popInt());
       }
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, loc));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getTIBAtOffset) {
+    } else if (methodName == MagicNames.getTIBAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.TIB);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.TIB);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setObjectAtOffset) {
+    } else if (methodName == MagicNames.setObjectAtOffset) {
       LocationOperand loc = null;
       if (meth.getParameterTypes().length == 4) {
         loc = mapToMetadata(bc2ir.popInt());
@@ -372,56 +373,56 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(REF_STORE, val, object, offset, loc));
-    } else if (methodName == VM_MagicNames.getByteAtOffset) {
+    } else if (methodName == MagicNames.getByteAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Byte);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Byte);
       bc2ir.appendInstruction(Load.create(BYTE_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getUnsignedByteAtOffset) {
+    } else if (methodName == MagicNames.getUnsignedByteAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Byte);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Byte);
       bc2ir.appendInstruction(Load.create(UBYTE_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setByteAtOffset) {
+    } else if (methodName == MagicNames.setByteAtOffset) {
       Operand val = bc2ir.popInt();
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(BYTE_STORE, val, object, offset, null));
-    } else if (methodName == VM_MagicNames.getShortAtOffset) {
+    } else if (methodName == MagicNames.getShortAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Char);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Char);
       bc2ir.appendInstruction(Load.create(SHORT_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getCharAtOffset) {
+    } else if (methodName == MagicNames.getCharAtOffset) {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Char);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Char);
       bc2ir.appendInstruction(Load.create(USHORT_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setCharAtOffset) {
+    } else if (methodName == MagicNames.setCharAtOffset) {
       Operand val = bc2ir.popInt();
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(SHORT_STORE, val, object, offset, null));
-    } else if (methodName == VM_MagicNames.getMemoryInt) {
+    } else if (methodName == MagicNames.getMemoryInt) {
       Operand memAddr = bc2ir.popAddress();
       RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, memAddr, new AddressConstantOperand(Offset.zero()), null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getMemoryWord) {
+    } else if (methodName == MagicNames.getMemoryWord) {
       Operand memAddr = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Word);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, memAddr, new AddressConstantOperand(Offset.zero()), null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getMemoryAddress) {
+    } else if (methodName == MagicNames.getMemoryAddress) {
       Operand memAddr = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, memAddr, new AddressConstantOperand(Offset.zero()), null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setMemoryInt) {
+    } else if (methodName == MagicNames.setMemoryInt) {
       Operand val = bc2ir.popInt();
       Operand memAddr = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE,
@@ -429,7 +430,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
                                            memAddr,
                                            new AddressConstantOperand(Offset.zero()),
                                            null));
-    } else if (methodName == VM_MagicNames.setMemoryWord) {
+    } else if (methodName == MagicNames.setMemoryWord) {
       Operand val = bc2ir.popRef();
       Operand memAddr = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(REF_STORE,
@@ -438,10 +439,10 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
                                            new AddressConstantOperand(Offset.zero()),
                                            null));
     } else if (meth.isSysCall()) {
-      // All methods of VM_SysCall have the following signature:
+      // All methods of SysCall have the following signature:
       // callNAME(Address functionAddress, <var args to pass via native calling convention>)
       // With POWEROPEN_ABI, functionAddress points to the function descriptor
-      VM_TypeReference[] args = meth.getParameterTypes();
+      TypeReference[] args = meth.getParameterTypes();
       Instruction call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
       for (int i = args.length - 1; i >= 1; i--) {
         Call.setParam(call, i - 1, bc2ir.pop(args[i]));
@@ -477,19 +478,19 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       Call.setGuard(call, guard);
 
       // Load the tib of this object
-      RegisterOperand tibObject = gc.temps.makeTemp(VM_TypeReference.TIB);
+      RegisterOperand tibObject = gc.temps.makeTemp(TypeReference.TIB);
       bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibObject, objectOperand.copy(), guard.copy()));
 
       // The index of the specialized method
       Operand methodId = bc2ir.popInt();
 
       // Add the base offset for specialized methods and convert from index to address
-      RegisterOperand tibOffset = gc.temps.makeTemp(VM_TypeReference.Int);
+      RegisterOperand tibOffset = gc.temps.makeTemp(TypeReference.Int);
       bc2ir.appendInstruction(Binary.create(INT_ADD, tibOffset, methodId, new IntConstantOperand(TIB_FIRST_SPECIALIZED_METHOD_INDEX)));
       bc2ir.appendInstruction(Binary.create(INT_SHL, tibOffset.copyRO(), tibOffset.copyD2U(), new IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
 
       // Load the code address from the TIB
-      RegisterOperand codeAddress = gc.temps.makeTemp(VM_TypeReference.Address);
+      RegisterOperand codeAddress = gc.temps.makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, codeAddress, tibObject.copyD2U(), tibOffset.copyD2U(), null));
 
       Call.setAddress(call, codeAddress.copyD2U());
@@ -499,74 +500,78 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         bc2ir.push(op0.copyD2U(), returnType);
       }
       bc2ir.appendInstruction(call);
-    } else if (methodName == VM_MagicNames.threadAsCollectorThread) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.VM_CollectorThread);
+    } else if (methodName == MagicNames.threadAsCollectorThread) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.CollectorThread);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.objectAsType) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.VM_Type);
+    } else if (methodName == MagicNames.objectAsType) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Type);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.objectAsProcessor) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_Scheduler.getProcessorType());
+    } else if (methodName == MagicNames.objectAsProcessor) {
+      RegisterOperand reg = gc.temps.makeTemp(Scheduler.getProcessorType());
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.objectAsThread) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_Scheduler.getThreadType());
+    } else if (methodName == MagicNames.processorAsGreenProcessor) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.findOrCreate(GreenProcessor.class));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.objectAsAddress) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Address);
+    } else if (methodName == MagicNames.objectAsThread) {
+      RegisterOperand reg = gc.temps.makeTemp(Scheduler.getThreadType());
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.addressAsObject) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+    } else if (methodName == MagicNames.objectAsAddress) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Address);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == MagicNames.addressAsObject) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.addressAsTIB) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.TIB);
+    } else if (methodName == MagicNames.addressAsTIB) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.TIB);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.addressAsByteArray) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.ByteArray);
+    } else if (methodName == MagicNames.addressAsByteArray) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.ByteArray);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.objectAsShortArray) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.ShortArray);
+    } else if (methodName == MagicNames.objectAsShortArray) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.ShortArray);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.objectAsIntArray) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.IntArray);
+    } else if (methodName == MagicNames.objectAsIntArray) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.IntArray);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.floatAsIntBits) {
+    } else if (methodName == MagicNames.floatAsIntBits) {
       Operand val = bc2ir.popFloat();
       RegisterOperand op0 = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Unary.create(FLOAT_AS_INT_BITS, op0, val));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.intBitsAsFloat) {
+    } else if (methodName == MagicNames.intBitsAsFloat) {
       Operand val = bc2ir.popInt();
       RegisterOperand op0 = gc.temps.makeTempFloat();
       bc2ir.appendInstruction(Unary.create(INT_BITS_AS_FLOAT, op0, val));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.doubleAsLongBits) {
+    } else if (methodName == MagicNames.doubleAsLongBits) {
       Operand val = bc2ir.popDouble();
       RegisterOperand op0 = gc.temps.makeTempLong();
       bc2ir.appendInstruction(Unary.create(DOUBLE_AS_LONG_BITS, op0, val));
       bc2ir.pushDual(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.longBitsAsDouble) {
+    } else if (methodName == MagicNames.longBitsAsDouble) {
       Operand val = bc2ir.popLong();
       RegisterOperand op0 = gc.temps.makeTempDouble();
       bc2ir.appendInstruction(Unary.create(LONG_BITS_AS_DOUBLE, op0, val));
       bc2ir.pushDual(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.sqrt) {
-      VM_TypeReference[] args = meth.getParameterTypes();
-      if (args[0] == VM_TypeReference.Float) {
+    } else if (methodName == MagicNames.sqrt) {
+      TypeReference[] args = meth.getParameterTypes();
+      if (args[0] == TypeReference.Float) {
         Operand val = bc2ir.popFloat();
         RegisterOperand op0 = gc.temps.makeTempFloat();
         bc2ir.appendInstruction(Unary.create(FLOAT_SQRT, op0, val));
         bc2ir.push(op0.copyD2U());
-      } else if (args[0] == VM_TypeReference.Double) {
+      } else if (args[0] == TypeReference.Double) {
         Operand val = bc2ir.popDouble();
         RegisterOperand op0 = gc.temps.makeTempDouble();
         bc2ir.appendInstruction(Unary.create(DOUBLE_SQRT, op0, val));
@@ -575,7 +580,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         if (VM.VerifyAssertions)
           VM._assert(false,"SQRT only handles Double or Float operands");
       }
-    } else if (methodName == VM_MagicNames.getObjectType) {
+    } else if (methodName == MagicNames.getObjectType) {
       Operand val = bc2ir.popRef();
       if(val.isObjectConstant()) {
         bc2ir.push(new ObjectConstantOperand(val.getType().peekType(), Offset.zero()));
@@ -585,117 +590,117 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
           // it's magic, so assume that it's OK....
           guard = new TrueGuardOperand();
         }
-        RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.TIB);
+        RegisterOperand tibPtr = gc.temps.makeTemp(TypeReference.TIB);
         bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibPtr, val, guard));
         RegisterOperand op0;
-        VM_TypeReference argType = val.getType();
+        TypeReference argType = val.getType();
         if (argType.isArrayType()) {
-          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Array);
+          op0 = gc.temps.makeTemp(TypeReference.RVMArray);
         } else {
-          if (argType == VM_TypeReference.JavaLangObject ||
-              argType == VM_TypeReference.JavaLangCloneable ||
-              argType == VM_TypeReference.JavaIoSerializable) {
-            // could be an array or a class, so make op0 be a VM_Type
-            op0 = gc.temps.makeTemp(VM_TypeReference.VM_Type);
+          if (argType == TypeReference.JavaLangObject ||
+              argType == TypeReference.JavaLangCloneable ||
+              argType == TypeReference.JavaIoSerializable) {
+            // could be an array or a class, so make op0 be a RVMType
+            op0 = gc.temps.makeTemp(TypeReference.Type);
           } else {
-            op0 = gc.temps.makeTemp(VM_TypeReference.VM_Class);
+            op0 = gc.temps.makeTemp(TypeReference.Class);
           }
         }
         bc2ir.markGuardlessNonNull(op0);
         bc2ir.appendInstruction(Unary.create(GET_TYPE_FROM_TIB, op0, tibPtr.copyD2U()));
         bc2ir.push(op0.copyD2U());
       }
-    } else if (methodName == VM_MagicNames.getArrayLength) {
+    } else if (methodName == MagicNames.getArrayLength) {
       Operand val = bc2ir.popRef();
       RegisterOperand op0 = gc.temps.makeTempInt();
       bc2ir.appendInstruction(GuardedUnary.create(ARRAYLENGTH, op0, val, new TrueGuardOperand()));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.invokeClassInitializer) {
+    } else if (methodName == MagicNames.invokeClassInitializer) {
       Instruction s = Call.create0(CALL, null, bc2ir.popRef(), null);
       bc2ir.appendInstruction(s);
-    } else if ((methodName == VM_MagicNames.invokeMethodReturningObject) ||
-               (methodName == VM_MagicNames.invokeMethodReturningVoid) ||
-               (methodName == VM_MagicNames.invokeMethodReturningLong) ||
-               (methodName == VM_MagicNames.invokeMethodReturningDouble) ||
-               (methodName == VM_MagicNames.invokeMethodReturningFloat) ||
-               (methodName == VM_MagicNames.invokeMethodReturningInt)) {
+    } else if ((methodName == MagicNames.invokeMethodReturningObject) ||
+               (methodName == MagicNames.invokeMethodReturningVoid) ||
+               (methodName == MagicNames.invokeMethodReturningLong) ||
+               (methodName == MagicNames.invokeMethodReturningDouble) ||
+               (methodName == MagicNames.invokeMethodReturningFloat) ||
+               (methodName == MagicNames.invokeMethodReturningInt)) {
       Operand spills = bc2ir.popRef();
       Operand fprmeta = bc2ir.popRef();
       Operand fprs = bc2ir.popRef();
       Operand gprs = bc2ir.popRef();
       Operand code = bc2ir.popRef();
       RegisterOperand res = null;
-      if (methodName == VM_MagicNames.invokeMethodReturningObject) {
-        res = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+      if (methodName == MagicNames.invokeMethodReturningObject) {
+        res = gc.temps.makeTemp(TypeReference.JavaLangObject);
         bc2ir.push(res.copyD2U());
-      } else if (methodName == VM_MagicNames.invokeMethodReturningLong) {
-        res = gc.temps.makeTemp(VM_TypeReference.Long);
-        bc2ir.push(res.copyD2U(), VM_TypeReference.Long);
-      } else if (methodName == VM_MagicNames.invokeMethodReturningDouble) {
+      } else if (methodName == MagicNames.invokeMethodReturningLong) {
+        res = gc.temps.makeTemp(TypeReference.Long);
+        bc2ir.push(res.copyD2U(), TypeReference.Long);
+      } else if (methodName == MagicNames.invokeMethodReturningDouble) {
         res = gc.temps.makeTempDouble();
-        bc2ir.push(res.copyD2U(), VM_TypeReference.Double);
-      } else if (methodName == VM_MagicNames.invokeMethodReturningFloat) {
+        bc2ir.push(res.copyD2U(), TypeReference.Double);
+      } else if (methodName == MagicNames.invokeMethodReturningFloat) {
         res = gc.temps.makeTempFloat();
-        bc2ir.push(res.copyD2U(), VM_TypeReference.Float);
-      } else if (methodName == VM_MagicNames.invokeMethodReturningInt) {
+        bc2ir.push(res.copyD2U(), TypeReference.Float);
+      } else if (methodName == MagicNames.invokeMethodReturningInt) {
         res = gc.temps.makeTempInt();
         bc2ir.push(res.copyD2U());
       }
-      VM_Field target = VM_ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
+      RVMField target = ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
       MethodOperand met = MethodOperand.STATIC(target);
       Instruction s =
           Call.create5(CALL, res, new AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
       bc2ir.appendInstruction(s);
-    } else if (methodName == VM_MagicNames.saveThreadState) {
+    } else if (methodName == MagicNames.saveThreadState) {
       Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_ArchEntrypoints.saveThreadStateInstructionsField;
+      RVMField target = ArchEntrypoints.saveThreadStateInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL, null, new AddressConstantOperand(target.getOffset()), mo, p1));
-    } else if (methodName == VM_MagicNames.threadSwitch) {
+    } else if (methodName == MagicNames.threadSwitch) {
       Operand p2 = bc2ir.popRef();
       Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_ArchEntrypoints.threadSwitchInstructionsField;
+      RVMField target = ArchEntrypoints.threadSwitchInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create2(CALL, null, new AddressConstantOperand(target.getOffset()), mo, p1, p2));
-    } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      VM_Field target = VM_ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
+    } else if (methodName == MagicNames.restoreHardwareExceptionState) {
+      RVMField target = ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL,
                                            null,
                                            new AddressConstantOperand(target.getOffset()),
                                            mo,
                                            bc2ir.popRef()));
-    } else if (methodName == VM_MagicNames.prepareInt) {
+    } else if (methodName == MagicNames.prepareInt) {
       Operand offset = bc2ir.popAddress();
       Operand base = bc2ir.popRef();
       RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Prepare.create(PREPARE_INT, val, base, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.prepareLong) {
+    } else if (methodName == MagicNames.prepareLong) {
       Operand offset = bc2ir.popAddress();
       Operand base = bc2ir.popRef();
       RegisterOperand val = gc.temps.makeTempLong();
       bc2ir.appendInstruction(Prepare.create(PREPARE_LONG, val, base, offset, null));
       bc2ir.pushDual(val.copyD2U());
-    } else if (methodName == VM_MagicNames.prepareObject) {
+    } else if (methodName == MagicNames.prepareObject) {
       Operand offset = bc2ir.popAddress();
       Operand base = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Prepare.create(PREPARE_ADDR, val, base, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.prepareAddress) {
+    } else if (methodName == MagicNames.prepareAddress) {
       Operand offset = bc2ir.popAddress();
       Operand base = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Prepare.create(PREPARE_ADDR, val, base, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.prepareWord) {
+    } else if (methodName == MagicNames.prepareWord) {
       Operand offset = bc2ir.popAddress();
       Operand base = bc2ir.popRef();
-      RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
+      RegisterOperand val = gc.temps.makeTemp(TypeReference.Word);
       bc2ir.appendInstruction(Prepare.create(PREPARE_ADDR, val, base, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.attemptInt) {
+    } else if (methodName == MagicNames.attemptInt) {
       Operand newVal = bc2ir.popInt();
       Operand oldVal = bc2ir.popInt();
       Operand offset = bc2ir.popAddress();
@@ -703,7 +708,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       RegisterOperand test = gc.temps.makeTempBoolean();
       bc2ir.appendInstruction(Attempt.create(ATTEMPT_INT, test, base, offset, oldVal, newVal, null));
       bc2ir.push(test.copyD2U());
-    } else if (methodName == VM_MagicNames.attemptLong) {
+    } else if (methodName == MagicNames.attemptLong) {
       Operand newVal = bc2ir.popLong();
       Operand oldVal = bc2ir.popLong();
       Operand offset = bc2ir.popAddress();
@@ -711,7 +716,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       RegisterOperand test = gc.temps.makeTempBoolean();
       bc2ir.appendInstruction(Attempt.create(ATTEMPT_LONG, test, base, offset, oldVal, newVal, null));
       bc2ir.push(test.copyD2U());
-    } else if (methodName == VM_MagicNames.attemptObject) {
+    } else if (methodName == MagicNames.attemptObject) {
       Operand newVal = bc2ir.popRef();
       Operand oldVal = bc2ir.popRef();
       Operand offset = bc2ir.popAddress();
@@ -719,7 +724,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       RegisterOperand test = gc.temps.makeTempBoolean();
       bc2ir.appendInstruction(Attempt.create(ATTEMPT_ADDR, test, base, offset, oldVal, newVal, null));
       bc2ir.push(test.copyD2U());
-    } else if (methodName == VM_MagicNames.attemptAddress) {
+    } else if (methodName == MagicNames.attemptAddress) {
       Operand newVal = bc2ir.popAddress();
       Operand oldVal = bc2ir.popAddress();
       Operand offset = bc2ir.popAddress();
@@ -727,7 +732,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       RegisterOperand test = gc.temps.makeTempBoolean();
       bc2ir.appendInstruction(Attempt.create(ATTEMPT_ADDR, test, base, offset, oldVal, newVal, null));
       bc2ir.push(test.copyD2U());
-    } else if (methodName == VM_MagicNames.attemptWord) {
+    } else if (methodName == MagicNames.attemptWord) {
       Operand newVal = bc2ir.pop();
       Operand oldVal = bc2ir.pop();
       Operand offset = bc2ir.popAddress();
@@ -737,7 +742,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       bc2ir.push(test.copyD2U());
     } else if (generatePolymorphicMagic(bc2ir, gc, meth, methodName)) {
       return true;
-    } else if (methodName == VM_MagicNames.getTimeBase) {
+    } else if (methodName == MagicNames.getTimeBase) {
       RegisterOperand op0 = gc.temps.makeTempLong();
       bc2ir.appendInstruction(Nullary.create(GET_TIME_BASE, op0));
       bc2ir.pushDual(op0.copyD2U());
@@ -751,18 +756,18 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
   // Generate magic where the untype operational semantics is identified by name.
   // The operands' types are determined from the method signature.
   //
-  static boolean generatePolymorphicMagic(BC2IR bc2ir, GenerationContext gc, VM_MethodReference meth,
-                                          VM_Atom methodName) {
-    VM_TypeReference resultType = meth.getReturnType();
-    if (methodName == VM_MagicNames.wordFromInt || methodName == VM_MagicNames.wordFromIntSignExtend) {
+  static boolean generatePolymorphicMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth,
+                                          Atom methodName) {
+    TypeReference resultType = meth.getReturnType();
+    if (methodName == MagicNames.wordFromInt || methodName == MagicNames.wordFromIntSignExtend) {
       RegisterOperand reg = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Unary.create(INT_2ADDRSigExt, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordFromIntZeroExtend) {
+    } else if (methodName == MagicNames.wordFromIntZeroExtend) {
       RegisterOperand reg = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Unary.create(INT_2ADDRZerExt, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordFromLong) {
+    } else if (methodName == MagicNames.wordFromLong) {
       if (VM.BuildFor64Addr) {
         RegisterOperand reg = gc.temps.makeTemp(resultType);
         bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
@@ -770,47 +775,47 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
       } else {
         VM._assert(false); //should not reach
       }
-    } else if (methodName == VM_MagicNames.wordToInt) {
+    } else if (methodName == MagicNames.wordToInt) {
       RegisterOperand reg = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Unary.create(ADDR_2INT, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToLong) {
+    } else if (methodName == MagicNames.wordToLong) {
       RegisterOperand lreg = gc.temps.makeTempLong();
       bc2ir.appendInstruction(Unary.create(ADDR_2LONG, lreg, bc2ir.popAddress()));
       bc2ir.pushDual(lreg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToWord) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Word);
+    } else if (methodName == MagicNames.wordToWord) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Word);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToAddress) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Address);
+    } else if (methodName == MagicNames.wordToAddress) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToObject) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+    } else if (methodName == MagicNames.wordToObject) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToObjectReference || methodName == VM_MagicNames.wordFromObject) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.ObjectReference);
+    } else if (methodName == MagicNames.wordToObjectReference || methodName == MagicNames.wordFromObject) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.ObjectReference);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToOffset) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Offset);
+    } else if (methodName == MagicNames.wordToOffset) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Offset);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordToExtent) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Extent);
+    } else if (methodName == MagicNames.wordToExtent) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Extent);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.codeArrayAsObject) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.CodeArray)));
+    } else if (methodName == MagicNames.codeArrayAsObject) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.JavaLangObject);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(TypeReference.CodeArray)));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.tibAsObject) {
-      RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.TIB)));
+    } else if (methodName == MagicNames.tibAsObject) {
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.JavaLangObject);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(TypeReference.TIB)));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordPlus) {
+    } else if (methodName == MagicNames.wordPlus) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
@@ -822,7 +827,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, o2));
       }
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordMinus) {
+    } else if (methodName == MagicNames.wordMinus) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
@@ -834,105 +839,105 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
         bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, o2));
       }
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordDiff) {
+    } else if (methodName == MagicNames.wordDiff) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordAnd) {
+    } else if (methodName == MagicNames.wordAnd) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(REF_AND, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordOr) {
+    } else if (methodName == MagicNames.wordOr) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(REF_OR, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordXor) {
+    } else if (methodName == MagicNames.wordXor) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(REF_XOR, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordNot) {
+    } else if (methodName == MagicNames.wordNot) {
       Operand o1 = bc2ir.pop();
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Unary.create(REF_NOT, op0, o1));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordZero || methodName == VM_MagicNames.wordNull) {
+    } else if (methodName == MagicNames.wordZero || methodName == MagicNames.wordNull) {
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.zero())));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordOne) {
+    } else if (methodName == MagicNames.wordOne) {
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.fromIntZeroExtend(1))));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordMax) {
+    } else if (methodName == MagicNames.wordMax) {
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.max())));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordIsNull) {
+    } else if (methodName == MagicNames.wordIsNull) {
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.zero())));
       ConditionOperand cond = ConditionOperand.EQUAL();
       cmpHelper(bc2ir, gc, cond, op0.copyRO());
-    } else if (methodName == VM_MagicNames.wordIsZero) {
+    } else if (methodName == MagicNames.wordIsZero) {
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.zero())));
       ConditionOperand cond = ConditionOperand.EQUAL();
       cmpHelper(bc2ir, gc, cond, op0.copyRO());
-    } else if (methodName == VM_MagicNames.wordIsMax) {
+    } else if (methodName == MagicNames.wordIsMax) {
       RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.max())));
       ConditionOperand cond = ConditionOperand.EQUAL();
       cmpHelper(bc2ir, gc, cond, op0.copyRO());
-    } else if (methodName == VM_MagicNames.wordEQ) {
+    } else if (methodName == MagicNames.wordEQ) {
       ConditionOperand cond = ConditionOperand.EQUAL();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordNE) {
+    } else if (methodName == MagicNames.wordNE) {
       ConditionOperand cond = ConditionOperand.NOT_EQUAL();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordLT) {
+    } else if (methodName == MagicNames.wordLT) {
       ConditionOperand cond = ConditionOperand.LOWER();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordLE) {
+    } else if (methodName == MagicNames.wordLE) {
       ConditionOperand cond = ConditionOperand.LOWER_EQUAL();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordGT) {
+    } else if (methodName == MagicNames.wordGT) {
       ConditionOperand cond = ConditionOperand.HIGHER();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordGE) {
+    } else if (methodName == MagicNames.wordGE) {
       ConditionOperand cond = ConditionOperand.HIGHER_EQUAL();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordsLT) {
+    } else if (methodName == MagicNames.wordsLT) {
       ConditionOperand cond = ConditionOperand.LESS();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordsLE) {
+    } else if (methodName == MagicNames.wordsLE) {
       ConditionOperand cond = ConditionOperand.LESS_EQUAL();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordsGT) {
+    } else if (methodName == MagicNames.wordsGT) {
       ConditionOperand cond = ConditionOperand.GREATER();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordsGE) {
+    } else if (methodName == MagicNames.wordsGE) {
       ConditionOperand cond = ConditionOperand.GREATER_EQUAL();
       cmpHelper(bc2ir, gc, cond, null);
-    } else if (methodName == VM_MagicNames.wordLsh) {
+    } else if (methodName == MagicNames.wordLsh) {
       Operand op2 = bc2ir.popInt();
       Operand op1 = bc2ir.popAddress();
       RegisterOperand res = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(REF_SHL, res, op1, op2));
       bc2ir.push(res.copyD2U());
-    } else if (methodName == VM_MagicNames.wordRshl) {
+    } else if (methodName == MagicNames.wordRshl) {
       Operand op2 = bc2ir.popInt();
       Operand op1 = bc2ir.popAddress();
       RegisterOperand res = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Binary.create(REF_USHR, res, op1, op2));
       bc2ir.push(res.copyD2U());
-    } else if (methodName == VM_MagicNames.wordRsha) {
+    } else if (methodName == MagicNames.wordRsha) {
       Operand op2 = bc2ir.popInt();
       Operand op1 = bc2ir.popAddress();
       RegisterOperand res = gc.temps.makeTemp(resultType);
@@ -962,7 +967,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
     if (metadata instanceof IntConstantOperand) {
       int index = ((IntConstantOperand) metadata).value;
       if (index == 0) return null;
-      VM_MemberReference mr = VM_MemberReference.getMemberRef(index);
+      MemberReference mr = MemberReference.getMemberRef(index);
       return new LocationOperand(mr.asFieldReference());
     }
     return null;
@@ -973,57 +978,57 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
   private static final int STORE_OP = 3;
   private static final int ATTEMPT_OP = 4;
 
-  private static Operator getOperator(VM_TypeReference type, int operatorClass)
+  private static Operator getOperator(TypeReference type, int operatorClass)
       throws MagicNotImplementedException {
     if (operatorClass == LOAD_OP) {
-      if (type == VM_TypeReference.Address) return REF_LOAD;
-      if (type == VM_TypeReference.ObjectReference) return REF_LOAD;
-      if (type == VM_TypeReference.Word) return REF_LOAD;
-      if (type == VM_TypeReference.Offset) return REF_LOAD;
-      if (type == VM_TypeReference.Extent) return REF_LOAD;
-      if (type == VM_TypeReference.Int) return INT_LOAD;
-      if (type == VM_TypeReference.Byte) return BYTE_LOAD;
-      if (type == VM_TypeReference.Short) return SHORT_LOAD;
-      if (type == VM_TypeReference.Char) return USHORT_LOAD;
-      if (type == VM_TypeReference.Float) return FLOAT_LOAD;
-      if (type == VM_TypeReference.Double) return DOUBLE_LOAD;
-      if (type == VM_TypeReference.Long) return LONG_LOAD;
+      if (type == TypeReference.Address) return REF_LOAD;
+      if (type == TypeReference.ObjectReference) return REF_LOAD;
+      if (type == TypeReference.Word) return REF_LOAD;
+      if (type == TypeReference.Offset) return REF_LOAD;
+      if (type == TypeReference.Extent) return REF_LOAD;
+      if (type == TypeReference.Int) return INT_LOAD;
+      if (type == TypeReference.Byte) return BYTE_LOAD;
+      if (type == TypeReference.Short) return SHORT_LOAD;
+      if (type == TypeReference.Char) return USHORT_LOAD;
+      if (type == TypeReference.Float) return FLOAT_LOAD;
+      if (type == TypeReference.Double) return DOUBLE_LOAD;
+      if (type == TypeReference.Long) return LONG_LOAD;
     } else if (operatorClass == PREPARE_OP) {
-      if (type == VM_TypeReference.Address) return PREPARE_ADDR;
-      if (type == VM_TypeReference.ObjectReference) return PREPARE_ADDR;
-      if (type == VM_TypeReference.Word) return PREPARE_ADDR;
-      if (type == VM_TypeReference.Int) return PREPARE_INT;
-      if (type == VM_TypeReference.Long) return PREPARE_LONG;
+      if (type == TypeReference.Address) return PREPARE_ADDR;
+      if (type == TypeReference.ObjectReference) return PREPARE_ADDR;
+      if (type == TypeReference.Word) return PREPARE_ADDR;
+      if (type == TypeReference.Int) return PREPARE_INT;
+      if (type == TypeReference.Long) return PREPARE_LONG;
     } else if (operatorClass == ATTEMPT_OP) {
-      if (type == VM_TypeReference.Address) return ATTEMPT_ADDR;
-      if (type == VM_TypeReference.ObjectReference) return ATTEMPT_ADDR;
-      if (type == VM_TypeReference.Word) return ATTEMPT_ADDR;
-      if (type == VM_TypeReference.Int) return ATTEMPT_INT;
-      if (type == VM_TypeReference.Long) return ATTEMPT_LONG;
+      if (type == TypeReference.Address) return ATTEMPT_ADDR;
+      if (type == TypeReference.ObjectReference) return ATTEMPT_ADDR;
+      if (type == TypeReference.Word) return ATTEMPT_ADDR;
+      if (type == TypeReference.Int) return ATTEMPT_INT;
+      if (type == TypeReference.Long) return ATTEMPT_LONG;
     } else if (operatorClass == STORE_OP) {
-      if (type == VM_TypeReference.Address) return REF_STORE;
-      if (type == VM_TypeReference.ObjectReference) return REF_STORE;
-      if (type == VM_TypeReference.Word) return REF_STORE;
-      if (type == VM_TypeReference.Offset) return REF_STORE;
-      if (type == VM_TypeReference.Extent) return REF_STORE;
-      if (type == VM_TypeReference.Int) return INT_STORE;
-      if (type == VM_TypeReference.Byte) return BYTE_STORE;
-      if (type == VM_TypeReference.Short) return SHORT_STORE;
-      if (type == VM_TypeReference.Char) return SHORT_STORE;
-      if (type == VM_TypeReference.Float) return FLOAT_STORE;
-      if (type == VM_TypeReference.Double) return DOUBLE_STORE;
-      if (type == VM_TypeReference.Long) return LONG_STORE;
+      if (type == TypeReference.Address) return REF_STORE;
+      if (type == TypeReference.ObjectReference) return REF_STORE;
+      if (type == TypeReference.Word) return REF_STORE;
+      if (type == TypeReference.Offset) return REF_STORE;
+      if (type == TypeReference.Extent) return REF_STORE;
+      if (type == TypeReference.Int) return INT_STORE;
+      if (type == TypeReference.Byte) return BYTE_STORE;
+      if (type == TypeReference.Short) return SHORT_STORE;
+      if (type == TypeReference.Char) return SHORT_STORE;
+      if (type == TypeReference.Float) return FLOAT_STORE;
+      if (type == TypeReference.Double) return DOUBLE_STORE;
+      if (type == TypeReference.Long) return LONG_STORE;
     }
     String msg = " Unexpected call to getOperator";
     throw MagicNotImplementedException.UNEXPECTED(msg);
   }
 
-  private static boolean isLoad(VM_Atom methodName) {
-    return isPrefix(VM_MagicNames.loadPrefix, methodName.toByteArray());
+  private static boolean isLoad(Atom methodName) {
+    return isPrefix(MagicNames.loadPrefix, methodName.toByteArray());
   }
 
-  private static boolean isPrepare(VM_Atom methodName) {
-    return isPrefix(VM_MagicNames.preparePrefix, methodName.toByteArray());
+  private static boolean isPrepare(Atom methodName) {
+    return isPrefix(MagicNames.preparePrefix, methodName.toByteArray());
   }
 
   /**
@@ -1038,7 +1043,7 @@ public class GenerateMagic implements VM_TIBLayoutConstants  {
    * <code>b</code>
    */
   @Interruptible
-  private static boolean isPrefix(VM_Atom prefix, byte[] b) {
+  private static boolean isPrefix(Atom prefix, byte[] b) {
     byte[] a = prefix.toByteArray();
     int aLen = a.length;
     if (aLen > b.length) {

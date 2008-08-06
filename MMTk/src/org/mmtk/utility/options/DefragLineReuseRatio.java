@@ -14,12 +14,12 @@ package org.mmtk.utility.options;
 
 import static org.mmtk.policy.immix.ImmixConstants.DEFAULT_DEFRAG_LINE_REUSE_RATIO;
 
-public class DefragLineReuseRatio extends FloatOption {
+public class DefragLineReuseRatio extends org.vmutil.options.FloatOption {
   /**
    * Create the option.
    */
   public DefragLineReuseRatio() {
-    super("Defrag Line Reuse Ratio",
+    super(Options.set, "Defrag Line Reuse Ratio",
           "Blocks with this fraction marked may be reused for defrag allocation",
           DEFAULT_DEFRAG_LINE_REUSE_RATIO);
   }

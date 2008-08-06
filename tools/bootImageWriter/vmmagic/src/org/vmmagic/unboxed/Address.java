@@ -13,7 +13,7 @@
 package org.vmmagic.unboxed;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.SizeConstants;
 
 import org.vmmagic.pragma.*;
 
@@ -25,13 +25,12 @@ import org.vmmagic.pragma.*;
  * operations (Java does not have unsigned int types).
  * <p>
  * For efficiency and to avoid meta-circularity, the Address class is
- * intercepted like {@link org.jikesrvm.runtime.VM_Magic} and converted into the base type so no
+ * intercepted like {@link org.jikesrvm.runtime.Magic} and converted into the base type so no
  * Address object is created run-time.
  *
- * @author Perry Cheng
- * @modified Daniel Frampton
  */
-@Uninterruptible public final class Address extends ArchitecturalWord implements VM_SizeConstants {
+@Uninterruptible
+public final class Address extends ArchitecturalWord implements SizeConstants {
 
   Address(int value) {
     super(value, false);
@@ -42,6 +41,13 @@ import org.vmmagic.pragma.*;
   Address(long value) {
     super(value);
   }
+
+  /* Compensate for some java compilers helpfully defining this synthetically */
+  @Interruptible
+  public String toString() {
+    return super.toString();
+  }
+
 
   /****************************************************************************
    *

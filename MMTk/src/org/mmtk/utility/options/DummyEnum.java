@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * A sample enumeration for testing.
  */
-public final class DummyEnum extends EnumOption {
+public final class DummyEnum extends org.vmutil.options.EnumOption {
 
   // enumeration values.
   public final int FOO = 0;
@@ -25,9 +25,9 @@ public final class DummyEnum extends EnumOption {
    * Create the option.
    */
   public DummyEnum() {
-    super("Dummy Enum",
-        "This is a sample enumeration to test the options system",
+    super(Options.set, "Dummy Enum",
+          "This is a sample enumeration to test the options system",
           new String[] {"foo", "bar"},
-          0);
+          "foo");
   }
 }

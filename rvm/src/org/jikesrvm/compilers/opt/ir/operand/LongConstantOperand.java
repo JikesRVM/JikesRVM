@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.vmmagic.unboxed.Offset;
 
@@ -57,12 +57,12 @@ public final class LongConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * Return the {@link TypeReference} of the value represented by the operand.
    *
-   * @return VM_TypeReference.Long
+   * @return TypeReference.Long
    */
-  public VM_TypeReference getType() {
-    return VM_TypeReference.Long;
+  public TypeReference getType() {
+    return TypeReference.Long;
   }
 
   /**

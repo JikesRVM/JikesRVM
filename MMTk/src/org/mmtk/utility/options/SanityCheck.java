@@ -16,12 +16,12 @@ package org.mmtk.utility.options;
 /**
  * Should a major GC be performed when a system GC is triggered?
  */
-public final class SanityCheck extends BooleanOption {
+public final class SanityCheck extends org.vmutil.options.BooleanOption {
   /**
    * Create the option.
    */
   public SanityCheck() {
-    super("Sanity Check",
+    super(Options.set, "Sanity Check",
           "Perform sanity checks before and after each collection?",
           false);
   }

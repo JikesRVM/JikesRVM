@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.ir.Attempt;
@@ -154,7 +154,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StringConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
-import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -216,7 +216,7 @@ public abstract class NormalizeConstants extends IRTools {
                 } else if (use instanceof ClassConstantOperand) {
                   throw new OptimizingCompilerException("Class constant w/o valid JTOC offset");
                 }
-                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(oc.value));
+                offset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(oc.value));
               }
               LocationOperand loc = new LocationOperand(offset);
               s.insertBefore(Load.create(VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD,
@@ -226,25 +226,25 @@ public abstract class NormalizeConstants extends IRTools {
                                          loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof DoubleConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Double);
               RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir, s);
               DoubleConstantOperand dc = (DoubleConstantOperand) use;
               Offset offset = dc.offset;
               if (offset.isZero()) {
                 offset =
-                    Offset.fromIntSignExtend(VM_Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(dc.value)));
+                    Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(Double.doubleToLongBits(dc.value)));
               }
               LocationOperand loc = new LocationOperand(offset);
               s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof FloatConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Float);
               RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir, s);
               FloatConstantOperand fc = (FloatConstantOperand) use;
               Offset offset = fc.offset;
               if (offset.isZero()) {
                 offset =
-                    Offset.fromIntSignExtend(VM_Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(fc.value)));
+                    Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(Float.floatToIntBits(fc.value)));
               }
               LocationOperand loc = new LocationOperand(offset);
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
@@ -252,7 +252,7 @@ public abstract class NormalizeConstants extends IRTools {
             } else if (use instanceof LongConstantOperand) {
               if (!VM.BuildFor64Addr) {
                 if (s.getOpcode() != TRAP_IF_opcode) {
-                  RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
+                  RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Long);
                   s.insertBefore(Move.create(LONG_MOVE, rop, use));
                   s.putOperand(idx, rop.copyD2U());
                 }
@@ -260,7 +260,7 @@ public abstract class NormalizeConstants extends IRTools {
             } else if (use instanceof NullConstantOperand) {
               s.putOperand(idx, AC(Address.zero()));
             } else if (use instanceof TIBConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.JavaLangObjectArray);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((TIBConstantOperand) use).value.getTibOffset();
               LocationOperand loc = new LocationOperand(offset);
@@ -271,7 +271,7 @@ public abstract class NormalizeConstants extends IRTools {
                                          loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof CodeConstantOperand) {
-              RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.CodeArray);
+              RegisterOperand rop = ir.regpool.makeTemp(TypeReference.CodeArray);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((CodeConstantOperand) use).value.findOrCreateJtocOffset();
               LocationOperand loc = new LocationOperand(offset);

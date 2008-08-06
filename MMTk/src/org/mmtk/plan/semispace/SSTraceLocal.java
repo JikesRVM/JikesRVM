@@ -20,10 +20,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the core functionality for a transitive
+ * This class implments the core functionality for a transitive
  * closure over the heap graph.
  */
-@Uninterruptible public class SSTraceLocal extends TraceLocal {
+@Uninterruptible
+public class SSTraceLocal extends TraceLocal {
   /**
    * Constructor
    */

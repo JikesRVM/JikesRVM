@@ -39,8 +39,9 @@
   <macrodef name="gcTest">
     <attribute name="class"/>
     <attribute name="initialHeapSize" default="60"/>
+  	<attribute name="maxHeapSize" default="150" />
     <sequential>
-      <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}"/>
+      <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}" maxHeapSize="@{maxHeapSize}"/>
       <findStatistic tag="@{class}" pattern="Overall: SUCCESS" key="success"/>
       <outputResults tag="@{class}"/>
     </sequential>
@@ -99,7 +100,7 @@
     <displayTestResults tag="FixedLive"/>
 
     <gcTest class="LargeAlloc"/>
-    <gcTest class="Exhaust" initialHeapSize="50"/>
+    <gcTest class="Exhaust" initialHeapSize="50" maxHeapSize="75"/>
 
     <finishResults/>
   </target>

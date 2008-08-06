@@ -12,9 +12,6 @@
  */
 package org.mmtk.plan.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_DEFRAG;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_SUPPORT_PINNING;
-
 import org.mmtk.plan.*;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.immix.ImmixSpace;
@@ -30,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * This class implements the global state of an immix collector.
  *
  * See the PLDI'08 paper by Blackburn and McKinley for a description
- * of the algorithm.
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -38,7 +35,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
  * allocation and collection.
  *
@@ -152,14 +149,20 @@ public class Immix extends StopTheWorld {
    */
   @Override
   public boolean willNeverMove(ObjectReference object) {
-    if (Space.isInSpace(IMMIX, object))
-      if (!TMP_SUPPORT_DEFRAG)
-        return true;
-      else if (TMP_SUPPORT_PINNING) {
-        ObjectHeader.pinObject(object);
-        return true;
-      } else
-        return false;
-    return super.willNeverMove(object);
+    if (Space.isInSpace(IMMIX, object)) {
+      ObjectHeader.pinObject(object);
+      return true;
+    } else
+      return super.willNeverMove(object);
+  }
+
+  /**
+   * Register specialized methods.
+   */
+  @Interruptible
+  protected void registerSpecializedMethods() {
+    TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, ImmixTraceLocal.class);
+    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, ImmixDefragTraceLocal.class);
+    super.registerSpecializedMethods();
   }
 }

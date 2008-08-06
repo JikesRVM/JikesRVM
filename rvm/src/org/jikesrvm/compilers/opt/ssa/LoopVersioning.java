@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import static org.jikesrvm.compilers.opt.driver.Constants.SYNTH_LOOP_VERSIONING_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_LOOP_VERSIONING_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -372,25 +372,25 @@ public final class LoopVersioning extends CompilerPhase {
       domPhase.perform(ir);
       DefUse.computeDU(ir);
       // Build annotated version
-      ir.HIRInfo.LoopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.LoopStructureTree);
+      ir.HIRInfo.loopStructureTree = new AnnotatedLSTGraph(ir, ir.HIRInfo.loopStructureTree);
     }
     if (VERIFY) {
       ir.verify(getName(), true);
     }
 
     // Check loop annotation has been performed
-    if (!(ir.HIRInfo.LoopStructureTree instanceof AnnotatedLSTGraph)) {
+    if (!(ir.HIRInfo.loopStructureTree instanceof AnnotatedLSTGraph)) {
       report("Optimisation of " + ir.getMethod() + " failed as LST wasn't annotated\n");
     } else {
       loopRegisterSet = new HashSet<Register>();
 
       if (DEBUG) {
         VM.sysWriteln(ir.getMethod().toString());
-        VM.sysWriteln(ir.HIRInfo.LoopStructureTree.toString());
+        VM.sysWriteln(ir.HIRInfo.loopStructureTree.toString());
         SSA.printInstructions(ir);
       }
 
-      while (findLoopToOptimise((AnnotatedLSTNode) ir.HIRInfo.LoopStructureTree.getRoot())) {
+      while (findLoopToOptimise((AnnotatedLSTNode) ir.HIRInfo.loopStructureTree.getRoot())) {
         if (DEBUG) {
           VM.sysWriteln("Successful optimisation of " + ir.getMethod());
           SSA.printInstructions(ir);
@@ -409,7 +409,7 @@ public final class LoopVersioning extends CompilerPhase {
 
         if (DEBUG) {
           VM.sysWriteln("after an optimization pass");
-          VM.sysWriteln(ir.HIRInfo.LoopStructureTree.toString());
+          VM.sysWriteln(ir.HIRInfo.loopStructureTree.toString());
           SSA.printInstructions(ir);
           VM.sysWriteln("Finish optimize: " + ir.getMethod().toString());
         }
@@ -486,7 +486,7 @@ public final class LoopVersioning extends CompilerPhase {
       }
       // 2) Determine the registers defined in the loop.
       ArrayList<Register> registersDefinedInOriginalLoop = new ArrayList<Register>();
-      ArrayList<VM_TypeReference> typesOfRegistersDefinedInOriginalLoop = new ArrayList<VM_TypeReference>();
+      ArrayList<TypeReference> typesOfRegistersDefinedInOriginalLoop = new ArrayList<TypeReference>();
       ArrayList<Instruction> definingInstructionsInOriginalLoop = new ArrayList<Instruction>();
       getRegistersDefinedInLoop(loop,
                                 registersDefinedInOriginalLoop,
@@ -630,7 +630,7 @@ public final class LoopVersioning extends CompilerPhase {
    * @param registers - vector to which defined registers are added
    */
   private void getRegistersDefinedInLoop(AnnotatedLSTNode loop, ArrayList<Register> registers,
-                                         ArrayList<VM_TypeReference> types,
+                                         ArrayList<TypeReference> types,
                                          ArrayList<Instruction> definingInstructions) {
     BasicBlockEnumeration blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
@@ -671,14 +671,14 @@ public final class LoopVersioning extends CompilerPhase {
    * newly created destination for the optimized loop
    */
   private void generatePhiNodes(AnnotatedLSTNode loop, ArrayList<Register> registers,
-                                ArrayList<VM_TypeReference> types, ArrayList<Instruction> phiInstructions,
+                                ArrayList<TypeReference> types, ArrayList<Instruction> phiInstructions,
                                 HashMap<Register, Register> subOptimalRegMap,
                                 HashMap<Register, Register> optimalRegMap) {
     // Get the carried loop iterator's register
     Register carriedLoopIteratorRegister = ((RegisterOperand) loop.getCarriedLoopIterator()).getRegister();
     for (int i = 0; i < registers.size(); i++) {
       Register register = registers.get(i);
-      VM_TypeReference type = types.get(i);
+      TypeReference type = types.get(i);
       Instruction phi = Phi.create(PHI, new RegisterOperand(register, type), 2);
       phi.setBytecodeIndex(SYNTH_LOOP_VERSIONING_BCI);
 

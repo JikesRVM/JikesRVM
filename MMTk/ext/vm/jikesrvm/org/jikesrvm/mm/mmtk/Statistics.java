@@ -13,9 +13,10 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.Constants;
-import org.jikesrvm.runtime.VM_Time;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.runtime.Time;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
+import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import org.vmmagic.pragma.*;
 
@@ -27,7 +28,7 @@ import org.vmmagic.pragma.*;
    */
   @Uninterruptible
   public int getCollectionCount() {
-    return MM_Interface.getCollectionCount();
+    return MemoryManager.getCollectionCount();
   }
 
   /**
@@ -35,7 +36,7 @@ import org.vmmagic.pragma.*;
    * Has same semantics as java.lang.System.nanoTime().
    */
   public long nanoTime() {
-    return VM_Time.nanoTime();
+    return Time.nanoTime();
   }
 
   /**
@@ -44,7 +45,7 @@ import org.vmmagic.pragma.*;
    * are not a reliably time source.
    */
   public long cycles() {
-    return VM_Time.cycles();
+    return Time.cycles();
   }
 
   /**

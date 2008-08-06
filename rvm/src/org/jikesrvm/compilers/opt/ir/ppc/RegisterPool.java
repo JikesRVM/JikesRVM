@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
-import org.jikesrvm.classloader.VM_Method;
-import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -32,9 +32,9 @@ public abstract class RegisterPool extends GenericRegisterPool {
   /**
    * Initializes a new register pool for the method meth.
    *
-   * @param meth the VM_Method of the outermost method
+   * @param meth the RVMMethod of the outermost method
    */
-  public RegisterPool(VM_Method meth) {
+  public RegisterPool(RVMMethod meth) {
     super(meth);
   }
 
@@ -55,7 +55,7 @@ public abstract class RegisterPool extends GenericRegisterPool {
    * @return the temp
    */
   public RegisterOperand makeJTOCOp(IR ir, Instruction s) {
-    return new RegisterOperand(getJTOC(), VM_TypeReference.Address);
+    return new RegisterOperand(getJTOC(), TypeReference.Address);
   }
 
   /**
@@ -64,7 +64,7 @@ public abstract class RegisterPool extends GenericRegisterPool {
    * @return the temp
    */
   public RegisterOperand makeTocOp() {
-    return new RegisterOperand(getJTOC(), VM_TypeReference.JavaLangObject);
+    return new RegisterOperand(getJTOC(), TypeReference.JavaLangObject);
   }
 
 }

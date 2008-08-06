@@ -18,9 +18,9 @@ import org.jikesrvm.VM;
 
 public class BootImageMemberLookupError extends Error {
   final Object o;
-  final VM_Member rvmMember;
+  final RVMMember rvmMember;
   final Member jdkMember;
-  BootImageMemberLookupError(VM_Member rvmMember, Member jdkMember, Object o, Throwable t) {
+  BootImageMemberLookupError(RVMMember rvmMember, Member jdkMember, Object o, Throwable t) {
     super(t);
     if (VM.runningVM) {
       VM._assert(VM.NOT_REACHED);

@@ -12,9 +12,9 @@
  */
 package java.lang;
 
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Pure;
 
 /**
@@ -27,7 +27,7 @@ public class Object {
 
   @SuppressWarnings({"PMD.ProperCloneImplementation","PMD.CloneMethodMustImplementCloneable","CloneDoesntCallSuperClone"})
   protected Object clone() throws CloneNotSupportedException {
-    return VM_Runtime.clone(this);
+    return RuntimeEntrypoints.clone(this);
   }
 
   public boolean equals(Object o) {
@@ -40,20 +40,20 @@ public class Object {
 
   @Pure
   public final Class<?> getClass() {
-    return VM_ObjectModel.getObjectType(this).getClassForType();
+    return ObjectModel.getObjectType(this).getClassForType();
   }
 
   @Pure
   public int hashCode() {
-    return VM_ObjectModel.getObjectHashCode(this);
+    return ObjectModel.getObjectHashCode(this);
   }
 
   public final void notify() throws IllegalMonitorStateException {
-    VM_Thread.notify(this);
+    RVMThread.notify(this);
   }
 
   public final void notifyAll() throws IllegalMonitorStateException {
-    VM_Thread.notifyAll(this);
+    RVMThread.notifyAll(this);
   }
 
   @Pure
@@ -63,7 +63,7 @@ public class Object {
 
   public final void wait() throws InterruptedException,
                                    IllegalMonitorStateException {
-    VM_Thread.wait(this);
+    RVMThread.wait(this);
   }
 
   public final void wait(long time) throws InterruptedException,
@@ -82,9 +82,9 @@ public class Object {
         time += 1;
       }
       if (time == 0) {
-        VM_Thread.wait(this);
+        RVMThread.wait(this);
       } else {
-        VM_Thread.wait(this, time);
+        RVMThread.wait(this, time);
       }
     } else {
       throw new IllegalArgumentException();

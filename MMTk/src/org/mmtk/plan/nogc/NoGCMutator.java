@@ -36,7 +36,8 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  */
-@Uninterruptible  public abstract class NoGCMutator extends MutatorContext {
+@Uninterruptible
+public class NoGCMutator extends MutatorContext {
 
   /************************************************************************
    * Instance fields

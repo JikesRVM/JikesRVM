@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 import org.jikesrvm.compilers.opt.util.Stack;
-import org.jikesrvm.util.VM_BitVector;
+import org.jikesrvm.util.BitVector;
 
 /**
  * Identify natural loops and builds the LST (Loop Structure Tree)
@@ -49,9 +49,9 @@ public class LSTGraph extends SpaceEffGraph {
    */
   public static void perform(IR ir) {
     if (DEBUG) System.out.println("LSTGraph:" + ir.method);
-    ir.HIRInfo.LoopStructureTree = new LSTGraph(ir);
+    ir.HIRInfo.loopStructureTree = new LSTGraph(ir);
     if (DEBUG) {
-      System.out.println(ir.HIRInfo.LoopStructureTree.toString());
+      System.out.println(ir.HIRInfo.loopStructureTree.toString());
     }
   }
 
@@ -167,11 +167,11 @@ public class LSTGraph extends SpaceEffGraph {
       LSTNode header = null;
       for (SpaceEffGraphEdge edge = node.firstInEdge(); edge != null; edge = edge.getNextIn()) {
         if (edge.backEdge()) {
-          VM_BitVector loop;
+          BitVector loop;
           if (header == null) {
             header = new LSTNode(node);
             addGraphNode(header);
-            loop = new VM_BitVector(cfg.numberOfNodes());
+            loop = new BitVector(cfg.numberOfNodes());
             loop.set(node.getNumber());
             header.loop = loop;
             if (DEBUG) { System.out.println("header" + header); }
@@ -215,7 +215,7 @@ public class LSTGraph extends SpaceEffGraph {
     for (Enumeration<LSTNode> e = node.getChildren(); e.hasMoreElements();) {
       setDepth(ir, e.nextElement(), depth + 1);
     }
-    VM_BitVector loop = node.loop;
+    BitVector loop = node.loop;
     if (loop != null) {
       for (int i = 0; i < loop.length(); i++) {
         if (loop.get(i)) {
@@ -313,7 +313,7 @@ public class LSTGraph extends SpaceEffGraph {
    * @param edge the edge to process
    * @param loop bit vector to hold the results of the algorithm
    */
-  private void findNaturalLoop(SpaceEffGraphEdge edge, VM_BitVector loop) {
+  private void findNaturalLoop(SpaceEffGraphEdge edge, BitVector loop) {
 
     /* Algorithm to compute Natural Loops, Muchnick, pp. 192:
        procedure Nat_Loop(m,n,Pred) return set of Node

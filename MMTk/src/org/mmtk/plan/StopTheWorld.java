@@ -14,7 +14,6 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
@@ -37,14 +36,14 @@ public abstract class StopTheWorld extends Simple {
 
   /** Build and validate a sanity table */
   protected static final short preSanityPhase = Phase.createComplex("pre-sanity", null,
-      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleGlobal     (SANITY_SET_PREGC),
+      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleComplex    (sanityCheckPhase));
 
   /** Build and validate a sanity table */
   protected static final short postSanityPhase = Phase.createComplex("post-sanity", null,
-      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleGlobal     (SANITY_SET_POSTGC),
+      Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleComplex    (sanityCheckPhase));
 
   // CHECKSTYLE:ON
@@ -62,13 +61,9 @@ public abstract class StopTheWorld extends Simple {
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
-      if (getSanityChecker() == null || VM.activePlan.collector().getSanityChecker() == null) {
-        Log.writeln("Collector does not support sanity checking!");
-      } else {
-        Log.writeln("Collection sanity checking enabled.");
-        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),  Phase.scheduleComplex(preSanityPhase));
-        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), Phase.scheduleComplex(postSanityPhase));
-      }
+      Log.writeln("Collection sanity checking enabled.");
+      replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),  Phase.scheduleComplex(preSanityPhase));
+      replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), Phase.scheduleComplex(postSanityPhase));
     }
   }
 }

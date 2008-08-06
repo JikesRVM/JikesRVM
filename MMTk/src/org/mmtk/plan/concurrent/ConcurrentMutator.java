@@ -82,12 +82,12 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    */
   @Inline
-  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
+  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     if (barrierActive) checkAndEnqueueReference(slot.loadObjectReference());
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
@@ -104,14 +104,14 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * stored.
    * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
-   * @param metaDataA An int that assists the host VM in creating a store
-   * @param metaDataB An int that assists the host VM in creating a store
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
   @Inline
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old,
-                                               ObjectReference tgt, Offset metaDataA, int metaDataB, int mode) {
+                                               ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
     if (barrierActive) checkAndEnqueueReference(old);
     return result;
@@ -152,7 +152,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * Read a reference type. In a concurrent collector this may
    * involve adding the referent to the marking queue.
    *
-   * @param src The referent being read.
+   * @param ref The referent being read.
    * @return The new referent.
    */
   @Inline

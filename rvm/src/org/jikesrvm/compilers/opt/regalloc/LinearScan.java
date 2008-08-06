@@ -24,10 +24,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.PhysicalRegisterSet;
-import org.jikesrvm.ArchitectureSpecific.RegisterRestrictions;
-import org.jikesrvm.ArchitectureSpecific.StackManager;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
+import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -51,10 +51,10 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.GraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
-import org.jikesrvm.osr.OSR_Constants;
-import org.jikesrvm.osr.OSR_LocalRegPair;
-import org.jikesrvm.osr.OSR_MethodVariables;
-import org.jikesrvm.osr.OSR_VariableMapElement;
+import org.jikesrvm.osr.OSRConstants;
+import org.jikesrvm.osr.LocalRegPair;
+import org.jikesrvm.osr.MethodVariables;
+import org.jikesrvm.osr.VariableMapElement;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -776,7 +776,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       // SJF: the loop as written is slightly more efficient than calling
       // removeAll().  However, for some reason, replacing the loop with
       // the call to removeAll breaks the compiler on OptTestHarness
-      // -oc:O2 -method VM_Method replaceCharWithString -.  This is deeply
+      // -oc:O2 -method RVMMethod replaceCharWithString -.  This is deeply
       // disturbing.  TODO: fix it.  (Hope the problem goes away if/when
       // we migrate to classpath libraries).
       // removeAll(result);
@@ -924,7 +924,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * An object to help estimate spill costs
      */
-    private final SpillCostEstimator spillCost;
+    private final transient SpillCostEstimator spillCost;
 
     /**
      * Have we spilled anything?
@@ -2531,23 +2531,23 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     public void perform(IR ir) throws OptimizingCompilerException {
       // list of OsrVariableMapElement
-      //LinkedList<OSR_VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;
+      //LinkedList<VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;
       //for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
-      //  OSR_VariableMapElement elm = mapList.get(numOsrs);
+      //  VariableMapElement elm = mapList.get(numOsrs);
       /* for each osr instruction */
-      for (OSR_VariableMapElement elm : ir.MIRInfo.osrVarMap.list) {
+      for (VariableMapElement elm : ir.MIRInfo.osrVarMap.list) {
 
         // for each inlined method
-        //LinkedList<OSR_MethodVariables> mvarsList = elm.mvars;                   XXX Remove once proven correct
+        //LinkedList<MethodVariables> mvarsList = elm.mvars;                   XXX Remove once proven correct
         //for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
-        //  OSR_MethodVariables mvar = mvarsList.get(numMvars);
-        for (OSR_MethodVariables mvar : elm.mvars) {
+        //  MethodVariables mvar = mvarsList.get(numMvars);
+        for (MethodVariables mvar : elm.mvars) {
 
           // for each tuple
-          //LinkedList<OSR_LocalRegPair> tupleList = mvar.tupleList;
+          //LinkedList<LocalRegPair> tupleList = mvar.tupleList;
           //for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
-          //OSR_LocalRegPair tuple = tupleList.get(numTuple);
-          for (OSR_LocalRegPair tuple : mvar.tupleList) {
+          //LocalRegPair tuple = tupleList.get(numTuple);
+          for (LocalRegPair tuple : mvar.tupleList) {
 
             Operand op = tuple.operand;
             if (op.isRegister()) {
@@ -2556,9 +2556,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
               setRealPosition(ir, tuple, sym_reg);
 
               // get another half part of long register
-              if (VM.BuildFor32Addr && (tuple.typeCode == OSR_Constants.LongTypeCode)) {
+              if (VM.BuildFor32Addr && (tuple.typeCode == OSRConstants.LongTypeCode)) {
 
-                OSR_LocalRegPair other = tuple._otherHalf;
+                LocalRegPair other = tuple._otherHalf;
                 Operand other_op = other.operand;
 
                 if (VM.VerifyAssertions) VM._assert(other_op.isRegister());
@@ -2577,18 +2577,18 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
               * Perhaps, ConvertToLowLevelIR can skip OsrPoint instruction.
               */
             } else if (op.isIntConstant()) {
-              setTupleValue(tuple, OSR_Constants.ICONST, ((IntConstantOperand) op).value);
-              if (VM.BuildFor32Addr && (tuple.typeCode == OSR_Constants.LongTypeCode)) {
-                OSR_LocalRegPair other = tuple._otherHalf;
+              setTupleValue(tuple, OSRConstants.ICONST, ((IntConstantOperand) op).value);
+              if (VM.BuildFor32Addr && (tuple.typeCode == OSRConstants.LongTypeCode)) {
+                LocalRegPair other = tuple._otherHalf;
                 Operand other_op = other.operand;
 
                 if (VM.VerifyAssertions) VM._assert(other_op.isIntConstant());
-                setTupleValue(other, OSR_Constants.ICONST, ((IntConstantOperand) other_op).value);
+                setTupleValue(other, OSRConstants.ICONST, ((IntConstantOperand) other_op).value);
               }
             } else if (op.isAddressConstant()) {
-              setTupleValue(tuple, OSR_Constants.ACONST, ((AddressConstantOperand) op).value.toWord());
+              setTupleValue(tuple, OSRConstants.ACONST, ((AddressConstantOperand) op).value.toWord());
             } else if (VM.BuildFor64Addr && op.isLongConstant()) {
-              setTupleValue(tuple, OSR_Constants.LCONST, Word.fromLong(((LongConstantOperand) op).value));
+              setTupleValue(tuple, OSRConstants.LCONST, Word.fromLong(((LongConstantOperand) op).value));
             } else {
               throw new OptimizingCompilerException("LinearScan", "Unexpected operand type at ", op.toString());
             } // for the op type
@@ -2597,7 +2597,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       } // for each osr instruction
     } // end of method
 
-    void setRealPosition(IR ir, OSR_LocalRegPair tuple, Register sym_reg) {
+    void setRealPosition(IR ir, LocalRegPair tuple, Register sym_reg) {
       if (VM.VerifyAssertions) VM._assert(sym_reg != null);
 
       int REG_MASK = 0x01F;
@@ -2606,23 +2606,23 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       // is is really confusing that sometimes a sym reg is a phy,
       // and sometimes not.
       if (sym_reg.isAllocated()) {
-        setTupleValue(tuple, OSR_Constants.PHYREG, sym_reg.number & REG_MASK);
+        setTupleValue(tuple, OSRConstants.PHYREG, sym_reg.number & REG_MASK);
       } else if (sym_reg.isPhysical()) {
-        setTupleValue(tuple, OSR_Constants.PHYREG, sym_reg.number & REG_MASK);
+        setTupleValue(tuple, OSRConstants.PHYREG, sym_reg.number & REG_MASK);
       } else if (sym_reg.isSpilled()) {
-        setTupleValue(tuple, OSR_Constants.SPILL, sym_reg.getSpillAllocated());
+        setTupleValue(tuple, OSRConstants.SPILL, sym_reg.getSpillAllocated());
       } else {
         dumpIR(ir, "PANIC");
         throw new RuntimeException("LinearScan PANIC in OSRMAP, " + sym_reg + " is not alive");
       }
     } // end of setRealPosition
 
-    static void setTupleValue(OSR_LocalRegPair tuple, byte type, int value) {
+    static void setTupleValue(LocalRegPair tuple, byte type, int value) {
       tuple.valueType = type;
       tuple.value = Word.fromIntSignExtend(value);
     } // end of setTupleValue
 
-    static void setTupleValue(OSR_LocalRegPair tuple, byte type, Word value) {
+    static void setTupleValue(LocalRegPair tuple, byte type, Word value) {
       tuple.valueType = type;
       tuple.value = value;
     } // end of setTupleValue

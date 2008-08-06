@@ -30,8 +30,8 @@ import org.vmmagic.unboxed.*;
  * again are moved to the live object list for finalization.
  *
  * Elsewhere, there is a distinguished Finalizer thread which
- * enqueues itself on the VM_Scheduler finalizerQueue.  At the end of gc,
- * if needed and if the VM_Scheduler finalizerQueue is not empty,
+ * enqueues itself on the Scheduler finalizerQueue.  At the end of gc,
+ * if needed and if the Scheduler finalizerQueue is not empty,
  * the finalizer thread is scheduled to be run when gc is completed.
  */
 @Uninterruptible public class Finalizer {
@@ -213,7 +213,7 @@ import org.vmmagic.unboxed.*;
   }
 
 
-  public static void kill() {
+  public static void clear() {
     candidateEnd = 0;
   }
 

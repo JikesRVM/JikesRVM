@@ -12,6 +12,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.gcspy.ByteStream;
@@ -96,8 +97,6 @@ public final class VM {
   @Untraced
   public static final ObjectModel objectModel;
   @Untraced
-  public static final Options options;
-  @Untraced
   public static final ReferenceProcessor weakReferences;
   @Untraced
   public static final ReferenceProcessor softReferences;
@@ -146,7 +145,7 @@ public final class VM {
     collection = factory.newCollection();
     memory = factory.newMemory();
     objectModel = factory.newObjectModel();
-    options = factory.newOptions();
+    Options.set = factory.getOptionSet();
     weakReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.WEAK);
     softReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.SOFT);
     phantomReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.PHANTOM);
