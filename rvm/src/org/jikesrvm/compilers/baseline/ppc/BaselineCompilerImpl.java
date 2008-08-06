@@ -4894,14 +4894,24 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       generateAddrComparison(true, GE);
     } else if (methodName == MagicNames.wordIsZero || methodName == MagicNames.wordIsNull) {
       // unsigned comparison generating a boolean
-      asm.emitLVAL(T0, 0);
-      pushAddr(T0);
-      generateAddrComparison(false, EQ);
+      popAddr(T0);
+      asm.emitLVAL(T1, 0);
+      asm.emitLVAL(T2, 1);
+      asm.emitCMPLAddr(T0, T1);
+      ForwardReference fr = asm.emitForwardBC(EQ);
+      asm.emitLVAL(T2, 0);
+      fr.resolve(asm);
+      pushInt(T2);
     } else if (methodName == MagicNames.wordIsMax) {
       // unsigned comparison generating a boolean
-      asm.emitLVAL(T0, -1);
-      pushAddr(T0);
-      generateAddrComparison(false, EQ);
+      popAddr(T0);
+      asm.emitLVAL(T1, -1);
+      asm.emitLVAL(T2, 1);
+      asm.emitCMPLAddr(T0, T1);
+      ForwardReference fr = asm.emitForwardBC(EQ);
+      asm.emitLVAL(T2, 0);
+      fr.resolve(asm);
+      pushInt(T2);
     } else if (methodName == MagicNames.wordZero || methodName == MagicNames.wordNull) {
       asm.emitLVAL(T0, 0);
       pushAddr(T0);
