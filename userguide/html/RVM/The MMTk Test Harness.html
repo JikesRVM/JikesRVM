@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : The MMTk Test Harness</title>
+	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+    </head>
+
+    <body>
+	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
+		    <tr>
+			    <td valign="top" class="pagebody">
+				    <div class="pageheader">
+					    <span class="pagetitle">
+                            RVM : The MMTk Test Harness
+                                                    </span>
+				    </div>
+				    <div class="pagesubheading">
+					    This page last changed on Jun 30, 2008 by <font color="#0050B2">steveblackburn</font>.
+				    </div>
+
+				    <h1><a name="TheMMTkTestHarness-Overview"></a>Overview</h1>
+
+<p>The MMTk harness is a debugging tool. It allows you to run MMTk with a simple client - a simple Java-like scripting language - which can explicitly allocate objects, create and delete references, etc. This allows MMTk to be run and debugged stand-alone, without the entire VM, greatly simplifying initial debugging and reducing the edit-debug turnaround time. This is all accessible through the command line or an IDE such as eclipse.</p>
+
+<h1><a name="TheMMTkTestHarness-Runningthetestharness"></a>Running the test harness</h1>
+
+<p>The harness can be run standalone or via Eclipse (or other IDE).</p>
+
+<h2><a name="TheMMTkTestHarness-Standalone"></a>Standalone</h2>
+
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">ant mmtk-harness
+java -jar target/mmtk/mmtk-harness.jar &lt;script-file&gt; [options...]</pre>
+</div></div>
+<p>There is a collection of sample scripts in the MMTk/harness/test-scripts directory.</p>
+
+<h2><a name="TheMMTkTestHarness-InEclipse"></a>In Eclipse</h2>
+
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">ant mmtk-harness-eclipse-project</pre>
+</div></div>
+<p>Define a new run configuration with main class org.mmtk.harness.Main.</p>
+
+<p>You can configure eclipse to display vmmagic values (Address/ObjectReference/etc) using their toString method through the Eclipse &#45;&gt; Preferences... &#45;&gt; Java &#45;&gt; Debug &#45;&gt; Detail Formatters menu. The simplest option is to check the boxto use toString 'As the label for all variables'.</p>
+
+<h2><a name="TheMMTkTestHarness-Testharnessoptions"></a>Test harness options</h2>
+
+<p>Options are passed to the test harness as 'keyword=value' pairs.&nbsp; The standard MMTk options that are available through JikesRVM are accepted (leave off the "-X:gc:"), as well as the following harness-specific options:</p>
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Option <br clear="all" /> </th>
+<th class='confluenceTh'> Meaning </th>
+</tr>
+<tr>
+<td class='confluenceTd'> plan </td>
+<td class='confluenceTd'> The MMTk plan class.&nbsp; Defaults to org.mmtk.plan.marksweep.MS <br clear="all" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> collectors </td>
+<td class='confluenceTd'> The number of concurrent collector threads (default: 1) <br clear="all" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> initHeap </td>
+<td class='confluenceTd'> Initial heap size <br clear="all" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> maxHeap </td>
+<td class='confluenceTd'> Maximum heap size (default: 64 pages) <br clear="all" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> trace </td>
+<td class='confluenceTd'> Debugging messages from the MMTk Harness.&nbsp; Trace options include
+<ul>
+	<li>CALL - trace procedure calls</li>
+	<li>ALLOC - trace object allocation</li>
+	<li>OBJECT - trace object mutation events</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td class='confluenceTd'> gcEvery </td>
+<td class='confluenceTd'> Force frequent GCs.&nbsp; Options are
+<ul>
+	<li>ALLOC - GC after every object allocation&nbsp;</li>
+	<li>SAFEPOINT - GC at every GC safepoint</li>
+</ul>
+</td>
+</tr>
+</tbody></table>
+<p><br clear="all" /></p>
+
+<h1><a name="TheMMTkTestHarness-Scriptinglanguage"></a>Scripting language</h1>
+
+
+<h1><a name="TheMMTkTestHarness-"></a></h1>
+
+
+<h2><a name="TheMMTkTestHarness-Basics"></a>Basics</h2>
+
+<p>The language has two types: integer and object.&nbsp; Objects are allocated<br/>
+with the 'alloc' statement, and have a specified number of pointers and<br/>
+nonpointers (integers).&nbsp; Variables are declared 'c' style, and are optionally<br/>
+initialized at declaration.</p>
+
+<p>Object fields are referenced using syntax like "tmp.int5" or "tmp.objecti\*3",<br/>
+ie like a struct of arrays of the appropriate types.</p>
+
+<h2><a name="TheMMTkTestHarness-Syntax"></a>Syntax</h2>
+
+<p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>script ::= method...
+
+method ::= ident "(" { type ident { "," type ident}...  ")" "{" statement... "}"
+
+statement ::=
+	  "if" "(" expr ")" block { "elif" "(" expr ")" block } [ "else" block ]
+	| "while "(" expr ")" block
+	| [ [ type ] ident "=" ] "alloc" "(" expr "," expr [ "," expr ] ")" ";"
+	| [ ident "=" ] "hash" "(" expr ")" ";"
+        | "gc" "(" ")"
+        | "spawn" "(" ident [ "," expr ]... ")" ";"
+	| type ident [ "=" expr ] ";"
+	| lvalue "=" expr ";"
+
+lvalue ::= ident "=" expr ";"
+	| ident "." type "[" expr "]"
+
+type ::= "int" | "object"
+
+expr ::= expr binop expr
+		| unop expr
+		| "(" expr ")"
+		| ident
+		| ident "." type "[" expr "]"
+		| int-const
+		| intrinsic
+
+intrinsic ::= "alloc" "(" expr "," expr ["," expr] ")
+            | "(" expr ")"
+            | "gc " "(" ")"
+
+binop ::= "+" | "-" | "*" | "/" | "%" | "&amp;&amp;" | "||" | "==" | "!="
+
+unop ::= "!" | "-"
+</pre>
+</div></div><br clear="all" /></p>
+
+				    
+                    			    </td>
+		    </tr>
+	    </table>
+	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tr>
+				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
+			</tr>
+		    <tr>
+			    <td align="center"><font color="grey">Document generated by Confluence on Aug 06, 2008 12:40</font></td>
+		    </tr>
+	    </table>
+    </body>
+</html>
