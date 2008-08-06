@@ -2275,6 +2275,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     int n = high - low + 1;       // n = number of normal cases (0..n-1)
     int firstCounter = edgeCounterIdx; // only used if options.EDGE_COUNTERS;
 
+    if (options.EDGE_COUNTERS) {
+      edgeCounterIdx += n + 1; // allocate n+1 counters
+
+      // Load counter array for this method
+      loadCounterArray(T2);
+    }
+
     popInt(T0);  // T0 is index
     if (Assembler.fits(-low, 16)) {
       asm.emitADDI(T0, -low, T0);
@@ -2282,14 +2289,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitLVAL(T1, low);
       asm.emitSUBFC(T0, T1, T0);
     }
-    asm.emitLVAL(T2, n);
-    asm.emitCMPL(T0, T2);
-    if (options.EDGE_COUNTERS) {
-      edgeCounterIdx += n + 1; // allocate n+1 counters
-      // Load counter array for this method
-      asm.emitLAddrToc(T2, Entrypoints.edgeCountersField.getOffset());
-      asm.emitLAddrOffset(T2, T2, getEdgeCounterOffset());
+    asm.emitLVAL(T3, n);
+    asm.emitCMPL(T0, T3);
 
+    if (options.EDGE_COUNTERS) {
       ForwardReference fr = asm.emitForwardBC(LT); // jump around jump to default target
       incEdgeCounter(T2, S0, firstCounter + n);
       asm.emitB(mTarget, bTarget);
@@ -2330,8 +2333,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_lookupswitch(int defaultval, int npairs) {
     if (options.EDGE_COUNTERS) {
       // Load counter array for this method
-      asm.emitLAddrToc(T2, Entrypoints.edgeCountersField.getOffset());
-      asm.emitLAddrOffset(T2, T2, getEdgeCounterOffset());
+      loadCounterArray(T2);
     }
 
     popInt(T0); // T0 is key
@@ -3702,6 +3704,27 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   /**
+   * Emit the code to load the counter array into the given register.
+   * May call a read barrier so will kill all temporaries.
+   *
+   * @param reg The register to hold the counter array.
+   */
+  private void loadCounterArray(int reg) {
+    if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
+      asm.emitLAddrToc(T0, Entrypoints.edgeCountersField.getOffset());
+      asm.emitLVAL(T1, getEdgeCounterIndex());
+      Barriers.compileArrayLoadBarrier(this);
+      if (reg != T0) {
+        asm.emitORI(reg, T0, 0);
+      }
+    } else {
+      // Load counter array for this method
+      asm.emitLAddrToc(reg, Entrypoints.edgeCountersField.getOffset());
+      asm.emitLAddrOffset(reg, reg, getEdgeCounterOffset());
+    }
+  }
+
+  /**
    * Emit the code for a bytecode level conditional branch
    * @param cc the condition code to branch on
    * @param bTarget the target bytecode index
@@ -3713,8 +3736,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       edgeCounterIdx += 2;
 
       // Load counter array for this method
-      asm.emitLAddrToc(T0, Entrypoints.edgeCountersField.getOffset());
-      asm.emitLAddrOffset(T0, T0, getEdgeCounterOffset());
+      loadCounterArray(T0);
 
       // Flip conditions so we can jump over the increment of the taken counter.
       ForwardReference fr = asm.emitForwardBC(Assembler.flipCode(cc));
