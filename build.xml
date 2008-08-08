@@ -2190,7 +2190,28 @@ target.jni-suffix=${target.jni-suffix}
     <delete file=".project"/>
     <delete file=".classpath"/>
     <mkdir dir="eclipse"/>
-    <copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar"/>
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
+      </conditions>
+      <sequential>
+	<copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
+	<property name="classpath.template.name" value="classpath.template" />
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="Harmony"/>
+      </conditions>
+      <sequential>
+	<copy toDir="eclipse" verbose="true">
+	  <fileset dir="${harmony.lib.dir}">
+	    <include name="**/*.jar" />
+	  </fileset>
+	</copy>
+	<property name="classpath.template.name" value="classpath.harmony.template" />
+      </sequential>
+    </if>
     <copy todir="eclipse/gen-base">
       <fileset dir="${generated.java}"><include name="**/*.*"/></fileset>
     </copy>
@@ -2218,7 +2239,7 @@ target.jni-suffix=${target.jni-suffix}
       </sequential>
     </if>
     <property name="other.arch" value="ppc"/>
-    <copy file="build/eclipse/classpath.template" tofile=".classpath">
+    <copy file="build/eclipse/${classpath.template.name}" tofile=".classpath">
       <filterset>
         <filter token="OTHER_ARCH" value="${other.arch}"/>
         <filter token="ARCH" value="${target.arch}"/>
