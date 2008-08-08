@@ -156,7 +156,7 @@ public class ScanBootImage implements Constants {
    */
   @Uninterruptible
   private static void checkReference(Address refaddr) {
-    ObjectReference ref = org.mmtk.vm.VM.activePlan.collector().loadObjectReference(refaddr);
+    ObjectReference ref = org.mmtk.vm.VM.activePlan.global().loadObjectReference(refaddr);
     if (!MemoryManager.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning boot image");

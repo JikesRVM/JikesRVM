@@ -852,6 +852,32 @@ public abstract class Plan implements Constants {
   }
 
   /****************************************************************************
+   * Internal read/write barriers.
+   */
+
+  /**
+   * Store an object reference
+   *
+   * @param slot The location of the reference
+   * @param value The value to store
+   */
+  @Inline
+  public void storeObjectReference(Address slot, ObjectReference value) {
+    slot.store(value);
+  }
+
+  /**
+   * Load an object reference
+   *
+   * @param slot The location of the reference
+   * @return the object reference loaded from slot
+   */
+  @Inline
+  public ObjectReference loadObjectReference(Address slot) {
+    return slot.loadObjectReference();
+  }
+
+  /****************************************************************************
    * Collection.
    */
 

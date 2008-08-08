@@ -15,6 +15,7 @@ package org.mmtk.plan.poisoned;
 import org.mmtk.plan.marksweep.MS;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Word;
 
@@ -49,5 +50,31 @@ public class Poisoned extends MS {
   @Inline
   public static ObjectReference depoison(Word value) {
     return value.and(Word.one().not()).toAddress().toObjectReference();
+  }
+
+  /****************************************************************************
+   * Internal read/write barriers.
+   */
+
+  /**
+   * Store an object reference
+   *
+   * @param slot The location of the reference
+   * @param value The value to store
+   */
+  @Inline
+  public void storeObjectReference(Address slot, ObjectReference value) {
+    slot.store(poison(value));
+  }
+
+  /**
+   * Load an object reference
+   *
+   * @param slot The location of the reference
+   * @return the object reference loaded from slot
+   */
+  @Inline
+  public ObjectReference loadObjectReference(Address slot) {
+    return depoison(slot.loadWord());
   }
 }

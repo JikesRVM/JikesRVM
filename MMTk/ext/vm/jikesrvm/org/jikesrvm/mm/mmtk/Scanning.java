@@ -182,7 +182,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
           Address threadTableSlot = threadTable.toAddress().plus(threadIndex<<LOG_BYTES_IN_ADDRESS);
           if (VM.VerifyAssertions) {
             Address a = ObjectReference.fromObject(thread).toAddress();
-            Address b = Selected.Collector.get().loadObjectReference(threadTableSlot).toAddress();
+            Address b = Selected.Plan.get().loadObjectReference(threadTableSlot).toAddress();
             VM._assert(a.EQ(b), "Thread table address arithmetic is wrong!");
           }
           trace.processPrecopyEdge(threadTableSlot, false);
