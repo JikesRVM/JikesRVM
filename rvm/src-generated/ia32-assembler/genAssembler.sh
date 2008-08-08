@@ -301,7 +301,7 @@ EOF
         setMachineCodes(mi++, (byte) ${imm32Code});
         // "register ${immExtOp}" is really part of the opcode
         emitRegOffRegOperands(dstIndex, scale, dstDisp, GPR.getForOpcode(${immExtOp}));
-        emitImm32(imm);
+        ${emitImm}(imm);
     }
 EOF
   fi
@@ -338,7 +338,7 @@ EOF
         setMachineCodes(mi++, (byte) ${imm32Code});
         // "register ${immExtOp}" is really part of the opcode
         emitAbsRegOperands(dstDisp, GPR.getForOpcode(${immExtOp}));
-        emitImm32(imm);
+        ${emitImm}(imm);
     }
 EOF
   fi
@@ -376,7 +376,7 @@ EOF
         setMachineCodes(mi++, (byte) ${imm32Code});
         // "register ${immExtOp}" is really part of the opcode
         emitSIBRegOperands(dstBase, dstIndex, scale, dstDisp, GPR.getForOpcode(${immExtOp}));
-        emitImm32(imm);
+        ${emitImm}(imm);
     }
 EOF
   fi
