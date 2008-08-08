@@ -1,3 +1,4 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
         <title>RVM : Profiling Applications with Jikes RVM</title>
@@ -15,7 +16,7 @@
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Mar 11, 2007 by <font color="#0050B2">pdonald</font>.
+					    This page last changed on Jul 03, 2008 by <font color="#0050B2">dgrove</font>.
 				    </div>
 
 				    <p>The Jikes RVM adaptive system can also be used as a tool for gathering profile data to find application/VM hotspots. In particular, the same low-overhead time-based sampling mechanism that is used to drive recompilation decisions can also be used to produce an aggregate profile of the execution of an application.   Here's how.</p>
@@ -32,14 +33,13 @@
 
 <h2><a name="ProfilingApplicationswithJikesRVM-InstrumentedEventCounters"></a>Instrumented Event Counters</h2>
 
-<p>This section describes how the Jikes RVM optimizing compiler can be used to insert counters in the optimized code to count the frequency of specific events.  Infrastructure for counting events is in place that hides many of the implementation details of the counters, so that (hopefully) adding new code to count events should be easy.  All of the instrumentation phases described below require an adaptive boot image (any one should work).  The code regarding instrumentation lives in the <tt>or.jikesrvm.aos</tt> package. </p>
+<p>This section describes how the Jikes RVM optimizing compiler can be used to insert counters in the optimized code to count the frequency of specific events.  Infrastructure for counting events is in place that hides many of the implementation details of the counters, so that (hopefully) adding new code to count events should be easy.  All of the instrumentation phases described below require an adaptive boot image (any one should work).  The code regarding instrumentation lives in the <tt>or.jikesrvm.aos</tt> package.</p>
 
 <p>To instrument all dynamically compiled code, use the following command line arguments to force all dynamically compiled methods to be compiled by the optimizing compiler: <tt>&#45;X:aos:enable_recompilation=false &#45;X:aos:initial_compiler=opt</tt></p>
 
 <h3><a name="ProfilingApplicationswithJikesRVM-ExistingInstrumentationPhases"></a>Existing Instrumentation Phases</h3>
 
 <p>There are several existing instrumentation phases that can be enabled by giving the adaptive optimization system command line arguments. These counters are <em>not</em> synchronized (as discussed later), so they should not be considered precise.</p>
-
 <ol>
 	<li><b>Method Invocation Counters</b> Inserts a counter in each opt compiled method prologue.  Prints counters to stderr at end. Enabled by the command line argument.<tt>&#45;X:aos:insert_method_counters_opt=true</tt>.</li>
 </ol>
@@ -68,13 +68,12 @@ Total: 302933
 
 
 <p>NOTE: Currently the counters are inserted at the end of HIR, so the counts <em>will</em> capture the effect of HIR optimizations, and will <em>not</em> capture optimization that occurs in LIR or later.</p>
-
 <ol>
-	<li><b>Debugging Counters</b> This flag does not produce observable behavior by itself, but is designed to allow debugging counters to be inserted easily in opt-compiler to help debugging of opt-compiler transformations. If you would like to know the dynamic frequency of a particular event, simply turn on this flag, and you can easily count dynamic frequencies of events by calling the method <tt>VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(String eventName);</tt>.  This method returns an <tt>OPT&#95;Instruction</tt> that can be inserted into the code.  The instruction will increment a counter associated with the String name "eventName", and the counter will be printed at the end of execution.</li>
+	<li><b>Debugging Counters</b> This flag does not produce observable behavior by itself, but is designed to allow debugging counters to be inserted easily in opt-compiler to help debugging of opt-compiler transformations. If you would like to know the dynamic frequency of a particular event, simply turn on this flag, and you can easily count dynamic frequencies of events by calling the method <tt>AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(String eventName);</tt>.  This method returns an <tt>Instruction</tt> that can be inserted into the code.  The instruction will increment a counter associated with the String name "eventName", and the counter will be printed at the end of execution.</li>
 </ol>
 
 
-<p>For an example, see <tt>OPT_Inliner.java</tt>. Look for the code guarded by the flag <tt>COUNT_FAILED_METHOD_GUARDS</tt>. Enabled by <tt>&#45;X:aos:insert_debugging_counters=true</tt>.</p>
+<p>For an example, see <tt>Inliner.java</tt>. Look for the code guarded by the flag <tt>COUNT_FAILED_METHOD_GUARDS</tt>. Enabled by <tt>&#45;X:aos:insert_debugging_counters=true</tt>.</p>
 
 <h3><a name="ProfilingApplicationswithJikesRVM-Writingnewinstrumentationphases"></a>Writing new instrumentation phases</h3>
 
@@ -82,16 +81,16 @@ Total: 302933
 
 <h4><a name="ProfilingApplicationswithJikesRVM-CounterManagers%3A"></a>Counter Managers:</h4>
 
-<p>Counters are created and inserted into the code using the <tt>OPT&#95;InstrumentedEventCounterManager</tt> interface. The purpose of the counter manager interface is to abstract away the implementation details of the counters, making instrumentation phases simpler and allowing the counter implementation to be changed easily (new counter managers can be used without changing any of the instrumentation phases).  Currently there exists only one counter manager, <tt>VM&#95;CounterArrayManager</tt>, which implements unsynchronized counters. When instrumentation options are turned on in the adaptive system, <tt>VM&#95;Instrumentation.boot()</tt> creates an instance of a <tt>VM&#95;CounterArrayManager</tt>.</p>
+<p>Counters are created and inserted into the code using the <tt>InstrumentedEventCounterManager</tt> interface. The purpose of the counter manager interface is to abstract away the implementation details of the counters, making instrumentation phases simpler and allowing the counter implementation to be changed easily (new counter managers can be used without changing any of the instrumentation phases).  Currently there exists only one counter manager, <tt>CounterArrayManager</tt>, which implements unsynchronized counters. When instrumentation options are turned on in the adaptive system, <tt>Instrumentation.boot()</tt> creates an instance of a <tt>CounterArrayManager</tt>.</p>
 
 <h4><a name="ProfilingApplicationswithJikesRVM-ManagedData%3A"></a>Managed Data:</h4>
 
-<p>The class <tt>VM&#95;ManagedCounterData</tt> is used to keep track of counter data that is managed using a counter manager. This purpose of the data object is to maintain the mapping between the counters themselves (which are indexed by number) and the events that they represent.  For example, <tt>VM&#95;StringEventCounterData</tt> is used record the fact that counter #1 maps to the event named "FooBar".<br/>
-Depending on what you are counting, there may be one data object for the whole program (such as <tt>VM&#95;YieldpointCounterData</tt> and <tt>VM&#95;MethodInvocationCounterData</tt>),  or one per method.  There is also a generic data object called <tt>VM&#95;StringEventCounterData</tt> that allows events to be give string names (see Debugging Counters above).</p>
+<p>The class <tt>ManagedCounterData</tt> is used to keep track of counter data that is managed using a counter manager. This purpose of the data object is to maintain the mapping between the counters themselves (which are indexed by number) and the events that they represent.  For example, <tt>StringEventCounterData</tt> is used record the fact that counter #1 maps to the event named "FooBar".<br/>
+Depending on what you are counting, there may be one data object for the whole program (such as <tt>YieldpointCounterData</tt> and <tt>MethodInvocationCounterData</tt>),  or one per method.  There is also a generic data object called <tt>StringEventCounterData</tt> that allows events to be give string names (see Debugging Counters above).</p>
 
 <h4><a name="ProfilingApplicationswithJikesRVM-InstrumentationPhases%3A"></a>Instrumentation Phases:</h4>
 
-<p>The instrumentation itself is inserted by a compiler phase. (see <tt>OPT&#95;InsertInstructionCounters.java</tt>, <tt>OPT&#95;InsertYieldpointCounters.java</tt>, <tt>OPT&#95;InsertMethodInvocationCounter.java</tt>). The instrumentation phase inserts high level "count event" instructions (which are obtained by asking the counter manager) into the code.  It also updates the instrumented counter to remember which counters correspond to which events.</p>
+<p>The instrumentation itself is inserted by a compiler phase. (see <tt>InsertInstructionCounters.java</tt>, <tt>InsertYieldpointCounters.java</tt>, <tt>InsertMethodInvocationCounter.java</tt>). The instrumentation phase inserts high level "count event" instructions (which are obtained by asking the counter manager) into the code.  It also updates the instrumented counter to remember which counters correspond to which events.</p>
 
 <h4><a name="ProfilingApplicationswithJikesRVM-LowerInstrumentationPhase%3A"></a>Lower Instrumentation Phase:</h4>
 
@@ -106,7 +105,7 @@ Depending on what you are counting, there may be one data object for the whole p
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on May 09, 2008 10:43</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Aug 06, 2008 12:40</font></td>
 		    </tr>
 	    </table>
     </body>
