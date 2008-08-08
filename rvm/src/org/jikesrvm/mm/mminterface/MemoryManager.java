@@ -499,9 +499,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @return true if the address is within a space which may contain stacks
    */
   public static boolean mightBeFP(Address address) {
-    return Space.isInSpace(Plan.LOS, address) ||
-    Space.isInSpace(Plan.IMMORTAL, address) ||
-    Space.isInSpace(Plan.VM_SPACE, address);
+    // In general we don't know which spaces may hold allocated stacks.
+    // If we want to be more specific than the space being mapped we
+    // will need to add a check in Plan that can be overriden.
+    return Space.isMappedAddress(address);
   }
   /***********************************************************************
    *
