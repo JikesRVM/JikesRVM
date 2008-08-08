@@ -55,7 +55,7 @@ public final class JNIEnvironment implements SizeConstants {
    * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
-  private static AddressArray[] LinkageTriplets;
+  public static LinkageTripletTable LinkageTriplets;
 
   /**
    * Stash the JTOC somewhere we can find it later
@@ -340,9 +340,9 @@ public final class JNIEnvironment implements SizeConstants {
     JNIFunctions = functions;
     if (VM.BuildForPowerOpenABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
-      LinkageTriplets = new AddressArray[functions.length()];
+      LinkageTriplets = LinkageTripletTable.allocate(functions.length());
       for (int i = 0; i < functions.length(); i++) {
-        LinkageTriplets[i] = AddressArray.create(3);
+        LinkageTriplets.set(i, AddressArray.create(3));
       }
     }
   }
@@ -355,7 +355,7 @@ public final class JNIEnvironment implements SizeConstants {
     if (VM.BuildForPowerOpenABI) {
       // fill in the TOC and IP entries for each linkage triplet
       for (int i = 0; i < JNIFunctions.length(); i++) {
-        AddressArray triplet = LinkageTriplets[i];
+        AddressArray triplet = LinkageTriplets.get(i);
         triplet.set(1, Magic.getTocPointer());
         triplet.set(0, Magic.objectAsAddress(JNIFunctions.get(i)));
       }

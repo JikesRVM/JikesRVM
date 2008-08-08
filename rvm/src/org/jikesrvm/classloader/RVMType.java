@@ -122,6 +122,7 @@ public abstract class RVMType extends AnnotatedElement
   public static final RVMClass IMTType;
   public static final RVMClass ProcessorTableType;
   public static final RVMClass FunctionTableType;
+  public static final RVMClass LinkageTripletTableType;
 
   static {
     // Primitive types
@@ -157,6 +158,7 @@ public abstract class RVMType extends AnnotatedElement
     IMTType = TypeReference.IMT.resolve().asClass();
     ProcessorTableType = TypeReference.ProcessorTable.resolve().asClass();
     FunctionTableType = TypeReference.FunctionTable.resolve().asClass();
+    LinkageTripletTableType = TypeReference.LinkageTripletTable.resolve().asClass();
     // Java clases
     JavaLangObjectType = TypeReference.JavaLangObject.resolve().asClass();
     JavaLangObjectArrayType = TypeReference.JavaLangObjectArray.resolve().asArray();

@@ -123,6 +123,7 @@ public final class TypeReference {
   public static final TypeReference IMT = findOrCreate(org.jikesrvm.objectmodel.IMT.class);
   public static final TypeReference ProcessorTable = findOrCreate(org.jikesrvm.scheduler.ProcessorTable.class);
   public static final TypeReference FunctionTable = findOrCreate(org.jikesrvm.jni.FunctionTable.class);
+  public static final TypeReference LinkageTripletTable = findOrCreate(org.jikesrvm.jni.LinkageTripletTable.class);
 
   public static final TypeReference JavaLangObject = findOrCreate(java.lang.Object.class);
   public static final TypeReference JavaLangClass = findOrCreate(java.lang.Class.class);
@@ -527,7 +528,8 @@ public final class TypeReference {
    */
   @Uninterruptible
   public boolean isRuntimeTable() {
-    return this == IMT || this == TIB || this == ITable || this == ITableArray || this == ProcessorTable || this == FunctionTable;
+    return this == IMT || this == TIB || this == ITable || this == ITableArray ||
+           this == ProcessorTable || this == FunctionTable || this == LinkageTripletTable;
   }
 
   /**

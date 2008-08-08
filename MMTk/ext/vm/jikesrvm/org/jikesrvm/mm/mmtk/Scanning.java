@@ -262,6 +262,13 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
 
+    Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.LinkageTriplets);
+    if (linkageTriplets != null) {
+      for(int i=start; i < end; i++) {
+        trace.processRootEdge(linkageTriplets.plus(i << LOG_BYTES_IN_ADDRESS), true);
+      }
+    }
+
     /* scan jni global refs */
     Address jniGlobalRefs = Magic.objectAsAddress(JNIGlobalRefTable.JNIGlobalRefs);
     size = JNIGlobalRefTable.JNIGlobalRefs.length();
