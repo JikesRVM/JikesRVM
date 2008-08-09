@@ -420,12 +420,14 @@ public class VM extends Properties implements Constants, ExitStatus {
       Entrypoints.luni3.setObjectValueUnchecked(null, null);
       Entrypoints.luni4.setObjectValueUnchecked(null, null);
       Entrypoints.luni5.setObjectValueUnchecked(null, null);
+      Entrypoints.luni6.setObjectValueUnchecked(null, null);
       //runClassInitializer("java.lang.String$ConsolePrintStream");
       runClassInitializer("org.apache.harmony.luni.util.Msg");
       runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.nio.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.niochar.internal.nls.Messages");
+      runClassInitializer("java.util.logging.LogManager");
     }
 
     // Initialize compiler that compiles dynamically loaded classes.

@@ -1081,6 +1081,7 @@ Check to make sure all required properties are specified. This includes properti
             <pathelement location="${harmony.lib.dir}/annotation.jar"/>
             <pathelement location="${harmony.lib.dir}/archive.jar"/>
             <pathelement location="${harmony.lib.dir}/instrument.jar"/>
+            <pathelement location="${harmony.lib.dir}/logging.jar"/>
             <pathelement location="${harmony.lib.dir}/nio.jar"/>
             <pathelement location="${harmony.lib.dir}/nio_char.jar"/>
             <pathelement location="${harmony.lib.dir}/regex.jar"/>
