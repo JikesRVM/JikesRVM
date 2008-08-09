@@ -12,47 +12,70 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
-import java.util.Hashtable;
-import java.util.SortedSet;
-import java.util.Iterator;
-import java.util.TreeSet;
-import java.util.Vector;
-import java.util.Stack;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.concurrent.*;
-
-import java.io.*;
-
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TreeSet;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import org.jikesrvm.*;
-import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.MiscHeader;
-import org.jikesrvm.objectmodel.RuntimeTable;
-import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.Callbacks;
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
 import org.jikesrvm.ArchitectureSpecific.OutOfLineMachineCode;
-import org.jikesrvm.jni.*;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMember;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeDescriptorParsing;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.jni.FunctionTable;
+import org.jikesrvm.jni.JNIEnvironment;
+import org.jikesrvm.objectmodel.MiscHeader;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.RuntimeTable;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Statics;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.Scheduler;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.ExtentArray;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.ObjectReferenceArray;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.OffsetArray;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Construct an RVM virtual machine bootimage.
@@ -165,13 +188,13 @@ public class BootImageWriter extends BootImageWriterMessages
     /**
      *  Jdk type associated with this Field info
      */
-    final Class jdkType;
+    final Class<?> jdkType;
 
     /**
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public FieldInfo(Class jdkType, RVMType rvmType) {
+    public FieldInfo(Class<?> jdkType, RVMType rvmType) {
       this.jdkFields = jdkType.getDeclaredFields();
       this.jdkType = jdkType;
       this.rvmType = rvmType;
@@ -185,18 +208,19 @@ public class BootImageWriter extends BootImageWriterMessages
     /**
      * Jdk type
      */
-    final Class jdkType;
+    final Class<?> jdkType;
 
     /**
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public Key(Class jdkType) { this.jdkType = jdkType; }
+    public Key(Class<?> jdkType) { this.jdkType = jdkType; }
 
     /**
      * Returns a hash code value for the key.
      * @return a hash code value for this key
      */
+    @Override
     public int hashCode() { return System.identityHashCode(jdkType); }
 
     /**
@@ -205,6 +229,7 @@ public class BootImageWriter extends BootImageWriterMessages
      * @return true if this key is the same as the that argument;
      *         false otherwise
      */
+    @Override
     public boolean equals(Object that) {
       return (that instanceof Key) && jdkType == ((Key)that).jdkType;
     }
@@ -324,6 +349,7 @@ public class BootImageWriter extends BootImageWriterMessages
      * Return a string representation of the context.
      * @return string representation of this context
      */
+    @Override
     public String toString() {
       StringBuilder message = new StringBuilder();
       for (int i = 0; i < size(); i++) {
@@ -599,7 +625,11 @@ public class BootImageWriter extends BootImageWriterMessages
     // is still lots of virgin storage left.
     // (need to get contiguous storage before it gets fragmented by pinned objects)
     //
-    bootImage = new BootImage(littleEndian, verbose >= 1);
+    try {
+      bootImage = new BootImage(littleEndian, verbose >= 1, bootImageCodeName, bootImageDataName, bootImageRMapName);
+    } catch (IOException e) {
+      fail("unable to write bootImage: "+e);
+    }
 
     //
     // Install handler that intercepts all object address references made by
@@ -808,7 +838,7 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     if (profile) startTime = System.currentTimeMillis();
     try {
-      bootImage.write(bootImageCodeName, bootImageDataName, bootImageRMapName);
+      bootImage.write();
     } catch (IOException e) {
       fail("unable to write bootImage: "+e);
     }
@@ -1181,7 +1211,7 @@ public class BootImageWriter extends BootImageWriterMessages
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static or instance fields
 
-        Class jdkType = getJdkType(rvmType);
+        Class<?> jdkType = getJdkType(rvmType);
         if (jdkType == null)
           continue;  // won't need the field info
 
@@ -1195,7 +1225,7 @@ public class BootImageWriter extends BootImageWriterMessages
           bootImageTypeFields.put(key, fieldInfo);
           // Now do all the superclasses if they don't already exist
           // Can't add them in next loop as Iterator's don't allow updates to collection
-          for (Class cls = jdkType.getSuperclass(); cls != null; cls = cls.getSuperclass()) {
+          for (Class<?> cls = jdkType.getSuperclass(); cls != null; cls = cls.getSuperclass()) {
             key = new Key(cls);
             fieldInfo = bootImageTypeFields.get(key);
             if (fieldInfo != null) {
@@ -1215,7 +1245,7 @@ public class BootImageWriter extends BootImageWriterMessages
           if (verbose >= 1) say("bootImageTypeField entry has no rvmType:"+fieldInfo.jdkType);
           continue;
         }
-        Class jdkType   = fieldInfo.jdkType;
+        Class<?> jdkType   = fieldInfo.jdkType;
         if (verbose >= 1) say("building static and instance fieldinfo for " + rvmType);
 
         // First the static fields
@@ -1304,7 +1334,7 @@ public class BootImageWriter extends BootImageWriterMessages
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static fields
 
-        Class jdkType = getJdkType(rvmType);
+        Class<?> jdkType = getJdkType(rvmType);
         if (jdkType == null && verbose >= 1) {
           say("host has no class \"" + rvmType + "\"");
         }
@@ -1525,7 +1555,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       // fetch object's type information
       //
-      Class   jdkType = jdkObject.getClass();
+      Class<?>   jdkType = jdkObject.getClass();
       RVMType rvmType = getRvmType(jdkType);
       if (rvmType == null) {
         if (verbose >= 2) traverseObject(jdkObject);
@@ -1568,7 +1598,7 @@ public class BootImageWriter extends BootImageWriterMessages
         //
         if (false && rvmElementType.equals(RVMType.IntType)) {
           if (parentObject != null) {
-            Class parentObjectType = parentObject.getClass();
+            Class<?> parentObjectType = parentObject.getClass();
             VM.sysWrite("Copying int array (", 4 * ((int []) jdkObject).length);
             VM.sysWriteln(" bytes) from parent object of type ", parentObjectType.toString());
           } else {
@@ -1623,7 +1653,7 @@ public class BootImageWriter extends BootImageWriterMessages
           // array element is reference type
           boolean isTIB = parentObject instanceof TIB;
           Object[] values = (Object []) jdkObject;
-          Class jdkClass = jdkObject.getClass();
+          Class<?> jdkClass = jdkObject.getClass();
           if (!allocOnly) {
             for (int i = 0; i<arrayCount; ++i) {
               if (values[i] != null) {
@@ -1662,7 +1692,7 @@ public class BootImageWriter extends BootImageWriterMessages
         // Handle tables of objects
         if (rvmType == RVMType.ObjectReferenceArrayType || rvmType.getTypeRef().isRuntimeTable()) {
           if (verbose >= 2) depth--;
-          Object backing = ((RuntimeTable)jdkObject).getBacking();
+          Object backing = ((RuntimeTable<?>)jdkObject).getBacking();
 
           /* Copy the backing array, and then replace its TIB */
           mapEntry.imageAddress = copyToBootImage(backing, allocOnly, overwriteAddress, jdkObject, rvmType.getTypeRef().isRuntimeTable());
@@ -1683,7 +1713,7 @@ public class BootImageWriter extends BootImageWriterMessages
         // Handle tables of unboxed types that in the boot image writer are modelled using objects
         if (jdkObject instanceof RuntimeTable) {
           if (verbose >= 2) depth--;
-          Object backing = ((RuntimeTable)jdkObject).getBacking();
+          Object backing = ((RuntimeTable<?>)jdkObject).getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
@@ -1812,7 +1842,7 @@ public class BootImageWriter extends BootImageWriterMessages
             Object value = jdkFieldAcc.get(jdkObject);
             if (!allocOnly) {
               if (value != null) {
-                Class jdkClass = jdkFieldAcc.getDeclaringClass();
+                Class<?> jdkClass = jdkFieldAcc.getDeclaringClass();
                 if (verbose >= 2) traceContext.push(value.getClass().getName(),
                     jdkClass.getName(),
                     jdkFieldAcc.getName());
@@ -1977,7 +2007,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param rvmFieldName the name of the field
    * @param rvmFieldType the type reference of the field
    */
-  private static boolean copyKnownClasspathStaticField(Class jdkType, String rvmFieldName,
+  private static boolean copyKnownClasspathStaticField(Class<?> jdkType, String rvmFieldName,
                                                        TypeReference rvmFieldType,
                                                        Offset rvmFieldOffset) {
     if (classLibrary == "harmony") {
@@ -2177,7 +2207,7 @@ public class BootImageWriter extends BootImageWriterMessages
         } else if (jdkObject == java.lang.Void.TYPE) {
           value = RVMType.VoidType;
         } else {
-          value = TypeReference.findOrCreate((Class)jdkObject).peekType();
+          value = TypeReference.findOrCreate((Class<?>)jdkObject).peekType();
           if (value == null) {
             throw new Error("Failed to populate Class.type for " + jdkObject);
           }
@@ -2279,7 +2309,7 @@ public class BootImageWriter extends BootImageWriterMessages
           throw new Error("Unknown field "+rvmFieldName+" in java.lang.ref.ReferenceQueue");
         }
       } else if (jdkObject instanceof java.lang.reflect.Constructor)   {
-        Constructor cons = (Constructor)jdkObject;
+        Constructor<?> cons = (Constructor<?>)jdkObject;
         if(rvmFieldName.equals("vmConstructor")) {
           // fill in this RVMMethod field
           String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
@@ -2288,7 +2318,7 @@ public class BootImageWriter extends BootImageWriterMessages
             throw new Error("Failed to find type for Constructor.constructor: " + cons + " " + typeName);
           }
           final RVMClass klass = type.asClass();
-          Class[] consParams = cons.getParameterTypes();
+          Class<?>[] consParams = cons.getParameterTypes();
           RVMMethod constructor = null;
           loop_over_all_constructors:
           for (RVMMethod vmCons : klass.getConstructorMethods()) {
@@ -2346,7 +2376,7 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImage.setFullWord(rvmFieldAddress, jdkObject.hashCode());
         return true;
       } else if (jdkObject instanceof java.lang.reflect.Constructor)   {
-        Constructor cons = (Constructor)jdkObject;
+        Constructor<?> cons = (Constructor<?>)jdkObject;
         if(rvmFieldName.equals("cons")) {
           // fill in this RVMMethod field
           String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
@@ -2355,7 +2385,7 @@ public class BootImageWriter extends BootImageWriterMessages
             throw new Error("Failed to find type for Constructor.constructor: " + cons + " " + typeName);
           }
           final RVMClass klass = type.asClass();
-          Class[] consParams = cons.getParameterTypes();
+          Class<?>[] consParams = cons.getParameterTypes();
           RVMMethod constructor = null;
           loop_over_all_constructors:
           for (RVMMethod vmCons : klass.getConstructorMethods()) {
@@ -2476,7 +2506,9 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       final Object wrapper = jdkObject;
       Object key = new Object() {
+        @Override
         public int hashCode() { return System.identityHashCode(wrapper); }
+        @Override
         public boolean equals(Object o) {
           return getClass() == o.getClass() && hashCode() == o.hashCode();
         }
@@ -2490,7 +2522,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       // fetch object's type information
       //
-      Class jdkType = jdkObject.getClass();
+      Class<?> jdkType = jdkObject.getClass();
       int size = OBJECT_HEADER_SIZE;
 
       //
@@ -2503,7 +2535,7 @@ public class BootImageWriter extends BootImageWriterMessages
         // traverse array elements
         // recurse on values that are references
         //
-        Class jdkElementType = jdkType.getComponentType();
+        Class<?> jdkElementType = jdkType.getComponentType();
         if (jdkElementType.isPrimitive()) {
           // array element is logical or numeric type
           if (jdkElementType == Boolean.TYPE) {
@@ -2555,12 +2587,12 @@ public class BootImageWriter extends BootImageWriterMessages
         // traverse object fields
         // recurse on values that are references
         //
-        for (Class type = jdkType; type != null; type = type.getSuperclass()) {
+        for (Class<?> type = jdkType; type != null; type = type.getSuperclass()) {
           Field[] jdkFields = type.getDeclaredFields();
           for (int i = 0, n = jdkFields.length; i < n; ++i) {
             Field  jdkField       = jdkFields[i];
             jdkField.setAccessible(true);
-            Class  jdkFieldType   = jdkField.getType();
+            Class<?>  jdkFieldType   = jdkField.getType();
 
             if (jdkFieldType.isPrimitive()) {
               // field is logical or numeric type
@@ -2647,7 +2679,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return rvm type (null --> type does not appear in list of classes
    *         comprising bootimage)
    */
-  private static RVMType getRvmType(Class jdkType) {
+  private static RVMType getRvmType(Class<?> jdkType) {
     return bootImageTypes.get(jdkType.getName());
   }
 
@@ -2657,7 +2689,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param rvmType rvm type
    * @return jdk type (null --> type does not exist in host namespace)
    */
-  private static Class getJdkType(RVMType rvmType) {
+  private static Class<?> getJdkType(RVMType rvmType) {
     Throwable x;
     try {
       return Class.forName(rvmType.toString());
@@ -2689,7 +2721,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param isStatic is field from Static field table, indicates which table to consult
    * @return field accessor (null --> host class does not have specified field)
    */
-  private static Field getJdkFieldAccessor(Class jdkType, int index, boolean isStatic) {
+  private static Field getJdkFieldAccessor(Class<?> jdkType, int index, boolean isStatic) {
     FieldInfo fInfo = bootImageTypeFields.get(new Key(jdkType));
     Field     f;
     if (isStatic == STATIC_FIELD) {
