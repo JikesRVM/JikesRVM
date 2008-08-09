@@ -50,6 +50,7 @@ final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
   /**
    * Avoid duplicates of certain objects
    */
+  @SuppressWarnings("unchecked")
   public <T> T intern(T obj) {
     if (obj instanceof String) {
       obj = (T)(((String)obj).intern());
