@@ -166,7 +166,7 @@ final class VMCommonLibrarySupport {
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
     // validate number and types of arguments
-    if (checkArguments(args, method)) {
+    if (!Reflection.needsCheckArgs || checkArguments(args, method)) {
       if (method.isStatic()) {
         return invokeStatic(receiver, args, method, jlrMethod, accessingClass);
       } else {
@@ -417,7 +417,7 @@ final class VMCommonLibrarySupport {
       checkAccess(constructor, accessingClass);
     }
     // validate number and types of arguments to constructor
-    if (!checkArguments(args, constructor)) {
+    if (Reflection.needsCheckArgs && !checkArguments(args, constructor)) {
       args = makeArgumentsCompatible(args, constructor);
     }
     RVMClass cls = constructor.getDeclaringClass();
@@ -579,17 +579,17 @@ final class VMCommonLibrarySupport {
     if (type.isDoubleType()) {
       return field.getDoubleValueUnchecked(object);
     } else if (type.isFloatType()) {
-      return (double)field.getFloatValueUnchecked(object);
+      return field.getFloatValueUnchecked(object);
     } else if (type.isLongType()) {
-      return (double)field.getLongValueUnchecked(object);
+      return field.getLongValueUnchecked(object);
     } else if (type.isIntType()) {
-      return (double)field.getIntValueUnchecked(object);
+      return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
-      return (double)field.getShortValueUnchecked(object);
+      return field.getShortValueUnchecked(object);
     } else if (type.isCharType()) {
-      return (double)field.getCharValueUnchecked(object);
+      return field.getCharValueUnchecked(object);
     } else if (type.isByteType()) {
-      return (double)field.getByteValueUnchecked(object);
+      return field.getByteValueUnchecked(object);
     } else {
       throwNewIllegalArgumentException("field type mismatch");
       return 0.0d;
@@ -603,15 +603,15 @@ final class VMCommonLibrarySupport {
     if (type.isFloatType()) {
       return field.getFloatValueUnchecked(object);
     } else if (type.isLongType()) {
-      return (float)field.getLongValueUnchecked(object);
+      return field.getLongValueUnchecked(object);
     } else if (type.isIntType()) {
-      return (float)field.getIntValueUnchecked(object);
+      return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
-      return (float)field.getShortValueUnchecked(object);
+      return field.getShortValueUnchecked(object);
     } else if (type.isCharType()) {
-      return (float)field.getCharValueUnchecked(object);
+      return field.getCharValueUnchecked(object);
     } else if (type.isByteType()) {
-      return (float)field.getByteValueUnchecked(object);
+      return field.getByteValueUnchecked(object);
     } else {
       throwNewIllegalArgumentException("field type mismatch");
       return 0.0f;
@@ -625,11 +625,11 @@ final class VMCommonLibrarySupport {
     if (type.isIntType()) {
       return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
-      return (int)field.getShortValueUnchecked(object);
+      return field.getShortValueUnchecked(object);
     } else if (type.isCharType()) {
-      return (int)field.getCharValueUnchecked(object);
+      return field.getCharValueUnchecked(object);
     } else if (type.isByteType()) {
-      return (int)field.getByteValueUnchecked(object);
+      return field.getByteValueUnchecked(object);
     } else {
       throwNewIllegalArgumentException("field type mismatch");
       return 0;
@@ -643,13 +643,13 @@ final class VMCommonLibrarySupport {
     if (type.isLongType()) {
       return field.getLongValueUnchecked(object);
     } else if (type.isIntType()) {
-      return (long)field.getIntValueUnchecked(object);
+      return field.getIntValueUnchecked(object);
     } else if (type.isShortType()) {
-      return (long)field.getShortValueUnchecked(object);
+      return field.getShortValueUnchecked(object);
     } else if (type.isCharType()) {
-      return (long)field.getCharValueUnchecked(object);
+      return field.getCharValueUnchecked(object);
     } else if (type.isByteType()) {
-      return (long)field.getByteValueUnchecked(object);
+      return field.getByteValueUnchecked(object);
     } else {
       throwNewIllegalArgumentException("field type mismatch");
       return 0L;
@@ -663,7 +663,7 @@ final class VMCommonLibrarySupport {
     if (type.isShortType()) {
       return field.getShortValueUnchecked(object);
     } else if (type.isByteType()) {
-      return (short)field.getByteValueUnchecked(object);
+      return field.getByteValueUnchecked(object);
     } else {
       throwNewIllegalArgumentException("field type mismatch");
       return 0;
@@ -783,17 +783,17 @@ final class VMCommonLibrarySupport {
     if (type.isByteType())
       field.setByteValueUnchecked(object, value);
     else if (type.isLongType())
-      field.setLongValueUnchecked(object, (long)value);
+      field.setLongValueUnchecked(object, value);
     else if (type.isIntType())
-      field.setIntValueUnchecked(object, (int)value);
+      field.setIntValueUnchecked(object, value);
     else if (type.isShortType())
-      field.setShortValueUnchecked(object, (short)value);
+      field.setShortValueUnchecked(object, value);
     else if (type.isCharType())
       field.setCharValueUnchecked(object, (char)value);
     else if (type.isDoubleType())
-      field.setDoubleValueUnchecked(object, (double)value);
+      field.setDoubleValueUnchecked(object, value);
     else if (type.isFloatType())
-      field.setFloatValueUnchecked(object, (float)value);
+      field.setFloatValueUnchecked(object, value);
     else
       throwNewIllegalArgumentException("field type mismatch");
   }
@@ -804,15 +804,15 @@ final class VMCommonLibrarySupport {
     if (type.isCharType())
       field.setCharValueUnchecked(object, value);
     else if (type.isLongType())
-      field.setLongValueUnchecked(object, (long)value);
+      field.setLongValueUnchecked(object, value);
     else if (type.isIntType())
-      field.setIntValueUnchecked(object, (int)value);
+      field.setIntValueUnchecked(object, value);
     else if (type.isShortType())
       field.setShortValueUnchecked(object, (short)value);
     else if (type.isDoubleType())
-      field.setDoubleValueUnchecked(object, (double)value);
+      field.setDoubleValueUnchecked(object, value);
     else if (type.isFloatType())
-      field.setFloatValueUnchecked(object, (float)value);
+      field.setFloatValueUnchecked(object, value);
     else
       throwNewIllegalArgumentException("field type mismatch");
   }
@@ -832,7 +832,7 @@ final class VMCommonLibrarySupport {
     if (type.isFloatType())
       field.setFloatValueUnchecked(object, value);
     else if (type.isDoubleType())
-      field.setDoubleValueUnchecked(object, (double)value);
+      field.setDoubleValueUnchecked(object, value);
     else
       throwNewIllegalArgumentException("field type mismatch");
   }
@@ -843,11 +843,11 @@ final class VMCommonLibrarySupport {
     if (type.isIntType())
       field.setIntValueUnchecked(object, value);
     else if (type.isLongType())
-      field.setLongValueUnchecked(object, (long) value);
+      field.setLongValueUnchecked(object, value);
     else if (type.isDoubleType())
-      field.setDoubleValueUnchecked(object, (double)value);
+      field.setDoubleValueUnchecked(object, value);
     else if (type.isFloatType())
-      field.setFloatValueUnchecked(object, (float)value);
+      field.setFloatValueUnchecked(object, value);
     else
       throwNewIllegalArgumentException("field type mismatch");
   }
@@ -858,9 +858,9 @@ final class VMCommonLibrarySupport {
     if (type.isLongType())
       field.setLongValueUnchecked(object, value);
     else if (type.isDoubleType())
-      field.setDoubleValueUnchecked(object, (double)value);
+      field.setDoubleValueUnchecked(object, value);
     else if (type.isFloatType())
-      field.setFloatValueUnchecked(object, (float)value);
+      field.setFloatValueUnchecked(object, value);
     else
       throwNewIllegalArgumentException("field type mismatch");
   }
@@ -870,13 +870,13 @@ final class VMCommonLibrarySupport {
     if (type.isShortType())
       field.setShortValueUnchecked(object, value);
     else if (type.isLongType())
-      field.setLongValueUnchecked(object, (long)value);
+      field.setLongValueUnchecked(object, value);
     else if (type.isIntType())
-      field.setIntValueUnchecked(object, (int)value);
+      field.setIntValueUnchecked(object, value);
     else if (type.isDoubleType())
-      field.setDoubleValueUnchecked(object, (double)value);
+      field.setDoubleValueUnchecked(object, value);
     else if (type.isFloatType())
-      field.setFloatValueUnchecked(object, (float)value);
+      field.setFloatValueUnchecked(object, value);
     else
       throwNewIllegalArgumentException("field type mismatch");
   }

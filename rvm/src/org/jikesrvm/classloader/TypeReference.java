@@ -15,6 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 
+import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
 // TODO: The following is due to a bug in checkstyle 4.3
@@ -178,6 +179,8 @@ public final class TypeReference {
       findOrCreate(org.jikesrvm.mm.mminterface.CollectorThread.class);
 
   public static final TypeReference RVMArray = findOrCreate(org.jikesrvm.classloader.RVMArray.class);
+  /** Abstract base of reflective method invoker classes */
+  static final TypeReference baseReflectionClass = TypeReference.findOrCreate(ReflectionBase.class);
 
   // Synthetic types used by the opt compiler
   public static final TypeReference NULL_TYPE =
@@ -194,6 +197,7 @@ public final class TypeReference {
   /**
    * Hash value based on name, used for canonical type dictionary
    */
+  @Override
   public int hashCode() {
     return name.hashCode();
   }
@@ -202,6 +206,7 @@ public final class TypeReference {
    * Are two keys equivalent? Used for canonical type dictionary.
    * NB ignores id value
    */
+  @Override
   public boolean equals(Object other) {
     if (other instanceof TypeReference) {
       TypeReference that = (TypeReference) other;
@@ -807,6 +812,7 @@ public final class TypeReference {
     return type;
   }
 
+  @Override
   public String toString() {
     return "< " + classloader + ", " + name + " >";
   }
