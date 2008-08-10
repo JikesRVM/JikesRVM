@@ -285,7 +285,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.BaselineNoRegisters
    */
   public final boolean hasBaselineNoRegistersAnnotation() {
-    return isAnnotationPresent(org.vmmagic.pragma.BaselineNoRegisters.class);
+    return isAnnotationDeclared(TypeReference.BaselineNoRegisters);
   }
 
   /**
@@ -293,7 +293,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.BaselineSaveLSRegisters
    */
   public final boolean hasBaselineSaveLSRegistersAnnotation() {
-    return isAnnotationPresent(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
+    return isAnnotationDeclared(TypeReference.BaselineSaveLSRegisters);
   }
 
   /**
