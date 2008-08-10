@@ -14,15 +14,7 @@ package java.lang;
 
 import java.io.InputStream;
 import java.io.Serializable;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.ProtectionDomain;
-import java.security.AllPermission;
-import java.security.Permissions;
-
 import java.lang.annotation.Annotation;
-
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
@@ -35,17 +27,27 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-
 import java.net.URL;
+import java.security.AccessController;
+import java.security.AllPermission;
+import java.security.Permissions;
+import java.security.PrivilegedAction;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 
-import org.jikesrvm.classloader.*;
-
 import org.jikesrvm.Callbacks;
+import org.jikesrvm.UnimplementedError;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
-import org.jikesrvm.UnimplementedError;
 
 /**
  * Implementation of java.lang.Class for JikesRVM.
@@ -638,6 +640,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return obj;
   }
 
+  @Override
   public String toString() {
     String name = getName();
     if (isPrimitive()) {
@@ -919,6 +922,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
+  @SuppressWarnings("unchecked")
   public TypeVariable<Class<T>>[] getTypeParameters() {
     if (!type.isClassType()) {
       return new TypeVariable[0];
@@ -979,6 +983,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     throw new UnimplementedError();
   }
 
+  @SuppressWarnings("unchecked")
   public T cast(Object obj) {
     if (obj != null && ! isInstance(obj))
       throw new ClassCastException();
@@ -987,6 +992,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   // Enumeration support
 
+  @SuppressWarnings("unchecked")
   public T[] getEnumConstants() {
     if (isEnum()) {
       try {
@@ -1024,6 +1030,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       });
   }
 
+  @SuppressWarnings("unchecked")
   public <U> Class<? extends U> asSubclass(Class<U> klass) {
     if (! klass.isAssignableFrom(this))
       throw new ClassCastException();
