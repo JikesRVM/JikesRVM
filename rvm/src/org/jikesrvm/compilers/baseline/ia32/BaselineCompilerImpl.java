@@ -60,8 +60,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   private final int parameterWords;
   private int firstLocalOffset;
-  /** Generate array index out of bounds checks? */
-  private final boolean generateBoundsChecks;
 
   static final Offset NO_SLOT = Offset.zero();
   static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
@@ -78,7 +76,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
-    generateBoundsChecks = !method.hasNoBoundsCheckAnnotation();
   }
 
   @Override
@@ -155,7 +152,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * Utility to call baselineEmitLoadTIB with int arguments not GPR
    */
   static void baselineEmitLoadTIB(org.jikesrvm.ArchitectureSpecific.Assembler asm, GPR dest, GPR object) {
-    ObjectModel.baselineEmitLoadTIB(asm, (int)dest.value(), (int)object.value());
+    ObjectModel.baselineEmitLoadTIB(asm, dest.value(), object.value());
   }
   /**
    * Notify BaselineCompilerImpl that we are starting code gen for the bytecode biStart
@@ -470,7 +467,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_iaload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // push [S0+T0<<2]
     asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
   }
@@ -483,7 +480,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     // identical to iaload - code replicated for BaseBase compiler performance
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // push [S0+T0<<2]
     asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
   }
@@ -496,7 +493,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     // identical to iaload - code replicated for BaseBase compiler performance
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
       asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // rewind 2 args on stack
       Barriers.compileArrayLoadBarrier(asm, true);
@@ -512,7 +509,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_caload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, Assembler.SHORT, NO_SLOT);
     asm.emitPUSH_Reg(T1);        // push short onto stack
@@ -525,7 +522,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_saload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, Assembler.SHORT, NO_SLOT);
     asm.emitPUSH_Reg(T1);        // push short onto stack
@@ -538,7 +535,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_baload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, Assembler.BYTE, NO_SLOT);
     asm.emitPUSH_Reg(T1);        // push byte onto stack
@@ -554,7 +551,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     if (SSE2_BASE) {
       asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // create space for result
     }
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, Assembler.LONG, NO_SLOT);
       asm.emitMOVQ_RegInd_Reg(SP, XMM0);
@@ -575,7 +572,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     if (SSE2_BASE) {
       asm.emitADD_Reg_Imm(SP, WORDSIZE * -2);     // create space for result
     }
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, Assembler.LONG, NO_SLOT);
       asm.emitMOVQ_RegInd_Reg(SP, XMM0);
@@ -598,7 +595,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPOP_Reg(T1); // T1 is the value
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
   }
 
@@ -612,7 +609,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPOP_Reg(T1); // T1 is the value
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
   }
 
@@ -631,13 +628,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
       asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
       asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-      if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+      genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
       Barriers.compileArrayStoreBarrier(asm);
     } else {
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
-      if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+      genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
@@ -651,7 +648,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPOP_Reg(T1); // T1 is the value
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
     // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
     asm.emitMOV_RegIdx_Reg_Word(S0, T0, Assembler.SHORT, NO_SLOT, T1);
   }
@@ -666,7 +663,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPOP_Reg(T1); // T1 is the value
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
     // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
     asm.emitMOV_RegIdx_Reg_Word(S0, T0, Assembler.SHORT, NO_SLOT, T1);
   }
@@ -680,7 +677,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitPOP_Reg(T1); // T1 is the value
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);         // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);         // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg_Byte(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
   }
 
@@ -700,7 +697,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
       asm.emitMOV_Reg_RegInd(T1, SP);              // low part of long value
     }
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_RegIdx_Reg(S0, T0, Assembler.LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
     } else {
@@ -730,7 +727,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
       asm.emitMOV_Reg_RegInd(T1, SP);              // low part of long value
     }
-    if (generateBoundsChecks) genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
+    genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
     if (SSE2_BASE) {
       asm.emitMOVQ_RegIdx_Reg(S0, T0, Assembler.LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
     } else {
@@ -3496,16 +3493,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Inline
   private void genExplicitNullCheck(Assembler asm, GPR objRefReg) {
-    if (generateBoundsChecks) {
-      // compare to zero
-      asm.emitCMP_Reg_Imm(objRefReg, 0);
-       // Jmp around trap if index is OK
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.NE);
-      // trap
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
-      fr.resolve(asm);
-    }
+    // compare to zero
+    asm.emitCMP_Reg_Imm(objRefReg, 0);
+    // Jmp around trap if index is OK
+    asm.emitBranchLikelyNextInstruction();
+    ForwardReference fr = asm.forwardJcc(Assembler.NE);
+    // trap
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
+    fr.resolve(asm);
   }
 
 
