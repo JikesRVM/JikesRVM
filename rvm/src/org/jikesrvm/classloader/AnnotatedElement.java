@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 
 import org.vmmagic.pragma.Uninterruptible;
+import org.jikesrvm.VM;
 
 /**
  * A common abstract super class for all elements that can be
@@ -97,6 +98,9 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   final Annotation[] getDeclaredAnnotationsInternal() {
+    if (!VM.runningVM) {
+      return toAnnotations(declaredAnnotationDatas);
+    }
     if (null == declaredAnnotations) {
       declaredAnnotations = toAnnotations(declaredAnnotationDatas);
     }
