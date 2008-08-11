@@ -12,19 +12,16 @@
  */
 package org.jikesrvm.runtime;
 
+import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineReflection;
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.util.HashMapRVM;
 import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.Pure;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
@@ -42,23 +39,6 @@ public class Reflection implements Constants {
    * they are unwrapped
    */
   public static boolean needsCheckArgs = !bytecodeReflection;
-
-  /** Map from a method to a reflective method capable of invoking it */
-  private static final HashMapRVM<RVMMethod, ReflectionBase> invokeMethods =
-    bytecodeReflection ? new HashMapRVM<RVMMethod, ReflectionBase>() : null;
-
-  static {
-    RVMType type = TypeReference.findOrCreate(ReflectionBase.class).resolve();
-    RVMMethod defaultConstructor = null;
-    RVMMethod[] methods = type.asClass().getConstructorMethods();
-    for (RVMMethod method : methods) {
-      if (method.getParameterTypes().length == 0) {
-        defaultConstructor = method;
-        break;
-      }
-    }
-    getInvoker(defaultConstructor);
-  }
 
   /**
    * Call a method.
@@ -79,28 +59,8 @@ public class Reflection implements Constants {
     if (!bytecodeReflection) {
       return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
     } else {
-      return getInvoker(method).invoke(thisArg, otherArgs);
+      return method.getInvoker().invoke(thisArg, otherArgs);
     }
-  }
-
-  @Pure
-  @SuppressWarnings("unchecked")
-  private static ReflectionBase getInvoker(RVMMethod method) {
-    ReflectionBase invoker = invokeMethods.get(method);
-    if (invoker == null) {
-      Class<ReflectionBase> reflectionClass = (Class<ReflectionBase>)RVMClass.createReflectionClass(method);
-      if (reflectionClass != null) {
-        try {
-          invoker = reflectionClass.newInstance();
-        } catch (Throwable e) {
-          throw new Error(e);
-        }
-      } else {
-        invoker = ReflectionBase.nullInvoker;
-      }
-      invokeMethods.put(method, invoker);
-    }
-    return invoker;
   }
 
   private static Object outOfLineInvoke(RVMMethod method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {

@@ -2468,32 +2468,36 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @param methodToCall the method we wish to call reflectively
    * @return the syntethic class
    */
-  public static Class<?> createReflectionClass(RVMMethod methodToCall) {
+  static Class<?> createReflectionClass(RVMMethod methodToCall) {
     if (DynamicTypeCheck.instanceOfResolved(TypeReference.baseReflectionClass.resolve(), methodToCall.getDeclaringClass())) {
       return null;
     }
     int[] constantPool = new int[methodToCall.getParameterTypes().length+3];
-    TypeReference reflectionClass = TypeReference.findOrCreate("Lorg/jikesrvm/classloader/ReflectionBase$$Reflect"+numberOfReflectionClasses+";");
-    numberOfReflectionClasses++;
+    String reflectionClassName;
+    synchronized (RVMClass.class) {
+      reflectionClassName = "Lorg/jikesrvm/classloader/ReflectionBase$$Reflect"+numberOfReflectionClasses+";";
+      numberOfReflectionClasses++;
+    }
+    TypeReference reflectionClass = TypeReference.findOrCreate(reflectionClassName);
     MethodReference reflectionMethodRef = MethodReference.findOrCreate(reflectionClass,
-                                                                             Atom.findOrCreateUnicodeAtom("invoke"),
-                                                                             Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;")
-                                                                             ).asMethodReference();
+        Atom.findOrCreateUnicodeAtom("invoke"),
+        Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;")
+    ).asMethodReference();
     MethodReference constructorMethodRef = MethodReference.findOrCreate(reflectionClass,
-                                                                              Atom.findOrCreateUnicodeAtom("<init>"),
-                                                                              Atom.findOrCreateUnicodeAtom("()V")
-                                                                             ).asMethodReference();
+        Atom.findOrCreateUnicodeAtom("<init>"),
+        Atom.findOrCreateUnicodeAtom("()V")
+    ).asMethodReference();
 
     RVMMethod[] reflectionMethods = new RVMMethod[]{methodToCall.createReflectionMethod(reflectionClass,
-                                                                                        constantPool,
-                                                                                        reflectionMethodRef),
-                                                    RVMMethod.createDefaultConstructor(reflectionClass, constructorMethodRef)};
+        constantPool,
+        reflectionMethodRef),
+        RVMMethod.createDefaultConstructor(reflectionClass, constructorMethodRef)};
     RVMClass klass =
       new RVMClass(reflectionClass, constantPool, (short) (ACC_SYNTHETIC | ACC_PUBLIC | ACC_FINAL), // modifiers
-                   TypeReference.baseReflectionClass.resolve().asClass(), // superClass
-                   emptyVMClass, // declaredInterfaces
-                   emptyVMField, reflectionMethods,
-                   null, null, null, null, null, null, null, null);
+          TypeReference.baseReflectionClass.resolve().asClass(), // superClass
+          emptyVMClass, // declaredInterfaces
+          emptyVMField, reflectionMethods,
+          null, null, null, null, null, null, null, null);
     reflectionClass.setType(klass);
     return klass.getClassForType();
   }

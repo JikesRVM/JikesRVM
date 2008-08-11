@@ -21,6 +21,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.util.HashMapRVM;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
@@ -814,6 +815,38 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       }
     }
     return result;
+  }
+
+  /** Map from a method to a reflective method capable of invoking it */
+  private static final ImmutableEntryHashMapRVM<RVMMethod, ReflectionBase> invokeMethods =
+    new ImmutableEntryHashMapRVM<RVMMethod, ReflectionBase>(30);
+
+  /**
+   * Get an instance of an object capable of reflectively invoking this method
+   */
+  @Pure
+  @SuppressWarnings("unchecked")
+  public synchronized ReflectionBase getInvoker() {
+    ReflectionBase invoker;
+    synchronized(RVMMethod.class) {
+      invoker = invokeMethods.get(this);
+    }
+    if (invoker == null) {
+      Class<ReflectionBase> reflectionClass = (Class<ReflectionBase>)RVMClass.createReflectionClass(this);
+      if (reflectionClass != null) {
+        try {
+          invoker = reflectionClass.newInstance();
+        } catch (Throwable e) {
+          throw new Error(e);
+        }
+      } else {
+        invoker = ReflectionBase.nullInvoker;
+      }
+      synchronized(RVMMethod.class) {
+        invokeMethods.put(this, invoker);
+      }
+    }
+    return invoker;
   }
 
   /**
