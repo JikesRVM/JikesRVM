@@ -15,6 +15,10 @@ package org.jikesrvm.tools.bootImageWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.Queue;
+
+import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -31,7 +35,7 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * objectId->Entry map
    */
-  private static final ArrayList<Entry> objectIdToEntry;
+  static final ArrayList<Entry> objectIdToEntry;
 
   /**
    * Entry used to represent null object
@@ -58,7 +62,8 @@ public class BootImageMap extends BootImageWriterMessages
     objectIdToEntry =  new ArrayList<Entry>(5000);
     idGenerator = 0;
     // predefine "null" object
-    nullEntry = new Entry(newId(), null, Address.zero());
+    nullEntry = new Entry(newId(), null);
+    nullEntry.imageAddress = Address.zero();
     // slot 0 reserved for "null" object entry
     objectIdToEntry.add(nullEntry);
   }
@@ -82,6 +87,7 @@ public class BootImageMap extends BootImageWriterMessages
      * Returns a hash code value for the key.
      * @return a hash code value for this key
      */
+    @Override
     public int hashCode() { return jdkObject.hashCode(); }
 
     /**
@@ -90,6 +96,7 @@ public class BootImageMap extends BootImageWriterMessages
      * @return true if this key is the same as the that argument;
      *         false otherwise
      */
+    @Override
     public boolean equals(Object obj) {
       if (obj instanceof Key) {
         Key that = (Key)obj;
@@ -125,6 +132,30 @@ public class BootImageMap extends BootImageWriterMessages
      */
     Address imageAddress;
 
+    public static class LinkInfo {
+      final Address addressToFixup;
+      final boolean objField;
+      final boolean root;
+      final String rvmFieldName;
+      final TypeReference rvmFieldType;
+      final Object parent;
+      LinkInfo(Address a, boolean o, boolean r, String rvmFieldName, TypeReference rvmFieldType, Object parent) {
+        addressToFixup = a;
+        objField = o;
+        root = r;
+        this.rvmFieldName = rvmFieldName;
+        this.rvmFieldType = rvmFieldType;
+        this.parent = parent;
+      }
+    }
+
+    /**
+     * A list of addresses where when this value is not OBJECT_NOT_ALLOCATED
+     */
+    private Queue<LinkInfo> linkingAddresses;
+
+    private boolean pendingEntry;
+
     /**
      * Do we need space in the written object for an identity hash code
      */
@@ -141,10 +172,53 @@ public class BootImageMap extends BootImageWriterMessages
      * @param jdkObject the JDK object
      * @param imageAddress the address of the object in the bootimage
      */
-    public Entry(Address objectId, Object jdkObject, Address imageAddress) {
+    public Entry(Address objectId, Object jdkObject) {
       this.objectId     = objectId;
       this.jdkObject    = jdkObject;
-      this.imageAddress = imageAddress;
+      this.imageAddress = OBJECT_NOT_ALLOCATED;
+    }
+
+    boolean isPendingEntry() {
+      return pendingEntry;
+    }
+
+    void setPendingEntry() {
+      pendingEntry = true;
+    }
+
+    void clearPendingEntry() {
+      pendingEntry = false;
+    }
+
+    /**
+     * Store linking information for an unresolved field
+     * @param toBeLinked the address that needs filling in when the field is resolved
+     * @param objField true if this word is an object field (as opposed to a static, or tib, or some other metadata)
+     * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
+     * @param rvmFieldName name of the field
+     * @param rvmFieldType type of the field
+     * @param parent the object containing the field
+     */
+    synchronized void addLinkingAddress(Address toBeLinked, boolean objField, boolean root, String rvmFieldName, TypeReference rvmFieldType, Object parent) {
+      if (linkingAddresses == null) {
+        linkingAddresses = new LinkedList<LinkInfo>();
+      }
+      linkingAddresses.add(new LinkInfo(toBeLinked, objField, root, rvmFieldName, rvmFieldType, parent));
+    }
+
+    /**
+     * @return a queued linking address
+     */
+    synchronized LinkInfo removeLinkingAddress() {
+      if (linkingAddresses == null) {
+        return null;
+      } else {
+        if (linkingAddresses.peek() != null) {
+          return linkingAddresses.remove();
+        } else {
+          return null;
+        }
+      }
     }
 
     /**
@@ -186,7 +260,7 @@ public class BootImageMap extends BootImageWriterMessages
       Key key   = new Key(jdkObject);
       Entry entry = keyToEntry.get(key);
       if (entry == null) {
-        entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
+        entry = new Entry(newId(), jdkObject);
         keyToEntry.put(key, entry);
         objectIdToEntry.add(entry);
       }
