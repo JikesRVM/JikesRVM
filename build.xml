@@ -1342,7 +1342,6 @@ Check to make sure all required properties are specified. This includes properti
       <sysproperty key="mmtk.properties" value="${mmtk.properties}"/>
       <sysproperty key="rvm.properties" value="${build.base}/rvm.properties"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
-      <jvmarg value="-Xss2m"/>
       <arg value="-log"/>
       <arg value="${build.base}/BootImageWriterOutput.txt"/>
       <arg value="-classpath"/>
