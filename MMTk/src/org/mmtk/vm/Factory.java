@@ -119,6 +119,16 @@ public abstract class Factory {
    */
   public abstract ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics);
 
+
+  /**
+   * Create a new FinalizbleProcessor instance using the appropriate VM-specific
+   * concrete FinalizableProcessor sub-class.
+   *
+   * @see FinalizableProcessor
+   * @return A concrete VM-specific FinalizableProcessor instance.
+   */
+  public abstract FinalizableProcessor newFinalizableProcessor();
+
   /**
    * Create a new Scanning instance using the appropriate VM-specific
    * concrete Scanning sub-class.

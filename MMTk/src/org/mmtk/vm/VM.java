@@ -103,6 +103,8 @@ public final class VM {
   @Untraced
   public static final ReferenceProcessor phantomReferences;
   @Untraced
+  public static final FinalizableProcessor finalizableProcessor;
+  @Untraced
   public static final Scanning scanning;
   @Untraced
   public static final Statistics statistics;
@@ -149,6 +151,7 @@ public final class VM {
     weakReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.WEAK);
     softReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.SOFT);
     phantomReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.PHANTOM);
+    finalizableProcessor = factory.newFinalizableProcessor();
     scanning = factory.newScanning();
     statistics = factory.newStatistics();
     strings = factory.newStrings();

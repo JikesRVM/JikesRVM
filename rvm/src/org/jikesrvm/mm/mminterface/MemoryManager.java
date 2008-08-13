@@ -25,6 +25,7 @@ import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mmtk.Collection;
+import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
@@ -42,7 +43,6 @@ import org.jikesrvm.scheduler.ProcessorTable;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
@@ -1109,7 +1109,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void addFinalizer(Object object) {
-    Finalizer.addCandidate(ObjectReference.fromObject(object));
+    FinalizableProcessor.addCandidate(object);
   }
 
   /**
@@ -1118,8 +1118,9 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @return the object needing to be finialized
    */
+  @Unpreemptible("Non-preemptible but may yield if finalizable table is being grown")
   public static Object getFinalizedObject() {
-    return Finalizer.get().toObject();
+    return FinalizableProcessor.getForFinalize();
   }
 
   /***********************************************************************

@@ -186,6 +186,22 @@ public final class Factory extends org.mmtk.vm.Factory {
   }
 
   /**
+   * Create a new FinalizableProcessor instance using the appropriate VM-specific
+   * concrete FinalizableProcessor sub-class.
+   *
+   * @see ReferenceProcessor
+   * @return A concrete VM-specific FinalizableProcessor instance.
+   */
+  public org.mmtk.vm.FinalizableProcessor newFinalizableProcessor() {
+    try {
+      return FinalizableProcessor.getProcessor();
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new FinalizableProcessor!");
+      return null; // never get here
+    }
+  }
+
+  /**
    * Create a new Scanning instance using the appropriate VM-specific
    * concrete Scanning sub-class.
    *

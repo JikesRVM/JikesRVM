@@ -27,7 +27,6 @@ import org.jikesrvm.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -337,7 +336,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
   @Uninterruptible
   public static void scheduleFinalizerThread() {
-    int finalizedCount = Finalizer.countToBeFinalized();
+    int finalizedCount = FinalizableProcessor.countReadyForFinalize();
     if (finalizedCount > 0) {
       Scheduler.scheduleFinalizer();
     }

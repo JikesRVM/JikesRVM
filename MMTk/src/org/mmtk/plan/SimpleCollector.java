@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 
@@ -108,9 +107,9 @@ public abstract class SimpleCollector extends CollectorContext {
     if (phaseId == Simple.FINALIZABLE) {
       if (primary) {
         if (Options.noFinalizer.getValue())
-          Finalizer.clear();
+          VM.finalizableProcessor.clear();
         else
-          Finalizer.moveToFinalizable(getCurrentTrace());
+          VM.finalizableProcessor.scan(getCurrentTrace(),global().isCurrentGCNursery());
       }
       return;
     }
@@ -138,7 +137,7 @@ public abstract class SimpleCollector extends CollectorContext {
     if (phaseId == Simple.FORWARD_FINALIZABLE) {
       if (primary && !Options.noFinalizer.getValue() &&
           VM.activePlan.constraints().needsForwardAfterLiveness()) {
-        Finalizer.forward(getCurrentTrace());
+        VM.finalizableProcessor.forward(getCurrentTrace(),global().isCurrentGCNursery());
       }
       return;
     }

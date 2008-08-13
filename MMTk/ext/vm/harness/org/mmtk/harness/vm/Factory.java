@@ -142,6 +142,17 @@ public class Factory extends org.mmtk.vm.Factory {
   }
 
   /**
+   * Create a new FinalizableProcessor instance using the appropriate VM-specific
+   * concrete FinalizableProcessor sub-class.
+   *
+   * @see FinalizableProcessor
+   * @return A concrete VM-specific FinalizableProcessor instance.
+   */
+  public FinalizableProcessor newFinalizableProcessor() {
+    return new FinalizableProcessor();
+  }
+
+  /**
    * Create a new Scanning instance using the appropriate VM-specific
    * concrete Scanning sub-class.
    *
