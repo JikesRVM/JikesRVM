@@ -3161,7 +3161,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     // Load id from display at required depth and compare against target id.
     asm.emitLHZ(T0, LHSDepth << LOG_BYTES_IN_CHAR, T0);
-    asm.emitCMPI(T0, LHSId);
+    if (Assembler.fits(LHSId, 16)) {
+      asm.emitCMPI(T0, LHSId);
+    } else {
+      asm.emitLVAL(T1, LHSId);
+      asm.emitCMP(T0, T1);
+    }
     ForwardReference fr2 = asm.emitForwardBC(EQ);      // TODO: encode "y" bit that branch is likely taken.
     asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
     fr2.resolve(asm);
