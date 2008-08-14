@@ -2065,8 +2065,18 @@ public class BootImageWriter extends BootImageWriterMessages
           try {
             bootImage.setFullWord(rvmFieldAddress, jdkFieldAcc.getInt(jdkObject));
           } catch (IllegalArgumentException ex) {
-            System.out.println("type " + rvmScalarType + ", field " + rvmField);
-            throw ex;
+            // TODO: Harmony - clean this up
+            if (jdkObject instanceof java.util.WeakHashMap && rvmFieldName.equals("loadFactor")) {
+              // the field load factor field in Sun/Classpath is a float but
+              // in Harmony it has been "optimized" to an int
+              bootImage.setFullWord(rvmFieldAddress, 7500);
+            } else if (jdkObject instanceof java.lang.ref.ReferenceQueue && rvmFieldName.equals("head")) {
+              // Conflicting types between Harmony and Sun
+              bootImage.setFullWord(rvmFieldAddress, 0);
+            } else {
+              System.out.println("type " + rvmScalarType + ", field " + rvmField);
+              throw ex;
+            }
           }
         } else if (rvmFieldType.isLongType()) {
           bootImage.setDoubleWord(rvmFieldAddress,
