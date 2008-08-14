@@ -73,7 +73,7 @@ public class ApplicationClassLoader extends URLClassLoader {
             }
           }
 
-          if (elt.indexOf(":") != -1) {
+          if (elt.indexOf(File.pathSeparatorChar) != -1) {
             addURL(new URL(elt));
           } else if (elt.startsWith(File.separator)) {
             addURL(new URL("file", null, -1, elt));

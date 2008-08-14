@@ -13,6 +13,7 @@
 package org.jikesrvm.tools.bootImageWriter;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -1240,6 +1241,9 @@ public class BootImageWriter extends BootImageWriterMessages
       typeName = typeName.trim(); // ignore leading and trailing whitespace
       if (typeName.length() == 0)
         continue; // ignore comment-only and whitespace-only lines
+      if (File.separatorChar != '/') {
+        typeName = typeName.replace(File.separatorChar, '/');
+      }
       // debugging:
       TypeDescriptorParsing.validateAsTypeDescriptor(typeName);
       if (TypeDescriptorParsing.isValidTypeDescriptor(typeName))

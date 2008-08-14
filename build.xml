@@ -489,9 +489,8 @@ Check to make sure all required properties are specified. This includes properti
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir"/>
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/Operator.template"/>
-          <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/Operator.java"/>
+          <arg path="${build.ir.dir}/Operator.template"/>
+          <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/Operator.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -504,9 +503,8 @@ Check to make sure all required properties are specified. This includes properti
 
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/Operators.template"/>
-          <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/Operators.java"/>
+          <arg path="${build.ir.dir}/Operators.template"/>
+          <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/Operators.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -519,9 +517,8 @@ Check to make sure all required properties are specified. This includes properti
 
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/OperatorNames.template"/>
-          <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OperatorNames.java"/>
+          <arg path="${build.ir.dir}/OperatorNames.template"/>
+          <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OperatorNames.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -534,9 +531,8 @@ Check to make sure all required properties are specified. This includes properti
 
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.ir.dir}/InstructionFormats.template"/>
-          <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/InstructionFormats.RAW"/>
+          <arg path="${build.ir.dir}/InstructionFormats.template"/>
+          <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/InstructionFormats.RAW"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCH_IF_LIST=${build.ir.dir}/@{arch}/InstructionFormatList.dat"/>
           <arg value="ARCHITECTURE=@{arch}"/>
@@ -547,17 +543,16 @@ Check to make sure all required properties are specified. This includes properti
       </GenerateFromTemplate>
 
       <exec executable="${perl.exe}" failonerror="true">
-        <arg value="${build.ir.dir}/splitInstructionFormats.perl"/>
-        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir"/>
-        <arg
-            value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/InstructionFormats.RAW"/>
+        <arg path="${build.ir.dir}/splitInstructionFormats.perl"/>
+        <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir"/>
+        <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/InstructionFormats.RAW"/>
       </exec>
 
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}"/>
       <GenerateFromTemplate>
         <args>
-          <arg value="${build.burs.dir}/ir.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}/ir.brg"/>
+          <arg path="${build.burs.dir}/ir.template"/>
+          <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}/ir.brg"/>
           <arg value="ARCHITECTURE_IR_DIR=${build.ir.dir}/@{arch}"/>
           <arg value="ARCH_OP_LIST=@{operatorList}"/>
           <arg value="THE_RULE_FILE=@{rulesList}"/>
@@ -597,8 +592,7 @@ Check to make sure all required properties are specified. This includes properti
                   files="BURS_State.template"/>
       </concat>
 
-      <concat
-          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}/BURS_STATE.java">
+      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}/BURS_STATE.java">
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}"
                   files="burg.template"/>
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}"
@@ -607,9 +601,8 @@ Check to make sure all required properties are specified. This includes properti
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/instrsched"/>
       <GenerateFromTemplate>
         <args>
-          <arg value="${basedir}/rvm/src-generated/opt-scheduler/OperatorClass.template"/>
-          <arg
-              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/instrsched/OperatorClass.java"/>
+          <arg path="${basedir}/rvm/src-generated/opt-scheduler/OperatorClass.template"/>
+          <arg path="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/instrsched/OperatorClass.java"/>
           <arg value="ARCHITECTURE_IR_DIR=@{arch}"/>
           <arg value="ADDRESS_MODE=@{addressSize}"/>
         </args>
@@ -719,40 +712,69 @@ Check to make sure all required properties are specified. This includes properti
 
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/opt"/>
     <mkdir dir="${generated.java}/org/jikesrvm/adaptive/util"/>
+    <path id="template.vm.booleanopts.dat">
+      <pathelement path="${options.dir}/BooleanOptions.vm.dat"/>
+    </path>
+    <path id="template.vm.valueopts.dat">
+      <pathelement path="${options.dir}/ValueOptions.vm.dat"/>
+    </path>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/Options.template"/>
-        <arg value="${generated.java}/org/jikesrvm/Options.java"/>
-        <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.vm.dat"/>
-        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.vm.dat"/>
+        <arg path="${options.dir}/Options.template"/>
+        <arg path="${generated.java}/org/jikesrvm/Options.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${toString:template.vm.booleanopts.dat}"/>
+        <arg value="VALUE_DAT_FILES=${toString:template.vm.valueopts.dat}"/>
       </args>
     </GenerateFromTemplate>
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/baseline"/>
+    <path id="template.shared.booleanopts.dat">
+      <pathelement path="${options.dir}/SharedBooleanOptions.dat"/>
+    </path>
+    <path id="template.shared.valueopts.dat">
+      <pathelement path="${options.dir}/SharedValueOptions.dat"/>
+    </path>
+    <path id="template.base.booleanopts.dat">
+      <pathelement path="${options.dir}/BooleanOptions.baseline.dat"/>
+    </path>
+    <path id="template.base.valueopts.dat">
+      <pathelement path="${options.dir}/ValueOptions.baseline.dat"/>
+    </path>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/BaselineOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/compilers/baseline/BaselineOptions.java"/>
-        <arg
-            value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.baseline.dat ${options.dir}/SharedBooleanOptions.dat"/>
-        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.baseline.dat ${options.dir}/SharedValueOptions.dat"/>
+        <arg path="${options.dir}/BaselineOptions.template"/>
+        <arg path="${generated.java}/org/jikesrvm/compilers/baseline/BaselineOptions.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${toString:template.base.booleanopts.dat} ${toString:template.shared.booleanopts.dat}"/>
+        <arg value="VALUE_DAT_FILES=${toString:template.base.valueopts.dat} ${toString:template.shared.valueopts.dat}"/>
         <arg value="MYTYPE=BaselineOptions"/>
       </args>
     </GenerateFromTemplate>
+    <path id="template.opt.booleanopts.dat">
+      <pathelement path="${options.dir}/BooleanOptions.opt.dat"/>
+    </path>
+    <path id="template.opt.valueopts.dat">
+      <pathelement path="${options.dir}/ValueOptions.opt.dat"/>
+    </path>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/OptOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/compilers/opt/OptOptions.java"/>
-        <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.opt.dat ${options.dir}/SharedBooleanOptions.dat"/>
-        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.opt.dat ${options.dir}/SharedValueOptions.dat"/>
+        <arg path="${options.dir}/OptOptions.template"/>
+        <arg path="${generated.java}/org/jikesrvm/compilers/opt/OptOptions.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${toString:template.opt.booleanopts.dat} ${toString:template.shared.booleanopts.dat}"/>
+        <arg value="VALUE_DAT_FILES=${toString:template.opt.valueopts.dat} ${toString:template.shared.valueopts.dat}"/>
         <arg value="MYTYPE=OptOptions"/>
       </args>
     </GenerateFromTemplate>
+    <path id="template.aos.booleanopts.dat">
+      <pathelement path="${options.dir}/BooleanOptions.aos.dat"/>
+    </path>
+    <path id="template.aos.valueopts.dat">
+      <pathelement path="${options.dir}/ValueOptions.aos.dat"/>
+    </path>
     <GenerateFromTemplate>
       <args>
-        <arg value="${options.dir}/AOSOptions.template"/>
-        <arg value="${generated.java}/org/jikesrvm/adaptive/util/AOSExternalOptions.java"/>
-        <arg value="BOOLEAN_DAT_FILES=${options.dir}/BooleanOptions.aos.dat"/>
-        <arg value="VALUE_DAT_FILES=${options.dir}/ValueOptions.aos.dat"/>
+        <arg path="${options.dir}/AOSOptions.template"/>
+        <arg path="${generated.java}/org/jikesrvm/adaptive/util/AOSExternalOptions.java"/>
+        <arg value="BOOLEAN_DAT_FILES=${toString:template.aos.booleanopts.dat}"/>
+        <arg value="VALUE_DAT_FILES=${toString:template.aos.valueopts.dat}"/>
         <arg value="MYTYPE=AOSExternalOptions"/>
       </args>
     </GenerateFromTemplate>
@@ -763,7 +785,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
       <arg value="genAssembler.sh"/>
-      <arg value="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
+      <arg path="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
       <arg value="Assembler.in"/>
     </exec>
 
@@ -1204,8 +1226,8 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.rt.jar}"/>
       </classpath>
       <arg value="${classlib.provider}"/>
-      <arg value="${generated.asm}:${build.rt.jar}:${build.vm.jar}${build.extra.rt.jars}"/>
-      <arg value="${generated.asm}"/>
+      <arg path="${generated.asm}:${build.rt.jar}:${build.vm.jar}${build.extra.rt.jars}"/>
+      <arg path="${generated.asm}"/>
     </java>
     <zip destfile="${build.rt.jar}" update="true" basedir="${generated.asm}" compress="false">
       <include name="java/**"/>
@@ -1343,20 +1365,20 @@ Check to make sure all required properties are specified. This includes properti
       <sysproperty key="rvm.properties" value="${build.base}/rvm.properties"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
       <arg value="-log"/>
-      <arg value="${build.base}/BootImageWriterOutput.txt"/>
+      <arg path="${build.base}/BootImageWriterOutput.txt"/>
       <arg value="-classpath"/>
-      <arg value="${rvm.class.path}"/>
+      <arg path="${rvm.class.path}"/>
       <arg value="-n"/>
-      <arg value="${build.base}/Primordials.txt"/>
+      <arg path="${build.base}/Primordials.txt"/>
       <arg value="-oc"/>
-      <arg value="${build.base}/RVM.code.image"/>
+      <arg path="${build.base}/RVM.code.image"/>
       <arg value="-od"/>
-      <arg value="${build.base}/RVM.data.image"/>
+      <arg path="${build.base}/RVM.data.image"/>
       <arg value="-or"/>
-      <arg value="${build.base}/RVM.rmap.image"/>
+      <arg path="${build.base}/RVM.rmap.image"/>
       <arg value="-demographics"/>
       <arg value="-m"/>
-      <arg value="${build.base}/RVM.map"/>
+      <arg path="${build.base}/RVM.map"/>
       <!-- <arg value="-trace"/> -->
       <!-- <arg value="-detailed"/> -->
       <!-- <arg value="-X:bc:verbose=true"/> -->
