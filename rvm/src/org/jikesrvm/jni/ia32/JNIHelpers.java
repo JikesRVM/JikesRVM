@@ -293,7 +293,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     }
 
     // now invoke the method
-    return Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
+    return Reflection.invoke(targetMethod, null, obj, argObjectArray, skip4Args);
   }
 
   /**

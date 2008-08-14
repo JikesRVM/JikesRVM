@@ -635,7 +635,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     T obj = (T)RuntimeEntrypoints.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
-    Reflection.invoke(defaultConstructor, obj, null);
+    Reflection.invoke(defaultConstructor, null, obj, null, true);
 
     return obj;
   }

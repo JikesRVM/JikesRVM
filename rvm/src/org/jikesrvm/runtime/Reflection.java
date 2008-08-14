@@ -21,6 +21,7 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.Processor;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
@@ -31,14 +32,26 @@ import org.vmmagic.unboxed.WordArray;
 public class Reflection implements Constants {
 
   /** Perform reflection using bytecodes (true) or out-of-line machine code (false) */
-  private static boolean bytecodeReflection = true;
+  public static boolean bytecodeReflection = false;
+
+  /**
+   * Cache the reflective method invoker in JavaLangReflect? If this is true and
+   * bytecodeReflection is false, then bytecode reflection will only be used for
+   * java.lang.reflect objects.
+   */
+  public static boolean cacheInvokerInJavaLangReflect = true;
 
   /**
    * Does the reflective method scheme need to check the arguments are valid?
    * Bytecode reflection doesn't need arguments checking as they are checking as
    * they are unwrapped
    */
-  public static boolean needsCheckArgs = !bytecodeReflection;
+  @Inline
+  public static boolean needsCheckArgs(ReflectionBase invoker) {
+    // Only need to check the arguments when the user may be packaging them and
+    // not using the bytecode based invoker (that checks them when they are unpacked)
+    return !bytecodeReflection && !cacheInvokerInJavaLangReflect;
+  }
 
   /**
    * Call a method.
@@ -51,15 +64,25 @@ public class Reflection implements Constants {
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
    */
-  public static Object invoke(RVMMethod method, Object thisArg, Object[] otherArgs) {
-    return invoke(method, thisArg, otherArgs, false);
-  }
-
-  public static Object invoke(RVMMethod method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
-    if (!bytecodeReflection) {
+  @Inline
+  public static Object invoke(RVMMethod method, ReflectionBase invoker, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+    if (!bytecodeReflection && !cacheInvokerInJavaLangReflect) {
       return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
-    } else {
+    } else if (!bytecodeReflection && cacheInvokerInJavaLangReflect) {
+      if (invoker != null) {
+        return invoker.invoke(thisArg, otherArgs);
+      } else {
+        return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
+      }
+    } else if (bytecodeReflection && !cacheInvokerInJavaLangReflect) {
+      if (VM.VerifyAssertions) VM._assert(invoker == null);
       return method.getInvoker().invoke(thisArg, otherArgs);
+    } else {
+      if (invoker != null) {
+        return invoker.invoke(thisArg, otherArgs);
+      } else {
+        return method.getInvoker().invoke(thisArg, otherArgs);
+      }
     }
   }
 
@@ -110,7 +133,7 @@ public class Reflection implements Constants {
     // choose actual method to be called
     //
     RVMMethod targetMethod;
-    if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
+    if (isNonvirtual || method.isStatic() || method.isObjectInitializer()) {
       targetMethod = method;
     } else {
       int tibIndex = method.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;

@@ -17,6 +17,8 @@ import java.lang.annotation.Annotation;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.ReflectionBase;
 
 /**
  * Implementation of java.lang.reflect.VMConstructor for JikesRVM.
@@ -26,17 +28,24 @@ import org.jikesrvm.classloader.TypeReference;
  */
 final class VMConstructor {
   final RVMMethod constructor;
+  private final ReflectionBase invoker;
   Constructor<?> cons;
 
   // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
   private VMConstructor() {
     constructor = null;
+    invoker = null;
   }
 
   // For use by JikesRVMSupport
   VMConstructor(RVMMethod m) {
     constructor = m;
+    if (Reflection.cacheInvokerInJavaLangReflect) {
+      invoker = m.getInvoker();
+    } else {
+      invoker = null;
+    }
   }
 
   public boolean equals(Object other) {
@@ -76,7 +85,7 @@ final class VMConstructor {
                 IllegalAccessException,
                 IllegalArgumentException,
                 InvocationTargetException {
-    return VMCommonLibrarySupport.construct(constructor, cons, args, RVMClass.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.construct(constructor, cons, args, RVMClass.getClassFromStackFrame(2), invoker);
   }
 
   String getSignature() {

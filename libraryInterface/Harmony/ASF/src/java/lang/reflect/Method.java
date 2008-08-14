@@ -23,6 +23,8 @@ import java.lang.reflect.VMCommonLibrarySupport;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.ReflectionBase;
 
 /**
  * This class must be implemented by the VM vendor. This class models a method.
@@ -32,12 +34,18 @@ import org.jikesrvm.classloader.RVMMethod;
  */
 public final class Method extends AccessibleObject implements GenericDeclaration, Member {
     private final RVMMethod vmMethod;
+    private final ReflectionBase invoker;
 
     /**
      * Constructor
      */
     Method(RVMMethod vmMethod){
       this.vmMethod = vmMethod;
+      if (Reflection.cacheInvokerInJavaLangReflect) {
+        invoker = vmMethod.getInvoker();
+      } else {
+        invoker = null;
+      }
     }
     
     /**
@@ -45,6 +53,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      */
     private Method(){
       vmMethod = null;
+      invoker = null;
     }
     
     public TypeVariable<Method>[] getTypeParameters() {
@@ -332,7 +341,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	public Object invoke(Object receiver, Object... args)
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
-	    return VMCommonLibrarySupport.invoke(receiver, args, vmMethod, this, RVMClass.getClassFromStackFrame(1));
+	    return VMCommonLibrarySupport.invoke(receiver, args, vmMethod, this, RVMClass.getClassFromStackFrame(1), invoker);
 	}
 
 	/**

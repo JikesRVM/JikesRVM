@@ -1333,7 +1333,6 @@ public abstract class Simplifier extends IRTools {
           if (s.getPrev() != null) {
             int power = PowerOf2(val2);
             if (power != -1) {
-              int x = (1 << power)-1;
               RegisterOperand tempInt1 = regpool.makeTempInt();
               RegisterOperand tempInt2 = regpool.makeTempInt();
               RegisterOperand tempInt3 = regpool.makeTempInt();
@@ -3265,7 +3264,7 @@ public abstract class Simplifier extends IRTools {
         Method m = null;
         try {
           if (VM.runningVM) {
-            result = Reflection.invoke(method, thisArg, otherArgs, !methOp.isVirtual());
+            result = Reflection.invoke(method, null, thisArg, otherArgs, false);
           } else {
             Class<?>[] argTypes = new Class<?>[n];
             for(int i=0; i < n; i++) {

@@ -35,7 +35,7 @@ public class FinalizerThread extends Scheduler.ThreadModel {
 
   private static final int verbose = 0; // currently goes up to 2
 
-  private final Object[] none = new Object[0];
+  private static final Object[] none = new Object[0];
 
   public FinalizerThread() {
     super("FinalizerThread");
@@ -71,7 +71,7 @@ public class FinalizerThread extends Scheduler.ThreadModel {
           try {
             RVMMethod method = Magic.getObjectType(o).asClass().getFinalizer();
             if (VM.VerifyAssertions) VM._assert(method != null);
-            Reflection.invoke(method, o, none);
+            Reflection.invoke(method, null, o, none, false);
           } catch (Exception e) {
             if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
           }

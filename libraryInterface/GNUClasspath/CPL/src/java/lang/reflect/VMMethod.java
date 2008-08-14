@@ -15,6 +15,8 @@ package java.lang.reflect;
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
+import org.jikesrvm.runtime.ReflectionBase;
+import org.jikesrvm.runtime.Reflection;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
@@ -24,17 +26,24 @@ import org.jikesrvm.classloader.*;
  */
 final class VMMethod {
   final RVMMethod method;
+  private final ReflectionBase invoker;
   Method m;
 
    // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
   private VMMethod() {
     method = null;
+    invoker = null;
   }
 
   // For use by JikesRVMSupport
   VMMethod(RVMMethod m) {
     method = m;
+    if (Reflection.cacheInvokerInJavaLangReflect) {
+      invoker = m.getInvoker();
+    } else {
+      invoker = null;
+    }
   }
 
   public boolean equals(Object other) {
@@ -77,7 +86,7 @@ final class VMMethod {
   Object invoke(Object receiver, Object[] args)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
-    return VMCommonLibrarySupport.invoke(receiver, args, method, m, RVMClass.getClassFromStackFrame(2));
+    return VMCommonLibrarySupport.invoke(receiver, args, method, m, RVMClass.getClassFromStackFrame(2), invoker);
   }
 
   // AnnotatedElement interface

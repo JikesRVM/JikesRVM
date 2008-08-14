@@ -24,6 +24,7 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.ReflectionBase;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
@@ -162,28 +163,28 @@ final class VMCommonLibrarySupport {
   }
   /* ---- Reflective Method Invocation Support ---- */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
-  static Object invoke(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass)
+  static Object invoke(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass, ReflectionBase invoker)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
     // validate number and types of arguments
-    if (!Reflection.needsCheckArgs || checkArguments(args, method)) {
+    if (!Reflection.needsCheckArgs(invoker) || checkArguments(args, method)) {
       if (method.isStatic()) {
-        return invokeStatic(receiver, args, method, jlrMethod, accessingClass);
+        return invokeStatic(receiver, args, method, jlrMethod, accessingClass, invoker);
       } else {
-        return invokeVirtual(receiver, args, method, jlrMethod, accessingClass);
+        return invokeVirtual(receiver, args, method, jlrMethod, accessingClass, invoker);
       }
     } else {
       Object[] compatibleArgs = makeArgumentsCompatible(args, method);
       if (method.isStatic()) {
-        return invokeStatic(receiver, compatibleArgs, method, jlrMethod, accessingClass);
+        return invokeStatic(receiver, compatibleArgs, method, jlrMethod, accessingClass, invoker);
       } else {
-        return invokeVirtual(receiver, compatibleArgs, method, jlrMethod, accessingClass);
+        return invokeVirtual(receiver, compatibleArgs, method, jlrMethod, accessingClass, invoker);
       }
     }
   }
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
-  private static Object invokeStatic(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass)
+  private static Object invokeStatic(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass, ReflectionBase invoker)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
     // Accessibility checks
@@ -199,14 +200,14 @@ final class VMCommonLibrarySupport {
 
     // Invoke method
     try {
-      return Reflection.invoke(method, receiver, args);
+      return Reflection.invoke(method, invoker, receiver, args, true);
     } catch (Throwable t) {
       throw new InvocationTargetException(t);
     }
   }
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
-  private static Object invokeVirtual(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass)
+  private static Object invokeVirtual(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass, ReflectionBase invoker)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
     // validate "this" argument
@@ -229,7 +230,7 @@ final class VMCommonLibrarySupport {
 
     // Invoke method
     try {
-      return Reflection.invoke(method, receiver, args);
+      return Reflection.invoke(method, invoker, receiver, args, false);
     } catch (Throwable t) {
       throw new InvocationTargetException(t);
     }
@@ -410,14 +411,14 @@ final class VMCommonLibrarySupport {
    * Construct an object from the given constructor args, called from the accessing class
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
-  static Object construct(RVMMethod constructor, Constructor<?> cons, Object[] args, RVMClass accessingClass)
+  static Object construct(RVMMethod constructor, Constructor<?> cons, Object[] args, RVMClass accessingClass, ReflectionBase invoker)
   throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !cons.isAccessible()) {
       checkAccess(constructor, accessingClass);
     }
     // validate number and types of arguments to constructor
-    if (Reflection.needsCheckArgs && !checkArguments(args, constructor)) {
+    if (Reflection.needsCheckArgs(invoker) && !checkArguments(args, constructor)) {
       args = makeArgumentsCompatible(args, constructor);
     }
     RVMClass cls = constructor.getDeclaringClass();
@@ -432,7 +433,7 @@ final class VMCommonLibrarySupport {
     Object obj = RuntimeEntrypoints.resolvedNewScalar(cls);
     // Run the constructor on the instance.
     try {
-      Reflection.invoke(constructor, obj, args);
+      Reflection.invoke(constructor, invoker, obj, args, true);
     } catch (Throwable e) {
       throw new InvocationTargetException(e);
     }
