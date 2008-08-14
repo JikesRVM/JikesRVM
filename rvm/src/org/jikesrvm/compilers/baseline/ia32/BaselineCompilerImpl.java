@@ -58,6 +58,11 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class BaselineCompilerImpl extends BaselineCompiler implements BaselineConstants, SizeConstants {
 
+  static {
+    // Force resolution of BaselineMagic before using in genMagic
+    Object x = BaselineMagic.generateMagic(null, null, null, Offset.zero());
+  }
+
   private final int parameterWords;
   private int firstLocalOffset;
 
