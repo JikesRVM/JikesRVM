@@ -17,10 +17,9 @@ import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MemoryManager;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.Services;
 import org.jikesrvm.scheduler.Scheduler;
 import org.mmtk.plan.TraceLocal;
 
@@ -241,12 +240,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
     Object result = null;
     if (nextReadyIndex != lastReadyIndex) {
       result = readyForFinalize[nextReadyIndex];
-      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-        MemoryManager.arrayStoreWriteBarrier(readyForFinalize, nextReadyIndex, null);
-      } else {
-        Offset offset = Offset.fromIntZeroExtend(nextReadyIndex << LOG_BYTES_IN_ADDRESS);
-        Magic.setObjectAtOffset(readyForFinalize, offset, null);
-      }
+      Services.setArrayUninterruptible(readyForFinalize, nextReadyIndex, null);
       nextReadyIndex = (nextReadyIndex + 1) % readyForFinalize.length;
     }
     lock.release();
