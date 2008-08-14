@@ -16,6 +16,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
@@ -175,13 +176,7 @@ public abstract class Scheduler {
           if (index > threadHighWatermark) {
             threadHighWatermark = index;
           }
-          if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-            MemoryManager.arrayStoreWriteBarrier(Scheduler.threads,
-                index, thread);
-          } else {
-            Magic.setObjectAtOffset(threads,
-              Offset.fromIntZeroExtend(index << SizeConstants.LOG_BYTES_IN_ADDRESS), thread);
-          }
+          Services.setArrayUninterruptible(Scheduler.threads, index, thread);
           Scheduler.threadCreationMutex.unlock();
           return index;
         }
