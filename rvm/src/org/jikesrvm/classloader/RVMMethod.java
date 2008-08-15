@@ -27,6 +27,7 @@ import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.util.HashMapRVM;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.RuntimePure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -617,7 +618,17 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    * @return whether the method has a pure annotation
    */
   public final boolean isPure() {
-    return hasPureAnnotation();
+    return hasPureAnnotation() || hasRuntimePureAnnotation();
+  }
+
+  /**
+   * Is the method RuntimePure? This is the same as Pure at runtime but has a
+   * special return value at boot image writing time
+   *
+   * @return whether the method has a pure annotation
+   */
+  public final boolean isRuntimePure() {
+   return hasRuntimePureAnnotation();
   }
 
   /**
@@ -826,7 +837,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   /**
    * Get an instance of an object capable of reflectively invoking this method
    */
-  @Pure
+  @RuntimePure
   @SuppressWarnings("unchecked")
   public synchronized ReflectionBase getInvoker() {
     if (!VM.runningVM) {

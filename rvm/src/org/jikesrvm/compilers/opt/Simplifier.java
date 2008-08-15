@@ -3232,7 +3232,16 @@ public abstract class Simplifier extends IRTools {
           }
         }
       }
-      if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+      if (!VM.runningVM && methOp.hasPreciseTarget() && methOp.getTarget().isRuntimePure()) {
+        RVMMethod method = methOp.getTarget();
+        switch(method.getAnnotation(org.vmmagic.pragma.RuntimePure.class).value()) {
+        case Unavailable: // not available at boot image write time
+          return DefUseEffect.UNCHANGED;
+        default:
+          throw new Error("Unhandled RuntimePure value: " +
+            method.getAnnotation(org.vmmagic.pragma.RuntimePure.class).value());
+        }
+      } else if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
         // Look for a precise method call to a pure method with all constant arguments
         RVMMethod method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);

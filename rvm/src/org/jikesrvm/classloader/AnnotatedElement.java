@@ -305,6 +305,14 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
+   * Return true if this element has a RuntimePure annotation.
+   * @see org.vmmagic.pragma.RuntimePure
+   */
+  public final boolean hasRuntimePureAnnotation() {
+    return isAnnotationPresent(org.vmmagic.pragma.RuntimePure.class);
+  }
+
+  /**
    * Return true if this element has a NoNullCheck annotation.
    * @see org.vmmagic.pragma.NoNullCheck
    */
