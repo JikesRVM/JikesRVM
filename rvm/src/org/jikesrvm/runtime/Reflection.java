@@ -66,6 +66,7 @@ public class Reflection implements Constants {
    */
   @Inline
   public static Object invoke(RVMMethod method, ReflectionBase invoker, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+    // NB bytecode reflection doesn't care about isNonvirtual
     if (!bytecodeReflection && !cacheInvokerInJavaLangReflect) {
       return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
     } else if (!bytecodeReflection && cacheInvokerInJavaLangReflect) {
