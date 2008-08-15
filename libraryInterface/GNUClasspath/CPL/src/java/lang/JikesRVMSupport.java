@@ -27,6 +27,13 @@ import org.jikesrvm.scheduler.RVMThread;
  */
 public class JikesRVMSupport {
 
+  /**
+   * Call the Object finalize method on the given object
+   */
+  public static void invokeFinalize(Object o)  throws Throwable {
+    o.finalize();
+  }
+
   public static void initializeInstrumentation(Instrumentation instrumenter) {
     VMClassLoader.setInstrumenter(instrumenter);
   }

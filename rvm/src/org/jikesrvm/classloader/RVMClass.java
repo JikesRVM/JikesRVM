@@ -177,10 +177,9 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   private RVMMethod[] virtualMethods;
 
   /**
-   * method that overrides java.lang.Object.finalize()
-   * null => class does not have a finalizer
+   * Do objects of this class have a finalizer method?
    */
-  private RVMMethod finalizeMethod;
+  private boolean hasFinalizer;
 
   /** type and virtual method dispatch table for class */
   private TIB typeInformationBlock;
@@ -866,17 +865,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public boolean hasFinalizer() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    return (finalizeMethod != null);
-  }
-
-  /**
-   * Get finalize method that overrides java.lang.Object.finalize(),
-   * if one exists
-   */
-  @Uninterruptible
-  public RVMMethod getFinalizer() {
-    if (VM.VerifyAssertions) VM._assert(isResolved());
-    return finalizeMethod;
+    return hasFinalizer;
   }
 
   /**
@@ -1863,13 +1852,12 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
     // check for a "finalize" method that overrides the one in java.lang.Object
     //
-    finalizeMethod = null;
     if (!isInterface()) {
       final RVMMethod method =
           findVirtualMethod(RVMClassLoader.StandardObjectFinalizerMethodName,
                             RVMClassLoader.StandardObjectFinalizerMethodDescriptor);
       if (!method.getDeclaringClass().isJavaLangObjectType()) {
-        finalizeMethod = method;
+        hasFinalizer = true;
       }
     }
 
