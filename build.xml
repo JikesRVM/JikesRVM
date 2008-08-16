@@ -1783,7 +1783,8 @@ target.jni-suffix=${target.jni-suffix}
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
-    <copy todir="${dist.base}">
+    <mkdir dir="${dist.base}/lib"/>
+    <copy todir="${dist.base}/lib">
       <fileset dir="${harmony.lib.dir}">
         <include name="*.jar"/>
         <exclude name="*-src.jar"/>
@@ -1838,6 +1839,21 @@ target.jni-suffix=${target.jni-suffix}
             <include name="*${target.jni-suffix}"/>
           </fileset>
         </copy>
+        <copy todir="${dist.base}">
+          <fileset dir="${build.base}">
+            <include name="*${target.dll-ext}"/>
+            <include name="*${target.jni-suffix}"/>
+            <include name="JikesRVM"/>
+            <include name="JikesRVM-symbols.o"/>
+          </fileset>
+        </copy>
+        <chmod perm="ugo+rx">
+          <fileset dir="${dist.base}">
+            <include name="*${target.dll-ext}"/>
+            <include name="*${target.jni-suffix}"/>
+            <include name="JikesRVM"/>
+          </fileset>
+        </chmod>
       </sequential>
     </if>
     <if>
@@ -1845,22 +1861,35 @@ target.jni-suffix=${target.jni-suffix}
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
-        <copy todir="${dist.base}">
+        <mkdir dir="${dist.base}/lib"/>
+        <copy todir="${dist.base}/lib">
           <fileset dir="${harmony.lib.dir}">
             <include name="*${target.jni-suffix}"/>
+            <include name="*.properties"/>
             <exclude name="*vmi${target.jni-suffix}"/>
           </fileset>
+          <fileset dir="${build.base}">
+            <include name="*${target.dll-ext}"/>
+            <include name="*${target.jni-suffix}"/>
+          </fileset>
         </copy>
+        <copy todir="${dist.base}">
+          <fileset dir="${build.base}">
+            <include name="JikesRVM"/>
+            <include name="JikesRVM-symbols.o"/>
+          </fileset>
+        </copy>
+        <chmod perm="ugo+rx">
+          <fileset dir="${dist.base}/lib">
+            <include name="*${target.dll-ext}"/>
+            <include name="*${target.jni-suffix}"/>
+          </fileset>
+          <fileset dir="${dist.base}">
+            <include name="JikesRVM"/>
+          </fileset>
+        </chmod>
       </sequential>
     </if>
-    <copy todir="${dist.base}">
-      <fileset dir="${build.base}">
-        <include name="*${target.dll-ext}"/>
-        <include name="*${target.jni-suffix}"/>
-        <include name="JikesRVM"/>
-        <include name="JikesRVM-symbols.o"/>
-      </fileset>
-    </copy>
     <chmod perm="ugo+rx">
       <fileset dir="${dist.base}">
         <include name="*${target.dll-ext}"/>

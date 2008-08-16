@@ -17,8 +17,9 @@
 
   <property name="harmony.version" value="5.0M6"/>
   <property name="harmony.description" value="Apache Harmony class libraries"/>
+  <property name="harmony.patchlevel" value="1"/>
   <property name="harmony.component.dir" location="${components.dir}/harmony"/>
-  <property name="harmony.package.dir" value="${harmony.component.dir}/${harmony.version}"/>
+  <property name="harmony.package.dir" value="${harmony.component.dir}/${harmony.version}p${harmony.patchlevel}"/>
   <property name="harmony.dir" value="${harmony.package.dir}/harmony"/>
 
   <!-- **************************************************************************** -->
@@ -141,6 +142,7 @@
     <copy todir="${harmony.package.dir}/${target.name}/lib" flatten="true">
       <fileset dir="${harmony.dir}">
         <include name="deploy/jdk/jre/lib/**/*.jar"/>
+        <include name="deploy/jdk/jre/lib/**/*.properties"/>
       </fileset>
     </copy>
     <copy todir="${harmony.package.dir}/${target.name}/lib" flatten="true">
