@@ -2690,6 +2690,10 @@ public class BootImageWriter extends BootImageWriterMessages
           // AccessibleObject
           bootImage.setByte(rvmFieldAddress, cons.isAccessible() ? 1 : 0);
           return true;
+        } else if(rvmFieldName.equals("invoker")) {
+          // Bytecode reflection field, can only be installed in running VM
+          bootImage.setNullAddressWord(rvmFieldAddress, true, false, false);
+          return true;
         } else {
           // Unknown Constructor field
           throw new Error("Unknown field "+rvmFieldName+" in java.lang.reflect.Constructor");
