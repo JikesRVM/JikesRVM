@@ -26,6 +26,8 @@ import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
+import static org.jikesrvm.Configuration.BuildForSSE2Full;
+
 /**
  * Arch-independent portion of reflective method invoker.
  */
@@ -79,6 +81,8 @@ public class Reflection implements Constants {
       if (VM.VerifyAssertions) VM._assert(invoker == null);
       return method.getInvoker().invoke(thisArg, otherArgs);
     } else {
+      // Even if we always generate an invoker this test is still necessary for
+      // invokers that should have been created in the boot image
       if (invoker != null) {
         return invoker.invoke(thisArg, otherArgs);
       } else {
@@ -86,6 +90,10 @@ public class Reflection implements Constants {
       }
     }
   }
+
+  private static final WordArray emptyWordArray = WordArray.create(0);
+  private static final double[] emptyDoubleArray = new double[0];
+  private static final byte[] emptyByteArray = new byte[0];
 
   private static Object outOfLineInvoke(RVMMethod method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
 
@@ -107,14 +115,19 @@ public class Reflection implements Constants {
     //
     int triple = MachineReflection.countParameters(method);
     int gprs = triple & REFLECTION_GPRS_MASK;
-    WordArray GPRs = WordArray.create(gprs);
+    WordArray GPRs = (gprs > 0) ? WordArray.create(gprs) : emptyWordArray;
     int fprs = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
-    double[] FPRs = new double[fprs];
-    byte[] FPRmeta = new byte[fprs];
+    double[] FPRs = (fprs > 0) ? new double[fprs] : emptyDoubleArray;
+    byte[] FPRmeta;
+    if (BuildForSSE2Full) {
+      FPRmeta = (fprs > 0) ? new byte[fprs] : emptyByteArray;
+    } else {
+      FPRmeta = null;
+    }
 
     int spillCount = triple >> (REFLECTION_GPRS_BITS + REFLECTION_FPRS_BITS);
 
-    WordArray Spills = WordArray.create(spillCount);
+    WordArray Spills = (spillCount > 0) ? WordArray.create(spillCount) : emptyWordArray;
 
     if (firstUse) {
       // force dynamic link sites in unwrappers to get resolved,
