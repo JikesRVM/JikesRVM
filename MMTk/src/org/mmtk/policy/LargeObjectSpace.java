@@ -292,4 +292,31 @@ import org.vmmagic.unboxed.*;
   public Treadmill getTreadmill() {
     return this.treadmill;
   }
+
+  /**
+   * Sweep through all the objects in this space.
+   *
+   * @param sweeper The sweeper callback to use.
+   */
+  @Inline
+  public void sweep(Sweeper sweeper) {
+    DoublyLinkedList cells = getCells();
+    Address cell = cells.getHead();
+    while (!cell.isZero()) {
+      Address next = cells.getNext(cell);
+      ObjectReference obj = VM.objectModel.getObjectFromStartAddress(cell.plus(DoublyLinkedList.headerSize()));
+      if (sweeper.sweepLargeObject(obj)) {
+        ExplicitLargeObjectLocal.free(this, obj);
+      }
+      cell = next;
+    }
+  }
+
+  /**
+   * A callback used to perform sweeping of the large object space.
+   */
+  @Uninterruptible
+  public abstract static class Sweeper {
+    public abstract boolean sweepLargeObject(ObjectReference object);
+  }
 }
