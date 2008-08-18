@@ -29,7 +29,6 @@ import org.jikesrvm.runtime.ReflectionBase;
 final class VMConstructor {
   final RVMMethod constructor;
   private final ReflectionBase invoker;
-  Constructor<?> cons;
 
   // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
@@ -81,7 +80,7 @@ final class VMConstructor {
     return VMCommonLibrarySupport.typesToClasses(constructor.getParameterTypes());
   }
 
-  Object construct(Object[] args) throws InstantiationException,
+  Object construct(Object[] args, Constructor<?> cons) throws InstantiationException,
                 IllegalAccessException,
                 IllegalArgumentException,
                 InvocationTargetException {

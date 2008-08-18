@@ -27,7 +27,6 @@ import org.jikesrvm.runtime.Reflection;
 final class VMMethod {
   final RVMMethod method;
   private final ReflectionBase invoker;
-  Method m;
 
    // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
@@ -83,7 +82,7 @@ final class VMMethod {
     return method.getReturnType().resolve().getClassForType();
   }
 
-  Object invoke(Object receiver, Object[] args)
+  Object invoke(Object receiver, Object[] args, Method m)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
     return VMCommonLibrarySupport.invoke(receiver, args, method, m, RVMClass.getClassFromStackFrame(2), invoker);

@@ -1,0 +1,524 @@
+diff -u java/lang/reflect/Constructor.java java/lang/reflect/Constructor.java
+--- java/lang/reflect/Constructor.java	2008-08-18 18:02:47.000000000 +0100
++++ java/lang/reflect/Constructor.java	2008-08-18 18:04:22.000000000 +0100
+@@ -95,7 +95,6 @@
+   Constructor(VMConstructor cons)
+   {
+     this.cons = cons;
+-    cons.cons = this;
+   }
+ 
+   private Constructor()
+@@ -315,7 +314,7 @@
+     throws InstantiationException, IllegalAccessException,
+            InvocationTargetException
+   {
+-    return (T) cons.construct(args);
++    return (T) cons.construct(args, this);
+   }
+ 
+   /**
+diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
+--- java/lang/reflect/Field.java	2008-08-18 18:02:47.000000000 +0100
++++ java/lang/reflect/Field.java	2008-08-18 18:03:45.000000000 +0100
+@@ -96,7 +96,6 @@
+   Field(VMField f)
+   {
+     this.f = f;
+-    f.f = this;
+   }
+ 
+   /**
+@@ -258,7 +257,7 @@
+   public Object get(Object o)
+     throws IllegalAccessException
+   {
+-    return f.get(o);
++    return f.get(this, o);
+   }
+ 
+   /**
+@@ -281,7 +280,7 @@
+   public boolean getBoolean(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getBoolean(o);
++    return f.getBoolean(this, o);
+   }
+ 
+   /**
+@@ -304,7 +303,7 @@
+   public byte getByte(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getByte(o);
++    return f.getByte(this, o);
+   }
+ 
+   /**
+@@ -325,7 +324,7 @@
+   public char getChar(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getChar(o);
++    return f.getChar(this, o);
+   }
+ 
+   /**
+@@ -348,7 +347,7 @@
+   public short getShort(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getShort(o);
++    return f.getShort(this, o);
+   }
+ 
+   /**
+@@ -371,7 +370,7 @@
+   public int getInt(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getInt(o);
++    return f.getInt(this, o);
+   }
+ 
+   /**
+@@ -394,7 +393,7 @@
+   public long getLong(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getLong(o);
++    return f.getLong(this, o);
+   }
+ 
+   /**
+@@ -416,7 +415,7 @@
+   public float getFloat(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getFloat(o);
++    return f.getFloat(this, o);
+   }
+
+   /**
+@@ -441,7 +440,7 @@
+   public double getDouble(Object o)
+     throws IllegalAccessException
+   {
+-    return f.getDouble(o);
++    return f.getDouble(this, o);
+   }
+ 
+   /**
+@@ -492,7 +491,7 @@
+   public void set(Object o, Object value)
+     throws IllegalAccessException
+   {
+-    f.set(o, value);
++    f.set(this, o, value);
+   }
+ 
+   /**
+@@ -515,7 +514,7 @@
+   public void setBoolean(Object o, boolean value)
+     throws IllegalAccessException
+   {
+-    f.setBoolean(o, value);
++    f.setBoolean(this, o, value);
+   }
+ 
+   /**
+@@ -538,7 +537,7 @@
+   public void setByte(Object o, byte value)
+     throws IllegalAccessException
+   {
+-    f.setByte(o, value);
++    f.setByte(this, o, value);
+   }
+ 
+   /**
+@@ -561,7 +560,7 @@
+   public void setChar(Object o, char value)
+     throws IllegalAccessException
+   {
+-    f.setChar(o, value);
++    f.setChar(this, o, value);
+   }
+ 
+   /**
+@@ -584,7 +583,7 @@
+   public void setShort(Object o, short value)
+     throws IllegalAccessException
+   {
+-    f.setShort(o, value);
++    f.setShort(this, o, value);
+   }
+ 
+   /**
+@@ -607,7 +606,7 @@
+   public void setInt(Object o, int value)
+     throws IllegalAccessException
+   {
+-    f.setInt(o, value);
++    f.setInt(this, o, value);
+   }
+ 
+   /**
+@@ -630,7 +629,7 @@
+   public void setLong(Object o, long value)
+     throws IllegalAccessException
+   {
+-    f.setLong(o, value);
++    f.setLong(this, o, value);
+   }
+ 
+   /**
+@@ -653,7 +652,7 @@
+   public void setFloat(Object o, float value)
+     throws IllegalAccessException
+   {
+-    f.setFloat(o, value);
++    f.setFloat(this, o, value);
+   }
+ 
+   /**
+@@ -676,7 +675,7 @@
+   public void setDouble(Object o, double value)
+     throws IllegalAccessException
+   {
+-    f.setDouble(o, value);
++    f.setDouble(this, o, value);
+   }
+ 
+   /**
+diff -u java/lang/reflect/Method.java java/lang/reflect/Method.java
+--- java/lang/reflect/Method.java	2008-08-18 18:02:47.000000000 +0100
++++ java/lang/reflect/Method.java	2008-08-18 18:03:45.000000000 +0100
+@@ -96,7 +96,6 @@
+   Method(VMMethod m)
+   {
+     this.m = m;
+-    m.m = this;
+   }
+ 
+   /**
+@@ -328,7 +327,7 @@
+   public Object invoke(Object o, Object... args)
+     throws IllegalAccessException, InvocationTargetException
+   {
+-    return m.invoke(o, args);
++    return m.invoke(o, args, this);
+   }
+ 
+   /**
+diff -u vm/reference/java/lang/reflect/VMConstructor.java vm/reference/java/lang/reflect/VMConstructor.java
+--- vm/reference/java/lang/reflect/VMConstructor.java	2008-08-18 18:03:26.000000000 +0100
++++ vm/reference/java/lang/reflect/VMConstructor.java	2008-08-18 18:03:45.000000000 +0100
+@@ -47,12 +47,6 @@
+   Class clazz;
+   int slot;
+ 
+-  /** 
+-   * This field allows us to refer back to the main constructor instance.
+-   *  It is set by the constructor of Constructor.
+-   */
+-  Constructor cons;
+-
+   VMConstructor(Class clazz, int slot)
+   {
+     this.clazz = clazz;
+@@ -88,7 +82,7 @@
+    */
+   native Class[] getExceptionTypes();
+ 
+-  native Object construct(Object[] args)
++  native Object construct(Object[] args, Constructor cons)
+     throws InstantiationException, IllegalAccessException,
+     InvocationTargetException;
+ 
+diff -u vm/reference/java/lang/reflect/VMField.java vm/reference/java/lang/reflect/VMField.java
+--- vm/reference/java/lang/reflect/VMField.java	2008-08-18 18:03:26.000000000 +0100
++++ vm/reference/java/lang/reflect/VMField.java	2008-08-18 18:04:53.000000000 +0100
+@@ -46,12 +46,6 @@
+   String name;
+   int slot;
+   
+-  /** 
+-   * This field allows us to refer back to the main constructor instance.
+-   *  It is set by the constructor of Field.
+-   */
+-  Field f;
+-
+   VMField(Class declaringClass, String name, int slot)
+   {
+     this.declaringClass = declaringClass;
+@@ -112,16 +106,16 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #getBoolean(Object)
+-   * @see #getByte(Object)
+-   * @see #getChar(Object)
+-   * @see #getShort(Object)
+-   * @see #getInt(Object)
+-   * @see #getLong(Object)
+-   * @see #getFloat(Object)
+-   * @see #getDouble(Object)
++   * @see #getBoolean(Field f, Object)
++   * @see #getByte(Field f, Object)
++   * @see #getChar(Field f, Object)
++   * @see #getShort(Field f, Object)
++   * @see #getInt(Field f, Object)
++   * @see #getLong(Field f, Object)
++   * @see #getFloat(Field f, Object)
++   * @see #getDouble(Field f, Object)
+    */
+-  native Object get(Object o)
++  native Object get(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -139,9 +133,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native boolean getBoolean(Object o)
++  native boolean getBoolean(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -159,9 +153,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native byte getByte(Object o)
++  native byte getByte(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -178,9 +172,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native char getChar(Object o)
++  native char getChar(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -198,9 +192,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native short getShort(Object o)
++  native short getShort(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -218,9 +212,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native int getInt(Object o)
++  native int getInt(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -238,9 +232,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native long getLong(Object o)
++  native long getLong(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -258,9 +252,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native float getFloat(Object o)
++  native float getFloat(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -279,9 +273,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #get(Object)
++   * @see #get(Field f, Object)
+    */
+-  native double getDouble(Object o)
++  native double getDouble(Field f, Object o)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -320,16 +314,16 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #setBoolean(Object, boolean)
+-   * @see #setByte(Object, byte)
+-   * @see #setChar(Object, char)
+-   * @see #setShort(Object, short)
+-   * @see #setInt(Object, int)
+-   * @see #setLong(Object, long)
+-   * @see #setFloat(Object, float)
+-   * @see #setDouble(Object, double)
++   * @see #setBoolean(Field f, Object, boolean)
++   * @see #setByte(Field f, Object, byte)
++   * @see #setChar(Field f, Object, char)
++   * @see #setShort(Field f, Object, short)
++   * @see #setInt(Field f, Object, int)
++   * @see #setLong(Field f, Object, long)
++   * @see #setFloat(Field f, Object, float)
++   * @see #setDouble(Field f, Object, double)
+    */
+-  native void set(Object o, Object value)
++  native void set(Field f, Object o, Object value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -347,9 +341,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setBoolean(Object o, boolean value)
++  native void setBoolean(Field f, Object o, boolean value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -367,9 +361,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setByte(Object o, byte value)
++  native void setByte(Field f, Object o, byte value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -387,9 +381,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setChar(Object o, char value)
++  native void setChar(Field f, Object o, char value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -407,9 +401,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setShort(Object o, short value)
++  native void setShort(Field f, Object o, short value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -427,9 +421,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setInt(Object o, int value)
++  native void setInt(Field f, Object o, int value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -447,9 +441,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setLong(Object o, long value)
++  native void setLong(Field f, Object o, long value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -467,9 +461,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setFloat(Object o, float value)
++  native void setFloat(Field f, Object o, float value)
+     throws IllegalAccessException;
+ 
+   /**
+@@ -487,9 +481,9 @@
+    *         requires an instance
+    * @throws ExceptionInInitializerError if accessing a static field triggered
+    *         class initialization, which then failed
+-   * @see #set(Object, Object)
++   * @see #set(Field f, Object, Object)
+    */
+-  native void setDouble(Object o, double value)
++  native void setDouble(Field f, Object o, double value)
+     throws IllegalAccessException;
+ 
+   /**
+diff -u vm/reference/java/lang/reflect/VMMethod.java vm/reference/java/lang/reflect/VMMethod.java
+--- vm/reference/java/lang/reflect/VMMethod.java	2008-08-18 18:03:26.000000000 +0100
++++ vm/reference/java/lang/reflect/VMMethod.java	2008-08-18 18:03:45.000000000 +0100
+@@ -48,12 +48,6 @@
+   String name;
+   int slot;
+ 
+-  /** 
+-   * This field allows us to refer back to the main constructor instance.
+-   *  It is set by the constructor of Field.
+-   */
+-  Method m;
+-
+   public Class getDeclaringClass()
+   {
+     return declaringClass;
+@@ -93,7 +87,7 @@
+    */
+   native Class[] getExceptionTypes();
+ 
+-  native Object invoke(Object o, Object[] args)
++  native Object invoke(Object o, Object[] args, Method m)
+     throws IllegalAccessException, InvocationTargetException;
+ 
+   /**
+Only in vm/reference/java/lang/reflect: VMMethod.java.orig
