@@ -799,7 +799,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   @Inline
   public static boolean testAndSetLiveBit(ObjectReference object) {
-    return setLiveBit(VM.objectModel.objectStartRef(object), true);
+    return updateLiveBit(VM.objectModel.objectStartRef(object), true, true);
   }
 
   /**
@@ -831,24 +831,25 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   @Inline
   public static boolean unsyncSetLiveBit(ObjectReference object) {
-    return setLiveBit(VM.objectModel.refToAddress(object), false);
+    return updateLiveBit(VM.objectModel.refToAddress(object), true, false);
   }
 
   /**
    * Set the live bit for a given address
    *
    * @param address The address whose live bit is to be set.
+   * @param set True if the bit is to be set, as opposed to cleared
    * @param atomic True if we want to perform this operation atomically
    */
   @Inline
-  private static boolean setLiveBit(Address address, boolean atomic) {
+  private static boolean updateLiveBit(Address address, boolean set, boolean atomic) {
     Word oldValue, newValue;
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, true);
     if (atomic) {
       do {
         oldValue = liveWord.prepareWord();
-        newValue = oldValue.or(mask);
+        newValue = (set) ? oldValue.or(mask) : oldValue.and(mask.not());
       } while (!liveWord.attempt(oldValue, newValue));
     } else {
       oldValue = liveWord.loadWord();
@@ -887,8 +888,8 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * @param object The object whose live bit is to be cleared.
    */
   @Inline
-  protected static void clearLiveBit(ObjectReference object) {
-    clearLiveBit(VM.objectModel.refToAddress(object));
+  protected static void unsyncClearLiveBit(ObjectReference object) {
+    unsyncClearLiveBit(VM.objectModel.refToAddress(object));
   }
 
   /**
@@ -897,10 +898,8 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * @param address The address whose live bit is to be cleared.
    */
   @Inline
-  protected static void clearLiveBit(Address address) {
-    Address liveWord = getLiveWordAddress(address);
-    Word mask = getMask(address, false);
-    liveWord.store(liveWord.loadWord().and(mask));
+  protected static void unsyncClearLiveBit(Address address) {
+    updateLiveBit(address, false, false);
   }
 
   /**
