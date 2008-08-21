@@ -146,9 +146,9 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * The exit node of the outermost CFG
-   * (only used by BC2IR for not-definitely caught athrows)
+   * (used by BC2IR for not-definitely caught athrows and by OSR_Yieldpoints)
    */
-  BasicBlock exit;
+  public BasicBlock exit;
 
   /**
    * A catch, unlock, and rethrow exception handler used for
