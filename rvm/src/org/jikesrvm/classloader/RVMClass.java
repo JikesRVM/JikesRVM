@@ -31,7 +31,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.util.LinkedListRVM;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -207,7 +206,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   private Annotation[] annotations;
 
   /** Set of objects that are cached here to ensure they are not collected by GC **/
-  private final LinkedListRVM<Object> objectCache;
+  private Object[] objectCache;
 
   /** The imt for this class **/
   @SuppressWarnings("unused")
@@ -596,7 +595,17 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Add the given cached object.
    */
   public synchronized void addCachedObject(Object o) {
-    objectCache.add(o);
+    Object[] newObjectCache;
+    if (objectCache == null) {
+      newObjectCache = new Object[1];
+    } else {
+      newObjectCache = new Object[objectCache.length + 1];
+      for (int i=0; i < objectCache.length; i++) {
+        newObjectCache[i] = objectCache[i];
+      }
+    }
+    newObjectCache[newObjectCache.length - 1] = o;
+    objectCache = newObjectCache;
   }
 
   /**
@@ -1182,7 +1191,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     this.sourceName = sourceName;
     this.classInitializerMethod = classInitializerMethod;
     this.signature = signature;
-    this.objectCache = new LinkedListRVM<Object>();
 
     // non-final fields
     this.subClasses = emptyVMClass;
