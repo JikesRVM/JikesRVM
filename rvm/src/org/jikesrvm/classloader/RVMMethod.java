@@ -987,7 +987,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     }
     if (isStatic()) {
       bytecodes[curBC] = (byte)JBC_invokestatic;
-    } else if (isObjectInitializer()) {
+    } else if (isObjectInitializer() || isPrivate()) {
       bytecodes[curBC] = (byte)JBC_invokespecial;
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
