@@ -10,8 +10,10 @@
 // #include <time.h>
 #include <errno.h>              /* errno */
 #include "jburg.h"
+#ifdef __GNUC__
 #include <unistd.h>             /* getcwd().  We use the non-gnu interface
                                  * (ugh).  */
+#endif
 
 static const char *prefix = ""; /* prefix for any Java symbols */
 static const char *arch = ""; /* arch name for packages & directories */
@@ -27,7 +29,12 @@ static struct block {
     struct block *link;
 } *memlist;                     /* list of allocated blocks */
 
+#ifdef __GNUC__
 static char *stringf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#else
+static char *stringf(const char *fmt, ...);
+#endif
+
 /* Specially formatted output. */
 static void print(const char *fmt, ...);
 static const char *cwd(void);
@@ -51,6 +58,18 @@ static void verify_chars(int ret, size_t bufsz);
 
 
 static int oneterminal = 0;     /* boolean */
+
+#if !defined(__GNUC__)
+/* Provide for non GCC compilers */
+int snprintf(char* s, size_t n, const char* format, ...) {
+  va_list ap;
+  int r;
+  va_start(ap, format);
+  r = vsnprintf(s,n,format,ap);
+  va_end(ap);
+  return r;
+}
+#endif
 
 static
 void
