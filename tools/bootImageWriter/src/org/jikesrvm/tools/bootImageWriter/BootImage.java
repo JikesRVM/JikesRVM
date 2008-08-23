@@ -116,6 +116,13 @@ public class BootImage extends BootImageWriterMessages
   private final String imageRMapFileName;
 
   /**
+   * Use mapped byte buffers? We need to truncate the byte buffer
+   * before writing it to disk. This operation is support on UNIX but
+   * not Windows.
+   */
+  private static final boolean mapByteBuffers = false;
+
+  /**
    * @param ltlEndian write words low-byte first?
    * @param t turn tracing on?
    */
@@ -125,10 +132,15 @@ public class BootImage extends BootImageWriterMessages
     this.imageRMapFileName = imageRMapFileName;
     dataOut = new RandomAccessFile(imageDataFileName,"rw");
     codeOut = new RandomAccessFile(imageCodeFileName,"rw");
+    if (mapByteBuffers) {
+      bootImageData = dataOut.getChannel().map(MapMode.READ_WRITE, 0, BOOT_IMAGE_DATA_SIZE);
+      bootImageCode = codeOut.getChannel().map(MapMode.READ_WRITE, 0, BOOT_IMAGE_CODE_SIZE);
+    } else {
+      bootImageData = ByteBuffer.allocate(BOOT_IMAGE_DATA_SIZE);
+      bootImageCode = ByteBuffer.allocate(BOOT_IMAGE_CODE_SIZE);
+    }
     ByteOrder endian = ltlEndian ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
-    bootImageData = dataOut.getChannel().map(MapMode.READ_WRITE, 0, BOOT_IMAGE_DATA_SIZE);
     bootImageData.order(endian);
-    bootImageCode = codeOut.getChannel().map(MapMode.READ_WRITE, 0, BOOT_IMAGE_CODE_SIZE);
     bootImageCode.order(endian);
     referenceMap = new byte[BOOT_IMAGE_DATA_SIZE >> LOG_BYTES_IN_ADDRESS];
     trace = t;
@@ -148,13 +160,23 @@ public class BootImage extends BootImageWriterMessages
       say((getCodeSize() / 1024) + "k code in image");
       say("writing " + imageDataFileName);
     }
-    dataOut.getChannel().truncate(getDataSize());
+    if (!mapByteBuffers) {
+      dataOut.write(bootImageData.array(), 0, getDataSize());
+    } else {
+      dataOut.getChannel().truncate(getDataSize());
+    }
     dataOut.close();
+
     if (trace) {
       say("writing " + imageCodeFileName);
     }
-    codeOut.getChannel().truncate(getCodeSize());
+    if (!mapByteBuffers) {
+      codeOut.write(bootImageCode.array(), 0, getCodeSize());
+    } else {
+      codeOut.getChannel().truncate(getCodeSize());
+    }
     codeOut.close();
+
     if (trace) {
       say("writing " + imageRMapFileName);
     }
