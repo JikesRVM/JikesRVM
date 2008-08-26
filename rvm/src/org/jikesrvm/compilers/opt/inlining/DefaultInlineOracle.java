@@ -19,9 +19,9 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.AdaptiveInlining;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.database.callgraph.WeightedCallTargets;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
@@ -121,13 +121,12 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       if (targets != null) {
         if (verbose) VM.sysWriteln("\tFound profile data");
         purelyStatic = false;
-        if (state.getHasPreciseTarget()) {
-          // static analysis tells us that there is only one possible target.
-          // Filter the profile information accordingly.
-          targets = targets.filter(staticCallee);
-          if (verbose) VM.sysWriteln("\tFiltered to match precise target");
+        WeightedCallTargets filteredTargets = targets.filter(staticCallee, state.getHasPreciseTarget());
+        if (targets != filteredTargets) {
+          if (verbose) VM.sysWriteln("\tProfiled callees filtered based on static information");
+          targets = filteredTargets;
           if (targets == null) {
-            if (verbose) VM.sysWriteln("\tNow no profile data...");
+            if (verbose) VM.sysWriteln("\tAfter filterting no profile data...");
             // After filtering, no matching profile data, fall back to
             // static information to avoid degradations
             targets = WeightedCallTargets.create(staticCallee, 0);
