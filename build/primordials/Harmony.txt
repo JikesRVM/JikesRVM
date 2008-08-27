@@ -434,7 +434,6 @@ Ljava/lang/ref/SoftReference;
 [[Ljava/lang/Object;
 [Ljava/lang/Class;
 Ljava/lang/Class$1;
-Ljava/lang/Class$Collector;
 Ljava/lang/Enum;
 
 [Ljava/lang/reflect/Field;
