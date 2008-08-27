@@ -18,6 +18,7 @@ import org.jikesrvm.SizeConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
@@ -707,6 +708,13 @@ public abstract class RVMType extends AnnotatedElement
    */
   @Uninterruptible
   public abstract boolean isReferenceType();
+
+  /**
+   * @return whether type can be assigned to things of this RVMType
+   */
+  public boolean isAssignableFrom(RVMType type) {
+    return this == type || RuntimeEntrypoints.isAssignableWith(this, type);
+  }
 
   /**
    * Space required when this type is stored on the stack
