@@ -25,10 +25,11 @@ import org.objectweb.asm.Type;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -43,8 +44,9 @@ import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.NoEscapes;
+import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.RuntimePure;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -189,6 +191,8 @@ public final class AnnotationAdder {
                    "arrayDecodeLoop",
                    "(Ljava/nio/ByteBuffer;Ljava/nio/CharBuffer;)Ljava/nio/charset/CoderResult;");
       }
+      // Proxy
+      addToAdapt(RuntimePure.class, Proxy.class.getMethod("getProxyClass", new Class[]{ClassLoader.class, Class[].class}));
       // BigDecimal
       addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[0]));
       addToAdapt(Pure.class, BigDecimal.class.getMethod("abs", new Class[]{MathContext.class}));
