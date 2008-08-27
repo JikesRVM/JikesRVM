@@ -1410,7 +1410,7 @@ public final class IR {
    */
   @NoInline
   private void verror(String where, String msg) {
-    CompilerPhase.dumpIR(this, "Verify: " + where + ": " + method);
+    CompilerPhase.dumpIR(this, "Verify: " + where + ": " + method, true);
     VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OptimizingCompilerException("VERIFY: " + where, msg);
   }
