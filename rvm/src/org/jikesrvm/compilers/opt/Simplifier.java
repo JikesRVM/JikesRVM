@@ -3196,20 +3196,9 @@ public abstract class Simplifier extends IRTools {
       } else if (methOp.isStatic() && methOp.hasPreciseTarget() && HIR) {
         RVMMethod containingMethod = s.position.getMethod();
         RVMMethod method = methOp.getTarget();
-        // Can we remove the need for Class.forName to walk the stack?
-        if (method == Entrypoints.java_lang_Class_forName) {
-          methOp = MethodOperand.STATIC(Entrypoints.java_lang_Class_forName_withLoader.getMemberRef().asMethodReference(),
-                                        Entrypoints.java_lang_Class_forName_withLoader);
-          Call.mutate3(s, CALL, Call.getResult(s),
-                       new AddressConstantOperand(Entrypoints.java_lang_Class_forName_withLoader.getOffset()),
-                       methOp, Call.getGuard(s),
-                       Call.getParam(s, 0),
-                       new IntConstantOperand(1), // true
-                       new ObjectConstantOperand(containingMethod.getDeclaringClass().getClassLoader(), Offset.zero()));
-          return DefUseEffect.REDUCED;
         // Can we remove the need for RVMClass.getClass...FromStackFrame to walk the stack?
-        } else if (method == Entrypoints.getClassLoaderFromStackFrame ||
-                   method == Entrypoints.getClassFromStackFrame) {
+        if (method == Entrypoints.getClassLoaderFromStackFrame ||
+            method == Entrypoints.getClassFromStackFrame) {
           Operand frameOp = Call.getParam(s, 0);
           if (frameOp.isIntConstant()) {
             int frame = frameOp.asIntConstant().value;
