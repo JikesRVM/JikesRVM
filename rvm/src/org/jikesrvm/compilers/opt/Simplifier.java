@@ -3151,8 +3151,8 @@ public abstract class Simplifier extends IRTools {
       Operand ref = BoundsCheck.getRef(s);
       Operand index = BoundsCheck.getIndex(s);
       if (ref.isNullConstant()) {
-        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
-        return DefUseEffect.TRAP_REDUCED;
+        // Should already be caught by nullcheck simplification
+        return DefUseEffect.UNCHANGED;
       } else if (index.isIntConstant()) {
         int indexAsInt = index.asIntConstant().value;
         if (indexAsInt < 0) {
@@ -3184,8 +3184,8 @@ public abstract class Simplifier extends IRTools {
       if (methOp.isVirtual() && !methOp.hasPreciseTarget()) {
         Operand calleeThis = Call.getParam(s, 0);
         if (calleeThis.isNullConstant()) {
-          Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
-          return DefUseEffect.TRAP_REDUCED;
+          // Should already be caught by nullcheck simplification
+          return DefUseEffect.UNCHANGED;
         } else if (calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
           TypeReference calleeClass = calleeThis.getType();
           if (calleeClass.isResolved()) {
