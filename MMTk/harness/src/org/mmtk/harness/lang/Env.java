@@ -17,6 +17,11 @@ import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.compiler.CompiledMethod;
+import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.PcodeInterpreter;
+import org.mmtk.harness.lang.runtime.StackFrame;
+import org.mmtk.harness.lang.runtime.Value;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -30,7 +35,7 @@ public class Env extends Mutator {
   /**
    * The stack
    */
-  private Stack<StackFrame> stack = new Stack<StackFrame>();
+  private UnsyncStack<StackFrame> stack = new UnsyncStack<StackFrame>();
 
   /**
    * The temporary values saved during evaluation.
@@ -38,9 +43,9 @@ public class Env extends Mutator {
   private Stack<ObjectValue> temporaries = new Stack<ObjectValue>();
 
   /**
-   * The main program
+   * The main program if we're using the compiler
    */
-  private final Statement body;
+  private final CompiledMethod body;
 
   /**
    * A source of random numbers (we have one per thread so that we can write
@@ -48,12 +53,7 @@ public class Env extends Mutator {
    */
   private Random rng = new Random();
 
-  /**
-   * Create an environment with the given main program
-   * @param body
-   */
-  public Env(Statement body) {
-    super();
+  public Env(CompiledMethod body) {
     this.body = body;
   }
 
@@ -67,20 +67,8 @@ public class Env extends Mutator {
   @Override
   public void run() {
     begin();
-    try {
-      body.exec(this);
-    } catch (ReturnException e) {
-      // Ignore return values on thread exit
-      popTemporary(e.getResult());
-    }
+    new PcodeInterpreter(this,body).exec();
     end();
-  }
-
-  /**
-   * Return the global stack frame.
-   */
-  public StackFrame global() {
-    return stack.get(0);
   }
 
   /**
@@ -161,6 +149,7 @@ public class Env extends Mutator {
    *
    * @param value The value to push
    */
+  @Deprecated
   public void pushTemporary(Value value) {
     if (value instanceof ObjectValue) {
       temporaries.push((ObjectValue)value);
@@ -172,6 +161,7 @@ public class Env extends Mutator {
    *
    * @param value The expected value, to ensure that pushes and pops match.
    */
+  @Deprecated
   public void popTemporary(Value value) {
     if (value instanceof ObjectValue) {
       ObjectValue poppedValue = temporaries.pop();
@@ -182,38 +172,6 @@ public class Env extends Mutator {
   /*******************************************************************
    * Utility methods
    */
-
-  /**
-   * Evaluate an int expression, type-check and return an int
-   * @param env
-   * @param doubleAlign2
-   * @param message
-   * @return
-   */
-  int evalInt(Expression refCount2, String message) {
-    Value refCountVal = refCount2.eval(this);
-    check(refCountVal.type() == Type.INT, message);
-    int refCountInt = refCountVal.getIntValue();
-    gcSafePoint();
-    return refCountInt;
-  }
-
-  /**
-   * Evaluate a boolean expression, type-check and return a boolean
-   * @param env
-   * @param doubleAlign2
-   * @param message
-   * @return
-   */
-  boolean evalBoolVal(Expression doubleAlign2, String message) {
-    Value doubleAlignVal = doubleAlign2.eval(this);
-
-    check(doubleAlignVal.type() == Type.BOOLEAN, message);
-
-    boolean doubleAlignBool = doubleAlignVal.getBoolValue();
-    gcSafePoint();
-    return doubleAlignBool;
-  }
 
   /**
    * @return The per-thread random number generator

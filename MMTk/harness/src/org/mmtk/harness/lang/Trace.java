@@ -14,8 +14,9 @@ package org.mmtk.harness.lang;
 
 import java.util.EnumSet;
 
-public class Trace {
-  public enum Item { ALLOC, CALL, OBJECT, INTRINSIC, LOAD, STORE, HASH, ENV, ROOTS, COLLECT, AVBYTE }
+public final class Trace {
+  public enum Item { ALLOC, CALL, OBJECT, INTRINSIC, LOAD, STORE, HASH, ENV,
+    ROOTS, COLLECT, AVBYTE, EVAL, COMPILER, CHECKER }
 
   private static EnumSet<Item> enabled = EnumSet.noneOf(Item.class);
 

@@ -2,24 +2,28 @@
 
 Basics:
 
-The language has two types: integer and object.  Objects are allocated
-with the 'alloc' statement, and have a specified number of pointers and
+The language has four types: integerr, object, boolean and string, although
+boolean and string have only minimal support.  Objects are allocated
+with the 'alloc' expression, and have a specified number of pointers and
 nonpointers (integers).  Variables are declared 'c' style, and are optionally
 initialized at declaration.
 
 Object fields are referenced using syntax like "tmp.int[5]" or "tmp.object[i*3]",
-ie like a struct of arrays of the appropriate types.
+ie like a (C) struct of arrays of the appropriate types.
 
 Syntax:
 
 script ::= method...
 
-method ::= ident "(" { type ident { "," type ident}...  ")" "{" statement... "}"
+method ::= [ type ] ident "(" { type ident { "," type ident}...  ")" "{" statement... "}"
+	| "intrinsic" "class" quoted-string "method" quoted-string
+            "signature" "(" quoted-string { "," quoted-string" } ")";
+
+block ::= "{" { statement } "}"
 
 statement ::=
 	  "if" "(" expr ")" block { "elif" "(" expr ")" block } [ "else" block ]
 	| "while "(" expr ")" block
-	| [ [ type ] ident "=" ] "alloc" "(" expr "," expr [ "," expr ] ")" ";"
 	| [ ident "=" ] "hash" "(" expr ")" ";"
         | "gc" "(" ")"
         | "spawn" "(" ident [ "," expr ]... ")" ";"
@@ -36,13 +40,35 @@ expr ::= expr binop expr
 		| "(" expr ")"
 		| ident
 		| ident "." type "[" expr "]"
-		| int-const
-		| intrinsic
-
-intrinsic ::= "alloc" "(" expr "," expr ["," expr] ")
-            | "(" expr ")"
-            | "gc " "(" ")"
+		| const
+		| ident "(" [expr { "," expr } ] ")"           // Method call
+                | "alloc" "(" expr "," expr ["," expr] ")
 
 binop ::= "+" | "-" | "*" | "/" | "%" | "&&" | "||" | "==" | "!="
 
 unop ::= "!" | "-"
+
+
+INTRINSICS
+
+Rather than extend the language indefinitely, you can break back into Java using
+an intrinsic method call.  An intrinsic method can be declared by specifying its
+class, method name and parameter types (limited to types cognate with the types
+supported by the scripting language), and called like any other method.  The first
+parameter of the Java method must be an environment (org.mmtk.harness.lang.Env), 
+and this doesn't need to be declared in the script.
+
+EG, to call 
+
+public static String testMethod(Env env, int x, boolean y, String string, ObjectValue val)
+
+in the class org.mmtk.harness.lang.Intrinsics, specify
+
+string test_method(int i, boolean b, string s, object o)
+  intrinsic class "org.mmtk.harness.lang.Intrinsics"
+            method "testMethod"
+            signature ("int","boolean","String","org.mmtk.harness.lang.ast.ObjectValue");
+
+The class can be any class reachable on the classpath.
+
+

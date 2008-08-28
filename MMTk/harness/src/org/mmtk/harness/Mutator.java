@@ -17,9 +17,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-import org.mmtk.harness.lang.AllocationSite;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.runtime.AllocationSite;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;

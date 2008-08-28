@@ -1,0 +1,6 @@
+main() {
+  object a = alloc(0,0);
+  a = alloc(1,0);
+  a = alloc(0,1);
+  a = alloc(1,1);
+}

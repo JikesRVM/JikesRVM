@@ -1,0 +1,12 @@
+main() {
+  object a = alloc(1,1);
+
+  print("a.int[0] = ",a.int[0]," (0)",a.int[0] == 0);
+  a.int[0] = 1;
+  print("a.int[0] = ",a.int[0]," (1)",a.int[0] == 1);
+
+  object b = alloc(0,0);
+  print("a.object[0] = ",a.object[0]," (0)",a.object[0] == null);
+  a.object[0] = b;
+  print("a.object[0] = ",a.object[0]," (b)",a.object[0] == b);
+}

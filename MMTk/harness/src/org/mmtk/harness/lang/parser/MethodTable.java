@@ -12,10 +12,13 @@
  */
 package org.mmtk.harness.lang.parser;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.mmtk.harness.lang.Method;
+import org.mmtk.harness.lang.ast.Method;
+import org.mmtk.harness.lang.ast.NormalMethod;
 
 /**
  * Parser method table.
@@ -36,5 +39,15 @@ public class MethodTable {
     if (!table.containsKey(name))
       throw new RuntimeException("Method " + name + " not found");
     return table.get(name);
+  }
+
+  public Iterable<NormalMethod> normalMethods() {
+    List<NormalMethod> result = new ArrayList<NormalMethod>();
+    for (Method m : table.values()) {
+      if (m instanceof NormalMethod) {
+        result.add((NormalMethod)m);
+      }
+    }
+    return result;
   }
 }

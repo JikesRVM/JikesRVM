@@ -25,7 +25,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 @Uninterruptible
-public class ObjectModel extends org.mmtk.vm.ObjectModel {
+public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   /*
    * The object model for the harness stores:

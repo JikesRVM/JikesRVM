@@ -1,0 +1,20 @@
+main() {
+  other(1);
+}
+
+other(int x) {
+  print (tid(), " executing other(", x, ")" );
+  object parent = alloc(5, 0);
+  if (x < 30) {
+    print(tid(), " spawning a thread");
+    spawn(other, x + 1);
+  }
+  int i = 0;
+  while (i < 5000) {
+    object tmp;
+    tmp = alloc(0, 100);
+    parent.object[i % 5] = tmp;
+    i = i + 1;
+  }
+  print(tid(), " done");
+}

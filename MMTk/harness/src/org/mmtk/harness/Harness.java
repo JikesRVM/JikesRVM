@@ -14,13 +14,7 @@ package org.mmtk.harness;
 
 import java.util.ArrayList;
 
-import org.mmtk.harness.options.Collectors;
-import org.mmtk.harness.options.GcEvery;
-import org.mmtk.harness.options.HarnessOptionSet;
-import org.mmtk.harness.options.InitHeap;
-import org.mmtk.harness.options.MaxHeap;
-import org.mmtk.harness.options.Plan;
-import org.mmtk.harness.options.Trace;
+import org.mmtk.harness.options.*;
 import org.mmtk.harness.vm.*;
 
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -46,6 +40,9 @@ public class Harness {
   /** Option for the maximum heap size */
   public static MaxHeap maxHeap = new MaxHeap();
 
+  /** Option for the maximum heap size */
+  public static DumpPcode dumpPcode = new DumpPcode();
+
   /** Trace options */
   public static Trace trace = new Trace();
 
@@ -58,7 +55,7 @@ public class Harness {
    *
    * After calling this it is possible to begin creating mutator threads.
    */
-  public static void init(String[] args) throws InterruptedException {
+  public static void init(String[] args) {
     /* Always use the harness factory */
     System.setProperty("mmtk.hostjvm", Factory.class.getCanonicalName());
 
@@ -69,36 +66,44 @@ public class Harness {
     }
     trace.apply();
     gcEvery.apply();
-    MMTkThread thread = new MMTkThread((new Runnable() {
-      public void run() {
+    /* Get MMTk breathing */
+    ActivePlan.init(plan.getValue());
+    ActivePlan.plan.boot();
+    HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
+    Collector.init(collectors.getValue());
 
-        /* Get MMTk breathing */
-        ActivePlan.init(plan.getValue());
-        ActivePlan.plan.boot();
-        HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
-        Collector.init(collectors.getValue());
+    /* Override some defaults */
+    Options.noFinalizer.setValue(true);
+    Options.noReferenceTypes.setValue(true);
+    Options.variableSizeHeap.setValue(false);
 
-        /* Override some defaults */
-        Options.noFinalizer.setValue(true);
-        Options.noReferenceTypes.setValue(true);
-
-        /* Process command line options */
-        for(String arg: newArgs) {
-          if (!options.process(arg)) {
-            throw new RuntimeException("Invalid option '" + arg + "'");
-          }
-        }
-
-        /* Check options */
-        assert Options.noFinalizer.getValue(): "noFinalizer must be true";
-        assert Options.noReferenceTypes.getValue(): "noReferenceTypes must be true";
-
-        /* Finish starting up MMTk */
-        ActivePlan.plan.postBoot();
-        ActivePlan.plan.fullyBooted();
+    /* Process command line options */
+    for(String arg: newArgs) {
+      if (!options.process(arg)) {
+        throw new RuntimeException("Invalid option '" + arg + "'");
       }
-    }));
-    thread.start();
-    thread.join();
+    }
+
+    /* Check options */
+    assert Options.noFinalizer.getValue(): "noFinalizer must be true";
+    assert Options.noReferenceTypes.getValue(): "noReferenceTypes must be true";
+
+    /* Finish starting up MMTk */
+    ActivePlan.plan.postBoot();
+    ActivePlan.plan.fullyBooted();
+  }
+
+  /** GC stress - GC on every allocation */
+  private static boolean gcEveryAlloc = false;
+
+  /**
+   * GC stress - GC after every allocation
+   */
+  public static void setGcEveryAlloc() {
+    gcEveryAlloc = true;
+  }
+
+  public static boolean gcEveryAlloc() {
+    return gcEveryAlloc;
   }
 }

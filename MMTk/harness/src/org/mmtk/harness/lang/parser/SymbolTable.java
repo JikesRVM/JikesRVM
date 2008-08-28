@@ -21,13 +21,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.mmtk.harness.lang.BoolValue;
 import org.mmtk.harness.lang.Declaration;
-import org.mmtk.harness.lang.IntValue;
-import org.mmtk.harness.lang.ObjectValue;
-import org.mmtk.harness.lang.StringValue;
-import org.mmtk.harness.lang.Type;
-import org.mmtk.harness.lang.Value;
+import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.runtime.BoolValue;
+import org.mmtk.harness.lang.runtime.IntValue;
+import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.StringValue;
+import org.mmtk.harness.lang.runtime.Value;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -56,32 +56,7 @@ public class SymbolTable {
     reservedWords.add("while");
   }
 
-  private static final boolean TRACE = false;
-
-  /**
-   * A symbol in the symbol table
-   */
-  private class Symbol {
-    /** Variable name */
-    String name;
-
-    /** Variable type */
-    Type type;
-
-    /** Syntactic nesting level */
-    int level;
-
-    /** stack frame location */
-    int location;
-
-    Symbol(String name, Type type) {
-      this.name = name;
-      this.type = type;
-      this.location = nextLocation++;
-      this.level = currentScope;
-      if (TRACE) System.out.println("Declaring variable "+name+" at location "+location);
-    }
-  }
+  static final boolean TRACE = false;
 
   /** The table of symbols */
   private Map<String, Symbol> table = new HashMap<String,Symbol>();
@@ -95,6 +70,9 @@ public class SymbolTable {
   /** The current syntactic scope level */
   private int currentScope = 0;
 
+  int getCurrentScope() { return currentScope; }
+  int getFreeLocation() { return nextLocation++; }
+
   /**
    * Declare a new variable
    *
@@ -106,9 +84,9 @@ public class SymbolTable {
       throw new RuntimeException(name + " is a reserved word");
     if (table.containsKey(name))
       throw new RuntimeException("Symbol "+name+" already defined");
-    Symbol symbol = new Symbol(name,type);
+    Symbol symbol = new Symbol(this,name,type);
     table.put(name, symbol);
-    stackMap.add(new Declaration(name,initialValue(type),symbol.location));
+    stackMap.add(new Declaration(symbol,initialValue(type)));
   }
 
   /**
@@ -121,12 +99,21 @@ public class SymbolTable {
   }
 
   /**
+   * Symbol table entry for the named variable
+   * @param name
+   * @return
+   */
+  Symbol getSymbol(String name) {
+    return table.get(name);
+  }
+
+  /**
    * Type of the named variable
    * @param name
    * @return
    */
   Type getType(String name) {
-    return table.get(name).type;
+    return table.get(name).getType();
   }
 
   /**
@@ -139,7 +126,7 @@ public class SymbolTable {
     if (symbol == null) {
       throw new RuntimeException(String.format("symbol \"%s\" not found",name));
     }
-    return symbol.location;
+    return symbol.getLocation();
   }
 
   /**
@@ -165,7 +152,7 @@ public class SymbolTable {
     Iterator<Entry<String, Symbol>> iterator = entrySet.iterator();
     while (iterator.hasNext()) {
       Map.Entry<String, Symbol> entry = iterator.next();
-      if (entry.getValue().level == currentScope)
+      if (entry.getValue().getLevel() == currentScope)
         iterator.remove();
     }
     currentScope--;
