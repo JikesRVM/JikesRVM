@@ -402,7 +402,7 @@ public final class SimulatedMemory {
       return getIndex(address,offset.value);
     }
     private int getIndex(Address address, int offset) {
-      assert ((((address.value + offset) >>> LOG_BYTES_IN_PAGE) ^ page) != 0) :
+      assert ((((address.value + offset) >>> LOG_BYTES_IN_PAGE) ^ page) == 0) :
         "Invalid access of " + Address.formatInt(address.toInt() + offset) + " in page " + Address.formatInt(page << LOG_BYTES_IN_PAGE);
       return ((address.toInt() + offset) & INDEX_MASK) >>> LOG_BYTES_IN_WORD;
     }
