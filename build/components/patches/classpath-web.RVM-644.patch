@@ -1,0 +1,68 @@
+Index: java/lang/reflect/Proxy.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/reflect/Proxy.java,v
+retrieving revision 1.30
+diff -u -r1.30 Proxy.java
+--- java/lang/reflect/Proxy.java	16 Mar 2008 22:04:51 -0000	1.30
++++ java/lang/reflect/Proxy.java	29 Aug 2008 11:01:39 -0000
+@@ -1402,7 +1402,12 @@
+     {
+       String utf8 = toUtf8(str);
+       int len = utf8.length();
+-      return poolIndex("\1" + (char) (len >> 8) + (char) (len & 0xff) + utf8);
++      CPStringBuilder buf = new CPStringBuilder(len+3);
++      buf.append('\1');
++      buf.append((char) (len >> 8));
++      buf.append((char) (len & 0xff));
++      buf.append(utf8);
++      return poolIndex(buf.toString());
+     }
+ 
+     /**
+@@ -1416,7 +1421,7 @@
+     {
+       char index = utf8Info(name);
+       char[] c = {7, (char) (index >> 8), (char) (index & 0xff)};
+-      return poolIndex(new String(c));
++      return poolIndex(stringFromCharArray(c));
+     }
+ 
+     /**
+@@ -1452,7 +1457,7 @@
+       char[] c = {(char) (structure + 8),
+                   (char) (cindex >> 8), (char) (cindex & 0xff),
+                   (char) (ntindex >> 8), (char) (ntindex & 0xff)};
+-      return poolIndex(new String(c));
++      return poolIndex(stringFromCharArray(c));
+     }
+ 
+     /**
+@@ -1469,7 +1474,7 @@
+       char tindex = utf8Info(type);
+       char[] c = {12, (char) (nindex >> 8), (char) (nindex & 0xff),
+                   (char) (tindex >> 8), (char) (tindex & 0xff)};
+-      return poolIndex(new String(c));
++      return poolIndex(stringFromCharArray(c));
+     }
+ 
+     /**
+@@ -1541,5 +1546,19 @@
+         }
+       return (char) i.intValue();
+     }
++
++    /**
++     * Return a String wrapping the char array avoiding copying the char array
++     * if possible
++     *
++     * @param c the char array
++     * @return the String
++     */
++    private String stringFromCharArray(char[] c)
++    {
++      // TODO: we need some back door like VMCPStringBuilder to avoid copying
++      //       the character array in this situation
++      return new String(c);
++    }
+   } // class ClassFactory
+ }
