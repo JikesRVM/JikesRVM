@@ -168,16 +168,24 @@ public class Inliner {
         GenerationContext.transferState(parent, children[i]);
       }
       // Step 3: Merge together result from children into container.
+      //         Note: if the child ended with only exception control flow, then
+      //         child.result will be null, which we want to interpret as top.
+      //         Operand.meet interprets null as bottom, so we have to do some
+      //         special purpose coding wrapping the calls to Operand.meet.
       if (Call.hasResult(callSite)) {
         Register reg = Call.getResult(callSite).getRegister();
         container.result = children[0].result;
         for (int i = 1; i < targets.length; i++) {
-          container.result = Operand.meet(container.result, children[i].result, reg);
+          if (children[i].result != null) {
+            container.result = (container.result == null) ? children[i].result : Operand.meet(container.result, children[i].result, reg);
+          }
         }
+
 
         if (!inlDec.OSRTestFailed()) {
           // Account for the non-predicted case as well...
-          container.result = Operand.meet(container.result, Call.getResult(callSite), reg);
+          RegisterOperand failureCaseResult = Call.getResult(callSite);
+          container.result = (container.result == null) ?  failureCaseResult : Operand.meet(container.result, failureCaseResult, reg);
         }
       }
 
