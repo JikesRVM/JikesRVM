@@ -106,18 +106,11 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   private ArrayList<LiveIntervalElement>[] registerMap;
 
-  // Debugging information
-  // Live Intervals, GC Maps, and fixed-point results
-  private static final boolean dumpFinalLiveIntervals = false;
-  private static final boolean dumpFinalMaps = false;
-  private static final boolean dumpFixedPointResults = false;
-
-  // used for debugging. make it nonfinal to accept the argument from the input
+  /** Debugging info */
   private static final boolean debug = false;
 
-  // even more debugging info
+  /** Even more debugging info */
   private static final boolean verbose = false;
-  // End debugging information
 
   public String getName() {
     return "Live Analysis";
@@ -196,9 +189,19 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   public void perform(IR ir) {
 
+    // Debugging information
+    // Live Intervals, GC Maps, and fixed-point results
+    final boolean dumpFinalLiveIntervals = debug ||
+      ir.options.PRINT_GC_MAPS &&
+         (!ir.options.hasMETHOD_TO_PRINT() ||
+          (ir.options.hasMETHOD_TO_PRINT() && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))
+         );
+    final boolean dumpFinalMaps = dumpFinalLiveIntervals;
+    final boolean dumpFixedPointResults = dumpFinalLiveIntervals;
+
     // make sure IR info is up-to-date
     DefUse.recomputeSpansBasicBlock(ir);
-    debugBegining(ir, createGCMaps);
+    debugBegining(ir, createGCMaps, dumpFinalLiveIntervals, dumpFinalMaps, dumpFixedPointResults);
     bbLiveInfo = new BBLiveElement[ir.cfg.numberOfNodes()];
 
     for (int i = 0; i < ir.cfg.numberOfNodes(); i++) {
@@ -222,7 +225,7 @@ public final class LiveAnalysis extends CompilerPhase {
     // currentBlock is the first node in the list
     BasicBlock currentBlock = (BasicBlock) ir.cfg.buildRevTopSort();
 
-    // 2nd parm: true means forward analysis; false means backward analysis
+    // 2nd param: true means forward analysis; false means backward analysis
     SortedGraphIterator bbIter = new SortedGraphIterator(currentBlock, false);
     while (currentBlock != null) {
       boolean changed = processBlock(currentBlock, reuseCurrentSet, ir);
@@ -235,7 +238,7 @@ public final class LiveAnalysis extends CompilerPhase {
       reuseCurrentSet = nextBlock != null && bbIter.isSinglePredecessor(currentBlock, nextBlock);
       currentBlock = nextBlock;
     }
-    debugPostGlobal(ir);
+    debugPostGlobal(ir, dumpFinalLiveIntervals, dumpFinalMaps, dumpFixedPointResults);
 
     // Now compute live ranges, using results from the fixed point computation
     // Also, optionally create GC maps
@@ -911,9 +914,12 @@ public final class LiveAnalysis extends CompilerPhase {
    * that is performed at the beginning of the perform method
    * @param ir  the IR
    * @param createGCMaps are we creating GC maps?
+   * @param dumpFixedPointResults debug info
+   * @param dumpFinalMaps debug info
+   * @param dumpFinalLiveIntervals debug info
    */
-  private void debugBegining(IR ir, boolean createGCMaps) {
-    if (debug || dumpFixedPointResults || dumpFinalMaps || dumpFinalLiveIntervals) {
+  private void debugBegining(IR ir, boolean createGCMaps, boolean dumpFixedPointResults, boolean dumpFinalMaps, boolean dumpFinalLiveIntervals) {
+    if (dumpFixedPointResults || dumpFinalMaps || dumpFinalLiveIntervals) {
       System.out.print("\n ====>  Performing liveness analysis ");
       if (createGCMaps) {
         System.out.print("and GC Maps ");
@@ -921,7 +927,7 @@ public final class LiveAnalysis extends CompilerPhase {
       System.out.println("for method: " + ir.method.getName() + " in class: " + ir.method.getDeclaringClass() + "\n");
       System.out.println("  method has " + ir.cfg.numberOfNodes() + " basic blocks");
     }
-    if (debug || dumpFinalMaps) {
+    if (dumpFinalMaps) {
       System.out.println("**** START OF IR for method: " +
                          ir.method.getName() +
                          " in class: " +
@@ -936,16 +942,17 @@ public final class LiveAnalysis extends CompilerPhase {
    * that is performed after the global propagation step of "perform"
    *
    * @param ir the IR
+   * @param dumpFixedPointResults debug info
+   * @param dumpFinalMaps debug info
+   * @param dumpFinalLiveIntervals debug info
    */
-  private void debugPostGlobal(IR ir) {
+  private void debugPostGlobal(IR ir, boolean dumpFixedPointResults, boolean dumpFinalMaps, boolean dumpFinalLiveIntervals) {
     if (debug) {
       System.out.println(" .... Completed global live computation ....");
       if (verbose) {
         // Print the basic blocks
         System.out.println(" .... CFG:");
         System.out.println(ir.cfg);
-        // Print the results for basic blocks
-        printFixedPointResults(ir);
       }
     }
     if (dumpFixedPointResults) {
@@ -981,16 +988,6 @@ public final class LiveAnalysis extends CompilerPhase {
                        ir.method.getName());
     map.dump();
     System.out.println("  =-=-=-=-=- End Final IR-based GC Maps\n");
-  }
-
-  /**
-   *  Dumps the GC map, see printFinalMaps
-   */
-  public void dumpMap() {
-    if (VM.VerifyAssertions) {
-      VM._assert(map != null);
-    }
-    map.dump();
   }
 
   /**
@@ -1063,7 +1060,7 @@ public final class LiveAnalysis extends CompilerPhase {
     private LiveSet gen;
     private LiveSet BBKillSet;
     private LiveSet firstPEIKillSet;
-    private LiveSet in;
+    private final LiveSet in;
     private boolean containsPEIWithHandler = false;
 
     /**
@@ -1130,20 +1127,6 @@ public final class LiveAnalysis extends CompilerPhase {
     }
 
     /**
-     * DEPRECIATED: Don't Use
-     */
-    public LiveSet gen() {
-      return gen;
-    }
-
-    /**
-     * DEPRECIATED: Don't Use
-     */
-    public LiveSet in() {
-      return in;
-    }
-
-    /**
      * creates a string representation of this object
      * @return string representation of this object
      */
@@ -1162,6 +1145,9 @@ public final class LiveAnalysis extends CompilerPhase {
    * A simple class used just in this file when creating GC maps
    */
   static final class MapElement {
+
+    private final Instruction inst;
+    private final List<RegSpillListElement> list;
 
     /**
      * constructor
@@ -1188,9 +1174,6 @@ public final class LiveAnalysis extends CompilerPhase {
     public List<RegSpillListElement> getList() {
       return list;
     }
-
-    private Instruction inst;
-    private List<RegSpillListElement> list;
   }
 
   /* collect osr info according to live information */

@@ -31,7 +31,7 @@ import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
-import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -65,7 +65,6 @@ import org.vmmagic.unboxed.Offset;
  *         1) methods called during compilation to create the maps
  *         2) methods called at GC time (no allocation allowed!)
  */
-@Uninterruptible
 public final class OptMachineCodeMap implements Constants, OptConstants {
 
   /**
@@ -91,24 +90,31 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param ir   the ir object for this method
    * @param machineCodeSize the number of machine code instructions generated.
    */
-  @Interruptible
   static OptMachineCodeMap create(IR ir, int machineCodeSize) {
+    /** Dump maps as methods are compiled */
+    final boolean DUMP_MAPS =
+      ir.options.PRINT_GC_MAPS &&
+         (!ir.options.hasMETHOD_TO_PRINT() ||
+          (ir.options.hasMETHOD_TO_PRINT() && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))
+          );
+    /** Dump stats on map size as maps are compiled */
+    final boolean DUMP_MAP_SIZES = false;
     if (DUMP_MAPS) {
       VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
     }
 
     // create all machine code maps
-    final OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
+    final OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap, DUMP_MAPS);
 
     if (DUMP_MAP_SIZES) {
       map.recordStats(ir.method,
                       map.size(),
-                      machineCodeSize << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
+                      machineCodeSize << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH, DUMP_MAP_SIZES);
     }
 
     if (DUMP_MAPS) {
       VM.sysWrite("Final Machine code information:\n");
-      map.dumpMCInformation();
+      map.dumpMCInformation(DUMP_MAPS);
       for (Instruction i = ir.firstInstructionInCodeOrder(); i != null; i = i.nextInstructionInCodeOrder()) {
         VM.sysWriteln(i.getmcOffset() + "\t" + i);
       }
@@ -122,6 +128,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
+  @Uninterruptible
   public int getBytecodeIndexForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) {
@@ -137,6 +144,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
+  @Uninterruptible
   public NormalMethod getMethodForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) {
@@ -156,6 +164,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
+  @Uninterruptible
   public int getInlineEncodingForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) {
@@ -173,6 +182,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    *  @param MCOffset the machine code offset to look for
    *  @return the GC map index or OptGCMap.ERROR
    */
+  @Uninterruptible
   public int findGCMapIndex(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) return OptGCMap.ERROR;
@@ -183,7 +193,6 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @return an arraylist of CallSite objects representing all non-inlined
    *         callsites in the method. Returns null if there are no such callsites.
    */
-  @Interruptible
   public ArrayList<CallSite> getNonInlinedCallSites() {
     ArrayList<CallSite> ans = null;
     if (MCInformation == null) return ans;
@@ -229,6 +238,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * Returns the GC map information for the GC map information entry passed
    * @param  index     GCmap entry
    */
+  @Uninterruptible
   public int gcMapInformation(int index) {
     return OptGCMap.gcMapInformation(index, gcMaps);
   }
@@ -238,6 +248,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param  entry            map entry
    * @param  registerNumber   the register number
    */
+  @Uninterruptible
   public boolean registerIsSet(int entry, int registerNumber) {
     return OptGCMap.registerIsSet(entry, registerNumber, gcMaps);
   }
@@ -245,6 +256,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
   /**
    * @return the next (relative) location or -1 for no more locations
    */
+  @Uninterruptible
   public int nextLocation(int currentIndex) {
     return OptGCMap.nextLocation(currentIndex, gcMaps);
   }
@@ -260,6 +272,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    *
    * @param MCOffset the machine code offset of interest
    */
+  @Uninterruptible
   private int findMCEntry(Offset MCOffset) {
     // Given a machine code instruction MCOffset, find the corresponding entry
     if (MCInformation == null) return -1;
@@ -312,9 +325,9 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    *  the machine code mapping information for the entry.
    *  It is called during the compilation of the method, not at GC time.
    *  @param irMap  the irmap to translate from
+   *  @param DUMP_MAPS dump while we work
    */
-  @Interruptible
-  private static OptMachineCodeMap generateMCInformation(GCIRMap irMap) {
+  private static OptMachineCodeMap generateMCInformation(GCIRMap irMap, boolean DUMP_MAPS) {
     CallSiteTree inliningMap = new CallSiteTree();
     int numEntries = 0;
 
@@ -460,6 +473,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param  entry the index of the start of the entry
    * @return the MCOffset for this entry
    */
+  @Uninterruptible
   private int getMCOffset(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry + BIG_OFFSET_IDX_ADJ];
@@ -478,6 +492,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param   entry the index of the start of the entry
    * @return the GC map entry index for this entry (or -1 if none)
    */
+  @Uninterruptible
   private int getGCMapIndex(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry + BIG_GCI_IDX_ADJ];
@@ -502,6 +517,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param entry the index of the start of the entry
    * @return the bytecode index for this entry (-1 if unknown)
    */
+  @Uninterruptible
   private int getBytecodeIndex(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry + BIG_BCI_IDX_ADJ];
@@ -526,6 +542,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param entry the index of the start of the entry
    * @return the inline encoding index for this entry (-1 if unknown)
    */
+  @Uninterruptible
   private int getInlineEncodingIndex(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry + BIG_IEI_IDX_ADJ];
@@ -550,6 +567,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param entry the index of the start of the entry
    * @return the call info for this entry
    */
+  @Uninterruptible
   private int getCallInfo(int entry) {
     if (isBigEntry(entry)) {
       int t = MCInformation[entry + BIG_CALL_IDX_ADJ];
@@ -566,6 +584,8 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
   /**
    * Is the entry a big entry?
    */
+  @Uninterruptible
+  @Inline
   private boolean isBigEntry(int entry) {
     if (VM.VerifyAssertions) {
       VM._assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
@@ -576,6 +596,8 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
   /**
    * Is the entry a big entry?
    */
+  @Uninterruptible
+  @Inline
   private boolean isHugeEntry(int entry) {
     if (VM.VerifyAssertions) {
       VM._assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
@@ -587,13 +609,12 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
   //  Debugging
   ////////////////////////////////////////////
 
-  @Interruptible
-  public void dumpMCInformation() {
+  public void dumpMCInformation(boolean DUMP_MAPS) {
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       if (MCInformation == null) return;
       for (int idx = 0; idx < MCInformation.length;) {
-        printMCInformationEntry(idx);
+        printMCInformationEntry(idx, DUMP_MAPS);
         idx = nextEntry(idx);
       }
     }
@@ -603,8 +624,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * Prints the MCInformation for this entry
    * @param entry  the entry to print
    */
-  @Interruptible
-  private void printMCInformationEntry(int entry) {
+  private void printMCInformationEntry(int entry, boolean DUMP_MAPS) {
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
       if (isBigEntry(entry)) sep = "B\tMC: ";
@@ -648,9 +668,9 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param method
    * @param mapSize
    * @param machineCodeSize
+   * @param DUMP_MAP_SIZES
    */
-  @Interruptible
-  private void recordStats(RVMMethod method, int mapSize, int machineCodeSize) {
+  private void recordStats(RVMMethod method, int mapSize, int machineCodeSize, boolean DUMP_MAP_SIZES) {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double) mapSize / machineCodeSize;
       VM.sysWrite(method);
@@ -784,14 +804,6 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * encoded data as defined by OptEncodedCallSiteTree.
    */
   public final int[] inlineEncoding;
-  /**
-   * Dump maps as methods are compiled.
-   */
-  private static final boolean DUMP_MAPS = false;
-  /**
-   * Dump stats on map size as maps are compiled.
-   */
-  private static final boolean DUMP_MAP_SIZES = false;
   /**
    * Running totals for the size of machine code and maps
    */
