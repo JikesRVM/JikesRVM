@@ -184,7 +184,7 @@ public class Inliner {
 
         if (!inlDec.OSRTestFailed()) {
           // Account for the non-predicted case as well...
-          RegisterOperand failureCaseResult = Call.getResult(callSite);
+          RegisterOperand failureCaseResult = Call.getResult(callSite).copyRO();
           container.result = (container.result == null) ?  failureCaseResult : Operand.meet(container.result, failureCaseResult, reg);
         }
       }
