@@ -290,7 +290,7 @@ public class EnterSSA extends CompilerPhase {
               BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
                 BasicBlock exp = out.next();
-                LiveSet explive = live.getLiveInfo(exp).in();
+                LiveSet explive = live.getLiveInfo(exp).getIn();
                 if (explive.contains(orig)) {
                   copyNeeded = true;
                   break;
@@ -603,7 +603,7 @@ public class EnterSSA extends CompilerPhase {
       for (int b = 0; b < needsPhi.length(); b++) {
         if (needsPhi.get(b)) {
           BasicBlock bb = ir.getBasicBlock(b);
-          if (live.getLiveInfo(bb).in().contains(symbolics[r])) {
+          if (live.getLiveInfo(bb).getIn().contains(symbolics[r])) {
             insertPhi(bb, symbolics[r]);
           }
         }
