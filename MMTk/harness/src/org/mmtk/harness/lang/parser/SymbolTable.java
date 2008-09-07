@@ -167,10 +167,10 @@ public class SymbolTable {
    */
   private static Value initialValue(Type type) {
     switch(type) {
-      case INT: return new IntValue(0);
+      case INT: return IntValue.ZERO;
       case OBJECT: return new ObjectValue(ObjectReference.nullReference());
       case STRING: return new StringValue("");
-      case BOOLEAN: return new BoolValue(false);
+      case BOOLEAN: return BoolValue.FALSE;
     }
     throw new RuntimeException("Invalid type");
   }

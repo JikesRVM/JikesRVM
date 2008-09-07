@@ -43,7 +43,6 @@ import org.mmtk.harness.lang.ast.UnaryExpression;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
 import org.mmtk.harness.lang.parser.MethodTable;
-import org.mmtk.harness.lang.runtime.Value;
 
 /**
  * A type-checker visitor for MMTk scripts
@@ -338,11 +337,6 @@ public class Checker extends Visitor {
     if (exp.getOperator() == Operator.NOT && type == Type.OBJECT) {
       type = Type.BOOLEAN;
     }
-  }
-
-  @Override
-  public void visit(Value v) {
-    type = v.type();
   }
 
   @Override

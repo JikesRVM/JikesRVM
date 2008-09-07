@@ -17,17 +17,18 @@ import org.mmtk.harness.lang.ast.Operator;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 
+/**
+ * An arithmetic/logical operation with 2 operands.
+ */
 public final class BinaryOperation extends BinaryOp {
 
+  /** The operator */
   public final Operator op;
 
+  /** The operation resultTemp <- op1 `op` op2 */
   public BinaryOperation(Register resultTemp, Register op1, Register op2, Operator op) {
     super(op.toString(),resultTemp, op1, op2);
     this.op = op;
-  }
-
-  public String toString() {
-    return String.format("t%d <- t%d %s t%d", getResult(), op1, name, op2);
   }
 
   @Override
@@ -36,4 +37,8 @@ public final class BinaryOperation extends BinaryOp {
     setResult(frame, op.operate(frame.get(op1),frame.get(op2)));
   }
 
+  @Override
+  public String toString() {
+    return String.format("t%d <- t%d %s t%d", getResult(), op1, name, op2);
+  }
 }

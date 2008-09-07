@@ -32,45 +32,45 @@ public enum Operator {
   /* Equality */
   EQ("==") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.equals(rhs));
+      return BoolValue.valueOf(lhs.equals(rhs));
     }
   }, NE("!=") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(!lhs.equals(rhs));
+      return BoolValue.valueOf(!lhs.equals(rhs));
     }
   },
   /* Integer comparison */
   GT(">") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.getIntValue() > rhs.getIntValue());
+      return BoolValue.valueOf(lhs.getIntValue() > rhs.getIntValue());
     }
   }, LT("<") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.getIntValue() < rhs.getIntValue());
+      return BoolValue.valueOf(lhs.getIntValue() < rhs.getIntValue());
     }
   }, LE("<=") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.getIntValue() <= rhs.getIntValue());
+      return BoolValue.valueOf(lhs.getIntValue() <= rhs.getIntValue());
     }
   }, GE(">=") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.getIntValue() >= rhs.getIntValue());
+      return BoolValue.valueOf(lhs.getIntValue() >= rhs.getIntValue());
     }
   },
   /* Logical */
   AND("&&") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.getBoolValue() && rhs.getBoolValue());
+      return BoolValue.valueOf(lhs.getBoolValue() && rhs.getBoolValue());
     }
   }, OR("||") {
     @Override public Value operate(Value lhs, Value rhs) {
-      return new BoolValue(lhs.getBoolValue() || rhs.getBoolValue());
+      return BoolValue.valueOf(lhs.getBoolValue() || rhs.getBoolValue());
     }
   },
   /* Unary */
   NOT("!") {
     @Override public Value operate(Value operand) {
-      return new BoolValue(!operand.getBoolValue());
+      return BoolValue.valueOf(!operand.getBoolValue());
     }
   },
   /* Mathematical */

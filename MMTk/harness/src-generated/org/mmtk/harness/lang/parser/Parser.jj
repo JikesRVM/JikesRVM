@@ -582,11 +582,11 @@ Expression constant() : {
     
   /* Integer constant */
   | t=<INTEGER_LITERAL>
-    { return new Constant(t, new IntValue(Integer.parseInt(t.toString()))); }
+    { return new Constant(t, IntValue.valueOf(Integer.parseInt(t.toString()))); }
     
   /* boolean constant */
   | t=<BOOLEAN_LITERAL>
-    { return new Constant(t, new BoolValue(Boolean.parseBoolean(t.toString()))); }
+    { return new Constant(t, BoolValue.valueOf(Boolean.parseBoolean(t.toString()))); }
     
   /* String constant */
   | t=<STRING_LITERAL>

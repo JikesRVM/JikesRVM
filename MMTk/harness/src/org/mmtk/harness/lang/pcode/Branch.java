@@ -25,8 +25,10 @@ public final class Branch extends UnaryOp {
   public final boolean branchOn;
 
   /**
+   * Create a branch instruction.  Jump to 'target' if cond.loadBoolean() == branchOn
    * @param cond Branch condition
-   * @param falseBranch Jump target for false - fall through if true.
+   * @param branchOn Sense of the comparison
+   * @param target Jump target
    */
   public Branch(Register cond, boolean branchOn, int target) {
     super("if"+branchOn,cond);
@@ -34,6 +36,13 @@ public final class Branch extends UnaryOp {
     this.branchOn = branchOn;
   }
 
+  /**
+   * Create a branch instruction without a target.  Target will be filled in
+   * later by the compiler. Jump to 'target' if cond.loadBoolean() == branchOn
+   * @param cond Branch condition
+   * @param branchOn Sense of the comparison
+   * @param target Jump target
+   */
   public Branch(Register cond, boolean branchOn) {
     super("if"+branchOn,cond);
     this.branchOn = branchOn;
@@ -47,6 +56,7 @@ public final class Branch extends UnaryOp {
     return target;
   }
 
+  @Override
   public boolean affectsControlFlow() {
     return true;
   }
@@ -66,6 +76,7 @@ public final class Branch extends UnaryOp {
     return frame.get(operand).getBoolValue() == branchOn;
   }
 
+  @Override
   public String toString() {
     return String.format("if(%st%d) goto %d", branchOn ? "" : "!", operand, target);
   }

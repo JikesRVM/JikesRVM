@@ -262,13 +262,13 @@ public class IntrinsicMethod extends Method {
       return null;
     } else if (obj instanceof Integer) {
       assert returnType == Type.INT : "mismatched return types";
-      return new IntValue(((Integer)obj).intValue());
+      return IntValue.valueOf(((Integer)obj).intValue());
     } else if (obj instanceof String) {
       assert returnType == Type.STRING : "mismatched return types";
       return new StringValue((String)obj);
     } else if (obj instanceof Boolean) {
       assert returnType == Type.BOOLEAN : "mismatched return types";
-      return new BoolValue(((Boolean)obj).booleanValue());
+      return BoolValue.valueOf(((Boolean)obj).booleanValue());
     }
     throw new RuntimeException("Can't unmarshall a "+obj.getClass().getCanonicalName());
   }

@@ -20,22 +20,26 @@ import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.harness.lang.runtime.Value;
 
+/**
+ * Call an intrinsic method
+ */
 public final class CallIntrinsicOp extends CallOp {
 
+  /**
+   * The method to call - reuse the AST element
+   */
   public final IntrinsicMethod method;
 
+  /** An intrinsic call with a return value */
   public CallIntrinsicOp(Register resultTemp, IntrinsicMethod method, List<Register> params) {
     super(resultTemp, params);
     this.method = method;
   }
 
+  /** An intrinsic call without a return value */
   public CallIntrinsicOp(IntrinsicMethod method, List<Register> params) {
     super(params);
     this.method = method;
-  }
-
-  public String toString() {
-    return super.toString().replace("call","call "+method.getName());
   }
 
   @Override
@@ -49,5 +53,8 @@ public final class CallIntrinsicOp extends CallOp {
     }
   }
 
-
+  @Override
+  public String toString() {
+    return super.toString().replace("call","call "+method.getName());
+  }
 }

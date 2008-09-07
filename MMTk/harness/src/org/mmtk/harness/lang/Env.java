@@ -18,10 +18,8 @@ import java.util.Stack;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.compiler.CompiledMethod;
-import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.PcodeInterpreter;
 import org.mmtk.harness.lang.runtime.StackFrame;
-import org.mmtk.harness.lang.runtime.Value;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -36,11 +34,6 @@ public class Env extends Mutator {
    * The stack
    */
   private UnsyncStack<StackFrame> stack = new UnsyncStack<StackFrame>();
-
-  /**
-   * The temporary values saved during evaluation.
-   */
-  private Stack<ObjectValue> temporaries = new Stack<ObjectValue>();
 
   /**
    * The main program if we're using the compiler
@@ -100,16 +93,11 @@ public class Env extends Mutator {
    */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
-    int tempCount = 0, localCount = 0;
-    for(ObjectValue value : temporaries) {
-      Trace.trace(Item.ROOTS, "Tracing root (temporary) %s", value.toString());
-      value.traceObject(trace);
-      tempCount++;
-    }
+    int localCount = 0;
     for (StackFrame frame : stack) {
       localCount += frame.computeRoots(trace);
     }
-    Trace.trace(Item.ROOTS, "Temporaries: %d, locals: %d", tempCount, localCount);
+    Trace.trace(Item.ROOTS, "Locals: %d", localCount);
   }
 
   /**
@@ -117,12 +105,6 @@ public class Env extends Mutator {
    */
   @Override
   public void dumpThreadRoots(int width, Stack<ObjectReference> roots) {
-    System.err.print("  Temporaries [");
-    for(ObjectValue value : temporaries) {
-      ObjectReference ref = value.getObjectValue();
-      System.err.printf(" %s", Mutator.formatObject(width, ref));
-    }
-    System.err.println(" ]");
     int frameId = 0;
     for (StackFrame frame : stack) {
       System.err.printf("  Frame %5d [", frameId++);
@@ -137,37 +119,10 @@ public class Env extends Mutator {
   public boolean gcSafePoint() {
     if (gcEverySafepoint) {
       gc();
-      return true;
     }
     return super.gcSafePoint();
   }
 
-
-
-  /**
-   * Push a temporary value to avoid GC errors for objects held during expression evaluation.
-   *
-   * @param value The value to push
-   */
-  @Deprecated
-  public void pushTemporary(Value value) {
-    if (value instanceof ObjectValue) {
-      temporaries.push((ObjectValue)value);
-    }
-  }
-
-  /**
-   * Pop the specified temporary.
-   *
-   * @param value The expected value, to ensure that pushes and pops match.
-   */
-  @Deprecated
-  public void popTemporary(Value value) {
-    if (value instanceof ObjectValue) {
-      ObjectValue poppedValue = temporaries.pop();
-      check(poppedValue == value, "Invalid temporary stack maintenance");
-    }
-  }
 
   /*******************************************************************
    * Utility methods

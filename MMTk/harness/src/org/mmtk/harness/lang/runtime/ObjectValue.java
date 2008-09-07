@@ -12,7 +12,6 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.ast.Type;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
@@ -24,7 +23,11 @@ public class ObjectValue extends Value {
 
   public static ObjectValue NULL = new ObjectValue();
 
-  /** The reference to the heap object */
+  /**
+   * The reference to the heap object
+   *
+   * Not final because it may change during GC
+   */
   private ObjectReference value;
 
   /**
@@ -81,10 +84,6 @@ public class ObjectValue extends Value {
    */
   public void traceObject(TraceLocal trace) {
     value = trace.traceObject(value, true);
-  }
-
-  public void accept(Visitor v) {
-    v.visit(this);
   }
 
   /**

@@ -20,28 +20,33 @@ import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.compiler.Register;
 
+/**
+ * A pseudo-op that calls a method written in the script language.
+ */
 public final class CallNormalOp extends CallOp implements ResolvableOp {
 
   private CompiledMethod method;
 
+  /** A method call that returns a result */
   public CallNormalOp(Register resultTemp, CompiledMethod method, List<Register> params) {
     super(resultTemp, params);
     this.method = method;
   }
 
+  /** A method call without a return value */
   public CallNormalOp(CompiledMethod method, List<Register> params) {
     super(params);
     this.method = method;
   }
 
+  /** Accessor for the enclosed method */
   public CompiledMethod getMethod() {
     return method;
   }
 
-  public String toString() {
-    return super.toString().replace("call","call "+method.getName());
-  }
-
+  /**
+   * Replace compiled-method-proxies with their resolved versions.
+   */
   @Override
   public void resolve() {
     if (!method.isResolved()) {
@@ -50,6 +55,9 @@ public final class CallNormalOp extends CallOp implements ResolvableOp {
     }
   }
 
+  /**
+   * All the fun happens in @link{org.mmtk.harness.lang.runtime.PcodeInterpreter}
+   */
   @Override
   public void exec(Env env) {
   }
@@ -59,5 +67,9 @@ public final class CallNormalOp extends CallOp implements ResolvableOp {
     return true;
   }
 
-
+  @Override
+  public String toString() {
+    return super.toString().replace("call","call "+method.getName());
+  }
 }
+

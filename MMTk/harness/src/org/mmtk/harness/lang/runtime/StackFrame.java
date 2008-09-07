@@ -29,12 +29,22 @@ import org.vmmagic.unboxed.ObjectReference;
  * variable, and that all variables are live all the time.
  */
 public class StackFrame {
-  private final Value[] values;
-  private String[] names = null;
-  private int savedPc;
-  private PseudoOp[] savedCode;
-  private int resultSlot;
 
+  /** A sentinel for slots that have no value */
+  public static final int NO_SUCH_SLOT = Integer.MAX_VALUE;
+
+  /** The values of variables and temporaries */
+  private final Value[] values;
+  /** (for debugging) the names of the value slots */
+  private String[] names = null;
+  /** The saved program counter during a method call */
+  private int savedPc;
+  /** The saved instruction array for a method call */
+  private PseudoOp[] savedCode;
+  /** The slot for the return value of a method call */
+  private int resultSlot = NO_SUCH_SLOT;
+
+  /** Create a stack frame, given a list of declarations and a quantity of temporaries */
   public StackFrame(List<Declaration> decls, int nTemp) {
     int size = decls.size()+nTemp;
     this.values = new Value[size];
@@ -86,6 +96,11 @@ public class StackFrame {
     values[slot] = value;
   }
 
+  /**
+   * Get the type name of a slot
+   * @param slot
+   * @return
+   */
   private String getTypeName(int slot) {
     if (values[slot] != null) {
       return values[slot].type().toString();
@@ -128,27 +143,42 @@ public class StackFrame {
     }
   }
 
+  /**
+   * Save a program counter value
+   * @param pc
+   */
   public void savePc(int pc) {
     savedPc = pc;
   }
 
+  /** Return the saved program counter */
   public int getSavedPc() {
     return savedPc;
   }
 
+  /** Save a method code array */
   public void saveMethod(PseudoOp[] code) {
     savedCode = code;
   }
 
+  /** Return the saved code array */
   public PseudoOp[] getSavedMethod() {
     return savedCode;
   }
 
+  /** Set the slot for the return value */
   public void setResultSlot(int slot) {
     resultSlot = slot;
   }
 
+  /** Clear the return value slot */
+  public void clearResultSlot() {
+    resultSlot = NO_SUCH_SLOT;
+  }
+
+  /** Set the return value */
   public void setResult(Value returnValue) {
+    assert resultSlot != NO_SUCH_SLOT : "Attempt to return a value to a method call with no result slot";
     set(resultSlot,returnValue);
   }
 }

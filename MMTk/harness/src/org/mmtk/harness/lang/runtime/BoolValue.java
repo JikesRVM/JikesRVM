@@ -12,16 +12,19 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.ast.Type;
 
 /**
  * Expression consisting of a simple boolean value
  */
-public class BoolValue extends Value {
+public final class BoolValue extends Value {
 
   public static BoolValue FALSE = new BoolValue(false);
   public static BoolValue TRUE = new BoolValue(true);
+
+  public static BoolValue valueOf(boolean value) {
+    return value ? TRUE : FALSE;
+  }
 
   /** The value */
   private final boolean value;
@@ -30,7 +33,7 @@ public class BoolValue extends Value {
    * Constructor
    * @param value
    */
-  public BoolValue(boolean value) {
+  private BoolValue(boolean value) {
     this.value = value;
   }
 
@@ -56,10 +59,6 @@ public class BoolValue extends Value {
   @Override
   public Type type() {
     return Type.BOOLEAN;
-  }
-
-  public void accept(Visitor v) {
-    v.visit(this);
   }
 
   /**

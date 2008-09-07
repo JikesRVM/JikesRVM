@@ -12,7 +12,6 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.Type;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -21,10 +20,6 @@ import org.vmmagic.unboxed.ObjectReference;
  * an intermediate value in expression evaluation
  */
 public abstract class Value {
-
-  public Value eval(Env env) {
-    return this;
-  }
 
   /**
    * The result type of this value.

@@ -19,8 +19,16 @@ import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.vmmagic.unboxed.ObjectReference;
 
+/**
+ * Object allocation operation.  3 operands:
+ * - # data words
+ * - # reference words
+ * - alignment
+ * Always produces a result.
+ */
 public final class AllocOp extends TernaryOp {
 
+  /** Call site */
   private final int site;
 
   public AllocOp(Register resultTemp, Register dataCount, Register refCount, Register doubleAlign,int site) {
@@ -28,13 +36,16 @@ public final class AllocOp extends TernaryOp {
     this.site = site;
   }
 
-  public int getDataCount(StackFrame frame) {
+  /** Get the data count operand from <code>frame</code> */
+  private int getDataCount(StackFrame frame) {
     return frame.get(op1).getIntValue();
   }
-  public int getRefCount(StackFrame frame) {
+  /** Get the reference count operand from <code>frame</code> */
+  private int getRefCount(StackFrame frame) {
     return frame.get(op2).getIntValue();
   }
-  public boolean getDoubleAlign(StackFrame frame) {
+  /** Get the alignment operand from <code>frame</code> */
+  private boolean getDoubleAlign(StackFrame frame) {
     return frame.get(op3).getBoolValue();
   }
 

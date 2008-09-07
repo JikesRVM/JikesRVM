@@ -49,13 +49,20 @@ public class Harness {
   /** GC stress options */
   public static GcEvery gcEvery = new GcEvery();
 
+  private static boolean isInitialized = false;
+
   /**
    * Start up the harness, including creating the global plan and constraints,
    * and starting off the collector threads.
    *
    * After calling this it is possible to begin creating mutator threads.
    */
-  public static void init(String[] args) {
+  public static void init(String... args) {
+    if (isInitialized) {
+      return;
+    }
+    isInitialized = true;
+
     /* Always use the harness factory */
     System.setProperty("mmtk.hostjvm", Factory.class.getCanonicalName());
 

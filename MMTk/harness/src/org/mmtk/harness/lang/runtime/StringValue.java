@@ -12,7 +12,6 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.ast.Type;
 
 /**
@@ -42,27 +41,12 @@ public class StringValue extends Value {
   }
 
   /**
-   * Get this value as an integer.
+   * Get this value as a String
    */
   public String getStringValue() {
     return value;
   }
 
-  /**
-   * @see java.lang.Object#clone()
-   */
-  @Override
-  public StringValue clone() {
-    return new StringValue(value);
-  }
-
-  public void accept(Visitor v) {
-    v.visit(this);
-  }
-
-  /**
-   * Object equality
-   */
   @Override
   public boolean equals(Object other) {
     return (other instanceof StringValue && value.equals(((StringValue)other).value));
@@ -72,7 +56,5 @@ public class StringValue extends Value {
   public int hashCode() {
     return value.hashCode();
   }
-
-
 }
 

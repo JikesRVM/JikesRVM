@@ -12,25 +12,29 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.ast.Type;
 
 /**
  * Expression consisting of a simple integer value
  */
 public class IntValue extends Value {
+
+  public static final IntValue ZERO = new IntValue(0);
+  public static final IntValue ONE = new IntValue(1);
+
+  public static IntValue valueOf(int value) {
+    switch (value) {
+      case 0 : return ZERO;
+      case 1: return ONE;
+      default:
+        return new IntValue(value);
+    }
+  }
+
   private final int value;
 
   public IntValue(int value) {
     this.value = value;
-  }
-
-  /**
-   * Object equality
-   */
-  @Override
-  public boolean equals(Object other) {
-    return (other instanceof IntValue && value == ((IntValue)other).value);
   }
 
   /**
@@ -56,8 +60,9 @@ public class IntValue extends Value {
     return value;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public boolean equals(Object other) {
+    return (other instanceof IntValue && value == ((IntValue)other).value);
   }
 
   @Override

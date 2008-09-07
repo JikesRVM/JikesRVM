@@ -28,8 +28,8 @@ public class ConstantPool {
   public static Register NULL = create(new ObjectValue(ObjectReference.nullReference()));
   public static Register ZERO = create(new IntValue(0));
   public static Register ONE = create(new IntValue(1));
-  public static Register TRUE = create(new BoolValue(true));
-  public static Register FALSE = create(new BoolValue(false));
+  public static Register TRUE = create(BoolValue.TRUE);
+  public static Register FALSE = create(BoolValue.FALSE);
 
   public static Register acquire(Value constant) {
     Register result = constants.get(constant);

@@ -20,14 +20,27 @@ import org.mmtk.harness.lang.pcode.CallNormalOp;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ReturnOp;
 
-public class PcodeInterpreter {
+public final class PcodeInterpreter {
 
+  /** The environment (stack and associated structures) for this thread. */
   private final Env env;
 
+  /** The code for the current method */
   private PseudoOp[] code;
+
+  /** Program counter (index into the <code>code</code> array) */
   private int pc = 0;
+
+  /** nesting level for method calls.  Return from level 0 exits the thread */
   private int nesting = 0;
 
+  /**
+   * Create a pcode interpreter for a given environment/method pair.  This will
+   * in general be a thread of execution within a script, either main() or a spawned
+   * process.
+   * @param env
+   * @param method
+   */
   public PcodeInterpreter(Env env, CompiledMethod method) {
     this.env = env;
     code = method.getCodeArray();
@@ -35,9 +48,8 @@ public class PcodeInterpreter {
   }
 
   /**
-   * Execute the 'main' function
-   * @param env
-   * @param method
+   * Execute the method, with given values for its parameters.
+   * @param params
    */
   public void exec(Value...params) {
     setActualParams(params);
@@ -68,8 +80,11 @@ public class PcodeInterpreter {
     }
   }
 
+  /**
+   * Return from a method call
+   * @param retOp The return pseudo-op
+   */
   private void methodReturn(ReturnOp retOp) {
-    {
     StackFrame calleeFrame = env.top();
     env.pop();
     StackFrame callerFrame = env.top();
@@ -80,9 +95,12 @@ public class PcodeInterpreter {
     nesting--;
     pc = callerFrame.getSavedPc();
     code = callerFrame.getSavedMethod();
-    }
   }
 
+  /**
+   * Perform a method call
+   * @param callOp The call pseudo-op
+   */
   private void methodCall(CallNormalOp callOp) {
     CompiledMethod callee = callOp.getMethod();
     StackFrame callerFrame = env.top();
@@ -94,18 +112,34 @@ public class PcodeInterpreter {
     nesting++;
   }
 
+  /**
+   * Push a new stack frame for a given method
+   * @param callee
+   */
   private void pushFrame(CompiledMethod callee) {
     env.push(callee.formatStackFrame());
   }
 
+  /**
+   * Save context in the caller's stack frame
+   * @param callOp
+   * @param callerFrame
+   */
   private void saveContext(CallNormalOp callOp, StackFrame callerFrame) {
     callerFrame.savePc(pc);
     callerFrame.saveMethod(code);
     if (callOp.hasResult()) {
       callerFrame.setResultSlot(callOp.getResult());
+    } else {
+      callerFrame.clearResultSlot();
     }
   }
 
+  /**
+   * Initialize the actual parameters in a method call.  Assumes that
+   * the callee stack frame has already been pushed on the stack.
+   * @param actuals
+   */
   private void setActualParams(Value[] actuals) {
     StackFrame calleeFrame = env.top();
     for (int i=0; i < actuals.length; i++) {

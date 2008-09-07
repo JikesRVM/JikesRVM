@@ -38,7 +38,6 @@ import org.mmtk.harness.lang.ast.StoreField;
 import org.mmtk.harness.lang.ast.UnaryExpression;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
-import org.mmtk.harness.lang.runtime.Value;
 
 /**
  * Abstract visitor class for ASTs.  Provides default implementations
@@ -133,7 +132,6 @@ public abstract class Visitor {
     exp.getOperator().accept(this);
     exp.getOperand().accept(this);
   }
-  public void visit(Value v) {  }
   public void visit(Variable var) { }
   public void visit(WhileStatement w) {
     w.getCond().accept(this);
