@@ -89,6 +89,7 @@ Building Options:
  -p, --profile        Perform a profiled build (including creation of a profile)	
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
+     --harmony        Build with harmony (instead of classpath)
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -164,6 +165,7 @@ GetOptions(
   "z|skip-build" => \$skip_build,
   "h|help" => \$help,
   "x87" => \$x87,
+  "harmony" => \$harmony,
   "j|java-home=s" => \$javaHomeCmd,
   "ext-lib-dir=s" => \$extlibdir,
   "comp-cache-dir=s" => \$compcachedir,
@@ -644,6 +646,9 @@ if ($ok) {
     } 
     if ($x87 ne "") {
       $defs .= "-Dtarget.arch.sse2=none ";
+    }
+    if ($harmony ne "") {
+      $defs .= "-Dclasslib.provider=Harmony ";
     }
     if ($with_perfctr ne "") {
       $defs .= "-Dconfig.include.perfctr=true ";
