@@ -28,11 +28,11 @@ jvm_opts="-ea -Xss8m"
 
 for plan in $plans
 do
-  showplan=`echo $plan | sed "{s/.*\.//g}"`
+  showplan=`echo $plan | sed -E "s/.*\.//g"`
   mkdir results/mmtk/$showplan
   for script in `ls $TEST_DIR/*.script`
   do
-    showscript=`echo $script | sed "{s/.*[\/]//g}" | sed "{s/\.script$//g}"`
+    showscript=`echo $script | sed -E "s/.*[\/]//g" | sed -E "s/\.script$//g"`
     if [ -f $TEST_DIR/$showscript.options ]; then
       scriptopts=$(cat  $TEST_DIR/$showscript.options)
     else
@@ -58,6 +58,6 @@ failed=`find results/mmtk -name "*.fail" | wc -l`
 
 echo
 echo "FAILURES:"
-find results/mmtk -name "*.fail" | sed "{s/results\/mmtk\///g}" | sed "{s/\.out\.fail$//g}" | sed "{s/\// /g}"
+find results/mmtk -name "*.fail" | sed -e "s/results\/mmtk\///g" -e "s/\.out\.fail$//g" -e "s/\// /g"
 echo
 echo "PASSED $passed/$[$passed + failed] tests ($[(100 * $passed) / ($passed + $failed)]%)"
