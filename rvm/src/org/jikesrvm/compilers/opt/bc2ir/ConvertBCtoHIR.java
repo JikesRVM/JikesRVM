@@ -41,12 +41,9 @@ public final class ConvertBCtoHIR extends CompilerPhase {
     if (gc.allocFrame) {
       ir.stackManager.forceFrameAllocation();
     }
-    // ir now contains well formed HIR.
+
     ir.IRStage = IR.HIR;
     ir.HIRInfo = new HIRInfo(ir);
-    if (IR.SANITY_CHECK) {
-      ir.verify("Initial HIR", true);
-    }
   }
 
   // This phase contains no instance fields.
