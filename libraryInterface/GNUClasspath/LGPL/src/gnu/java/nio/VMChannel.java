@@ -51,6 +51,8 @@ import java.nio.MappedByteBuffer;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.scheduler.greenthreads.FileSystem;
+import org.vmmagic.pragma.NonMovingAllocation;
+
 
 /**
  * Native interface to support configuring of channel to run in a non-blocking
@@ -169,7 +171,8 @@ public final class VMChannel
    * in cases where the actual user buffer is in a moving space.
    */
   private static class LocalByteArray extends ThreadLocal<byte[]> {
-    private static final int INITIAL_BUFFER_SIZE = 8192; // force into LOS
+    private static final int INITIAL_BUFFER_SIZE = 8192;
+    @NonMovingAllocation
     protected byte[] initialValue() {
       return new byte[INITIAL_BUFFER_SIZE];
     }
@@ -179,6 +182,7 @@ public final class VMChannel
      * @param len Minimum length of the buffer
      * @return a new or recycled buffer
      */
+    @NonMovingAllocation
     public byte[] get(int len) {
       byte[] buf = get();
       if (buf.length < len) {

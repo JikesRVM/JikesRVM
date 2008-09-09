@@ -656,6 +656,13 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     return false; // only NormalMethods can be runtime service impls in Jikes RVM and they override this method
   }
 
+  /**
+   * Should all allocation from this method go to a non-moving space?
+   */
+  public boolean isNonMovingAllocation() {
+    return hasNonMovingAllocationAnnotation();
+  }
+
   //------------------------------------------------------------------//
   //                        Section 2.                                //
   // The following are available after the declaring class has been   //

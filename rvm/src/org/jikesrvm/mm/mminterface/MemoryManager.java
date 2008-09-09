@@ -589,6 +589,9 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
           isPrefix("Lorg/jikesrvm/mm/mminterface/GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
+      if (method.isNonMovingAllocation()) {
+        return Plan.ALLOC_NON_MOVING;
+      }
     }
     return type.getMMAllocator();
   }

@@ -170,6 +170,7 @@ public final class TypeReference {
   public static final TypeReference SpecializedMethodInvoke = findOrCreate(org.vmmagic.pragma.SpecializedMethodInvoke.class);
   public static final TypeReference Untraced = findOrCreate(org.vmmagic.pragma.Untraced.class);
   public static final TypeReference NonMoving = findOrCreate(org.vmmagic.pragma.NonMoving.class);
+  public static final TypeReference NonMovingAllocation = findOrCreate(org.vmmagic.pragma.NonMovingAllocation.class);
   public static final TypeReference BaselineNoRegisters = findOrCreate(org.vmmagic.pragma.BaselineNoRegisters.class);
   public static final TypeReference BaselineSaveLSRegisters = findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
 

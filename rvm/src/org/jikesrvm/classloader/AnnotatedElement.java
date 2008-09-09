@@ -359,4 +359,12 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   public final boolean hasNonMovingAnnotation() {
     return isAnnotationDeclared(TypeReference.NonMoving);
   }
+
+  /**
+   * Return true if this element has a NonMoving annotation.
+   * @see org.vmmagic.pragma.Untraced
+   */
+  public final boolean hasNonMovingAllocationAnnotation() {
+    return isAnnotationDeclared(TypeReference.NonMovingAllocation);
+  }
 }
