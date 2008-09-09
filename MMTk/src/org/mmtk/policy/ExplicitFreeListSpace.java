@@ -113,7 +113,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    */
   @Inline
   public static void free(ObjectReference object) {
-    unsyncClearLiveBit(object);
+    clearLiveBit(object);
   }
 
   /**
@@ -170,6 +170,6 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    */
   @Inline
   public boolean isLive(ObjectReference object) {
-    return true;
+    return liveBitSet(object);
   }
 }

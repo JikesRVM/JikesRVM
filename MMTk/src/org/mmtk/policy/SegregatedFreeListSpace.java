@@ -490,7 +490,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
         availableHead = sweepBlock(block, sizeClass, blockSize, availableHead, clearMarks);
         block = next;
       }
-      /* Available blocks */
+      /* Consumed blocks */
       block = consumedBlockHead.get(sizeClass);
       consumedBlockHead.set(sizeClass, Address.zero());
       while (!block.isZero()) {
@@ -768,6 +768,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
         free = !liveBitSet(current);
         if (!free) {
           free = sweeper.sweepCell(current);
+          if (free) unsyncClearLiveBit(current);
         }
       }
       if (!free) {
@@ -853,7 +854,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       } while (!liveWord.attempt(oldValue, newValue));
     } else {
       oldValue = liveWord.loadWord();
-      liveWord.store(oldValue.or(mask));
+      liveWord.store(set ? oldValue.or(mask) : oldValue.and(mask.not()));
     }
     return oldValue.and(mask).NE(mask);
   }
@@ -880,6 +881,26 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
     Word mask = getMask(address, true);
     Word value = liveWord.loadWord();
     return value.and(mask).EQ(mask);
+  }
+
+  /**
+   * Clear the live bit for a given object
+   *
+   * @param object The object whose live bit is to be cleared.
+   */
+  @Inline
+  protected static void clearLiveBit(ObjectReference object) {
+    clearLiveBit(VM.objectModel.refToAddress(object));
+  }
+
+  /**
+   * Clear the live bit for a given address
+   *
+   * @param address The address whose live bit is to be cleared.
+   */
+  @Inline
+  protected static void clearLiveBit(Address address) {
+    updateLiveBit(address, false, true);
   }
 
   /**
