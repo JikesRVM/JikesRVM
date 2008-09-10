@@ -10,18 +10,25 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.plan.refcount.cd;
+package org.mmtk.plan.refcount.backuptrace;
 
 import org.mmtk.plan.TransitiveClosure;
+import org.mmtk.plan.refcount.RCBase;
+import org.mmtk.plan.refcount.RCHeader;
+import org.mmtk.policy.Space;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This trace step is used during trial deletion processing.
+ * This class is the fundamental mechanism for performing a
+ * transitive closure over an object graph.<p>
+ *
+ * @see org.mmtk.plan.TraceLocal
  */
 @Uninterruptible
-public final class TrialDeletionCollectStep extends TransitiveClosure {
+public final class BTDecMarked extends TransitiveClosure {
 
   /**
    * Trace an edge during GC.
@@ -32,6 +39,13 @@ public final class TrialDeletionCollectStep extends TransitiveClosure {
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = slot.loadObjectReference();
-    ((TrialDeletionCollector)CDCollector.current()).enumerateCollect(object);
+    if (!object.isNull()) {
+      if ((Space.isInSpace(RCBase.REF_COUNT, object) && RCBase.rcSpace.isLive(object)) ||
+          Space.isInSpace(RCBase.REF_COUNT_LOS, object) ||
+          Space.isInSpace(RCBase.IMMORTAL, object)) {
+        int result = RCHeader.decRC(object);
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(result != RCHeader.DEC_KILL || !RCHeader.isMarked(object));
+      }
+    }
   }
 }

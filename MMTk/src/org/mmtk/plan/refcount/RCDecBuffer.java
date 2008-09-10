@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.TransitiveClosure
  */
 @Uninterruptible
-public final class DecBuffer extends ObjectReferenceBuffer implements Constants {
+public final class RCDecBuffer extends ObjectReferenceBuffer implements Constants {
   /****************************************************************************
    *
    * Initialization
@@ -35,10 +35,9 @@ public final class DecBuffer extends ObjectReferenceBuffer implements Constants 
    *
    * @param queue The shared deque that is used.
    */
-  public DecBuffer(SharedDeque queue) {
+  public RCDecBuffer(SharedDeque queue) {
     super("dec", queue);
   }
-
 
   /**
    * This is the method that ensures

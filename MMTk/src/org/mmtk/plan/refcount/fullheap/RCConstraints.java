@@ -13,7 +13,6 @@
 package org.mmtk.plan.refcount.fullheap;
 
 import org.mmtk.plan.refcount.RCBaseConstraints;
-
 import org.vmmagic.pragma.*;
 
 /**
@@ -22,5 +21,6 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  */
-@Uninterruptible public class RCConstraints extends RCBaseConstraints {
+@Uninterruptible
+public class RCConstraints extends RCBaseConstraints {
 }

@@ -22,11 +22,9 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  */
-@Uninterruptible public class RCBaseConstraints extends StopTheWorldConstraints {
-
-  public boolean needsWriteBarrier() { return true; }
-
-  public int gcHeaderBits() { return RCHeader.LOCAL_GC_BITS_REQUIRED; }
-
+@Uninterruptible
+public class RCBaseConstraints extends StopTheWorldConstraints {
+  public int gcHeaderBits() { return RCHeader.GLOBAL_GC_BITS_REQUIRED; }
   public int gcHeaderWords() { return RCHeader.GC_HEADER_WORDS_REQUIRED; }
+  public boolean needsWriteBarrier() { return true; }
 }

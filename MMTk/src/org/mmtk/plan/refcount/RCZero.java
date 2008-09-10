@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.plan.refcount.cd;
+package org.mmtk.plan.refcount;
 
 import org.mmtk.plan.TransitiveClosure;
 
@@ -18,10 +18,13 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This trace step is used during trial deletion processing.
+ * This class is the fundamental mechanism for performing a
+ * transitive closure over an object graph.<p>
+ *
+ * @see org.mmtk.plan.TraceLocal
  */
 @Uninterruptible
-public final class TrialDeletionGreyStep extends TransitiveClosure {
+public final class RCZero extends TransitiveClosure {
 
   /**
    * Trace an edge during GC.
@@ -31,7 +34,7 @@ public final class TrialDeletionGreyStep extends TransitiveClosure {
    */
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
-    ObjectReference object = slot.loadObjectReference();
-    ((TrialDeletionCollector)CDCollector.current()).enumerateGrey(object);
+    slot.store(ObjectReference.nullReference());
   }
 }
+

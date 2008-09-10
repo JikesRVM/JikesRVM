@@ -13,6 +13,7 @@
 package org.mmtk.plan.refcount.fullheap;
 
 import org.mmtk.plan.TransitiveClosure;
+import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCHeader;
 
 import org.vmmagic.pragma.*;
@@ -36,7 +37,7 @@ public final class RCModifiedProcessor extends TransitiveClosure {
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = slot.loadObjectReference();
-    if (RC.isRCObject(object)) {
+    if (RCBase.isRCObject(object)) {
       RCHeader.incRC(object);
     }
   }

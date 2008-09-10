@@ -12,75 +12,42 @@
  */
 package org.mmtk.plan.refcount.fullheap;
 
-import org.mmtk.plan.*;
+import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.RCBaseCollector;
-import org.mmtk.utility.Constants;
-import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements <i>per-collector thread</i> behavior
- * and state for the <i>RC</i> plan, which implements a full-heap
- * reference counting collector.<p>
- *
- * Specifically, this class defines <i>RC</i> collection behavior
- * (through <code>trace</code> and the <code>collectionPhase</code>
- * method).<p>
- *
- * @see RC for an overview of the reference counting algorithm.<p>
- *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
+ * This class implements the collector context for a simple reference counting
  * collector.
- *
- * @see RC
- * @see RCMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
  */
 @Uninterruptible
-public class RCCollector extends RCBaseCollector implements Constants {
-  /****************************************************************************
-   * Instance fields
-   */
-  public final RCTraceLocal trace;
-  public final RCModifiedProcessor modProcessor;
-
-  /****************************************************************************
-   *
+public class RCCollector extends RCBaseCollector {
+  /************************************************************************
    * Initialization
    */
+  private final RCFindRootSetTraceLocal rootTrace;
+  private final RCModifiedProcessor modProcessor;
 
   /**
-   * Constructor
+   * Constructor.
    */
   public RCCollector() {
-    trace = new RCTraceLocal(global().rcTrace);
-    // We use the modified object processor for full heap RC
+    rootTrace = new RCFindRootSetTraceLocal(global().rootTrace, newRootBuffer);
     modProcessor = new RCModifiedProcessor();
   }
 
-  /****************************************************************************
-   *
-   * Miscellaneous
+  /**
+   * Get the modified processor to use.
    */
-
-  /** @return The active global plan as an <code>RC</code> instance. */
-  @Inline
-  private static RC global() {
-    return (RC) VM.activePlan.global();
-  }
-
-  /** @return The current trace instance. */
-  public final TraceLocal getCurrentTrace() {
-    return trace;
-  }
-
-  /** @return The current modified object processor. */
-  public final TransitiveClosure getModifiedProcessor() {
+  protected final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
+  }
+
+  /**
+   * Get the root trace to use.
+   */
+  protected final TraceLocal getRootTrace() {
+    return rootTrace;
   }
 }
