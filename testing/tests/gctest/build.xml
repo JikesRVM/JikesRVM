@@ -77,7 +77,7 @@
     <gcTest class="ReferenceStress"/>
 
     <!-- FixedLive has specific statistics -->
-    <rvm tag="FixedLive" class="FixedLive" args="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O3 ${arg}" initialHeapSize="120"/>
+    <rvm tag="FixedLive" class="FixedLive" rvmArgs="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2" args="${arg}" initialHeapSize="120"/>
     <outputTestStart tag="FixedLive"/>
     <findStatistic tag="FixedLive" pattern="Overall: SUCCESS" key="success"/>
     <if>
