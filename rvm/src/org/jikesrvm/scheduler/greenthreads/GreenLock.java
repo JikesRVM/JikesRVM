@@ -125,9 +125,6 @@ public class GreenLock extends Lock {
       }
     }
     mutex.unlock(); // does a Magic.sync();  (thread-switching benign)
-    if (deflated && ((LOCK_ALLOCATION_UNIT_SIZE << 1) <= mine.freeLocks) && BALANCE_FREE_LOCKS) {
-      globalizeFreeLocks(mine);
-    }
   }
 
   /**

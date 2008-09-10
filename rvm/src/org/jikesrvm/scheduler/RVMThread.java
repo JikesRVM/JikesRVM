@@ -269,6 +269,11 @@ public abstract class RVMThread {
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
   private int uncaughtExceptionCount = 0;
 
+  /**
+   * A cached free lock.  Not a free list; this will only ever contain 0 or 1 locks!
+   */
+  public Lock cachedFreeLock;
+
   /*
    * Wait/notify fields
    */
@@ -788,6 +793,13 @@ public abstract class RVMThread {
       notifyAllUninterruptible(this);
       state = State.TERMINATED;
     }
+
+    if (cachedFreeLock != null) {
+      // Return cached free lock
+      Lock.returnLock(cachedFreeLock);
+      cachedFreeLock = null;
+    }
+
     // become another thread
     //
     Scheduler.releaseThreadSlot(threadSlot, this);

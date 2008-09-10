@@ -489,13 +489,6 @@ public final class GreenScheduler extends Scheduler {
     }
     VM.sysWrite("\n");
 
-    VM.sysWrite("\n-- Locks available --\n");
-    for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; ++i) {
-      processor = getProcessor(i);
-      processor.dumpLocks();
-    }
-    VM.sysWrite("\n");
-
     VM.sysWrite("\n-- Locks in use --\n");
     Lock.dumpLocks();
 
