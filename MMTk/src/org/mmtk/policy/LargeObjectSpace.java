@@ -14,12 +14,9 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.DoublyLinkedList;
 import org.mmtk.utility.Treadmill;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -27,18 +24,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Each instance of this class corresponds to one treadmill *space*.
- *
- * Each of the instance methods of this class may be called by any
- * thread (i.e. synchronization must be explicit in any instance or
- * class method).
- *
- * This stands in contrast to TreadmillLocal, which is instantiated
- * and called on a per-thread basis, where each instance of
- * TreadmillLocal corresponds to one thread operating over one space.
+ * Each instance of this class corresponds to one explicitly managed
+ * large object space.
  */
-@Uninterruptible public final class LargeObjectSpace extends Space
-  implements Constants {
+@Uninterruptible
+public final class LargeObjectSpace extends BaseLargeObjectSpace {
 
   /****************************************************************************
    *
@@ -56,7 +46,6 @@ import org.vmmagic.unboxed.*;
    */
   private Word markState;
   private boolean inNurseryGC;
-  private final DoublyLinkedList cells;
   private final Treadmill treadmill;
 
   /****************************************************************************
@@ -75,13 +64,7 @@ import org.vmmagic.unboxed.*;
    * @param vmRequest An object describing the virtual memory requested.
    */
   public LargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
-    if (vmRequest.isDiscontiguous()) {
-      pr = new FreeListPageResource(pageBudget, this, 0);
-    } else {
-      pr = new FreeListPageResource(pageBudget, this, start, extent);
-    }
-    cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
+    super(name, pageBudget, vmRequest);
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
     markState = Word.zero();
   }
@@ -95,7 +78,7 @@ import org.vmmagic.unboxed.*;
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
- */
+   */
   public void prepare(boolean fullHeap) {
     if (fullHeap) {
       if (VM.VERIFY_ASSERTIONS) {
@@ -110,7 +93,7 @@ import org.vmmagic.unboxed.*;
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
- */
+   */
   public void release(boolean fullHeap) {
     // sweep the large objects
     sweepLargePages(true);                // sweep the nursery
@@ -126,7 +109,7 @@ import org.vmmagic.unboxed.*;
     while (true) {
       Address cell = sweepNursery ? treadmill.popNursery() : treadmill.pop();
       if (cell.isZero()) break;
-      release(LargeObjectAllocator.getSuperPage(cell));
+      release(getSuperPage(cell));
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(sweepNursery ? treadmill.nurseryEmpty() : treadmill.fromSpaceEmpty());
   }
@@ -141,7 +124,6 @@ import org.vmmagic.unboxed.*;
   public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
   }
-
 
   /****************************************************************************
    *
@@ -184,7 +166,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * An object has been marked (identified as live).  Large objects
+   * An object has been marked (identifiged as live).  Large objects
    * are added to the to-space treadmill, while all other objects will
    * have a mark bit set in the superpage header.
    *
@@ -207,14 +189,19 @@ import org.vmmagic.unboxed.*;
    * Perform any required initialization of the GC portion of the header.
    *
    * @param object the object ref to the storage to be initialized
-   * @param isPLOSObject the object is allocated in the PLOS
+   * @param alloc is this initialization occuring due to (initial) allocation
+   * (true) or due to copying (false)?
    */
   @Inline
-  public void initializeHeader(ObjectReference object, boolean isPLOSObject) {
+  public void initializeHeader(ObjectReference object, boolean alloc) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT);
     if (Plan.NEEDS_LOG_BIT_IN_HEADER) newValue = newValue.or(Plan.UNLOGGED_BIT);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
+    if (alloc) {
+      Address cell = VM.objectModel.objectStartRef(object);
+      treadmill.addToTreadmill(Treadmill.midPayloadToNode(cell));
+    }
   }
 
   /**
@@ -260,25 +247,28 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the size of the super page
+   * Return the size of the per-superpage header required by this
+   * system.  In this case it is just the underlying superpage header
+   * size.
    *
-   * @param first the Address of the first word in the superpage
-   * @return the size in bytes
+   * @return The size of the per-superpage header required by this
+   * system.
    */
-  public Extent getSize(Address first) {
-    return ((FreeListPageResource) pr).getSize(first);
+  @Inline
+  protected int superPageHeaderSize() {
+    return Treadmill.headerSize();
   }
 
   /**
-   * This is the cell list for this large object space.
+   * Return the size of the per-cell header for cells of a given class
+   * size.
    *
-   * Note that it depends on the specific local in use whether this
-   * is being used.
-   *
-   * @return The cell list associated with this large object space.
+   * @return The size of the per-cell header for cells of a given class
+   * size.
    */
-  public DoublyLinkedList getCells() {
-    return this.cells;
+  @Inline
+  protected int cellHeaderSize() {
+    return 0;
   }
 
   /**
@@ -291,32 +281,5 @@ import org.vmmagic.unboxed.*;
    */
   public Treadmill getTreadmill() {
     return this.treadmill;
-  }
-
-  /**
-   * Sweep through all the objects in this space.
-   *
-   * @param sweeper The sweeper callback to use.
-   */
-  @Inline
-  public void sweep(Sweeper sweeper) {
-    DoublyLinkedList cells = getCells();
-    Address cell = cells.getHead();
-    while (!cell.isZero()) {
-      Address next = cells.getNext(cell);
-      ObjectReference obj = VM.objectModel.getObjectFromStartAddress(cell.plus(DoublyLinkedList.headerSize()));
-      if (sweeper.sweepLargeObject(obj)) {
-        ExplicitLargeObjectLocal.free(this, obj);
-      }
-      cell = next;
-    }
-  }
-
-  /**
-   * A callback used to perform sweeping of the large object space.
-   */
-  @Uninterruptible
-  public abstract static class Sweeper {
-    public abstract boolean sweepLargeObject(ObjectReference object);
   }
 }

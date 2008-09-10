@@ -16,7 +16,7 @@ import org.mmtk.plan.StopTheWorldMutator;
 import org.mmtk.plan.refcount.backuptrace.BTSweepImmortalScanner;
 import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.policy.ExplicitFreeListSpace;
-import org.mmtk.policy.ExplicitLargeObjectLocal;
+import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
@@ -35,7 +35,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * Instance fields
    */
   private final ExplicitFreeListLocal rc;
-  private final ExplicitLargeObjectLocal rclos;
+  private final LargeObjectLocal rclos;
   private final ObjectReferenceDeque modBuffer;
   private final RCDecBuffer decBuffer;
   private final BTSweepImmortalScanner btSweepImmortal;
@@ -50,7 +50,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    */
   public RCBaseMutator() {
     rc = new ExplicitFreeListLocal(RCBase.rcSpace);
-    rclos = new ExplicitLargeObjectLocal(RCBase.rcloSpace);
+    rclos = new LargeObjectLocal(RCBase.rcloSpace);
     modBuffer = new ObjectReferenceDeque("mod", global().modPool);
     decBuffer = new RCDecBuffer(global().decPool);
     btSweepImmortal = new BTSweepImmortalScanner();
@@ -111,10 +111,15 @@ public class RCBaseMutator extends StopTheWorldMutator {
       ExplicitFreeListSpace.unsyncSetLiveBit(ref);
       break;
     case RCBase.ALLOC_LOS:
-    case RCBase.ALLOC_IMMORTAL:
       modBuffer.push(ref);
     case RCBase.ALLOC_PRIMITIVE_LOS:
     case RCBase.ALLOC_LARGE_CODE:
+      decBuffer.push(ref);
+      RCHeader.initializeHeader(ref, true);
+      RCBase.rcloSpace.initializeHeader(ref, true);
+      return;
+    case RCBase.ALLOC_IMMORTAL:
+      modBuffer.push(ref);
       decBuffer.push(ref);
       RCHeader.initializeHeader(ref, true);
       return;

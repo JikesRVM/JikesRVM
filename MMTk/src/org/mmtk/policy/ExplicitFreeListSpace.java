@@ -112,7 +112,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * @param object The object to be freed.
    */
   @Inline
-  public static void free(ObjectReference object) {
+  public void free(ObjectReference object) {
     clearLiveBit(object);
   }
 

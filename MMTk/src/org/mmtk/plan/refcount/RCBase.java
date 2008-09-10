@@ -19,7 +19,7 @@ import org.mmtk.plan.refcount.backuptrace.BTFreeLargeObjectSweeper;
 import org.mmtk.plan.refcount.backuptrace.BTScanLargeObjectSweeper;
 import org.mmtk.plan.refcount.backuptrace.BTSweeper;
 import org.mmtk.policy.ExplicitFreeListSpace;
-import org.mmtk.policy.LargeObjectSpace;
+import org.mmtk.policy.ExplicitLargeObjectSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.LinearScan;
@@ -103,7 +103,7 @@ public class RCBase extends StopTheWorld {
    * Class fields
    */
   public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, VMRequest.create());
-  public static final LargeObjectSpace rcloSpace = new LargeObjectSpace("rclos", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
   public static final int REF_COUNT = rcSpace.getDescriptor();
   public static final int REF_COUNT_LOS = rcloSpace.getDescriptor();

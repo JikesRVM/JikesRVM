@@ -13,7 +13,7 @@
 package org.mmtk.plan.refcount.backuptrace;
 
 import org.mmtk.plan.refcount.RCHeader;
-import org.mmtk.policy.LargeObjectSpace;
+import org.mmtk.policy.ExplicitLargeObjectSpace;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * This class implements the scanning of dead large objects during a backup trace.
  */
 @Uninterruptible
-public final class BTScanLargeObjectSweeper extends LargeObjectSpace.Sweeper {
+public final class BTScanLargeObjectSweeper extends ExplicitLargeObjectSpace.Sweeper {
 
   private final BTDecMarked sdm = new BTDecMarked();
 

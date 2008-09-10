@@ -151,11 +151,6 @@ public final class Treadmill implements Constants {
   }
 
   @Inline
-  public static Address payloadToNode(Address payload) {
-    return DoublyLinkedList.payloadToNode(payload);
-  }
-
-  @Inline
   public static Address midPayloadToNode(Address payload) {
     return DoublyLinkedList.midPayloadToNode(payload);
   }

@@ -17,8 +17,6 @@ import org.mmtk.plan.StopTheWorldCollector;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.backuptrace.BTTraceLocal;
-import org.mmtk.policy.ExplicitFreeListSpace;
-import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
@@ -139,9 +137,9 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
         if (RCHeader.decRC(current) == RCHeader.DEC_KILL) {
           decBuffer.processChildren(current);
           if (Space.isInSpace(RCBase.REF_COUNT, current)) {
-            ExplicitFreeListSpace.free(current);
+            RCBase.rcSpace.free(current);
           } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
-            ExplicitLargeObjectLocal.free(RCBase.rcloSpace, current);
+            RCBase.rcloSpace.free(current);
           } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
             VM.scanning.scanObject(zero, current);
           }
