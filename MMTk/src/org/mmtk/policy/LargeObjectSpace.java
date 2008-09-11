@@ -195,13 +195,12 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT);
+    Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState);
+    if (alloc) newValue = newValue.or(NURSERY_BIT);
     if (Plan.NEEDS_LOG_BIT_IN_HEADER) newValue = newValue.or(Plan.UNLOGGED_BIT);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
-    if (alloc) {
-      Address cell = VM.objectModel.objectStartRef(object);
-      treadmill.addToTreadmill(Treadmill.midPayloadToNode(cell));
-    }
+    Address cell = VM.objectModel.objectStartRef(object);
+    treadmill.addToTreadmill(Treadmill.midPayloadToNode(cell), alloc);
   }
 
   /**
