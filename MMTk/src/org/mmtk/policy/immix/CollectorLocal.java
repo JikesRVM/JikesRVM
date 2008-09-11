@@ -129,10 +129,10 @@ public final class CollectorLocal implements Constants {
   private void sweepAllBlocks(boolean majorGC) {
     int stride = VM.collection.activeGCThreads();
     int ordinal = VM.collection.activeGCThreadOrdinal();
-    int[] markSpillHisto = defrag.getSpillMarkHistogram(ordinal);
+    int[] markSpillHisto = defrag.getAndZeroSpillMarkHistogram(ordinal);
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {
-      Chunk.sweep(chunk, Chunk.getHighWater(chunk), immixSpace, markSpillHisto, defrag.getSpillAvailHistogram(ordinal));
+      Chunk.sweep(chunk, Chunk.getHighWater(chunk), immixSpace, markSpillHisto);
       chunk = chunkMap.nextChunk(chunk, ordinal, stride);
     }
   }

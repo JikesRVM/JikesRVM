@@ -119,7 +119,7 @@ public class Block implements Constants {
   /***************************************************************************
    * Sweeping
    */
-  static short sweepOneBlock(Address block, int[] markHistogram, int[] availHistogram) {
+  static short sweepOneBlock(Address block, int[] markHistogram) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(block));
 
     final boolean unused = isUnused(block);
