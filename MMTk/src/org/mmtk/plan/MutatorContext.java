@@ -115,8 +115,6 @@ public abstract class MutatorContext implements Constants {
   /** Per-mutator allocator into the non moving space */
   private MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
 
-  /** Per-mutator allocator into the primitive large object space */
-  protected LargeObjectLocal plos = new LargeObjectLocal(Plan.ploSpace);
 
   /****************************************************************************
    *
@@ -152,16 +150,16 @@ public abstract class MutatorContext implements Constants {
   @Inline
   public int checkAllocator(int bytes, int align, int allocator) {
     boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD;
-    if (allocator == Plan.ALLOC_DEFAULT) {
+    /* if (allocator == Plan.ALLOC_DEFAULT) {
       return large ? Plan.ALLOC_LOS : allocator;
-    }
+    } */
 
     if (Plan.USE_CODE_SPACE && allocator == Plan.ALLOC_CODE) {
       return large ? Plan.ALLOC_LARGE_CODE : allocator;
     }
 
     if (allocator == Plan.ALLOC_NON_REFERENCE) {
-      return large ? Plan.ALLOC_PRIMITIVE_LOS : Plan.ALLOC_DEFAULT;
+      return /* large ? Plan.ALLOC_PRIMITIVE_LOS : */ Plan.ALLOC_DEFAULT;
     }
 
     if (allocator == Plan.ALLOC_NON_MOVING) {
@@ -185,7 +183,6 @@ public abstract class MutatorContext implements Constants {
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset);
-    case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset);
     case      Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
     case      Plan.ALLOC_CODE: return smcode.alloc(bytes, align, offset);
     case      Plan.ALLOC_LARGE_CODE: return lgcode.alloc(bytes, align, offset);
@@ -210,7 +207,6 @@ public abstract class MutatorContext implements Constants {
       int bytes, int allocator) {
     switch (allocator) {
     case           Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref, true); return;
-    case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref, true); return;
     case      Plan.ALLOC_IMMORTAL: Plan.immortalSpace.initializeHeader(ref);  return;
     case          Plan.ALLOC_CODE: Plan.smallCodeSpace.initializeHeader(ref, true); return;
     case    Plan.ALLOC_LARGE_CODE: Plan.largeCodeSpace.initializeHeader(ref, true); return;
@@ -275,7 +271,6 @@ public abstract class MutatorContext implements Constants {
   public Space getSpaceFromAllocator(Allocator a) {
     if (a == immortal) return Plan.immortalSpace;
     if (a == los)      return Plan.loSpace;
-    if (a == plos)     return Plan.ploSpace;
     if (a == nonmove)  return Plan.nonMovingSpace;
     if (Plan.USE_CODE_SPACE && a == smcode)   return Plan.smallCodeSpace;
     if (Plan.USE_CODE_SPACE && a == lgcode)   return Plan.largeCodeSpace;
@@ -296,7 +291,6 @@ public abstract class MutatorContext implements Constants {
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == Plan.immortalSpace)  return immortal;
     if (space == Plan.loSpace)        return los;
-    if (space == Plan.ploSpace)       return plos;
     if (space == Plan.nonMovingSpace) return nonmove;
     if (Plan.USE_CODE_SPACE && space == Plan.smallCodeSpace) return smcode;
     if (Plan.USE_CODE_SPACE && space == Plan.largeCodeSpace) return lgcode;

@@ -12,10 +12,8 @@
  */
 package org.mmtk.plan.generational;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.vm.VM;
 
@@ -60,10 +58,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (object.toAddress().GE(Gen.NURSERY_START)) {
-      if (object.toAddress().LT(Gen.NURSERY_END))
-        return Gen.nurserySpace.isLive(object);
-      else
-        return Gen.ploSpace.isLive(object);
+      return Gen.nurserySpace.isLive(object);
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
@@ -83,10 +78,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.toAddress().GE(Gen.NURSERY_START)) {
-      if (object.toAddress().LT(Gen.NURSERY_END))
-        return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MINORGC);
-      else
-        return Gen.ploSpace.traceObject(this, object);
+      return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MINORGC);
     }
     return object;
   }
@@ -121,7 +113,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.isNull()) return false;
-    return object.toAddress().LT(Gen.NURSERY_START) || Space.isInSpace(Plan.PLOS, object);
+    return object.toAddress().LT(Gen.NURSERY_START);
   }
 
 }

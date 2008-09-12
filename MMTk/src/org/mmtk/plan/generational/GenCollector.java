@@ -13,6 +13,7 @@
 package org.mmtk.plan.generational;
 
 import org.mmtk.plan.*;
+import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.utility.deque.*;
 
 import org.mmtk.vm.VM;
@@ -41,6 +42,8 @@ import org.vmmagic.pragma.*;
 
   protected final GenNurseryTraceLocal nurseryTrace;
 
+  protected final LargeObjectLocal los;
+
   // remembered set consumers
   protected final AddressDeque remset;
   protected final AddressPairDeque arrayRemset;
@@ -59,6 +62,7 @@ import org.vmmagic.pragma.*;
    * @see GenMutator
    */
   public GenCollector() {
+    los = new LargeObjectLocal(Plan.loSpace);
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
     remset = new AddressDeque("remset", global().remsetPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
@@ -79,6 +83,7 @@ import org.vmmagic.pragma.*;
   public void collectionPhase(short phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
+      los.prepare(true);
       global().arrayRemsetPool.prepareNonBlocking();
       global().remsetPool.prepareNonBlocking();
       nurseryTrace.prepare();
@@ -104,6 +109,7 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == Gen.RELEASE) {
+      los.release(true);
       if (!global().traceFullHeap()) {
         nurseryTrace.release();
         global().arrayRemsetPool.reset();

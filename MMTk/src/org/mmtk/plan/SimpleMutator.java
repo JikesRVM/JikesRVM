@@ -56,14 +56,12 @@ public abstract class SimpleMutator extends MutatorContext {
 
     if (phaseId == Simple.PREPARE) {
       los.prepare(true);
-      plos.prepare(true);
       VM.memory.collectorPrepareVMSpace();
       return;
     }
 
     if (phaseId == Simple.RELEASE) {
       los.release(true);
-      plos.release(true);
       VM.memory.collectorReleaseVMSpace();
       return;
     }

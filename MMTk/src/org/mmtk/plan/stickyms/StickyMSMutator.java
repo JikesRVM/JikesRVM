@@ -176,16 +176,12 @@ public class StickyMSMutator extends MSMutator {
 
     if (!global().collectWholeHeap) {
       if (phaseId == StickyMS.PREPARE) {
-        if (StickyMS.NURSERY_COLLECT_PLOS)
-          plos.prepare(false);
         ms.prepare();
         return;
       }
 
       if (phaseId == StickyMS.RELEASE) {
         ms.release();
-        if (StickyMS.NURSERY_COLLECT_PLOS)
-          plos.release(false);
         return;
       }
     }

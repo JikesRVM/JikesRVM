@@ -85,8 +85,6 @@ public abstract class Gen extends StopTheWorld {
   public static final Address NURSERY_START = nurserySpace.getStart();
   public static final Address NURSERY_END = NURSERY_START.plus(nurserySpace.getExtent());
 
-  private static int lastCommittedPLOSpages = 0;
-
   /*****************************************************************************
    *
    * Instance fields
@@ -145,9 +143,7 @@ public abstract class Gen extends StopTheWorld {
 
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      if (!traceFullHeap()) {
-        ploSpace.prepare(false);
-      } else {
+      if (traceFullHeap()){
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -173,12 +169,10 @@ public abstract class Gen extends StopTheWorld {
       arrayRemsetPool.clearDeque(2);
       if (!traceFullHeap()) {
         nurseryTrace.release();
-        ploSpace.release(false);
       } else {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
-      lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       return;
     }
@@ -235,11 +229,9 @@ public abstract class Gen extends StopTheWorld {
     }
 
     int smallNurseryPages = nurserySpace.committedPages();
-    int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
-    int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
     int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
 
-    if ((plosYield + smallNurseryYield) < getPagesRequired()) {
+    if (smallNurseryYield < getPagesRequired()) {
       // Our total yield is insufficent.
       return true;
     }
@@ -251,12 +243,6 @@ public abstract class Gen extends StopTheWorld {
       }
     }
 
-    if (ploSpace.allocationFailed()) {
-      if (plosYield < ploSpace.requiredPages()) {
-        // We have run out of VM pages in the PLOS
-        return true;
-      }
-    }
 
     return false;
   }
