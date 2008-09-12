@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a bump pointer allocator that allows linearly
  * scanning through the allocated objects. In order to achieve this in the
- * face of parallelism it maintains a header at a region (1 or more chunks)
+ * face of parallelism it maintains a header at a region (1 or more blocks)
  * granularity.
  *
  * Intra-block allocation is fast, requiring only a load, addition comparison
@@ -60,11 +60,11 @@ import org.vmmagic.pragma.*;
    * Class variables
    */
 
-  // Chunk size defines slow path periodicity.
-  private static final int LOG_DEFAULT_STEP_SIZE = 20; // 1M: let the external slow path dominate
+  // Block size defines slow path periodicity.
+  private static final int LOG_DEFAULT_STEP_SIZE = 30; // 1G: let the external slow path dominate
   private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
-  protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
-  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());
+  protected static final int LOG_BLOCK_SIZE = LOG_BYTES_IN_PAGE + 3;
+  protected static final Word BLOCK_MASK = Word.one().lsh(LOG_BLOCK_SIZE).minus(Word.one());
 
   // Offsets into header
   protected static final Offset REGION_LIMIT_OFFSET = Offset.zero();
@@ -249,7 +249,7 @@ import org.vmmagic.pragma.*;
       VM.assertions.fail("Allocation on unbound bump pointer.");
     }
 
-    /* Check if we already have a chunk to use */
+    /* Check if we already have a block to use */
     if (allowScanning && !region.isZero()) {
       Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);
       if (!nextRegion.isZero()) {
@@ -257,18 +257,18 @@ import org.vmmagic.pragma.*;
       }
     }
 
-    /* Aquire space, chunk aligned, that can accomodate the request */
-    Extent chunkSize = Word.fromIntZeroExtend(bytes).plus(CHUNK_MASK)
-                       .and(CHUNK_MASK.not()).toExtent();
-    Address start = space.acquire(Conversions.bytesToPages(chunkSize));
+    /* Acquire space, block aligned, that can accommodate the request */
+    Extent blockSize = Word.fromIntZeroExtend(bytes).plus(BLOCK_MASK)
+                       .and(BLOCK_MASK.not()).toExtent();
+    Address start = space.acquire(Conversions.bytesToPages(blockSize));
 
     if (start.isZero()) return start; // failed allocation
 
     if (!allowScanning) { // simple allocator
       if (start.NE(limit)) cursor = start;  // discontiguous
-      updateLimit(start.plus(chunkSize), start, bytes);
+      updateLimit(start.plus(blockSize), start, bytes);
     } else                // scannable allocator
-      updateMetaData(start, chunkSize, bytes);
+      updateMetaData(start, blockSize, bytes);
     return alloc(bytes, align, offset);
   }
 
@@ -314,8 +314,8 @@ import org.vmmagic.pragma.*;
     cursor = nextRegion.plus(DATA_START_OFFSET);
     updateLimit(nextRegion.loadAddress(REGION_LIMIT_OFFSET), nextRegion, bytes);
     nextRegion.store(Address.zero(), DATA_END_OFFSET);
-    VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
-    reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
+    VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
+    reusePages(Conversions.bytesToPages(limit.diff(region)));
 
     return alloc(bytes, align, offset);
   }
@@ -324,7 +324,7 @@ import org.vmmagic.pragma.*;
    * Update the metadata to reflect the addition of a new region.
    *
    * @param start The start of the new region
-   * @param size The size of the new region (rounded up to chunk-alignment)
+   * @param size The size of the new region (rounded up to block-alignment)
    */
   @Inline
   private void updateMetaData(Address start, Extent size, int bytes) {
@@ -333,7 +333,7 @@ import org.vmmagic.pragma.*;
       initialRegion = start;
       region = start;
       cursor = region.plus(DATA_START_OFFSET);
-    } else if (limit.plus(BYTES_IN_ADDRESS).NE(start) ||
+    } else if (limit.NE(start) ||
                region.diff(start.plus(size)).toWord().toExtent().GT(maximumRegionSize())) {
       /* non contiguous or over-size, initialize new region */
       region.plus(NEXT_REGION_OFFSET).store(start);
@@ -341,7 +341,7 @@ import org.vmmagic.pragma.*;
       region = start;
       cursor = start.plus(DATA_START_OFFSET);
     }
-    updateLimit(start.plus(size.minus(BYTES_IN_ADDRESS)), start, bytes); // skip over region limit
+    updateLimit(start.plus(size), start, bytes);
     region.plus(REGION_LIMIT_OFFSET).store(limit);
   }
 
