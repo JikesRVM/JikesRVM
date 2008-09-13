@@ -2228,10 +2228,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_tableswitch(int defaultval, int low, int high) {
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
-    int n = high - low + 1;                        // n = number of normal cases (0..n-1)
+    int n = high - low + 1;                       // n = number of normal cases (0..n-1)
     asm.emitPOP_Reg(T0);                          // T0 is index of desired case
-    asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
-    asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
+    asm.emitSUB_Reg_Imm(T0, low);                 // relativize T0
+    asm.emitCMP_Reg_Imm(T0, n);                   // 0 <= relative index < n
 
     if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
       int firstCounter = edgeCounterIdx;
@@ -2251,9 +2251,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
     // make table aligned if doing alignment checking
     if (VM.AlignmentChecking) {
-      while (((asm.getMachineCodeIndex() + 5) % WORDSIZE) != 0) {
-        asm.emitNOP();
-      }
+      asm.emitNOP((asm.getMachineCodeIndex() + 1) & 3);
     }
 
     asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n << LG_WORDSIZE));
@@ -2383,8 +2381,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * field access
-  */
+   * field access
+   */
 
   /**
    * Emit code to implement a dynamically linked getstatic
@@ -2485,42 +2483,42 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
         Barriers.compileGetfieldBarrier(asm, T0, fieldRef.getId());
       } else {
-        asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+        asm.emitPOP_Reg(S0);                                         // S0 is object reference
         asm.emitMOV_Reg_RegIdx(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
-        asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+        asm.emitPUSH_Reg(T1);                                        // place value on stack
       }
     } else if (fieldType.isBooleanType()) {
       // 8bit unsigned load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                                // S0 is object reference
       asm.emitMOVZX_Reg_RegIdx_Byte(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+      asm.emitPUSH_Reg(T1);                                               // place value on stack
     } else if (fieldType.isByteType()) {
       // 8bit signed load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                                // S0 is object reference
       asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+      asm.emitPUSH_Reg(T1);                                               // place value on stack
     } else if (fieldType.isShortType()) {
       // 16bit signed load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                                // S0 is object reference
       asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+      asm.emitPUSH_Reg(T1);                                               // place value on stack
     } else if (fieldType.isCharType()) {
       // 16bit unsigned load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                                // S0 is object reference
       asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+      asm.emitPUSH_Reg(T1);                                               // place value on stack
     } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
       // 32bit load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                         // S0 is object reference
       asm.emitMOV_Reg_RegIdx(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1); // replace reference with value on stack
+      asm.emitPUSH_Reg(T1);                                        // place value on stack
     } else {
       // 64bit load
       if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
       // NB this is a 64bit copy from memory to the stack so implement
       // as a slightly optimized Intel memory copy using the FPU
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);  // S0 is object reference
-      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // adjust stack down one word to hold 64bit value
+      asm.emitPOP_Reg(S0);                 // S0 is object reference
+      asm.emitSUB_Reg_Imm(SP, 2*WORDSIZE); // adjust stack down to hold 64bit value
       if (SSE2_BASE) {
         asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, Assembler.BYTE, NO_SLOT); // XMM0 is field value
         asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
@@ -2545,42 +2543,42 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (MemoryManagerConstants.NEEDS_READ_BARRIER && !field.isUntraced()) {
         Barriers.compileGetfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
       } else {
-        asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+        asm.emitPOP_Reg(S0);                          // S0 is object reference
         asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
-        asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+        asm.emitPUSH_Reg(T0);                         // place value on stack
       }
     } else if (fieldType.isBooleanType()) {
       // 8bit unsigned load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                 // S0 is object reference
       asm.emitMOVZX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+      asm.emitPUSH_Reg(T0);                                // place value on stack
     } else if (fieldType.isByteType()) {
       // 8bit signed load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                 // S0 is object reference
       asm.emitMOVSX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+      asm.emitPUSH_Reg(T0);                                // place value on stack
     } else if (fieldType.isShortType()) {
       // 16bit signed load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                 // S0 is object reference
       asm.emitMOVSX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+      asm.emitPUSH_Reg(T0);                                // place value on stack
     } else if (fieldType.isCharType()) {
       // 16bit unsigned load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                                 // S0 is object reference
       asm.emitMOVZX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+      asm.emitPUSH_Reg(T0);                                // place value on stack
     } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
       // 32bit load
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT); // S0 is object reference
+      asm.emitPOP_Reg(S0);                          // S0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0); // replace reference with value on stack
+      asm.emitPUSH_Reg(T0);                         // place value on stack
     } else {
       // 64bit load
       if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
       // NB this is a 64bit copy from memory to the stack so implement
       // as a slightly optimized Intel memory copy using the FPU
-      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);  // S0 is object reference
-      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // adjust stack down one word to hold 64bit value
+      asm.emitPOP_Reg(S0);                 // S0 is object reference
+      asm.emitSUB_Reg_Imm(SP, 2*WORDSIZE); // adjust stack down to hold 64bit value
       if (SSE2_BASE) {
         asm.emitMOVQ_Reg_RegDisp(XMM0, S0, fieldOffset); // XMM0 is field value
         asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
@@ -2605,28 +2603,24 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
         asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       } else {
-        asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-        asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+        asm.emitPOP_Reg(T1);  // T1 is the value to be stored
+        asm.emitPOP_Reg(S0);  // S0 is the object reference
         asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
       }
     } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
       // 8bit store
-      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+      asm.emitPOP_Reg(T1);  // T1 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       asm.emitMOV_RegIdx_Reg_Byte(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
     } else if (fieldType.isShortType() || fieldType.isCharType()) {
       // 16bit store
-      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+      asm.emitPOP_Reg(T1);  // T1 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       asm.emitMOV_RegIdx_Reg_Word(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
     } else if (fieldType.isIntType() || fieldType.isFloatType() || fieldType.isWordType()) {
       // 32bit store
-      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);  // T1 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+      asm.emitPOP_Reg(T1);  // T1 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
     } else {
       // 64bit store
@@ -2660,31 +2654,27 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
         asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
       } else {
-        asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-        asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+        asm.emitPOP_Reg(T0);  // T0 is the value to be stored
+        asm.emitPOP_Reg(S0);  // S0 is the object reference
         // [S0+fieldOffset] <- T0
         asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);
       }
     } else if (field.getSize() == BYTES_IN_BYTE) {
       // 8bit store
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+      asm.emitPOP_Reg(T0);  // T0 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       // [S0+fieldOffset] <- T0
       asm.emitMOV_RegDisp_Reg_Byte(S0, fieldOffset, T0);
     } else if (field.getSize() == BYTES_IN_SHORT) {
       // 16bit store
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+      asm.emitPOP_Reg(T0);  // T0 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       // [S0+fieldOffset] <- T0
       asm.emitMOV_RegDisp_Reg_Word(S0, fieldOffset, T0);
     } else if (field.getSize() == BYTES_IN_INT) {
       // 32bit store
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);  // T0 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is the object reference
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2); // complete popping the value and reference
+      asm.emitPOP_Reg(T0);  // T0 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       // [S0+fieldOffset] <- T0
       asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);
     } else {

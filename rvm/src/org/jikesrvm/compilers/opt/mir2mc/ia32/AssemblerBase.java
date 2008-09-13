@@ -653,20 +653,22 @@ abstract class AssemblerBase extends Assembler
    */
   protected boolean targetIsClose(Instruction start, int target) {
     Instruction inst = start.nextInstructionInCodeOrder();
-    int budget = 120; // slight fudge factor could be 127
+    final int budget = 120; // slight fudge factor could be 127
+    int offset = 0;
     while (true) {
-      if (budget <= 0) return false;
+      if (offset <= budget) return false;
       if (inst.getmcOffset() == target) {
         return true;
       }
-      budget -= estimateSize(inst);
+      offset += estimateSize(inst, offset);
       inst = inst.nextInstructionInCodeOrder();
     }
   }
 
-  protected int estimateSize(Instruction inst) {
+  protected int estimateSize(Instruction inst, int offset) {
     switch (inst.getOpcode()) {
       case LABEL_opcode:
+        return (4 - offset) & 3; // return size of nop required for alignment
       case BBEND_opcode:
       case UNINT_BEGIN_opcode:
       case UNINT_END_opcode: {
@@ -693,8 +695,8 @@ abstract class AssemblerBase extends Assembler
       }
       case IA32_TEST_opcode: {
         int size = 2; // opcode + modr/m
-        size += operandCost(MIR_Test.getVal1(inst), true);
-        size += operandCost(MIR_Test.getVal2(inst), true);
+        size += operandCost(MIR_Test.getVal1(inst), false);
+        size += operandCost(MIR_Test.getVal2(inst), false);
         return size;
       }
       case IA32_ADDSD_opcode:
@@ -1004,7 +1006,7 @@ abstract class AssemblerBase extends Assembler
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       if (DEBUG_ESTIMATE) {
         int start = asm.getMachineCodeIndex();
-        int estimate = asm.estimateSize(p);
+        int estimate = asm.estimateSize(p, start);
         asm.doInst(p);
         int end = asm.getMachineCodeIndex();
         if (end - start > estimate) {

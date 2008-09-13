@@ -907,6 +907,34 @@ move
 
 
 ####################
+IA32_MOVZXQ__B
+MIR_Unary
+move
+
+
+
+####################
+IA32_MOVSXQ__B
+MIR_Unary
+move
+
+
+
+####################
+IA32_MOVZXQ__W
+MIR_Unary
+move
+
+
+
+####################
+IA32_MOVSXQ__W
+MIR_Unary
+move
+
+
+
+####################
 IA32_MUL
 MIR_Multiply
 none

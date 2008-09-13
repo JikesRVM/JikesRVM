@@ -461,6 +461,26 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP.value()); // (scale factor 1) no index, ESP is base
 
   /**
+   * Generate a REX prefix if necessary
+   *
+   * @param W is a quad word override needed
+   * @param R_reg extension of the modrm field
+   * @param X_reg extension of the SIB index field
+   * @param B_reg extension of the modrm field, SIB base or opcode reg field
+   */
+  @Inline
+  private void generateREXprefix(boolean W, MachineRegister R_reg, MachineRegister X_reg, MachineRegister B_reg) {
+    boolean R = R_reg != null && R_reg.needsREXprefix();
+    boolean X = X_reg != null && X_reg.needsREXprefix();
+    boolean B = B_reg != null && B_reg.needsREXprefix();
+    if (W || R || X || B) {
+      if (VM.VerifyAssertions) VM._assert(!VM.buildFor32Addr());
+      byte prefixByte = (byte)(0x40 | (W ? 8 : 0) | (R ? 4 : 0) | (X ? 2 : 0) | (B ? 1 : 0));
+      setMachineCodes(mi++, prefixByte);
+    }
+  }
+
+  /**
    * Return a ModRM byte encoding a source and destination register
    * (i.e. for a register-register instruction).
    *
@@ -470,7 +490,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regRegModRM(MachineRegister reg1, MachineRegister reg2) {
-    return (byte) ((3 << 6) | (reg2.value() << 3) | reg1.value());
+    return (byte) ((3 << 6) | ((reg2.value() & 7) << 3) | (reg1.value() & 0x7));
   }
 
   /**
@@ -484,7 +504,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regDisp32RegModRM(MachineRegister reg1, MachineRegister reg2) {
-    return (byte) ((2 << 6) | (reg2.value() << 3) | reg1.value());
+    return (byte) ((2 << 6) | ((reg2.value() & 7)<< 3) | (reg1.value() & 7));
   }
 
   /**
@@ -498,7 +518,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regDisp8RegModRM(MachineRegister reg1, MachineRegister reg2) {
-    return (byte) ((1 << 6) | (reg2.value() << 3) | reg1.value());
+    return (byte) ((1 << 6) | ((reg2.value() & 7) << 3) | (reg1.value() & 7));
   }
 
   /**
@@ -511,7 +531,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   private byte regIndirectRegModRM(MachineRegister reg1, MachineRegister reg2) {
-    return (byte) ((reg2.value() << 3) | reg1.value());
+    return (byte) (((reg2.value() & 7) << 3) | (reg1.value() & 7));
   }
 
   /**
@@ -527,7 +547,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   private byte sib(short scale, MachineRegister baseReg, MachineRegister indexReg) {
-    return (byte) ((scale << 6) | (indexReg.value() << 3) | baseReg.value());
+    return (byte) ((scale << 6) | ((indexReg.value() & 7) << 3) | (baseReg.value() & 7));
   }
 
   /**
@@ -859,12 +879,12 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline
   public final void emitPatchPoint() {
     if ((mi & 0x1) == 1) {
-      emitNOP();
+      emitNOP(1);
     }
     ForwardReference r = forwardJMP();
-    emitNOP();
-    emitNOP();
-    emitNOP();
+    emitNOP(1);
+    emitNOP(1);
+    emitNOP(1);
     r.resolve(this);
   }
 
@@ -1063,6 +1083,10 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *          branch to patch.
    */
   public final void patchUnconditionalBranch (int sourceIndex) {
+    if (VM.AlignmentChecking || isHotCode()) {
+      // force 4byte alignment here
+      emitNOP((4 - mi) & 3);
+    }
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+5);
     sourceIndex++; // skip the op code
@@ -1079,6 +1103,10 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *          branch to patch.
    */
   public final void patchConditionalBranch (int sourceIndex) {
+    if (VM.AlignmentChecking || isHotCode()) {
+      // force 4byte alignment here
+      emitNOP((4 - mi) & 3);
+    }
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+6);
     sourceIndex += 2; // skip the (two byte) op code
@@ -1096,9 +1124,13 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *          branch to patch.
    */
   public final void patchShortBranch (int sourceIndex) {
+    if (VM.AlignmentChecking || isHotCode()) {
+      // force 4byte alignment here
+      emitNOP((4 - mi) & 3);
+    }
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+2);
-    if (VM.VerifyAssertions) VM._assert(fits(relOffset, 8));
+    if (VM.VerifyAssertions) VM._assert(fits(relOffset, 8), "offset too large: "+relOffset);
     sourceIndex++; // skip the op code
     emitImm8((byte)relOffset, sourceIndex);
   }
@@ -1181,6 +1213,10 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param sourceIndex the location of the offset to patch
    */
   public final void patchSwitchCase (int sourceIndex) {
+    if (VM.AlignmentChecking || isHotCode()) {
+      // force 4byte alignment here
+      emitNOP((4 - mi) & 3);
+    }
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int c = 0;
     c |= (machineCodes[sourceIndex+0] & 0xFF) <<  0;
@@ -1197,6 +1233,40 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /////////////////////////////////////
   // instructions (hand coded)       //
   /////////////////////////////////////
+
+  /**
+   * Generate a bswap on a register. That is,
+   * <PRE>
+   * bswap reg
+   * </PRE>
+   *
+   * @param reg register to operate upon
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emitBSWAP_Reg(GPR reg) {
+    int miStart = mi;
+    generateREXprefix(false, null, null, reg);
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) (0xC8 | (reg.value() & 7)));
+    if (lister != null) lister.R(miStart, "bswap", reg);
+  }
+
+  /**
+   * Generate a bswap on a quad register. That is,
+   * <PRE>
+   * bswap reg
+   * </PRE>
+   *
+   * @param reg register to operate upon
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emitBSWAP_Reg_Quad(GPR reg) {
+    int miStart = mi;
+    generateREXprefix(true, null, null, reg);
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) (0xC8 | (reg.value() & 7)));
+    if (lister != null) lister.R(miStart, "bswap", reg);
+  }
 
   /**
    * Conditionally move the source to the destination, i.e.
@@ -1635,10 +1705,82 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.OP(miStart, "PAUSE");
   }
 
-  // nop
-  public final void emitNOP () {
+  /**
+   * Emit NOP instruction
+   *
+   * @param length size of NOP instruction required
+   */
+  public final void emitNOP (int length) {
     int miStart = mi;
-    setMachineCodes(mi++, (byte) 0x90);
+    switch (length) {
+    case 0:
+      break;
+    case 1:
+      setMachineCodes(mi++, (byte) 0x90);
+      break;
+    case 2:
+      setMachineCodes(mi++, (byte) 0x66);
+      setMachineCodes(mi++, (byte) 0x90);
+      break;
+    case 3:
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    case 4:
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x40);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    case 5:
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x44);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    case 6:
+      setMachineCodes(mi++, (byte) 0x66);
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x44);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    case 7:
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x80);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    case 8:
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x84);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    case 9:
+      setMachineCodes(mi++, (byte) 0x66);
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0x1F);
+      setMachineCodes(mi++, (byte) 0x84);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      setMachineCodes(mi++, (byte) 0x00);
+      break;
+    default:
+      throw new Error("Unexpected NOP length "+length);
+    }
     if (lister != null) lister.OP(miStart, "NOP");
   }
 
