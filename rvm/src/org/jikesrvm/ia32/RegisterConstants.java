@@ -14,6 +14,7 @@ package org.jikesrvm.ia32;
 
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.jikesrvm.VM;
 
 public interface RegisterConstants {
   //---------------------------------------------------------------------------------------//
@@ -29,13 +30,16 @@ public interface RegisterConstants {
   public interface MachineRegister {
     /** @return encoded value of this register */
     byte value();
+    /** @return does this register require a REX prefix byte? */
+    boolean needsREXprefix();
   }
 
   /**
    * Representation of general purpose registers
    */
   public enum GPR implements MachineRegister {
-    EAX(0), ECX(1), EDX(2), EBX(3), ESP(4), EBP(5), ESI(6), EDI(7);
+    EAX(0), ECX(1), EDX(2), EBX(3), ESP(4), EBP(5), ESI(6), EDI(7),
+    R8(8), R9(9), R10(10), R11(11), R12(12), R13(13), R14(14), R15(15);
 
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final GPR[] vals = values();
@@ -56,6 +60,15 @@ public interface RegisterConstants {
         return (byte)java.lang.JikesRVMSupport.getEnumOrdinal(this);
       }
     }
+    /** @return does this register require a REX prefix byte? */
+    @Pure
+    public boolean needsREXprefix() {
+      if (VM.buildFor32Addr()) {
+        return false;
+      } else {
+        return value() > 7;
+      }
+    }
     /**
      * Convert encoded value into the GPR it represents
      * @param num encoded value
@@ -71,6 +84,7 @@ public interface RegisterConstants {
      * @return represented GPR
      */
     public static GPR getForOpcode(int opcode) {
+      if (VM.VerifyAssertions) VM._assert(opcode >=0 && opcode <= 7);
       return lookup(opcode);
     }
   }
@@ -93,6 +107,11 @@ public interface RegisterConstants {
     public byte value() {
       return (byte)ordinal();
     }
+    /** @return does this register require a REX prefix byte? */
+    @Pure
+    public boolean needsREXprefix() {
+      return false; // do REX prefixes of floating point operands make sense?
+    }
     /**
      * Convert encoded value into the FPR it represents
      * @param num encoded value
@@ -108,7 +127,8 @@ public interface RegisterConstants {
    * N.B. MM and x87 FPR registers alias
    */
   public enum MM implements MachineRegister {
-    MM0(0), MM1(1), MM2(2), MM3(3), MM4(4), MM5(5), MM6(6), MM7(7);
+    MM0(0), MM1(1), MM2(2), MM3(3), MM4(4), MM5(5), MM6(6), MM7(7),
+    MM8(8), MM9(9), MM10(10), MM11(11), MM12(12), MM13(13), MM14(14), MM15(15);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final MM[] vals = values();
     /** Constructor a register with the given encoding value */
@@ -121,6 +141,15 @@ public interface RegisterConstants {
     @Pure
     public byte value() {
       return (byte)ordinal();
+    }
+    /** @return does this register require a REX prefix byte? */
+    @Pure
+    public boolean needsREXprefix() {
+      if (VM.buildFor32Addr()) {
+        return false;
+      } else {
+        return value() > 7;
+      }
     }
     /**
      * Convert encoded value into the MM it represents
@@ -137,7 +166,8 @@ public interface RegisterConstants {
    * Representation of SSE XMM registers
    */
   public enum XMM implements MachineRegister {
-    XMM0(0), XMM1(1), XMM2(2), XMM3(3), XMM4(4), XMM5(5), XMM6(6), XMM7(7);
+    XMM0(0), XMM1(1), XMM2(2), XMM3(3), XMM4(4), XMM5(5), XMM6(6), XMM7(7),
+    XMM8(8), XMM9(9), XMM10(10), XMM11(11), XMM12(12), XMM13(13), XMM14(14), XMM15(15);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final XMM[] vals = values();
     /** Constructor a register with the given encoding value */
@@ -151,6 +181,15 @@ public interface RegisterConstants {
     public byte value() {
       return (byte)ordinal();
     }
+    /** @return does this register require a REX prefix byte? */
+    @Pure
+    public boolean needsREXprefix() {
+      if (VM.buildFor32Addr()) {
+        return false;
+      } else {
+        return value() > 7;
+      }
+    }
     /**
      * Convert encoded value into the XMM it represents
      * @param num encoded value
@@ -162,12 +201,14 @@ public interface RegisterConstants {
     }
   }
 
-  // Symbolic values for fixed-point registers.
-  // These values are used to assemble instructions and as indices into:
-  //   Registers.gprs[]
-  //   Registers.fprs[]
-  //   GCMapIterator.registerLocations[]
-  //   RegisterConstants.GPR_NAMES[]
+  /*
+   * Symbolic values for general purpose registers.
+   * These values are used to assemble instructions and as indices into:
+   *   Registers.gprs[]
+   *   Registers.fprs[]
+   *   GCMapIterator.registerLocations[]
+   *   RegisterConstants.GPR_NAMES[]
+   */
   GPR EAX = GPR.EAX;
   GPR ECX = GPR.ECX;
   GPR EDX = GPR.EDX;
@@ -176,6 +217,23 @@ public interface RegisterConstants {
   GPR EBP = GPR.EBP;
   GPR ESI = GPR.ESI;
   GPR EDI = GPR.EDI;
+
+  GPR R0 = GPR.EAX;
+  GPR R1 = GPR.ECX;
+  GPR R2 = GPR.EDX;
+  GPR R3 = GPR.EBX;
+  GPR R4 = GPR.ESP;
+  GPR R5 = GPR.EBP;
+  GPR R6 = GPR.ESI;
+  GPR R7 = GPR.EDI;
+  GPR R8 = GPR.R8;
+  GPR R9 = GPR.R9;
+  GPR R10 = GPR.R10;
+  GPR R11 = GPR.R11;
+  GPR R12 = GPR.R12;
+  GPR R13 = GPR.R13;
+  GPR R14 = GPR.R14;
+  GPR R15 = GPR.R15;
 
   FPR FP0 = FPR.FP0;
   FPR FP1 = FPR.FP1;
@@ -194,6 +252,14 @@ public interface RegisterConstants {
   MM MM5 = MM.MM5;
   MM MM6 = MM.MM6;
   MM MM7 = MM.MM7;
+  MM MM8 = MM.MM8;
+  MM MM9 = MM.MM9;
+  MM MM10 = MM.MM10;
+  MM MM11 = MM.MM11;
+  MM MM12 = MM.MM12;
+  MM MM13 = MM.MM13;
+  MM MM14 = MM.MM14;
+  MM MM15 = MM.MM15;
 
   XMM XMM0 = XMM.XMM0;
   XMM XMM1 = XMM.XMM1;
@@ -203,22 +269,37 @@ public interface RegisterConstants {
   XMM XMM5 = XMM.XMM5;
   XMM XMM6 = XMM.XMM6;
   XMM XMM7 = XMM.XMM7;
+  XMM XMM8 = XMM.XMM8;
+  XMM XMM9 = XMM.XMM9;
+  XMM XMM10 = XMM.XMM10;
+  XMM XMM11 = XMM.XMM11;
+  XMM XMM12 = XMM.XMM12;
+  XMM XMM13 = XMM.XMM13;
+  XMM XMM14 = XMM.XMM14;
+  XMM XMM15 = XMM.XMM15;
 
-  // Register sets (``range'' is a misnomer for the alphabet soup of
-  // of intel registers)
-  //
+  /*
+   * Register sets
+   * (``range'' is a misnomer for the alphabet soup of of intel registers)
+   */
 
-  // Note: the order here is important.  The opt-compiler allocates
-  // the volatile registers in the order they appear here.
-  GPR[] VOLATILE_GPRS = {EAX, EDX, ECX};
+  /**
+   * Volatile general purpose registers.
+   * NB: the order here is important.  The opt-compiler allocates
+   * the volatile registers in the order they appear here.
+   */
+  GPR[] VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R0 /*EAX*/, R2 /*EDX*/, R1 /*ECX*/} : new GPR[]{R0, R2, R1};
   int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
 
-  // Note: the order here is very important.  The opt-compiler allocates
-  // the nonvolatile registers in the reverse of order they appear here.
-  // EBX must be last, because it is the only non-volatile that can
-  // be used in instructions that are using r8 and we must ensure that
-  // opt doesn't skip over another nonvol while looking for an r8 nonvol.
-  GPR[] NONVOLATILE_GPRS = {EBP, EDI, EBX};
+  /**
+   * Non-volatile general purpose registers.
+   * Note: the order here is very important.  The opt-compiler allocates
+   * the nonvolatile registers in the reverse of order they appear here.
+   * R3 (EBX) must be last, because it is the only non-volatile that can
+   * be used in instructions that are using r8 and we must ensure that
+   * opt doesn't skip over another nonvol while looking for an r8 nonvol.
+   */
+  GPR[] NONVOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R5 /*EBP*/, R7 /*EDI*/, R3 /*EBX*/} : new GPR[]{R5, R7, R3};
   int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
 
   FPR[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
@@ -238,11 +319,12 @@ public interface RegisterConstants {
   int NUM_RETURN_GPRS = 2;
   int NUM_RETURN_FPRS = 1;
 
-  // Dedicated registers.
-  //
+  /*
+   * Dedicated registers.
+   */
   GPR STACK_POINTER = ESP;
   GPR PROCESSOR_REGISTER = ESI;
 
-  byte NUM_GPRS = 8;
+  byte NUM_GPRS = (byte)(VM.buildFor32Addr() ? 8 : 16);
   byte NUM_FPRS = 8;
 }
