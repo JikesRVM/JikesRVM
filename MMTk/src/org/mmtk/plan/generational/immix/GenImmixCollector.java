@@ -16,7 +16,6 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.generational.*;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.ImmixAllocator;
 import org.mmtk.utility.statistics.Stats;
 
@@ -77,24 +76,18 @@ public class GenImmixCollector extends GenCollector {
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
                                  int align, int offset, int allocator) {
-
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert((!GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MINORGC) ||
+          (GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MAJORGC));
+    }
     if (Stats.GATHER_MARK_CONS_STATS) {
       if (Space.isInSpace(GenImmix.NURSERY, original)) GenImmix.nurseryMark.inc(bytes);
     }
-    if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD);
-      return los.alloc(bytes, align, offset);
-    } else {
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-        VM.assertions._assert((!GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MINORGC) ||
-            (GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MAJORGC));
-      }
-      if (GenImmix.immixSpace.inImmixDefragCollection()) {
-        return defragCopy.alloc(bytes, align, offset);
-      } else
-        return copy.alloc(bytes, align, offset);
-    }
+    if (GenImmix.immixSpace.inImmixDefragCollection()) {
+      return defragCopy.alloc(bytes, align, offset);
+    } else
+      return copy.alloc(bytes, align, offset);
   }
 
   /**
@@ -106,16 +99,12 @@ public class GenImmixCollector extends GenCollector {
    */
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) {
-    if (allocator == Plan.ALLOC_LOS)
-      Plan.loSpace.initializeHeader(object, false);
-    else {
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert((!GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MINORGC) ||
-            (GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MAJORGC));
-      }
-      GenImmix.immixSpace.postCopy(object, bytes, allocator == GenImmix.ALLOC_MATURE_MAJORGC);
+                             int bytes, int allocator) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert((!GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MINORGC) ||
+          (GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MAJORGC));
     }
+    GenImmix.immixSpace.postCopy(object, bytes, allocator == GenImmix.ALLOC_MATURE_MAJORGC);
   }
 
   /*****************************************************************************

@@ -199,6 +199,8 @@ import org.vmmagic.pragma.*;
                          Options.gcspyTileSize.getValue(), false);
     losNurseryDriver  = newTreadmillDriver("LOS Nursery", loSpace);
     losDriver         = newTreadmillDriver("LOS", loSpace);
+    plosNurseryDriver = newTreadmillDriver("Primitive LOS Nursery", ploSpace);
+    plosDriver        = newTreadmillDriver("PLOS", ploSpace);
 
     if (DEBUG) Log.write("SemiServerInterpreter initialised\n");
 

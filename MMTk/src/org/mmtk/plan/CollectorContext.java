@@ -14,7 +14,6 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
 
@@ -135,15 +134,10 @@ import org.vmmagic.unboxed.*;
    * @param allocator The allocator statically assigned to this allocation.
    * @return The allocator dyncamically assigned to this allocation.
    */
-  private static final boolean COPY_LARGE_TO_LOS = true;
   @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes,
       int align, int allocator) {
-    if (COPY_LARGE_TO_LOS) {
-      boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD;
-      return large ? Plan.ALLOC_LOS : allocator;
-    } else
-      return allocator;
+    return allocator;
   }
 
   /****************************************************************************

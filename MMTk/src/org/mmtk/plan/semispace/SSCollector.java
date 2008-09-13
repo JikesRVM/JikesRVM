@@ -15,7 +15,6 @@ package org.mmtk.plan.semispace;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.VM;
 
@@ -47,7 +46,6 @@ public class SSCollector extends StopTheWorldCollector {
 
   protected final SSTraceLocal trace;
   protected final CopyLocal ss;
-  protected final LargeObjectLocal los;
 
   /****************************************************************************
    *
@@ -67,7 +65,6 @@ public class SSCollector extends StopTheWorldCollector {
    */
   protected SSCollector(SSTraceLocal tr) {
     ss = new CopyLocal();
-    los = new LargeObjectLocal(Plan.loSpace);
     trace = tr;
   }
 
@@ -89,16 +86,12 @@ public class SSCollector extends StopTheWorldCollector {
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
-    if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bytes > Plan.LOS_SIZE_THRESHOLD);
-      return los.alloc(bytes, align, offset);
-    } else {
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-        VM.assertions._assert(allocator == SS.ALLOC_SS);
-      }
-      return ss.alloc(bytes, align, offset);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == SS.ALLOC_SS);
     }
+
+    return ss.alloc(bytes, align, offset);
   }
 
   /**
@@ -112,8 +105,6 @@ public class SSCollector extends StopTheWorldCollector {
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
     CopySpace.clearGCBits(object);
-    if (allocator == Plan.ALLOC_LOS)
-      Plan.loSpace.initializeHeader(object, false);
   }
 
   /****************************************************************************
@@ -132,7 +123,6 @@ public class SSCollector extends StopTheWorldCollector {
     if (phaseId == SS.PREPARE) {
       // rebind the copy bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());
-      los.prepare(true);
       super.collectionPhase(phaseId, primary);
       return;
     }
@@ -144,7 +134,6 @@ public class SSCollector extends StopTheWorldCollector {
 
     if (phaseId == SS.RELEASE) {
       trace.release();
-      los.release(true);
       super.collectionPhase(phaseId, primary);
       return;
     }

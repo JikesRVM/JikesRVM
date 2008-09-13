@@ -17,7 +17,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.generational.*;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
 
 import org.mmtk.vm.VM;
@@ -82,21 +81,15 @@ public class GenMSCollector extends GenCollector {
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
                                  int align, int offset, int allocator) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == GenMS.ALLOC_MATURE_MINORGC ||
+                     allocator == GenMS.ALLOC_MATURE_MAJORGC);
+    }
     if (Stats.GATHER_MARK_CONS_STATS) {
       if (Space.isInSpace(GenMS.NURSERY, original)) GenMS.nurseryMark.inc(bytes);
     }
-
-    if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD);
-      return los.alloc(bytes, align, offset);
-    } else {
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-        VM.assertions._assert(allocator == GenMS.ALLOC_MATURE_MINORGC ||
-            allocator == GenMS.ALLOC_MATURE_MAJORGC);
-      }
-      return mature.alloc(bytes, align, offset);
-    }
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
@@ -109,10 +102,7 @@ public class GenMSCollector extends GenCollector {
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int bytes, int allocator) {
-    if (allocator == Plan.ALLOC_LOS)
-      Plan.loSpace.initializeHeader(object, false);
-    else
-      GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
+    GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
   }
 
   /*****************************************************************************

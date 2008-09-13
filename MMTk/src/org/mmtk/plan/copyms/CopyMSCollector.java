@@ -13,9 +13,7 @@
 package org.mmtk.plan.copyms;
 
 import org.mmtk.plan.*;
-import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.MarkSweepLocal;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -45,8 +43,6 @@ public class CopyMSCollector extends StopTheWorldCollector {
   private MarkSweepLocal mature;
   private CopyMSTraceLocal trace;
 
-  protected final LargeObjectLocal los;
-
   /****************************************************************************
    *
    * Initialization
@@ -56,7 +52,6 @@ public class CopyMSCollector extends StopTheWorldCollector {
    * Create a new (local) instance.
    */
   public CopyMSCollector() {
-    los = new LargeObjectLocal(Plan.loSpace);
     mature = new MarkSweepLocal(CopyMS.msSpace);
     trace = new CopyMSTraceLocal(global().trace);
  }
@@ -79,16 +74,11 @@ public class CopyMSCollector extends StopTheWorldCollector {
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
-    if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD);
-      return los.alloc(bytes, align, offset);
-    } else {
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-        VM.assertions._assert(allocator == CopyMS.ALLOC_MS);
-      }
-      return mature.alloc(bytes, align, offset);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == CopyMS.ALLOC_MS);
     }
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
@@ -101,10 +91,7 @@ public class CopyMSCollector extends StopTheWorldCollector {
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
-    if (allocator == Plan.ALLOC_LOS)
-      Plan.loSpace.initializeHeader(object, false);
-    else
-      CopyMS.msSpace.postCopy(object, true);
+    CopyMS.msSpace.postCopy(object, true);
   }
 
   /****************************************************************************

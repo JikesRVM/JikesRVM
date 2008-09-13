@@ -279,6 +279,7 @@ import org.vmmagic.unboxed.*;
         remset.resetLocal();
         arrayRemset.resetLocal();
       } else {
+        plos.prepare(false);
         flushRememberedSets();
       }
       return;
@@ -287,6 +288,8 @@ import org.vmmagic.unboxed.*;
     if (phaseId == Gen.RELEASE) {
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
+      } else {
+        plos.release(false);
       }
       assertRemsetsFlushed();
       return;

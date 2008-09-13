@@ -241,6 +241,12 @@ import org.vmmagic.unboxed.*;
         SSGCspy.losDriver.resetData();
         los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
 
+        // reset, collect and scan plos data for the nursery and tospace
+        SSGCspy.plosNurseryDriver.resetData();
+        plos.gcspyGatherData(event, SSGCspy.plosNurseryDriver);
+        SSGCspy.plosDriver.resetData();
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
+
         // transmit the data
         GCspy.server.stopCompensationTimer();
         //fromSpaceDriver().transmit(event);
@@ -278,6 +284,14 @@ import org.vmmagic.unboxed.*;
         los.gcspyGatherData(event, SSGCspy.losDriver, LOS_FROMSPACE);
         los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
 
+        // reset, scan and send the plos for the nursery and tospace
+        // and fromspace as well if full heap collection
+        SSGCspy.plosNurseryDriver.resetData();
+        plos.gcspyGatherData(event, SSGCspy.plosNurseryDriver);
+        SSGCspy.plosDriver.resetData();
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_FROMSPACE);
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
+
         // transmit
         GCspy.server.stopCompensationTimer();
         SSGCspy.immortalDriver.transmit(event);
@@ -309,6 +323,12 @@ import org.vmmagic.unboxed.*;
         SSGCspy.losDriver.resetData();
         // no need to scan empty nursery
         los.gcspyGatherData(event, SSGCspy.losDriver, LOS_TOSPACE);
+
+        // reset, scan and send the plos
+        SSGCspy.plosNurseryDriver.resetData();
+        SSGCspy.plosDriver.resetData();
+        // no need to scan empty nursery
+        plos.gcspyGatherData(event, SSGCspy.plosDriver, LOS_TOSPACE);
 
         //transmit
         GCspy.server.stopCompensationTimer();

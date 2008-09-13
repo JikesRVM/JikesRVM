@@ -175,12 +175,16 @@ public class StickyImmixMutator extends ImmixMutator {
 
     if (!global().collectWholeHeap) {
       if (phaseId == StickyImmix.PREPARE) {
+        if (StickyImmix.NURSERY_COLLECT_PLOS)
+          plos.prepare(false);
         immix.prepare();
         return;
       }
 
       if (phaseId == StickyImmix.RELEASE) {
         immix.release();
+        if (StickyImmix.NURSERY_COLLECT_PLOS)
+          plos.release(false);
         return;
       }
     }
