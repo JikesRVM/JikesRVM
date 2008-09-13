@@ -2487,4 +2487,12 @@ public class VM extends Properties implements Constants, ExitStatus {
     Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
+  /**
+   * Is this a build for 32bit addressing? NB. this method is provided
+   * to give a hook to the IA32 assembler that won't be compiled away
+   * by javac
+   */
+  public static boolean buildFor32Addr() {
+    return BuildFor32Addr;
+  }
 }
