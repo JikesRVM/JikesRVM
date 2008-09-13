@@ -1602,7 +1602,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), new RegisterOperand(
 r:	LONG_2INT(load64)
 15
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), consumeMO()));
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), setSize(consumeMO(),4)));
 
 #load32:      LONG_2INT(load64)
 #0
@@ -1626,6 +1626,7 @@ VLR(p) == 32 ? 15 : INFINITE
 EMIT_INSTRUCTION
 MemoryOperand mo = consumeMO(); \\
 mo.disp = mo.disp.plus(4); \\
+mo = setSize(mo,4); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), mo));
 
 r:      LONG_2INT(LONG_SHR(load64, INT_CONSTANT))
@@ -1633,6 +1634,7 @@ VLR(p) == 32 ? 15 : INFINITE
 EMIT_INSTRUCTION
 MemoryOperand mo = consumeMO(); \\
 mo.disp = mo.disp.plus(4); \\
+mo = setSize(mo,4); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), mo));
 
 load32:      LONG_2INT(LONG_USHR(load64, INT_CONSTANT))
@@ -1640,6 +1642,7 @@ VLR(p) == 32 ? 0 : INFINITE
 EMIT_INSTRUCTION
 MemoryOperand mo = consumeMO(); \\
 mo.disp = mo.disp.plus(4); \\
+mo = setSize(mo,4); \\
 pushMO(mo);
 
 load32:      LONG_2INT(LONG_SHR(load64, INT_CONSTANT))
@@ -1647,6 +1650,7 @@ VLR(p) == 32 ? 0 : INFINITE
 EMIT_INSTRUCTION
 MemoryOperand mo = consumeMO(); \\
 mo.disp = mo.disp.plus(4); \\
+mo = setSize(mo,4); \\
 pushMO(mo);
 
 ##################################
