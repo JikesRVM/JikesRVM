@@ -234,6 +234,8 @@ public final class System {
       systemProperties.put(key, value);
     }
 
+    systemProperties.put("sun.boot.class.path", CommandLineArgs.getBootstrapClasses());
+    
     String consoleEncoding = (String) systemProperties.get("console.encoding");
     if (consoleEncoding == null) {
       if (platformEncoding == null) {

@@ -432,7 +432,7 @@ public class CommandLineArgs {
    * Extract the -X:vmClasses command line argument and return it.
    * @return null if no such command line argument is given.
    */
-  static String getBootstrapClasses() {
+  public static String getBootstrapClasses() {
     String[] vmClassesAll = getArgs(PrefixType.BOOTSTRAP_CLASSES_ARG);
     String vmClasses = null;
     // could be specified multiple times, use last specification
