@@ -382,6 +382,7 @@ public final class LiveAnalysis extends CompilerPhase {
 
     // Tells whether we've seen the first PEI
     boolean seenFirstPEI = false;
+
     // Because control flow may emanate from a potentially excepting
     // instruction (PEI) out of the basic block, care must be taken
     // when computing what can be killed by a basic block.
@@ -592,8 +593,15 @@ public final class LiveAnalysis extends CompilerPhase {
       block.printExtended();
     }
 
-    // Used in processBlock as a summary of the IN sets of all
-    // exception handlers for the block
+    // We compute Gen and Kill the first time we process the block.
+    // This computation must happen early iun this method because it also computes
+    // summary information about the block (eg getContainsPEIWithHandler).
+    if (bbLiveInfo[block.getNumber()].BBKillSet() == null) {
+      bbLiveInfo[block.getNumber()].createKillAndGen();
+      computeBlockGenAndKill(block, ir);
+    }
+
+    // A summary of the IN sets of all exception handlers for the block
     LiveSet exceptionBlockSummary = new LiveSet();
 
     boolean blockHasHandlers = bbLiveInfo[block.getNumber()].getContainsPEIWithHandler();
@@ -644,11 +652,6 @@ public final class LiveAnalysis extends CompilerPhase {
     //
     // If there are no handlers than exceptionBlockSummary is empty and
     // we don't need to perform line (1)
-    // We compute Gen and Kill on demand
-    if (bbLiveInfo[block.getNumber()].BBKillSet() == null) {
-      bbLiveInfo[block.getNumber()].createKillAndGen();
-      computeBlockGenAndKill(block, ir);
-    }
 
     // currentSet = currentSet - BBKillSet
     // first kill off variables that are killed anywhere in the block
