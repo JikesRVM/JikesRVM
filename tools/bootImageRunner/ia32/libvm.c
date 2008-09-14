@@ -543,16 +543,55 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 //Solaris doesn't seem to support these
 #if !(defined (__SVR4) && defined (__sun)) 
 	if (IA32_FPREGS(context)) {
-		for (int reg=0; reg<8; reg++) {
-			writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-					reg,
-					IA32_STMM(context, reg, 0) & 0xffff,
-					IA32_STMM(context, reg, 1) & 0xffff,
-					IA32_STMM(context, reg, 2) & 0xffff,
-					IA32_STMM(context, reg, 3) & 0xffff,
-					IA32_STMMEXP(context, reg) & 0xffff);
-		}
-}
+		writeErr("fp0 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 0, 0) & 0xffff,
+				IA32_STMM(context, 0, 1) & 0xffff,
+				IA32_STMM(context, 0, 2) & 0xffff,
+				IA32_STMM(context, 0, 3) & 0xffff,
+				IA32_STMMEXP(context, 0) & 0xffff);
+		writeErr("fp1 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 1, 0) & 0xffff,
+				IA32_STMM(context, 1, 1) & 0xffff,
+				IA32_STMM(context, 1, 2) & 0xffff,
+				IA32_STMM(context, 1, 3) & 0xffff,
+				IA32_STMMEXP(context, 1) & 0xffff);
+		writeErr("fp2 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 2, 0) & 0xffff,
+				IA32_STMM(context, 2, 1) & 0xffff,
+				IA32_STMM(context, 2, 2) & 0xffff,
+				IA32_STMM(context, 2, 3) & 0xffff,
+				IA32_STMMEXP(context, 2) & 0xffff);
+		writeErr("fp3 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 3, 0) & 0xffff,
+				IA32_STMM(context, 3, 1) & 0xffff,
+				IA32_STMM(context, 3, 2) & 0xffff,
+				IA32_STMM(context, 3, 3) & 0xffff,
+				IA32_STMMEXP(context, 3) & 0xffff);
+		writeErr("fp4 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 4, 0) & 0xffff,
+				IA32_STMM(context, 4, 1) & 0xffff,
+				IA32_STMM(context, 4, 2) & 0xffff,
+				IA32_STMM(context, 4, 3) & 0xffff,
+				IA32_STMMEXP(context, 4) & 0xffff);
+		writeErr("fp5 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 5, 0) & 0xffff,
+				IA32_STMM(context, 5, 1) & 0xffff,
+				IA32_STMM(context, 5, 2) & 0xffff,
+				IA32_STMM(context, 5, 3) & 0xffff,
+				IA32_STMMEXP(context, 5) & 0xffff);
+		writeErr("fp6 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 6, 0) & 0xffff,
+				IA32_STMM(context, 6, 1) & 0xffff,
+				IA32_STMM(context, 6, 2) & 0xffff,
+				IA32_STMM(context, 6, 3) & 0xffff,
+				IA32_STMMEXP(context, 6) & 0xffff);
+		writeErr("fp7 0x%04x%04x%04x%04x%04x\n",
+				IA32_STMM(context, 7, 0) & 0xffff,
+				IA32_STMM(context, 7, 1) & 0xffff,
+				IA32_STMM(context, 7, 2) & 0xffff,
+				IA32_STMM(context, 7, 3) & 0xffff,
+				IA32_STMMEXP(context, 7) & 0xffff);
+	}
 #endif
         if (isRecoverable) {
             fprintf(SysTraceFile, "%s: normal trap\n", Me);
