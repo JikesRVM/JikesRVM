@@ -217,19 +217,18 @@ public final class FreeListPageResource extends PageResource implements Constant
    * set of chunks.  We need to check whether any chunks can be
    * freed, and if so, free them.
    *
-   * @param first
-   * @param pageOffset
-   * @param freed
+   * @param freedPage The address of the page that was just freed.
+   * @param pagesFreed The number of pages made available when the page was freed.
    */
-  private void releaseFreeChunks(Address first, int freed) {
-    int pageOffset = Conversions.bytesToPages(first.diff(start));
+  private void releaseFreeChunks(Address freedPage, int pagesFreed) {
+    int pageOffset = Conversions.bytesToPages(freedPage.diff(start));
 
     if (metaDataPagesPerRegion > 0) {       // can only be a single chunk
-      if (freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion)) {
-        freeContiguousChunk(Space.chunkAlign(first, true));
+      if (pagesFreed == (PAGES_IN_CHUNK - metaDataPagesPerRegion)) {
+        freeContiguousChunk(Space.chunkAlign(freedPage, true));
       }
     } else {                                // may be multiple chunks
-      if (freed % PAGES_IN_CHUNK == 0) {    // necessary, but not sufficient condition
+      if (pagesFreed % PAGES_IN_CHUNK == 0) {    // necessary, but not sufficient condition
         /* grow a region of chunks, starting with the chunk containing the freed page */
         int regionStart = pageOffset & ~(PAGES_IN_CHUNK - 1);
         int nextRegionStart = regionStart + PAGES_IN_CHUNK;
@@ -239,7 +238,7 @@ public final class FreeListPageResource extends PageResource implements Constant
         while (nextRegionStart < GenericFreeList.MAX_UNITS && freeList.isCoalescable(nextRegionStart))
           nextRegionStart += PAGES_IN_CHUNK;
          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(regionStart >= 0 && nextRegionStart < GenericFreeList.MAX_UNITS);
-        if (freed == nextRegionStart - regionStart) {
+        if (pagesFreed == nextRegionStart - regionStart) {
           freeContiguousChunk(start.plus(Conversions.pagesToBytes(regionStart)));
         }
       }
