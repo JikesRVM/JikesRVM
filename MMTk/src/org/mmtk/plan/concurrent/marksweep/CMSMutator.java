@@ -192,7 +192,6 @@ public class CMSMutator extends ConcurrentMutator {
       if (!ref.isNull()) {
         if      (Space.isInSpace(CMS.MARK_SWEEP, ref)) CMS.msSpace.traceObject(remset, ref);
         else if (Space.isInSpace(CMS.IMMORTAL,   ref)) CMS.immortalSpace.traceObject(remset, ref);
-        else if (Space.isInSpace(CMS.PLOS,       ref)) CMS.ploSpace.traceObject(remset, ref);
         else if (Space.isInSpace(CMS.LOS,        ref)) CMS.loSpace.traceObject(remset, ref);
         else if (Space.isInSpace(CMS.NON_MOVING, ref)) CMS.nonMovingSpace.traceObject(remset, ref);
         else if (Space.isInSpace(CMS.SMALL_CODE, ref)) CMS.smallCodeSpace.traceObject(remset, ref);
@@ -202,7 +201,6 @@ public class CMSMutator extends ConcurrentMutator {
     if (VM.VERIFY_ASSERTIONS) {
       if (!ref.isNull() && !Plan.gcInProgress()) {
         if      (Space.isInSpace(CMS.MARK_SWEEP, ref)) VM.assertions._assert(CMS.msSpace.isLive(ref));
-        else if (Space.isInSpace(CMS.PLOS,       ref)) VM.assertions._assert(CMS.ploSpace.isLive(ref));
         else if (Space.isInSpace(CMS.LOS,        ref)) VM.assertions._assert(CMS.loSpace.isLive(ref));
         else if (Space.isInSpace(CMS.NON_MOVING, ref)) VM.assertions._assert(CMS.nonMovingSpace.isLive(ref));
         else if (Space.isInSpace(CMS.SMALL_CODE, ref)) VM.assertions._assert(CMS.smallCodeSpace.isLive(ref));

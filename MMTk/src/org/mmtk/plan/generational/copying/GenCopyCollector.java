@@ -17,6 +17,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.CopySpace;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -84,14 +85,17 @@ public class GenCopyCollector extends GenCollector {
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
-                     allocator == GenCopy.ALLOC_MATURE_MAJORGC);
+    if (allocator == Plan.ALLOC_LOS) {
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD);
+      return los.alloc(bytes, align, offset);
+    } else {
+      if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+        VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
+            allocator == GenCopy.ALLOC_MATURE_MAJORGC);
+      }
+      return mature.alloc(bytes, align, offset);
     }
-
-    Address result = mature.alloc(bytes, align, offset);
-    return result;
   }
 
   /**
@@ -107,7 +111,9 @@ public class GenCopyCollector extends GenCollector {
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
     CopySpace.clearGCBits(object);
-    if (GenCopy.IGNORE_REMSETS)
+    if (allocator == Plan.ALLOC_LOS)
+      Plan.loSpace.initializeHeader(object, false);
+    else if (GenCopy.IGNORE_REMSETS)
       CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());
   }
 

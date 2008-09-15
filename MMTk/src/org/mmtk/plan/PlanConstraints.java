@@ -46,6 +46,9 @@ import org.vmmagic.unboxed.Word;
   /** @return True if this Plan moves objects. */
   public boolean movesObjects() { return false;}
 
+  /** @return True if this Plan *must* use an LOS (for example it has a size-constrained primary allocator) */
+  public boolean requiresLOS() { return false;}
+
   /** @return True if this object forwards objects <i>after</i>
    * determining global object liveness (e.g. many compacting collectors). */
   public boolean needsForwardAfterLiveness() { return false;}

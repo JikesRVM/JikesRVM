@@ -27,4 +27,6 @@ public class RCBaseConstraints extends StopTheWorldConstraints {
   public int gcHeaderBits() { return RCHeader.GLOBAL_GC_BITS_REQUIRED; }
   public int gcHeaderWords() { return RCHeader.GC_HEADER_WORDS_REQUIRED; }
   public boolean needsWriteBarrier() { return true; }
+  /** @return true because we cannot accommodate large objects in default allocator */
+  public boolean requiresLOS() { return true; }
 }

@@ -99,13 +99,13 @@ public abstract class Plan implements Constants {
 
   /* Miscellaneous Constants */
   public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
-  public static final int PLOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE >> 1;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
+  public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
 
 /* Do we support a log bit in the object header?  Some write barries may use it */
   public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
@@ -129,10 +129,6 @@ public abstract class Plan implements Constants {
   /** Large objects are allocated into a special large object space. */
   public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create());
 
-  /** Primitive (non-ref) large objects are allocated into a special primitive
-      large object space. */
-  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, VMRequest.create(PLOS_FRAC, true));
-
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
   public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create());
 
@@ -147,7 +143,6 @@ public abstract class Plan implements Constants {
   public static final int VM_SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
-  public static final int PLOS = ploSpace.getDescriptor();
   public static final int SANITY = sanitySpace.getDescriptor();
   public static final int NON_MOVING = nonMovingSpace.getDescriptor();
   public static final int SMALL_CODE = USE_CODE_SPACE ? smallCodeSpace.getDescriptor() : 0;
@@ -802,7 +797,7 @@ public abstract class Plan implements Constants {
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
-    return loSpace.reservedPages() + ploSpace.reservedPages() +
+    return loSpace.reservedPages() +
            immortalSpace.reservedPages() + metaDataSpace.reservedPages() +
            nonMovingSpace.reservedPages();
   }
@@ -815,7 +810,7 @@ public abstract class Plan implements Constants {
    * outstanding allocation requests.
    */
   public int getPagesRequired() {
-    return loSpace.requiredPages() + ploSpace.requiredPages() +
+    return loSpace.requiredPages() +
       metaDataSpace.requiredPages() + immortalSpace.requiredPages() +
       nonMovingSpace.requiredPages();
   }
@@ -1012,8 +1007,6 @@ public abstract class Plan implements Constants {
     if (!VM.activePlan.constraints().movesObjects())
       return true;
     if (Space.isInSpace(LOS, object))
-      return true;
-    if (Space.isInSpace(PLOS,object))
       return true;
     if (Space.isInSpace(IMMORTAL, object))
       return true;

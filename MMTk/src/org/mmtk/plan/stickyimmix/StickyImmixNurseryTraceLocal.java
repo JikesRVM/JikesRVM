@@ -62,8 +62,6 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyImmix.IMMIX, object))
       return TMP_PREFER_COPY_ON_NURSERY_GC ? StickyImmix.immixSpace.copyNurseryIsLive(object) : StickyImmix.immixSpace.fastIsLive(object);
-    else if (StickyImmix.NURSERY_COLLECT_PLOS && Space.isInSpace(StickyImmix.PLOS, object))
-      return StickyImmix.ploSpace.isLive(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
   }
@@ -87,8 +85,6 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return object;
     if (Space.isInSpace(StickyImmix.IMMIX, object))
       return StickyImmix.immixSpace.nurseryTraceObject(this, object, StickyImmix.ALLOC_DEFAULT);
-    else if (StickyImmix.NURSERY_COLLECT_PLOS && Space.isInSpace(StickyImmix.PLOS, object))
-      return StickyImmix.ploSpace.traceObject(this, object);
     else
       return object;
   }
