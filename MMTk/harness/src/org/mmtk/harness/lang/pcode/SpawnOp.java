@@ -21,6 +21,8 @@ import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.PcodeInterpreter;
 import org.mmtk.harness.lang.runtime.Value;
+import org.mmtk.harness.scheduler.Schedulable;
+import org.mmtk.harness.scheduler.Scheduler;
 
 public class SpawnOp extends EnnaryOp implements ResolvableOp {
 
@@ -33,24 +35,23 @@ public class SpawnOp extends EnnaryOp implements ResolvableOp {
 
   @Override
   public void exec(Env env) {
-    // Call for the child
-    env.beginChild();
-    SpawnedEnv child = new SpawnedEnv(getOperandValues(env.top()));
-    child.start();
+    Scheduler.scheduleMutator(new SpawnedMethod(getOperandValues(env.top())));
   }
 
-  private class SpawnedEnv extends Env {
+  private final class SpawnedMethod implements Schedulable {
+
+    /* The method parameters */
     private final Value[] values;
 
-    public SpawnedEnv(Value...values) {
-      super(null);
+    public SpawnedMethod(Value...values) {
       this.values = values;
     }
 
-    public void run() {
-      new PcodeInterpreter(this,method).exec(values);
-      end();
+    @Override
+    public void execute(Env env) {
+      new PcodeInterpreter(env,method).exec(values);
     }
+
   }
 
   @Override

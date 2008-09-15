@@ -15,6 +15,7 @@ package org.mmtk.harness;
 import java.util.ArrayList;
 
 import org.mmtk.harness.options.*;
+import org.mmtk.harness.scheduler.AbstractPolicy;
 import org.mmtk.harness.vm.*;
 
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -48,6 +49,24 @@ public class Harness {
 
   /** GC stress options */
   public static GcEvery gcEvery = new GcEvery();
+
+  /** Scheduler */
+  public static Scheduler scheduler = new Scheduler();
+
+  /** Scheduler policy */
+  public static SchedulerPolicy policy = new SchedulerPolicy();
+
+  /** Interval for the fixed scheduler policies */
+  public static YieldInterval yieldInterval = new YieldInterval();
+
+  /** Parameters for the random scheduler policy */
+  public static RandomPolicyLength randomPolicyLength = new RandomPolicyLength();
+  public static RandomPolicySeed randomPolicySeed = new RandomPolicySeed();
+  public static RandomPolicyMin randomPolicyMin = new RandomPolicyMin();
+  public static RandomPolicyMax randomPolicyMax = new RandomPolicyMax();
+
+  /** Scheduler policy */
+  public static PolicyStats policyStats = new PolicyStats();
 
   private static boolean isInitialized = false;
 
@@ -98,6 +117,15 @@ public class Harness {
     /* Finish starting up MMTk */
     ActivePlan.plan.postBoot();
     ActivePlan.plan.fullyBooted();
+
+    /* Add exit handler to print yield stats */
+    if (policyStats.getValue()) {
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+          AbstractPolicy.printStats();
+        }
+      });
+    }
   }
 
   /** GC stress - GC on every allocation */

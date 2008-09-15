@@ -17,10 +17,10 @@ import java.io.FileNotFoundException;
 
 import org.mmtk.harness.lang.Checker;
 import org.mmtk.harness.lang.Compiler;
-import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.parser.Parser;
 import org.mmtk.harness.lang.parser.ParseException;
+import org.mmtk.harness.scheduler.Scheduler;
 
 public class Main {
   public static void main(String[] args) throws InterruptedException, ParseException, FileNotFoundException {
@@ -48,9 +48,8 @@ public class Main {
     /* Initialise the harness */
     Harness.init(harnessArgs);
 
-    Env m = new Env(Compiler.compile(methods));
-    /* Invoke the test */
-    m.start();
-    m.join();
+    Scheduler.scheduleMutator(Compiler.compile(methods));
+
+    Scheduler.schedule();
   }
 }

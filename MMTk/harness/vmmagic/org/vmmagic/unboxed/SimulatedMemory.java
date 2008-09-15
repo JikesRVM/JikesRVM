@@ -15,6 +15,8 @@ package org.vmmagic.unboxed;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.mmtk.harness.scheduler.Scheduler;
+
 public final class SimulatedMemory {
   /** Set to true to print debug information */
   private static final boolean VERBOSE = false;
@@ -146,6 +148,7 @@ public final class SimulatedMemory {
    * @return
    */
   public static MemoryPage getPage(Address address, Offset offset) {
+    Scheduler.yield();
     return getPage(address,offset.value);
   }
 

@@ -14,6 +14,8 @@ package org.mmtk.harness.vm;
 
 import org.vmutil.options.OptionSet;
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.scheduler.Lock;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.gcspy.ByteStream;
@@ -105,7 +107,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @return A concrete VM-specific Lock instance.
    */
   public Lock newLock(String name) {
-    return new Lock(name);
+    return Scheduler.newLock(name);
   }
 
   /**

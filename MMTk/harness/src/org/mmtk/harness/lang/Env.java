@@ -17,8 +17,6 @@ import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.compiler.CompiledMethod;
-import org.mmtk.harness.lang.runtime.PcodeInterpreter;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
@@ -36,32 +34,13 @@ public class Env extends Mutator {
   private UnsyncStack<StackFrame> stack = new UnsyncStack<StackFrame>();
 
   /**
-   * The main program if we're using the compiler
-   */
-  private final CompiledMethod body;
-
-  /**
    * A source of random numbers (we have one per thread so that we can write
    * deterministic scripts).
    */
   private Random rng = new Random();
 
-  public Env(CompiledMethod body) {
-    this.body = body;
-  }
-
   public static void setGcEverySafepoint() {
     gcEverySafepoint = true;
-  }
-
-  /**
-   * Thread.run()
-   */
-  @Override
-  public void run() {
-    begin();
-    new PcodeInterpreter(this,body).exec();
-    end();
   }
 
   /**

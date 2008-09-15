@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.harness.vm;
+package org.mmtk.harness.scheduler.javathreads;
 
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -18,31 +18,17 @@ import org.vmmagic.pragma.Uninterruptible;
  * Simple lock.
  */
 @Uninterruptible
-public class Lock extends org.mmtk.vm.Lock {
-
-  /** The name of this lock */
-  private String name;
-
-  /** The current holder of the lock */
-  private Thread holder;
+public class Lock extends org.mmtk.harness.scheduler.Lock {
 
   /** Create a new lock (with given name) */
-  Lock(String name) {
-    setName(name);
-  }
-
-  /**
-   * Set the name of this lock instance
-   *
-   * @param str The name of the lock (for error output).
-   */
-  public void setName(String str) {
-    this.name = str;
+  public Lock(String name) {
+    super(name);
   }
 
   /**
    * Try to acquire a lock and wait until acquired.
    */
+  @Override
   public void acquire() {
     synchronized(this) {
       while(holder != null) {
@@ -59,6 +45,7 @@ public class Lock extends org.mmtk.vm.Lock {
    *
    * @param w Identifies the code location in the debugging output.
    */
+  @Override
   public void check(int w) {
     System.err.println("[" + name + "] AT " + w + " held by " + holder);
   }
@@ -66,6 +53,7 @@ public class Lock extends org.mmtk.vm.Lock {
   /**
    * Release the lock.
    */
+  @Override
   public void release() {
     synchronized(this) {
       holder = null;

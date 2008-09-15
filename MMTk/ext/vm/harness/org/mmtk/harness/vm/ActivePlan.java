@@ -13,8 +13,8 @@
 package org.mmtk.harness.vm;
 
 import org.mmtk.harness.Collector;
-import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
@@ -65,7 +65,7 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
   public MutatorContext mutator() { return Mutator.current().getContext(); }
 
   /** @return The active <code>MutatorContext</code> instance. */
-  public Log log() { return MMTkThread.current().getLog(); }
+  public Log log() { return Scheduler.currentLog(); }
 
   /**
    * Return the <code>CollectorContext</code> instance given its unique identifier.

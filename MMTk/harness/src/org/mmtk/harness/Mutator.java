@@ -20,6 +20,7 @@ import java.util.Stack;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.AllocationSite;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;
@@ -42,7 +43,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * Note that as soon as the mutator is created it is considered active. This means
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
-public class Mutator extends MMTkThread {
+public class Mutator {
   private static boolean gcEveryWB = false;
 
   public static void setGcEveryWB() {
@@ -63,8 +64,7 @@ public class Mutator extends MMTkThread {
    * Get the currently executing mutator.
    */
   public static Mutator current() {
-    assert Thread.currentThread() instanceof Mutator  : "Current thread does is not a Mutator";
-    return (Mutator)Thread.currentThread();
+    return Scheduler.currentMutator();
   }
 
   /**
@@ -142,14 +142,7 @@ public class Mutator extends MMTkThread {
     this.expectedThrowable = expectedThrowable;
   }
 
-  /**
-   * Create a mutator thread, specifying an (optional) entry point and initial local variable map.
-   *
-   * @param entryPoint The entryPoint.
-   * @param locals The local variable map.
-   */
-  public Mutator(Runnable entryPoint) {
-    super(entryPoint);
+  public Mutator() {
     try {
       String prefix = Harness.plan.getValue();
       this.context = (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
@@ -157,27 +150,27 @@ public class Mutator extends MMTkThread {
     } catch (Exception ex) {
       throw new RuntimeException("Could not create Mutator", ex);
     }
+  }
+
+  public void begin() {
     mutators.set(context.getId(), this);
-    setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-      public void uncaughtException(Thread t, Throwable e) {
-        if (e.getClass() == expectedThrowable) {
-          System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
-          expectedThrowable = null;
-          end();
-        } else {
-          System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
-          e.printStackTrace();
-          System.exit(1);
-        }
-      }
-    });
   }
 
   /**
-   * Create a new mutator thread. Intended to be used for subclasses implementing a run() method.
+   * Mutator-specific handling of uncaught exceptions.
+   * @param t
+   * @param e
    */
-  protected Mutator() {
-    this(null);
+  public void uncaughtException(Thread t, Throwable e) {
+    if (e.getClass() == expectedThrowable) {
+      System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
+      expectedThrowable = null;
+      end();
+    } else {
+      System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
+      e.printStackTrace();
+      System.exit(1);
+    }
   }
 
   /**
@@ -205,7 +198,6 @@ public class Mutator extends MMTkThread {
    * Format the object for dumping.
    */
   public static String formatObject(ObjectReference object) {
-//    return Address.fromIntZeroExtend(object.isNull() ? 0 : ObjectModel.getId(object)).toString();
     return String.format("%s[%d@%s]", object, ObjectModel.getId(object), getSiteName(object));
   }
 
@@ -242,8 +234,8 @@ public class Mutator extends MMTkThread {
    * A gc safe point for the mutator.
    */
   public boolean gcSafePoint() {
-    if (Collector.gcTriggered()) {
-      waitForGC();
+    if (Scheduler.gcTriggered()) {
+      Scheduler.waitForGC();
       return true;
     }
     return false;
@@ -259,95 +251,11 @@ public class Mutator extends MMTkThread {
   }
 
   /**
-   * Object used for synchronizing the number of mutators waiting for a gc.
-   */
-  private static Object count = new Object();
-
-  /**
-   * The number of mutators waiting for a collection to proceed.
-   */
-  private static int mutatorsWaitingForGC;
-
-  /**
-   * The number of mutators currently executing in the system.
-   */
-  private static int activeMutators;
-
-  /**
-   * Mark a mutator as currently active. If a GC is currently in process we must
-   * wait for it to finish.
-   */
-  protected static void begin() {
-    synchronized (count) {
-      if (!allWaitingForGC()) {
-        activeMutators++;
-        return;
-      }
-      mutatorsWaitingForGC++;
-    }
-    Collector.waitForGC(false);
-    synchronized (count) {
-      mutatorsWaitingForGC--;
-      activeMutators++;
-    }
-  }
-
-  /**
-   * A mutator is creating a new mutator and calling begin on its behalf.
-   * This simplfies the logic and is guaranteed not to block for GC.
-   */
-  public void beginChild() {
-    synchronized (count) {
-      if (!allWaitingForGC()) {
-        activeMutators++;
-        return;
-      }
-    }
-    notReached();
-  }
-
-  /**
    * Mark a mutator as no longer active. If a GC has been triggered we must ensure
    * that it proceeds before we deactivate.
    */
-  protected void end() {
+  public void end() {
     check(expectedThrowable == null, "Expected exception of class " + expectedThrowable + " not found");
-    boolean lastToGC;
-    synchronized (count) {
-      lastToGC = (mutatorsWaitingForGC == (activeMutators - 1));
-      if (!lastToGC) {
-        activeMutators--;
-        return;
-      }
-      mutatorsWaitingForGC++;
-    }
-    Collector.waitForGC(lastToGC);
-    synchronized (count) {
-        mutatorsWaitingForGC--;
-        activeMutators--;
-    }
-  }
-
-  /**
-   * Are all active mutators waiting for GC?
-   */
-  public static boolean allWaitingForGC() {
-    return mutatorsWaitingForGC == activeMutators;
-  }
-
-  /**
-   * Cause the current thread to wait for a triggered GC to proceed.
-   */
-  public void waitForGC() {
-    boolean allWaiting;
-    synchronized (count) {
-      mutatorsWaitingForGC++;
-      allWaiting = allWaitingForGC();
-    }
-    Collector.waitForGC(allWaiting);
-    synchronized (count) {
-        mutatorsWaitingForGC--;
-    }
   }
 
   /**

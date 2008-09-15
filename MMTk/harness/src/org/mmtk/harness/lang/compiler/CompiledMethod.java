@@ -17,15 +17,18 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.mmtk.harness.lang.Declaration;
+import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.NormalMethod;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ResolvableOp;
+import org.mmtk.harness.lang.runtime.PcodeInterpreter;
 import org.mmtk.harness.lang.runtime.StackFrame;
+import org.mmtk.harness.scheduler.Schedulable;
 
 /**
  * A method, compiled into pseudo-ops.
  */
-public class CompiledMethod {
+public class CompiledMethod implements Schedulable {
 
   /** The name of the method */
   private final String name;
@@ -136,5 +139,9 @@ public class CompiledMethod {
    */
   public StackFrame formatStackFrame() {
     return new StackFrame(decls,nTemps);
+  }
+
+  public void execute(Env env) {
+    new PcodeInterpreter(env,this).exec();
   }
 }

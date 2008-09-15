@@ -16,7 +16,7 @@ import java.util.EnumSet;
 
 public final class Trace {
   public enum Item { ALLOC, CALL, OBJECT, INTRINSIC, LOAD, STORE, HASH, ENV,
-    ROOTS, COLLECT, AVBYTE, EVAL, COMPILER, CHECKER }
+    ROOTS, COLLECT, AVBYTE, EVAL, COMPILER, CHECKER, SCHEDULER }
 
   private static EnumSet<Item> enabled = EnumSet.noneOf(Item.class);
 
@@ -45,7 +45,7 @@ public final class Trace {
     return enabled.contains(item);
   }
 
-  public static void trace(Item item, String pattern, Object...args) {
+  public static synchronized void trace(Item item, String pattern, Object...args) {
     if (isEnabled(item)) {
       printf(prefix(item) + pattern + "%n",args);
     }

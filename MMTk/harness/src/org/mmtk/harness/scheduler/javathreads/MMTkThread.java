@@ -10,25 +10,25 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.harness;
+package org.mmtk.harness.scheduler.javathreads;
 
 
+import org.mmtk.harness.scheduler.Policy;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.utility.Log;
 
 /**
  * This class represents an MMTk thread (mutator or collector).
  */
 public class MMTkThread extends Thread {
+
   /** The log associated with this thread */
   private final Log log = new Log();
 
   /**
-   * Get the currently executing mutator.
+   * The command-line selected yield policy
    */
-  public static MMTkThread current() {
-    assert Thread.currentThread() instanceof MMTkThread  : "Current thread does is not an MMTk thread";
-    return (MMTkThread)Thread.currentThread();
-  }
+  private Policy yieldPolicy = Scheduler.yieldPolicy(this);
 
   /**
    * Create an MMTk thread.
@@ -37,7 +37,18 @@ public class MMTkThread extends Thread {
    */
   protected MMTkThread(Runnable entryPoint) {
     super(entryPoint);
-    setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+    trapUncaughtExceptions();
+  }
+
+  /**
+   * Create an MMTk thread.
+   */
+  protected MMTkThread() {
+    trapUncaughtExceptions();
+  }
+
+  private void trapUncaughtExceptions() {
+    Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
         System.err.print("Unexpected exception: ");
         e.printStackTrace();
@@ -47,16 +58,13 @@ public class MMTkThread extends Thread {
   }
 
   /**
-   * Create an MMTk thread.
-   */
-  protected MMTkThread() {
-    this(null);
-  }
-
-  /**
    * Get the log for this MMTk thread (mutator or collector).
    */
   public final Log getLog() {
     return log;
+  }
+
+  boolean yieldPolicy() {
+    return yieldPolicy.yieldNow();
   }
 }
