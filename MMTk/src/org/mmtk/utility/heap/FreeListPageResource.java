@@ -205,21 +205,45 @@ public final class FreeListPageResource extends PageResource implements Constant
     committed -= pages;
     int freed = freeList.free(pageOffset, true);
     pagesCurrentlyOnFreeList += pages;
-    boolean completelyFreed = !contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion);
-    if (!contiguous && (freed % PAGES_IN_CHUNK == 0)) {
-      /* maybe we've freed this entire chunk.  let's check... */
-      int regionStart = pageOffset & ~(PAGES_IN_CHUNK - 1);
-      int nextRegionStart = regionStart + PAGES_IN_CHUNK;
-      while (regionStart >= 0 && freeList.isCoalescable(regionStart))
-        regionStart -= PAGES_IN_CHUNK;
-      while (nextRegionStart < GenericFreeList.MAX_UNITS && freeList.isCoalescable(nextRegionStart))
-        nextRegionStart += PAGES_IN_CHUNK;
-       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(regionStart >= 0 && nextRegionStart < GenericFreeList.MAX_UNITS);
-      completelyFreed = (freed == nextRegionStart - regionStart);
-    }
-    if (completelyFreed)
-      freeContiguousChunk(Space.chunkAlign(first, true));
+
+    if (!contiguous) // only discontiguous spaces use chunks
+      releaseFreeChunks(first, freed);
+
     unlock();
+  }
+
+  /**
+   * The release of a page may have freed up an entire chunk or
+   * set of chunks.  We need to check whether any chunks can be
+   * freed, and if so, free them.
+   *
+   * @param first
+   * @param pageOffset
+   * @param freed
+   */
+  private void releaseFreeChunks(Address first, int freed) {
+    int pageOffset = Conversions.bytesToPages(first.diff(start));
+
+    if (metaDataPagesPerRegion > 0) {       // can only be a single chunk
+      if (freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion)) {
+        freeContiguousChunk(Space.chunkAlign(first, true));
+      }
+    } else {                                // may be multiple chunks
+      if (freed % PAGES_IN_CHUNK == 0) {    // necessary, but not sufficient condition
+        /* grow a region of chunks, starting with the chunk containing the freed page */
+        int regionStart = pageOffset & ~(PAGES_IN_CHUNK - 1);
+        int nextRegionStart = regionStart + PAGES_IN_CHUNK;
+        /* now try to grow (end point pages are marked as non-coalescing) */
+        while (regionStart >= 0 && freeList.isCoalescable(regionStart))
+          regionStart -= PAGES_IN_CHUNK;
+        while (nextRegionStart < GenericFreeList.MAX_UNITS && freeList.isCoalescable(nextRegionStart))
+          nextRegionStart += PAGES_IN_CHUNK;
+         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(regionStart >= 0 && nextRegionStart < GenericFreeList.MAX_UNITS);
+        if (freed == nextRegionStart - regionStart) {
+          freeContiguousChunk(start.plus(Conversions.pagesToBytes(regionStart)));
+        }
+      }
+    }
   }
 
   /**
