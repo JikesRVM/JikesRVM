@@ -1537,7 +1537,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
           }
           case JBC_getfield: {
             TypeReference fieldType = bcodes.getFieldReference().getFieldContentsType();
-            // Register the reference map, minus the object pointer on the stack
+            // Register the reference map, with the object pointer on the stack
             if (!inJSRSub) {
               referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
