@@ -133,7 +133,7 @@
       <rvm tag="@{test}" class="SpecApplication" args="-a -g ${spec.args} @{test}"/>
       <outputTestStart tag="@{test}"/>
       <outputStatisticStart/>
-      <extractStatistic tag="@{test}" key="time" pattern="======= @{test} Finished in (\S*) secs"/>
+      <extractStatistic tag="@{test}" key="time" pattern="^======= @{test} Finished in (\S*) secs$"/>
       <outputStatisticEnd/>
       <outputTestResults tag="@{test}"/>
       <outputTestEnd/>
