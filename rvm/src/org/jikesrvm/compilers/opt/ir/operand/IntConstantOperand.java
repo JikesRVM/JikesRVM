@@ -23,6 +23,11 @@ import org.jikesrvm.compilers.opt.util.Bits;
 public final class IntConstantOperand extends ConstantOperand {
 
   /**
+   * Constant 0, can be copied as convenient
+   */
+  public static final IntConstantOperand zero = new IntConstantOperand(0);
+
+  /**
    * Value of this operand.
    */
   public final int value;

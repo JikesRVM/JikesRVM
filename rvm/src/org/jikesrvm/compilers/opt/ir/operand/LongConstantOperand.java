@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.util.Bits;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -22,6 +23,12 @@ import org.vmmagic.unboxed.Offset;
  * @see Operand
  */
 public final class LongConstantOperand extends ConstantOperand {
+
+  /**
+   * Constant 0, can be copied as convenient
+   */
+  public static final LongConstantOperand zero =
+    new LongConstantOperand(0, Statics.slotAsOffset(Statics.findOrCreateLongSizeLiteral(0)));
 
   /**
    * Value of this operand.
