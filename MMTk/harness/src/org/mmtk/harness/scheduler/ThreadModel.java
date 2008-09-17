@@ -31,6 +31,8 @@ public abstract class ThreadModel {
   /** The trigger for this GC */
   protected int triggerReason;
 
+  protected void initCollectors() { }
+
   protected abstract void yield();
 
   protected abstract void scheduleMutator(Schedulable method);

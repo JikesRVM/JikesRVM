@@ -14,9 +14,10 @@ package org.mmtk.harness.scheduler;
 
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.Mutator;
-import org.mmtk.harness.scheduler.javathreads.JavaThreads;
-import org.mmtk.harness.scheduler.rawthreads.RawThreads;
+import org.mmtk.harness.scheduler.javathreads.JavaThreadModel;
+import org.mmtk.harness.scheduler.rawthreads.RawThreadModel;
 import org.mmtk.utility.Log;
 
 /**
@@ -66,15 +67,15 @@ public class Scheduler {
   private static ThreadModel selectedThreadModel() {
     switch (Harness.scheduler.model()) {
       case JAVA:
-        return new JavaThreads();
+        return new JavaThreadModel();
       case DETERMINISTIC:
-        return new RawThreads();
+        return new RawThreadModel();
       default:
         throw new RuntimeException("Unknown thread model");
     }
   }
 
-  private static final ThreadModel model = selectedThreadModel();
+  private static ThreadModel model;
 
   /**
    * Yield policy factory - return an instance of the the command-line
@@ -100,6 +101,14 @@ public class Scheduler {
       default:
         throw new RuntimeException("Unknown scheduler policy");
     }
+  }
+
+  public static void init() {
+    model = selectedThreadModel();
+  }
+
+  public static void initCollectors() {
+    model.initCollectors();
   }
 
   /**
@@ -129,7 +138,8 @@ public class Scheduler {
    * @return
    */
   public static Log currentLog() {
-    return model.currentLog();
+//    return model.currentLog();
+    return ((MMTkThread)Thread.currentThread()).getLog();
   }
 
   /**
@@ -172,6 +182,11 @@ public class Scheduler {
     return model.gcTriggered();
   }
 
+  /**
+   * Collector thread synchronization barrier
+   * @param where
+   * @return
+   */
   public static int rendezvous(int where) {
     return model.rendezvous(where);
   }

@@ -91,22 +91,9 @@ public class StackFrame {
   public void set(int slot, Value value) {
     assert value != null : "Unexpected null value";
     if (Trace.isEnabled(Item.ENV)) {
-      Trace.trace(Item.ENV, "%s %s = %s",getTypeName(slot),names[slot],value.toString());
+      Trace.trace(Item.ENV, "%s %s = %s",value.type().toString(),names[slot],value.toString());
     }
     values[slot] = value;
-  }
-
-  /**
-   * Get the type name of a slot
-   * @param slot
-   * @return
-   */
-  private String getTypeName(int slot) {
-    if (values[slot] != null) {
-      return values[slot].type().toString();
-    } else {
-      return "*";
-    }
   }
 
   /**
@@ -122,6 +109,9 @@ public class StackFrame {
           Trace.trace(Item.ROOTS, "Tracing root %s=%s", names[i], object.toString());
         }
         object.traceObject(trace);
+        if (Trace.isEnabled(Item.ROOTS)) {
+          Trace.trace(Item.ROOTS, "new value of %s=%s", names[i], object.toString());
+        }
         rootCount++;
       }
     }
@@ -134,7 +124,12 @@ public class StackFrame {
   public void dumpRoots(int width, Stack<ObjectReference> roots) {
     for (int i=0; i < values.length; i++) {
       Value value = values[i];
-      String name = i < names.length ? names[i] : "t"+i;
+      String name;
+      if (Trace.isEnabled(Item.ROOTS)) {
+        name = i < names.length ? names[i] : "t"+i;
+      } else {
+        name = "slot["+i+"]";
+      }
       if (value != null && value instanceof ObjectValue) {
         ObjectReference ref = ((ObjectValue)value).getObjectValue();
         System.err.printf(" %s=%s", name, Mutator.formatObject(width, ref));

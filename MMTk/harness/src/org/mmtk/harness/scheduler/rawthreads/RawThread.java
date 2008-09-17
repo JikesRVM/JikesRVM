@@ -12,26 +12,23 @@
  */
 package org.mmtk.harness.scheduler.rawthreads;
 
+import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.Policy;
 import org.mmtk.harness.scheduler.Scheduler;
-import org.mmtk.utility.Log;
 
 /**
  * An MMTk thread in the RawThreads model
  */
-class RawThread extends Thread {
+class RawThread extends MMTkThread {
   /**
    *
    */
-  private final RawThreads model;
+  private final RawThreadModel model;
 
   /** The command-line configurable yield policy */
   private final Policy yieldPolicy = Scheduler.yieldPolicy(this);
-
-  /** The per-thread Log instance */
-  protected final Log log = new Log();
 
   /** True if this thread is exiting */
   private boolean exiting = false;
@@ -42,13 +39,13 @@ class RawThread extends Thread {
   /** Is this thread current ? Used to filter spurious wade-ups */
   private boolean isCurrent = false;
 
-  public RawThread(RawThreads model) {
+  public RawThread(RawThreadModel model) {
     this.model = model;
   }
 
-  public RawThread(RawThreads myThreads, Runnable target) {
+  public RawThread(RawThreadModel model, Runnable target) {
     super(target);
-    model = myThreads;
+    this.model = model;
   }
 
   protected void end() {

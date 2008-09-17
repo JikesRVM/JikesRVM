@@ -20,7 +20,10 @@ main() {
   int p = startPages;
   while (p <= limitPages) {
     object temp = alloc(0, p * 1024);
+    heapDump();
     gc();
+    heapDump();
     p = p * 2;
   }
+  heapDump();
 }

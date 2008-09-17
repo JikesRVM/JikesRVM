@@ -18,6 +18,7 @@ import org.mmtk.harness.options.*;
 import org.mmtk.harness.scheduler.AbstractPolicy;
 import org.mmtk.harness.vm.*;
 
+import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
 
@@ -92,31 +93,50 @@ public class Harness {
     }
     trace.apply();
     gcEvery.apply();
-    /* Get MMTk breathing */
-    ActivePlan.init(plan.getValue());
-    ActivePlan.plan.boot();
-    HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
-    Collector.init(collectors.getValue());
+    org.mmtk.harness.scheduler.Scheduler.init();
 
-    /* Override some defaults */
-    Options.noFinalizer.setValue(true);
-    Options.noReferenceTypes.setValue(true);
-    Options.variableSizeHeap.setValue(false);
+    /*
+     * Perform MMTk initialization in a minimal environment, specifically to
+     * give it a per-thread 'Log' object
+     */
+    MMTkThread m = new MMTkThread() {
+      public void run() {
 
-    /* Process command line options */
-    for(String arg: newArgs) {
-      if (!options.process(arg)) {
-        throw new RuntimeException("Invalid option '" + arg + "'");
+        /* Get MMTk breathing */
+        ActivePlan.init(plan.getValue());
+        ActivePlan.plan.boot();
+        HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
+        Collector.init(collectors.getValue());
+
+        /* Override some defaults */
+        Options.noFinalizer.setValue(true);
+        Options.noReferenceTypes.setValue(true);
+        Options.variableSizeHeap.setValue(false);
+
+        /* Process command line options */
+        for(String arg: newArgs) {
+          if (!options.process(arg)) {
+            throw new RuntimeException("Invalid option '" + arg + "'");
+          }
+        }
+
+        /* Check options */
+        assert Options.noFinalizer.getValue(): "noFinalizer must be true";
+        assert Options.noReferenceTypes.getValue(): "noReferenceTypes must be true";
+
+        /* Finish starting up MMTk */
+        ActivePlan.plan.postBoot();
+        ActivePlan.plan.fullyBooted();
+        Log.flush();
       }
+    };
+    m.start();
+    try {
+      m.join();
+    } catch (InterruptedException e) {
     }
 
-    /* Check options */
-    assert Options.noFinalizer.getValue(): "noFinalizer must be true";
-    assert Options.noReferenceTypes.getValue(): "noReferenceTypes must be true";
-
-    /* Finish starting up MMTk */
-    ActivePlan.plan.postBoot();
-    ActivePlan.plan.fullyBooted();
+    org.mmtk.harness.scheduler.Scheduler.initCollectors();
 
     /* Add exit handler to print yield stats */
     if (policyStats.getValue()) {

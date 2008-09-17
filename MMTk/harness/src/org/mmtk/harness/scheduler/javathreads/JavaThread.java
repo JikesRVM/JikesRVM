@@ -13,17 +13,14 @@
 package org.mmtk.harness.scheduler.javathreads;
 
 
+import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.scheduler.Policy;
 import org.mmtk.harness.scheduler.Scheduler;
-import org.mmtk.utility.Log;
 
 /**
  * This class represents an MMTk thread (mutator or collector).
  */
-public class MMTkThread extends Thread {
-
-  /** The log associated with this thread */
-  private final Log log = new Log();
+public class JavaThread extends MMTkThread {
 
   /**
    * The command-line selected yield policy
@@ -35,33 +32,14 @@ public class MMTkThread extends Thread {
    *
    * @param entryPoint The entryPoint.
    */
-  protected MMTkThread(Runnable entryPoint) {
+  protected JavaThread(Runnable entryPoint) {
     super(entryPoint);
-    trapUncaughtExceptions();
   }
 
   /**
    * Create an MMTk thread.
    */
-  protected MMTkThread() {
-    trapUncaughtExceptions();
-  }
-
-  private void trapUncaughtExceptions() {
-    Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread t, Throwable e) {
-        System.err.print("Unexpected exception: ");
-        e.printStackTrace();
-        System.exit(1);
-      }
-    });
-  }
-
-  /**
-   * Get the log for this MMTk thread (mutator or collector).
-   */
-  public final Log getLog() {
-    return log;
+  protected JavaThread() {
   }
 
   boolean yieldPolicy() {

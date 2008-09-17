@@ -213,7 +213,7 @@ public class Mutator {
    * Print the thread roots and add them to a stack for processing.
    */
   public static void dumpHeap() {
-    int width = Integer.toHexString(ObjectModel.nextObjectId()).length();
+    int width = Integer.toHexString(ObjectModel.nextObjectId()).length()+8;
     Stack<ObjectReference> workStack = new Stack<ObjectReference>();
     Set<ObjectReference> dumped = new HashSet<ObjectReference>();
     for(Mutator m: mutators) {

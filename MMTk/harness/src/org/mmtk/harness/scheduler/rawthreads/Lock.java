@@ -26,12 +26,12 @@ import org.vmmagic.pragma.Uninterruptible;
 public class Lock extends org.mmtk.harness.scheduler.Lock {
 
   private boolean isHeld = false;
-  private final RawThreads model;
+  private final RawThreadModel model;
 
   private List<RawThread> waitList = new ArrayList<RawThread>();
 
   /** Create a new lock (with given name) */
-  public Lock(RawThreads model, String name) {
+  public Lock(RawThreadModel model, String name) {
     super(name);
     this.model = model;
   }

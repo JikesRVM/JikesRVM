@@ -22,7 +22,7 @@ import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.ThreadModel;
 import org.mmtk.utility.Log;
 
-public final class JavaThreads extends ThreadModel {
+public final class JavaThreadModel extends ThreadModel {
   static {
     //Trace.enable(Item.SCHEDULER);
   }
@@ -47,8 +47,8 @@ public final class JavaThreads extends ThreadModel {
     t.start();
   }
 
-  private MMTkThread currentMMTkThread() {
-    return ((MMTkThread)Thread.currentThread());
+  private JavaThread currentMMTkThread() {
+    return ((JavaThread)Thread.currentThread());
   }
 
   @Override
@@ -69,7 +69,7 @@ public final class JavaThreads extends ThreadModel {
 
   protected static int mutatorId = 0;
 
-  private final class MutatorThread extends MMTkThread {
+  private final class MutatorThread extends JavaThread {
     private final Schedulable code;
     private final Env env = new Env();
 
@@ -138,7 +138,7 @@ public final class JavaThreads extends ThreadModel {
 
   protected static int collectorId = 0;
 
-  private final class CollectorThread extends MMTkThread {
+  private final class CollectorThread extends JavaThread {
     final Collector collector;
 
     private CollectorThread(Collector collector) {
