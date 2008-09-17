@@ -253,7 +253,7 @@ if ($cmd_hostUser ne "") {
 }
 
 if ($cmd_targetUser ne "") {
-  $hostUser = $cmd_hostUser;
+  $targetUser = $cmd_targetUser;
 } elsif ($cmd_user ne "") {
   $targetUser = $cmd_user;
 } elsif ($config{"$target.user"} ne "") {
