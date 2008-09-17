@@ -223,22 +223,22 @@ public class Map {
   public static void finalizeStaticSpaceMap() {
     /* establish bounds of discontiguous space */
     Address startAddress = Space.getDiscontigStart();
-    int start = hashAddress(startAddress);
-    int end = hashAddress(Space.getDiscontigEnd());
-    int pages = (end - start)*Space.PAGES_IN_CHUNK + 1;
+    int first = hashAddress(startAddress);
+    int last = hashAddress(Space.getDiscontigEnd().minus(1));
+    int pages = (1 + last - first)*Space.PAGES_IN_CHUNK + 1;
     globalPageMap.resizeFreeList(pages, pages);
     for (int pr = 0; pr < sharedDiscontigFLCount; pr++)
       sharedFLMap[pr].resizeFreeList(startAddress);
 
     /* set up the region map free list */
-    regionMap.alloc(start);                  // block out entire bottom of address range
-    for (int chunk = start; chunk < end; chunk++)
+    regionMap.alloc(first);                  // block out entire bottom of address range
+    for (int chunk = first; chunk <= last; chunk++)
       regionMap.alloc(1);                    // tentitively allocate all usable chunks
-    regionMap.alloc(Space.MAX_CHUNKS - end); // block out entire top of address range
+    regionMap.alloc(Space.MAX_CHUNKS - last); // block out entire top of address range
 
     /* set up the global page map and place chunks on free list */
     int firstPage = 0;
-    for (int chunk = start; chunk < end; chunk++) {
+    for (int chunk = first; chunk <= last; chunk++) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunk] == null);
       totalAvailableDiscontiguousChunks++;
       regionMap.free(chunk);  // put this chunk on the free list
