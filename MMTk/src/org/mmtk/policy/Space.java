@@ -324,7 +324,7 @@ public abstract class Space implements Constants {
   public static boolean isInSpace(int descriptor, Address address) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!address.isZero());
     if (FORCE_SLOW_MAP_LOOKUP || !SpaceDescriptor.isContiguous(descriptor)) {
-      return getDescriptorForAddress(address) == descriptor;
+      return Map.getDescriptorForAddress(address) == descriptor;
     } else {
       Address start = SpaceDescriptor.getStart(descriptor);
       if (!VM.VERIFY_ASSERTIONS &&
@@ -349,19 +349,6 @@ public abstract class Space implements Constants {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return Map.getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
-
-  /**
-   * Return the descriptor for a given address.
-   *
-   * @param address The address in question.
-   * @return The descriptor for the space containing the address.
-   */
-  @Inline
-  public static int getDescriptorForAddress(Address address) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!address.isZero());
-    return Map.getDescriptorForAddress(address);
-  }
-
 
   /****************************************************************************
    *

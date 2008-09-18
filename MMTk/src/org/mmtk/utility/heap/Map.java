@@ -292,7 +292,6 @@ public class Map {
    */
   @Inline
   public static int getDescriptorForAddress(Address object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isZero());
     int index = hashAddress(object);
     return descriptorMap[index];
   }
