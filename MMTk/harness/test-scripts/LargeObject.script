@@ -15,15 +15,12 @@
  * This is a simple test that allocates large objects.
  */
 main() {
-  int limitPages = 128;
+  int limitPages = 32; // 128
   int startPages = 2;
   int p = startPages;
   while (p <= limitPages) {
-    object temp = alloc(0, p * 1024);
-    heapDump();
+    object temp = alloc(p*512, p * 512);
     gc();
-    heapDump();
-    p = p * 2;
+    p = p + 2;
   }
-  heapDump();
 }

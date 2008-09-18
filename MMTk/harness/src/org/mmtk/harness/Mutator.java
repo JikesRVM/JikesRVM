@@ -401,7 +401,9 @@ public class Mutator {
    */
   public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign, int allocSite) {
     check(refCount >= 0, "Non-negative reference field count required");
+    check(refCount <= ObjectModel.MAX_REF_FIELDS, "Maximum of "+ObjectModel.MAX_REF_FIELDS+" reference fields per object");
     check(dataCount >= 0, "Non-negative data field count required");
+    check(dataCount <= ObjectModel.MAX_DATA_FIELDS, "Maximum of "+ObjectModel.MAX_DATA_FIELDS+" data fields per object");
     ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign, allocSite);
     Trace.trace(Item.ALLOC,"alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
     return result;
