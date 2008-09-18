@@ -79,11 +79,11 @@ public abstract class Gen extends StopTheWorld {
   public static SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
+  private static final VMRequest vmRequest = VMRequest.create(0.15f, true);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, vmRequest);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
-  public static final Address NURSERY_START = nurserySpace.getStart();
-  public static final Address NURSERY_END = NURSERY_START.plus(nurserySpace.getExtent());
+  private static final Address NURSERY_START = nurserySpace.getStart();
 
   /*****************************************************************************
    *
@@ -316,6 +316,28 @@ public abstract class Gen extends StopTheWorld {
    *
    * Miscellaneous
    */
+
+  /**
+   * Return true if the address resides within the nursery
+   *
+   * @param addr The object to be tested
+   * @return true if the address resides within the nursery
+   */
+  @Inline
+  static boolean inNursery(Address addr) {
+    return addr.GE(NURSERY_START);
+  }
+
+  /**
+   * Return true if the object resides within the nursery
+   *
+   * @param obj The object to be tested
+   * @return true if the object resides within the nursery
+   */
+  @Inline
+  static boolean inNursery(ObjectReference obj) {
+    return inNursery(obj.toAddress());
+  }
 
   /**
    * @return Does the mature space do copying ?

@@ -145,6 +145,24 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
+   * Perform the write barrier fast path, which may involve remembering
+   * a reference if necessary.
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   */
+  @Inline
+  private void fastPath(ObjectReference src, Address slot, ObjectReference tgt) {
+    if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
+    if (!Gen.inNursery(slot) && Gen.inNursery(tgt)) {
+      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
+      remset.insert(slot);
+    }
+  }
+
+  /**
    * A new reference is about to be created.  Take appropriate write
    * barrier actions.<p>
    *
@@ -164,11 +182,7 @@ import org.vmmagic.unboxed.*;
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
-    if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
-    if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
-      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
-      remset.insert(slot);
-    }
+    fastPath(src, slot, tgt);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
@@ -196,13 +210,8 @@ import org.vmmagic.unboxed.*;
       ObjectReference old, ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
-    if (result) {
-      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
-      if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
-        if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
-        remset.insert(slot);
-      }
-    }
+    if (result)
+      fastPath(src, slot, tgt);
     return result;
   }
 
@@ -232,7 +241,7 @@ import org.vmmagic.unboxed.*;
       ObjectReference dst, Offset dstOffset,
       int bytes) {
     // We can ignore when src is in old space, right?
-    if (dst.toAddress().LT(Gen.NURSERY_START))
+    if (!Gen.inNursery(dst))
       arrayRemset.insert(dst.toAddress().plus(dstOffset),
           dst.toAddress().plus(dstOffset.plus(bytes)));
     return false;

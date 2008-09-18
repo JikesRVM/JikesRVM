@@ -72,7 +72,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   @Inline
   public boolean isLive(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (object.toAddress().GE(Gen.NURSERY_START)) {
+    if (Gen.inNursery(object)) {
       return Gen.nurserySpace.isLive(object);
     }
     return super.isLive(object);
@@ -88,9 +88,10 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    *         collection.
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
-    if (object.toAddress().GE(Gen.NURSERY_START))
-      return object.toAddress().GE(Gen.NURSERY_END);
-    return super.willNotMoveInCurrentCollection(object);
+    if (Gen.inNursery(object))
+      return false;
+    else
+      return super.willNotMoveInCurrentCollection(object);
   }
 
   /**
@@ -107,9 +108,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (object.toAddress().GE(Gen.NURSERY_START)) {
+    if (Gen.inNursery(object))
       return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
-    }
     return super.traceObject(object);
   }
 
