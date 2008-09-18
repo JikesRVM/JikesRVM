@@ -1493,7 +1493,7 @@ public abstract class Simplifier extends IRTools {
         RegisterOperand lastShiftResult = null;
         boolean lastShiftWasShort = false;
         for (int i = 1; i < numBits; i++) {
-          if ((val2 & (1 << i)) != 0) {
+          if ((val2 & (1L << i)) != 0) {
             Instruction shift;
             RegisterOperand shiftResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
             if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS &&
