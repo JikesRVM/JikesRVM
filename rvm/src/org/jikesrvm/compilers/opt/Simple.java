@@ -155,7 +155,7 @@ public final class Simple extends CompilerPhase {
     // if it does it will recompute it.
     foldConstants(ir);
     // Simple local expression folding respecting DU
-    if (ExpressionFolding.performLocal(ir)) {
+    if (false && ExpressionFolding.performLocal(ir)) {
       // constant folding again
       foldConstants(ir);
     }
@@ -329,7 +329,7 @@ public final class Simple extends CompilerPhase {
         if (ClassLoaderProxy.includesType(rhs.getType(), use.getType()) == YES) {
           continue;
         }
-        // If Magic has been employed to convert an int to a reference,
+        // If VM_Magic has been employed to convert an int to a reference,
         // don't undo the effects!
         if (rhs.getType().isPrimitiveType() && !use.getType().isPrimitiveType()) {
           continue;
