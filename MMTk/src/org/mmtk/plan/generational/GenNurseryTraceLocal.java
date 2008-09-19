@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.generational;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
@@ -31,6 +32,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    *
    * Instance fields.
    */
+  private final ObjectReferenceDeque modbuf;
   private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
 
@@ -40,6 +42,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    */
   public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
     super(Gen.SCAN_NURSERY, trace);
+    this.modbuf = plan.modbuf;
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }
@@ -88,6 +91,12 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    */
   @Inline
   protected void processRememberedSets() {
+    logMessage(5, "processing modbuf");
+    ObjectReference obj;
+    while (!(obj = modbuf.pop()).isNull()) {
+      Plan.markAsUnlogged(obj);
+      scanObject(obj);
+    }
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();

@@ -45,6 +45,7 @@ import org.vmmagic.pragma.*;
   protected final LargeObjectLocal los;
 
   // remembered set consumers
+  protected final ObjectReferenceDeque modbuf;
   protected final AddressDeque remset;
   protected final AddressPairDeque arrayRemset;
 
@@ -65,6 +66,7 @@ import org.vmmagic.pragma.*;
     los = new LargeObjectLocal(Plan.loSpace);
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
     remset = new AddressDeque("remset", global().remsetPool);
+    modbuf = new ObjectReferenceDeque("modbuf", global().modbufPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
   }
 
@@ -86,6 +88,7 @@ import org.vmmagic.pragma.*;
       los.prepare(true);
       global().arrayRemsetPool.prepareNonBlocking();
       global().remsetPool.prepareNonBlocking();
+      global().modbufPool.prepareNonBlocking();
       nurseryTrace.prepare();
       return;
     }
@@ -114,6 +117,7 @@ import org.vmmagic.pragma.*;
         nurseryTrace.release();
         global().arrayRemsetPool.reset();
         global().remsetPool.reset();
+        global().modbufPool.reset();
       }
       return;
     }

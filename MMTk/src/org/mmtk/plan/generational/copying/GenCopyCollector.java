@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.generational.copying;
 
+import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
@@ -115,6 +116,8 @@ public class GenCopyCollector extends GenCollector {
       Plan.loSpace.initializeHeader(object, false);
     else if (GenCopy.IGNORE_REMSETS)
       CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());
+    if (Gen.USE_OBJECT_BARRIER)
+      Plan.markAsUnlogged(object);
   }
 
 

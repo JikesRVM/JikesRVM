@@ -113,6 +113,8 @@ public class GenMSCollector extends GenCollector {
       Plan.loSpace.initializeHeader(object, false);
     else
       GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
+    if (Gen.USE_OBJECT_BARRIER)
+      Plan.markAsUnlogged(object);
   }
 
   /*****************************************************************************

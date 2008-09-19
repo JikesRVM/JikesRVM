@@ -56,6 +56,9 @@ public abstract class Gen extends StopTheWorld {
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   public static final boolean IGNORE_REMSETS = false;
   public static final boolean USE_STATIC_WRITE_BARRIER = false;
+  public static final boolean USE_OBJECT_BARRIER_FOR_AASTORE = false; // choose between slot and object barriers
+  public static final boolean USE_OBJECT_BARRIER_FOR_PUTFIELD = true; // choose between slot and object barriers
+  public static final boolean USE_OBJECT_BARRIER = USE_OBJECT_BARRIER_FOR_AASTORE || USE_OBJECT_BARRIER_FOR_PUTFIELD;
   private static final boolean USE_DISCONTIGUOUS_NURSERY = false;
 
   // Allocators
@@ -101,8 +104,9 @@ public abstract class Gen extends StopTheWorld {
   /**
    * Remset pools
    */
-  public final SharedDeque arrayRemsetPool = new SharedDeque("arrayRemSets",metaDataSpace, 2);
+  public final SharedDeque modbufPool = new SharedDeque("modBufs",metaDataSpace, 1);
   public final SharedDeque remsetPool = new SharedDeque("remSets",metaDataSpace, 1);
+  public final SharedDeque arrayRemsetPool = new SharedDeque("arrayRemSets",metaDataSpace, 2);
 
   /*
    * Class initializer
@@ -152,7 +156,7 @@ public abstract class Gen extends StopTheWorld {
         }
         super.collectionPhase(phaseId);
 
-        // we can throw away the remsets for a full heap GC
+        // we can throw away the remsets (but not modbuf) for a full heap GC
         remsetPool.clearDeque(1);
         arrayRemsetPool.clearDeque(2);
       }
@@ -167,6 +171,7 @@ public abstract class Gen extends StopTheWorld {
     }
     if (phaseId == RELEASE) {
       nurserySpace.release();
+      modbufPool.clearDeque(1);
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
       if (!traceFullHeap()) {

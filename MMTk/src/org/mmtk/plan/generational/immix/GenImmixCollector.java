@@ -116,6 +116,8 @@ public class GenImmixCollector extends GenCollector {
       }
       GenImmix.immixSpace.postCopy(object, bytes, allocator == GenImmix.ALLOC_MATURE_MAJORGC);
     }
+    if (Gen.USE_OBJECT_BARRIER)
+      Plan.markAsUnlogged(object);
   }
 
   /*****************************************************************************

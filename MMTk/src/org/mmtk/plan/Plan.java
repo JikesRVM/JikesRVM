@@ -107,7 +107,7 @@ public abstract class Plan implements Constants {
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
   public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
 
-/* Do we support a log bit in the object header?  Some write barries may use it */
+/* Do we support a log bit in the object header?  Some write barriers may use it */
   public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
   public static final Word LOG_SET_MASK = VM.activePlan.constraints().unloggedBit();
   private static final Word LOG_CLEAR_MASK = LOG_SET_MASK.not();
