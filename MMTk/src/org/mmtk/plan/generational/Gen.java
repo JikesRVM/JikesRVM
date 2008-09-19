@@ -17,6 +17,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
@@ -55,6 +56,7 @@ public abstract class Gen extends StopTheWorld {
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   public static final boolean IGNORE_REMSETS = false;
   public static final boolean USE_STATIC_WRITE_BARRIER = false;
+  private static final boolean USE_DISCONTIGUOUS_NURSERY = false;
 
   // Allocators
   public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
@@ -79,7 +81,7 @@ public abstract class Gen extends StopTheWorld {
   public static SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  private static final VMRequest vmRequest = VMRequest.create(0.15f, true);
+  private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(0.15f, true);
   public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, vmRequest);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
@@ -325,7 +327,10 @@ public abstract class Gen extends StopTheWorld {
    */
   @Inline
   static boolean inNursery(Address addr) {
-    return addr.GE(NURSERY_START);
+    if (USE_DISCONTIGUOUS_NURSERY)
+      return Map.getDescriptorForAddress(addr) == NURSERY;
+    else
+      return addr.GE(NURSERY_START);
   }
 
   /**
