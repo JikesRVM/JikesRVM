@@ -266,8 +266,11 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       return Plan.smallCodeSpace.traceObject(this, object);
     if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
       return Plan.largeCodeSpace.traceObject(this, object);
-    if (VM.VERIFY_ASSERTIONS)
+    if (VM.VERIFY_ASSERTIONS) {
+      Space.printVMMap();
+      Log.write("Failing object => "); Log.writeln(object);
       VM.assertions._assert(false, "No special case for space in traceObject");
+    }
     return ObjectReference.nullReference();
   }
 
