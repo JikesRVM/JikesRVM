@@ -2337,7 +2337,7 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-          if (val2 == 1L) {                 // x % 1L == 0
+          if ((val2 == 1L)||(val2 == -1L)) {                 // x % 1L == 0
             Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
