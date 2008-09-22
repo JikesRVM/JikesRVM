@@ -92,7 +92,7 @@ public class EnterSSA extends CompilerPhase {
   static final boolean DEBUG = false;
 
   /**
-   * The govering IR
+   * The governing IR
    */
   private IR ir;
 

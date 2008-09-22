@@ -329,7 +329,7 @@ public final class Simple extends CompilerPhase {
         if (ClassLoaderProxy.includesType(rhs.getType(), use.getType()) == YES) {
           continue;
         }
-        // If VM_Magic has been employed to convert an int to a reference,
+        // If Magic has been employed to convert an int to a reference,
         // don't undo the effects!
         if (rhs.getType().isPrimitiveType() && !use.getType().isPrimitiveType()) {
           continue;
