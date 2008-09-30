@@ -680,9 +680,10 @@ public abstract class StackManager extends GenericStackManager {
     int location = RegisterAllocatorState.getSpill(symb.getRegister());
 
     // Create a memory operand M representing the spill location.
-    Operand M = null;
-    int type = PhysicalRegisterSet.getPhysicalRegisterType(symb.getRegister());
-    int size = PhysicalRegisterSet.getSpillSize(type);
+    int size = symb.getType().getMemoryBytes();
+    if (size < 4)
+      size = 4;
+    StackLocationOperand M = new StackLocationOperand(true, -location, (byte) size);
 
     M = new StackLocationOperand(true, -location, (byte) size);
 

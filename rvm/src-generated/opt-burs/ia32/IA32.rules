@@ -1952,6 +1952,7 @@ r:	LONG_LOAD(riv, riv)
 EMIT_INSTRUCTION
 RegisterOperand hres = Load.getResult(P(p)); \\
 RegisterOperand lres = new RegisterOperand(regpool.getSecondReg(hres.getRegister()), TypeReference.Int); \\
+hres.setType(TypeReference.Int); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_L(P(p), DW, DW).copy()))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
 
@@ -1963,6 +1964,7 @@ r:	LONG_ALOAD(riv, riv)
 EMIT_INSTRUCTION
 RegisterOperand hres = ALoad.getResult(P(p)); \\
 RegisterOperand lres = new RegisterOperand(regpool.getSecondReg(hres.getRegister()), TypeReference.Int); \\
+hres.setType(TypeReference.Int); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_AL(P(p), QW_S, DW, DW).copy()))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_AL(P(p), QW_S, DW)));
 
@@ -2025,6 +2027,7 @@ r:	PREPARE_LONG(riv, riv)
 30
 EMIT_INSTRUCTION
 RegisterOperand hres = Prepare.getResult(P(p)); \\
+hres.setType(TypeReference.Int); \\
 MemoryOperand hmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \\
                        Prepare.getLocation(P(p)), Prepare.getGuard(P(p)), DW); \\
 RegisterOperand lres = new RegisterOperand(regpool.getSecondReg(hres.getRegister()), TypeReference.Int); \\
@@ -2349,6 +2352,7 @@ stm:	LONG_STORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
 RegisterOperand hval = (RegisterOperand)Store.getValue(P(p)); \\
+hval.setType(TypeReference.Int); \\
 RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()), TypeReference.Int); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), hval))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), lval));
@@ -2367,6 +2371,7 @@ stm:	LONG_ASTORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
 RegisterOperand hval = (RegisterOperand)AStore.getValue(P(p)); \\
+hval.setType(TypeReference.Int); \\
 RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()), TypeReference.Int); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), lval));

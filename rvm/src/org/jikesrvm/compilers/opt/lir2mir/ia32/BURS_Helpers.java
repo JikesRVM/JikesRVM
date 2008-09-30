@@ -3047,11 +3047,13 @@ Operand value, boolean signExtend) {
     for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
       Operand param = params[paramIdx++];
       if (param instanceof RegisterOperand) {
-        MIR_Call.setParam(s, mirCallIdx++, param);
         RegisterOperand rparam = (RegisterOperand) param;
+        MIR_Call.setParam(s, mirCallIdx++, rparam);
         if (rparam.getType().isLongType()) {
-          MIR_Call.setParam(s, mirCallIdx++, L(regpool
-              .getSecondReg(rparam.getRegister())));
+          rparam.setType(TypeReference.Int);
+          MIR_Call.setParam(s, mirCallIdx-1, rparam);
+          MIR_Call.setParam(s, mirCallIdx++,
+            new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
         }
       } else if (param instanceof LongConstantOperand) {
         LongConstantOperand val = (LongConstantOperand) param;
@@ -3109,8 +3111,9 @@ Operand value, boolean signExtend) {
         // NOTE: longs passed little endian to C callee!
         RegisterOperand rparam = (RegisterOperand) param;
         if (rparam.getType().isLongType()) {
-          MIR_Call.setParam(s, mirCallIdx++, L(regpool
-              .getSecondReg(rparam.getRegister())));
+          rparam.setType(TypeReference.Int);
+          MIR_Call.setParam(s, mirCallIdx++,
+            new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
         }
         MIR_Call.setParam(s, mirCallIdx++, param);
       } else if (param instanceof LongConstantOperand) {
@@ -3188,8 +3191,10 @@ Operand value, boolean signExtend) {
         VM._assert((tc.getTrapCode() == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO) &&
                    (((LongConstantOperand) v2).value == 0L));
       }
+      RegisterOperand vr = v1.copyRO();
+      vr.setType(TypeReference.Int);
       RegisterOperand rr = regpool.makeTempInt();
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, rr, v1.copy())));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, rr, vr)));
       EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR,
                                 rr.copy(),
                                 new RegisterOperand(regpool.getSecondReg(v1.getRegister()), TypeReference.Int))));
