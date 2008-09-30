@@ -167,7 +167,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of data words in the object.
    */
   private static void setDataCount(ObjectReference object, int count) {
-    assert count < Short.MAX_VALUE && count > 0 : "Too many data fields, "+count;
+    assert count < Short.MAX_VALUE && count >= 0 : "Too many data fields, "+count;
     object.toAddress().store((short)count, DATACOUNT_OFFSET);
   }
 
@@ -176,7 +176,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of references in the object.
    */
   private static void setRefCount(ObjectReference object, int count) {
-    assert count < Short.MAX_VALUE && count > 0 : "Too many reference fields, "+count;
+    assert count < Short.MAX_VALUE && count >= 0 : "Too many reference fields, "+count;
     object.toAddress().store((short)count, REFCOUNT_OFFSET);
   }
 
