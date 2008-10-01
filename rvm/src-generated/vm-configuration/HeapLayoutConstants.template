@@ -36,7 +36,7 @@ public interface HeapLayoutConstants {
     Address.@_ADDRESS_METHOD_@( @_MAXIMUM_MAPPABLE_ADDRESS_@ );
 
   /** The maximum boot image data size */
-  int BOOT_IMAGE_DATA_SIZE = 48<<20;
+  int BOOT_IMAGE_DATA_SIZE = 56<<20;
 
   /** The maximum boot image code size */
   int BOOT_IMAGE_CODE_SIZE = 24<<20;
