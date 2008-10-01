@@ -585,7 +585,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * "if (VM.VerifyAssertions) VM._assert(xxx);"
    * @param b the assertion to verify
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public static void _assert(boolean b) {
     _assert(b, null, null);
   }
@@ -597,12 +597,12 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  @Inline
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
   public static void _assert(boolean b, String message) {
     _assert(b, message, null);
   }
 
-  @Inline
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
   public static void _assert(boolean b, String msg1, String msg2) {
     if (!VM.VerifyAssertions) {
       sysWriteln("vm: somebody forgot to conditionalize their call to assert with");

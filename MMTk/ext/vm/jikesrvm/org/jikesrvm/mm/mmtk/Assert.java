@@ -57,7 +57,7 @@ import org.vmmagic.pragma.*;
    *
    * @param cond the condition to be checked
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
    * @param cond the condition to be checked
    * @param message the message to print
    */
-  @Inline
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
