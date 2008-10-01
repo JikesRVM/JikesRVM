@@ -26,7 +26,7 @@ public final class Scheduler extends org.vmutil.options.EnumOption {
     super(Harness.options, "Scheduler",
           "MMTk Harness scheduler",
           new String[] {"JAVA","DETERMINISTIC"},
-          "JAVA");
+          System.getProperty("mmtk.harness.scheduler", "JAVA"));
   }
 
   /**

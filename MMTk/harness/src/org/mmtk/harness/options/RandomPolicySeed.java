@@ -24,7 +24,7 @@ public final class RandomPolicySeed extends org.vmutil.options.IntOption {
   public RandomPolicySeed() {
     super(Harness.options, "Random Policy Seed",
         "Seed for the random scheduler policy",
-        0);
+        Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.seed", "0")));
   }
 
   protected void validate() {

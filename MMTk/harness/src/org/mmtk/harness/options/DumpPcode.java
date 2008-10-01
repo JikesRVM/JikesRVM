@@ -18,7 +18,9 @@ import org.vmutil.options.BooleanOption;
 public class DumpPcode extends BooleanOption {
 
   public DumpPcode() {
-    super(Harness.options, "Dump Pcode", "Dump the pcode for the script before execution", false);
+    super(Harness.options, "Dump Pcode",
+        "Dump the pcode for the script before execution",
+        Boolean.valueOf(System.getProperty("mmtk.harness.dump.pcode", "false")));
   }
 
 }

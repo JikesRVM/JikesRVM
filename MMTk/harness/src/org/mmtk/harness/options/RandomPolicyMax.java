@@ -24,7 +24,7 @@ public final class RandomPolicyMax extends org.vmutil.options.IntOption {
   public RandomPolicyMax() {
     super(Harness.options, "Random Policy Max",
         "Maximum yield interval for the random scheduler policy",
-        20);
+        Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.max", "20")));
   }
 
   protected void validate() {

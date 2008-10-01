@@ -18,7 +18,9 @@ import org.vmutil.options.BooleanOption;
 public class PolicyStats extends BooleanOption {
 
   public PolicyStats() {
-    super(Harness.options, "Policy Stats", "Print scheduler policy statistics", false);
+    super(Harness.options, "Policy Stats",
+        "Print scheduler policy statistics",
+        Boolean.valueOf(System.getProperty("mmtk.harness.dump.policy.stats", "false")));
   }
 
 }

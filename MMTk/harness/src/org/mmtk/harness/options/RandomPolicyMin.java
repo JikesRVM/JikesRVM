@@ -24,7 +24,7 @@ public final class RandomPolicyMin extends org.vmutil.options.IntOption {
   public RandomPolicyMin() {
     super(Harness.options, "Random Policy Min",
         "Minimum yield interval for the random scheduler policy",
-        1);
+        Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.min", "1")));
   }
 
   protected void validate() {

@@ -24,7 +24,7 @@ public final class RandomPolicyLength extends org.vmutil.options.IntOption {
   public RandomPolicyLength() {
     super(Harness.options, "Random Policy Length",
         "Sequence length for the random scheduler policy",
-        10);
+        Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.length", "10")));
   }
 
   protected void validate() {

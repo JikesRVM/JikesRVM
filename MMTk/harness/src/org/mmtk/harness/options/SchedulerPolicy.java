@@ -26,7 +26,7 @@ public final class SchedulerPolicy extends org.vmutil.options.EnumOption {
     super(Harness.options, "Scheduler Policy",
           "MMTk Harness scheduler policy",
           SchedPolicy.valueNames(),
-          "RANDOM");
+          System.getProperty("mmtk.harness.yieldpolicy", "RANDOM"));
   }
 
   /**
