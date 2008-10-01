@@ -206,6 +206,9 @@ public abstract class InlineTools implements OptConstants {
         }
         break;
       }
+      case AssertionsDisabled: {
+        return !VM.VerifyAssertions;
+      }
       }
     }
     // TODO: clean this hack up

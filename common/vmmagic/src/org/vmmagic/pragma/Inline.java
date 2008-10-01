@@ -41,7 +41,15 @@ public @interface Inline {
     /**
      * Inline when the specified arguments are constants
      */
-    ArgumentsAreConstant
+    ArgumentsAreConstant,
+    /**
+     * Inline when the VM is built without Assertions (VM.VerifyAssertions == false).
+     * Note: It would be nicer to have the more general ExpressionIsTrue annotation,
+     * but the argument expression to the annotation is restricted to be a fairly
+     * trivial constant, and that isn't enough to handle how VM.VERIFY_ASSERTIONS
+     * is defined in MMTk.
+     */
+    AssertionsDisabled
   }
   /**
    * When to inline, default When.Always
