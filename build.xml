@@ -407,9 +407,12 @@ Check to make sure all required properties are specified. This includes properti
     <jar destfile="${build.mmtk.jar}" basedir="${build.mmtk.classes}"/>
   </target>
 
-  <target name="mmtk-harness" depends="compile-mmtk">
+  <target name="ensure-javacc">
+    <ant antfile="javacc.xml" dir="${jikesrvm.dir}/build/components" target="ensure"/>
+  </target>
+
+  <target name="mmtk-harness" depends="compile-mmtk,ensure-javacc">
     <property name="build.mmtk-harness.classes" location="${build.dir}/mmtk/harness/classes"/>
-    <ant antfile="build/components/javacc.xml" target="ensure"/>
     <property file="${components.file}"/>
     <mkdir dir="${generated.mmtk-harness-parser.java}"/>
     <echo message="${javacc.dir}"/>

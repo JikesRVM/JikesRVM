@@ -1,0 +1,135 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="mmtk" default="test">
+
+  <import file="../../../build/tests.xml"/>
+
+  <!-- Unused at the moment -->
+  <property name="test.time.limit" value="300"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            External components                           * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- The MMTk harness JAR file -->
+  <property name="build.mmtk-harness.jar" location="${jikesrvm.dir}/target/mmtk/mmtk-harness.jar"/>
+
+  <!-- The junit jar file, supplied by the junit component -->
+  <property name="junit.version" value="4.2"/>
+  <property name="junit.jar" 
+    location="${jikesrvm.dir}/components/junit/${junit.version}/junit${junit.version}/junit-${junit.version}.jar"/>
+
+  <!-- The MMTk unit test source -->
+  <property name="mmtk.junit.src" location="${basedir}/src"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Internal locations/properties                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- Where we put the class files we generate -->
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+  <property name="test.class.path" location="${build.classes}/mmtk/harness/test"/>
+  <property name="mmtk.junit.tests" location="${build.classes}/mmtk/harness/test"/>
+
+  <target name="ensure-junit">
+    <ant antfile="junit.xml" dir="${jikesrvm.dir}/build/components" target="ensure"/>
+    <echo message="${junit.jar}"/>
+  </target>
+
+  <target name="ensure-mmtk-harness">
+    <ant antfile="build.xml" dir="${jikesrvm.dir}" target="mmtk-harness"/>
+    <echo message="${build.mmtk-harness.jar}"/>
+  </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init,ensure-junit,ensure-mmtk-harness">
+    <mkdir dir="${mmtk.junit.tests}"/>
+    <javac srcdir="${mmtk.junit.src}" destdir="${mmtk.junit.tests}" debug="true" debugLevel="lines,source" source="1.5"
+        target="1.5">
+      <classpath>
+        <pathelement location="${junit.jar}"/>
+        <pathelement location="${build.mmtk-harness.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="unitTest">
+    <attribute name="tag"/>
+    <attribute name="class"/>
+    <attribute name="plan" default="org.mmtk.plan.nogc.NoGC"/>
+    <attribute name="scheduler" default="JAVA"/>
+    <attribute name="gcevery" default="NONE"/>
+    <attribute name="execution" default="default"/>
+    <sequential>
+      <property name="test.@{tag}.@{execution}.output.file" value="${output.dir}/@{tag}.@{execution}-output.txt"/>
+      <property name="test.@{tag}.@{execution}.sanitized.output.file" value="${output.dir}/@{tag}.@{execution}.txt"/>
+
+      <outputTestStart tag="@{tag}"/>
+<!-- In Ant 1.7, we can do this -->
+<!--    <junit printsummary="yes">                                                    -->
+<!--      <formatter type="plain"/>                                                   -->
+<!--      <classpath>                                                                 -->
+<!--        <pathelement location="${build.mmtk-harness.jar}"/>                       -->
+<!--        <pathelement location="${junit.jar}"/>                                    -->
+<!--        <pathelement location="${mmtk.junit.tests}"/>                             -->
+<!--      </classpath>                                                                -->
+<!--      <test name="org.mmtk.utility.deque.ObjectReferenceDequeTest" fork="true"/>  -->
+<!--    </junit>                                                                      -->
+      <java classname="org.junit.runner.JUnitCore" fork="true"
+        output="${test.@{tag}.@{execution}.output.file}">
+        <classpath>
+          <pathelement location="${build.mmtk-harness.jar}"/>
+          <pathelement location="${junit.jar}"/>
+          <pathelement location="${mmtk.junit.tests}"/>
+        </classpath>
+        <arg value="@{class}"/>
+	<sysproperty key="mmtk.harness.scheduler" value="@{scheduler}"/>
+	<sysproperty key="mmtk.harness.plan" value="@{plan}"/>
+	<sysproperty key="mmtk.harness.gc.every" value="@{gcevery}"/>
+      </java>
+      <cleanOutput file="${test.@{tag}.@{execution}.output.file}" tofile="${test.@{tag}.@{execution}.sanitized.output.file}"/>
+      <findStatistic tag="@{tag}" pattern="OK (.* tests)" key="success"/>
+      <outputTestResults tag="@{tag}"/>
+      <outputTestEnd/>
+      <!-- <outputResults tag="@{tag}"/> -->
+      <displayTestResults tag="@{tag}"/>
+    </sequential>
+  </macrodef>
+
+  <target name="test" depends="prepare-ant-tasks,compile">
+    <startResults/>
+
+    <unitTest tag="ObjectReferenceDeque" class="org.mmtk.utility.deque.ObjectReferenceDequeTest"/>
+    <unitTest tag="ObjectReferenceDeque-DET" class="org.mmtk.utility.deque.ObjectReferenceDequeTest"
+	scheduler="DETERMINISTIC"/>
+
+    <finishResults/>
+  </target>
+
+</project>
