@@ -23,8 +23,7 @@ plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy or
 opts="variableSizeHeap=false $*"
 #opts="$opts gcEvery=SAFEPOINT"
 
-# 4m stack required for 'quicksort'
-jvm_opts="-ea -Xss8m"
+jvm_opts="-ea"
 
 for plan in $plans
 do
