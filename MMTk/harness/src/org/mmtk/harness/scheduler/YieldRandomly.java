@@ -36,7 +36,7 @@ public final class YieldRandomly extends AbstractPolicy implements Policy {
       rng = new Random(seed);
     }
     for (int i=0; i < length; i++) {
-      schedule[i] = rng.nextInt(max-min)+min;
+      schedule[i] = rng.nextInt(max-min+1)+min;
     }
   }
 
