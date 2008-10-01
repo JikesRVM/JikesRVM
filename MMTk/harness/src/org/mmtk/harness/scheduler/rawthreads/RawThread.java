@@ -43,11 +43,6 @@ class RawThread extends MMTkThread {
     this.model = model;
   }
 
-  public RawThread(RawThreadModel model, Runnable target) {
-    super(target);
-    this.model = model;
-  }
-
   protected void end() {
     this.exiting = true;
   }
@@ -81,6 +76,7 @@ class RawThread extends MMTkThread {
   }
 
   protected synchronized void waitTillCurrent() {
+    Trace.trace(Item.SCHEDULER, "%d: waiting for thread wakeup", getId());
     while (!isCurrent) {
       try {
         this.wait();

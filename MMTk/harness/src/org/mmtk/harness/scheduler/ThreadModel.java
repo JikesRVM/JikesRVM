@@ -14,20 +14,22 @@ package org.mmtk.harness.scheduler;
 
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.utility.Log;
 
 public abstract class ThreadModel {
 
-  /** The number of collectors executing GC */
-  protected int inGC;
   /**
-   * The number of mutators currently executing in the system.
+   * Distinguish between setup/initialization and proper running of the harness
    */
-  protected int activeMutators;
-  /**
-   * The number of mutators waiting for a collection to proceed.
-   */
-  protected int mutatorsWaitingForGC;
+  private boolean running = false;
+
+  /** The global state of the scheduler */
+  public enum State { MUTATOR, BEGIN_GC, GC, END_GC, RENDEZVOUS }
+
+  private static volatile State state = State.MUTATOR;
+
   /** The trigger for this GC */
   protected int triggerReason;
 
@@ -38,6 +40,8 @@ public abstract class ThreadModel {
   protected abstract void scheduleMutator(Schedulable method);
 
   protected abstract void scheduleCollector();
+
+  protected abstract Thread scheduleCollector(Schedulable item);
 
   protected abstract Log currentLog();
 
@@ -51,13 +55,9 @@ public abstract class ThreadModel {
 
   protected abstract void waitForGCStart();
 
-  public boolean noThreadsInGC() {
-    return inGC == 0;
-  }
+  public abstract boolean noThreadsInGC();
 
-  public boolean gcTriggered() {
-    return inGC > 0;
-  }
+  public abstract boolean gcTriggered();
 
   public abstract int rendezvous(int where);
 
@@ -71,9 +71,39 @@ public abstract class ThreadModel {
 
   public abstract void schedule();
 
+  public abstract void scheduleGcThreads();
+
   /**
    * An MMTk lock
    */
   public abstract Lock newLock(String name);
 
+  protected void setState(State state) {
+    Trace.trace(Item.SCHEDULER,"State changing from %s to %s",ThreadModel.state,state);
+    ThreadModel.state = state;
+  }
+
+  protected State getState() {
+    return state;
+  }
+
+  protected boolean isState(State state) {
+    return ThreadModel.state == state;
+  }
+
+  protected boolean isRunning() {
+    return running;
+  }
+
+  private void setRunning(boolean state) {
+    running = state;
+  }
+
+  protected void startRunning() {
+    setRunning(true);
+  }
+
+  protected void stopRunning() {
+    setRunning(false);
+  }
 }

@@ -12,6 +12,10 @@
  */
 package org.mmtk.harness.scheduler.javathreads;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
@@ -20,12 +24,19 @@ import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.ThreadModel;
+import static org.mmtk.harness.scheduler.ThreadModel.State.*;
 import org.mmtk.utility.Log;
 
 public final class JavaThreadModel extends ThreadModel {
   static {
     //Trace.enable(Item.SCHEDULER);
   }
+
+  /**
+   * Count of collector threads scheduled through scheduleCollector(Schedulable)
+   */
+  Set<CollectorContextThread> collectorTestThreads =
+    Collections.synchronizedSet(new HashSet<CollectorContextThread>());
 
   /**
    * Create a new mutator thread
@@ -47,14 +58,28 @@ public final class JavaThreadModel extends ThreadModel {
     t.start();
   }
 
+  /**
+   * Create a new collector thread with a specific Schedulable
+   */
+  @Override
+  public Thread scheduleCollector(Schedulable code) {
+    Trace.trace(Item.SCHEDULER, "Scheduling new collector");
+    CollectorContextThread t = new CollectorContextThread(code);
+    collectorTestThreads.add(t);
+    t.start();
+    return t;
+  }
+
   private JavaThread currentMMTkThread() {
     return ((JavaThread)Thread.currentThread());
   }
 
   @Override
   public void yield() {
-    if (currentMMTkThread().yieldPolicy()) {
-      Thread.yield();
+    if (isRunning()) {
+      if (currentMMTkThread().yieldPolicy()) {
+        Thread.yield();
+      }
     }
   }
 
@@ -138,24 +163,42 @@ public final class JavaThreadModel extends ThreadModel {
 
   protected static int collectorId = 0;
 
-  private final class CollectorThread extends JavaThread {
-    final Collector collector;
+  private class CollectorThread extends JavaThread {
+    protected final Collector collector;
 
-    private CollectorThread(Collector collector) {
-      super(collector);
-      this.collector = collector;
+    protected CollectorThread(boolean daemon) {
+      this.collector = new Collector();
       setName("Collector-"+(collectorId++));
-      setDaemon(true);
+      setDaemon(daemon);
     }
 
     private CollectorThread() {
-      this(new Collector());
+      this(true);
     }
 
     @Override
     public void run() {
       collectorThreadLocal.set(collector);
-      super.run();
+      collector.run();
+    }
+
+  }
+
+  private final class CollectorContextThread extends CollectorThread {
+    final Schedulable code;
+
+    private CollectorContextThread(Schedulable code) {
+      super(false);
+      this.code = code;
+    }
+
+    @Override
+    public void run() {
+      collectorThreadLocal.set(collector);
+      waitForGCStart();
+      code.execute(new Env());
+      collectorTestThreads.remove(this);
+      exitGC();
     }
 
   }
@@ -176,6 +219,7 @@ public final class JavaThreadModel extends ThreadModel {
     Trace.trace(Item.SCHEDULER, "%d waitForGC in", Thread.currentThread().getId());
     synchronized (trigger) {
       if (last) {
+        setState(GC);
         trigger.notifyAll();
       }
       while (inGC > 0) {
@@ -201,7 +245,7 @@ public final class JavaThreadModel extends ThreadModel {
   }
 
   private boolean allWaitingForGC() {
-    return mutatorsWaitingForGC == activeMutators;
+    return (activeMutators > 0) && (mutatorsWaitingForGC == activeMutators);
   }
 
   /**
@@ -212,6 +256,7 @@ public final class JavaThreadModel extends ThreadModel {
     synchronized (trigger) {
       triggerReason = why;
       inGC = Harness.collectors.getValue();
+      setState(BEGIN_GC);
       trigger.notifyAll();
     }
   }
@@ -223,14 +268,17 @@ public final class JavaThreadModel extends ThreadModel {
   public void exitGC() {
     synchronized (trigger) {
       inGC--;
-      if (inGC == 0) trigger.notifyAll();
+      if (inGC == 0) {
+        setState(MUTATOR);
+        trigger.notifyAll();
+      }
     }
   }
 
   @Override
   public void waitForGCStart() {
     synchronized(trigger) {
-      while(inGC == 0 || !allWaitingForGC()) {
+      while(inGC == 0 || !isState(GC)) {
         try {
           trigger.wait();
         } catch (InterruptedException ie) {}
@@ -243,9 +291,23 @@ public final class JavaThreadModel extends ThreadModel {
   private final Rendezvous rendezvous = new Rendezvous();
 
   /**
+   * The number of mutators waiting for a collection to proceed.
+   */
+  protected int mutatorsWaitingForGC;
+
+  /** The number of collectors executing GC */
+  protected int inGC;
+
+  /**
+   * The number of mutators currently executing in the system.
+   */
+  protected int activeMutators;
+
+  /**
    * Object used for synchronizing the number of mutators waiting for a gc.
    */
   public static Object count = new Object();
+
   /** Thread access to current collector */
   public static ThreadLocal<Collector> collectorThreadLocal = new ThreadLocal<Collector>();
 
@@ -266,6 +328,34 @@ public final class JavaThreadModel extends ThreadModel {
 
   @Override
   public void schedule() {
+    startRunning();
     // Do nothing - java does it :)
+  }
+
+  @Override
+  public void scheduleGcThreads() {
+    synchronized (trigger) {
+      startRunning();
+      inGC = collectorTestThreads.size();
+      setState(GC);
+      trigger.notifyAll();
+      while (!isState(MUTATOR)) {
+        try {
+          trigger.wait();
+        } catch (InterruptedException e) {
+        }
+      }
+      stopRunning();
+    }
+  }
+
+  @Override
+  public boolean noThreadsInGC() {
+    return inGC == 0;
+  }
+
+  @Override
+  public boolean gcTriggered() {
+    return inGC > 0;
   }
 }

@@ -103,10 +103,16 @@ public class Scheduler {
     }
   }
 
+  /**
+   * Initialization
+   */
   public static void init() {
     model = selectedThreadModel();
   }
 
+  /**
+   * Advance collector threads to their initial 'wait for collection' barrier
+   */
   public static void initCollectors() {
     model.initCollectors();
   }
@@ -134,11 +140,18 @@ public class Scheduler {
   }
 
   /**
+   * Create and start a new collector thread running a particular code
+   * sequence.  Used to schedule unit tests in collector context.
+   */
+  public static Thread scheduleCollector(Schedulable item) {
+    return model.scheduleCollector(item);
+  }
+
+  /**
    * The current Log object.
    * @return
    */
   public static Log currentLog() {
-//    return model.currentLog();
     return ((MMTkThread)Thread.currentThread()).getLog();
   }
 
@@ -150,20 +163,43 @@ public class Scheduler {
     return model.currentMutator();
   }
 
+  /**
+   * The current collector object (if the current thread is a Collector)
+   * @return
+   */
+  public static Collector currentCollector() {
+    return model.currentCollector();
+  }
+
   /* schedule GC */
 
+  /**
+   * Request a GC.  Once requested, mutator threads block at
+   * 'waitForGC' until a collection is performed.
+   */
   public static void triggerGC(int why) {
     model.triggerGC(why);
   }
 
+  /**
+   * A collector thread informs the scheduler that it has completed
+   * its GC work by calling this.
+   */
   public static void exitGC() {
     model.exitGC();
   }
 
+  /**
+   * Collector threads call this method to wait for a GC to be triggered.
+   */
   public static void waitForGCStart() {
     model.waitForGCStart();
   }
 
+  /**
+   * Why was the current GC triggered ?
+   * @return
+   */
   public static int getTriggerReason() {
     return model.getTriggerReason();
   }
@@ -191,10 +227,6 @@ public class Scheduler {
     return model.rendezvous(where);
   }
 
-  public static Collector currentCollector() {
-    return model.currentCollector();
-  }
-
   /**
    * Cause the current thread to wait for a triggered GC to proceed.
    */
@@ -210,7 +242,15 @@ public class Scheduler {
   }
 
   /**
-   * An MMTk lock
+   * Schedule the GC threads as though a GC had been triggered
+   * Used to run unit tests that must run in collector context.
+   */
+  public static void scheduleGcThreads() {
+    model.scheduleGcThreads();
+  }
+
+  /**
+   * An MMTk lock - a factory method.
    */
   public static Lock newLock(String name) {
     return model.newLock(name);
