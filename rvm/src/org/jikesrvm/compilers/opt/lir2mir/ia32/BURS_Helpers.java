@@ -2775,7 +2775,8 @@ Operand value, boolean signExtend) {
       }
       if (val2 instanceof RegisterOperand) {
         two = val2;
-        ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()));
+        ((RegisterOperand)two).setType(TypeReference.Int);
+        ltwo = new RegisterOperand(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()), TypeReference.Int);
       } else {
         LongConstantOperand tmp = (LongConstantOperand) val2;
         two = IC(tmp.upper32());
