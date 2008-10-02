@@ -14,22 +14,18 @@ package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_CaseLabel;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
 import org.jikesrvm.compilers.opt.ir.MIR_Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_Lea;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_Return;
 import org.jikesrvm.compilers.opt.ir.MIR_Set;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_Trap;
@@ -73,15 +69,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVZX__B;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_OFFSET;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_RET;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SET__B_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TEST_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TRAPIF_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XOR;
-import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REQUIRE_ESP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode;
@@ -134,55 +127,6 @@ public class FinalMIRExpansion extends IRTools {
       p.scratchObject = null;
 
       switch (p.getOpcode()) {
-        case MIR_LOWTABLESWITCH_opcode: {
-          // split the basic block after the MIR_LOWTABLESWITCH
-          BasicBlock thisBlock = p.getBasicBlock();
-          BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p, ir);
-          nextBlock.firstInstruction().setmcOffset(-1);
-
-          // place offset data table after call so that call pushes
-          // the base address of this table onto the stack
-          int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
-          for (int i = 0; i < NumTargets; i++) {
-            thisBlock.appendInstruction(MIR_CaseLabel.create(IA32_OFFSET,
-                                                             IC(i),
-                                                             MIR_LowTableSwitch.getClearTarget(p, i)));
-          }
-          // calculate address to which to jump, and store it
-          // on the top of the stack
-          Register regS = MIR_LowTableSwitch.getIndex(p).getRegister();
-          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL,
-                                                           new RegisterOperand(regS, TypeReference.Int),
-                                                           IC(2)));
-          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_ADD,
-                                                           new RegisterOperand(regS, TypeReference.Int),
-                                                           MemoryOperand.I(new RegisterOperand(phys.getESP(),
-                                                                                                       TypeReference.Int),
-                                                                               (byte) 4,
-                                                                               null,
-                                                                               null)));
-          nextBlock.appendInstruction(MIR_Move.create(IA32_MOV,
-                                                      new RegisterOperand(regS, TypeReference.Int),
-                                                      MemoryOperand.I(new RegisterOperand(regS,
-                                                                                                  TypeReference.Int),
-                                                                          (byte) 4,
-                                                                          null,
-                                                                          null)));
-          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_ADD,
-                                                           MemoryOperand.I(new RegisterOperand(phys.getESP(),
-                                                                                                       TypeReference.Int),
-                                                                               (byte) 4,
-                                                                               null,
-                                                                               null),
-                                                           new RegisterOperand(regS, TypeReference.Int)));
-          // ``return'' to mangled return address
-          nextBlock.appendInstruction(MIR_Return.create(IA32_RET, IC(0), null, null));
-
-          // CALL next block to push pc of next ``instruction'' onto stack
-          MIR_Call.mutate0(p, IA32_CALL, null, null, nextBlock.makeJumpTarget(), null);
-        }
-        break;
-
         case IA32_TEST_opcode:
           // don't bother telling rest of compiler that memory operand
           // must be first; we can just commute it here.

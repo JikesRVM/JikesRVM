@@ -2215,7 +2215,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_ret(int index) {
     Offset offset = localOffset(index);
-    asm.emitJMP_RegDisp(ESP, offset);
+    // Can be:
+    // asm.emitJMP_RegDisp(ESP, offset);
+    // but this will cause call-return branch prediction pairing to fail
+    asm.emitPUSH_RegDisp(ESP, offset);
+    asm.emitRET();
   }
 
   /**
@@ -2229,9 +2233,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
     int n = high - low + 1;                       // n = number of normal cases (0..n-1)
-    asm.emitPOP_Reg(T0);                          // T0 is index of desired case
-    asm.emitSUB_Reg_Imm(T0, low);                 // relativize T0
-    asm.emitCMP_Reg_Imm(T0, n);                   // 0 <= relative index < n
+    asm.emitPOP_Reg(T1);                          // T1 is index of desired case
+    asm.emitSUB_Reg_Imm(T1, low);                 // relativize T1
+    asm.emitCMP_Reg_Imm(T1, n);                   // 0 <= relative index < n
 
     if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
       int firstCounter = edgeCounterIdx;
@@ -2244,30 +2248,34 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       fr.resolve(asm);
 
       // Increment counter for the appropriate case
-      incEdgeCounterIdx(S0, T0, firstCounter);
+      incEdgeCounterIdx(S0, T1, firstCounter);
     } else {
       asm.emitJCC_Cond_ImmOrLabel(Assembler.LGE, mTarget, bTarget);   // if not, goto default case
     }
 
-    // make table aligned if doing alignment checking
-    if (VM.AlignmentChecking) {
-      asm.emitNOP((asm.getMachineCodeIndex() + 1) & 3);
+    // T0 = EIP at start of method
+    asm.emitMETHODSTART_Reg(T0);
+    // T0 += [T0 + T1<<2 + ??] - we will patch ?? when we know the placement of the table
+    int toPatchAddress = asm.getMachineCodeIndex();
+    if (VM.buildFor32Addr()) {
+      asm.emitMOV_Reg_RegIdx(T1, T0, T1, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      asm.emitADD_Reg_Reg(T0, T1);
+    } else {
+      asm.emitMOV_Reg_RegIdx(T1, T0, T1, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      asm.emitADD_Reg_Reg_Quad(T0, T1);
     }
-
-    asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n << LG_WORDSIZE));
-    // jump around table, pushing address of 0th delta
-    for (int i = 0; i < n; i++) {                  // create table of deltas
+    // JMP T0
+    asm.emitJMP_Reg(T0);
+    asm.emitNOP((4-asm.getMachineCodeIndex()) & 3); // align table
+    // create table of offsets from start of method
+    asm.patchSwitchTableDisplacement(toPatchAddress);
+    for (int i = 0; i < n; i++) {
       int offset = bcodes.getTableSwitchOffset(i);
       bTarget = biStart + offset;
       mTarget = bytecodeMap[bTarget];
-      // delta i: difference between address of case i and of delta 0
       asm.emitOFFSET_Imm_ImmOrLabel(i, mTarget, bTarget);
     }
     bcodes.skipTableSwitchOffsets(n);
-    asm.emitPOP_Reg(S0);                          // S0 = address of 0th delta
-    asm.emitADD_Reg_RegIdx(S0, S0, T0, Assembler.WORD, NO_SLOT);     // S0 += [S0 + T0<<2]
-    asm.emitPUSH_Reg(S0);                          // push computed case address
-    asm.emitRET();                            // goto case
   }
 
   /**

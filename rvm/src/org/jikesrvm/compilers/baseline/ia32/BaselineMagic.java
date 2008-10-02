@@ -883,8 +883,8 @@ final class BaselineMagic {
    */
   private static final class Prefetch extends MagicGenerator {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitPOP_Reg(T0);
-      asm.emitPREFETCHNTA_Reg(T0);
+      asm.emitPOP_Reg(EDI);
+      asm.emitPREFETCHNTA_RegInd(EDI);
     }
   }
   static {

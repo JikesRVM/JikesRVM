@@ -80,6 +80,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JCC;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LEA;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG8B;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_METHODSTART;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVLPD;
@@ -3144,8 +3145,10 @@ Operand value, boolean signExtend) {
     // going to get into trouble (if someone else was also using index).
     RegisterOperand newIndex = regpool.makeTempInt();
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))));
+    RegisterOperand methodStart = regpool.makeTemp(TypeReference.Address);
+    EMIT(CPOS(s, MIR_Nullary.create(IA32_METHODSTART, methodStart)));
     int number = LowTableSwitch.getNumberOfTargets(s);
-    Instruction s2 = CPOS(s, MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), number * 2));
+    Instruction s2 = CPOS(s, MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), methodStart.copyD2U(), number * 2));
     for (int i = 0; i < number; i++) {
       MIR_LowTableSwitch.setTarget(s2, i, LowTableSwitch.getTarget(s, i));
       MIR_LowTableSwitch.setBranchProfile(s2, i, LowTableSwitch

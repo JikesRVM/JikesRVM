@@ -14,10 +14,12 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -48,6 +50,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   //-----------//
 
   public static void init() {
+    generatePcThunkInstructions();
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
@@ -57,6 +60,36 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   //----------------//
   // implementation //
   //----------------//
+
+  public static final RVMField[] pcThunkInstructionsField = new RVMField[8];
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkEAXInstructions;
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkEBXInstructions;
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkECXInstructions;
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkEDXInstructions;
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkEBPInstructions;
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkESIInstructions;
+
+  @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
+  // Accessed via field array above
+  private static  ArchitectureSpecific.CodeArray pcThunkEDIInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via EntryPoints
@@ -76,6 +109,70 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   private static final Offset FPRS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 4);
   private static final Offset GPRS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 5);
   private static final Offset CODE_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 6);
+
+  /**
+   * Machine code to get the address of the instruction after the call to this
+   * method
+   */
+  private static void generatePcThunkInstructions() {
+    Assembler asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(EAX, SP);
+    asm.emitRET();
+    pcThunkEAXInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[EAX.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkEAXInstructions", ArchitectureSpecific.CodeArray.class);
+
+    asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(EBX, SP);
+    asm.emitRET();
+    pcThunkEBXInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[EBX.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkEBXInstructions", ArchitectureSpecific.CodeArray.class);
+
+    asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(ECX, SP);
+    asm.emitRET();
+    pcThunkECXInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[ECX.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkECXInstructions", ArchitectureSpecific.CodeArray.class);
+
+    asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(EDX, SP);
+    asm.emitRET();
+    pcThunkEDXInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[EDX.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkEDXInstructions", ArchitectureSpecific.CodeArray.class);
+
+    // NB a PC thunk into ESP isn't allowed
+
+    asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(EBP, SP);
+    asm.emitRET();
+    pcThunkEBPInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[EBP.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkEBPInstructions", ArchitectureSpecific.CodeArray.class);
+
+    asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(ESI, SP);
+    asm.emitRET();
+    pcThunkESIInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[ESI.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkESIInstructions", ArchitectureSpecific.CodeArray.class);
+
+    asm = new ArchitectureSpecific.Assembler(0);
+    asm.emitMOV_Reg_RegInd(EDI, SP);
+    asm.emitRET();
+    pcThunkEDIInstructions = asm.getMachineCodes();
+    pcThunkInstructionsField[EDI.value()] =
+       EntrypointHelper.getField(OutOfLineMachineCode.class,
+         "pcThunkEDIInstructions", ArchitectureSpecific.CodeArray.class);
+  }
 
   /**
    * Machine code for reflective method invocation.

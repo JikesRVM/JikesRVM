@@ -458,7 +458,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         LookupSwitch.setTarget(l, i, TableSwitch.getClearTarget(s, i));
         LookupSwitch.setBranchProfile(l, i, TableSwitch.getClearBranchProfile(s, i));
       }
-      s.insertAfter(l);
+      s.insertAfter(CPOS(s, l));
       return s.remove();
     }
     RegisterOperand reg = val.asRegister();
@@ -474,13 +474,13 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       t = reg.copyU2U();
     }
     BranchProfileOperand defaultProb = TableSwitch.getClearDefaultBranchProfile(s);
-    s.replace(IfCmp.create(INT_IFCMP,
-        ir.regpool.makeTempValidation(),
-        t,
-        IC(highLimit - lowLimit),
-        ConditionOperand.HIGHER(),
-        defaultLabel,
-        defaultProb));
+    s.replace(CPOS(s, IfCmp.create(INT_IFCMP,
+                        ir.regpool.makeTempValidation(),
+                        t,
+                        IC(highLimit - lowLimit),
+                        ConditionOperand.HIGHER(),
+                        defaultLabel,
+                        defaultProb)));
     // Reweight branches to account for the default branch going. If
     // the default probability was ALWAYS then when we recompute the
     // weight to be a proportion of the total number of branches.
@@ -488,7 +488,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     final float weight = defaultIsAlways ? 1f / number : 1f / (1f - defaultProb.takenProbability);
 
     /********** second Basic Block ******/
-    s2 = LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number * 2);
+    s2 = CPOS(s, LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number * 2));
     boolean containsDefault = false;
     for (int i = 0; i < number; i++) {
       BranchOperand b = TableSwitch.getClearTarget(s, i);
@@ -516,7 +516,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     // then just use a GOTO instead of the LOWTABLESWITCH.
     // This actually happens (very occasionally), and is easy to test for.
     if (BB2.getNumberOfNormalOut() == 1) {
-      BB2.appendInstruction(Goto.create(GOTO, LowTableSwitch.getTarget(s2, 0)));
+      BB2.appendInstruction(CPOS(s, Goto.create(GOTO, LowTableSwitch.getTarget(s2, 0))));
     } else {
       BB2.appendInstruction(s2);
     }
@@ -1020,7 +1020,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   public static RegisterOperand insertBinary(Instruction s, IR ir, Operator operator,
                                                  TypeReference type, Operand o1, Operand o2) {
     RegisterOperand t = ir.regpool.makeTemp(type);
-    s.insertBefore(Binary.create(operator, t, o1, o2));
+    s.insertBefore(CPOS(s, Binary.create(operator, t, o1, o2)));
     return t.copyD2U();
   }
 
@@ -1036,7 +1036,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   static RegisterOperand InsertUnary(Instruction s, IR ir, Operator operator, TypeReference type,
                                          Operand o1) {
     RegisterOperand t = ir.regpool.makeTemp(type);
-    s.insertBefore(Unary.create(operator, t, o1));
+    s.insertBefore(CPOS(s, Unary.create(operator, t, o1)));
     return t.copyD2U();
   }
 

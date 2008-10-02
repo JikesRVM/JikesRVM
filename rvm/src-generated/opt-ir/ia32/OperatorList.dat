@@ -256,7 +256,7 @@ none
 
 
 ########################################
-# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence, index is DU)
+# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence, method start is U, index is DU)
 ########################################
 MIR_LOWTABLESWITCH
 MIR_LowTableSwitch
@@ -267,6 +267,15 @@ branch
 ########################################
 # IA32 specific pseudo-ops (expanded just before final assembly)
 ########################################
+########################################
+# Generate the address of the start of the method into a register
+########################################
+IA32_METHODSTART
+MIR_Nullary
+none
+
+
+
 ####################
 # Clear the floating point stack
 ####################
@@ -416,6 +425,20 @@ callUses
 
 ####################
 IA32_CDQ
+MIR_ConvertDW2QW
+none
+
+
+
+####################
+IA32_CDO
+MIR_ConvertDW2QW
+none
+
+
+
+####################
+IA32_CDQE
 MIR_ConvertDW2QW
 none
 
@@ -1426,6 +1449,27 @@ move
 
 ####################
 IA32_CVTTSD2SI
+MIR_Unary
+move
+
+
+
+####################
+IA32_CVTSI2SDQ
+MIR_Unary
+move
+
+
+
+####################
+IA32_CVTSD2SIQ
+MIR_Unary
+move
+
+
+
+####################
+IA32_CVTTSD2SIQ
 MIR_Unary
 move
 

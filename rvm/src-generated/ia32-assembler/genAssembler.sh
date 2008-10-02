@@ -1379,6 +1379,7 @@ emitMoveImms() {
     local prefix="// no prefix byte"
     local immWrite=emitImm32
     local rex_w=false
+    local imm_type=int
     if [ x$size = xbyte ]; then
       ext="_Byte"
       immWrite=emitImm8
@@ -1389,6 +1390,8 @@ emitMoveImms() {
     elif [ x$size = xquad ]; then
       ext="_Quad"
       rex_w=true
+      imm_type=long
+      immWrite=emitImm64
     fi
     cat >> $FILENAME <<EOF
   /**
@@ -1401,7 +1404,7 @@ emitMoveImms() {
    * @param imm immediate
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emitMOV_RegInd_Imm${ext}(GPR dstBase, int imm) {
+  public final void emitMOV_RegInd_Imm${ext}(GPR dstBase, ${imm_type} imm) {
     int miStart = mi;
     $prefix
     generateREXprefix(${rex_w}, null, null, dstBase);
@@ -1422,7 +1425,7 @@ emitMoveImms() {
    * @param imm immediate
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emitMOV_RegDisp_Imm${ext}(GPR dstBase, Offset dstDisp, int imm) {
+  public final void emitMOV_RegDisp_Imm${ext}(GPR dstBase, Offset dstDisp, ${imm_type} imm) {
     int miStart = mi;
     $prefix
     generateREXprefix(${rex_w}, null, null, dstBase);
@@ -1445,7 +1448,7 @@ emitMoveImms() {
    * @param imm immediate
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emitMOV_RegIdx_Imm${ext}(GPR dstBase, GPR dstIndex, short dstScale, Offset dstDisp, int imm) {
+  public final void emitMOV_RegIdx_Imm${ext}(GPR dstBase, GPR dstIndex, short dstScale, Offset dstDisp, ${imm_type} imm) {
     int miStart = mi;
     $prefix
     generateREXprefix(${rex_w}, null, dstIndex, dstBase);
@@ -1467,7 +1470,7 @@ emitMoveImms() {
    * @param imm immediate
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emitMOV_RegOff_Imm${ext}(GPR dstIndex, short dstScale, Offset dstDisp, int imm) {
+  public final void emitMOV_RegOff_Imm${ext}(GPR dstIndex, short dstScale, Offset dstDisp, ${imm_type} imm) {
     int miStart = mi;
     $prefix
     generateREXprefix(${rex_w}, null, dstIndex, null);
@@ -1486,7 +1489,7 @@ emitMoveImms() {
    * @param dstDisp the destination displacement
    * @param imm immediate
    */
-  public final void emitMOV_Abs_Imm${ext}(Address dstDisp, int imm) {
+  public final void emitMOV_Abs_Imm${ext}(Address dstDisp, ${imm_type} imm) {
     int miStart = mi;
     $prefix
     generateREXprefix(${rex_w}, null, null, null);
@@ -2568,20 +2571,21 @@ emitSSE2Op() {
   condByte=$6
   fromRegType=$7
   toRegType=$8
+  size=$9
   ext=
-  
-  # Pairs of opcodes, both optional. 
+
+  # Pairs of opcodes, both optional.
   # opCode is for going *into* XMMs and between XMMs
   # opCode2 is for going *out* of XMMs
   # Reg_Reg defaults to opCode, but created for opCode2 if opCode none or missing
   # an example is MOVD_Reg_Reg(EAX, XMM1)
   # TODO: Reg_Reg (see above) is potentially confusing.
   # TODO: Check for bad/missed ops.
-  
+
   if [ x$opCode2 == x ]; then
     opCode2=none;
   fi
-  
+
   if [ x$fromRegType == x ]; then
     fromRegType=XMM
   fi
@@ -2607,10 +2611,16 @@ emitSSE2Op() {
     prefix2Line="
     setMachineCodes(mi++, (byte) ${prefix2});"
   fi
-  
-  if [ x$opCode != xnone ]; then 
+
+  rex_w=false
+  if [ x$size = xquad ]; then
+    ext=_Quad
+    rex_w=true
+  fi
+
+  if [ x$opCode != xnone ]; then
     cat >> $FILENAME <<EOF
-  
+
   /**
    * Generate a register--register ${acronym}. That is,
    * <PRE>
@@ -2621,9 +2631,9 @@ emitSSE2Op() {
    * @param srcReg source register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emit${acronym}_Reg_Reg($toRegType dstReg, $fromRegType srcReg) {
+  public final void emit${acronym}_Reg_Reg${ext}($toRegType dstReg, $fromRegType srcReg) {
     int miStart = mi;$prefix1Line
-    generateREXprefix(false, dstReg, null, srcReg);
+    generateREXprefix(${rex_w}, dstReg, null, srcReg);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegRegOperands(srcReg, dstReg);$condLine
@@ -2641,9 +2651,9 @@ emitSSE2Op() {
    * @param srcDisp the source displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emit${acronym}_Reg_RegDisp($toRegType dstReg, GPR srcBase, Offset srcDisp) {
+  public final void emit${acronym}_Reg_RegDisp${ext}($toRegType dstReg, GPR srcBase, Offset srcDisp) {
     int miStart = mi;$prefix1Line
-    generateREXprefix(false, dstReg, null, srcBase);
+    generateREXprefix(${rex_w}, dstReg, null, srcBase);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegDispRegOperands(srcBase, srcDisp, dstReg);$condLine
@@ -2662,9 +2672,9 @@ emitSSE2Op() {
    * @param srcDisp the source displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emit${acronym}_Reg_RegOff($toRegType dstReg, GPR srcIndex, short srcScale, Offset srcDisp) {
+  public final void emit${acronym}_Reg_RegOff${ext}($toRegType dstReg, GPR srcIndex, short srcScale, Offset srcDisp) {
     int miStart = mi;$prefix1Line
-    generateREXprefix(false, dstReg, srcIndex, null);
+    generateREXprefix(${rex_w}, dstReg, srcIndex, null);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegOffRegOperands(srcIndex, srcScale, srcDisp, dstReg);$condLine
@@ -2681,9 +2691,9 @@ emitSSE2Op() {
    * @param srcDisp the source displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emit${acronym}_Reg_Abs($toRegType dstReg, Address srcDisp) {
+  public final void emit${acronym}_Reg_Abs${ext}($toRegType dstReg, Address srcDisp) {
     int miStart = mi;$prefix1Line
-    generateREXprefix(false, dstReg, null, null);
+    generateREXprefix(${rex_w}, dstReg, null, null);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitAbsRegOperands(srcDisp, dstReg);$condLine
@@ -2704,9 +2714,9 @@ emitSSE2Op() {
    */
   // dstReg ${opStr}= $code [srcBase + srcIndex<<scale + srcDisp]
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,3})
-  public final void emit${acronym}_Reg_RegIdx($toRegType dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
+  public final void emit${acronym}_Reg_RegIdx${ext}($toRegType dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
     int miStart = mi;$prefix1Line
-    generateREXprefix(false, dstReg, srcIndex, srcBase);
+    generateREXprefix(${rex_w}, dstReg, srcIndex, srcBase);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitSIBRegOperands(srcBase, srcIndex, srcScale, srcDisp, dstReg);$condLine
@@ -2723,21 +2733,21 @@ emitSSE2Op() {
    * @param srcBase the source base register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emit${acronym}_Reg_RegInd($toRegType dstReg, GPR srcBase) {
+  public final void emit${acronym}_Reg_RegInd${ext}($toRegType dstReg, GPR srcBase) {
     int miStart = mi;$prefix1Line
-    generateREXprefix(false, dstReg, null, srcBase);
+    generateREXprefix(${rex_w}, dstReg, null, srcBase);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegIndirectRegOperands(srcBase, dstReg);$condLine
     if (lister != null) lister.RRN(miStart, "${acronym}", dstReg, srcBase);
   }
-  
+
 EOF
   fi
 
   if [[ x$opCode2 != xnone ]] && [[ x$opCode == xnone ]]; then
     cat >> $FILENAME <<EOF
-  
+
   /**
    * Generate a register--register ${acronym}. That is,
    * <PRE>
@@ -2748,9 +2758,9 @@ EOF
    * @param srcReg source register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emit${acronym}_Reg_Reg($toRegType dstReg, $fromRegType srcReg) {
+  public final void emit${acronym}_Reg_Reg${ext}($toRegType dstReg, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
-    generateREXprefix(false, srcReg, null, dstReg);
+    generateREXprefix(${rex_w}, srcReg, null, dstReg);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegRegOperands(dstReg, srcReg);$condLine
@@ -2758,10 +2768,10 @@ EOF
   }
 EOF
   fi
-  
+
   if [ x$opCode2 != xnone ]; then
     cat >> $FILENAME <<EOF
-  
+
   /**
    * Generate a register--register ${acronym}. That is,
    * <PRE>
@@ -2772,9 +2782,9 @@ EOF
    * @param srcReg the source register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emit${acronym}_RegInd_Reg(GPR dstBase, $fromRegType srcReg) {
+  public final void emit${acronym}_RegInd_Reg${ext}(GPR dstBase, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
-    generateREXprefix(false, srcReg, null, dstBase);
+    generateREXprefix(${rex_w}, srcReg, null, dstBase);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegIndirectRegOperands(dstBase, srcReg);
@@ -2795,7 +2805,7 @@ EOF
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,4})
   public final void emit${acronym}_RegOff_Reg${ext}(GPR dstIndex, short dstScale, Offset dstDisp, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
-    generateREXprefix(false, srcReg, dstIndex, null);
+    generateREXprefix(${rex_w}, srcReg, dstIndex, null);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegOffRegOperands(dstIndex, dstScale, dstDisp, srcReg);
@@ -2814,7 +2824,7 @@ EOF
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emit${acronym}_Abs_Reg${ext}(Address dstDisp, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
-    generateREXprefix(false, srcReg, null, null);
+    generateREXprefix(${rex_w}, srcReg, null, null);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitAbsRegOperands(dstDisp, srcReg);
@@ -2836,7 +2846,7 @@ EOF
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,5})
   public final void emit${acronym}_RegIdx_Reg${ext}(GPR dstBase, GPR dstIndex, short dstScale, Offset dstDisp, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
-    generateREXprefix(false, srcReg, dstIndex, dstBase);
+    generateREXprefix(${rex_w}, srcReg, dstIndex, dstBase);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitSIBRegOperands(dstBase, dstIndex, dstScale, dstDisp, srcReg);
@@ -2856,7 +2866,7 @@ EOF
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   public final void emit${acronym}_RegDisp_Reg${ext}(GPR dstBase, Offset dstDisp, $fromRegType srcReg) {
     int miStart = mi;$prefix2Line
-    generateREXprefix(false, srcReg, null, dstBase);
+    generateREXprefix(${rex_w}, srcReg, null, dstBase);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
     emitRegDispRegOperands(dstBase, dstDisp, srcReg);
@@ -2877,8 +2887,11 @@ emitSSE2Op none none MOVLPS 0x12 0x13
 emitSSE2Op 0xF3 none SQRTSS 0x51 none
 emitSSE2Op 0xF3 none CVTSS2SD 0x5A none
 emitSSE2Op 0xF3 none CVTSI2SS 0x2A none none GPR XMM
+emitSSE2Op 0xF3 none CVTSI2SS 0x2A none none GPR XMM quad
 emitSSE2Op 0xF3 none CVTSS2SI 0x2D none none XMM GPR
+emitSSE2Op 0xF3 none CVTSS2SI 0x2D none none XMM GPR quad
 emitSSE2Op 0xF3 none CVTTSS2SI 0x2C none none XMM GPR
+emitSSE2Op 0xF3 none CVTTSS2SI 0x2C none none XMM GPR quad
 
 # Single precision FP comparisons.
 emitSSE2Op none none UCOMISS 0x2E none
@@ -2912,6 +2925,10 @@ emitSSE2Op 0xF2 none CVTSI2SD 0x2A none none GPR XMM
 emitSSE2Op 0xF2 none CVTSD2SS 0x5A none
 emitSSE2Op 0xF2 none CVTSD2SI 0x2D none none XMM GPR
 emitSSE2Op 0xF2 none CVTTSD2SI 0x2C none none XMM GPR
+# NB for SD conversion one operand is always quad so we must alter the name
+emitSSE2Op 0xF2 none CVTSI2SDQ 0x2A none none GPR XMM quad
+emitSSE2Op 0xF2 none CVTSD2SIQ 0x2D none none XMM GPR quad
+emitSSE2Op 0xF2 none CVTTSD2SIQ 0x2C none none XMM GPR quad
 
 # Double precision comparison ops.
 emitSSE2Op 0x66 none UCOMISD 0x2E none

@@ -39,7 +39,8 @@ public interface RegisterConstants {
    */
   public enum GPR implements MachineRegister {
     EAX(0), ECX(1), EDX(2), EBX(3), ESP(4), EBP(5), ESI(6), EDI(7),
-    R8(8), R9(9), R10(10), R11(11), R12(12), R13(13), R14(14), R15(15);
+    R8(8), R9(9), R10(10), R11(11), R12(12), R13(13), R14(14), R15(15),
+    EIP(16);
 
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final GPR[] vals = values();
@@ -54,11 +55,20 @@ public interface RegisterConstants {
     @UninterruptibleNoWarn("Interruptible code only called during boot image creation")
     @Pure
     public byte value() {
+      byte result;
       if (!org.jikesrvm.VM.runningVM) {
-        return (byte)ordinal();
+        result = (byte)ordinal();
       } else {
-        return (byte)java.lang.JikesRVMSupport.getEnumOrdinal(this);
+        result = (byte)java.lang.JikesRVMSupport.getEnumOrdinal(this);
       }
+      if (VM.VerifyAssertions) {
+        if (VM.buildFor32Addr()) {
+          VM._assert(result >=0 && result <= 7);
+        } else {
+          VM._assert(result >=0 && result <= 15);
+        }
+      }
+      return result;
     }
     /** @return does this register require a REX prefix byte? */
     @Pure
