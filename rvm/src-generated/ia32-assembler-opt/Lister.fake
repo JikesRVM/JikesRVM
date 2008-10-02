@@ -39,7 +39,7 @@ final class Lister {
 
   }
 
-  void I (int i, String op, int n) {
+  void I (int i, String op, long n) {
 
   }
 
@@ -51,15 +51,15 @@ final class Lister {
 
   }
 
-  void RI (int i, String op, MachineRegister R0, int n) {
+  void RI (int i, String op, MachineRegister R0, long n) {
 
   }
 
-  void RDI (int i, String op, MachineRegister R0, Offset d, int n) {
+  void RDI (int i, String op, MachineRegister R0, Offset d, long n) {
 
   }
 
-  void RNI (int i, String op, MachineRegister R0, int n) {
+  void RNI (int i, String op, MachineRegister R0, long n) {
 
   }
 
@@ -107,15 +107,15 @@ final class Lister {
 
   }
 
-  void RXDI (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, int n) {
+  void RXDI (int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, long n) {
 
   }
 
-  void RFDI (int i, String op, MachineRegister X, short s, Offset d, int n) {
+  void RFDI (int i, String op, MachineRegister X, short s, Offset d, long n) {
 
   }
 
-  void RAI (int i, String op, Address d, int n) {
+  void RAI (int i, String op, Address d, long n) {
 
   }
 

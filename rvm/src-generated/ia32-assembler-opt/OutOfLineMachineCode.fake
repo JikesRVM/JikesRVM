@@ -10,12 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.runtime;
+package org.jikesrvm.ia32;
 
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Address;
+import org.jikesrvm.classloader.RVMField;
 
-public class Magic {
-  public static void setIntAtOffset(Object o, Offset x, int y) { }
-  public static Address getTocPointer() { return Address.zero(); }
+public class OutOfLineMachineCode {
+  public static RVMField pcThunkInstructionsField[];
 }
