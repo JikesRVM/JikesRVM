@@ -99,7 +99,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
             // NOTE: Index as marked as a DU because LowTableSwitch is
             //       going to destroy the value in the register.
             //       By construction (see ConvertToLowLevelIR), no one will
-            //       every read the value computed by a LowTableSwitch.
+            //       ever read the value computed by a LowTableSwitch.
             //       Therefore, don't insert a move instruction after the
             //       LowTableSwitch (which would cause IR verification
             //       problems anyways, since LowTableSwitch is a branch).
