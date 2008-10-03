@@ -809,7 +809,7 @@ abstract class AssemblerBase extends Assembler
         return size;
       }
       case MIR_LOWTABLESWITCH_opcode:
-        return MIR_LowTableSwitch.getNumberOfTargets(inst)*4 + 13;
+        return MIR_LowTableSwitch.getNumberOfTargets(inst)*4 + 14;
       case IA32_OFFSET_opcode:
         return 4;
       case IA32_JCC_opcode:
@@ -1038,7 +1038,16 @@ abstract class AssemblerBase extends Assembler
     AssemblerOpt asm = new AssemblerOpt(count, shouldPrint, ir);
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
-      p.setmcOffset(-++count);
+      // Set the mc offset of all instructions to their negative position.
+      // A positive value in their position means they have been created
+      // by the assembler.
+      count++;
+      p.setmcOffset(-count);
+      if (p.operator() == Operators.MIR_LOWTABLESWITCH) {
+        // Table switch kludge, as these will occupy multiple slots in the
+        // generated assembler
+        count += MIR_LowTableSwitch.getNumberOfTargets(p);
+      }
     }
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {

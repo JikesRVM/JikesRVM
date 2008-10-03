@@ -1248,7 +1248,9 @@ public class GenerateAssembler {
     emitTab(1);
     emit("public void doInst(Instruction inst) {\n");
     emitTab(2);
-    emit("resolveForwardReferences(++instructionCount);\n");
+    emit("instructionCount++;\n");
+    emitTab(2);
+    emit("resolveForwardReferences(instructionCount);\n");
     emitTab(2);
     emit("switch (inst.getOpcode()) {\n");
 
@@ -1312,6 +1314,10 @@ public class GenerateAssembler {
     emit("case MIR_LOWTABLESWITCH_opcode:\n");
     emitTab(4);
     emit("doLOWTABLESWITCH(inst);\n");
+    emitTab(4);
+    emit("// kludge table switches that are unusually long instructions\n");
+    emitTab(4);
+    emit("instructionCount += MIR_LowTableSwitch.getNumberOfTargets(inst);\n");
     emitTab(4);
     emit("break;\n");
 
