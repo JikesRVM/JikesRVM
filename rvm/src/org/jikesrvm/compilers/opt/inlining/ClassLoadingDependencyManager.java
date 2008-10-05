@@ -35,6 +35,16 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
  */
 public final class ClassLoadingDependencyManager implements ClassLoadingListener {
 
+  /** Database holding information on class loading */
+  private final InvalidationDatabase db = new InvalidationDatabase();
+
+  /** Debug execution */
+  static final boolean DEBUG = false;
+  /** Trace execution */
+  static final boolean TRACE = false;
+  /** Stream used in debug tracing */
+  private static PrintStream log;
+
   ////////////////////////
   // Entrypoints from RVMClass
   ////////////////////////
@@ -167,9 +177,6 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
     m.invalidateCompiledMethod(cm);
   }
 
-  static final boolean DEBUG = false;
-  static final boolean TRACE = false;
-
   void report(String s) {
     if (VM.runningVM) {
       if (log == null) {
@@ -187,7 +194,4 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
       System.out.print(s);
     }
   }
-
-  private InvalidationDatabase db = new InvalidationDatabase();
-  private static PrintStream log;
 }
