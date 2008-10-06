@@ -2492,6 +2492,29 @@ public class BootImageWriter extends BootImageWriterMessages
         } else {
           throw new Error("Unknown field in java.lang.Short " + rvmFieldName + " " + rvmFieldType);
         }
+      } else if (jdkType.equals(java.util.HashMap.class)) {
+        if (rvmFieldName.equals("DEFAULT_CAPACITY") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 11);
+          return true;
+        } else if (rvmFieldName.equals("DEFAULT_LOAD_FACTOR") && rvmFieldType.isFloatType()) {
+          Statics.setSlotContents(rvmFieldOffset, Float.floatToIntBits(0.75f));
+          return true;
+        } else {
+          throw new Error("Unknown field in java.util.HashMap " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.util.AbstractMap.class)) {
+        if (rvmFieldName.equals("KEYS") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 0);
+          return true;
+        } else if (rvmFieldName.equals("VALUES") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 1);
+          return true;
+        } else if (rvmFieldName.equals("ENTRIES") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 2);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.util.AbstractMap " + rvmFieldName + " " + rvmFieldType);
+        }
       } else {
         return false;
       }
