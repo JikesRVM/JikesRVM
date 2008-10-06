@@ -111,6 +111,9 @@ public abstract class Configuration {
 
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
+  
+  public static final String RVM_VERSION_STRING = "@_RVM_VERSION_@";
+  public static final String RVM_CONFIGURATION = "@_RVM_CONFIGURATION_@";
 
   /**
    * Alignment checking (for IA32 only; for debugging purposes only).

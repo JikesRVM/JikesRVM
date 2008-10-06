@@ -282,6 +282,22 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
+  /**
+   * Create a new MMTk_Events instance using the appropriate VM-specific
+   * concrete MMTk_Events sub-class.
+   *
+   * @see MMTk_Events
+   * @return A concrete VM-specific MMTk_Events instance.
+   */
+  public org.mmtk.vm.MMTk_Events newEvents() {
+    try {
+      return new MMTk_Events(org.jikesrvm.tuningfork.TraceEngine.engine);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new MMTk_Events!");
+      return null; // never get here
+    }
+  }
+
   /**********************************************************************
    * GCspy methods
    */

@@ -95,6 +95,7 @@ import org.vmmagic.unboxed.*;
     if (initialHeapSize.GT(maxHeapSize))
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
+    VM.events.heapSizeChanged(currentHeapSize);
     if (VM.VERIFY_ASSERTIONS) sanityCheck();
     endLastMajorGC = VM.statistics.nanoTime();
   }
@@ -132,6 +133,7 @@ import org.vmmagic.unboxed.*;
    */
   public static void overrideGrowHeapSize(Extent size) {
     currentHeapSize = currentHeapSize.plus(size);
+    VM.events.heapSizeChanged(currentHeapSize);
   }
 
   /**
@@ -173,6 +175,7 @@ import org.vmmagic.unboxed.*;
         Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
         Log.writeln("KB");
       }
+      VM.events.heapSizeChanged(currentHeapSize);
       return true;
     } else {
       return false;

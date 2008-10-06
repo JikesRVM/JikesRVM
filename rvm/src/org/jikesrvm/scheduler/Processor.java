@@ -18,6 +18,7 @@ import org.jikesrvm.Constants;
 import org.jikesrvm.mm.mminterface.ProcessorContext;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.tuningfork.Feedlet;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NonMoving;
@@ -329,6 +330,13 @@ public abstract class Processor extends ProcessorContext implements Constants {
   @Inline
   public static RVMThread getCurrentThread() {
     return getCurrentProcessor().activeThread;
+  }
+
+  /**
+   * Get Feedlet instance for the current java thread
+   */
+  public static Feedlet getCurrentFeedlet() {
+    return getCurrentThread().feedlet;
   }
 
   /**

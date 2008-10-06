@@ -544,6 +544,25 @@ public abstract class Space implements Constants {
   }
 
   /**
+   * Interface to use to implement the Visitor Pattern for Spaces.
+   */
+  public static interface SpaceVisitor {
+    void visit(Space s);
+  }
+
+  /**
+   * Implement the Visitor Pattern for Spaces.
+   * @param v The visitor to perform on each Space instance
+   */
+  @Interruptible
+  public static void visitSpaces(SpaceVisitor v) {
+    for (int i = 0; i < spaceCount; i++) {
+      v.visit(spaces[i]);
+    }
+  }
+
+
+  /**
    * Ensure that all MMTk spaces (all spaces aside from the VM space)
    * are mapped. Demand zero map all of them if they are not already
    * mapped.

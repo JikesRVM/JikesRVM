@@ -47,6 +47,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
 import org.jikesrvm.scheduler.greenthreads.FileSystem;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.tuningfork.TraceEngine;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -201,6 +202,9 @@ public class VM extends Properties implements Constants, ExitStatus {
     //
     if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of command line");
     CommandLineArgs.earlyProcessCommandLineArguments();
+
+    // Early initialization of TuningFork tracing engine.
+    TraceEngine.engine.earlyStageBooting();
 
     // Allow Memory Manager to respond to its command line arguments
     //
@@ -406,6 +410,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     VM.fullyBooted = true;
     MemoryManager.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
+    TraceEngine.engine.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
