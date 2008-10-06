@@ -39,6 +39,10 @@ import org.vmmagic.pragma.Entrypoint;
  */
 public class TableBasedDynamicLinker implements Constants {
 
+  /**
+   * Linking table keyed by member reference IDs. Value indicates offset of
+   * member or whether the member needs linking.
+   */
   @Entrypoint
   private static int[] memberOffsets;
 
