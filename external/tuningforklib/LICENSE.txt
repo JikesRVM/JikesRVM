@@ -1,0 +1,4 @@
+The code in this directory tree comes from the
+TuningFork Visualization Platform project and
+is licensed under the Eclipse Public License v1.0.
+
