@@ -138,6 +138,13 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
     }
   }
 
+  public void removeAll() {
+    for (int i=0; i<buckets.length; i++) {
+      buckets[i] = null;
+    }
+    numElems = 0;
+  }
+
   public Iterator<T> iterator() {
     return new SetIterator();
   }
