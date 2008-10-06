@@ -22,7 +22,7 @@
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/vmmagic/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
-  <classpathentry kind="src" path="common/options/src"/>
+  <classpathentry kind="src" path="external/tuningforklib/src"/>
 
   <classpathentry kind="src" path="eclipse/gen-base"/>
   <classpathentry kind="src" path="eclipse/gen-config"/>

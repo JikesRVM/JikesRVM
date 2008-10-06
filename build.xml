@@ -43,6 +43,7 @@
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="options.java" location="common/options/src"/>
+  <property name="tuningforklib.java" location="external/tuningforklib/src"/>	
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
 
   <!-- Set the properties for intermediate directory -->
@@ -914,6 +915,8 @@ Check to make sure all required properties are specified. This includes properti
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
       <filterset>
+        <filter token="_RVM_VERSION_" value="Jikes RVM ${rvm.version} (r${svn.revision})"/>      	
+        <filter token="_RVM_CONFIGURATION_" value="${config.name}"/>      	
         <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
@@ -1065,8 +1068,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="1.5"
                target="1.5"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}">
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
           </bootclasspath>
@@ -1079,6 +1082,7 @@ Check to make sure all required properties are specified. This includes properti
           <include name="sun/**/*.java"/>
           <include name="java/**/*.java"/>
           <include name="${arch-helper-class}"/>
+          <include name="com/ibm/tuningfork/**/*.java"/>
           <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
           <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
           <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
@@ -1098,8 +1102,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="1.5"
                target="1.5"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}">
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
           <bootclasspath>
             <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
             <pathelement location="${harmony.lib.dir}/luni.jar"/>
@@ -1122,6 +1126,7 @@ Check to make sure all required properties are specified. This includes properti
           <include name="sun/**/*.java"/>
           <include name="java/**/*.java"/>
           <include name="${arch-helper-class}"/>
+          <include name="com/ibm/tuningfork/**/*.java"/>
           <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
           <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
           <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
@@ -1249,6 +1254,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <fileset id="primordials.main" dir="${build.classes}">
       <include name="org/**/*.class" />
+      <include name="com/ibm/tuningfork/**/*.class" />
       <exclude name="**/ppc/*.class" unless="include.ppc"/>
       <exclude name="**/ia32/*.class" if="include.ppc"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
