@@ -519,10 +519,15 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
 
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
     RVMType objectType = RVMType.JavaLangObjectType;
+    int retries=0;
     while(!objectType.isInstantiated()) {
       try {
-        Thread.sleep(10);
+        Thread.sleep(1);
       } catch (InterruptedException e) {}
+      retries++;
+      if (retries > 10) {
+        throw new Error("Failed waiting for java.lang.Object to be instantiated during instantiation of "+toString());
+      }
     }
     if (VM.VerifyAssertions) VM._assert(objectType.isInstantiated());
     TIB javaLangObjectTIB = objectType.getTypeInformationBlock();
