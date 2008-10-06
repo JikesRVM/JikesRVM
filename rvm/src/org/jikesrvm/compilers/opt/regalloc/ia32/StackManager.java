@@ -121,7 +121,7 @@ public abstract class StackManager extends GenericStackManager {
 
   /**
    * Return the size of a type of value, in bytes.
-   * NOTE: For the purpose of register allocation, a FLOAT_VALUE is 64 bits!
+   * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
    *
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
    */
@@ -680,9 +680,15 @@ public abstract class StackManager extends GenericStackManager {
     int location = RegisterAllocatorState.getSpill(symb.getRegister());
 
     // Create a memory operand M representing the spill location.
-    int size = symb.getType().getMemoryBytes();
-    if (size < 4)
-      size = 4;
+    int size;
+    if (ArchConstants.SSE2_FULL) {
+      size = symb.getType().getMemoryBytes();
+      if (size < 4)
+        size = 4;
+    } else {
+      int type = PhysicalRegisterSet.getPhysicalRegisterType(symb.getRegister());
+      size = PhysicalRegisterSet.getSpillSize(type);
+    }
     StackLocationOperand M = new StackLocationOperand(true, -location, (byte) size);
 
     M = new StackLocationOperand(true, -location, (byte) size);
