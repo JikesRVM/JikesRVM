@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -104,12 +104,12 @@ public abstract class RawChunk {
 	if (!hasRoom(ENCODING_SPACE_DOUBLE)) {
 	    return false;
 	}
-	putLong(VM_Magic.doubleAsLongBits(d));
+	putLong(Magic.doubleAsLongBits(d));
 	return true;
     }
 
     protected final void addDoubleUnchecked(double d) {
-      putLong(VM_Magic.doubleAsLongBits(d));
+      putLong(Magic.doubleAsLongBits(d));
     }
 
     protected final boolean addInt(int i) {
