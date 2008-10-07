@@ -27,10 +27,10 @@ import org.vmmagic.unboxed.ObjectReference;
  * Junit unit-tests for ObjectReferenceDeque.
  */
 public class ObjectReferenceDequeTest {
-  
+
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    /* 
+    /*
      * Setting options here can be handy for running in Eclipse.  Otherwise
      * allow the harness to pick up the defaults so we can set them using
      * properties from ant.
@@ -38,10 +38,10 @@ public class ObjectReferenceDequeTest {
     Harness.init("collectors=0"
 //        ,"scheduler=JAVA"
 //        ,"scheduler=DETERMINISTIC"
-        
+
 //        ,"schedulerPolicy=FIXED"
 //        ,"yieldInterval=1"
-        
+
 //        ,"schedulerPolicy=RANDOM"
 //        ,"randomPolicyLength=20"
 //        ,"randomPolicyMin=1"
@@ -49,11 +49,11 @@ public class ObjectReferenceDequeTest {
 //        ,"randomPolicySeed=1"
 //        ,"policyStats=true"
         );
-    
+
     /* The deques rely on being run during GC. */
     Plan.setGCStatus(Plan.GC_PROPER);
   }
-  
+
   /**
    * Helper method to create object references
    * @param val
@@ -73,7 +73,7 @@ public class ObjectReferenceDequeTest {
     }
     Scheduler.scheduleGcThreads();
   }
-  
+
   @Test
   public void testPushPop() {
     runTest(new Schedulable() {
@@ -89,7 +89,7 @@ public class ObjectReferenceDequeTest {
       }
     });
   }
-  
+
   @Test
   public void testInsertPop() {
     runTest(new Schedulable() {
@@ -105,7 +105,7 @@ public class ObjectReferenceDequeTest {
       }
     });
   }
-  
+
   @Test
   public void testPushPop2() {
     runTest(new Schedulable() {
@@ -177,7 +177,7 @@ public class ObjectReferenceDequeTest {
       }
     });
   }
-  
+
   @Test
   public void test2Heads() {
     runTest(new Schedulable() {
@@ -203,7 +203,7 @@ public class ObjectReferenceDequeTest {
       }
     });
   }
-  
+
   @Test
   public void testnHeads() {
     final int NDEQUES = 4;
@@ -217,12 +217,12 @@ public class ObjectReferenceDequeTest {
         shared.prepareNonBlocking();
         for (int d=0; d < NDEQUES; d++) {
           deques[d] = new ObjectReferenceDeque("deque+d",shared);
-          for (int i=0; i < ENTRIES; i++ ) {
+          for (int i=0; i < ENTRIES; i++) {
             deques[d].push(o(d*100000+i+1));
           }
           deques[d].flushLocal();
         }
-        for (int i=0; i < ENTRIES * NDEQUES; i++ ) {
+        for (int i=0; i < ENTRIES * NDEQUES; i++) {
           Assert.assertFalse(deques[0].pop().isNull());
         }
         for (int d=0; d < NDEQUES; d++) {
@@ -232,7 +232,7 @@ public class ObjectReferenceDequeTest {
       }
     });
   }
-  
+
   @Test
   public void testPopFlush() {
     runTest(new Schedulable() {
@@ -256,7 +256,7 @@ public class ObjectReferenceDequeTest {
       }
     });
   }
-  
+
   @Test
   public void testPopFlush2() {
     runTest(new Schedulable() {
@@ -294,8 +294,8 @@ public class ObjectReferenceDequeTest {
 
   /**
    * A Collector-context thread that adds 'ins' ObjectReferences
-   * into a shared Deque.  A family of 'n' InsertThreads with ordinal 
-   * 0,1,...,n-1 will insert all the numbers 0..(n*ins)-1 into 
+   * into a shared Deque.  A family of 'n' InsertThreads with ordinal
+   * 0,1,...,n-1 will insert all the numbers 0..(n*ins)-1 into
    * the deque, then pop entries until the Deque is entry.
    */
   abstract class AddRemoveThread implements Schedulable {
@@ -305,7 +305,7 @@ public class ObjectReferenceDequeTest {
     private final SharedDeque shared;
     private final int ins;
     protected final ObjectReferenceDeque deque;
-    
+
     public AddRemoveThread(SharedDeque shared, int n, int ordinal, int ins) {
       this.shared = shared;
       this.n = n;
@@ -331,10 +331,10 @@ public class ObjectReferenceDequeTest {
     }
 
     protected abstract void add(ObjectReference o);
-    
+
   }
-  
-  
+
+
   /**
    * An AddRemoveThread that 'push'es into the deque
    */
@@ -349,7 +349,7 @@ public class ObjectReferenceDequeTest {
       deque.push(o);
     }
   }
-  
+
   /**
    * An AddRemoveThread that 'insert's into the deque
    */
@@ -364,8 +364,8 @@ public class ObjectReferenceDequeTest {
       deque.insert(o);
     }
   }
-  
-  
+
+
   @Test
   public void testConcurrentPush() {
     final SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
