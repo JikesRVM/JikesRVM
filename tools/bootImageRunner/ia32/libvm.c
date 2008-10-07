@@ -137,9 +137,34 @@ pageRoundUp(int size)
  * you can set a breakpoint here with gdb.
  */
 int
-boot (int ip, int pr, int sp)
+bootThread (void *ip, void *pr, void *sp)
 {
-    return bootThread (ip, pr, sp);
+  static void *saved_esp;
+  void *saved_ebp;
+  asm (
+#ifndef __x86_64__
+    "mov   %%ebp, %0     \n"
+    "mov   %%esp, %%ebp  \n"
+    "mov   %4, %%esp     \n"
+    "push  %%ebp         \n"
+    "call  *%%eax        \n"
+    "pop   %%esp         \n"
+    "mov   %0, %%ebp     \n"
+#else
+    "mov   %%rbp, %0     \n"
+    "mov   %%rsp, %1     \n"
+    "mov   %4, %%rsp     \n"
+    "call  *%%rax        \n"
+    "mov   %1, %%rsp     \n"
+    "mov   %0, %%rbp     \n"
+#endif
+    : "=m"(saved_ebp),
+      "=m"(saved_esp)
+    : "a"(ip), // EAX = Instruction Pointer
+      "S"(pr), // ESI = Processor Register
+      "r"(sp)
+    );
+//    return bootThread (ip, pr, sp);
 }
 
 #include <disasm.h>
@@ -524,11 +549,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         writeErr("err           0x%08x\n", IA32_ERR(context));
         writeErr("eflags        0x%08x\n", IA32_EFLAGS(context));
         // writeErr("esp_at_signal 0x%08x\n", IA32_UESP(context));
-/* null if fp registers haven't been used yet */
-        writeErr("fpstate       0x%08x\n",
-                                        (unsigned) IA32_FPSTATE(context));
-        writeErr("oldmask       0x%08lx\n",
-                                        (unsigned long) IA32_OLDMASK(context));
+        /* null if fp registers haven't been used yet */
+        writeErr("fpregs        0x%08x\n", (unsigned) IA32_FPREGS(context));
+        writeErr("oldmask       0x%08lx\n", (unsigned long) IA32_OLDMASK(context));
         writeErr("cr2           0x%08lx\n",
                                         /* seems to contain mem address that
                                          * faulting instruction was trying to
@@ -968,7 +991,7 @@ createVM(int UNUSED vmInSeparateThread)
     unsigned roundedDataRegionSize;
     void *bootDataRegion = mapImageFile(bootDataFilename,
                                         bootImageDataAddress,
-                                        PROT_READ | PROT_WRITE,
+                                        PROT_READ | PROT_WRITE | PROT_EXEC,
                                         &roundedDataRegionSize);
     if (bootDataRegion != bootImageDataAddress)
         return 1;
@@ -1192,7 +1215,7 @@ createVM(int UNUSED vmInSeparateThread)
     *--sp = 0; /* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
 
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
-    int rc = boot (ip, pr, (int) sp);
+    int rc = bootThread ((void*)ip, (void*)pr, (void*)sp);
 
     fprintf(SysErrorFile, "%s: createVM(): boot() returned; failed to create a virtual machine.  rc=%d.  Bye.\n", Me, rc);
     return 1;

@@ -91,7 +91,7 @@ extern void findMappable(void);
 /* Used in libvm.C, sys.C.  Defined in assembly code: */
 extern void bootThread(int jtoc,int pr, int ti_or_ip, int fp); // assembler routine
 #else
-extern int bootThread(int ti_or_ip, int pr, int sp); // assembler routine
+extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
 #endif
 
 // These are defined in libvm.C.

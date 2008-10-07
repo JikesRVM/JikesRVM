@@ -1096,7 +1096,7 @@ sysVirtualProcessorStartup(void *args)
     {
         *(Address *) (pr + Processor_framePointer_offset) = fp;
         Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
-        bootThread(ip, pr, sp);
+        bootThread((void*)ip, (void*)pr, (void*)sp);
     }
 #else
     bootThread((int)(Word)getJTOC(), pr, ip, fp);

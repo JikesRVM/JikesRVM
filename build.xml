@@ -68,7 +68,7 @@
   <property name="generated.config.java" location="${generated.config.dir}/java"/>
 
   <property name="generated.java" location="${generated.dir}/main/java"/>
-  <property name="generated.ia32.java" location="${generated.dir}/ia32-32/main/java"/>
+  <property name="generated.ia32.java" location="${generated.dir}/ia32-${target.address.size}/main/java"/>
   <property name="generated.arch.java" location="${generated.dir}/${target.arch}-${target.address.size}/main/java"/>
   <property name="generated.vmmagic.arch.java" location="${generated.dir}/vmmagic/${target.address.size}/java"/>
 
@@ -698,6 +698,10 @@ Check to make sure all required properties are specified. This includes properti
 
     <generate-ir arch="ia32"
                  addressSize="32"
+                 operatorList="${build.ir.dir}/ia32/OperatorList.dat"
+                 rulesList="${generated.dir}/IA32_RulesList.dat"/>
+    <generate-ir arch="ia32"
+                 addressSize="64"
                  operatorList="${build.ir.dir}/ia32/OperatorList.dat"
                  rulesList="${generated.dir}/IA32_RulesList.dat"/>
     <generate-ir arch="ppc"
@@ -1529,14 +1533,14 @@ Check to make sure all required properties are specified. This includes properti
 
     <property name="rvm.defines" value="-D_REENTRANT ${filter} "/>
 
-    <condition property="rvm.sse.args" value="" else="-march=pentium4 -mfpmath=sse">
+    <condition property="rvm.sse.args" value="" else="-mfpmath=sse">
         <equals arg1="${target.arch.sse2}" arg2="none"/>
     </condition>
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines} ${rvm.sse.args}"/>
     <property name="rvm.c++.args" value="${shld.args} ${rvm.common.args}"/>
 
     <condition property="rvm.arch.src"
-               value="${bl.dir}/ia32/initBootRecord.c ${bl.dir}/ia32/bootThread.S ${bl.dir}/ia32/libvm.c ${bl.dir}/ia32/disasm.c ${bl.dir}/ia32/ihnpdsm.c">
+               value="${bl.dir}/ia32/initBootRecord.c ${bl.dir}/ia32/libvm.c ${bl.dir}/ia32/disasm.c ${bl.dir}/ia32/ihnpdsm.c">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
