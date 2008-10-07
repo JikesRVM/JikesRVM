@@ -16,6 +16,7 @@ package com.ibm.tuningfork.tracegen.chunk;
 
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 
 import com.ibm.tuningfork.tracegen.types.EventType;
 
@@ -27,6 +28,10 @@ public final class EventChunk extends Chunk {
   public static final int SEQUENCE_NUMBER_OFFSET = Chunk.DATA_OFFSET + 4;
   public static final int EVENT_DATA_OFFSET = Chunk.DATA_OFFSET + 8;
   protected final static int DEFAULT_EVENT_CHUNK_SIZE = 16 * 1024;
+
+  /* Only for use by EventChunkQueue */
+  @Untraced
+  public EventChunk next = null;
 
   public EventChunk() {
     super(EVENT_TYPE_ID, DEFAULT_EVENT_CHUNK_SIZE);

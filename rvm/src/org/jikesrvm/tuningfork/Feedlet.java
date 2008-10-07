@@ -18,6 +18,7 @@ import org.jikesrvm.runtime.Time;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 
 import com.ibm.tuningfork.tracegen.chunk.EventChunk;
 import com.ibm.tuningfork.tracegen.types.EventType;
@@ -42,7 +43,9 @@ public final class Feedlet {
   private final TraceEngine engine;
   private final int feedletIndex;
   private int sequenceNumber;
+  @Untraced /* NB: Assumes EventChunk is NonMoving and externally kept alive for GC */
   private EventChunk events;
+
   /**
    * Enabled is true when TF engine is enabled, false otherwise.
    * This field is intentionally not made final to
@@ -63,7 +66,7 @@ public final class Feedlet {
     this.feedletIndex = feedletIndex;
     this.sequenceNumber = 0;
     this.events = null;  /* defer actually acquiring an EventChunk until the feedlet emits its first event */
-    this.enabled = false; /* set to false to disable by TraceEngine */  // FIXME: needs to be true initially to handle early boot events
+    this.enabled = true; /* If tracing is not enabled, then TraceEngine will set this field to false. */
   }
 
   /**

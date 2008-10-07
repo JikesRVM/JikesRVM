@@ -10,58 +10,51 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-
 package org.jikesrvm.tuningfork;
-
-import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.ProcessorLock;
-import org.vmmagic.pragma.Uninterruptible;
 
 import com.ibm.tuningfork.tracegen.chunk.RawChunk;
 
 /**
- * A Queue of chunks.
- *
- * TODO: consider implementing a non-blocking queue instead of using spin locks.
+ * A Queue of chunks intended to keep track of meta-chunks.
+ * Therefore it can be implemented using Java-level synchronization and
+ * allocation operations to wrap the Chunks in Queue nodes.
  */
-@Uninterruptible
 public class ChunkQueue {
 
-  private RawChunk head = null;
-  private RawChunk tail = null;
-  private final ProcessorLock lock = new ProcessorLock();
+  private Node head = null;
+  private Node tail = null;
 
-
-  public void enqueue(RawChunk c) {
-    if (VM.VerifyAssertions) VM._assert(c.next == null);
-    lock.lock("chunk enqueue");
+  public synchronized void enqueue(RawChunk c) {
+    Node newNode = new Node(c);
     if (tail == null) {
-      head = c;
-      tail = c;
+      head = newNode;
+      tail = newNode;
     } else {
-      tail.next = c;
-      tail = c;
+      tail.next = newNode;
+      tail = newNode;
     }
-    lock.unlock();
   }
 
-  public RawChunk dequeue() {
-    lock.lock("chunk dequeue");
-    RawChunk result = head;
+  public synchronized RawChunk dequeue() {
     if (head != null) {
+      RawChunk result = head.chunk;
       head = head.next;
-      result.next = null;
       if (head == null) {
-        if (VM.VerifyAssertions) VM._assert(tail == result);
         tail = null;
       }
+      return result;
+    } else {
+      return null;
     }
-    lock.unlock();
-    return result;
   }
 
   public boolean isEmpty() {
     return head == null;
   }
 
+  private static final class Node {
+    final RawChunk chunk;
+    Node next;
+    Node(RawChunk c) { this.chunk=c; }
+  };
 }

@@ -52,8 +52,8 @@ public final class TraceEngine {
   private static final int INITIAL_EVENT_CHUNKS = 64;
 
   private final ChunkQueue unwrittenMetaChunks = new ChunkQueue();
-  private final ChunkQueue unwrittenEventChunks = new ChunkQueue();
-  private final ChunkQueue availableEventChunks = new ChunkQueue();
+  private final EventChunkQueue unwrittenEventChunks = new EventChunkQueue();
+  private final EventChunkQueue availableEventChunks = new EventChunkQueue();
 
   private FeedletChunk activeFeedletChunk = new FeedletChunk();
   private EventTypeChunk activeEventTypeChunk = new EventTypeChunk();
@@ -70,6 +70,7 @@ public final class TraceEngine {
     unwrittenMetaChunks.enqueue(new FeedHeaderChunk());
     unwrittenMetaChunks.enqueue(new EventTypeSpaceChunk(new EventTypeSpaceVersion("org.jikesrvm", 1)));
 
+    /* Pre-allocate all EventChunks into the bootimage so we can access them later via Untraced fields */
     for (int i=0; i<INITIAL_EVENT_CHUNKS; i++) {
       availableEventChunks.enqueue(new EventChunk());
     }
@@ -221,6 +222,7 @@ public final class TraceEngine {
 
     /* TODO: if we have less than 2 event chunks per active feedlet, then we should
      *       allocate more here!
+     *       NOTE: We must ensure they are externally kept alive (see comment in EventChunkQueue).
      */
     return f;
   }
@@ -332,7 +334,7 @@ public final class TraceEngine {
 
   private synchronized void writeEventChunks() {
     while (!unwrittenEventChunks.isEmpty()) {
-      RawChunk c = unwrittenEventChunks.dequeue();
+      EventChunk c = unwrittenEventChunks.dequeue();
       try {
         c.write(outputStream);
       } catch (IOException e) {
@@ -345,7 +347,7 @@ public final class TraceEngine {
 
   @Uninterruptible
   EventChunk getEventChunk() {
-    return (EventChunk)availableEventChunks.dequeue();
+    return availableEventChunks.dequeue();
   }
 
   @Uninterruptible
