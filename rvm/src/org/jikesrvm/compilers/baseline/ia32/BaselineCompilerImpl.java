@@ -3440,12 +3440,22 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int interfaceIndex = type.getDoesImplementIndex();
     int interfaceMask = type.getDoesImplementBitMask();
 
-    asm.emitMOV_Reg_RegDisp(S0, SP, Offset.zero());             // load object from stack
-    asm.emitTEST_Reg_Reg(S0, S0);                               // test for null
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegInd(S0, SP);      // load object from stack into S0
+      asm.emitTEST_Reg_Reg(S0, S0);        // test for null
+    } else {
+      asm.emitMOV_Reg_RegInd_Quad(S0, SP); // load object from stack into S0
+      asm.emitTEST_Reg_Reg_Quad(S0, S0);   // test for null
+    }
     ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
 
-    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
-    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << 2));  // implements bit vector
+    baselineEmitLoadTIB(asm, S0, S0);      // S0 = TIB of object
+    // S0 = implements bit vector
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));
+    }
 
     if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
       // must do arraybounds check of implements bit vector
@@ -3483,9 +3493,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     }
     ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
 
-    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
-    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << 2)); // superclass display
-
+    baselineEmitLoadTIB(asm, S0, S0);      // S0 = TIB of object
+    // S0 = superclass IDs
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << LG_WORDSIZE));
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << LG_WORDSIZE));
+    }
     if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
       // must do arraybounds check of superclass display
       asm.emitCMP_RegDisp_Imm_Word(S0, ObjectModel.getArrayLengthOffset(), LHSDepth);
@@ -3521,8 +3535,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
 
     baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
-    asm.emitCMP_Reg_Abs(S0, Magic.getTocPointer().plus(type.getTibOffset()));
-
+    if (VM.BuildFor32Addr) {
+      asm.emitCMP_Reg_Abs(S0, Magic.getTocPointer().plus(type.getTibOffset()));
+    } else {
+      asm.emitCMP_Reg_Abs_Quad(S0, Magic.getTocPointer().plus(type.getTibOffset()));
+    }
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr = asm.forwardJcc(Assembler.EQ);
     asm.emitINT_Imm(RuntimeEntrypoints.TRAP_CHECKCAST + RVM_TRAP_BASE);
@@ -3559,9 +3576,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     }
     ForwardReference isNull = asm.forwardJcc(Assembler.EQ);
 
-    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
-    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << 2));  // implements bit vector
-
+    baselineEmitLoadTIB(asm, S0, S0);    // S0 = TIB of object
+    // S0 = implements bit vector
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));
+    }
     ForwardReference outOfBounds = null;
     if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
       // must do arraybounds check of implements bit vector
@@ -3603,8 +3624,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
     // get superclass display from object's TIB
     baselineEmitLoadTIB(asm, S0, S0);
-    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << 2));
-
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << LG_WORDSIZE));
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << LG_WORDSIZE));
+    }
     ForwardReference outOfBounds = null;
     if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
       // must do arraybounds check of superclass display
@@ -3997,18 +4021,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   private void incEdgeCounter(GPR scratch, GPR idx, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((BaselineCompiledMethod) compiledMethod).hasCounterArray());
     if (idx == null) {
-      asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx << 2));
+      asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx << LOG_BYTES_IN_INT));
     } else {
-      asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, Assembler.WORD, Offset.fromIntZeroExtend(counterIdx << 2));
+      asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, Assembler.WORD, Offset.fromIntZeroExtend(counterIdx << LOG_BYTES_IN_INT));
     }
     asm.emitADD_Reg_Imm(scratch, 1);
     // Don't write back result if it would make the counter negative (ie
     // saturate at 0x7FFFFFFF)
     ForwardReference fr1 = asm.forwardJcc(Assembler.S);
     if (idx == null) {
-      asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx << 2), scratch);
+      asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx << LOG_BYTES_IN_INT), scratch);
     } else {
-      asm.emitMOV_RegIdx_Reg(EBX, idx, Assembler.WORD, Offset.fromIntSignExtend(counterIdx << 2), scratch);
+      asm.emitMOV_RegIdx_Reg(EBX, idx, Assembler.WORD, Offset.fromIntSignExtend(counterIdx << LOG_BYTES_IN_INT), scratch);
     }
     fr1.resolve(asm);
   }
@@ -4417,26 +4441,32 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Offset memberOffset = Offset.fromIntZeroExtend(memberId << 2);
     Offset tableOffset = Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
-      Offset resolverOffset = Entrypoints.resolveMemberMethod.getOffset();
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
-      asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset));      // reg is offsets table
-      asm.emitMOV_Reg_RegDisp(reg,
-                              reg,
-                              memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
+      } else {
+        asm.emitMOV_Reg_Abs_Quad(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
+      }
+      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       if (NEEDS_DYNAMIC_LINK == 0) {
         asm.emitTEST_Reg_Reg(reg, reg);                      // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
       } else {
         asm.emitCMP_Reg_Imm(reg, NEEDS_DYNAMIC_LINK);        // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
       }
-      ForwardReference fr = asm.forwardJcc(Assembler.NE);       // if so, skip call instructions
+      ForwardReference fr = asm.forwardJcc(Assembler.NE);    // if so, skip call instructions
       asm.emitPUSH_Imm(memberId);                            // pass member's dictId
-      genParameterRegisterLoad(asm, 1);                           // pass 1 parameter word
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(resolverOffset));            // does class loading as sideffect
-      asm.emitJMP_Imm(retryLabel);                          // reload reg with valid value
+      genParameterRegisterLoad(asm, 1);                      // pass 1 parameter word
+      Offset resolverOffset = Entrypoints.resolveMemberMethod.getOffset();
+      asm.emitCALL_Abs(Magic.getTocPointer().plus(resolverOffset)); // does class loading as sideffect
+      asm.emitJMP_Imm(retryLabel);                           // reload reg with valid value
       fr.resolve(asm);                                       // come from Jcc above.
     } else {
-      asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset));      // reg is offsets table
-      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);      // reg is offset of member
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
+      } else {
+        asm.emitMOV_Reg_Abs_Quad(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
+      }
+      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member
     }
   }
 
