@@ -273,7 +273,7 @@ public final class CollectorThread extends GreenThread {
   public static void collect(Handshake handshake, int why) {
     Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStart, why);
     handshake.requestAndAwaitCompletion(why);
-    Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStart, why);
+    Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStop);
   }
 
   /**
