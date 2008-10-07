@@ -342,17 +342,17 @@ if (! -e $localRoot . "/rvm") {
 if ($config{"$host.host-type"} ne "") {
   $hostConfig = $config{"$host.host-type"};
 } else {
-  @host_info = split(" ", `$sshHostCmd 'uname -mo'`);
+  @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
   chomp(@host_info);
-  $hostConfig = $config{"global.arch.".$host_info[0]}."-".$config{"global.os.".$host_info[1]};
+  $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
 }
 
 if ($config{"$target.host-type"} ne "") {
   $targetConfig = $config{"$target.host-type"};
 } else {
-  @target_info = split(" ", `$sshTargetCmd 'uname -mo'`);
+  @target_info = split(" ", `$sshTargetCmd 'uname -ms'`);
   chomp(@target_info);
-  $targetConfig = $config{"global.arch.".$target_info[0]}."-".$config{"global.os.".$target_info[1]};
+  $targetConfig = $config{"global.arch.".$target_info[1]}."-".$config{"global.os.".$target_info[0]};
 }
 
 if ($config{"$local.home"} eq "") {
