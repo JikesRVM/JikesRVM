@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.ObjectReference;
  */
 public class ObjectValue extends Value {
 
-  public static ObjectValue NULL = new ObjectValue();
+  public static final ObjectValue NULL = new ObjectValue();
 
   /**
    * The reference to the heap object

@@ -19,8 +19,8 @@ import org.mmtk.harness.lang.ast.Type;
  */
 public final class BoolValue extends Value {
 
-  public static BoolValue FALSE = new BoolValue(false);
-  public static BoolValue TRUE = new BoolValue(true);
+  public static final BoolValue FALSE = new BoolValue(false);
+  public static final BoolValue TRUE = new BoolValue(true);
 
   public static BoolValue valueOf(boolean value) {
     return value ? TRUE : FALSE;

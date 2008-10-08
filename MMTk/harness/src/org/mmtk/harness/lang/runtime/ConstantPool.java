@@ -22,14 +22,14 @@ import org.vmmagic.unboxed.ObjectReference;
 public class ConstantPool {
 
   private static int next = -1;
-  private static Map<Value,Register> constants = new HashMap<Value,Register>();
-  private static ArrayList<Value> values = new ArrayList<Value>();
+  private static final Map<Value,Register> constants = new HashMap<Value,Register>();
+  private static final ArrayList<Value> values = new ArrayList<Value>();
 
-  public static Register NULL = create(new ObjectValue(ObjectReference.nullReference()));
-  public static Register ZERO = create(new IntValue(0));
-  public static Register ONE = create(new IntValue(1));
-  public static Register TRUE = create(BoolValue.TRUE);
-  public static Register FALSE = create(BoolValue.FALSE);
+  public static final Register NULL = create(new ObjectValue(ObjectReference.nullReference()));
+  public static final Register ZERO = create(IntValue.ZERO);
+  public static final Register ONE = create(IntValue.ONE);
+  public static final Register TRUE = create(BoolValue.TRUE);
+  public static final Register FALSE = create(BoolValue.FALSE);
 
   public static Register acquire(Value constant) {
     Register result = constants.get(constant);
