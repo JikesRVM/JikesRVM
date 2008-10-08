@@ -388,4 +388,10 @@ public class Factory extends org.mmtk.vm.Factory {
     Assert.notImplemented();
     return null;
   }
+
+  @Override
+  public org.mmtk.vm.MMTk_Events newEvents() {
+    assert false : "MMTk Harness doesn't support tuning fork";
+    return null;
+  }
 }
