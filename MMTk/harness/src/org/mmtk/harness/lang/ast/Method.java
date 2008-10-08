@@ -60,6 +60,18 @@ public abstract class Method extends AbstractAST implements Statement, Expressio
     v.visit(this);
   }
 
+  public int getParamCount() {
+    return params;
+  }
+
+  public abstract List<Type> getParamTypes();
+
+  public Type getReturnType() { return returnType; }
+
+  public Method getMethod() {
+    return this;
+  }
+
   @Override
   public int compareTo(Method m) {
     return name.compareTo(m.getName());
@@ -74,15 +86,8 @@ public abstract class Method extends AbstractAST implements Statement, Expressio
     }
   }
 
-  public int getParamCount() {
-    return params;
-  }
-
-  public abstract List<Type> getParamTypes();
-
-  public Type getReturnType() { return returnType; }
-
-  public Method getMethod() {
-    return this;
+  @Override
+  public int hashCode() {
+    return name.hashCode();
   }
 }

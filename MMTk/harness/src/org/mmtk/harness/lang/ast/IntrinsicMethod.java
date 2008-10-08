@@ -211,13 +211,13 @@ public class IntrinsicMethod extends Method {
         if (klass.isAssignableFrom(IntValue.class)) {
           return v;
         } else {
-          return new Integer(v.getIntValue());
+          return Integer.valueOf(v.getIntValue());
         }
       case BOOLEAN:
         if (klass.isAssignableFrom(BoolValue.class)) {
           return v;
         } else {
-          return new Boolean(v.getBoolValue());
+          return Boolean.valueOf(v.getBoolValue());
         }
       case STRING:
         if (klass.isAssignableFrom(StringValue.class)) {
@@ -301,7 +301,6 @@ public class IntrinsicMethod extends Method {
 
   /**
    * Execute the method as a statement
-   * @see Method{@link #exec(Env, Value...)
    */
   public void exec(Env env, Value...values) {
     invoke(env,values);
@@ -310,6 +309,7 @@ public class IntrinsicMethod extends Method {
   /**
    * Convert to a string
    */
+  @Override
   public String toString() {
     return method.getName();
   }
@@ -317,6 +317,7 @@ public class IntrinsicMethod extends Method {
   /**
    * Accept visitors
    */
+  @Override
   public void accept(Visitor v) {
     v.visit(this);
   }

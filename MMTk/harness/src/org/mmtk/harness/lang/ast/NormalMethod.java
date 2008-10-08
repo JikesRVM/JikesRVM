@@ -65,6 +65,4 @@ public class NormalMethod extends Method {
     }
     return result;
   }
-
-
 }
