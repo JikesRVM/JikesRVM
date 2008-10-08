@@ -28,46 +28,46 @@ import org.mmtk.utility.options.Options;
 public class Harness {
 
   /** Used for processing harness and MMTk options */
-  public static HarnessOptionSet options = new HarnessOptionSet();
+  public static final HarnessOptionSet options = new HarnessOptionSet();
 
   /** Option for the number of collector threads */
-  public static Collectors collectors = new Collectors();
+  public static final Collectors collectors = new Collectors();
 
   /** Option for the MMTk plan (prefix) to use */
-  public static Plan plan = new Plan();
+  public static final Plan plan = new Plan();
 
   /** Option for the initial heap size */
-  public static InitHeap initHeap = new InitHeap();
+  public static final InitHeap initHeap = new InitHeap();
 
   /** Option for the maximum heap size */
-  public static MaxHeap maxHeap = new MaxHeap();
+  public static final MaxHeap maxHeap = new MaxHeap();
 
   /** Option for the maximum heap size */
-  public static DumpPcode dumpPcode = new DumpPcode();
+  public static final DumpPcode dumpPcode = new DumpPcode();
 
   /** Trace options */
-  public static Trace trace = new Trace();
+  public static final Trace trace = new Trace();
 
   /** GC stress options */
-  public static GcEvery gcEvery = new GcEvery();
+  public static final GcEvery gcEvery = new GcEvery();
 
   /** Scheduler */
-  public static Scheduler scheduler = new Scheduler();
+  public static final Scheduler scheduler = new Scheduler();
 
   /** Scheduler policy */
-  public static SchedulerPolicy policy = new SchedulerPolicy();
+  public static final SchedulerPolicy policy = new SchedulerPolicy();
 
   /** Interval for the fixed scheduler policies */
-  public static YieldInterval yieldInterval = new YieldInterval();
+  public static final YieldInterval yieldInterval = new YieldInterval();
 
   /** Parameters for the random scheduler policy */
-  public static RandomPolicyLength randomPolicyLength = new RandomPolicyLength();
-  public static RandomPolicySeed randomPolicySeed = new RandomPolicySeed();
-  public static RandomPolicyMin randomPolicyMin = new RandomPolicyMin();
-  public static RandomPolicyMax randomPolicyMax = new RandomPolicyMax();
+  public static final RandomPolicyLength randomPolicyLength = new RandomPolicyLength();
+  public static final RandomPolicySeed randomPolicySeed = new RandomPolicySeed();
+  public static final RandomPolicyMin randomPolicyMin = new RandomPolicyMin();
+  public static final RandomPolicyMax randomPolicyMax = new RandomPolicyMax();
 
-  /** Scheduler policy */
-  public static PolicyStats policyStats = new PolicyStats();
+  /** Print yield policy statistics on exit */
+  public static final PolicyStats policyStats = new PolicyStats();
 
   private static boolean isInitialized = false;
 

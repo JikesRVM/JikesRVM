@@ -51,7 +51,7 @@ public class Mutator {
   }
 
   /** Registered mutators */
-  protected static ArrayList<Mutator> mutators = new ArrayList<Mutator>();
+  protected static final ArrayList<Mutator> mutators = new ArrayList<Mutator>();
 
   /**
    * Get a mutator by id.
