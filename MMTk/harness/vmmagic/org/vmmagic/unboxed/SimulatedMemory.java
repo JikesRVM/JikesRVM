@@ -159,6 +159,9 @@ public final class SimulatedMemory {
    * @return
    */
   public static MemoryPage getPage(Address address, int offset) {
+    if (address.isZero()) {
+      throw new RuntimeException("Attempted to dereference a null address");
+    }
     return PageTable.getPage((address.value + offset) >>> LOG_BYTES_IN_PAGE);
   }
 
