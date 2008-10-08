@@ -42,7 +42,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -975,20 +974,6 @@ public abstract class GenericStackManager extends IRTools {
 
         // we must spill all scratch registers before leaving this basic block
         if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || s.isReturn()) {
-          restoreAllScratchRegistersBefore(s);
-        }
-
-        // SJF: This is a bad hack which avoids bug 2642.  For some reason,
-        // if we cache a reference value in ECX across the prologue_yieldpoint in
-        // method java.Hashtable.put(), bad things happen and the program
-        // non-deterministically crashes with apparent bad GC Maps.
-        // I have not figured out what's really going on, despite great
-        // effort.  I'm giving up for now, and instead resorting to this
-        // woeful hack to avoid the problem.
-        // To reproduce the bug, comment out the following and run SPECjbb
-        // using the night-sanity parameters on OptOptSemispace; the program
-        // should crash with a bad GC map about half the time.
-        if (s.operator == YIELDPOINT_PROLOGUE) {
           restoreAllScratchRegistersBefore(s);
         }
 
