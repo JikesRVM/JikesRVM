@@ -568,8 +568,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     genBoundsCheck(asm, T0, T1); // T0 is index, T1 is address of array
     if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
       // rewind 2 args on stack
-      asm.emitPOP_Reg(T1); // T1 is array ref
-      asm.emitPOP_Reg(T0); // T0 is array index
+      asm.emitPUSH_Reg(T1); // T1 is array ref
+      asm.emitPUSH_Reg(T0); // T0 is array index
       Barriers.compileArrayLoadBarrier(asm, true);
     } else {
       asm.emitPUSH_RegIdx(T1, T0, Assembler.WORD, NO_SLOT); // push [S0+T0<<2]
