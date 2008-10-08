@@ -359,7 +359,7 @@ public final class RawThreadModel extends ThreadModel {
    */
   @Override
   public org.mmtk.harness.scheduler.Lock newLock(String name) {
-    return new Lock(this,name);
+    return new RawLock(this,name);
   }
 
   /**

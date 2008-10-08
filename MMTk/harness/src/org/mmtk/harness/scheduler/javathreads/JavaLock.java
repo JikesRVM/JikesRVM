@@ -18,10 +18,10 @@ import org.vmmagic.pragma.Uninterruptible;
  * Simple lock.
  */
 @Uninterruptible
-public class Lock extends org.mmtk.harness.scheduler.Lock {
+public class JavaLock extends org.mmtk.harness.scheduler.Lock {
 
   /** Create a new lock (with given name) */
-  public Lock(String name) {
+  public JavaLock(String name) {
     super(name);
   }
 

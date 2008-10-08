@@ -92,7 +92,7 @@ public final class JavaThreadModel extends ThreadModel {
     return ((MutatorThread)Thread.currentThread()).env;
   }
 
-  protected static int mutatorId = 0;
+  private static int mutatorId = 0;
 
   private final class MutatorThread extends JavaThread {
     private final Schedulable code;
@@ -161,7 +161,7 @@ public final class JavaThreadModel extends ThreadModel {
 
   }
 
-  protected static int collectorId = 0;
+  private static int collectorId = 0;
 
   private class CollectorThread extends JavaThread {
     protected final Collector collector;
@@ -306,10 +306,10 @@ public final class JavaThreadModel extends ThreadModel {
   /**
    * Object used for synchronizing the number of mutators waiting for a gc.
    */
-  public static Object count = new Object();
+  public static final Object count = new Object();
 
   /** Thread access to current collector */
-  public static ThreadLocal<Collector> collectorThreadLocal = new ThreadLocal<Collector>();
+  public static final ThreadLocal<Collector> collectorThreadLocal = new ThreadLocal<Collector>();
 
   @Override
   public int rendezvous(int where) {
@@ -322,8 +322,8 @@ public final class JavaThreadModel extends ThreadModel {
   }
 
   @Override
-  public Lock newLock(String name) {
-    return new org.mmtk.harness.scheduler.javathreads.Lock(name);
+  public JavaLock newLock(String name) {
+    return new org.mmtk.harness.scheduler.javathreads.JavaLock(name);
   }
 
   @Override
