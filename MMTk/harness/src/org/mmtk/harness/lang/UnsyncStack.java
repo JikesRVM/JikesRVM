@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -68,10 +69,12 @@ public class UnsyncStack<E> implements Iterable<E> {
   }
 
   /**
-   * Iterate over the stack contents
+   * Iterate over the stack contents - top of stack to bottom.
    */
   @Override
   public Iterator<E> iterator() {
-    return elements.iterator();
+    ArrayList<E> tmp = new ArrayList<E>(elements);
+    Collections.reverse(tmp);
+    return tmp.iterator();
   }
 }

@@ -55,27 +55,35 @@ public final class PcodeInterpreter {
     setActualParams(params);
     while (true) {
       PseudoOp op = code[pc++];
-      Trace.trace(Item.EVAL,"%-4d %4d: %s%n",nesting,pc,op);
-      op.exec(env);
-      if (op.affectsControlFlow()) {
-        env.gcSafePoint();
-        if (op.isBranch()) {
-          /*
-           * Branch
-           */
-          if (op.isTaken(env)) {
-            pc = op.getBranchTarget();
-          }
-        } else {
-          if (op.isCall()) {
-            methodCall((CallNormalOp)op);
-          } else if (op.isReturn()) {
-            if (nesting == 0) {
-              break;
+      try {
+        Trace.trace(Item.EVAL,"%-4d %4d: %s",nesting,pc,op);
+        op.exec(env);
+        if (op.affectsControlFlow()) {
+          env.gcSafePoint();
+          if (op.isBranch()) {
+            /*
+             * Branch
+             */
+            if (op.isTaken(env)) {
+              pc = op.getBranchTarget();
             }
-            methodReturn((ReturnOp)op);
+          } else {
+            if (op.isCall()) {
+              methodCall((CallNormalOp)op);
+            } else if (op.isReturn()) {
+              if (nesting == 0) {
+                break;
+              }
+              methodReturn((ReturnOp)op);
+            }
           }
         }
+      } catch (Throwable e) {
+        System.err.printf("Runtime exception encountered at line %d, column %d%n",
+            op.getLine(),op.getColumn());
+        stackTrace(op);
+        e.printStackTrace();
+        System.exit(1);
       }
     }
   }
@@ -123,15 +131,15 @@ public final class PcodeInterpreter {
   /**
    * Save context in the caller's stack frame
    * @param callOp
-   * @param callerFrame
+   * @param frame
    */
-  private void saveContext(CallNormalOp callOp, StackFrame callerFrame) {
-    callerFrame.savePc(pc);
-    callerFrame.saveMethod(code);
+  private void saveContext(PseudoOp callOp, StackFrame frame) {
+    frame.savePc(pc);
+    frame.saveMethod(code);
     if (callOp.hasResult()) {
-      callerFrame.setResultSlot(callOp.getResult());
+      frame.setResultSlot(callOp.getResult());
     } else {
-      callerFrame.clearResultSlot();
+      frame.clearResultSlot();
     }
   }
 
@@ -144,6 +152,18 @@ public final class PcodeInterpreter {
     StackFrame calleeFrame = env.top();
     for (int i=0; i < actuals.length; i++) {
       calleeFrame.set(i,actuals[i]);
+    }
+  }
+
+  /**
+   * Print a (script) stack trace
+   * @param op The current op at top of stack.
+   */
+  private void stackTrace(PseudoOp op) {
+    saveContext(op,env.top());
+    for (StackFrame frame : env.stack()) {
+      op = frame.getSavedMethod()[frame.getSavedPc()-1];
+      System.err.println(op.getSourceLocation("at "));
     }
   }
 }

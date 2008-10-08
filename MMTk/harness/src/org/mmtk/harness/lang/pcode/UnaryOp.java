@@ -12,19 +12,20 @@
  */
 package org.mmtk.harness.lang.pcode;
 
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 
 public abstract class UnaryOp extends PseudoOp {
 
   protected final int operand;
 
-  public UnaryOp(String name, Register resultTemp, Register operand) {
-    super(1, name, resultTemp);
+  public UnaryOp(AST source, String name, Register resultTemp, Register operand) {
+    super(source, 1, name, resultTemp);
     this.operand = operand.getIndex();
   }
 
-  public UnaryOp(String name, Register operand) {
-    super(1, name);
+  public UnaryOp(AST source, String name, Register operand) {
+    super(source, 1, name);
     this.operand = operand.getIndex();
   }
 

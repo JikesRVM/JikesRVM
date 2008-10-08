@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.lang.pcode;
 
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 
 public abstract class TernaryOp extends PseudoOp {
@@ -20,15 +21,15 @@ public abstract class TernaryOp extends PseudoOp {
   protected int op2;
   protected int op3;
 
-  public TernaryOp(String name, Register resultTemp, Register op1, Register op2, Register op3) {
-    super(3, name, resultTemp);
+  public TernaryOp(AST source, String name, Register resultTemp, Register op1, Register op2, Register op3) {
+    super(source,3, name, resultTemp);
     this.op1 = op1.getIndex();
     this.op2 = op2.getIndex();
     this.op3 = op3.getIndex();
   }
 
-  public TernaryOp(String name, Register op1, Register op2, Register op3) {
-    super(3, name);
+  public TernaryOp(AST source, String name, Register op1, Register op2, Register op3) {
+    super(source,3, name);
     this.op1 = op1.getIndex();
     this.op2 = op2.getIndex();
     this.op3 = op3.getIndex();

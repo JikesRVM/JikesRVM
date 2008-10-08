@@ -14,6 +14,7 @@ package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.StackFrame;
@@ -31,8 +32,8 @@ public final class AllocOp extends TernaryOp {
   /** Call site */
   private final int site;
 
-  public AllocOp(Register resultTemp, Register dataCount, Register refCount, Register doubleAlign,int site) {
-    super("alloc",resultTemp, dataCount, refCount, doubleAlign);
+  public AllocOp(AST source, Register resultTemp, Register dataCount, Register refCount, Register doubleAlign,int site) {
+    super(source,"alloc",resultTemp, dataCount, refCount, doubleAlign);
     this.site = site;
   }
 

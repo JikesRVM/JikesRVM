@@ -36,6 +36,15 @@ public class Parser {
 	}
 	public Parser(String filename) {
 		this(createStream(filename));
+		AbstractAST.setCurrentSource(new Source(filename));
+	}
+	
+	private static void checkSymbol(SymbolTable symbols, Token tok) throws ParseException {
+		String id = tok.toString();
+		if (!symbols.isDefined(id)) {
+  	  	 throw new ParseException(
+  	  	   String.format("%d:%d - Variable %s is undefined",tok.beginLine,tok.beginColumn,id));
+  	   }
 	}
 }
 PARSER_END(Parser)
@@ -383,10 +392,10 @@ Statement storeField(MethodTable methods, SymbolTable symbols) : {
     Token t;
 }
 {
-  name=ident() 
-  t=<DOT> type = type()
+  t=<IDENTIFIER> { name = t.toString(); }
+  <DOT> type = type()
   <LBRACKET> index=expression(methods,symbols) <RBRACKET> <ASSIGN> rVal=expression(methods,symbols) 
-  { return new StoreField(t,symbols.getSymbol(name), type, index, rVal); }
+  { return new StoreField(t, symbols.getSymbol(name), type, index, rVal); }
 }
 
 /**
@@ -399,7 +408,8 @@ Statement callMethod(MethodTable methods, SymbolTable symbols) : {
     Expression p;
 }
 {
-  name=ident() t=<LPAREN> 
+  t=<IDENTIFIER> { name = t.toString(); } 
+  <LPAREN> 
   ( p=expression(methods,symbols)
       { params.add(p); }
     ( <COMMA> p=expression(methods,symbols)
@@ -407,7 +417,7 @@ Statement callMethod(MethodTable methods, SymbolTable symbols) : {
     )*
   )?
   <RPAREN>
-  { return new Call(t,new MethodProxy(methods, name,params.size()), params, false); }
+  { return new Call(t, new MethodProxy(methods, name, params.size()), params, false); }
 }
 
 /**
@@ -563,13 +573,19 @@ Expression expr5(MethodTable methods, SymbolTable symbols) : {
   ( t=<IDENTIFIER> { id=t.toString(); }
   		(<DOT> type = type() 
   		 <LBRACKET> index=expression(methods,symbols) <RBRACKET>
-              { return new LoadField(t,symbols.getSymbol(id), type, index); }
+              { 
+              	checkSymbol(symbols,t);
+              	return new LoadField(t,symbols.getSymbol(id), type, index); 
+              }
   
-        | e=callExpr(id,methods,symbols) { return e; } 
+        | e=callExpr(t,id,methods,symbols) { return e; } 
         )?
   
      /* Variable substitution */
-     { return new Variable(t,symbols.getSymbol(id)); }
+     { 
+       checkSymbol(symbols,t);
+       return new Variable(t,symbols.getSymbol(id)); 
+     }
   )
 }
 
@@ -600,14 +616,14 @@ Expression constant() : {
  * Procedure call, as an expression.
  *
  * Caller has matched the method name, which gets passed as the 'name' parameter.
+ * 't' is the token of the method name (for error location).
  */
-Expression callExpr(String name, MethodTable methods, SymbolTable symbols) : {
+Expression callExpr(Token t, String name, MethodTable methods, SymbolTable symbols) : {
     List<Expression> params = new ArrayList<Expression>();
     Expression p;
-    Token t;
 }
 {
-  t=<LPAREN> 
+  <LPAREN> 
   ( p=expression(methods,symbols)
       { params.add(p); }
     ( <COMMA> p=expression(methods,symbols)

@@ -12,15 +12,16 @@
  */
 package org.mmtk.harness.lang.pcode;
 
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 
 public abstract class NullaryOp extends PseudoOp {
 
-  public NullaryOp(String name, Register resultTemp) {
-    super(0, name, resultTemp);
+  public NullaryOp(AST source, String name, Register resultTemp) {
+    super(source, 0, name, resultTemp);
   }
 
-  public NullaryOp(String name) {
-    super(0, name);
+  public NullaryOp(AST source, String name) {
+    super(source, 0, name);
   }
 }

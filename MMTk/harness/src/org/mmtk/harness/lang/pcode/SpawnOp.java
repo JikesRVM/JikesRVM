@@ -17,6 +17,7 @@ import java.util.List;
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.PcodeInterpreter;
@@ -28,8 +29,8 @@ public class SpawnOp extends EnnaryOp implements ResolvableOp {
 
   private CompiledMethod method;
 
-  public SpawnOp(CompiledMethod method, List<Register> ops) {
-    super("spawn", ops);
+  public SpawnOp(AST source, CompiledMethod method, List<Register> ops) {
+    super(source,"spawn", ops);
     this.method = method;
   }
 

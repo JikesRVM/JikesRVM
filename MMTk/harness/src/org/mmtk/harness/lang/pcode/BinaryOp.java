@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.lang.pcode;
 
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 
 public abstract class BinaryOp extends PseudoOp {
@@ -19,14 +20,14 @@ public abstract class BinaryOp extends PseudoOp {
   protected final int op1;
   protected final int op2;
 
-  public BinaryOp(String name, Register resultTemp, Register op1, Register op2) {
-    super(2, name, resultTemp);
+  public BinaryOp(AST source, String name, Register resultTemp, Register op1, Register op2) {
+    super(source, 2, name, resultTemp);
     this.op1 = op1.getIndex();
     this.op2 = op2.getIndex();
   }
 
-  public BinaryOp(String name, Register op1, Register op2) {
-    super(2, name);
+  public BinaryOp(AST source, String name, Register op1, Register op2) {
+    super(source, 2, name);
     this.op1 = op1.getIndex();
     this.op2 = op2.getIndex();
   }

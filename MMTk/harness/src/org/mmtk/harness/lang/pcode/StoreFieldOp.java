@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Type;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
@@ -22,14 +23,15 @@ public final class StoreFieldOp extends TernaryOp {
 
   public final Type fieldType;
 
-  public StoreFieldOp(Register object, Register index, Register val, Type fieldType) {
-    super("storeField",object, index, val);
+  public StoreFieldOp(AST source, Register object, Register index, Register val, Type fieldType) {
+    super(source,"storeField",object, index, val);
     this.fieldType = fieldType;
   }
 
   public String toString() {
-    return String.format("t%d.%s[t%d] <- t%d", op1,
-        fieldType == Type.OBJECT ? "object" : "int", op2, op3);
+    return String.format("%s.%s[%s] <- %s", Register.nameOf(op1),
+        fieldType == Type.OBJECT ? "object" : "int",
+            Register.nameOf(op2), Register.nameOf(op3));
   }
 
   @Override

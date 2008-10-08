@@ -68,6 +68,13 @@ public class Env extends Mutator {
   }
 
   /**
+   *
+   */
+  public Iterable<StackFrame> stack() {
+    return stack;
+  }
+
+  /**
    * Compute the thread roots for this mutator.
    */
   @Override

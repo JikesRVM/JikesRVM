@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.harness.lang.runtime.Value;
@@ -28,14 +29,14 @@ public final class ReturnOp extends NullaryOp {
   public final int operand;
 
   /** A return op with a return value */
-  public ReturnOp(Register operand) {
-    super("return");
+  public ReturnOp(AST source, Register operand) {
+    super(source,"return");
     this.operand = operand.getIndex();
   }
 
   /** A return op with no return value, ie from a void method */
-  public ReturnOp() {
-    super("return");
+  public ReturnOp(AST source) {
+    super(source,"return");
     this.operand = NO_SUCH_SLOT;
   }
 

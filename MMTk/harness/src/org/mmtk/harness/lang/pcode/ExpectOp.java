@@ -13,12 +13,13 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 
 public class ExpectOp extends NullaryOp {
   private final Class<?> expectedThrowable;
 
-  public ExpectOp(Class<?> expectedThrowable) {
-    super("expect");
+  public ExpectOp(AST source, Class<?> expectedThrowable) {
+    super(source,"expect");
     this.expectedThrowable = expectedThrowable;
   }
 

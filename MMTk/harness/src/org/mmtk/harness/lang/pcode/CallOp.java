@@ -14,16 +14,17 @@ package org.mmtk.harness.lang.pcode;
 
 import java.util.List;
 
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 
 public abstract class CallOp extends EnnaryOp {
 
-  public CallOp(Register resultTemp, List<Register> params) {
-    super("call", resultTemp, params);
+  public CallOp(AST source, Register resultTemp, List<Register> params) {
+    super(source,"call", resultTemp, params);
   }
 
-  public CallOp(List<Register> params) {
-    super("call", params);
+  public CallOp(AST source, List<Register> params) {
+    super(source,"call", params);
   }
 
   public boolean affectsControlFlow() {

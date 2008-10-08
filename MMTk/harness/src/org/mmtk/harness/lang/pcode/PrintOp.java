@@ -15,17 +15,18 @@ package org.mmtk.harness.lang.pcode;
 import java.util.List;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.Value;
 
 public final class PrintOp extends EnnaryOp {
 
-  public PrintOp(List<Register> ops) {
-    this(ops.toArray(new Register[0]));
+  public PrintOp(AST source, List<Register> ops) {
+    this(source,ops.toArray(new Register[0]));
   }
 
-  public PrintOp(Register... ops) {
-    super("print", ops);
+  public PrintOp(AST source, Register... ops) {
+    super(source,"print", ops);
   }
 
   @Override

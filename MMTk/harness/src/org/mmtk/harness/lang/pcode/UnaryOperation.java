@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Operator;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
@@ -21,8 +22,8 @@ public final class UnaryOperation extends UnaryOp {
 
   public final Operator op;
 
-  public UnaryOperation(Register resultTemp, Register operand, Operator op) {
-    super(op.toString(), resultTemp, operand);
+  public UnaryOperation(AST source, Register resultTemp, Register operand, Operator op) {
+    super(source,op.toString(), resultTemp, operand);
     this.op = op;
   }
 

@@ -13,17 +13,23 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 
 public final class Goto extends NullaryOp {
   private int target;
 
-  public Goto(int target) {
-    super("goto");
+  public Goto(AST source, int target) {
+    super(source,"goto");
     setBranchTarget(target);
   }
 
-  public Goto() {
-    super("goto");
+  /**
+   * A goto instruction when we don't yet know the target - the
+   * compiler comes back later and fills it in.
+   * @param source
+   */
+  public Goto(AST source) {
+    super(source,"goto");
   }
 
   public void setBranchTarget(int target) {

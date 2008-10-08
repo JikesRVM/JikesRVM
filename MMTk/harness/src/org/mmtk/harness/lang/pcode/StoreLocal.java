@@ -13,14 +13,15 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 
 
 public final class StoreLocal extends UnaryOp {
 
-  public StoreLocal(Register dest,Register operand) {
-    super("store",dest,operand);
+  public StoreLocal(AST source, Register dest,Register operand) {
+    super(source,"store",dest,operand);
   }
 
   @Override

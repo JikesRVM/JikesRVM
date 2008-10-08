@@ -25,4 +25,6 @@ public interface AST {
   int getLine();
 
   int getColumn();
+
+  String sourceLocation(String prefix);
 }

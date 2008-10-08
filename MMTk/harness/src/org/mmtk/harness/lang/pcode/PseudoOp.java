@@ -13,29 +13,32 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.harness.lang.runtime.Value;
 
 public abstract class PseudoOp {
+  private final AST source;
   protected final int arity;
   protected final boolean hasResult;
   private final int resultTemp;
   protected final String name;
 
-  private PseudoOp(int arity, String name, boolean hasResult, int resultTemp) {
+  private PseudoOp(AST source, int arity, String name, boolean hasResult, int resultTemp) {
     this.arity = arity;
     this.hasResult = hasResult;
     this.resultTemp = resultTemp;
     this.name = name;
+    this.source = source;
   }
 
-  public PseudoOp(int arity, String name, Register resultTemp) {
-    this(arity,name,resultTemp != Register.NULL,resultTemp.getIndex());
+  public PseudoOp(AST source, int arity, String name, Register resultTemp) {
+    this(source,arity,name,resultTemp != Register.NULL,resultTemp.getIndex());
   }
 
-  public PseudoOp(int arity, String name) {
-    this(arity,name,false,-1);
+  public PseudoOp(AST source, int arity, String name) {
+    this(source,arity,name,false,-1);
   }
 
   public abstract void exec(Env env);
@@ -93,5 +96,37 @@ public abstract class PseudoOp {
 
   public int getBranchTarget() {
     throw new RuntimeException("Attempt to get a branch target from a non-branch instruction");
+  }
+
+  /*
+   * Error handling - link back to source line
+   */
+
+  /**
+   * The source code line leading to this instruction
+   */
+  public int getLine() {
+    return source.getLine();
+  }
+
+  /**
+   * The source code column leading to this instruction
+   */
+  public int getColumn() {
+    return source.getColumn();
+  }
+
+  /**
+   * The source location of this instruction (for error messages)
+   */
+  public String getSourceLocation() {
+    return getSourceLocation("");
+  }
+
+  /**
+   * The source location of this instruction (for error messages)
+   */
+  public String getSourceLocation(String prefix) {
+    return source.sourceLocation(prefix);
   }
 }

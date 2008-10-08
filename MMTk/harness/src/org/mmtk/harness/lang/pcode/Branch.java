@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 
@@ -30,8 +31,8 @@ public final class Branch extends UnaryOp {
    * @param branchOn Sense of the comparison
    * @param target Jump target
    */
-  public Branch(Register cond, boolean branchOn, int target) {
-    super("if"+branchOn,cond);
+  public Branch(AST source, Register cond, boolean branchOn, int target) {
+    super(source, "if"+branchOn,cond);
     this.target = target;
     this.branchOn = branchOn;
   }
@@ -43,8 +44,8 @@ public final class Branch extends UnaryOp {
    * @param branchOn Sense of the comparison
    * @param target Jump target
    */
-  public Branch(Register cond, boolean branchOn) {
-    super("if"+branchOn,cond);
+  public Branch(AST source, Register cond, boolean branchOn) {
+    super(source,"if"+branchOn,cond);
     this.branchOn = branchOn;
   }
 

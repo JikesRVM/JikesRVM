@@ -17,6 +17,7 @@ import java.util.List;
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.compiler.Register;
 
@@ -28,14 +29,14 @@ public final class CallNormalOp extends CallOp implements ResolvableOp {
   private CompiledMethod method;
 
   /** A method call that returns a result */
-  public CallNormalOp(Register resultTemp, CompiledMethod method, List<Register> params) {
-    super(resultTemp, params);
+  public CallNormalOp(AST source, Register resultTemp, CompiledMethod method, List<Register> params) {
+    super(source,resultTemp, params);
     this.method = method;
   }
 
   /** A method call without a return value */
-  public CallNormalOp(CompiledMethod method, List<Register> params) {
-    super(params);
+  public CallNormalOp(AST source, CompiledMethod method, List<Register> params) {
+    super(source,params);
     this.method = method;
   }
 

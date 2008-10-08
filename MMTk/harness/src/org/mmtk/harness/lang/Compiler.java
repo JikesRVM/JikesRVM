@@ -55,6 +55,7 @@ import org.mmtk.harness.lang.pcode.CallNormalOp;
 import org.mmtk.harness.lang.pcode.ExitOp;
 import org.mmtk.harness.lang.pcode.ExpectOp;
 import org.mmtk.harness.lang.pcode.Goto;
+import org.mmtk.harness.lang.pcode.LoadFieldOp;
 import org.mmtk.harness.lang.pcode.PrintOp;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ReturnOp;
@@ -148,7 +149,7 @@ public final class Compiler extends Visitor {
     alloc.getDoubleAlign().accept(this);
     Register doubleAlign = operands.pop();
     Register result = temps.acquire();
-    emit(new AllocOp(result,dataCount,refCount,doubleAlign,alloc.getSite()));
+    emit(new AllocOp(alloc,result,dataCount,refCount,doubleAlign,alloc.getSite()));
     operands.push(result);
     temps.release(dataCount,refCount,doubleAlign);
   }
@@ -157,7 +158,7 @@ public final class Compiler extends Visitor {
   public void visit(Assert ass) {
     ass.getPredicate().accept(this);            // Compile the predicate
     Register predicate = operands.pop();
-    Branch branch = new Branch(predicate,true);
+    Branch branch = new Branch(ass,predicate,true);
     emit(branch);
     temps.release(predicate);
     ArrayList<Register> actuals = new ArrayList<Register>(ass.getOutputs().size());
@@ -165,9 +166,9 @@ public final class Compiler extends Visitor {
       expr.accept(this);
       actuals.add(operands.pop());
     }
-    emit(new PrintOp(actuals.toArray(new Register[0])));
+    emit(new PrintOp(ass,actuals.toArray(new Register[0])));
     freeTemps(actuals);
-    emit(new ExitOp(ConstantPool.ONE));
+    emit(new ExitOp(ass,ConstantPool.ONE));
     branch.setBranchTarget(currentPc());
   }
 
@@ -175,7 +176,7 @@ public final class Compiler extends Visitor {
   public void visit(Assignment a) {
     a.getRhs().accept(this);
     Register rhs = operands.pop();
-    emit(new StoreLocal(Register.createLocal(a.getSlot()),rhs));
+    emit(new StoreLocal(a,Register.createLocal(a.getSlot()),rhs));
     temps.release(rhs);
   }
 
@@ -186,7 +187,7 @@ public final class Compiler extends Visitor {
     exp.getRhs().accept(this);
     Register rhs = operands.pop();
     Register result = temps.acquire();
-    emit(new BinaryOperation(result,lhs,rhs,exp.getOperator()));
+    emit(new BinaryOperation(exp,result,lhs,rhs,exp.getOperator()));
     temps.release(rhs,lhs);
     operands.push(result);
   }
@@ -201,10 +202,10 @@ public final class Compiler extends Visitor {
         Register.NULL : temps.acquire();
 
     if (method instanceof IntrinsicMethod) {
-      emit(new CallIntrinsicOp(returnVal,(IntrinsicMethod)method,actuals));
+      emit(new CallIntrinsicOp(call,returnVal,(IntrinsicMethod)method,actuals));
     } else if (method instanceof NormalMethod) {
       CompiledMethod compiledMethod = compiledMethodFor(method);
-      emit(new CallNormalOp(returnVal,compiledMethod,actuals));
+      emit(new CallNormalOp(call,returnVal,compiledMethod,actuals));
     } else {
       throw new RuntimeException("Unknown method class "+method.getClass().getCanonicalName());
     }
@@ -229,19 +230,19 @@ public final class Compiler extends Visitor {
 
   @Override
   public void visit(Expect exp) {
-    emit(new ExpectOp(exp.getExpected()));
+    emit(new ExpectOp(exp,exp.getExpected()));
   }
 
   @Override
   public void visit(IfStatement conditional) {
     Iterator<Statement> stmtIter = conditional.getStmts().iterator();
-    Branch branch = new Branch(Register.NULL,false);
-    Goto gotoExit = new Goto();
+    Branch branch = new Branch(conditional,Register.NULL,false);
+    Goto gotoExit = new Goto(conditional);
     for (Expression cond : conditional.getConds()) {
       branch.setBranchTarget(currentPc());
       cond.accept(this);
       Register conditionReg = operands.pop();
-      branch = new Branch(conditionReg,false);
+      branch = new Branch(conditional,conditionReg,false);
       temps.release(conditionReg);
       emit(branch);
       stmtIter.next().accept(this);
@@ -265,7 +266,7 @@ public final class Compiler extends Visitor {
     Register index = operands.pop();
     Register object = Register.createLocal(load.getSlot());
     Register result = temps.acquire();
-    emit(new org.mmtk.harness.lang.pcode.LoadFieldOp(result,object,index,load.getFieldType()));
+    emit(new LoadFieldOp(load,result,object,index,load.getFieldType()));
     temps.release(index);
     operands.push(result);
   }
@@ -273,14 +274,14 @@ public final class Compiler extends Visitor {
   @Override
   public void visit(NormalMethod method) {
     method.getBody().accept(this);
-    emit(new ReturnOp());
+    emit(new ReturnOp(method));
   }
 
   @Override
   public void visit(PrintStatement print) {
     List<Expression> args = print.getArgs();
     List<Register> actuals = compileArgList(args);
-    emit(new PrintOp(actuals));
+    emit(new PrintOp(print,actuals));
     freeTemps(actuals);
   }
 
@@ -288,9 +289,9 @@ public final class Compiler extends Visitor {
   public void visit(Return ret) {
     if (ret.hasReturnValue()) {
       ret.getRhs().accept(this);
-      emit(new ReturnOp(operands.pop()));
+      emit(new ReturnOp(ret,operands.pop()));
     } else {
-      emit(new ReturnOp());
+      emit(new ReturnOp(ret));
     }
   }
 
@@ -304,7 +305,7 @@ public final class Compiler extends Visitor {
   @Override
   public void visit(Spawn sp) {
     List<Register> actuals = compileArgList(sp.getArgs());
-    emit(new SpawnOp(compiledMethodFor(sp.getMethod()),actuals));
+    emit(new SpawnOp(sp,compiledMethodFor(sp.getMethod()),actuals));
     freeTemps(actuals);
   }
 
@@ -315,7 +316,7 @@ public final class Compiler extends Visitor {
     store.getRhs().accept(this);
     Register value = operands.pop();
     Register object = Register.createLocal(store.getSlot());
-    emit(new StoreFieldOp(object,index,value,store.getFieldType()));
+    emit(new StoreFieldOp(store,object,index,value,store.getFieldType()));
     temps.release(index,value);
   }
 
@@ -323,7 +324,7 @@ public final class Compiler extends Visitor {
   public void visit(UnaryExpression exp) {
     exp.getOperand().accept(this);
     Register operand = operands.peek();
-    emit(new UnaryOperation(operand,operand,exp.getOperator()));
+    emit(new UnaryOperation(exp,operand,operand,exp.getOperator()));
   }
 
   /**
@@ -348,11 +349,11 @@ public final class Compiler extends Visitor {
     int top = currentPc();
     w.getCond().accept(this);          // Compile the loop condition
     Register cond = operands.pop();
-    Branch branchToExit = new Branch(cond,false);
+    Branch branchToExit = new Branch(w,cond,false);
     temps.release(cond);
     emit(branchToExit);
     w.getBody().accept(this);
-    emit(new Goto(top));
+    emit(new Goto(w,top));
     branchToExit.setBranchTarget(currentPc());
   }
 

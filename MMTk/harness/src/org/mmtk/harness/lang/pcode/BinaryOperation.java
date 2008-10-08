@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Operator;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
@@ -26,8 +27,8 @@ public final class BinaryOperation extends BinaryOp {
   public final Operator op;
 
   /** The operation resultTemp <- op1 `op` op2 */
-  public BinaryOperation(Register resultTemp, Register op1, Register op2, Operator op) {
-    super(op.toString(),resultTemp, op1, op2);
+  public BinaryOperation(AST source, Register resultTemp, Register op1, Register op2, Operator op) {
+    super(source, op.toString(),resultTemp, op1, op2);
     this.op = op;
   }
 
