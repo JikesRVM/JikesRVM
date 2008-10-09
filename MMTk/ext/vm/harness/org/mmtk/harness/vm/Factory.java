@@ -389,9 +389,11 @@ public class Factory extends org.mmtk.vm.Factory {
     return null;
   }
 
+  /**
+   * TuningFork support
+   */
   @Override
   public org.mmtk.vm.MMTk_Events newEvents() {
-    assert false : "MMTk Harness doesn't support tuning fork";
-    return null;
+    return new MMTkEvents();
   }
 }
