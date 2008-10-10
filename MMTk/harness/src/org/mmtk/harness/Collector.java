@@ -97,10 +97,18 @@ public final class Collector implements Runnable {
   }
 
   /** The number of collections that have occurred */
-  public static int collectionCount;
+  private static int collectionCount;
+
+  public static int getCollectionCount() {
+    return collectionCount;
+  }
 
   /** The current base count of collection attempts */
-  public static int collectionAttemptBase;
+  private static int collectionAttemptBase;
+
+  public static int getCollectionAttemptBase() {
+    return collectionAttemptBase;
+  }
 
   /** Has a heap dump been requested? */
   private static boolean heapDumpRequested;

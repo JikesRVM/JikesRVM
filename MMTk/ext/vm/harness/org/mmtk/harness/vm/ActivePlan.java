@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * Stub to give access to plan local, constraint and global instances
  */
 @Uninterruptible
-public class ActivePlan extends org.mmtk.vm.ActivePlan {
+public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /** Initialise static state */
   public static void init(String prefix) {
@@ -53,18 +53,23 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
   private static int mutatorIndex;
 
   /** @return The active Plan instance. */
+  @Override
   public Plan global() { return plan; };
 
   /** @return The active PlanConstraints instance. */
+  @Override
   public PlanConstraints constraints() { return constraints; };
 
   /** @return The active <code>CollectorContext</code> instance. */
+  @Override
   public CollectorContext collector() { return Collector.current().getContext(); };
 
   /** @return The active <code>MutatorContext</code> instance. */
+  @Override
   public MutatorContext mutator() { return Mutator.current().getContext(); }
 
   /** @return The active <code>MutatorContext</code> instance. */
+  @Override
   public Log log() { return Scheduler.currentLog(); }
 
   /**
@@ -73,6 +78,7 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
    * @param id The identifier of the <code>CollectorContext</code>  to return
    * @return The specified <code>CollectorContext</code>
    */
+  @Override
   public CollectorContext collector(int id) { return Collector.get(id).getContext(); }
 
   /**
@@ -81,15 +87,19 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
    * @param id The identifier of the <code>MutatorContext</code>  to return
    * @return The specified <code>MutatorContext</code>
    */
+  @Override
   public MutatorContext mutator(int id) { return Mutator.get(id).getContext(); }
 
   /** @return The number of registered <code>CollectorContext</code> instances. */
+  @Override
   public int collectorCount() { return Collector.count(); }
 
   /** @return The number of registered <code>MutatorContext</code> instances. */
+  @Override
   public int mutatorCount() { return Mutator.count(); }
 
   /** Reset the mutator iterator */
+  @Override
   public void resetMutatorIterator() { mutatorIndex = 0; }
 
   /**
@@ -100,6 +110,7 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
    *  synchronized iteration of all mutators, or
    *  <code>null</code> when all mutators have been done.
    */
+  @Override
   public MutatorContext getNextMutator() {
     synchronized(ActivePlan.class) {
       if (mutatorIndex >= Mutator.count()) return null;
@@ -114,6 +125,7 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
    * @return The <code>CollectorContext</code>'s unique identifier
    */
   @Interruptible
+  @Override
   public int registerCollector(CollectorContext collector) {
     return Collector.register(collector);
   }
@@ -125,6 +137,7 @@ public class ActivePlan extends org.mmtk.vm.ActivePlan {
    * @return The <code>MutatorContext</code>'s unique identifier
    */
   @Interruptible
+  @Override
   public int registerMutator(MutatorContext mutator) {
     return Mutator.register(mutator);
   }

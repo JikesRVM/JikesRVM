@@ -111,7 +111,7 @@ public class Collection extends org.mmtk.vm.Collection {
         int current = mutator.getCollectionAttempts();
         if (current > max) max = current;
       }
-      return max + Collector.collectionAttemptBase;
+      return max + Collector.getCollectionAttemptBase();
   }
 
   /**
