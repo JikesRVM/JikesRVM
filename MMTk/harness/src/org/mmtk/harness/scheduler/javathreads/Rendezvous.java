@@ -12,11 +12,11 @@
  */
 package org.mmtk.harness.scheduler.javathreads;
 
-class Rendezvous {
+final class Rendezvous {
 
   private static Rendezvous current = null;
 
-  private synchronized static Rendezvous current(int where) {
+  private static synchronized Rendezvous current(int where) {
     if (current == null) {
       current = new Rendezvous(where);
     } else {
