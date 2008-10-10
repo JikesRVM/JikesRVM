@@ -13,34 +13,60 @@
 package org.mmtk.harness.scheduler.javathreads;
 
 class Rendezvous {
+
+  private static Rendezvous current = null;
+
+  private synchronized static Rendezvous current(int where) {
+    if (current == null) {
+      current = new Rendezvous(where);
+    } else {
+      if (where != current.where) {
+        throw new RuntimeException(String.format("Arriving at barrier %d when %d is active",
+            where,current.where));
+      }
+    }
+    return current;
+  }
+
+  private Rendezvous(int where) {
+    this.where = where;
+  }
+
+  /** The rendezvous identifier */
+  private final int where;
+
   /** The rank that was given to the last thread to arrive at the rendezvous */
   private int currentRank = 0;
-
-  private int currentPlace = -1;
 
   /**
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */
-  int rendezvous(int where) {
-    synchronized(this) {
-      int rank = ++currentRank;
-      if (rank == 1) {
-        currentPlace = where;
-      } else {
-        assert where == currentPlace : "Mismatched rendezvous";
+  private synchronized int rendezvous() {
+    int rank = ++currentRank;
+    if (currentRank == org.mmtk.vm.VM.activePlan.collectorCount()) {
+      /* This is no longer the current barrier */
+      synchronized(Rendezvous.class) {
+        current = null;
       }
-      if (currentRank == org.mmtk.vm.VM.activePlan.collectorCount()) {
-        currentRank = 0;
-        notifyAll();
-      } else {
+      notifyAll();
+    } else {
+      while (currentRank != org.mmtk.vm.VM.activePlan.collectorCount()) {
         try {
           wait();
         } catch (InterruptedException ie) {
-          assert false : "Interrupted in rendezvous";
         }
       }
-      return rank;
     }
+    return rank;
+  }
+
+  /**
+   * Dispatch to the current rendezvous object
+   * @param where
+   * @return
+   */
+  static int rendezvous(int where) {
+    return current(where).rendezvous();
   }
 }

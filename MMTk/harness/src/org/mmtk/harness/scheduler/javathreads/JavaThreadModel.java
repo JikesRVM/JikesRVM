@@ -287,9 +287,6 @@ public final class JavaThreadModel extends ThreadModel {
     }
   }
 
-  /** Used during a GC to synchronise GC threads */
-  private final Rendezvous rendezvous = new Rendezvous();
-
   /**
    * The number of mutators waiting for a collection to proceed.
    */
@@ -313,7 +310,7 @@ public final class JavaThreadModel extends ThreadModel {
 
   @Override
   public int rendezvous(int where) {
-    return rendezvous.rendezvous(where);
+    return Rendezvous.rendezvous(where);
   }
 
   @Override
