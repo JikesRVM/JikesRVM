@@ -76,7 +76,7 @@ public interface RegisterConstants {
       if (VM.buildFor32Addr()) {
         return false;
       } else {
-        return value() > 7;
+        return (this != EIP) && (value() > 7);
       }
     }
     /**
@@ -328,6 +328,11 @@ public interface RegisterConstants {
   int NUM_PARAMETER_FPRS = 4;
   int NUM_RETURN_GPRS = 2;
   int NUM_RETURN_FPRS = 1;
+
+  /** General purpose registers to pass arguments to syscalls in */
+  GPR[] SYSCALL_PARAM_GPRS = VM.buildFor32Addr() ? new GPR[0] : new GPR[]{R7 /*RDI*/, R6 /*RSI*/, R2 /*RDX*/, R1 /*RCX*/, R8, R9};
+  /** Floating point registers to pass arguments to syscalls in */
+  XMM[] SYSCALL_PARAM_FPRS = VM.buildFor32Addr() ? new XMM[0] : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
 
   /*
    * Dedicated registers.

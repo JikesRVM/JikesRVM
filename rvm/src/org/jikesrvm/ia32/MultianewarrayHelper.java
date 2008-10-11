@@ -64,7 +64,11 @@ public abstract class MultianewarrayHelper {
       VM.disableGC();
       Address argp = Magic.getFramePointer().plus(argOffset);
       for (int i = 0; i < numDimensions; ++i) {
-        argp = argp.minus(4);
+        if (VM.BuildFor32Addr) {
+          argp = argp.minus(4);
+        } else {
+          argp = argp.minus(8);
+        }
         numElements[i] = argp.loadInt();
       }
       VM.enableGC();

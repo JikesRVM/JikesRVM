@@ -13,7 +13,9 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.vmmagic.unboxed.Address;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
 
 /**----------------------------------------------------------------------
  *                   Stackframe layout conventions - Intel version.
@@ -140,15 +142,15 @@ public interface StackframeLayoutConstants {
   int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   /** offset of caller's return address from FP */
-  int STACKFRAME_RETURN_ADDRESS_OFFSET = 4;
+  int STACKFRAME_RETURN_ADDRESS_OFFSET = WORDSIZE;
   /** base of this frame */
   int STACKFRAME_FRAME_POINTER_OFFSET = 0;
   /** offset of method id from FP */
-  int STACKFRAME_METHOD_ID_OFFSET = -4;
+  int STACKFRAME_METHOD_ID_OFFSET = -WORDSIZE;
   /** offset of work area from FP */
-  int STACKFRAME_BODY_OFFSET = -8;
+  int STACKFRAME_BODY_OFFSET = -2*WORDSIZE;
   /** size of frame header, in bytes */
-  int STACKFRAME_HEADER_SIZE = 12;
+  int STACKFRAME_HEADER_SIZE = 3*WORDSIZE;
 
   // space to save entire FPU state.  The FPU state is saved only for 'bridge' frames
   int FPU_STATE_SIZE = 108;
@@ -165,31 +167,31 @@ public interface StackframeLayoutConstants {
   int STACKFRAME_ALIGNMENT = 8;
 
   // Sizes for stacks and subregions thereof.
-  // Values are in bytes and must be a multiple of 4 (size of a stack slot).
+  // Values are in bytes and must be a multiple of WORDSIZE (size of a stack slot).
   //
   /** how much to grow stack when overflow detected */
-  int STACK_SIZE_GROW = 8 * 1024;
+  int STACK_SIZE_GROW = (VM.BuildFor64Addr ? 16 : 8) * 1024;
   /** max space needed for stack overflow trap processing */
   int STACK_SIZE_GUARD = 64 * 1024;
   /** max space needed for any native code called by vm */
-  int STACK_SIZE_SYSCALL = 4 * 1024;
+  int STACK_SIZE_SYSCALL = (VM.BuildFor64Addr ? 8 : 4) * 1024;
   /** max space needed for dlopen sys call */
   int STACK_SIZE_DLOPEN = 30 * 1024;
   /** max space needed while running with gc disabled */
-  int STACK_SIZE_GCDISABLED = 4 * 1024;
+  int STACK_SIZE_GCDISABLED = (VM.BuildFor64Addr ? 8 : 4) * 1024;
 
-  // Complications:
-  // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
-  //   to ensure that frames allocated by stack growing code will fit within guard region.
-  // - STACK_SIZE_GROW must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
-  //   to ensure that, if stack is grown prior to disabling gc or calling native code,
-  //   the new stack will accomodate that code without generating a stack overflow trap.
-  // - Values chosen for STACK_SIZE_NATIVE and STACK_SIZE_GCDISABLED are pure guesswork
-  //   selected by trial and error.
+   // Complications:
+   // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
+   //   to ensure that frames allocated by stack growing code will fit within guard region.
+   // - STACK_SIZE_GROW must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
+   //   to ensure that, if stack is grown prior to disabling gc or calling native code,
+   //   the new stack will accomodate that code without generating a stack overflow trap.
+   // - Values chosen for STACK_SIZE_NATIVE and STACK_SIZE_GCDISABLED are pure guesswork
+   //   selected by trial and error.
 
-  // Stacks for "normal" threads grow as needed by trapping on guard region.
-  // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
-  //
+   // Stacks for "normal" threads grow as needed by trapping on guard region.
+   // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
+   //
   /** initial stack space to allocate for normal    thread (includes guard region) */
   int STACK_SIZE_NORMAL =
       STACK_SIZE_GUARD +
