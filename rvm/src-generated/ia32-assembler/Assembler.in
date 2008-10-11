@@ -618,9 +618,12 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
   private void emitRegDispRegOperands(MachineRegister reg1, Offset disp, MachineRegister reg2) {
-    if (fits(disp,8))
+    if (reg1 == GPR.EIP) {
+      setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2)); // EBP == RIP addressing mode
+      emitImm32(disp);
+    } else if (fits(disp,8)) {
       emitRegDisp8RegOperands(reg1, (byte)disp.toInt(), reg2);
-    else {
+    } else {
       if (VM.VerifyAssertions) VM._assert(fits(disp,32));
       emitRegDisp32RegOperands(reg1, disp.toInt(), reg2);
     }
