@@ -1390,8 +1390,6 @@ emitMoveImms() {
     elif [ x$size = xquad ]; then
       ext="_Quad"
       rex_w=true
-      imm_type=long
-      immWrite=emitImm64
     fi
     cat >> $FILENAME <<EOF
   /**
