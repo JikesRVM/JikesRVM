@@ -471,9 +471,14 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
-      asm.emitPOP_Reg(T0);                // base
-      asm.emitPUSH_RegDisp(T0, ONE_SLOT); // pushes [T0+4]
-      asm.emitPUSH_RegInd(T0);            // pushes [T0]
+      asm.emitPOP_Reg(T0);                  // base
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegDisp(T0, ONE_SLOT); // pushes [T0+4]
+        asm.emitPUSH_RegInd(T0);            // pushes [T0]
+      } else {
+        asm.emitPUSH_Reg(T0);               // create space
+        asm.emitPUSH_RegInd(T0);            // pushes [T0]
+      }
     }
   }
   static {
@@ -492,8 +497,13 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
+        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+      } else {
+        asm.emitPUSH_Reg(T0);                                  // create space
+        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+      }
     }
   }
   static {
@@ -715,12 +725,18 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
-      asm.emitMOV_Reg_RegInd(T0, SP);             // value high
-      asm.emitMOV_Reg_RegDisp(T1, SP, TWO_SLOTS); // base
-      asm.emitMOV_RegInd_Reg(T1, T0);             // [T1] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // value low
-      asm.emitMOV_RegDisp_Reg(T1, ONE_SLOT, T0);  // [T1+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);      // pop stack locations
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0); // value low
+        asm.emitPOP_Reg(T1); // value high
+        asm.emitPOP_Reg(S0); // base
+        asm.emitMOV_RegInd_Reg(S0, T0);            // value low
+        asm.emitMOV_RegDisp_Reg(S0, ONE_SLOT, T1); // value high
+      } else {
+        asm.emitPOP_Reg(T0); // value
+        asm.emitPOP_Reg(T1); // throw away slot
+        asm.emitPOP_Reg(T1); // base
+        asm.emitMOV_RegInd_Reg_Quad(T1, T0);
+      }
     }
   }
   static {
@@ -736,13 +752,19 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);          // value high
-      asm.emitMOV_Reg_RegInd(S0, SP);     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // base
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // value low
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0);                          // T0 = offset
+        asm.emitADD_Reg_RegDisp(T0, SP, THREE_SLOTS); // T0 = base+offset
+        asm.emitPOP_RegInd(T0);                       // [T0]   <- value low
+        asm.emitPOP_RegDisp(T0, ONE_SLOT);            // [T0+4] <- value high
+        asm.emitPOP_Reg(T0);                          // throw away slot
+      } else {
+        asm.emitPOP_Reg(T0);                               // offset
+        asm.emitADD_Reg_RegDisp_Quad(T0, SP, THREE_SLOTS); // T0 = base+offset
+        asm.emitPOP_RegInd(T0);                            // T0 <- value
+        asm.emitPOP_Reg(T0);                               // throw away slot
+        asm.emitPOP_Reg(T0);                               // throw away slot
+      }
     }
   }
   static {
@@ -758,13 +780,21 @@ final class BaselineMagic {
   private static final class Magic_Store64 extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitMOV_Reg_RegInd(T0, SP);          // value high
-      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0);                       // value low
+        asm.emitPOP_Reg(T1);                       // value high
+        asm.emitPOP_Reg(S0);                       // S0 = offset
+        asm.emitADD_Reg_RegInd(S0, SP);            // S0 = base+offset
+        asm.emitMOV_RegInd_Reg(S0, T0);            // [S0] <- value low
+        asm.emitPOP_Reg(T0);                       // throw away slot
+        asm.emitMOV_RegDisp_Reg(S0, ONE_SLOT, T1); // [S0+4] <- value high
+      } else {
+        asm.emitPOP_Reg(T0);                       // value
+        asm.emitPOP_Reg(T1);                       // throw away slot
+        asm.emitPOP_Reg(T1);                       // T1 = offset
+        asm.emitPOP_Reg(S0);                       // S0 = base
+        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, Assembler.BYTE, NO_SLOT, T0); // [base+offset] <- T0
+      }
     }
   }
   static {
@@ -1125,7 +1155,11 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(S0);
       asm.emitPOP_Reg(T0);
-      asm.emitCMP_Reg_Reg(T0, S0);
+      if (VM.BuildFor32Addr) {
+        asm.emitCMP_Reg_Reg(T0, S0);
+      } else {
+        asm.emitCMP_Reg_Reg_Quad(T0, S0);
+      }
       ForwardReference fr1 = asm.forwardJcc(comparator);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
@@ -1174,7 +1208,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitTEST_Reg_Reg(T0, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitTEST_Reg_Reg(T0, T0);
+      } else {
+        asm.emitTEST_Reg_Reg_Quad(T0, T0);
+      }
       ForwardReference fr1 = asm.forwardJcc(Assembler.EQ);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
@@ -1202,7 +1240,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitCMP_Reg_Imm(T0, -1);
+      if (VM.BuildFor32Addr) {
+        asm.emitCMP_Reg_Imm(T0, -1);
+      } else {
+        asm.emitCMP_Reg_Imm_Quad(T0, -1);
+      }
       ForwardReference fr1 = asm.forwardJcc(Assembler.EQ);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
@@ -1226,20 +1268,38 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitADD_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitADD_RegInd_Reg_Quad(SP, T0);
+      }
+    }
+  }
+  /**
+   * Special case of 64bit addition to 32bit value
+   */
+  private static final class WordPlus32 extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(EAX);
+      asm.emitCDQE();
+      asm.emitADD_RegInd_Reg_Quad(SP, EAX);
     }
   }
   static {
     MagicGenerator g = new WordPlus();
-    generators.put(getMethodReference(Address.class, MagicNames.wordPlus, int.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordPlus, Offset.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordPlus, Extent.class, Address.class), g);
-    generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, int.class, Extent.class), g);
     generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, Extent.class, Extent.class), g);
-    generators.put(getMethodReference(Offset.class, MagicNames.wordPlus, int.class, Offset.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Word.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Offset.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Extent.class, Word.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new WordPlus32();
+    }
+    generators.put(getMethodReference(Address.class, MagicNames.wordPlus, int.class, Address.class), g);
+    generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, int.class, Extent.class), g);
+    generators.put(getMethodReference(Offset.class, MagicNames.wordPlus, int.class, Offset.class), g);
   }
 
   /**
@@ -1249,7 +1309,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitSUB_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitSUB_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitSUB_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1274,7 +1338,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitAND_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitAND_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitAND_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1289,7 +1357,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitOR_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitOR_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitOR_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1304,7 +1376,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitXOR_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitXOR_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitXOR_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1319,7 +1395,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(ECX);
-      asm.emitSHL_RegInd_Reg(SP, ECX);
+      if (VM.BuildFor32Addr) {
+        asm.emitSHL_RegInd_Reg(SP, ECX);
+      } else {
+        asm.emitSHL_RegInd_Reg_Quad(SP, ECX);
+      }
     }
   }
   static {
@@ -1334,7 +1414,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(ECX);
-      asm.emitSHR_RegInd_Reg(SP, ECX);
+      if (VM.BuildFor32Addr) {
+        asm.emitSHR_RegInd_Reg(SP, ECX);
+      } else {
+        asm.emitSHR_RegInd_Reg_Quad(SP, ECX);
+      }
     }
   }
   static {
@@ -1349,7 +1433,11 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(ECX);
-      asm.emitSAR_RegInd_Reg(SP, ECX);
+      if (VM.BuildFor32Addr) {
+        asm.emitSAR_RegInd_Reg(SP, ECX);
+      } else {
+        asm.emitSAR_RegInd_Reg_Quad(SP, ECX);
+      }
     }
   }
   static {
@@ -1363,7 +1451,11 @@ final class BaselineMagic {
   private static final class WordNot extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitNOT_RegInd(SP);
+      if (VM.BuildFor32Addr) {
+        asm.emitNOT_RegInd(SP);
+      } else {
+        asm.emitNOT_RegInd_Quad(SP);
+      }
     }
   }
   static {
@@ -1378,8 +1470,13 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitPUSH_Imm(0); // upper 32 bits
-      asm.emitPUSH_Reg(T0); // lower 32 bits
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_Imm(0); // upper 32 bits
+        asm.emitPUSH_Reg(T0); // lower 32 bits
+      } else {
+        asm.emitPUSH_Reg(T0); // adjust stack
+        asm.emitPUSH_Reg(T0); // long value
+      }
     }
   }
   static {
@@ -1759,22 +1856,35 @@ final class BaselineMagic {
   }
 
   /**
-   * Get an element from a runtime table
+   * Get a 32bit element from a runtime table
    * @see org.jikesrvm.objectmodel.RuntimeTable#get(int)
    */
   private static final class Load32_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+      asm.emitPOP_Reg(T0);          // T0 is array index
+      asm.emitPOP_Reg(S0);          // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // push [S0+T0<<2]
       asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
     }
   }
+  /**
+   * Get a 64bit element from a runtime table
+   * @see org.jikesrvm.objectmodel.RuntimeTable#get(int)
+   */
+  private static final class Load64_Array extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);          // T0 is array index
+      asm.emitPOP_Reg(S0);          // S0 is array ref
+      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+      // push [S0+T0<<3]
+      asm.emitPUSH_RegIdx(S0, T0, Assembler.LONG, NO_SLOT);
+    }
+  }
   static {
-    MagicGenerator g = new Load32_Array();
+    MagicGenerator g = VM.BuildFor32Addr ? new Load32_Array() : new Load64_Array();
     Class<?>[] unboxedTypes = new Class<?>[] { AddressArray.class,
         ExtentArray.class, FunctionTable.class, IMT.class,
         ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class,
@@ -1809,7 +1919,7 @@ final class BaselineMagic {
   }
 
   /**
-   * Store an element to a runtime table
+   * Store a 32bit element to a runtime table
    * @see org.jikesrvm.objectmodel.RuntimeTable#set(int, Object)
    */
   private static final class Store32_Array extends MagicGenerator {
@@ -1819,12 +1929,27 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
-      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
+      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);            // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
+  /**
+   * Store a 64bit element to a runtime table
+   * @see org.jikesrvm.objectmodel.RuntimeTable#set(int, Object)
+   */
+  private static final class Store64_Array extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      Barriers.compileModifyCheck(asm, 8);
+      asm.emitPOP_Reg(T1); // T1 is the value
+      asm.emitPOP_Reg(T0); // T0 is array index
+      asm.emitPOP_Reg(S0); // S0 is array ref
+      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
+      asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.LONG, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+    }
+  }
   static {
-    MagicGenerator g = new Store32_Array();
+    MagicGenerator g = VM.BuildFor32Addr ? new Store32_Array() : new Store64_Array();
     Class<?>[] unboxedTypes = new Class<?>[] { AddressArray.class,
         ExtentArray.class, FunctionTable.class, IMT.class,
         ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class,
