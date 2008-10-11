@@ -64,7 +64,11 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
    */
   @Interruptible
   public final void baselineEmitLoadTIB(ArchitectureSpecific.Assembler asm, int dest, int object, Offset tibOffset) {
-    asm.emitMOV_Reg_RegDisp(GPR.lookup(dest), GPR.lookup(object), tibOffset);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(GPR.lookup(dest), GPR.lookup(object), tibOffset);
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(GPR.lookup(dest), GPR.lookup(object), tibOffset);
+    }
   }
 
   /**
