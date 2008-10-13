@@ -2118,6 +2118,20 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
+   * Produce a message requesting a bug report be submitted
+   */
+  @NoInline
+  public static void bugReportMessage() {
+    VM.sysWriteln("********************************************************************************");
+    VM.sysWriteln("*                      Abnormal termination of Jikes RVM                       *\n"+
+                  "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n"+
+                  "* Jikes RVM relies on community support to get debug information. Help improve *\n"+
+                  "* Jikes RVM for everybody by reporting this error. Please see:                 *\n"+
+                  "*                      http://jikesrvm.org/Reporting+Bugs                      *");
+    VM.sysWriteln("********************************************************************************");
+  }
+
+  /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
@@ -2134,6 +2148,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       VM.sysWriteln("Virtual machine state:");
       Scheduler.dumpVirtualMachine();
     }
+    bugReportMessage();
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2156,6 +2171,7 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // print a traceback and die
     GreenScheduler.traceback(message, number);
+    bugReportMessage();
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2163,11 +2179,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-
-//   /* This could be made public. */
-//   private static boolean alreadyShuttingDown() {
-//     return (inSysExit != 0) || (inShutdown != 0);
-//   }
 
   /**
    * Exit virtual machine.
@@ -2184,7 +2195,6 @@ public class VM extends Properties implements Constants, ExitStatus {
       VM.enableGC();
       VM.sysWriteln("... END context of the call to VM.sysExit]");
     }
-
     if (runningVM) {
       Scheduler.sysExit();
       Callbacks.notifyExit(value);

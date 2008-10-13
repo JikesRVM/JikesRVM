@@ -888,6 +888,7 @@ public abstract class Scheduler {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
       dumpStack(fp);
+      VM.bugReportMessage();
       VM.sysExit(VM.EXIT_STATUS_DUMP_STACK_AND_DIE);
     } else {
       // Another failure occurred while attempting to exit cleanly.
