@@ -2195,7 +2195,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_iflt(int bTarget) {
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     genCondBranch(Assembler.LT, bTarget);
   }
 
@@ -2206,7 +2206,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_ifge(int bTarget) {
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     genCondBranch(Assembler.GE, bTarget);
   }
 
@@ -2217,7 +2217,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_ifgt(int bTarget) {
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     genCondBranch(Assembler.GT, bTarget);
   }
 
@@ -2228,7 +2228,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_ifle(int bTarget) {
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     genCondBranch(Assembler.LE, bTarget);
   }
 
@@ -3970,7 +3970,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Inline
   private void genExplicitNullCheck(Assembler asm, GPR objRefReg) {
     // compare to zero
-    asm.emitCMP_Reg_Imm(objRefReg, 0);
+    asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
     // Jmp around trap if index is OK
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr = asm.forwardJcc(Assembler.NE);

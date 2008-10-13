@@ -527,13 +527,13 @@ pushCOND(BooleanCmp.getCond(P(p))); \\
 EMIT(MIR_Compare.mutate(P(p), IA32_CMP, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))));
 
 r:	BOOLEAN_CMP_INT(r,INT_CONSTANT)
-VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?37:INFINITE
+VR(p) == 0 ? 37:INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p),MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())));\\
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
 
 boolcmp: BOOLEAN_CMP_INT(r,INT_CONSTANT)
-VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?11:INFINITE
+VR(p) == 0 ? 11:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \\
 EMIT(CPOS(P(p),MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())));
@@ -682,7 +682,7 @@ CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, any))
-VRL(p) == 0 && EQ_NE(CondMove.getCond(P(p)))?(11 + 30):INFINITE
+VRL(p) == 0 ? (11 + 30):INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getVal1(P(p)).copy()))); \\
 CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
@@ -2395,7 +2395,7 @@ EMIT_INSTRUCTION
 IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(r, INT_CONSTANT)
-VR(p) == 0 && EQ_NE(IfCmp.getCond(P(p)))?24:INFINITE
+VR(p) == 0 ? 24:INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
 EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, IfCmp.getVal1(P(p)), IfCmp.getVal1(P(p)).copy()))); \\
