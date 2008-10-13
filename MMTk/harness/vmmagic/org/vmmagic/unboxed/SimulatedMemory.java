@@ -198,7 +198,7 @@ public final class SimulatedMemory {
   }
 
   public static float getFloat(Address address, Offset offset) {
-    return Float.intBitsToFloat(getInt(address));
+    return Float.intBitsToFloat(getInt(address,offset));
   }
 
   public static long getLong(Address address, Offset offset) {
@@ -206,7 +206,7 @@ public final class SimulatedMemory {
   }
 
   public static double getDouble(Address address, Offset offset) {
-    return Double.longBitsToDouble(getLong(address));
+    return Double.longBitsToDouble(getLong(address,offset));
   }
 
   public static byte setByte(Address address, byte value, Offset offset) {
