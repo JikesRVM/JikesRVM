@@ -3154,7 +3154,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
             }
           }
           baselineEmitLoadTIB(asm, S0, T1); // S0 = tib of "this" object
-          asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << 2));  // implements bit vector
+          if (VM.BuildFor32Addr) {
+            asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));  // implements bit vector
+          } else {
+            asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));  // implements bit vector
+          }
 
           if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
             // must do arraybounds check of implements bit vector
@@ -3173,7 +3177,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           if (interfaceIndex == 0) {
             asm.emitTEST_RegInd_Imm(S0, interfaceMask);
           } else {
-            asm.emitTEST_RegDisp_Imm(S0, Offset.fromIntZeroExtend(interfaceIndex << LG_WORDSIZE), interfaceMask);
+            asm.emitTEST_RegDisp_Imm(S0, Offset.fromIntZeroExtend(interfaceIndex << LOG_BYTES_IN_INT), interfaceMask);
           }
           asm.emitBranchLikelyNextInstruction();
           ForwardReference fr = asm.forwardJcc(Assembler.NE);
