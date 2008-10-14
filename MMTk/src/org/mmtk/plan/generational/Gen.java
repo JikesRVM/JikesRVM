@@ -57,7 +57,7 @@ public abstract class Gen extends StopTheWorld {
   public static final boolean IGNORE_REMSETS = false;
   public static final boolean USE_STATIC_WRITE_BARRIER = false;
   public static final boolean USE_OBJECT_BARRIER_FOR_AASTORE = false; // choose between slot and object barriers
-  public static final boolean USE_OBJECT_BARRIER_FOR_PUTFIELD = true; // choose between slot and object barriers
+  public static final boolean USE_OBJECT_BARRIER_FOR_PUTFIELD = false; // choose between slot and object barriers
   public static final boolean USE_OBJECT_BARRIER = USE_OBJECT_BARRIER_FOR_AASTORE || USE_OBJECT_BARRIER_FOR_PUTFIELD;
   private static final boolean USE_DISCONTIGUOUS_NURSERY = false;
 
