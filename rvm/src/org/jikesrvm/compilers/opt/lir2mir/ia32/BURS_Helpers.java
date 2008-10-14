@@ -471,6 +471,22 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     throw new OptimizingCompilerException("BURS_Helpers", "unexpected 387 constant " + val);
   }
 
+  /** Can the given condition for a compare be converted to a test? */
+  protected final boolean CMP_TO_TEST(ConditionOperand op) {
+    switch(op.value) {
+    case ConditionOperand.EQUAL:
+    case ConditionOperand.NOT_EQUAL:
+    case ConditionOperand.LESS:
+    case ConditionOperand.GREATER_EQUAL:
+    case ConditionOperand.GREATER:
+    case ConditionOperand.LESS_EQUAL:
+    case ConditionOperand.SAME:
+    case ConditionOperand.NOT_SAME:
+    default:
+      return false;
+    }
+  }
+
   protected final IA32ConditionOperand COND(ConditionOperand op) {
     return new IA32ConditionOperand(op);
   }
