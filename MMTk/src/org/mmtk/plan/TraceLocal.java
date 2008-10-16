@@ -85,9 +85,9 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {
-    ObjectReference object = VM.activePlan.collector().loadObjectReference(slot);
+    ObjectReference object = VM.activePlan.global().loadObjectReference(slot);
     ObjectReference newObject = traceObject(object, false);
-    VM.activePlan.collector().storeObjectReference(slot, newObject);
+    VM.activePlan.global().storeObjectReference(slot, newObject);
   }
 
   /**
@@ -118,10 +118,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public final void processRootEdge(Address slot, boolean untraced) {
     ObjectReference object;
     if (untraced) object = slot.loadObjectReference();
-    else     object = VM.activePlan.collector().loadObjectReference(slot);
+    else     object = VM.activePlan.global().loadObjectReference(slot);
     ObjectReference newObject = traceObject(object, true);
     if (untraced) slot.store(newObject);
-    else     VM.activePlan.collector().storeObjectReference(slot, newObject);
+    else     VM.activePlan.global().storeObjectReference(slot, newObject);
   }
 
   /**
@@ -205,8 +205,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     Space space = Space.getSpaceForObject(object);
     if (space == Plan.loSpace)
       return Plan.loSpace.isLive(object);
-    else if (space == Plan.ploSpace)
-      return Plan.ploSpace.isLive(object);
     else if (space == Plan.nonMovingSpace)
       return Plan.nonMovingSpace.isLive(object);
     else if (Plan.USE_CODE_SPACE && space == Plan.smallCodeSpace)
@@ -262,16 +260,17 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       return Plan.immortalSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.LOS, object))
       return Plan.loSpace.traceObject(this, object);
-    if (Space.isInSpace(Plan.PLOS, object))
-      return Plan.ploSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.NON_MOVING, object))
       return Plan.nonMovingSpace.traceObject(this, object);
     if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.SMALL_CODE, object))
       return Plan.smallCodeSpace.traceObject(this, object);
     if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
       return Plan.largeCodeSpace.traceObject(this, object);
-    if (VM.VERIFY_ASSERTIONS)
+    if (VM.VERIFY_ASSERTIONS) {
+      Space.printVMMap();
+      Log.write("Failing object => "); Log.writeln(object);
       VM.assertions._assert(false, "No special case for space in traceObject");
+    }
     return ObjectReference.nullReference();
   }
 
@@ -313,8 +312,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())
-      return true;
-    if (Space.isInSpace(Plan.PLOS, object))
       return true;
     if (Space.isInSpace(Plan.LOS, object))
       return true;
@@ -561,11 +558,11 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public final void processPrecopyEdge(Address slot, boolean untraced) {
     ObjectReference child;
     if (untraced) child = slot.loadObjectReference();
-    else          child = VM.activePlan.collector().loadObjectReference(slot);
+    else          child = VM.activePlan.global().loadObjectReference(slot);
     if (!child.isNull()) {
       child = precopyObject(child);
       if (untraced) slot.store(child);
-      else          VM.activePlan.collector().storeObjectReference(slot, child);
+      else          VM.activePlan.global().storeObjectReference(slot, child);
     }
   }
 }

@@ -45,6 +45,7 @@ import org.jikesrvm.compilers.opt.controlflow.YieldPoints;
 import org.jikesrvm.compilers.opt.escape.EscapeTransformations;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertHIRtoLIR;
 import org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices;
+import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.regalloc.CoalesceMoves;
 import org.jikesrvm.compilers.opt.ssa.GCP;
 import org.jikesrvm.compilers.opt.ssa.LeaveSSA;
@@ -185,6 +186,21 @@ public class OptimizationPlanner {
 
         // Always do initial wave of peephole branch optimizations
         new BranchOptimizations(0, true, false),
+
+        // ir now contains well formed HIR. Optionally do a verification pass.
+        new CompilerPhase() {
+          public String getName() {
+            return "HIR Verification";
+          }
+          public void perform(IR ir) {
+            if (IR.SANITY_CHECK) {
+              ir.verify("Initial HIR", true);
+            }
+          }
+          public CompilerPhase newExecution(IR ir) {
+            return this;
+          }
+        },
 
         // Adjust static branch probabilities to account for infrequent blocks
         new AdjustBranchProbabilities(),

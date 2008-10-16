@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.opt.ir.OsrPoint;
 /**
  * Variable map element (osr instruction, LinkedList MethodVariables)
  */
-public class VariableMapElement {
+public final class VariableMapElement {
   public final Instruction osr;
   public final LinkedList<MethodVariables> mvars;
 

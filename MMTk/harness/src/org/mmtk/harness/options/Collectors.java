@@ -24,13 +24,15 @@ public final class Collectors extends org.vmutil.options.IntOption {
   public Collectors() {
     super(Harness.options, "Collectors",
           "Collector threads",
-          1);
+          Integer.valueOf(System.getProperty("mmtk.harness.collectors", "1")));
   }
 
   /**
    * Only accept non-negative values.
+   *
+   * Except for unit tests, which can have 0.
    */
   protected void validate() {
-    failIf(this.value <= 0, "Need at least one collector thread");
+    failIf(this.value < 0, "Need at least one collector thread");
   }
 }

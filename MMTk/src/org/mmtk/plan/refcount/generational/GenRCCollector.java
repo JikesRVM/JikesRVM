@@ -14,60 +14,31 @@ package org.mmtk.plan.refcount.generational;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
+import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.policy.ExplicitFreeListSpace;
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * This class implements <i>per-collector thread</i> behavior
- * and state for the <i>GenRC</i> plan, which implements a generational
- * reference counting collector.<p>
- *
- * Specifically, this class defines <i>RC</i> collection behavior
- * (through <code>trace</code> and the <code>collectionPhase</code>
- * method).<p>
- *
- * @see GenRC for an overview of the reference counting algorithm.<p>
- *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
+ * This class implements the collector context for a simple reference counting
  * collector.
- *
- * @see GenRC
- * @see GenRCMutator
- * @see org.mmtk.plan.StopTheWorldCollector
- * @see org.mmtk.plan.CollectorContext
  */
 @Uninterruptible
-public class GenRCCollector extends RCBaseCollector implements Constants {
+public class GenRCCollector extends RCBaseCollector {
+  private final GenRCFindRootSetTraceLocal rootTrace;
+  private final GenRCModifiedProcessor modProcessor;
+  private final ExplicitFreeListLocal rc;
 
-  /****************************************************************************
-   * Instance fields
-   */
-  public final ExplicitFreeListLocal rc;
-  public final GenRCTraceLocal trace;
-  public final GenRCModifiedProcessor modProcessor;
-
-  /****************************************************************************
-   * Initialization
-   */
-
-  /**
-   * Constructor
-   */
   public GenRCCollector() {
-    trace = new GenRCTraceLocal(global().rcTrace);
     rc = new ExplicitFreeListLocal(GenRC.rcSpace);
-    modProcessor = new GenRCModifiedProcessor(trace);
+    rootTrace = new GenRCFindRootSetTraceLocal(global().rootTrace, newRootBuffer);
+    modProcessor = new GenRCModifiedProcessor(rootTrace);
   }
 
   /****************************************************************************
@@ -79,19 +50,18 @@ public class GenRCCollector extends RCBaseCollector implements Constants {
    * Perform a per-collector collection phase.
    *
    * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * @param primary perform any single-threaded local activities.
    */
-  @Inline
-  public void collectionPhase(short phaseId, boolean primary) {
-    if (phaseId == GenRC.PREPARE) {
+  public final void collectionPhase(short phaseId, boolean primary) {
+    if (phaseId == RCBase.PREPARE) {
       super.collectionPhase(phaseId, primary);
       rc.prepare();
       return;
     }
 
-    if (phaseId == GenRC.RELEASE) {
-      super.collectionPhase(phaseId, primary);
+    if (phaseId == RCBase.RELEASE) {
       rc.release();
+      super.collectionPhase(phaseId, primary);
       return;
     }
 
@@ -99,9 +69,9 @@ public class GenRCCollector extends RCBaseCollector implements Constants {
   }
 
   /****************************************************************************
-  *
-  * Collection-time allocation
-  */
+   *
+   * Collection-time allocation
+   */
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
@@ -115,7 +85,7 @@ public class GenRCCollector extends RCBaseCollector implements Constants {
    */
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
-                                 int align, int offset, int allocator) {
+      int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     }
@@ -133,29 +103,22 @@ public class GenRCCollector extends RCBaseCollector implements Constants {
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int bytes, int allocator) {
     CopySpace.clearGCBits(object);
-    RCHeader.initializeHeader(object, typeRef, false);
+    RCHeader.initializeHeader(object, false);
     RCHeader.makeUnlogged(object);
     ExplicitFreeListSpace.unsyncSetLiveBit(object);
   }
 
-  /****************************************************************************
-   *
-   * Miscellaneous
+  /**
+   * Get the modified processor to use.
    */
-
-  /** @return The active global plan as an <code>MS</code> instance. */
-  @Inline
-  private static GenRC global() {
-    return (GenRC) VM.activePlan.global();
-  }
-
-  /** @return The current trace instance. */
-  public final TraceLocal getCurrentTrace() {
-    return trace;
-  }
-
-  /** @return The current modified object processor. */
-  public final TransitiveClosure getModifiedProcessor() {
+  protected final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
+  }
+
+  /**
+   * Get the root trace to use.
+   */
+  protected final TraceLocal getRootTrace() {
+    return rootTrace;
   }
 }

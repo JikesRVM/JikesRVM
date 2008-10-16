@@ -15,6 +15,7 @@ package org.mmtk.harness.vm;
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
@@ -59,7 +60,7 @@ public class Collection extends org.mmtk.vm.Collection {
     if (mutator.isOutOfMemory()) throw new Mutator.OutOfMemory();
 
     Collector.triggerGC(why);
-    Mutator.current().waitForGC();
+    Scheduler.waitForGC();
 
     if (mutator.isOutOfMemory() && !mutator.isPhysicalAllocationFailure()) {
       throw new Mutator.OutOfMemory();
@@ -110,7 +111,7 @@ public class Collection extends org.mmtk.vm.Collection {
         int current = mutator.getCollectionAttempts();
         if (current > max) max = current;
       }
-      return max + Collector.collectionAttemptBase;
+      return max + Collector.getCollectionAttemptBase();
   }
 
   /**
@@ -148,7 +149,7 @@ public class Collection extends org.mmtk.vm.Collection {
    * @return True if GC is not in progress.
    */
   public boolean noThreadsInGC() {
-    return Collector.noThreadsInGC();
+    return Scheduler.noThreadsInGC();
   }
 
   /**

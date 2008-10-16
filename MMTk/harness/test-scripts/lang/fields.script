@@ -1,0 +1,33 @@
+/*
+ * test setting and retrieving from object fields
+ */
+main() {
+  object a = alloc(2,2);
+  object b = alloc(0,0);
+  object c = alloc(0,0);
+  a.int[0] = 1;
+  a.int[1] = 2;
+  a.object[0] = b;
+  a.object[1] = c;
+
+  check(a.int[0],1);
+  check(a.int[1],2);
+  check_obj(a.object[0],b);
+  check_obj(a.object[1],c);
+}
+
+check(int actual, int expected) {
+  if (actual == expected) {
+    print("OK");
+  } else {
+    print("ERROR");
+  }
+}
+
+check_obj(object actual, object expected) {
+  if (actual == expected) {
+    print("OK");
+  } else {
+    print("ERROR");
+  }
+}

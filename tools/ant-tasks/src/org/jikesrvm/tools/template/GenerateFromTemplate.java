@@ -246,6 +246,7 @@ public class GenerateFromTemplate {
           inDir = args[0].substring(0, args[0].lastIndexOf(File.separator)+1);
       else
           inDir = "";
+      if (DEBUG) System.out.println("inDir="+inDir);
       inStream = new FileInputStream(args[0]);
       outStream = new FileOutputStream(args[1]);
 

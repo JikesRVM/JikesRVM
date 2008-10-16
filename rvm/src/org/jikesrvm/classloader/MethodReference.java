@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -40,6 +41,7 @@ public final class MethodReference extends MemberReference {
    * Find or create a method reference
    * @see MemberReference#findOrCreate(TypeReference, Atom, Atom)
    */
+  @Pure
   public static MethodReference findOrCreate(TypeReference tRef, Atom mn, Atom md) {
     return MemberReference.findOrCreate(tRef, mn, md).asMethodReference();
   }

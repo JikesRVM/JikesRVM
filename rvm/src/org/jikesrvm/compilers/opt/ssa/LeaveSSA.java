@@ -307,7 +307,7 @@ public class LeaveSSA extends CompilerPhase {
     for (Enumeration<BasicBlock> outBlocks = bb.getOut(); outBlocks.hasMoreElements();) {
       BasicBlock ob = outBlocks.nextElement();
       LiveAnalysis.BBLiveElement le = live.getLiveInfo(ob);
-      out.add(le.in());
+      out.add(le.getIn());
     }
 
     // usedByAnother represents the set of registers that appear on the

@@ -80,6 +80,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JCC;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LEA;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG8B;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_METHODSTART;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVLPD;
@@ -468,6 +469,22 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       }
     }
     throw new OptimizingCompilerException("BURS_Helpers", "unexpected 387 constant " + val);
+  }
+
+  /** Can the given condition for a compare be converted to a test? */
+  protected final boolean CMP_TO_TEST(ConditionOperand op) {
+    switch(op.value) {
+    case ConditionOperand.EQUAL:
+    case ConditionOperand.NOT_EQUAL:
+    case ConditionOperand.LESS:
+    case ConditionOperand.GREATER_EQUAL:
+    case ConditionOperand.GREATER:
+    case ConditionOperand.LESS_EQUAL:
+    case ConditionOperand.SAME:
+    case ConditionOperand.NOT_SAME:
+    default:
+      return false;
+    }
   }
 
   protected final IA32ConditionOperand COND(ConditionOperand op) {
@@ -2775,7 +2792,8 @@ Operand value, boolean signExtend) {
       }
       if (val2 instanceof RegisterOperand) {
         two = val2;
-        ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()));
+        ((RegisterOperand)two).setType(TypeReference.Int);
+        ltwo = new RegisterOperand(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()), TypeReference.Int);
       } else {
         LongConstantOperand tmp = (LongConstantOperand) val2;
         two = IC(tmp.upper32());
@@ -2839,7 +2857,8 @@ Operand value, boolean signExtend) {
     }
     if (val2 instanceof RegisterOperand) {
       two = val2;
-      ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()));
+      ((RegisterOperand)two).setType(TypeReference.Int);
+      ltwo = new RegisterOperand(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()), TypeReference.Int);
     } else {
       LongConstantOperand tmp = (LongConstantOperand) val2;
       two = IC(tmp.upper32());
@@ -3047,11 +3066,13 @@ Operand value, boolean signExtend) {
     for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
       Operand param = params[paramIdx++];
       if (param instanceof RegisterOperand) {
-        MIR_Call.setParam(s, mirCallIdx++, param);
         RegisterOperand rparam = (RegisterOperand) param;
+        MIR_Call.setParam(s, mirCallIdx++, rparam);
         if (rparam.getType().isLongType()) {
-          MIR_Call.setParam(s, mirCallIdx++, L(regpool
-              .getSecondReg(rparam.getRegister())));
+          rparam.setType(TypeReference.Int);
+          MIR_Call.setParam(s, mirCallIdx-1, rparam);
+          MIR_Call.setParam(s, mirCallIdx++,
+            new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
         }
       } else if (param instanceof LongConstantOperand) {
         LongConstantOperand val = (LongConstantOperand) param;
@@ -3109,8 +3130,9 @@ Operand value, boolean signExtend) {
         // NOTE: longs passed little endian to C callee!
         RegisterOperand rparam = (RegisterOperand) param;
         if (rparam.getType().isLongType()) {
-          MIR_Call.setParam(s, mirCallIdx++, L(regpool
-              .getSecondReg(rparam.getRegister())));
+          rparam.setType(TypeReference.Int);
+          MIR_Call.setParam(s, mirCallIdx++,
+            new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
         }
         MIR_Call.setParam(s, mirCallIdx++, param);
       } else if (param instanceof LongConstantOperand) {
@@ -3140,8 +3162,10 @@ Operand value, boolean signExtend) {
     // going to get into trouble (if someone else was also using index).
     RegisterOperand newIndex = regpool.makeTempInt();
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))));
+    RegisterOperand methodStart = regpool.makeTemp(TypeReference.Address);
+    EMIT(CPOS(s, MIR_Nullary.create(IA32_METHODSTART, methodStart)));
     int number = LowTableSwitch.getNumberOfTargets(s);
-    Instruction s2 = CPOS(s, MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), number * 2));
+    Instruction s2 = CPOS(s, MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), methodStart.copyD2U(), number * 2));
     for (int i = 0; i < number; i++) {
       MIR_LowTableSwitch.setTarget(s2, i, LowTableSwitch.getTarget(s, i));
       MIR_LowTableSwitch.setBranchProfile(s2, i, LowTableSwitch
@@ -3188,8 +3212,10 @@ Operand value, boolean signExtend) {
         VM._assert((tc.getTrapCode() == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO) &&
                    (((LongConstantOperand) v2).value == 0L));
       }
+      RegisterOperand vr = v1.copyRO();
+      vr.setType(TypeReference.Int);
       RegisterOperand rr = regpool.makeTempInt();
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, rr, v1.copy())));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, rr, vr)));
       EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR,
                                 rr.copy(),
                                 new RegisterOperand(regpool.getSecondReg(v1.getRegister()), TypeReference.Int))));

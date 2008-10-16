@@ -17,6 +17,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
@@ -55,6 +56,10 @@ public abstract class Gen extends StopTheWorld {
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   public static final boolean IGNORE_REMSETS = false;
   public static final boolean USE_STATIC_WRITE_BARRIER = false;
+  public static final boolean USE_OBJECT_BARRIER_FOR_AASTORE = false; // choose between slot and object barriers
+  public static final boolean USE_OBJECT_BARRIER_FOR_PUTFIELD = false; // choose between slot and object barriers
+  public static final boolean USE_OBJECT_BARRIER = USE_OBJECT_BARRIER_FOR_AASTORE || USE_OBJECT_BARRIER_FOR_PUTFIELD;
+  private static final boolean USE_DISCONTIGUOUS_NURSERY = false;
 
   // Allocators
   public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
@@ -79,13 +84,11 @@ public abstract class Gen extends StopTheWorld {
   public static SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
+  private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(0.15f, true);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, vmRequest);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
-  public static final Address NURSERY_START = nurserySpace.getStart();
-  public static final Address NURSERY_END = NURSERY_START.plus(nurserySpace.getExtent());
-
-  private static int lastCommittedPLOSpages = 0;
+  private static final Address NURSERY_START = nurserySpace.getStart();
 
   /*****************************************************************************
    *
@@ -101,8 +104,9 @@ public abstract class Gen extends StopTheWorld {
   /**
    * Remset pools
    */
-  public final SharedDeque arrayRemsetPool = new SharedDeque("arrayRemSets",metaDataSpace, 2);
+  public final SharedDeque modbufPool = new SharedDeque("modBufs",metaDataSpace, 1);
   public final SharedDeque remsetPool = new SharedDeque("remSets",metaDataSpace, 1);
+  public final SharedDeque arrayRemsetPool = new SharedDeque("arrayRemSets",metaDataSpace, 2);
 
   /*
    * Class initializer
@@ -145,16 +149,14 @@ public abstract class Gen extends StopTheWorld {
 
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      if (!traceFullHeap()) {
-        ploSpace.prepare(false);
-      } else {
+      if (traceFullHeap()){
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
         }
         super.collectionPhase(phaseId);
 
-        // we can throw away the remsets for a full heap GC
+        // we can throw away the remsets (but not modbuf) for a full heap GC
         remsetPool.clearDeque(1);
         arrayRemsetPool.clearDeque(2);
       }
@@ -169,16 +171,15 @@ public abstract class Gen extends StopTheWorld {
     }
     if (phaseId == RELEASE) {
       nurserySpace.release();
+      modbufPool.clearDeque(1);
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
       if (!traceFullHeap()) {
         nurseryTrace.release();
-        ploSpace.release(false);
       } else {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
-      lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       return;
     }
@@ -235,11 +236,9 @@ public abstract class Gen extends StopTheWorld {
     }
 
     int smallNurseryPages = nurserySpace.committedPages();
-    int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
-    int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
     int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
 
-    if ((plosYield + smallNurseryYield) < getPagesRequired()) {
+    if (smallNurseryYield < getPagesRequired()) {
       // Our total yield is insufficent.
       return true;
     }
@@ -251,12 +250,6 @@ public abstract class Gen extends StopTheWorld {
       }
     }
 
-    if (ploSpace.allocationFailed()) {
-      if (plosYield < ploSpace.requiredPages()) {
-        // We have run out of VM pages in the PLOS
-        return true;
-      }
-    }
 
     return false;
   }
@@ -330,6 +323,31 @@ public abstract class Gen extends StopTheWorld {
    *
    * Miscellaneous
    */
+
+  /**
+   * Return true if the address resides within the nursery
+   *
+   * @param addr The object to be tested
+   * @return true if the address resides within the nursery
+   */
+  @Inline
+  static boolean inNursery(Address addr) {
+    if (USE_DISCONTIGUOUS_NURSERY)
+      return Map.getDescriptorForAddress(addr) == NURSERY;
+    else
+      return addr.GE(NURSERY_START);
+  }
+
+  /**
+   * Return true if the object resides within the nursery
+   *
+   * @param obj The object to be tested
+   * @return true if the object resides within the nursery
+   */
+  @Inline
+  static boolean inNursery(ObjectReference obj) {
+    return inNursery(obj.toAddress());
+  }
 
   /**
    * @return Does the mature space do copying ?

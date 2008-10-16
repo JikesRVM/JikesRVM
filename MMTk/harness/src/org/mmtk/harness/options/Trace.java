@@ -25,7 +25,7 @@ public final class Trace extends org.vmutil.options.EnumOption {
     super(Harness.options, "Trace",
         "Harness debugging trace options",
         org.mmtk.harness.lang.Trace.itemNames(),
-        "NONE");
+        System.getProperty("mmtk.harness.trace", "NONE"));
   }
 
   public void apply() {

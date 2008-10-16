@@ -43,9 +43,6 @@ public final class Strings extends org.mmtk.vm.Strings {
   /**
    * Copies characters from the string into the character array.
    * Thread switching is disabled during this method's execution.
-   * <p>
-   * <b>TODO:</b> There are special memory management semantics here that
-   * someone should document.
    *
    * @param str the source string
    * @param dst the destination array
@@ -55,10 +52,32 @@ public final class Strings extends org.mmtk.vm.Strings {
    * @return the number of characters copied.
    */
   public int copyStringToChars(String str, char [] dst,
-                                     int dstBegin, int dstEnd) {
-    if (VM.runningVM) {
-      Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
-    }
+                               int dstBegin, int dstEnd) {
+    if (!VM.runningVM)
+      return naiveCopyStringToChars(str, dst, dstBegin, dstEnd);
+    else
+      return safeCopyStringToChars(str, dst, dstBegin, dstEnd);
+  }
+
+  /**
+   * Copies characters from the string into the character array.
+   * Thread switching is disabled during this method's execution.
+   * <p>
+   * <b>TODO:</b> There are special memory management semantics here that
+   * someone should document.
+   *
+   * @param str the source string
+   * @param dst the destination array
+   * @param dstBegin the start offset in the destination array
+   * @param dstEnd the index after the last character in the
+   * destination to copy to
+   * @return the number of characters copied.
+   */
+  private int safeCopyStringToChars(String str, char [] dst,
+                                   int dstBegin, int dstEnd) {
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+    // FIXME Why do we need to disable thread switching here, in uninterruptible code??
+    Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
     char[] str_backing = java.lang.JikesRVMSupport.getBackingCharArray(str);
     int str_length = java.lang.JikesRVMSupport.getStringLength(str);
     int str_offset = java.lang.JikesRVMSupport.getStringOffset(str);
@@ -66,9 +85,29 @@ public final class Strings extends org.mmtk.vm.Strings {
     for (int i = 0; i < n; i++) {
       Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset+i]);
     }
-    if (VM.runningVM) {
-      Processor.getCurrentProcessor().enableThreadSwitching();
-    }
+    Processor.getCurrentProcessor().enableThreadSwitching();
+    return n;
+  }
+
+  /**
+   * Copies characters from the string into the character array.
+   * Thread switching is disabled during this method's execution.
+   *
+   * @param src the source string
+   * @param dst the destination array
+   * @param dstBegin the start offset in the destination array
+   * @param dstEnd the index after the last character in the
+   * destination to copy to
+   * @return the number of characters copied.
+   */
+  @UninterruptibleNoWarn
+  private int naiveCopyStringToChars(String str, char [] dst,
+                                      int dstBegin, int dstEnd) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    int len = str.length();
+    int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
+    for (int i = 0; i < n; i++)
+      Services.setArrayNoBarrier(dst, dstBegin + i, str.charAt(i));
     return n;
   }
 }

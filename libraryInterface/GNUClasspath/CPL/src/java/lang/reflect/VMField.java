@@ -26,7 +26,6 @@ import org.jikesrvm.classloader.RVMField;
 public final class VMField {
 
   final RVMField field;
-  Field f;
 
   // Prevent this class from being instantiated.
   @SuppressWarnings("unused")
@@ -51,39 +50,39 @@ public final class VMField {
     return field.getDeclaringClass().getClassForType();
   }
 
-  Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
+  Object get(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.get(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  boolean getBoolean(Object object) throws IllegalAccessException, IllegalArgumentException {
+  boolean getBoolean(Field f,Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getBoolean(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  byte getByte(Object object) throws IllegalAccessException, IllegalArgumentException {
+  byte getByte(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getByte(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  char getChar(Object object) throws IllegalAccessException, IllegalArgumentException {
+  char getChar(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getChar(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  double getDouble(Object object) throws IllegalAccessException, IllegalArgumentException {
+  double getDouble(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getDouble(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  float getFloat(Object object) throws IllegalAccessException, IllegalArgumentException {
+  float getFloat(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getFloat(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
+  int getInt(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getInt(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  long getLong(Object object) throws IllegalAccessException, IllegalArgumentException {
+  long getLong(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getLong(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  public short getShort(Object object) throws IllegalAccessException, IllegalArgumentException {
+  public short getShort(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
     return VMCommonLibrarySupport.getShort(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
@@ -99,47 +98,47 @@ public final class VMField {
     return field.getType().resolve().getClassForType();
   }
 
-  void set(Object object, Object value)
+  void set(Field f, Object object, Object value)
     throws IllegalAccessException, IllegalArgumentException     {
     VMCommonLibrarySupport.set(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setBoolean(Object object, boolean value)
+  void setBoolean(Field f, Object object, boolean value)
     throws IllegalAccessException, IllegalArgumentException    {
     VMCommonLibrarySupport.setBoolean(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-   void setByte(Object object, byte value)
+   void setByte(Field f, Object object, byte value)
      throws IllegalAccessException, IllegalArgumentException    {
      VMCommonLibrarySupport.setByte(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setChar(Object object, char value)
+  void setChar(Field f, Object object, char value)
     throws IllegalAccessException, IllegalArgumentException    {
     VMCommonLibrarySupport.setChar(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setDouble(Object object, double value)
+  void setDouble(Field f, Object object, double value)
     throws IllegalAccessException, IllegalArgumentException    {
     VMCommonLibrarySupport.setDouble(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setFloat(Object object, float value)
+  void setFloat(Field f, Object object, float value)
     throws IllegalAccessException, IllegalArgumentException    {
     VMCommonLibrarySupport.setFloat(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setInt(Object object, int value)
+  void setInt(Field f, Object object, int value)
     throws IllegalAccessException, IllegalArgumentException    {
     VMCommonLibrarySupport.setInt(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setLong(Object object, long value)
+  void setLong(Field f, Object object, long value)
     throws IllegalAccessException, IllegalArgumentException    {
     VMCommonLibrarySupport.setLong(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
-  void setShort(Object object, short value)
+  void setShort(Field f, Object object, short value)
     throws IllegalAccessException, IllegalArgumentException   {
     VMCommonLibrarySupport.setShort(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }

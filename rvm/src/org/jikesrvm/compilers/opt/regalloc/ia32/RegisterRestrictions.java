@@ -91,7 +91,9 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       // handle special cases
       switch (s.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
-          RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
+          RegisterOperand op = MIR_LowTableSwitch.getMethodStart(s);
+          noteMustNotSpill(op.getRegister());
+          op = MIR_LowTableSwitch.getIndex(s);
           noteMustNotSpill(op.getRegister());
         }
         break;

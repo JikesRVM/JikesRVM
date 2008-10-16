@@ -26,6 +26,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_Lea;
+import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
@@ -653,26 +654,30 @@ abstract class AssemblerBase extends Assembler
    */
   protected boolean targetIsClose(Instruction start, int target) {
     Instruction inst = start.nextInstructionInCodeOrder();
-    int budget = 120; // slight fudge factor could be 127
+    final int budget = 120; // slight fudge factor could be 127
+    int offset = 0;
     while (true) {
-      if (budget <= 0) return false;
+      if (offset <= budget) return false;
       if (inst.getmcOffset() == target) {
         return true;
       }
-      budget -= estimateSize(inst);
+      offset += estimateSize(inst, offset);
       inst = inst.nextInstructionInCodeOrder();
     }
   }
 
-  protected int estimateSize(Instruction inst) {
+  protected int estimateSize(Instruction inst, int offset) {
     switch (inst.getOpcode()) {
       case LABEL_opcode:
+        return (4 - offset) & 3; // return size of nop required for alignment
       case BBEND_opcode:
       case UNINT_BEGIN_opcode:
       case UNINT_END_opcode: {
         // these generate no code
         return 0;
       }
+      case IA32_METHODSTART_opcode:
+        return 12;
       // Generated from the same case in Assembler
       case IA32_ADC_opcode:
       case IA32_ADD_opcode:
@@ -693,8 +698,8 @@ abstract class AssemblerBase extends Assembler
       }
       case IA32_TEST_opcode: {
         int size = 2; // opcode + modr/m
-        size += operandCost(MIR_Test.getVal1(inst), true);
-        size += operandCost(MIR_Test.getVal2(inst), true);
+        size += operandCost(MIR_Test.getVal1(inst), false);
+        size += operandCost(MIR_Test.getVal2(inst), false);
         return size;
       }
       case IA32_ADDSD_opcode:
@@ -702,6 +707,7 @@ abstract class AssemblerBase extends Assembler
       case IA32_MULSD_opcode:
       case IA32_DIVSD_opcode:
       case IA32_XORPD_opcode:
+      case IA32_SQRTSD_opcode:
       case IA32_ADDSS_opcode:
       case IA32_SUBSS_opcode:
       case IA32_MULSS_opcode:
@@ -761,6 +767,7 @@ abstract class AssemblerBase extends Assembler
         return size;
       }
       case IA32_MOVD_opcode:
+      case IA32_MOVLPD_opcode:
       case IA32_MOVQ_opcode:
       case IA32_MOVSS_opcode:
       case IA32_MOVSD_opcode: {
@@ -801,6 +808,8 @@ abstract class AssemblerBase extends Assembler
         size += operandCost(value, false);
         return size;
       }
+      case MIR_LOWTABLESWITCH_opcode:
+        return MIR_LowTableSwitch.getNumberOfTargets(inst)*4 + 14;
       case IA32_OFFSET_opcode:
         return 4;
       case IA32_JCC_opcode:
@@ -809,7 +818,7 @@ abstract class AssemblerBase extends Assembler
       case IA32_LOCK_opcode:
         return 1;
       case IG_PATCH_POINT_opcode:
-        return 6;
+        return 8;
       case IA32_INT_opcode:
         return 2;
       case IA32_RET_opcode:
@@ -930,7 +939,7 @@ abstract class AssemblerBase extends Assembler
   }
 
   /**
-   *  Emit the given instruction, assuming that
+   * Emit the given instruction, assuming that
    * it is a MIR_Branch instruction
    * and has a JMP operator
    *
@@ -977,6 +986,37 @@ abstract class AssemblerBase extends Assembler
   }
 
   /**
+   * Emit the given instruction, assuming that
+   * it is a MIR_LowTableSwitch instruction
+   * and has a MIR_LOWTABLESWITCH operator
+   *
+   * @param inst the instruction to assemble
+   */
+  protected void doLOWTABLESWITCH(Instruction inst) {
+    int n = MIR_LowTableSwitch.getNumberOfTargets(inst); // n = number of normal cases (0..n-1)
+    GPR ms = GPR.lookup(MIR_LowTableSwitch.getMethodStart(inst).getRegister().number);
+    GPR idx = GPR.lookup(MIR_LowTableSwitch.getIndex(inst).getRegister().number);
+    // idx += [ms + idx<<2 + ??] - we will patch ?? when we know the placement of the table
+    int toPatchAddress = getMachineCodeIndex();
+    if (VM.buildFor32Addr()) {
+      emitMOV_Reg_RegIdx(idx, ms, idx, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      emitADD_Reg_Reg(idx, ms);
+    } else {
+      emitMOV_Reg_RegIdx(idx, ms, idx, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      emitADD_Reg_Reg_Quad(idx, ms);
+    }
+    // JMP T0
+    emitJMP_Reg(idx);
+    emitNOP((4-getMachineCodeIndex()) & 3); // align table
+    // create table of offsets from start of method
+    patchSwitchTableDisplacement(toPatchAddress);
+    for (int i = 0; i < n; i++) {
+      Operand target = MIR_LowTableSwitch.getTarget(inst, i);
+      emitOFFSET_Imm_ImmOrLabel(i, getImm(target), getLabel(target));
+    }
+  }
+
+  /**
    * Debugging support (return a printable representation of the machine code).
    *
    * @param instr  An integer to be interpreted as a PowerPC instruction
@@ -998,13 +1038,22 @@ abstract class AssemblerBase extends Assembler
     AssemblerOpt asm = new AssemblerOpt(count, shouldPrint, ir);
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
-      p.setmcOffset(-++count);
+      // Set the mc offset of all instructions to their negative position.
+      // A positive value in their position means they have been created
+      // by the assembler.
+      count++;
+      p.setmcOffset(-count);
+      if (p.operator() == Operators.MIR_LOWTABLESWITCH) {
+        // Table switch kludge, as these will occupy multiple slots in the
+        // generated assembler
+        count += MIR_LowTableSwitch.getNumberOfTargets(p);
+      }
     }
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       if (DEBUG_ESTIMATE) {
         int start = asm.getMachineCodeIndex();
-        int estimate = asm.estimateSize(p);
+        int estimate = asm.estimateSize(p, start);
         asm.doInst(p);
         int end = asm.getMachineCodeIndex();
         if (end - start > estimate) {

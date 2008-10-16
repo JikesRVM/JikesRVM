@@ -12,183 +12,156 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.plan.*;
-import org.mmtk.plan.refcount.cd.CDCollector;
-import org.mmtk.plan.refcount.cd.NullCDCollector;
-import org.mmtk.plan.refcount.cd.TrialDeletionCollector;
+import org.mmtk.plan.Phase;
+import org.mmtk.plan.StopTheWorldCollector;
+import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
+import org.mmtk.plan.refcount.backuptrace.BTTraceLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * This class implements <i>per-collector thread</i> behavior
- * and state for the <i>RC</i> plan, which implements a full-heap
- * reference counting collector.<p>
- *
- * Specifically, this class defines <i>RC</i> collection behavior
- * (through <code>trace</code> and the <code>collectionPhase</code>
- * method).<p>
- *
- * @see RCBase for an overview of the reference counting algorithm.<p>
- *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
+ * This class implements the collector context for a simple reference counting
  * collector.
- *
- * @see RCBase
- * @see RCBaseMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
  */
-@Uninterruptible public abstract class RCBaseCollector extends StopTheWorldCollector {
+@Uninterruptible
+public abstract class RCBaseCollector extends StopTheWorldCollector {
 
-  /****************************************************************************
-   * Instance fields
-   */
-  public ObjectReferenceDeque newRootSet;
-  public ObjectReferenceDeque oldRootSet;
-  public DecBuffer decBuffer;
-  public ObjectReferenceDeque modBuffer;
-
-  private NullCDCollector nullCD;
-  private TrialDeletionCollector trialDeletionCD;
-
-  /****************************************************************************
+  /************************************************************************
    * Initialization
    */
+  protected final ObjectReferenceDeque newRootBuffer;
+  private final BTTraceLocal backupTrace;
+  private final ObjectReferenceDeque modBuffer;
+  private final ObjectReferenceDeque oldRootBuffer;
+  private final RCDecBuffer decBuffer;
+  private final RCZero zero;
 
   /**
-   * Constructor
+   * Constructor.
    */
   public RCBaseCollector() {
-    newRootSet = new ObjectReferenceDeque("new root", global().newRootPool);
-    oldRootSet = new ObjectReferenceDeque("old root", global().oldRootPool);
+    newRootBuffer = new ObjectReferenceDeque("new-root", global().newRootPool);
+    oldRootBuffer = new ObjectReferenceDeque("old-root", global().oldRootPool);
     modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
-    decBuffer = new DecBuffer(global().decPool);
-    switch (RCBase.CYCLE_DETECTOR) {
-    case RCBase.NO_CYCLE_DETECTOR:
-      nullCD = new NullCDCollector();
-      break;
-    case RCBase.TRIAL_DELETION:
-      trialDeletionCD = new TrialDeletionCollector();
-      break;
-    }
+    decBuffer = new RCDecBuffer(global().decPool);
+    backupTrace = new BTTraceLocal(global().backupTrace);
+    zero = new RCZero();
   }
+
+  /**
+   * Get the modified processor to use.
+   */
+  protected abstract TransitiveClosure getModifiedProcessor();
+
+  /**
+   * Get the root trace to use.
+   */
+  protected abstract TraceLocal getRootTrace();
 
   /****************************************************************************
    *
    * Collection
    */
 
+  /** Perform garbage collection */
+  public void collect() {
+    Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection));
+  }
+
   /**
    * Perform a per-collector collection phase.
    *
    * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * @param primary perform any single-threaded local activities.
    */
-  @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
-      if (RCBase.WITH_COALESCING_RC) {
-        processModBuffer();
-      }
-      processOldRootSet();
-      getCurrentTrace().prepare();
+      getRootTrace().prepare();
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) backupTrace.prepare();
       return;
     }
 
     if (phaseId == RCBase.CLOSURE) {
-      getCurrentTrace().completeTrace();
-      processNewRootSet();
+      getRootTrace().completeTrace();
+      newRootBuffer.flushLocal();
+      return;
+    }
+
+    if (phaseId == RCBase.BT_CLOSURE) {
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        backupTrace.completeTrace();
+      }
+      return;
+    }
+
+    if (phaseId == RCBase.PROCESS_OLDROOTBUFFER) {
+      ObjectReference current;
+      while(!(current = oldRootBuffer.pop()).isNull()) {
+        decBuffer.push(current);
+      }
+      return;
+    }
+
+    if (phaseId == RCBase.PROCESS_NEWROOTBUFFER) {
+      ObjectReference current;
+      while(!(current = newRootBuffer.pop()).isNull()) {
+        RCHeader.incRC(current);
+        oldRootBuffer.push(current);
+        if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+          if (RCHeader.testAndMark(current)) {
+            backupTrace.processNode(current);
+          }
+        }
+      }
+      oldRootBuffer.flushLocal();
+      return;
+    }
+
+    if (phaseId == RCBase.PROCESS_MODBUFFER) {
+      ObjectReference current;
+      while(!(current = modBuffer.pop()).isNull()) {
+        RCHeader.makeUnlogged(current);
+        VM.scanning.scanObject(getModifiedProcessor(), current);
+      }
+      return;
+    }
+
+    if (phaseId == RCBase.PROCESS_DECBUFFER) {
+      ObjectReference current;
+      while(!(current = decBuffer.pop()).isNull()) {
+        if (RCHeader.decRC(current) == RCHeader.DEC_KILL) {
+          decBuffer.processChildren(current);
+          if (Space.isInSpace(RCBase.REF_COUNT, current)) {
+            RCBase.rcSpace.free(current);
+          } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
+            RCBase.rcloSpace.free(current);
+          } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
+            VM.scanning.scanObject(zero, current);
+          }
+        }
+      }
       return;
     }
 
     if (phaseId == RCBase.RELEASE) {
-      getCurrentTrace().release();
-      processDecBuffer();
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        backupTrace.release();
+      }
+      getRootTrace().release();
+      if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(newRootBuffer.isEmpty());
+        VM.assertions._assert(modBuffer.isEmpty());
+        VM.assertions._assert(decBuffer.isEmpty());
+      }
       return;
     }
 
-    if (!cycleDetector().collectionPhase(phaseId, primary)) {
-      super.collectionPhase(phaseId, primary);
-    }
-  }
-
-  /**
-   * Report a root object.
-   *
-   * @param object The root
-   */
-  public void reportRoot(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(RCBase.isRCObject(object));
-    }
-    RCHeader.incRC(object);
-    newRootSet.push(object);
-  }
-
-  /**
-   * Process the old root set, by either decrementing each
-   * entry, or unmarking the object's root flag.
-   */
-  public void processOldRootSet() {
-    ObjectReference current;
-    while (!(current = oldRootSet.pop()).isNull()) {
-      decBuffer.push(current);
-    }
-    decBuffer.flushLocal();
-  }
-
-  /**
-   * Move the new root set so that it is the old set for the
-   * next collection.
-   */
-  public void processNewRootSet() {
-    ObjectReference current;
-    while (!(current = newRootSet.pop()).isNull()) {
-      oldRootSet.push(current);
-    }
-    oldRootSet.flushLocal();
-  }
-
-  /**
-   * Process the decrement buffers, enqueing recursive
-   * decrements if necessary.
-   */
-  public void processDecBuffer() {
-    ObjectReference current;
-    while (!(current = decBuffer.pop()).isNull()) {
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(RCBase.isRCObject(current));
-      }
-      switch (RCHeader.decRC(current)) {
-      case RCHeader.DEC_KILL:
-        decBuffer.processChildren(current);
-        if (global().cycleDetector().allowFree(current)) {
-          RCBase.free(current);
-        }
-        break;
-      case RCHeader.DEC_BUFFER:
-        cycleDetector().bufferOnDecRC(current);
-        break;
-      }
-    }
-  }
-
-  /**
-   * Process the modified object buffers.
-   */
-  public void processModBuffer() {
-    TransitiveClosure modProcessor = getModifiedProcessor();
-    ObjectReference current;
-    while (!(current = modBuffer.pop()).isNull()) {
-      RCHeader.makeUnlogged(current);
-      VM.scanning.scanObject(modProcessor, current);
-    }
+    super.collectionPhase(phaseId, primary);
   }
 
   /****************************************************************************
@@ -196,26 +169,14 @@ import org.vmmagic.unboxed.*;
    * Miscellaneous
    */
 
-  /** @return The active global plan as an <code>MS</code> instance. */
+  /** @return The active global plan as an <code>RC</code> instance. */
   @Inline
-  private static RCBase global() {
+  protected static RCBase global() {
     return (RCBase) VM.activePlan.global();
   }
 
-  /** @return The TraceStep to use when processing modified objects. */
-  protected abstract TransitiveClosure getModifiedProcessor();
-
-  /** @return The active cycle detector instance */
-  @Inline
-  public final CDCollector cycleDetector() {
-    switch (RCBase.CYCLE_DETECTOR) {
-    case RCBase.NO_CYCLE_DETECTOR:
-      return nullCD;
-    case RCBase.TRIAL_DELETION:
-      return trialDeletionCD;
-    }
-
-    VM.assertions.fail("No cycle detector instance found.");
-    return null;
+  /** @return The current trace instance. */
+  public final TraceLocal getCurrentTrace() {
+    return getRootTrace();
   }
 }

@@ -1333,7 +1333,6 @@ public abstract class Simplifier extends IRTools {
           if (s.getPrev() != null) {
             int power = PowerOf2(val2);
             if (power != -1) {
-              int x = (1 << power)-1;
               RegisterOperand tempInt1 = regpool.makeTempInt();
               RegisterOperand tempInt2 = regpool.makeTempInt();
               RegisterOperand tempInt3 = regpool.makeTempInt();
@@ -1361,69 +1360,168 @@ public abstract class Simplifier extends IRTools {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
-        int val2 = op2.asIntConstant().value;
         Operand op1 = Binary.getVal1(s);
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
+          int val2 = op2.asIntConstant().value;
           Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(val1 * val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
-          // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-          if (val2 == -1) {                 // x * -1 == -x
-            Unary.mutate(s, INT_NEG, Binary.getClearResult(s), Binary.getClearVal1(s));
-            return DefUseEffect.REDUCED;
-          }
-          if (val2 == 0) {                  // x * 0 == 0
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(0));
-            return DefUseEffect.MOVE_FOLDED;
-          }
-          if (val2 == 1) {                  // x * 1 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
-            return DefUseEffect.MOVE_REDUCED;
-          }
-          // try to reduce x*c into shift and adds, but only if cost is cheap
-          if (s.getPrev() != null) {
-            // don't attempt to reduce if this instruction isn't
-            // part of a well-formed sequence
-            int cost = 0;
-            for (int i = 1; i < BITS_IN_INT; i++) {
-              if ((val2 & (1 << i)) != 0) {
-                // each 1 requires a shift and add
-                cost++;
-              }
+          // ONLY OP2 IS CONSTANT
+          return multiplyByConstant(regpool, s, op1, op2);
+        }
+      }
+    }
+    return DefUseEffect.UNCHANGED;
+  }
+
+  private static DefUseEffect multiplyByConstant(AbstractRegisterPool regpool, Instruction s, Operand op1, Operand op2) {
+    Operator addOperator, moveOperator, negateOperator, shiftLeftOperator;
+    ConstantOperand zero;
+    long val2;
+    int numBits;
+    if (op2.isIntConstant()) {
+      val2 = op2.asIntConstant().value;
+      addOperator = INT_ADD;
+      moveOperator = INT_MOVE;
+      negateOperator = INT_NEG;
+      shiftLeftOperator = INT_SHL;
+      zero = IntConstantOperand.zero;
+      numBits = 32;
+    } else {
+      val2 = op2.asLongConstant().value;
+      addOperator = LONG_ADD;
+      moveOperator = LONG_MOVE;
+      negateOperator = LONG_NEG;
+      shiftLeftOperator = LONG_SHL;
+      zero = LongConstantOperand.zero;
+      numBits = 64;
+    }
+    // ATTEMPT TO APPLY AXIOMS
+    if (val2 == 0) {                  // x * 0 == 0
+      Move.mutate(s, moveOperator, Binary.getClearResult(s), zero.copy());
+      return DefUseEffect.MOVE_FOLDED;
+    } else if (numBits == 32 && ((int)val2 == ((int)-val2))) { // x * MIN_INT == x << 31
+      Binary.mutate(s, INT_SHL, Binary.getClearResult(s), op1, IC(31));
+      return DefUseEffect.REDUCED;
+    } else if (numBits == 64 && val2 == -val2) { // x * MIN_LONG == x << 63
+      Binary.mutate(s, LONG_SHL, Binary.getClearResult(s), op1, IC(63));
+      return DefUseEffect.REDUCED;
+    }
+    // Try to reduce x*c into shift and adds, but only if cost is cheap
+    if (s.getPrev() != null) {
+      // don't attempt to reduce if this instruction isn't
+      // part of a well-formed sequence
+
+      // Cost of shift and add replacement
+      int cost = 0;
+      boolean negative = val2 < 0;
+      if (negative) {
+        val2 = -val2;
+        cost++;
+      }
+      if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS) {
+        int lastShift = 0;
+        boolean lastShiftWasShort = false;
+        for (int i = 1; i < numBits; i++) {
+          if ((val2 & (1L << i)) != 0) {
+            // LEA shift and add uses 1 instruction, try to determine if we can
+            // use in favour to separate shift and adds
+            // NB LEA shift needs to be of size 1, 2 or 3 and if the last
+            // shift used an LEA then the add can't be merged
+            // (so we can allow better ILP by just using a regular shift of
+            // the original operand)
+            if (i < 4) {
+              // can use LEA of operand
+              cost++;
+            } else if ((i - lastShift) < 4 && !lastShiftWasShort) {
+              // can use LEA of last shift
+              cost++;
+              lastShiftWasShort = true;
+            } else {
+              // need separate shift and add
+              cost+=2;
+              lastShiftWasShort = false;
             }
-            if (cost < 3) {
-              // generate shift and adds
-              RegisterOperand val1Operand = Binary.getClearVal1(s).asRegister();
-              RegisterOperand resultOperand = regpool.makeTempInt();
-              Instruction move;
-              if ((val2 & 1) == 1) {
-                // result = val1 * 1
-                move = CPOS(s, Move.create(INT_MOVE, resultOperand, val1Operand));
-              } else {
-                // result = 0
-                move = CPOS(s, Move.create(INT_MOVE, resultOperand, IC(0)));
-              }
-              move.copyPosition(s);
-              s.insertBefore(move);
-              for (int i = 1; i < BITS_IN_INT; i++) {
-                if ((val2 & (1 << i)) != 0) {
-                  RegisterOperand tempInt = regpool.makeTempInt();
-                  Instruction shift = CPOS(s, Binary.create(INT_SHL, tempInt, val1Operand.copyRO(), IC(i)));
-                  shift.copyPosition(s);
-                  s.insertBefore(shift);
-                  Instruction add =
-                      CPOS(s, Binary.create(INT_ADD, resultOperand.copyRO(), resultOperand.copyRO(), tempInt.copyRO()));
-                  add.copyPosition(s);
-                  s.insertBefore(add);
-                }
-              }
-              Move.mutate(s, INT_MOVE, Binary.getClearResult(s), resultOperand.copyRO());
-              return DefUseEffect.REDUCED;
-            }
+            lastShift = i;
           }
         }
+      } else if (numBits > BITS_IN_ADDRESS) {
+        for (int i = 1; i < BITS_IN_ADDRESS; i++) {
+          if ((val2 & (1L << i)) != 0) {
+            // each 1 requires a shift and add
+            cost+=2;
+          }
+        }
+        for (int i = BITS_IN_ADDRESS; i < numBits; i++) {
+          if ((val2 & (1L << i)) != 0) {
+            // when the shift is > than the bits in the address we can just 0
+            // the bottom word, make the cost cheaper
+            cost++;
+          }
+        }
+      } else {
+        for (int i = 1; i < numBits; i++) {
+          if ((val2 & (1L << i)) != 0) {
+            // each 1 requires a shift and add
+            cost+=2;
+          }
+        }
+      }
+      int targetCost;
+      if (VM.BuildForIA32) {
+        targetCost = numBits == 64 ? 6 : 4;
+      } else {
+        targetCost = 2;
+      }
+      if (cost <= targetCost) {
+        // generate shift and adds
+        RegisterOperand val1Operand = op1.asRegister();
+        RegisterOperand resultOperand = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
+        Instruction move;
+        if ((val2 & 1) == 1) {
+          // result = val1 * 1
+          move = Move.create(moveOperator, resultOperand, val1Operand);
+        } else {
+          // result = 0
+          move = Move.create(moveOperator, resultOperand, zero.copy());
+        }
+        move.copyPosition(s);
+        s.insertBefore(move);
+        int lastShift = 0;
+        RegisterOperand lastShiftResult = null;
+        boolean lastShiftWasShort = false;
+        for (int i = 1; i < numBits; i++) {
+          if ((val2 & (1L << i)) != 0) {
+            Instruction shift;
+            RegisterOperand shiftResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
+            if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS &&
+                lastShiftResult != null && ((i-lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
+              // We can produce a short shift (1, 2 or 3) using the result of the last shift
+              shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i-lastShift));
+              lastShiftWasShort = true;
+            } else {
+              shift = Binary.create(shiftLeftOperator, shiftResult, val1Operand.copyRO(), IC(i));
+              lastShiftWasShort = false;
+            }
+            shift.copyPosition(s);
+            s.insertBefore(shift);
+            lastShiftResult = shiftResult;
+            lastShift = i;
+            RegisterOperand addResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
+            Instruction add = Binary.create(addOperator, addResult, resultOperand.copyRO(), shiftResult.copyRO());
+            add.copyPosition(s);
+            s.insertBefore(add);
+            resultOperand = addResult;
+          }
+        }
+        if (negative) {
+          Unary.mutate(s, negateOperator, Binary.getClearResult(s), resultOperand.copyRO());
+        } else {
+          Move.mutate(s, moveOperator, Binary.getClearResult(s), resultOperand.copyRO());
+        }
+        return DefUseEffect.REDUCED;
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2138,75 +2236,16 @@ public abstract class Simplifier extends IRTools {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isLongConstant()) {
-        long val2 = op2.asLongConstant().value;
         Operand op1 = Binary.getVal1(s);
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
+          long val2 = op2.asLongConstant().value;
           Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 * val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
-          // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-          if (val2 == -1L) {                // x * -1 == -x
-            Move.mutate(s, LONG_NEG, Binary.getClearResult(s), Binary.getClearVal1(s));
-            return DefUseEffect.REDUCED;
-          }
-          if (val2 == 0L) {                 // x * 0L == 0L
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(0L));
-            return DefUseEffect.MOVE_FOLDED;
-          }
-          if (val2 == 1L) {                 // x * 1L == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
-            return DefUseEffect.MOVE_REDUCED;
-          }
-          // try to reduce x*c into shift and adds, but only if cost is cheap
-          if (s.getPrev() != null) {
-            // don't attempt to reduce if this instruction isn't
-            // part of a well-formed sequence
-            int cost = 0;
-            for(int i=1; i < BITS_IN_LONG; i++) {
-              if((val2 & (1L << i)) != 0) {
-                // each 1 requires a shift and add
-                cost++;
-              }
-            }
-            if (cost < 3) {
-              // generate shift and adds
-              RegisterOperand val1Operand = Binary.getClearVal1(s).asRegister();
-              RegisterOperand resultOperand = regpool.makeTempLong();
-              Instruction move;
-              if ((val2 & 1) == 1) {
-                // result = val1 * 1
-                move = CPOS(s, Move.create(LONG_MOVE, resultOperand, val1Operand));
-              } else {
-                // result = 0
-                move = CPOS(s, Move.create(LONG_MOVE, resultOperand, LC(0)));
-              }
-              move.copyPosition(s);
-              s.insertBefore(move);
-              for(int i=1; i < BITS_IN_LONG; i++) {
-                if((val2 & (1L << i)) != 0) {
-                  RegisterOperand tempLong = regpool.makeTempLong();
-                  Instruction shift = CPOS(s, Binary.create(LONG_SHL,
-                                                        tempLong,
-                                                        val1Operand.copyRO(),
-                                                        IC(i)
-                                                        ));
-                  shift.copyPosition(s);
-                  s.insertBefore(shift);
-                  Instruction add = CPOS(s, Binary.create(LONG_ADD,
-                                                      resultOperand.copyRO(),
-                                                      resultOperand.copyRO(),
-                                                      tempLong.copyRO()
-                                                      ));
-                  add.copyPosition(s);
-                  s.insertBefore(add);
-                }
-              }
-              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), resultOperand.copyRO());
-              return DefUseEffect.REDUCED;
-            }
-          }
+          // ONLY OP2 IS CONSTANT
+          return multiplyByConstant(regpool, s, op1, op2);
         }
       }
     }
@@ -2298,7 +2337,7 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-          if (val2 == 1L) {                 // x % 1L == 0
+          if ((val2 == 1L)||(val2 == -1L)) {                 // x % 1L == 0
             Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -3152,8 +3191,8 @@ public abstract class Simplifier extends IRTools {
       Operand ref = BoundsCheck.getRef(s);
       Operand index = BoundsCheck.getIndex(s);
       if (ref.isNullConstant()) {
-        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
-        return DefUseEffect.TRAP_REDUCED;
+        // Should already be caught by nullcheck simplification
+        return DefUseEffect.UNCHANGED;
       } else if (index.isIntConstant()) {
         int indexAsInt = index.asIntConstant().value;
         if (indexAsInt < 0) {
@@ -3185,8 +3224,8 @@ public abstract class Simplifier extends IRTools {
       if (methOp.isVirtual() && !methOp.hasPreciseTarget()) {
         Operand calleeThis = Call.getParam(s, 0);
         if (calleeThis.isNullConstant()) {
-          Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
-          return DefUseEffect.TRAP_REDUCED;
+          // Should already be caught by nullcheck simplification
+          return DefUseEffect.UNCHANGED;
         } else if (calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
           TypeReference calleeClass = calleeThis.getType();
           if (calleeClass.isResolved()) {
@@ -3197,20 +3236,9 @@ public abstract class Simplifier extends IRTools {
       } else if (methOp.isStatic() && methOp.hasPreciseTarget() && HIR) {
         RVMMethod containingMethod = s.position.getMethod();
         RVMMethod method = methOp.getTarget();
-        // Can we remove the need for Class.forName to walk the stack?
-        if (method == Entrypoints.java_lang_Class_forName) {
-          methOp = MethodOperand.STATIC(Entrypoints.java_lang_Class_forName_withLoader.getMemberRef().asMethodReference(),
-                                        Entrypoints.java_lang_Class_forName_withLoader);
-          Call.mutate3(s, CALL, Call.getResult(s),
-                       new AddressConstantOperand(Entrypoints.java_lang_Class_forName_withLoader.getOffset()),
-                       methOp, Call.getGuard(s),
-                       Call.getParam(s, 0),
-                       new IntConstantOperand(1), // true
-                       new ObjectConstantOperand(containingMethod.getDeclaringClass().getClassLoader(), Offset.zero()));
-          return DefUseEffect.REDUCED;
         // Can we remove the need for RVMClass.getClass...FromStackFrame to walk the stack?
-        } else if (method == Entrypoints.getClassLoaderFromStackFrame ||
-                   method == Entrypoints.getClassFromStackFrame) {
+        if (method == Entrypoints.getClassLoaderFromStackFrame ||
+            method == Entrypoints.getClassFromStackFrame) {
           Operand frameOp = Call.getParam(s, 0);
           if (frameOp.isIntConstant()) {
             int frame = frameOp.asIntConstant().value;
@@ -3233,7 +3261,16 @@ public abstract class Simplifier extends IRTools {
           }
         }
       }
-      if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+      if (!VM.runningVM && methOp.hasPreciseTarget() && methOp.getTarget().isRuntimePure()) {
+        RVMMethod method = methOp.getTarget();
+        switch(method.getAnnotation(org.vmmagic.pragma.RuntimePure.class).value()) {
+        case Unavailable: // not available at boot image write time
+          return DefUseEffect.UNCHANGED;
+        default:
+          throw new Error("Unhandled RuntimePure value: " +
+            method.getAnnotation(org.vmmagic.pragma.RuntimePure.class).value());
+        }
+      } else if (methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
         // Look for a precise method call to a pure method with all constant arguments
         RVMMethod method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);
@@ -3265,7 +3302,7 @@ public abstract class Simplifier extends IRTools {
         Method m = null;
         try {
           if (VM.runningVM) {
-            result = Reflection.invoke(method, thisArg, otherArgs, !methOp.isVirtual());
+            result = Reflection.invoke(method, null, thisArg, otherArgs, false);
           } else {
             Class<?>[] argTypes = new Class<?>[n];
             for(int i=0; i < n; i++) {

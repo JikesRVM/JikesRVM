@@ -23,6 +23,7 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Reflection;
 
@@ -39,10 +40,20 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
   private final RVMMethod vmConstructor;
 
   /**
+   * Possible reflective method invoker
+   */
+  private final ReflectionBase invoker;
+
+  /**
 	* Constructor
 	*/
   Constructor(RVMMethod vmConstructor){
 	 this.vmConstructor = vmConstructor;
+     if (Reflection.cacheInvokerInJavaLangReflect) {
+       invoker = vmConstructor.getInvoker();
+     } else {
+       invoker = null;
+     }
   }
 
   /**
@@ -51,6 +62,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
   private Constructor(){
 	 //do nothing
 	 this.vmConstructor = null;
+	 invoker = null;
   }
 
   public TypeVariable<Constructor<T>>[] getTypeParameters() {
@@ -272,7 +284,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	*/
   public T newInstance(Object... args) throws InstantiationException, IllegalAccessException,
 															 IllegalArgumentException, InvocationTargetException {
-	 return (T)VMCommonLibrarySupport.construct(vmConstructor, this, args, RVMClass.getClassFromStackFrame(1));
+	 return (T)VMCommonLibrarySupport.construct(vmConstructor, this, args, RVMClass.getClassFromStackFrame(1), invoker);
   }
 
   /**

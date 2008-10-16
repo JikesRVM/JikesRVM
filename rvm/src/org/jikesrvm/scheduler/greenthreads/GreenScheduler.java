@@ -32,6 +32,7 @@ import org.jikesrvm.scheduler.ProcessorLock;
 import org.jikesrvm.scheduler.ProcessorTable;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.tuningfork.TraceEngine;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -489,13 +490,6 @@ public final class GreenScheduler extends Scheduler {
     }
     VM.sysWrite("\n");
 
-    VM.sysWrite("\n-- Locks available --\n");
-    for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; ++i) {
-      processor = getProcessor(i);
-      processor.dumpLocks();
-    }
-    VM.sysWrite("\n");
-
     VM.sysWrite("\n-- Locks in use --\n");
     Lock.dumpLocks();
 
@@ -696,6 +690,7 @@ public final class GreenScheduler extends Scheduler {
     int initProc = PRIMORDIAL_PROCESSOR_ID;
     byte[] stack = new byte[ArchitectureSpecific.ArchConstants.STACK_SIZE_BOOT];
     GreenThread startupThread = new Scheduler.ThreadModel(stack, "Jikes_RVM_Boot_Thread");
+    startupThread.feedlet = TraceEngine.engine.makeFeedlet("Jikes RVM boot thread", "Thread used to execute the initial boot sequence of Jikes RVM");
     numDaemons++;
     getProcessor(initProc).activeThread = startupThread;
     return startupThread;

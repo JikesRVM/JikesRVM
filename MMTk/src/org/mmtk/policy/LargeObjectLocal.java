@@ -13,12 +13,10 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
-import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class is intended to provide fast,
@@ -32,8 +30,8 @@ import org.vmmagic.unboxed.*;
  * If there are C CPUs and T TreadmillSpaces, there must be C X T
  * instances of this class, one for each CPU, TreadmillSpace pair.
  */
-@Uninterruptible public final class LargeObjectLocal extends LargeObjectAllocator
-  implements Constants {
+@Uninterruptible
+public final class LargeObjectLocal extends LargeObjectAllocator implements Constants {
 
   /****************************************************************************
    *
@@ -56,28 +54,14 @@ import org.vmmagic.unboxed.*;
    * @param space The treadmill space to which this thread instance is
    * bound.
    */
-  public LargeObjectLocal(LargeObjectSpace space) {
+  public LargeObjectLocal(BaseLargeObjectSpace space) {
     super(space);
-    this.space = space;
   }
 
   /****************************************************************************
    *
    * Allocation
    */
-
-  /**
-   *  This is called each time a cell is alloced (i.e. if a cell is
-   *  reused, this will be called each time it is reused in the
-   *  lifetime of the cell, by contrast to initializeCell, which is
-   *  called exactly once.).
-   *
-   * @param cell The newly allocated cell
-   */
-  @Inline
-  protected void postAlloc(Address cell) {
-    space.getTreadmill().addToTreadmill(Treadmill.payloadToNode(cell));
-  }
 
   /****************************************************************************
    *
@@ -103,38 +87,14 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Return the size of the per-superpage header required by this
-   * system.  In this case it is just the underlying superpage header
-   * size.
-   *
-   * @return The size of the per-superpage header required by this
-   * system.
-   */
-  @Inline
-  protected int superPageHeaderSize() {
-    return Treadmill.headerSize();
-  }
-
-  /**
-   * Return the size of the per-cell header for cells of a given class
-   * size.
-   *
-   * @return The size of the per-cell header for cells of a given class
-   * size.
-   */
-  @Inline
-  protected int cellHeaderSize() {
-    return 0;
-  }
-
-  /**
    * Gather data for GCSpy from the nursery
    * @param event the gc event
    * @param losDriver the GCSpy space driver
    */
   public void gcspyGatherData(int event, TreadmillDriver losDriver) {
     // TODO: assumes single threaded
-    space.getTreadmill().gcspyGatherData(event, losDriver);
+    // TODO: assumes non-explit LOS
+    ((LargeObjectSpace)space).getTreadmill().gcspyGatherData(event, losDriver);
   }
 
   /**
@@ -145,6 +105,6 @@ import org.vmmagic.unboxed.*;
    */
   public void gcspyGatherData(int event, TreadmillDriver losDriver, boolean tospace) {
     // TODO: assumes single threaded
-    space.getTreadmill().gcspyGatherData(event, losDriver, tospace);
+    ((LargeObjectSpace)space).getTreadmill().gcspyGatherData(event, losDriver, tospace);
   }
 }

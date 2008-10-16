@@ -124,8 +124,6 @@ public class StickyMS extends MS {
 
     if (!collectWholeHeap) {
       if (phaseId == PREPARE) {
-        if (NURSERY_COLLECT_PLOS)
-          ploSpace.prepare(false);
         msTrace.prepare();
         msSpace.prepare(false);
         return;
@@ -135,8 +133,6 @@ public class StickyMS extends MS {
         msTrace.release();
         msSpace.release();
         modPool.reset();
-        if (NURSERY_COLLECT_PLOS)
-          ploSpace.release(collectWholeHeap);
         nextGCWholeHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
         return;
       }

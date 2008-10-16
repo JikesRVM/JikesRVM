@@ -13,6 +13,7 @@
 package org.jikesrvm.adaptive.database.callgraph;
 
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
  * A collection of weighted call targets.
@@ -60,10 +61,13 @@ public abstract class WeightedCallTargets {
   public abstract double totalWeight();
 
   /**
-   * @param goal RVMMethod that is the only statically possible target
-   * @return the filtered call targets or null if no such target exisits
+   * @param goal RVMMethod that is the statically possible target
+   * @param isPrecise whether or not goal is a precise target, or should be
+   *        interpreted as being the root of a virtual method family, any of which
+   *        are statically possible.
+   * @return the filtered call targets or null if no such target exists
    */
-  public abstract WeightedCallTargets filter(RVMMethod goal);
+  public abstract WeightedCallTargets filter(RVMMethod goal, boolean isPrecise);
 
   public static WeightedCallTargets create(RVMMethod target, double weight) {
     return new SingleTarget(target, weight);
@@ -110,8 +114,19 @@ public abstract class WeightedCallTargets {
 
     public double totalWeight() { return weight; }
 
-    public WeightedCallTargets filter(RVMMethod goal) {
-      return (goal.equals(target)) ? this : null;
+    public WeightedCallTargets filter(RVMMethod goal, boolean isPrecise) {
+      if (isPrecise) {
+        return (goal.equals(target)) ? this : null;
+      } else {
+        if (goal.equals(target)) {
+          return this;
+        }
+        if (RuntimeEntrypoints.isAssignableWith(goal.getDeclaringClass(), target.getDeclaringClass())) {
+          return this;
+        } else {
+          return null;
+        }
+      }
     }
   }
 
@@ -191,13 +206,42 @@ public abstract class WeightedCallTargets {
       return sum;
     }
 
-    public synchronized WeightedCallTargets filter(RVMMethod goal) {
-      for (int i = 0; i < methods.length; i++) {
-        if (goal.equals(methods[i])) {
-          return WeightedCallTargets.create(methods[i], weights[i]);
+    public synchronized WeightedCallTargets filter(RVMMethod goal, boolean isPrecise) {
+      if (isPrecise) {
+        for (int i = 0; i < methods.length; i++) {
+          if (goal.equals(methods[i])) {
+            return WeightedCallTargets.create(methods[i], weights[i]);
+          }
         }
+        return null;
+      } else {
+        int matchCount = 0;
+        int mismatchCount = 0;
+        for (RVMMethod method : methods) {
+          if (method != null) {
+            if (RuntimeEntrypoints.isAssignableWith(goal.getDeclaringClass(), method.getDeclaringClass())) {
+              matchCount++;
+            } else {
+              mismatchCount++;
+            }
+          }
+        }
+        if (mismatchCount == 0) {
+          return this;
+        }
+        if (matchCount == 0) {
+          return null;
+        }
+
+        MultiTarget filtered = new MultiTarget();
+        for (int i=0; i<methods.length; i++) {
+          RVMMethod method = methods[i];
+          if (method != null && RuntimeEntrypoints.isAssignableWith(goal.getDeclaringClass(), method.getDeclaringClass())) {
+            filtered.augmentCount(method, weights[i]);
+          }
+        }
+        return filtered;
       }
-      return null;
     }
   }
 }

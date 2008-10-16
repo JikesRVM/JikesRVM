@@ -158,14 +158,10 @@ public class Defrag  implements Constants {
 
   boolean spaceExhausted() { return defragSpaceExhausted; }
 
-  // FIXME are the histograms zeroed?  What about non-participating threads?
-  int[] getSpillMarkHistogram(int ordinal) {
-    int[] rtn = null;
-    rtn = spillMarkHistograms[ordinal];
-    for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++)
+  int[] getAndZeroSpillMarkHistogram(int ordinal) {
+    int[] rtn = spillMarkHistograms[ordinal];
+    for (int i = 0; i < SPILL_HISTOGRAM_BUCKETS; i++)
       rtn[i] = 0;
     return rtn;
   }
-
-  int[] getSpillAvailHistogram(int ordinal) { return null; }
 }

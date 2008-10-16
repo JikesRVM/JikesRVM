@@ -12,31 +12,34 @@
  */
 package org.mmtk.harness;
 
-
 import org.mmtk.utility.Log;
 
-/**
- * This class represents an MMTk thread (mutator or collector).
- */
 public class MMTkThread extends Thread {
-  /** The log associated with this thread */
-  private final Log log = new Log();
 
-  /**
-   * Get the currently executing mutator.
-   */
-  public static MMTkThread current() {
-    assert Thread.currentThread() instanceof MMTkThread  : "Current thread does is not an MMTk thread";
-    return (MMTkThread)Thread.currentThread();
+  /** The per-thread Log instance */
+  protected final Log log = new Log();
+
+  public MMTkThread() {
+    super();
+    trapUncaughtExceptions();
   }
 
-  /**
-   * Create an MMTk thread.
-   *
-   * @param entryPoint The entryPoint.
-   */
-  protected MMTkThread(Runnable entryPoint) {
-    super(entryPoint);
+  public MMTkThread(Runnable target, String name) {
+    super(target, name);
+    trapUncaughtExceptions();
+  }
+
+  public MMTkThread(Runnable target) {
+    super(target);
+    trapUncaughtExceptions();
+  }
+
+  public MMTkThread(String name) {
+    super(name);
+    trapUncaughtExceptions();
+  }
+
+  private void trapUncaughtExceptions() {
     setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
         System.err.print("Unexpected exception: ");
@@ -46,16 +49,6 @@ public class MMTkThread extends Thread {
     });
   }
 
-  /**
-   * Create an MMTk thread.
-   */
-  protected MMTkThread() {
-    this(null);
-  }
-
-  /**
-   * Get the log for this MMTk thread (mutator or collector).
-   */
   public final Log getLog() {
     return log;
   }

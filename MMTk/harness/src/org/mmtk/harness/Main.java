@@ -13,14 +13,14 @@
 package org.mmtk.harness;
 
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-import org.mmtk.harness.lang.Env;
-import org.mmtk.harness.lang.Method;
+import org.mmtk.harness.lang.Checker;
+import org.mmtk.harness.lang.Compiler;
+import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.parser.Parser;
 import org.mmtk.harness.lang.parser.ParseException;
+import org.mmtk.harness.scheduler.Scheduler;
 
 public class Main {
   public static void main(String[] args) throws InterruptedException, ParseException, FileNotFoundException {
@@ -39,14 +39,17 @@ public class Main {
     if(!scriptFile.endsWith(".script")) {
       scriptFile += ".script";
     }
-    final Method main = new Parser(new BufferedInputStream(new FileInputStream(scriptFile))).main();
+
+    final MethodTable methods = new Parser(scriptFile).script();
+
+    /* Type-check the script */
+    Checker.typeCheck(methods);
 
     /* Initialise the harness */
     Harness.init(harnessArgs);
 
-    /* Invoke the test */
-    Env m = new Env(main);
-    m.start();
-    m.join();
+    Scheduler.scheduleMutator(Compiler.compile(methods));
+
+    Scheduler.schedule();
   }
 }

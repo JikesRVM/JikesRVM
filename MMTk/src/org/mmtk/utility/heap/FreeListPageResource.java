@@ -172,6 +172,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       unlock();
       Mmapper.ensureMapped(rtn, pages);
       VM.memory.zero(rtn, bytes);
+      VM.events.tracePageAcquired(space, rtn, pages);
       return rtn;
     }
   }
@@ -205,21 +206,46 @@ public final class FreeListPageResource extends PageResource implements Constant
     committed -= pages;
     int freed = freeList.free(pageOffset, true);
     pagesCurrentlyOnFreeList += pages;
-    boolean completelyFreed = !contiguous && metaDataPagesPerRegion > 0 && freed == (PAGES_IN_CHUNK - metaDataPagesPerRegion);
-    if (!contiguous && (freed % PAGES_IN_CHUNK == 0)) {
-      /* maybe we've freed this entire chunk.  let's check... */
-      int regionStart = pageOffset & ~(PAGES_IN_CHUNK - 1);
-      int nextRegionStart = regionStart + PAGES_IN_CHUNK;
-      while (regionStart >= 0 && freeList.isCoalescable(regionStart))
-        regionStart -= PAGES_IN_CHUNK;
-      while (nextRegionStart < GenericFreeList.MAX_UNITS && freeList.isCoalescable(nextRegionStart))
-        nextRegionStart += PAGES_IN_CHUNK;
-       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(regionStart >= 0 && nextRegionStart < GenericFreeList.MAX_UNITS);
-      completelyFreed = (freed == nextRegionStart - regionStart);
-    }
-    if (completelyFreed)
-      freeContiguousChunk(Space.chunkAlign(first, true));
+
+    if (!contiguous) // only discontiguous spaces use chunks
+      releaseFreeChunks(first, freed);
+
     unlock();
+
+    VM.events.tracePageReleased(space, first, pages);
+  }
+
+  /**
+   * The release of a page may have freed up an entire chunk or
+   * set of chunks.  We need to check whether any chunks can be
+   * freed, and if so, free them.
+   *
+   * @param freedPage The address of the page that was just freed.
+   * @param pagesFreed The number of pages made available when the page was freed.
+   */
+  private void releaseFreeChunks(Address freedPage, int pagesFreed) {
+    int pageOffset = Conversions.bytesToPages(freedPage.diff(start));
+
+    if (metaDataPagesPerRegion > 0) {       // can only be a single chunk
+      if (pagesFreed == (PAGES_IN_CHUNK - metaDataPagesPerRegion)) {
+        freeContiguousChunk(Space.chunkAlign(freedPage, true));
+      }
+    } else {                                // may be multiple chunks
+      if (pagesFreed % PAGES_IN_CHUNK == 0) {    // necessary, but not sufficient condition
+        /* grow a region of chunks, starting with the chunk containing the freed page */
+        int regionStart = pageOffset & ~(PAGES_IN_CHUNK - 1);
+        int nextRegionStart = regionStart + PAGES_IN_CHUNK;
+        /* now try to grow (end point pages are marked as non-coalescing) */
+        while (regionStart >= 0 && freeList.isCoalescable(regionStart))
+          regionStart -= PAGES_IN_CHUNK;
+        while (nextRegionStart < GenericFreeList.MAX_UNITS && freeList.isCoalescable(nextRegionStart))
+          nextRegionStart += PAGES_IN_CHUNK;
+         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(regionStart >= 0 && nextRegionStart < GenericFreeList.MAX_UNITS);
+        if (pagesFreed == nextRegionStart - regionStart) {
+          freeContiguousChunk(start.plus(Conversions.pagesToBytes(regionStart)));
+        }
+      }
+    }
   }
 
   /**

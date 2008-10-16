@@ -1,0 +1,4 @@
+main() {
+  assert(true,"This assertion should pass");
+  assert(false,"This assertion should fail - check for exit code ",1);
+}

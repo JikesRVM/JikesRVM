@@ -13,7 +13,9 @@
 package org.vmmagic.unboxed;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
+
+import org.mmtk.harness.scheduler.Scheduler;
 
 public final class SimulatedMemory {
   /** Set to true to print debug information */
@@ -40,13 +42,73 @@ public final class SimulatedMemory {
   public static final int INDEX_MASK = (PAGE_SIZE - 1);
   public static final int WORD_MASK = ~(BYTES_IN_WORD - 1);
 
-  public static final Address HEAP_START      = new Address(0x10000000);
-  public static final Address HEAP_END        = new Address(0xA0000000);
+  public static final Address HEAP_START      = Address.fromIntZeroExtend(0x10000000);
+  public static final Address HEAP_END        = Address.fromIntZeroExtend(0xA0000000);
 
-  private static final Hashtable<Integer, MemoryPage> pages = new Hashtable<Integer, MemoryPage>();
 
   private static final Offset ZERO = Offset.zero();
   private static final ArrayList<Address> watches = new ArrayList<Address>();
+
+  static final class PageTable {
+    private static final HashMap<Integer, MemoryPage> pages = new HashMap<Integer, MemoryPage>();
+
+    /**
+     * Internal: get a page by page number, performing appropriate
+     * checking and synchronization
+     * @param page
+     * @return
+     */
+    public static MemoryPage getPage(int page) {
+      synchronized(pages) {
+        MemoryPage p = pages.get(page);
+        if (p == null) {
+          throw new RuntimeException("Page not mapped: " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
+        } else if (!p.readable) {
+          throw new RuntimeException("Page not readable: " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
+        }
+        return p;
+      }
+    }
+
+    static void setReadable(int p) {
+      synchronized(pages) {
+        MemoryPage page = pages.get(p);
+        if (page == null) {
+          throw new RuntimeException("Page not mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+        }
+        page.readable = true;
+      }
+    }
+
+    public static void setNonReadable(int p) {
+      synchronized(pages) {
+        MemoryPage page = pages.get(p);
+        if (page == null) {
+          throw new RuntimeException("Page not mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+        }
+        page.readable = false;
+      }
+    }
+
+    private static void mapPage(int p) {
+      synchronized(pages) {
+        if (pages.get(p) != null) {
+          throw new RuntimeException("Page already mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+        }
+        pages.put(p, new MemoryPage(p));
+      }
+    }
+
+    private static void zeroPage(int p) {
+      synchronized(pages) {
+        MemoryPage page = pages.get(p);
+        if (page == null) {
+          throw new RuntimeException("Page not mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+        }
+        page.zero();
+      }
+    }
+  }
 
   /**
    * Watch mutations to an address (watches 4 byte values)
@@ -63,10 +125,20 @@ public final class SimulatedMemory {
    */
   public static void addWatch(Address watchAddress, int bytes) {
     while (bytes > 0) {
-      watches.add(watchAddress);
+      addWatch(watchAddress);
       bytes -= BYTES_IN_WORD;
       watchAddress = watchAddress.plus(BYTES_IN_WORD);
     }
+  }
+
+  /**
+   * Are two addresses on the same page ?
+   * @param addr1
+   * @param addr2
+   * @return
+   */
+  private static boolean onSamePage(int addr1, int addr2) {
+    return (addr2^addr1) < BYTES_IN_PAGE;
   }
 
   /**
@@ -76,18 +148,21 @@ public final class SimulatedMemory {
    * @return
    */
   public static MemoryPage getPage(Address address, Offset offset) {
-    int page = (address.value + offset.value) >>> LOG_BYTES_IN_PAGE;
-    return getPage(page);
+    Scheduler.yield();
+    return getPage(address,offset.value);
   }
 
-  public static MemoryPage getPage(int page) {
-    MemoryPage p = pages.get(page);
-    if (p == null) {
-      throw new RuntimeException("Page not mapped: " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
-    } else if (!p.readable) {
-      throw new RuntimeException("Page not readable: " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
+  /**
+   * Get a page with an int offset
+   * @param address
+   * @param offset
+   * @return
+   */
+  public static MemoryPage getPage(Address address, int offset) {
+    if (address.isZero()) {
+      throw new RuntimeException("Attempted to dereference a null address");
     }
-    return p;
+    return PageTable.getPage((address.value + offset) >>> LOG_BYTES_IN_PAGE);
   }
 
   public static byte getByte(Address address) { return getByte(address, ZERO); }
@@ -123,7 +198,7 @@ public final class SimulatedMemory {
   }
 
   public static float getFloat(Address address, Offset offset) {
-    return Float.intBitsToFloat(getInt(address));
+    return Float.intBitsToFloat(getInt(address,offset));
   }
 
   public static long getLong(Address address, Offset offset) {
@@ -131,7 +206,7 @@ public final class SimulatedMemory {
   }
 
   public static double getDouble(Address address, Offset offset) {
-    return Double.longBitsToDouble(getLong(address));
+    return Double.longBitsToDouble(getLong(address,offset));
   }
 
   public static byte setByte(Address address, byte value, Offset offset) {
@@ -185,10 +260,7 @@ public final class SimulatedMemory {
     int last = (size >>> LOG_BYTES_IN_PAGE) + first;
 
     for(int p=first; p < last; p++) {
-      if (pages.get(p) != null) {
-        throw new RuntimeException("Page already mapped: " + Address.formatInt(p << LOG_BYTES_IN_PAGE));
-      }
-      pages.put(p, new MemoryPage(p));
+      PageTable.mapPage(p);
     }
     return true;
   }
@@ -206,11 +278,7 @@ public final class SimulatedMemory {
     int first = start.toInt() >> LOG_BYTES_IN_PAGE;
     int last = first + size >> LOG_BYTES_IN_PAGE;
     for(int p=first; p < last; p++) {
-      MemoryPage page = pages.get(p);
-      if (page == null) {
-        throw new RuntimeException("Page not mapped: " + Address.formatInt(p << LOG_BYTES_IN_PAGE));
-      }
-      page.readable = false;
+      PageTable.setNonReadable(p);
     }
     return true;
   }
@@ -228,11 +296,7 @@ public final class SimulatedMemory {
     int first = start.toInt() >> LOG_BYTES_IN_PAGE;
     int last = first + size >> LOG_BYTES_IN_PAGE;
     for(int p=first; p < last; p++) {
-      MemoryPage page = pages.get(p);
-      if (page == null) {
-        throw new RuntimeException("Page not mapped: " + Address.formatInt(p << LOG_BYTES_IN_PAGE));
-      }
-      page.readable = true;
+      PageTable.setReadable(p);
     }
     return true;
   }
@@ -257,9 +321,15 @@ public final class SimulatedMemory {
   public static void zero(Address start, int size) {
     log("zero(%s,%d)\n", start.toString(), size);
     assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
+    MemoryPage page = getPage(start, 0);
+    int pageAddress = start.toInt();
     for(int i=0; i < size; i += BYTES_IN_WORD) {
-      Address cur = start.plus(i);
-      getPage(cur, ZERO).setInt(cur, 0, ZERO);
+      int curAddr = start.toInt()+i;
+      if (!onSamePage(pageAddress, curAddr)) {
+        page = getPage(start, i);
+        pageAddress=curAddr;
+      }
+      page.setInt(start, 0, i);
     }
   }
 
@@ -273,11 +343,7 @@ public final class SimulatedMemory {
     int first = start.toInt() >>> LOG_BYTES_IN_PAGE;
     int last = (first + size) >>> LOG_BYTES_IN_PAGE;
     for(int p=first; p < last; p++) {
-      MemoryPage page = pages.get(p);
-      if (page == null) {
-        throw new RuntimeException("Page not mapped: " + Address.formatInt(p << LOG_BYTES_IN_PAGE));
-      }
-      page.zero();
+      PageTable.zeroPage(p);
     }
   }
 
@@ -303,15 +369,15 @@ public final class SimulatedMemory {
   /**
    * Represents a single page of memory.
    */
-  public static final class MemoryPage {
+  static final class MemoryPage {
     /** Is this page currently readable */
     private boolean readable;
     /** The page number */
-    private int page;
+    private final int page;
     /** The raw data on this page */
-    private int[] data;
+    private final int[] data;
     /** Watched indexes */
-    private int[] watch;
+    private final boolean[] watch;
 
     /**
      * Create a new MemoryPage to hold the data in a given page.
@@ -320,18 +386,7 @@ public final class SimulatedMemory {
       this.page = page;
       this.readable = true;
       this.data = new int[PAGE_SIZE >>> LOG_BYTES_IN_WORD];
-      ArrayList<Integer> watches = new ArrayList<Integer>();
-      for(Address addr: SimulatedMemory.watches) {
-        if ((addr.value >>> LOG_BYTES_IN_PAGE) == page) {
-          int index = getIndex(addr, ZERO);
-          watches.add(index);
-          System.err.println("Watching address "+addr+" (index "+index+" in page "+page+")");
-        }
-      }
-      watch = new int[watches.size()];
-      for(int i=0; i < watches.size(); i++) {
-        watch[i] = watches.get(i);
-      }
+      this.watch = getWatchPoints();
     }
 
     /**
@@ -350,10 +405,12 @@ public final class SimulatedMemory {
      * @return The index into the page data.
      */
     private int getIndex(Address address, Offset offset) {
-      if ((((address.value + offset.value) >>> LOG_BYTES_IN_PAGE) ^ page) != 0) {
-        throw new RuntimeException("Invalid access of " + Address.formatInt(address.toInt() + offset.toInt()) + " in page " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
-      }
-      return ((address.toInt() + offset.toInt()) & INDEX_MASK) >>> LOG_BYTES_IN_WORD;
+      return getIndex(address,offset.value);
+    }
+    private int getIndex(Address address, int offset) {
+      assert ((((address.value + offset) >>> LOG_BYTES_IN_PAGE) ^ page) == 0) :
+        "Invalid access of " + Address.formatInt(address.toInt() + offset) + " in page " + Address.formatInt(page << LOG_BYTES_IN_PAGE);
+      return ((address.toInt() + offset) & INDEX_MASK) >>> LOG_BYTES_IN_WORD;
     }
 
     /**
@@ -415,8 +472,11 @@ public final class SimulatedMemory {
       return (char)(oldValue >>> shift);
     }
 
-    public synchronized int setInt(Address address, int value, Offset offset) {
-      assert ((address.value + offset.value) % 4) == 0: "misaligned 4b access";
+    public int setInt(Address address, int value, Offset offset) {
+      return setInt(address,value,offset.value);
+    }
+    public synchronized int setInt(Address address, int value, int offset) {
+      assert ((address.value + offset) % 4) == 0: "misaligned 4b access";
       int index = getIndex(address, offset);
       int old = read(index);
       write(index, value);
@@ -446,11 +506,9 @@ public final class SimulatedMemory {
      */
     private int read(int index) {
       int value = data[index];
-      for(int i=0; i < watch.length; i++) {
-        if (watch[i] == index) {
-          System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + "= " +
-                             Address.formatInt(data[index]));
-        }
+      if (isWatched(index)) {
+        System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + "= " +
+            Address.formatInt(data[index]));
       }
       return value;
     }
@@ -459,14 +517,40 @@ public final class SimulatedMemory {
      * Perform the actual write of memory, possibly reporting values if watching is enabled for the given address.
      */
     private void write(int index, int value) {
-      for(int i=0; i < watch.length; i++) {
-        if (watch[i] == index) {
-          System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + ": " +
-                             Address.formatInt(data[index]) + " -> " +
-                             Address.formatInt(value));
-        }
+      if (isWatched(index)) {
+        System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + ": " +
+            Address.formatInt(data[index]) + " -> " +
+            Address.formatInt(value));
       }
       data[index] = value;
+    }
+
+    /*************************************************************************
+     *                      Watch-point management
+     */
+
+    /**
+     * Return a boolean array indicating which words in this page are being watched.
+     */
+    private boolean[] getWatchPoints() {
+      boolean[] result = new boolean[data.length];
+      for(Address addr: SimulatedMemory.watches) {
+        if ((addr.value >>> LOG_BYTES_IN_PAGE) == page) {
+          int index = getIndex(addr, ZERO);
+          result[index] = true;
+          System.err.println("Watching address "+addr+" (index "+index+" in page "+page+")");
+        }
+      }
+      return result;
+    }
+
+    /**
+     * Is the given word being watched ?
+     * @param index
+     * @return
+     */
+    private boolean isWatched(int index) {
+      return watch[index];
     }
   }
 }

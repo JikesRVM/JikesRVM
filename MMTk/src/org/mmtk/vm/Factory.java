@@ -119,6 +119,16 @@ public abstract class Factory {
    */
   public abstract ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics);
 
+
+  /**
+   * Create a new FinalizbleProcessor instance using the appropriate VM-specific
+   * concrete FinalizableProcessor sub-class.
+   *
+   * @see FinalizableProcessor
+   * @return A concrete VM-specific FinalizableProcessor instance.
+   */
+  public abstract FinalizableProcessor newFinalizableProcessor();
+
   /**
    * Create a new Scanning instance using the appropriate VM-specific
    * concrete Scanning sub-class.
@@ -165,6 +175,11 @@ public abstract class Factory {
    */
   public abstract TraceInterface newTraceInterface();
 
+  /**
+   * Create a new MMTk_Events instance using the appropriate VM-specific
+   * concrete MMTk_Events sub-class.
+   */
+  public abstract MMTk_Events newEvents();
 
   /**********************************************************************
    * GCspy methods

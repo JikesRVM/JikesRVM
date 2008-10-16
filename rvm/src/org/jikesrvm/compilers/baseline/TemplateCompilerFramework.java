@@ -1864,9 +1864,9 @@ public abstract class TemplateCompilerFramework
           break;
         }
 
-        /* CAUTION: can not use JBC_impdep1, which is 0xfffffffe ( signed ),
-        * this is not consistant with OPT compiler.
-        */
+        /* CAUTION: cannot use JBC_impdep1, which is 0xfffffffe (signed),
+         * this is not consistent with OPT compiler.
+         */
         case JBC_impdep1: /* --- pseudo bytecode --- */ {
           if (VM.BuildForAdaptiveSystem) {
             int pseudo_opcode = bcodes.nextPseudoInstruction();

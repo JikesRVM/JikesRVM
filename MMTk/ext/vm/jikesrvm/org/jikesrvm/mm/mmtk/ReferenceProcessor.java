@@ -311,6 +311,9 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       VM.sysWriteln(" references: ",maxIndex," -> ",toIndex);
     }
     nurseryIndex = maxIndex = toIndex;
+
+    /* flush out any remset entries generated during the above activities */
+    ActivePlan.flushRememberedSets();
   }
 
   /**

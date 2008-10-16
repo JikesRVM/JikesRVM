@@ -874,7 +874,7 @@ sysNanoTime()
 	long long retVal;
 #ifndef __MACH__
 	struct timespec tp;
-    int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
+    int rc = clock_gettime(CLOCK_REALTIME, &tp);
 	if (rc != 0) {
 		retVal = rc;
 	    if (lib_verbose) {
@@ -1096,7 +1096,7 @@ sysVirtualProcessorStartup(void *args)
     {
         *(Address *) (pr + Processor_framePointer_offset) = fp;
         Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
-        bootThread(ip, pr, sp);
+        bootThread((void*)ip, (void*)pr, (void*)sp);
     }
 #else
     bootThread((int)(Word)getJTOC(), pr, ip, fp);

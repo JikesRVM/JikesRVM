@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.generational;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
@@ -32,6 +33,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    *
    * Instance fields.
    */
+  private final ObjectReferenceDeque modbuf;
   private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
 
@@ -45,6 +47,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    */
   public GenMatureTraceLocal(int specializedScan, Trace trace, GenCollector plan) {
     super(specializedScan, trace);
+    this.modbuf = plan.modbuf;
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }
@@ -54,6 +57,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    */
   public GenMatureTraceLocal(Trace trace, GenCollector plan) {
     super(Gen.SCAN_MATURE, trace);
+    this.modbuf = plan.modbuf;
     this.remset = plan.remset;
     this.arrayRemset = plan.arrayRemset;
   }
@@ -72,11 +76,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   @Inline
   public boolean isLive(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (object.toAddress().GE(Gen.NURSERY_START)) {
-      if (object.toAddress().LT(Gen.NURSERY_END))
+    if (Gen.inNursery(object)) {
       return Gen.nurserySpace.isLive(object);
-      else
-        return Gen.ploSpace.isLive(object);
     }
     return super.isLive(object);
   }
@@ -91,9 +92,10 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    *         collection.
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
-    if (object.toAddress().GE(Gen.NURSERY_START))
-      return object.toAddress().GE(Gen.NURSERY_END);
-    return super.willNotMoveInCurrentCollection(object);
+    if (Gen.inNursery(object))
+      return false;
+    else
+      return super.willNotMoveInCurrentCollection(object);
   }
 
   /**
@@ -110,12 +112,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (object.toAddress().GE(Gen.NURSERY_START)) {
-      if (object.toAddress().LT(Gen.NURSERY_END))
-        return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
-      else
-        return Gen.ploSpace.traceObject(this, object);
-    }
+    if (Gen.inNursery(object))
+      return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
     return super.traceObject(object);
   }
 
@@ -123,6 +121,11 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    * Process any remembered set entries.
    */
   protected void processRememberedSets() {
+    logMessage(5, "clearing modbuf");
+    ObjectReference obj;
+    while (!(obj = modbuf.pop()).isNull()) {
+      Plan.markAsUnlogged(obj);
+    }
     logMessage(5, "clearing remset");
     while (!remset.isEmpty()) {
       remset.pop();

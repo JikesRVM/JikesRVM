@@ -28,13 +28,13 @@ open ($LOG, "$infile") or die "error opening $infile for input";
 open ($OUT, ">>$outfile") or die "error opening $outfile for output";
 
 while (<$LOG>) {
-  if (/^======= $bmname Finished in/) {
+  if (/^======= $bmname Finished in .* secs$/) {
     $finishedline = $_;
   }
 }
 close($LOG);
 
-$finishedline =~ (/^======= $bmname Finished in/) or die "no results found";
+$finishedline =~ (/^======= $bmname Finished in .* secs$/) or die "no valid results found";
 $finishedline =~ s/^======= $bmname Finished in //;
 $finishedline =~ s/ secs$//;
 chomp($finishedline);

@@ -12,7 +12,7 @@
  -->
 <project name="SPECjvm98" default="test" basedir=".">
 
-  <condition property="test.time.limit" value="3000" else="600">
+  <condition property="test.time.limit" value="7200" else="600">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <condition property="test.max.heapsize" value="512" else="200">
@@ -21,7 +21,7 @@
   <condition property="test.initial.heapsize" value="256">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-  <condition property="spec.args" value="-m20 -M20 -s100">
+  <condition property="spec.args" value="-m15 -M15 -s100">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <condition property="spec.args" value="-m1 -M1 -s100">
@@ -133,7 +133,7 @@
       <rvm tag="@{test}" class="SpecApplication" args="-a -g ${spec.args} @{test}"/>
       <outputTestStart tag="@{test}"/>
       <outputStatisticStart/>
-      <extractStatistic tag="@{test}" key="time" pattern="======= @{test} Finished in (\S*) secs"/>
+      <extractStatistic tag="@{test}" key="time" pattern="^======= @{test} Finished in (\S*) secs$"/>
       <outputStatisticEnd/>
       <outputTestResults tag="@{test}"/>
       <outputTestEnd/>

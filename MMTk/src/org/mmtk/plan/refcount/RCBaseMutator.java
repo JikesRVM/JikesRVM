@@ -12,16 +12,12 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.StopTheWorldMutator;
-import org.mmtk.plan.refcount.cd.CDMutator;
-import org.mmtk.plan.refcount.cd.NullCDMutator;
-import org.mmtk.plan.refcount.cd.TrialDeletionMutator;
+import org.mmtk.plan.refcount.backuptrace.BTSweepImmortalScanner;
 import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.policy.ExplicitFreeListSpace;
-import org.mmtk.policy.ExplicitLargeObjectLocal;
+import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.Space;
-
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
@@ -30,61 +26,34 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior
- * and state for the <i>RCBase</i> plan, which implements the
- * base functionality for reference counted collectors.
- *
- * @see RCBase for an overview of the reference counting algorithm.<p>
- *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
- * collector.
- *
- * @see RCBase
- * @see RCBaseCollector
- * @see org.mmtk.plan.StopTheWorldMutator
- * @see org.mmtk.plan.MutatorContext
+ * This class implements the mutator context for a simple reference counting collector.
  */
-@Uninterruptible public class RCBaseMutator extends StopTheWorldMutator {
+@Uninterruptible
+public class RCBaseMutator extends StopTheWorldMutator {
 
-  /****************************************************************************
+  /************************************************************************
    * Instance fields
    */
+  private final ExplicitFreeListLocal rc;
+  private final LargeObjectLocal rclos;
+  private final ObjectReferenceDeque modBuffer;
+  private final RCDecBuffer decBuffer;
+  private final BTSweepImmortalScanner btSweepImmortal;
 
-  public ExplicitFreeListLocal rc;
-  public ExplicitLargeObjectLocal los;
-  private ExplicitFreeListLocal smcode = Plan.USE_CODE_SPACE ? new ExplicitFreeListLocal(RCBase.smallCodeSpace) : null;
-  private ExplicitLargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new ExplicitLargeObjectLocal(Plan.largeCodeSpace) : null;
-
-  public ObjectReferenceDeque modBuffer;
-  public DecBuffer decBuffer;
-
-  private NullCDMutator nullCD;
-  private TrialDeletionMutator trialDeletionCD;
-
-  /****************************************************************************
+  /************************************************************************
    *
    * Initialization
    */
 
   /**
-   * Constructor
+   * Constructor. One instance is created per physical processor.
    */
   public RCBaseMutator() {
     rc = new ExplicitFreeListLocal(RCBase.rcSpace);
-    los = new ExplicitLargeObjectLocal(RCBase.loSpace);
-    decBuffer = new DecBuffer(global().decPool);
-    modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
-    switch (RCBase.CYCLE_DETECTOR) {
-    case RCBase.NO_CYCLE_DETECTOR:
-      nullCD = new NullCDMutator();
-      break;
-    case RCBase.TRIAL_DELETION:
-      trialDeletionCD = new TrialDeletionMutator();
-      break;
-    }
+    rclos = new LargeObjectLocal(RCBase.rcloSpace);
+    modBuffer = new ObjectReferenceDeque("mod", global().modPool);
+    decBuffer = new RCDecBuffer(global().decPool);
+    btSweepImmortal = new BTSweepImmortalScanner();
   }
 
   /****************************************************************************
@@ -93,42 +62,37 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Allocate memory for an object. This class handles the default allocator
-   * from the mark sweep space, and delegates everything else to the
-   * superclass.
+   * Allocate memory for an object.
    *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
    * @param site Allocation site
-   * @return The low address of the allocated memory.
+   * @return The address of the newly allocated memory.
    */
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
-    switch(allocator) {
+    switch (allocator) {
+      case RCBase.ALLOC_DEFAULT:
       case RCBase.ALLOC_NON_MOVING:
-      case RCBase.ALLOC_RC:
+      case RCBase.ALLOC_CODE:
         return rc.alloc(bytes, align, offset);
       case RCBase.ALLOC_LOS:
       case RCBase.ALLOC_PRIMITIVE_LOS:
-          return los.alloc(bytes, align, offset);
-      case RCBase.ALLOC_IMMORTAL:
-        return immortal.alloc(bytes, align, offset);
-      case RCBase.ALLOC_CODE:
-        return smcode.alloc(bytes, align, offset);
       case RCBase.ALLOC_LARGE_CODE:
-        return lgcode.alloc(bytes, align, offset);
+        return rclos.alloc(bytes, align, offset);
+      case RCBase.ALLOC_IMMORTAL:
+        return super.alloc(bytes, align, offset, allocator, site);
       default:
-        VM.assertions.fail("RC not aware of allocator");
+        VM.assertions.fail("Allocator not understood by RC");
         return Address.zero();
     }
   }
 
   /**
-   * Perform post-allocation actions.  Initialize the object header for
-   * objects in the mark-sweep space, and delegate to the superclass for
-   * other objects.
+   * Perform post-allocation actions.  For many allocators none are
+   * required.
    *
    * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
@@ -136,24 +100,32 @@ import org.vmmagic.unboxed.*;
    * @param allocator The allocator number to be used for this allocation
    */
   @Inline
-  public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) {
-    switch(allocator) {
-      case RCBase.ALLOC_NON_MOVING:
-      case RCBase.ALLOC_RC:
-      case RCBase.ALLOC_CODE:
-        ExplicitFreeListSpace.unsyncSetLiveBit(ref);
-      case RCBase.ALLOC_LOS:
-      case RCBase.ALLOC_LARGE_CODE:
-      case RCBase.ALLOC_IMMORTAL:
-        if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
-      case RCBase.ALLOC_PRIMITIVE_LOS:
-        RCHeader.initializeHeader(ref, typeRef, true);
-        decBuffer.push(ref);
-        break;
-      default:
-        VM.assertions.fail("RC not aware of allocator");
-        break;
+  public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
+    switch (allocator) {
+    case RCBase.ALLOC_DEFAULT:
+    case RCBase.ALLOC_NON_MOVING:
+      modBuffer.push(ref);
+    case RCBase.ALLOC_CODE:
+      decBuffer.push(ref);
+      RCHeader.initializeHeader(ref, true);
+      ExplicitFreeListSpace.unsyncSetLiveBit(ref);
+      break;
+    case RCBase.ALLOC_LOS:
+      modBuffer.push(ref);
+    case RCBase.ALLOC_PRIMITIVE_LOS:
+    case RCBase.ALLOC_LARGE_CODE:
+      decBuffer.push(ref);
+      RCHeader.initializeHeader(ref, true);
+      RCBase.rcloSpace.initializeHeader(ref, true);
+      return;
+    case RCBase.ALLOC_IMMORTAL:
+      modBuffer.push(ref);
+      decBuffer.push(ref);
+      RCHeader.initializeHeader(ref, true);
+      return;
+    default:
+      VM.assertions.fail("Allocator not understood by RC");
+      return;
     }
   }
 
@@ -169,10 +141,10 @@ import org.vmmagic.unboxed.*;
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == rc)  return RCBase.rcSpace;
-    if (a == los) return RCBase.loSpace;
-    if (a == smcode) return RCBase.smallCodeSpace;
-    if (a == lgcode) return RCBase.largeCodeSpace;
+    if (a == rc) return RCBase.rcSpace;
+    if (a == rclos) return RCBase.rcloSpace;
+
+    // a does not belong to this plan instance
     return super.getSpaceFromAllocator(a);
   }
 
@@ -187,9 +159,8 @@ import org.vmmagic.unboxed.*;
    */
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == RCBase.rcSpace) return rc;
-    if (space == RCBase.loSpace) return los;
-    if (space == RCBase.smallCodeSpace) return smcode;
-    if (space == RCBase.largeCodeSpace) return lgcode;
+    if (space == RCBase.rcloSpace) return rclos;
+
     return super.getAllocatorFromSpace(space);
   }
 
@@ -202,46 +173,161 @@ import org.vmmagic.unboxed.*;
    * Perform a per-mutator collection phase.
    *
    * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * @param primary perform any single-threaded local activities.
    */
-  @Inline
   public void collectionPhase(short phaseId, boolean primary) {
-
     if (phaseId == RCBase.PREPARE) {
       rc.prepare();
-      los.prepare();
-      smcode.prepare();
-      lgcode.prepare();
-      decBuffer.flushLocal();
+      return;
+    }
+
+    if (phaseId == RCBase.PROCESS_MODBUFFER) {
       modBuffer.flushLocal();
       return;
     }
 
-    if (phaseId == RCBase.RELEASE) {
-      los.release();
-      rc.release();
-      smcode.release();
-      lgcode.release();
+    if (phaseId == RCBase.PROCESS_DECBUFFER) {
+      decBuffer.flushLocal();
       return;
     }
 
-    if (!cycleDetector().collectionPhase(phaseId)) {
-      super.collectionPhase(phaseId, primary);
+    if (phaseId == RCBase.RELEASE) {
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        immortal.linearScan(btSweepImmortal);
+      }
+      rc.release();
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(modBuffer.isEmpty());
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      return;
+    }
+
+    super.collectionPhase(phaseId, primary);
+  }
+
+  /**
+   * Flush per-mutator remembered sets into the global remset pool.
+   */
+  public final void flushRememberedSets() {
+    decBuffer.flushLocal();
+    modBuffer.flushLocal();
+    assertRemsetsFlushed();
+  }
+
+  /**
+   * Assert that the remsets have been flushed.  This is critical to
+   * correctness.  We need to maintain the invariant that remset entries
+   * do not accrue during GC.  If the host JVM generates barrier entires
+   * it is its own responsibility to ensure that they are flushed before
+   * returning to MMTk.
+   */
+  public final void assertRemsetsFlushed() {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(decBuffer.isFlushed());
+      VM.assertions._assert(modBuffer.isFlushed());
     }
   }
 
   /****************************************************************************
    *
-   * RC methods
+   * Write barriers.
    */
 
   /**
-   * Add an object to the dec buffer for this mutator.
+   * A new reference is about to be created. Take appropriate write
+   * barrier actions.<p>
    *
-   * @param object The object to add
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
    */
-  public final void addToDecBuffer(ObjectReference object) {
-    decBuffer.push(object);
+  @Inline
+  public void writeBarrier(ObjectReference src, Address slot,
+                           ObjectReference tgt, Word metaDataA,
+                           Word metaDataB, int mode) {
+    if (RCHeader.logRequired(src)) {
+      coalescingWriteBarrierSlow(src);
+    }
+    VM.barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
+  }
+
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is
+   * created, we must then take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out
+   * @param tgt The target of the new reference
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  @Inline
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+                                               ObjectReference old, ObjectReference tgt, Word metaDataA,
+                                               Word metaDataB, int mode) {
+    if (RCHeader.logRequired(src)) {
+      coalescingWriteBarrierSlow(src);
+    }
+    return VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
+  }
+
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * @param src The source of the values to be copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                              ObjectReference dst, Offset dstOffset, int bytes) {
+    if (RCHeader.logRequired(dst)) {
+      coalescingWriteBarrierSlow(dst);
+    }
+    return false;
+  }
+
+  /**
+   * Slow path of the coalescing write barrier.
+   *
+   * <p> Attempt to log the source object. If successful in racing for
+   * the log bit, push an entry into the modified buffer and add a
+   * decrement buffer entry for each referent object (in the RC space)
+   * before setting the header bit to indicate that it has finished
+   * logging (allowing others in the race to continue).
+   *
+   * @param srcObj The object being mutated
+   */
+  @NoInline
+  private void coalescingWriteBarrierSlow(ObjectReference srcObj) {
+    if (RCHeader.attemptToLog(srcObj)) {
+      modBuffer.push(srcObj);
+      decBuffer.processChildren(srcObj);
+      RCHeader.makeLogged(srcObj);
+    }
   }
 
   /****************************************************************************
@@ -253,19 +339,5 @@ import org.vmmagic.unboxed.*;
   @Inline
   private static RCBase global() {
     return (RCBase) VM.activePlan.global();
-  }
-
-  /** @return The active cycle detector instance */
-  @Inline
-  public final CDMutator cycleDetector() {
-    switch (RCBase.CYCLE_DETECTOR) {
-    case RCBase.NO_CYCLE_DETECTOR:
-      return nullCD;
-    case RCBase.TRIAL_DELETION:
-      return trialDeletionCD;
-    }
-
-    VM.assertions.fail("No cycle detector instance found.");
-    return null;
   }
 }

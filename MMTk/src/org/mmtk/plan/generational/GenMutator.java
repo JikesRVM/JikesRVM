@@ -18,8 +18,9 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
-
 import org.mmtk.vm.VM;
+import static org.mmtk.plan.generational.Gen.USE_OBJECT_BARRIER_FOR_AASTORE;
+import static org.mmtk.plan.generational.Gen.USE_OBJECT_BARRIER_FOR_PUTFIELD;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -45,8 +46,9 @@ import org.vmmagic.unboxed.*;
    */
   protected final CopyLocal nursery = new CopyLocal(Gen.nurserySpace);
 
-  protected final WriteBuffer remset;
-  protected final AddressPairDeque arrayRemset;
+  private final ObjectReferenceDeque modbuf;    /* remember modified scalars */
+  protected final WriteBuffer remset;           /* remember modified array fields */
+  protected final AddressPairDeque arrayRemset; /* remember modified array ranges */
 
   /****************************************************************************
    *
@@ -62,6 +64,7 @@ import org.vmmagic.unboxed.*;
    * @see GenCollector
    */
   public GenMutator() {
+    modbuf = new ObjectReferenceDeque("modbuf", global().modbufPool);
     remset = new WriteBuffer(global().remsetPool);
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
   }
@@ -145,6 +148,34 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
+   * Perform the write barrier fast path, which may involve remembering
+   * a reference if necessary.
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param mode The mode of the store (eg putfield, putstatic etc)
+   */
+  @Inline
+  private void fastPath(ObjectReference src, Address slot, ObjectReference tgt, int mode) {
+    if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
+    if ((mode == AASTORE_WRITE_BARRIER && USE_OBJECT_BARRIER_FOR_AASTORE) ||
+        (mode == PUTFIELD_WRITE_BARRIER && USE_OBJECT_BARRIER_FOR_PUTFIELD)) {
+      if (Plan.logRequired(src)) {
+        if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
+        Plan.markAsLogged(src);
+        modbuf.insert(src);
+      }
+    } else {
+      if (!Gen.inNursery(slot) && Gen.inNursery(tgt)) {
+        if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
+        remset.insert(slot);
+      }
+    }
+  }
+
+  /**
    * A new reference is about to be created.  Take appropriate write
    * barrier actions.<p>
    *
@@ -164,11 +195,7 @@ import org.vmmagic.unboxed.*;
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
-    if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
-    if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
-      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
-      remset.insert(slot);
-    }
+    fastPath(src, slot, tgt, mode);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
@@ -196,13 +223,8 @@ import org.vmmagic.unboxed.*;
       ObjectReference old, ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
     boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
-    if (result) {
-      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
-      if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
-        if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
-        remset.insert(slot);
-      }
-    }
+    if (result)
+      fastPath(src, slot, tgt, mode);
     return result;
   }
 
@@ -232,7 +254,7 @@ import org.vmmagic.unboxed.*;
       ObjectReference dst, Offset dstOffset,
       int bytes) {
     // We can ignore when src is in old space, right?
-    if (dst.toAddress().LT(Gen.NURSERY_START))
+    if (!Gen.inNursery(dst))
       arrayRemset.insert(dst.toAddress().plus(dstOffset),
           dst.toAddress().plus(dstOffset.plus(bytes)));
     return false;
@@ -242,6 +264,7 @@ import org.vmmagic.unboxed.*;
    * Flush per-mutator remembered sets into the global remset pool.
    */
   public final void flushRememberedSets() {
+    modbuf.flushLocal();
     remset.flushLocal();
     arrayRemset.flushLocal();
     assertRemsetsFlushed();
@@ -256,6 +279,7 @@ import org.vmmagic.unboxed.*;
    */
   public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(modbuf.isFlushed());
       VM.assertions._assert(remset.isFlushed());
       VM.assertions._assert(arrayRemset.isFlushed());
     }
@@ -273,13 +297,13 @@ import org.vmmagic.unboxed.*;
   public void collectionPhase(short phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
-      nursery.rebind(Gen.nurserySpace);
+      nursery.reset();
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
+        modbuf.flushLocal();
         remset.resetLocal();
         arrayRemset.resetLocal();
       } else {
-        plos.prepare(false);
         flushRememberedSets();
       }
       return;
@@ -288,8 +312,6 @@ import org.vmmagic.unboxed.*;
     if (phaseId == Gen.RELEASE) {
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
-      } else {
-        plos.release(false);
       }
       assertRemsetsFlushed();
       return;

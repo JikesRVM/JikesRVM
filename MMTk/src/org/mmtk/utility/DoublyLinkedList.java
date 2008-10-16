@@ -99,11 +99,6 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public static Address payloadToNode(Address payload) {
-    return payload.minus(HEADER_SIZE);
-  }
-
-  @Inline
   public static Address midPayloadToNode(Address payload) {
     // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
     return payload.toWord().and(nodeMask).toAddress();

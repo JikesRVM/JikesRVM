@@ -13,6 +13,7 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Processor;
 import org.vmmagic.pragma.Uninterruptible;
@@ -64,7 +65,11 @@ public abstract class ProcessorLocalState {
    * @param reg number of the register supplying the new value
    */
   public static void emitMoveRegToField(Assembler asm, Offset offset, GPR reg) {
-    asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER, offset, reg);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER, offset, reg);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(PROCESSOR_REGISTER, offset, reg);
+    }
   }
 
   /**
@@ -76,7 +81,11 @@ public abstract class ProcessorLocalState {
    * @param imm immediate value
    */
   public static void emitMoveImmToField(Assembler asm, Offset offset, int imm) {
-    asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
+    } else {
+      asm.emitMOV_RegDisp_Imm_Quad(PROCESSOR_REGISTER, offset, imm);
+    }
   }
 
   /**
@@ -88,7 +97,11 @@ public abstract class ProcessorLocalState {
    * @param offset of field in the <code>Processor</code> object
    */
   public static void emitMoveFieldToReg(Assembler asm, GPR dest, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(dest, PROCESSOR_REGISTER, offset);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(dest, PROCESSOR_REGISTER, offset);
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(dest, PROCESSOR_REGISTER, offset);
+    }
   }
 
   /**
@@ -100,7 +113,11 @@ public abstract class ProcessorLocalState {
    * @param imm immediate value to compare with
    */
   public static void emitCompareFieldWithImm(Assembler asm, Offset offset, int imm) {
-    asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
+    if (VM.BuildFor32Addr) {
+      asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
+    } else {
+      asm.emitCMP_RegDisp_Imm_Quad(PROCESSOR_REGISTER, offset, imm);
+    }
   }
 
   /**
@@ -124,7 +141,11 @@ public abstract class ProcessorLocalState {
    * @param offset of field in the <code>Processor</code> object
    */
   public static void emitDecrementField(Assembler asm, Offset offset) {
-    asm.emitDEC_RegDisp(PROCESSOR_REGISTER, offset);
+    if (VM.BuildFor32Addr) {
+      asm.emitSUB_RegDisp_Imm(PROCESSOR_REGISTER, offset, 1);
+    } else {
+      asm.emitSUB_RegDisp_Imm_Quad(PROCESSOR_REGISTER, offset, 1);
+    }
   }
 
   /**
@@ -178,7 +199,11 @@ public abstract class ProcessorLocalState {
    * @param offset offset
    */
   public static void emitStoreProcessor(Assembler asm, GPR base, Offset offset) {
-    asm.emitMOV_RegDisp_Reg(base, offset, PROCESSOR_REGISTER);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(base, offset, PROCESSOR_REGISTER);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(base, offset, PROCESSOR_REGISTER);
+    }
   }
 
   /**
@@ -190,6 +215,10 @@ public abstract class ProcessorLocalState {
    * @param offset offset
    */
   public static void emitLoadProcessor(Assembler asm, GPR base, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(PROCESSOR_REGISTER, base, offset);
+    }
   }
 }

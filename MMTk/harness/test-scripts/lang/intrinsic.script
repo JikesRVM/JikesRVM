@@ -6,7 +6,7 @@ main() {
  * Intrinsics
  */
 string test_method(int i, boolean b, string s, object o)
-  intrinsic class "org.mmtk.harness.lang.IntrinsicMethod"
+  intrinsic class "org.mmtk.harness.lang.ast.IntrinsicMethod"
             method "testMethod"
-            signature ("int","boolean","String","org.mmtk.harness.lang.ObjectValue");
+            signature ("int","boolean","String","org.mmtk.harness.lang.ast.ObjectValue");
 

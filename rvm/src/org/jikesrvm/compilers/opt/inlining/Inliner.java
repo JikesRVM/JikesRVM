@@ -168,28 +168,31 @@ public class Inliner {
         GenerationContext.transferState(parent, children[i]);
       }
       // Step 3: Merge together result from children into container.
+      //         Note: if the child ended with only exception control flow, then
+      //         child.result will be null, which we want to interpret as top.
+      //         Operand.meet interprets null as bottom, so we have to do some
+      //         special purpose coding wrapping the calls to Operand.meet.
       if (Call.hasResult(callSite)) {
         Register reg = Call.getResult(callSite).getRegister();
         container.result = children[0].result;
         for (int i = 1; i < targets.length; i++) {
-          container.result = Operand.meet(container.result, children[i].result, reg);
+          if (children[i].result != null) {
+            container.result = (container.result == null) ? children[i].result : Operand.meet(container.result, children[i].result, reg);
+          }
         }
-        // Account for the non-predicted case as well...
-        // Most likely this means that we shouldn't even bother
-        // with the above meet operations
-        // and simply pick up Call.getResult(callsite) directly.
-        // SJF: However, it's good to keep this around; maybe
-        //      IPA will give us more information about the result.
-        container.result = Operand.meet(container.result, Call.getResult(callSite), reg);
+
+
+        if (!inlDec.OSRTestFailed()) {
+          // Account for the non-predicted case as well...
+          RegisterOperand failureCaseResult = Call.getResult(callSite).copyRO();
+          container.result = (container.result == null) ?  failureCaseResult : Operand.meet(container.result, failureCaseResult, reg);
+        }
       }
-      // Step 4: Create a block to contain a copy of the original call
-      // in case all predictions fail. It falls through to container.epilogue
+
+      // Step 4: Create a block to contain a copy of the original call or an OSR_Yieldpoint
+      //         to cover the case that all predictions fail.
       BasicBlock testFailed = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
       testFailed.exceptionHandlers = ebag;
-      Instruction call = callSite.copyWithoutLinks();
-      Call.getMethod(call).setIsGuardedInlineOffBranch(true);
-      call.bcIndex = callSite.bcIndex;
-      call.position = callSite.position;
 
       if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
@@ -206,31 +209,37 @@ public class Inliner {
 
       if (inlDec.OSRTestFailed()) {
         // note where we're storing the osr barrier instruction
-        Instruction lastOsrBarrier = (Instruction) callSite.scratchObject;
+        Instruction lastOsrBarrier = (Instruction)callSite.scratchObject;
         Instruction s = BC2IR._osrHelper(lastOsrBarrier);
         s.position = callSite.position;
         s.bcIndex = callSite.bcIndex;
         testFailed.appendInstruction(s);
+        testFailed.insertOut(parent.exit);
       } else {
+        Instruction call = callSite.copyWithoutLinks();
+        Call.getMethod(call).setIsGuardedInlineOffBranch(true);
+        call.bcIndex = callSite.bcIndex;
+        call.position = callSite.position;
         testFailed.appendInstruction(call);
-      }
-      testFailed.insertOut(container.epilogue);
-      container.cfg.linkInCodeOrder(testFailed, container.epilogue);
-      // This is ugly....since we didn't call BC2IR to generate the
-      // block with callSite we have to initialize the block's exception
-      // behavior manually.
-      // We can't call createSubBlock to do it because callSite may not
-      // be in a basic block yet (when execute is invoked from
-      // BC2IR.maybeInlineMethod).
-      if (ebag != null) {
-        for (BasicBlockEnumeration e = ebag.enumerator(); e.hasMoreElements();) {
-          BasicBlock handler = e.next();
-          testFailed.insertOut(handler);
+        testFailed.insertOut(container.epilogue);
+        // This is ugly....since we didn't call BC2IR to generate the
+        // block with callSite we have to initialize the block's exception
+        // behavior manually.
+        // We can't call createSubBlock to do it because callSite may not
+        // be in a basic block yet (when execute is invoked from
+        // BC2IR.maybeInlineMethod).
+        if (ebag != null) {
+          for (BasicBlockEnumeration e = ebag.enumerator(); e.hasMoreElements();) {
+            BasicBlock handler = e.next();
+            testFailed.insertOut(handler);
+          }
         }
+        testFailed.setCanThrowExceptions();
+        testFailed.setMayThrowUncaughtException();
       }
-      testFailed.setCanThrowExceptions();
-      testFailed.setMayThrowUncaughtException();
+      container.cfg.linkInCodeOrder(testFailed, container.epilogue);
       testFailed.setInfrequent();
+
       // Step 5: Patch together all the callees by generating guard blocks
       BasicBlock firstIfBlock = testFailed;
       // Note: We know that receiver must be a register
@@ -406,7 +415,7 @@ public class Inliner {
                                  Call.getGuard(callSite).copy(),
                                  MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target),
                                  testFailed.makeJumpTarget(),
-                                 BranchProfileOperand.unlikely());
+                                 inlDec.OSRTestFailed() ? BranchProfileOperand.never() : BranchProfileOperand.unlikely());
         }
         tmp.copyPosition(callSite);
         lastIfBlock.appendInstruction(tmp);

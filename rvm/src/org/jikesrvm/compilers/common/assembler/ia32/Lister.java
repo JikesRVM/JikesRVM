@@ -77,21 +77,21 @@ public final class Lister implements RegisterConstants {
     end(i);
   }
 
-  public void RI(int i, String op, MachineRegister R0, int n) {
+  public void RI(int i, String op, MachineRegister R0, long n) {
     i = begin(i, op);
     VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public void RDI(int i, String op, MachineRegister R0, Offset d, int n) {
+  public void RDI(int i, String op, MachineRegister R0, Offset d, long n) {
     i = begin(i, op);
     VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public void RNI(int i, String op, MachineRegister R0, int n) {
+  public void RNI(int i, String op, MachineRegister R0, long n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
@@ -164,7 +164,7 @@ public final class Lister implements RegisterConstants {
     end(i);
   }
 
-  public void RXDI(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, int n) {
+  public void RXDI(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, long n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
@@ -186,14 +186,14 @@ public final class Lister implements RegisterConstants {
     end(i);
   }
 
-  public void RFDI(int i, String op, MachineRegister X, short s, Offset d, int n) {
+  public void RFDI(int i, String op, MachineRegister X, short s, Offset d, long n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
     end(i);
   }
 
-  public void RAI(int i, String op, Address d, int n) {
+  public void RAI(int i, String op, Address d, long n) {
     i = begin(i, op);
     VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
@@ -383,6 +383,41 @@ public final class Lister implements RegisterConstants {
     String result = "";
     while (0 < n) {
       int i = n % 10;
+      n /= 10;
+      if (i == 0) {
+        result = "0" + result;
+      } else if (i == 1) {
+        result = "1" + result;
+      } else if (i == 2) {
+        result = "2" + result;
+      } else if (i == 3) {
+        result = "3" + result;
+      } else if (i == 4) {
+        result = "4" + result;
+      } else if (i == 5) {
+        result = "5" + result;
+      } else if (i == 6) {
+        result = "6" + result;
+      } else if (i == 7) {
+        result = "7" + result;
+      } else if (i == 8) {
+        result = "8" + result;
+      } else if (i == 9) result = "9" + result;
+    }
+    return (sign + result);
+  }
+
+  @Pure
+  static String decimal(long n) {
+    if (n == 0) return "0";
+    String sign = "";
+    if (n < 0) {
+      sign = "-";
+      n = -n;
+    }
+    String result = "";
+    while (0 < n) {
+      long i = n % 10;
       n /= 10;
       if (i == 0) {
         result = "0" + result;

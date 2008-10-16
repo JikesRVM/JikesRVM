@@ -24,7 +24,7 @@ public class Statistics extends org.mmtk.vm.Statistics {
    * @return The number of collections that have occurred.
    */
   public int getCollectionCount() {
-    return Collector.collectionCount;
+    return Collector.getCollectionCount();
   }
 
   /**

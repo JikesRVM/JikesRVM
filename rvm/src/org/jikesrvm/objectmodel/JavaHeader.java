@@ -859,6 +859,9 @@ public class JavaHeader implements JavaHeaderConstants {
         ref = ref.plus(HASHCODE_BYTES);
         bootImage.setFullWord(ref.plus(HASHCODE_OFFSET), (identityHashValue << 1) | ALIGNMENT_MASK);
       }
+    } else {
+      // As boot image objects can't move there is no benefit in lazily setting them to hashed
+      bootImage.setFullWord(ref.plus(STATUS_OFFSET), HASH_STATE_HASHED.toInt());
     }
     return ref;
   }
@@ -899,6 +902,9 @@ public class JavaHeader implements JavaHeaderConstants {
         ref = ref.plus(HASHCODE_BYTES);
         bootImage.setFullWord(ref.plus(HASHCODE_OFFSET), (identityHashValue << 1) | ALIGNMENT_MASK);
       }
+    } else {
+      // As boot image objects can't move there is no benefit in lazily setting them to hashed
+      bootImage.setFullWord(ref.plus(STATUS_OFFSET), HASH_STATE_HASHED.toInt());
     }
     return ref;
   }

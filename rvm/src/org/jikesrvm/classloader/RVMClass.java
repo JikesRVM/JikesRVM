@@ -16,9 +16,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import org.jikesrvm.VM;
+
 import org.jikesrvm.Callbacks;
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -30,7 +31,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.util.LinkedListRVM;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -176,10 +176,9 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   private RVMMethod[] virtualMethods;
 
   /**
-   * method that overrides java.lang.Object.finalize()
-   * null => class does not have a finalizer
+   * Do objects of this class have a finalizer method?
    */
-  private RVMMethod finalizeMethod;
+  private boolean hasFinalizer;
 
   /** type and virtual method dispatch table for class */
   private TIB typeInformationBlock;
@@ -207,9 +206,10 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   private Annotation[] annotations;
 
   /** Set of objects that are cached here to ensure they are not collected by GC **/
-  private final LinkedListRVM<Object> objectCache;
+  private Object[] objectCache;
 
   /** The imt for this class **/
+  @SuppressWarnings("unused")
   private IMT imt;
 
   // --- Assertion support --- //
@@ -595,7 +595,17 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Add the given cached object.
    */
   public synchronized void addCachedObject(Object o) {
-    objectCache.add(o);
+    Object[] newObjectCache;
+    if (objectCache == null) {
+      newObjectCache = new Object[1];
+    } else {
+      newObjectCache = new Object[objectCache.length + 1];
+      for (int i=0; i < objectCache.length; i++) {
+        newObjectCache[i] = objectCache[i];
+      }
+    }
+    newObjectCache[newObjectCache.length - 1] = o;
+    objectCache = newObjectCache;
   }
 
   /**
@@ -614,7 +624,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   //
 
   @Uninterruptible
-  private static int packCPEntry(byte type, int value) {
+  static int packCPEntry(byte type, int value) {
     return (type << 29) | (value & 0x1fffffff);
   }
 
@@ -864,17 +874,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public boolean hasFinalizer() {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    return (finalizeMethod != null);
-  }
-
-  /**
-   * Get finalize method that overrides java.lang.Object.finalize(),
-   * if one exists
-   */
-  @Uninterruptible
-  public RVMMethod getFinalizer() {
-    if (VM.VerifyAssertions) VM._assert(isResolved());
-    return finalizeMethod;
+    return hasFinalizer;
   }
 
   /**
@@ -1191,7 +1191,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     this.sourceName = sourceName;
     this.classInitializerMethod = classInitializerMethod;
     this.signature = signature;
-    this.objectCache = new LinkedListRVM<Object>();
 
     // non-final fields
     this.subClasses = emptyVMClass;
@@ -1861,13 +1860,12 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
     // check for a "finalize" method that overrides the one in java.lang.Object
     //
-    finalizeMethod = null;
     if (!isInterface()) {
       final RVMMethod method =
           findVirtualMethod(RVMClassLoader.StandardObjectFinalizerMethodName,
                             RVMClassLoader.StandardObjectFinalizerMethodDescriptor);
       if (!method.getDeclaringClass().isJavaLangObjectType()) {
-        finalizeMethod = method;
+        hasFinalizer = true;
       }
     }
 
@@ -2454,5 +2452,45 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public boolean isReferenceType() {
     return true;
+  }
+
+  /**
+   * Create a synthetic class that extends ReflectionBase and invokes the given method
+   * @param methodToCall the method we wish to call reflectively
+   * @return the synthetic class
+   */
+  static Class<?> createReflectionClass(RVMMethod methodToCall) {
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+    if (DynamicTypeCheck.instanceOfResolved(TypeReference.baseReflectionClass.resolve(), methodToCall.getDeclaringClass())) {
+      // Avoid reflection on reflection base class
+      return null;
+    }
+    int[] constantPool = new int[methodToCall.getParameterTypes().length+3];
+    String reflectionClassName = "Lorg/jikesrvm/classloader/ReflectionBase$$Reflect"+methodToCall.getMemberRef().getId()+";";
+    TypeReference reflectionClass = TypeReference.findOrCreate(reflectionClassName);
+    RVMType klass = reflectionClass.peekType();
+    if (klass == null) {
+      MethodReference reflectionMethodRef = MethodReference.findOrCreate(reflectionClass,
+          Atom.findOrCreateUnicodeAtom("invoke"),
+          Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;")
+      ).asMethodReference();
+      MethodReference constructorMethodRef = MethodReference.findOrCreate(reflectionClass,
+          Atom.findOrCreateUnicodeAtom("<init>"),
+          Atom.findOrCreateUnicodeAtom("()V")
+      ).asMethodReference();
+
+      RVMMethod[] reflectionMethods = new RVMMethod[]{
+          methodToCall.createReflectionMethod(reflectionClass, constantPool, reflectionMethodRef),
+          RVMMethod.createDefaultConstructor(reflectionClass, constructorMethodRef)};
+      klass =
+        new RVMClass(reflectionClass, constantPool, (short) (ACC_SYNTHETIC | ACC_PUBLIC | ACC_FINAL), // modifiers
+            TypeReference.baseReflectionClass.resolve().asClass(), // superClass
+            emptyVMClass, // declaredInterfaces
+            emptyVMField, reflectionMethods,
+            null, null, null, null, null, null, null, null);
+      reflectionClass.setType(klass);
+      RuntimeEntrypoints.initializeClassForDynamicLink(klass.asClass());
+    }
+    return klass.getClassForType();
   }
 }

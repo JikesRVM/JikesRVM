@@ -285,7 +285,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.BaselineNoRegisters
    */
   public final boolean hasBaselineNoRegistersAnnotation() {
-    return isAnnotationPresent(org.vmmagic.pragma.BaselineNoRegisters.class);
+    return isAnnotationDeclared(TypeReference.BaselineNoRegisters);
   }
 
   /**
@@ -293,7 +293,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * @see org.vmmagic.pragma.BaselineSaveLSRegisters
    */
   public final boolean hasBaselineSaveLSRegistersAnnotation() {
-    return isAnnotationPresent(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
+    return isAnnotationDeclared(TypeReference.BaselineSaveLSRegisters);
   }
 
   /**
@@ -302,6 +302,14 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    */
   public final boolean hasPureAnnotation() {
     return isAnnotationPresent(org.vmmagic.pragma.Pure.class);
+  }
+
+  /**
+   * Return true if this element has a RuntimePure annotation.
+   * @see org.vmmagic.pragma.RuntimePure
+   */
+  public final boolean hasRuntimePureAnnotation() {
+    return isAnnotationPresent(org.vmmagic.pragma.RuntimePure.class);
   }
 
   /**
@@ -346,9 +354,17 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
 
   /**
    * Return true if this element has a NonMoving annotation.
-   * @see org.vmmagic.pragma.Untraced
+   * @see org.vmmagic.pragma.NonMoving
    */
   public final boolean hasNonMovingAnnotation() {
     return isAnnotationDeclared(TypeReference.NonMoving);
+  }
+
+  /**
+   * Return true if this element has a NonMovingAllocation annotation.
+   * @see org.vmmagic.pragma.NonMovingAllocation
+   */
+  public final boolean hasNonMovingAllocationAnnotation() {
+    return isAnnotationDeclared(TypeReference.NonMovingAllocation);
   }
 }

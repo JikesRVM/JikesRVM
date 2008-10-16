@@ -37,4 +37,7 @@ public class ImmixConstraints extends StopTheWorldConstraints {
 
   /** @return The specialized scan methods required */
   public int numSpecializedScans() { return 2; }
+
+  /** @return true because we cannot accommodate large objects in default allocator */
+  public boolean requiresLOS() { return true; }
 }

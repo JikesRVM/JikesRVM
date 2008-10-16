@@ -14,6 +14,8 @@ package org.mmtk.harness.vm;
 
 import org.vmutil.options.OptionSet;
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.scheduler.Lock;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.gcspy.ByteStream;
@@ -105,7 +107,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @return A concrete VM-specific Lock instance.
    */
   public Lock newLock(String name) {
-    return new Lock(name);
+    return Scheduler.newLock(name);
   }
 
   /**
@@ -139,6 +141,17 @@ public class Factory extends org.mmtk.vm.Factory {
    */
   public ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics) {
     return new ReferenceProcessor();
+  }
+
+  /**
+   * Create a new FinalizableProcessor instance using the appropriate VM-specific
+   * concrete FinalizableProcessor sub-class.
+   *
+   * @see FinalizableProcessor
+   * @return A concrete VM-specific FinalizableProcessor instance.
+   */
+  public FinalizableProcessor newFinalizableProcessor() {
+    return new FinalizableProcessor();
   }
 
   /**
@@ -374,5 +387,13 @@ public class Factory extends org.mmtk.vm.Factory {
       boolean summary) {
     Assert.notImplemented();
     return null;
+  }
+
+  /**
+   * TuningFork support
+   */
+  @Override
+  public org.mmtk.vm.MMTk_Events newEvents() {
+    return new MMTkEvents();
   }
 }

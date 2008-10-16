@@ -33,6 +33,11 @@ public interface BootImageWriterConstants extends Constants {
   Address OBJECT_NOT_PRESENT = Address.fromIntSignExtend(0xeeeeeee2);
 
   /**
+   * Address to associate with objects that have their allocation deferred.
+   */
+  Address OBJECT_ALLOCATION_DEFERRED = Address.fromIntSignExtend(0xeeeeeee3);
+
+  /**
    * Starting index for objects in TypeDictionary.
    * = 1, since slot 0 is reserved for null
    */

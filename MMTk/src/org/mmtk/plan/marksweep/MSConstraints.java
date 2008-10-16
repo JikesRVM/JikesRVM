@@ -32,4 +32,7 @@ public class MSConstraints extends StopTheWorldConstraints {
   public int gcHeaderWords() { return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED; }
 
   public int numSpecializedScans() { return 1; }
+
+  /** @return true because we cannot accommodate large objects in default allocator */
+  public boolean requiresLOS() { return true; }
 }

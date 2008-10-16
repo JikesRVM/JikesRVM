@@ -20,19 +20,18 @@ mkdir -p results/mmtk
 
 plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy org.mmtk.plan.generational.immix.GenImmix org.mmtk.plan.generational.marksweep.GenMS org.mmtk.plan.immix.Immix org.mmtk.plan.markcompact.MC org.mmtk.plan.marksweep.MS org.mmtk.plan.poisoned.Poisoned org.mmtk.plan.refcount.fullheap.RC org.mmtk.plan.refcount.generational.GenRC org.mmtk.plan.semispace.SS org.mmtk.plan.stickyimmix.StickyImmix org.mmtk.plan.stickyms.StickyMS"
 
-opts="variableSizeHeap=false"
+opts="variableSizeHeap=false $*"
 #opts="$opts gcEvery=SAFEPOINT"
 
-# 4m stack required for 'quicksort'
-jvm_opts="-ea -Xss8m"
+jvm_opts="-ea"
 
 for plan in $plans
 do
-  showplan=`echo $plan | sed "{s/.*\.//g}"`
+  showplan=`echo $plan | sed -e "s/.*\.//g"`
   mkdir results/mmtk/$showplan
   for script in `ls $TEST_DIR/*.script`
   do
-    showscript=`echo $script | sed "{s/.*[\/]//g}" | sed "{s/\.script$//g}"`
+    showscript=`echo $script | sed -e "s/.*[\/]//g" | sed -e "s/\.script$//g"`
     if [ -f $TEST_DIR/$showscript.options ]; then
       scriptopts=$(cat  $TEST_DIR/$showscript.options)
     else
@@ -58,6 +57,6 @@ failed=`find results/mmtk -name "*.fail" | wc -l`
 
 echo
 echo "FAILURES:"
-find results/mmtk -name "*.fail" | sed "{s/results\/mmtk\///g}" | sed "{s/\.out\.fail$//g}" | sed "{s/\// /g}"
+find results/mmtk -name "*.fail" | sed -e "s/results\/mmtk\///g" -e "s/\.out\.fail$//g" -e "s/\// /g"
 echo
 echo "PASSED $passed/$[$passed + failed] tests ($[(100 * $passed) / ($passed + $failed)]%)"

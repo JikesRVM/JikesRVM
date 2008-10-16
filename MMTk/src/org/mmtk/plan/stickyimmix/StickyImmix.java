@@ -71,7 +71,6 @@ public class StickyImmix extends Immix {
    * Class variables
    */
   private static int lastCommittedImmixPages = 0;
-  private static int lastCommittedPLOSpages = 0;
 
   /****************************************************************************
    * Instance variables
@@ -124,8 +123,6 @@ public class StickyImmix extends Immix {
     }
 
     if (!collectWholeHeap && phaseId == PREPARE) {
-      if (NURSERY_COLLECT_PLOS)
-        ploSpace.prepare(false);
       immixTrace.prepare();
       immixSpace.prepare(false);
       return;
@@ -139,9 +136,6 @@ public class StickyImmix extends Immix {
         immixSpace.globalRelease();
       }
       modPool.reset();
-      if (!collectWholeHeap && NURSERY_COLLECT_PLOS)
-        ploSpace.release(collectWholeHeap);
-      lastCommittedPLOSpages = ploSpace.committedPages();
       lastCommittedImmixPages = immixSpace.committedPages();
       nextGCWholeHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       return;
@@ -185,15 +179,11 @@ public class StickyImmix extends Immix {
       return true;
     }
 
-    // Estimate the yield from nursery PLOS pages
-    int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
-    int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
-
     // Estimate the yield from small nursery pages
     int smallNurseryPages = immixSpace.committedPages() - lastCommittedImmixPages;
     int smallNurseryYield = (int)(smallNurseryPages * SURVIVAL_ESTIMATE);
 
-    if ((plosYield + smallNurseryYield) < getPagesRequired()) {
+    if (smallNurseryYield < getPagesRequired()) {
       // Our total yield is insufficient.
       return true;
     }
@@ -201,13 +191,6 @@ public class StickyImmix extends Immix {
     if (immixSpace.allocationFailed()) {
       if (smallNurseryYield < immixSpace.requiredPages()) {
         // We have run out of VM pages in the nursery
-        return true;
-      }
-    }
-
-    if (ploSpace.allocationFailed()) {
-      if (plosYield < ploSpace.requiredPages()) {
-        // We have run out of VM pages in the PLOS
         return true;
       }
     }

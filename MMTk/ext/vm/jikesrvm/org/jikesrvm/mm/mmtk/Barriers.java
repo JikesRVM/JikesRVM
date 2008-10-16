@@ -218,7 +218,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
     if (org.jikesrvm.VM.runningVM) {
       Address base = ObjectReference.fromObject(dst).toAddress();
       Address slot = base.plus(Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS));
-      VM.activePlan.collector().storeObjectReference(slot, ObjectReference.fromObject(value));
+      VM.activePlan.global().storeObjectReference(slot, ObjectReference.fromObject(value));
     } else {
       dst[index] = value;
     }

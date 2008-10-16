@@ -1,15 +1,16 @@
 main() {
-  sub(1);
-  sub(2);
-  sub(3);
-}
+  int a = 0;
 
-sub(int x) {
-  if (x == 1) {
-    print("if branch");
-  } elif (x == 2) {
-    print("elif branch");
+  if (a == 0) {
+    print("a == 0: correct");
   } else {
-    print ("else branch");
+    print("ERROR");
+  }
+
+  if (a != 0) {
+    print("ERROR");
+  } else {
+    print("a == 0: correct");
   }
 }
+

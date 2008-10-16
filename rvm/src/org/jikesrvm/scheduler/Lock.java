@@ -68,7 +68,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
 
  <p><STRONG>Section 3:</STRONG>
  Allocates (and frees) heavy weight locks consistent with Requirement
- 1.  Also, distributes them among the virtual processors.
+ 1.
  </p>
 
  <p><STRONG>Section 4:</STRONG>
@@ -91,21 +91,12 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  period?) examine heavy-weight locks and deflate any that havn't
  been held for a while (how long?).
  <LI> <EM>How many heavy-weight locks are needed? and how should they be
- managed?</EM>  Currently, each processor maintains a pool of free
- locks.  When a lock is inflated by a processor it is taken from
- this pool and when a lock is deflated by a processor it gets added
- to the processors pool.  Since inflation can happen on one processor
- and deflation on another, this can create an imbalance.  It might
- be worth investigating a scheme for balancing these local pools.
- <LI> <EM>Is there any advantage to using the {@link ProcessorLock#tryLock}
- method?</EM>
+ managed?</EM>  Currently, we maintain a global pool of free locks.
+ Each RVMThread has a 1 element cache.  On inflation, if the thread has
+ a cached lock, it uses it. If it does not, it acquires one from the global
+ pool.  On deflation, if the thread's cache is empty, it retains the lock. If
+ the thread already has a cached free lock, it returns it to the global pool.
  </OL>
- Once these questions, and the issue of using MCS locking in {@link
-ProcessorLock}, have been investigate, then a larger performance issue
- comes into view.  A number of different light-weight locking schemes have
- been proposed over the years (see last several OOPSLA's).  It should be
- possible to implement each of them in RVM and compare their performance.
- </p>
 
  @see java.lang.Object
  @see ThinLock
@@ -118,12 +109,6 @@ public abstract class Lock implements Constants {
    * Constants
    */
 
-  /**
-   * Should we attempt to keep the roughly equal sized pools for free
-   * heavy-weight locks on each processor?
-   */
-  protected static final boolean BALANCE_FREE_LOCKS = false;
-
   /** Control the gathering of statistics */
   public static final boolean STATS = false;
 
@@ -135,8 +120,6 @@ public abstract class Lock implements Constants {
   protected static final int LOCK_CHUNK_SIZE = 1 << LOG_LOCK_CHUNK_SIZE;
   /** The mask used to get the chunk-level index */
   protected static final int LOCK_CHUNK_MASK = LOCK_CHUNK_SIZE - 1;
-  /** The number of locks allocated at a time */
-  protected static final int LOCK_ALLOCATION_UNIT_SIZE = 128;
   /** The maximum possible number of locks */
   protected static final int MAX_LOCKS = LOCK_SPINE_SIZE * LOCK_CHUNK_SIZE;
   /** The number of chunks to allocate on startup */
@@ -150,8 +133,12 @@ public abstract class Lock implements Constants {
   private static final ProcessorLock lockAllocationMutex = new ProcessorLock();
   /** The number of chunks in the spine that have been physically allocated */
   private static int chunksAllocated;
-  /** The number of locks in the table that have been given out to processors */
-  private static int lockUnitsAllocated;
+  /**
+   * The index to use for the next allocated Lock.  Locks 1...nextLockIndex-1 have already
+   * been allocated (these may either be in use, on the global freelist,
+   * or in a thread's local cache of free locks.)
+   */
+  private static int nextLockIndex;
 
   // Global free list.
 
@@ -159,6 +146,10 @@ public abstract class Lock implements Constants {
   private static Lock globalFreeLock;
   /** the number of locks held on the global free list. */
   private static int globalFreeLocks;
+  /** The total number of lock allocation operations */
+  private static int globalLocksAllocated;
+  /** the total number of lock free operations */
+  private static int globalLocksFreed;
 
   // Statistics
 
@@ -319,6 +310,7 @@ public abstract class Lock implements Constants {
    */
   @Interruptible
   public static void init() {
+    nextLockIndex = 1;
     locks = new Lock[LOCK_SPINE_SIZE][];
     for (int i=0; i < INITIAL_CHUNKS; i++) {
       chunksAllocated++;
@@ -348,56 +340,77 @@ public abstract class Lock implements Constants {
       /* Collector threads can't use heavy locks because they don't fix up their stacks after moving objects */
       return null;
     }
-    if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && BALANCE_FREE_LOCKS) {
-      localizeFreeLocks(mine);
+    RVMThread me = Scheduler.getCurrentThread();
+    if (me.cachedFreeLock != null) {
+      Lock l = me.cachedFreeLock;
+      me.cachedFreeLock = null;
+      return l;
     }
-    Lock l = mine.freeLock;
-    if (l != null) {
-      mine.freeLock = l.nextFreeLock;
-      l.nextFreeLock = null;
-      mine.freeLocks--;
-      l.active = true;
-    } else {
-      l = new Scheduler.LockModel(); // may cause thread switch (and processor loss)
-      mine = Processor.getCurrentProcessor();
-      if (mine.lastLockIndex < mine.nextLockIndex) {
-        lockAllocationMutex.lock("lock allocation mutex - allocating");
-        mine.nextLockIndex = 1 + (LOCK_ALLOCATION_UNIT_SIZE * lockUnitsAllocated++);
+
+    Lock l = null;
+    while (l == null) {
+      if (globalFreeLock != null) {
+        lockAllocationMutex.lock("lock allocation mutex - attempting freelist allocation");
+        l = globalFreeLock;
+        if (l != null) {
+          globalFreeLock = l.nextFreeLock;
+          l.nextFreeLock = null;
+          l.active = true;
+          globalFreeLocks--;
+        }
         lockAllocationMutex.unlock();
-        mine.lastLockIndex = mine.nextLockIndex + LOCK_ALLOCATION_UNIT_SIZE - 1;
-        if (MAX_LOCKS <= mine.lastLockIndex) {
-          VM.sysWriteln("Too many fat locks on processor ", mine.id); // make MAX_LOCKS bigger? we can keep going??
-          VM.sysFail("Exiting VM with fatal error");
-          return null;
+      } else {
+        l = new Scheduler.LockModel(); // may cause thread switch (and processor loss)
+        lockAllocationMutex.lock("lock allocation mutex - attempting to add a lock");
+        if (globalFreeLock == null) {
+          // ok, it's still correct for us to be adding a new lock
+          if (nextLockIndex >= MAX_LOCKS) {
+            VM.sysWriteln("Too many fat locks"); // make MAX_LOCKS bigger? we can keep going??
+            VM.sysFail("Exiting VM with fatal error");
+          }
+          l.index = nextLockIndex++;
+          globalLocksAllocated++;
+        } else {
+          l = null; // someone added to the freelist, try again
+        }
+        lockAllocationMutex.unlock();
+        if (l != null) {
+          if (l.index >= numLocks()) {
+            /* We need to grow the table */
+            growLocks(l.index);
+          }
+          addLock(l);
+          l.active = true;
+          /* make sure other processors see lock initialization.
+           * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
+          Magic.sync();
         }
       }
-      l.index = mine.nextLockIndex++;
-      if (l.index >= numLocks()) {
-        /* We need to grow the table */
-        growLocks(l.index);
-      }
-      addLock(l);
-      l.active = true;
-      /* make sure other processors see lock initialization.
-       * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
-      Magic.sync();
     }
-    mine.locksAllocated++;
     return l;
   }
 
   /**
-   * Recycles an unused heavy-weight lock.  Locks are deallocated
-   * to processor specific lists, so normally no synchronization
-   * is required to obtain or release a lock.
+   * Recycles an unused heavy-weight lock. Threads maintain
+   * a one element cache that sits in front of a global free list.
    */
   protected static void free(Lock l) {
     l.active = false;
-    Processor mine = Processor.getCurrentProcessor();
-    l.nextFreeLock = mine.freeLock;
-    mine.freeLock = l;
-    mine.freeLocks++;
-    mine.locksFreed++;
+    RVMThread me = Scheduler.getCurrentThread();
+    if (me.cachedFreeLock == null) {
+      me.cachedFreeLock = l;
+    } else {
+      returnLock(l);
+    }
+  }
+
+  protected static void returnLock(Lock l) {
+    lockAllocationMutex.lock("lock allocation mutex - returning lock to freelist");
+    l.nextFreeLock = globalFreeLock;
+    globalFreeLock = l;
+    globalFreeLocks++;
+    globalLocksFreed++;
+    lockAllocationMutex.unlock();
   }
 
   /**
@@ -426,76 +439,6 @@ public abstract class Lock implements Constants {
       }
       lockAllocationMutex.unlock();
     }
-  }
-
-  /**
-   * Transfers free heavy-weight locks from a processor local
-   * structure to a global one.
-   *
-   * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
-   * directive is set for the current build.
-   */
-  protected static void globalizeFreeLocks(Processor mine) {
-    if (mine.freeLocks <= LOCK_ALLOCATION_UNIT_SIZE) {
-      if (VM.VerifyAssertions) VM._assert(mine.freeLock != null);
-      Lock q = mine.freeLock;
-      while (q.nextFreeLock != null) {
-        q = q.nextFreeLock;
-      }
-      lockAllocationMutex.lock("lock allocation mutex for globalizing locks");
-      q.nextFreeLock = globalFreeLock;
-      globalFreeLock = mine.freeLock;
-      globalFreeLocks += mine.freeLocks;
-      lockAllocationMutex.unlock();
-      mine.freeLock = null;
-      mine.freeLocks = 0;
-    } else {
-      Lock p = null;
-      Lock q = mine.freeLock;
-      for (int i = 0; i < LOCK_ALLOCATION_UNIT_SIZE; i++) {
-        p = q;
-        q = q.nextFreeLock;
-      }
-      lockAllocationMutex.lock("lock allocation mutex for globalizing locks");
-      p.nextFreeLock = globalFreeLock;
-      globalFreeLock = mine.freeLock;
-      globalFreeLocks += LOCK_ALLOCATION_UNIT_SIZE;
-      lockAllocationMutex.unlock();
-      mine.freeLock = q;
-      mine.freeLocks -= LOCK_ALLOCATION_UNIT_SIZE;
-    }
-  }
-
-  /**
-   * Transfers free heavy-weight locks from a global structure to a
-   * processor local one.
-   *
-   * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
-   * directive is set for the current build.
-   */
-  private static void localizeFreeLocks(Processor mine) {
-    if (true) return; // TEMP
-    if (VM.VerifyAssertions) VM._assert(mine.freeLock == null);
-    lockAllocationMutex.lock("lock allocation mutex for localize");
-    if (globalFreeLocks <= LOCK_ALLOCATION_UNIT_SIZE) {
-      mine.freeLock = globalFreeLock;
-      mine.freeLocks = globalFreeLocks;
-      globalFreeLock = null;
-      globalFreeLocks = 0;
-    } else {
-      Lock p = null;
-      Lock q = globalFreeLock;
-      for (int i = 0; i < LOCK_ALLOCATION_UNIT_SIZE; i++) {
-        p = q;
-        q = q.nextFreeLock;
-      }
-      p.nextFreeLock = null;
-      mine.freeLock = globalFreeLock;
-      mine.freeLocks = LOCK_ALLOCATION_UNIT_SIZE;
-      globalFreeLock = q;
-      globalFreeLocks -= LOCK_ALLOCATION_UNIT_SIZE;
-    }
-    lockAllocationMutex.unlock();
   }
 
   /**
@@ -621,6 +564,15 @@ public abstract class Lock implements Constants {
       VM.sysWrite(" deflations\n");
 
       ThinLock.notifyExit(totalLocks);
+      VM.sysWriteln();
+
+      VM.sysWrite("lock availability stats: ");
+      VM.sysWriteInt(globalLocksAllocated);
+      VM.sysWrite(" locks allocated, ");
+      VM.sysWriteInt(globalLocksFreed);
+      VM.sysWrite(" locks freed, ");
+      VM.sysWriteInt(globalFreeLocks);
+      VM.sysWrite(" free locks\n");
     }
   }
 }

@@ -96,12 +96,23 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
   }
 
   /**
+   * Notify that a new block has been installed. This is to ensure that
+   * appropriate collection state can be initialized for the block
+   *
+   * @param block The new block
+   * @param sizeClass The block's sizeclass.
+   */
+  protected void notifyNewBlock(Address block, int sizeClass) {
+    clearLiveBits(block, sizeClass);
+  }
+
+  /**
    * Free an object.
    *
    * @param object The object to be freed.
    */
   @Inline
-  public static void free(ObjectReference object) {
+  public void free(ObjectReference object) {
     clearLiveBit(object);
   }
 
@@ -159,6 +170,6 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    */
   @Inline
   public boolean isLive(ObjectReference object) {
-    return true;
+    return liveBitSet(object);
   }
 }

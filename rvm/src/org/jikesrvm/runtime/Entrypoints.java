@@ -32,10 +32,6 @@ public class Entrypoints {
 
   public static final NormalMethod bootMethod = EntrypointHelper.getMethod(org.jikesrvm.VM.class, "boot", "()V");
 
-  public static final RVMMethod java_lang_Class_forName =
-    getMethod(java.lang.Class.class, "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
-  public static final RVMMethod java_lang_Class_forName_withLoader =
-    getMethod(java.lang.Class.class, "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
   public static final RVMMethod java_lang_reflect_Method_invokeMethod =
       getMethod(java.lang.reflect.Method.class, "invoke",
           "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
@@ -422,6 +418,7 @@ public class Entrypoints {
   public static final RVMField luni3;
   public static final RVMField luni4;
   public static final RVMField luni5;
+  public static final RVMField luni6;
 
   static {
     if (VM.BuildForHarmony) {
@@ -430,12 +427,14 @@ public class Entrypoints {
       luni3 = getField("Lorg/apache/harmony/luni/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
       luni4 = getField("Lorg/apache/harmony/nio/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
       luni5 = getField("Lorg/apache/harmony/niochar/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
+      luni6 = getField(java.util.logging.LogManager.class, "manager", java.util.logging.LogManager.class);
     } else {
       luni1 = null;
       luni2 = null;
       luni3 = null;
       luni4 = null;
       luni5 = null;
+      luni6 = null;
     }
   }
 }

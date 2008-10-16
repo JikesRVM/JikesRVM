@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.vm;
 
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.heap.VMRequest;
 
@@ -165,6 +166,7 @@ public class Memory extends org.mmtk.vm.Memory {
    */
   @Inline
   public void sync() {
+    Scheduler.yield();
     // Nothing required
   }
 
@@ -175,6 +177,7 @@ public class Memory extends org.mmtk.vm.Memory {
    */
   @Inline
   public void isync() {
+    Scheduler.yield();
     // Nothing required
   }
 

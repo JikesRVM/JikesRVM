@@ -12,23 +12,48 @@
  */
 package org.jikesrvm.runtime;
 
+import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineReflection;
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.Processor;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
+
+import static org.jikesrvm.Configuration.BuildForSSE2Full;
 
 /**
  * Arch-independent portion of reflective method invoker.
  */
 public class Reflection implements Constants {
+
+  /** Perform reflection using bytecodes (true) or out-of-line machine code (false) */
+  public static boolean bytecodeReflection = false;
+
+  /**
+   * Cache the reflective method invoker in JavaLangReflect? If this is true and
+   * bytecodeReflection is false, then bytecode reflection will only be used for
+   * java.lang.reflect objects.
+   */
+  public static boolean cacheInvokerInJavaLangReflect = true;
+
+  /**
+   * Does the reflective method scheme need to check the arguments are valid?
+   * Bytecode reflection doesn't need arguments checking as they are checking as
+   * they are unwrapped
+   */
+  @Inline
+  public static boolean needsCheckArgs(ReflectionBase invoker) {
+    // Only need to check the arguments when the user may be packaging them and
+    // not using the bytecode based invoker (that checks them when they are unpacked)
+    return !bytecodeReflection && !cacheInvokerInJavaLangReflect;
+  }
 
   /**
    * Call a method.
@@ -41,11 +66,36 @@ public class Reflection implements Constants {
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
    */
-  public static Object invoke(RVMMethod method, Object thisArg, Object[] otherArgs) {
-    return invoke(method, thisArg, otherArgs, false);
+  @Inline
+  public static Object invoke(RVMMethod method, ReflectionBase invoker, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+    // NB bytecode reflection doesn't care about isNonvirtual
+    if (!bytecodeReflection && !cacheInvokerInJavaLangReflect) {
+      return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
+    } else if (!bytecodeReflection && cacheInvokerInJavaLangReflect) {
+      if (invoker != null) {
+        return invoker.invoke(thisArg, otherArgs);
+      } else {
+        return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
+      }
+    } else if (bytecodeReflection && !cacheInvokerInJavaLangReflect) {
+      if (VM.VerifyAssertions) VM._assert(invoker == null);
+      return method.getInvoker().invoke(thisArg, otherArgs);
+    } else {
+      // Even if we always generate an invoker this test is still necessary for
+      // invokers that should have been created in the boot image
+      if (invoker != null) {
+        return invoker.invoke(thisArg, otherArgs);
+      } else {
+        return method.getInvoker().invoke(thisArg, otherArgs);
+      }
+    }
   }
 
-  public static Object invoke(RVMMethod method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+  private static final WordArray emptyWordArray = WordArray.create(0);
+  private static final double[] emptyDoubleArray = new double[0];
+  private static final byte[] emptyByteArray = new byte[0];
+
+  private static Object outOfLineInvoke(RVMMethod method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
 
     // the class must be initialized before we can invoke a method
     //
@@ -65,14 +115,19 @@ public class Reflection implements Constants {
     //
     int triple = MachineReflection.countParameters(method);
     int gprs = triple & REFLECTION_GPRS_MASK;
-    WordArray GPRs = WordArray.create(gprs);
+    WordArray GPRs = (gprs > 0) ? WordArray.create(gprs) : emptyWordArray;
     int fprs = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
-    double[] FPRs = new double[fprs];
-    byte[] FPRmeta = new byte[fprs];
+    double[] FPRs = (fprs > 0) ? new double[fprs] : emptyDoubleArray;
+    byte[] FPRmeta;
+    if (BuildForSSE2Full) {
+      FPRmeta = (fprs > 0) ? new byte[fprs] : emptyByteArray;
+    } else {
+      FPRmeta = null;
+    }
 
     int spillCount = triple >> (REFLECTION_GPRS_BITS + REFLECTION_FPRS_BITS);
 
-    WordArray Spills = WordArray.create(spillCount);
+    WordArray Spills = (spillCount > 0) ? WordArray.create(spillCount) : emptyWordArray;
 
     if (firstUse) {
       // force dynamic link sites in unwrappers to get resolved,
@@ -83,16 +138,16 @@ public class Reflection implements Constants {
       unwrapChar(wrapChar((char) 0));
       unwrapShort(wrapShort((short) 0));
       unwrapInt(wrapInt(0));
-      unwrapLong(wrapLong((long) 0));
-      unwrapFloat(wrapFloat((float) 0));
-      unwrapDouble(wrapDouble((double) 0));
+      unwrapLong(wrapLong(0));
+      unwrapFloat(wrapFloat(0));
+      unwrapDouble(wrapDouble(0));
       firstUse = false;
     }
 
     // choose actual method to be called
     //
     RVMMethod targetMethod;
-    if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
+    if (isNonvirtual || method.isStatic() || method.isObjectInitializer()) {
       targetMethod = method;
     } else {
       int tibIndex = method.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;

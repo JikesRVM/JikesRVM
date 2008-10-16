@@ -47,6 +47,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
 import org.jikesrvm.scheduler.greenthreads.FileSystem;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.tuningfork.TraceEngine;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -201,6 +202,9 @@ public class VM extends Properties implements Constants, ExitStatus {
     //
     if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of command line");
     CommandLineArgs.earlyProcessCommandLineArguments();
+
+    // Early initialization of TuningFork tracing engine.
+    TraceEngine.engine.earlyStageBooting();
 
     // Allow Memory Manager to respond to its command line arguments
     //
@@ -406,6 +410,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     VM.fullyBooted = true;
     MemoryManager.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
+    TraceEngine.engine.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
@@ -420,12 +425,14 @@ public class VM extends Properties implements Constants, ExitStatus {
       Entrypoints.luni3.setObjectValueUnchecked(null, null);
       Entrypoints.luni4.setObjectValueUnchecked(null, null);
       Entrypoints.luni5.setObjectValueUnchecked(null, null);
+      Entrypoints.luni6.setObjectValueUnchecked(null, null);
       //runClassInitializer("java.lang.String$ConsolePrintStream");
       runClassInitializer("org.apache.harmony.luni.util.Msg");
       runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.nio.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.niochar.internal.nls.Messages");
+      runClassInitializer("java.util.logging.LogManager");
     }
 
     // Initialize compiler that compiles dynamically loaded classes.
@@ -583,7 +590,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * "if (VM.VerifyAssertions) VM._assert(xxx);"
    * @param b the assertion to verify
    */
-  @Inline
+  @Inline(value=Inline.When.AllArgumentsAreConstant)
   public static void _assert(boolean b) {
     _assert(b, null, null);
   }
@@ -595,12 +602,12 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  @Inline
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
   public static void _assert(boolean b, String message) {
     _assert(b, message, null);
   }
 
-  @Inline
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
   public static void _assert(boolean b, String msg1, String msg2) {
     if (!VM.VerifyAssertions) {
       sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
@@ -2111,6 +2118,20 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
+   * Produce a message requesting a bug report be submitted
+   */
+  @NoInline
+  public static void bugReportMessage() {
+    VM.sysWriteln("********************************************************************************");
+    VM.sysWriteln("*                      Abnormal termination of Jikes RVM                       *\n"+
+                  "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n"+
+                  "* Jikes RVM relies on community support to get debug information. Help improve *\n"+
+                  "* Jikes RVM for everybody by reporting this error. Please see:                 *\n"+
+                  "*                      http://jikesrvm.org/Reporting+Bugs                      *");
+    VM.sysWriteln("********************************************************************************");
+  }
+
+  /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
@@ -2127,6 +2148,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       VM.sysWriteln("Virtual machine state:");
       Scheduler.dumpVirtualMachine();
     }
+    bugReportMessage();
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2149,6 +2171,7 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // print a traceback and die
     GreenScheduler.traceback(message, number);
+    bugReportMessage();
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
@@ -2156,11 +2179,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-
-//   /* This could be made public. */
-//   private static boolean alreadyShuttingDown() {
-//     return (inSysExit != 0) || (inShutdown != 0);
-//   }
 
   /**
    * Exit virtual machine.
@@ -2177,7 +2195,6 @@ public class VM extends Properties implements Constants, ExitStatus {
       VM.enableGC();
       VM.sysWriteln("... END context of the call to VM.sysExit]");
     }
-
     if (runningVM) {
       Scheduler.sysExit();
       Callbacks.notifyExit(value);
@@ -2485,4 +2502,12 @@ public class VM extends Properties implements Constants, ExitStatus {
     Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
+  /**
+   * Is this a build for 32bit addressing? NB. this method is provided
+   * to give a hook to the IA32 assembler that won't be compiled away
+   * by javac
+   */
+  public static boolean buildFor32Addr() {
+    return BuildFor32Addr;
+  }
 }

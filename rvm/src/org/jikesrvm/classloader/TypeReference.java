@@ -15,6 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 
+import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
 // TODO: The following is due to a bug in checkstyle 4.3
@@ -123,6 +124,7 @@ public final class TypeReference {
   public static final TypeReference IMT = findOrCreate(org.jikesrvm.objectmodel.IMT.class);
   public static final TypeReference ProcessorTable = findOrCreate(org.jikesrvm.scheduler.ProcessorTable.class);
   public static final TypeReference FunctionTable = findOrCreate(org.jikesrvm.jni.FunctionTable.class);
+  public static final TypeReference LinkageTripletTable = findOrCreate(org.jikesrvm.jni.LinkageTripletTable.class);
 
   public static final TypeReference JavaLangObject = findOrCreate(java.lang.Object.class);
   public static final TypeReference JavaLangClass = findOrCreate(java.lang.Class.class);
@@ -168,6 +170,9 @@ public final class TypeReference {
   public static final TypeReference SpecializedMethodInvoke = findOrCreate(org.vmmagic.pragma.SpecializedMethodInvoke.class);
   public static final TypeReference Untraced = findOrCreate(org.vmmagic.pragma.Untraced.class);
   public static final TypeReference NonMoving = findOrCreate(org.vmmagic.pragma.NonMoving.class);
+  public static final TypeReference NonMovingAllocation = findOrCreate(org.vmmagic.pragma.NonMovingAllocation.class);
+  public static final TypeReference BaselineNoRegisters = findOrCreate(org.vmmagic.pragma.BaselineNoRegisters.class);
+  public static final TypeReference BaselineSaveLSRegisters = findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
 
   public static final TypeReference ReferenceMaps =
       findOrCreate(org.jikesrvm.compilers.baseline.ReferenceMaps.class);
@@ -177,6 +182,8 @@ public final class TypeReference {
       findOrCreate(org.jikesrvm.mm.mminterface.CollectorThread.class);
 
   public static final TypeReference RVMArray = findOrCreate(org.jikesrvm.classloader.RVMArray.class);
+  /** Abstract base of reflective method invoker classes */
+  static final TypeReference baseReflectionClass = TypeReference.findOrCreate(ReflectionBase.class);
 
   // Synthetic types used by the opt compiler
   public static final TypeReference NULL_TYPE =
@@ -193,6 +200,7 @@ public final class TypeReference {
   /**
    * Hash value based on name, used for canonical type dictionary
    */
+  @Override
   public int hashCode() {
     return name.hashCode();
   }
@@ -201,6 +209,7 @@ public final class TypeReference {
    * Are two keys equivalent? Used for canonical type dictionary.
    * NB ignores id value
    */
+  @Override
   public boolean equals(Object other) {
     if (other instanceof TypeReference) {
       TypeReference that = (TypeReference) other;
@@ -527,7 +536,8 @@ public final class TypeReference {
    */
   @Uninterruptible
   public boolean isRuntimeTable() {
-    return this == IMT || this == TIB || this == ITable || this == ITableArray || this == ProcessorTable || this == FunctionTable;
+    return this == IMT || this == TIB || this == ITable || this == ITableArray ||
+           this == ProcessorTable || this == FunctionTable || this == LinkageTripletTable;
   }
 
   /**
@@ -805,6 +815,7 @@ public final class TypeReference {
     return type;
   }
 
+  @Override
   public String toString() {
     return "< " + classloader + ", " + name + " >";
   }

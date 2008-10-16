@@ -25,7 +25,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 @Uninterruptible
-public class ObjectModel extends org.mmtk.vm.ObjectModel {
+public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   /*
    * The object model for the harness stores:
@@ -62,6 +62,9 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
   private static final Offset STATUS_OFFSET    = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
   /** The offset of the first reference field. */
   public  static final Offset REFS_OFFSET      = STATUS_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+
+  public static final short MAX_DATA_FIELDS = Short.MAX_VALUE;
+  public static final short MAX_REF_FIELDS = Short.MAX_VALUE;
 
   /** Has this object been hashed? */
   private static final int HASHED           = 0x1 << (3 * SimulatedMemory.BITS_IN_BYTE);
@@ -164,6 +167,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of data words in the object.
    */
   private static void setDataCount(ObjectReference object, int count) {
+    assert count < Short.MAX_VALUE && count >= 0 : "Too many data fields, "+count;
     object.toAddress().store((short)count, DATACOUNT_OFFSET);
   }
 
@@ -172,6 +176,7 @@ public class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of references in the object.
    */
   private static void setRefCount(ObjectReference object, int count) {
+    assert count < Short.MAX_VALUE && count >= 0 : "Too many reference fields, "+count;
     object.toAddress().store((short)count, REFCOUNT_OFFSET);
   }
 

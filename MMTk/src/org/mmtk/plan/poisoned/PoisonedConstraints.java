@@ -25,6 +25,6 @@ import org.vmmagic.pragma.*;
 public class PoisonedConstraints extends MSConstraints {
   public boolean needsWriteBarrier() { return true; }
   public boolean needsReadBarrier() { return true; }
-  public boolean needsStaticWriteBarrier() { return false;}
+  public boolean needsStaticWriteBarrier() { return false; }
   public boolean needsStaticReadBarrier() { return false; }
 }

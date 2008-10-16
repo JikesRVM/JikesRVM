@@ -12,20 +12,22 @@
  ~  regarding copyright ownership.
  -->
 <classpath>
-	<classpathentry kind="src" path="libraryInterface/Common/src"/>
-	<classpathentry kind="src" path="libraryInterface/GNUClasspath/CPL/src"/>
-	<classpathentry kind="src" path="libraryInterface/GNUClasspath/LGPL/src"/>
-	<classpathentry kind="src" path="MMTk/ext/vm/jikesrvm"/>
-	<classpathentry kind="src" path="MMTk/src"/>
-	<classpathentry kind="src" path="common/vmmagic/src"/>
-	<classpathentry kind="src" path="common/options/src"/>
-	<classpathentry excluding="**/@OTHER_ARCH@/**|org/jikesrvm/tools/header_gen/GenArch_@OTHER_ARCH@.java" kind="src" path="rvm/src"/>
+  <classpathentry excluding="**/@OTHER_ARCH@/**|org/jikesrvm/tools/header_gen/GenArch_@OTHER_ARCH@.java" kind="src" path="rvm/src"/>
+  <classpathentry kind="src" path="MMTk/ext/vm/jikesrvm"/>
+  <classpathentry kind="src" path="MMTk/src"/>
+  <classpathentry kind="src" path="common/options/src"/>
+  <classpathentry kind="src" path="libraryInterface/Common/src"/>
+  <classpathentry kind="src" path="libraryInterface/GNUClasspath/CPL/src"/>
+  <classpathentry kind="src" path="libraryInterface/GNUClasspath/LGPL/src"/>
+  <classpathentry kind="src" path="tools/bootImageWriter/src"/>
+  <classpathentry kind="src" path="common/vmmagic/src"/>
+  <classpathentry kind="src" path="external/tuningforklib/src"/>
 
-	<classpathentry kind="src" path="eclipse/gen-base"/>
-	<classpathentry kind="src" path="eclipse/gen-config"/>
-	<classpathentry kind="src" path="eclipse/gen-arch"/>
+  <classpathentry kind="src" path="eclipse/gen-base"/>
+  <classpathentry kind="src" path="eclipse/gen-config"/>
+  <classpathentry kind="src" path="eclipse/gen-arch"/>
 
-	<classpathentry kind="lib" path="eclipse/classpath.jar"/>
+  <classpathentry kind="lib" path="eclipse/classpath.jar"/>
 
-	<classpathentry kind="output" path="eclipse/bin"/>
+  <classpathentry kind="output" path="eclipse/bin"/>
 </classpath>

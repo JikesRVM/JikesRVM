@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.Configuration;
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.runtime.Entrypoints;
@@ -34,13 +35,13 @@ class Barriers implements BaselineConstants {
 
   static void compilePutfieldBarrier(Assembler asm, GPR reg, int locationMetadata) {
     //  on entry java stack contains ...|target_ref|ref_to_store|
-    //  SP -> ref_to_store, SP+4 -> target_ref
-    Offset of4 = Offset.fromIntSignExtend(4);
-    Offset of8 = Offset.fromIntSignExtend(8);
-    genNullCheck(asm, 4);
-    asm.emitPUSH_RegDisp(SP, of4);
+    //  SP[0] -> ref_to_store, SP[1] -> target_ref
+    Offset of1W = Offset.fromIntSignExtend(WORDSIZE);
+    Offset of2W = Offset.fromIntSignExtend(2*WORDSIZE);
+    genNullCheck(asm, WORDSIZE);
+    asm.emitPUSH_RegDisp(SP, of1W);
     asm.emitPUSH_Reg(reg);
-    asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
+    asm.emitPUSH_RegDisp(SP, of2W);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 4);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putfieldWriteBarrierMethod.getOffset()));
@@ -49,12 +50,12 @@ class Barriers implements BaselineConstants {
   static void compilePutfieldBarrierImm(Assembler asm, Offset fieldOffset, int locationMetadata) {
     //  on entry java stack contains ...|target_ref|ref_to_store|
     //  SP -> ref_to_store, SP+4 -> target_ref
-    Offset of4 = Offset.fromIntSignExtend(4);
-    Offset of8 = Offset.fromIntSignExtend(8);
-    genNullCheck(asm, 4);
-    asm.emitPUSH_RegDisp(SP, of4);
+    Offset of1W = Offset.fromIntSignExtend(WORDSIZE);
+    Offset of2W = Offset.fromIntSignExtend(2*WORDSIZE);
+    genNullCheck(asm, WORDSIZE);
+    asm.emitPUSH_RegDisp(SP, of1W);
     asm.emitPUSH_Imm(fieldOffset.toInt());
-    asm.emitPUSH_RegDisp(SP, of8);  // Push what was originally (SP, 0)
+    asm.emitPUSH_RegDisp(SP, of2W);  // Push what was originally (SP, 0)
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 4);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putfieldWriteBarrierMethod.getOffset()));
@@ -63,9 +64,9 @@ class Barriers implements BaselineConstants {
   static void compilePutstaticBarrier(Assembler asm, GPR reg, int locationMetadata) {
     //  on entry java stack contains ...|ref_to_store|
     //  SP -> ref_to_store
-    Offset of4 = Offset.fromIntSignExtend(4);
+    Offset of1W = Offset.fromIntSignExtend(WORDSIZE);
     asm.emitPUSH_Reg(reg);
-    asm.emitPUSH_RegDisp(SP, of4);
+    asm.emitPUSH_RegDisp(SP, of1W);
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putstaticWriteBarrierMethod.getOffset()));
@@ -74,9 +75,9 @@ class Barriers implements BaselineConstants {
   static void compilePutstaticBarrierImm(Assembler asm, Offset fieldOffset, int locationMetadata) {
     //  on entry java stack contains ...|ref_to_store|
     //  SP -> ref_to_store
-    Offset of4 = Offset.fromIntSignExtend(4);
+    Offset of1W = Offset.fromIntSignExtend(WORDSIZE);
     asm.emitPUSH_Imm(fieldOffset.toInt());
-    asm.emitPUSH_RegDisp(SP, of4);
+    asm.emitPUSH_RegDisp(SP, of1W);
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putstaticWriteBarrierMethod.getOffset()));
@@ -131,7 +132,11 @@ class Barriers implements BaselineConstants {
    * at the given offset to SP.
    */
   private static void genNullCheck(Assembler asm, int offset) {
-    asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend(offset));
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend(offset));
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(T1, SP, Offset.fromIntZeroExtend(offset));
+    }
     BaselineCompilerImpl.baselineEmitLoadTIB(asm, T1, T1);
   }
 

@@ -24,13 +24,12 @@ test(int size) {
     list = cons(random(0,20000000),list);
     n = n + 1;
   }
-  print("  List contructed, sorting ...");
+  print("  List constructed, sorting ...");
   gc();
   object sorted = qsort(list);
   print("  Sort complete, checking ...");
   gc();
   checkList(sorted,size);
-  print("  test complete");
 }
 
 /*
@@ -106,7 +105,7 @@ part2(object parts,int pivot, object list) {
  */
 printList(object list) {
   if (list == null) {
-    return 0;
+    return;
   } else {
     print (head(list));
     printList(tail(list));

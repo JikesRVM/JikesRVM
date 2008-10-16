@@ -12,10 +12,48 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
+import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.FIVE_SLOTS;
+import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.FOUR_SLOTS;
+import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.NO_SLOT;
+import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.ONE_SLOT;
+import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.THREE_SLOTS;
+import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.TWO_SLOTS;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_BASE;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.FPU_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
+import static org.jikesrvm.ia32.BaselineConstants.PR;
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+import static org.jikesrvm.ia32.BaselineConstants.T0_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.T1;
+import static org.jikesrvm.ia32.BaselineConstants.T1_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.ia32.BaselineConstants.XMM_SAVE_OFFSET;
+import static org.jikesrvm.ia32.RegisterConstants.EAX;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.ECX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.EDX;
+import static org.jikesrvm.ia32.RegisterConstants.ESI;
+import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.XMM0;
+import static org.jikesrvm.ia32.RegisterConstants.XMM1;
+import static org.jikesrvm.ia32.RegisterConstants.XMM2;
+import static org.jikesrvm.ia32.RegisterConstants.XMM3;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
+import static org.jikesrvm.runtime.EntrypointHelper.getMethodReference;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.Registers;
-import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMArray;
@@ -41,6 +79,7 @@ import org.jikesrvm.scheduler.ProcessorTable;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Extent;
@@ -51,45 +90,6 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.OffsetArray;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
-import org.vmmagic.pragma.Uninterruptible;
-
-import static org.jikesrvm.ia32.ArchConstants.SSE2_BASE;
-import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
-import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
-import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
-import static org.jikesrvm.ia32.BaselineConstants.EAX;
-import static org.jikesrvm.ia32.BaselineConstants.EBX;
-import static org.jikesrvm.ia32.BaselineConstants.ECX;
-import static org.jikesrvm.ia32.BaselineConstants.EDX;
-import static org.jikesrvm.ia32.BaselineConstants.ESI;
-import static org.jikesrvm.ia32.BaselineConstants.EDI;
-import static org.jikesrvm.ia32.BaselineConstants.FP0;
-import static org.jikesrvm.ia32.BaselineConstants.XMM0;
-import static org.jikesrvm.ia32.BaselineConstants.XMM1;
-import static org.jikesrvm.ia32.BaselineConstants.XMM2;
-import static org.jikesrvm.ia32.BaselineConstants.XMM3;
-import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
-import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
-import static org.jikesrvm.ia32.BaselineConstants.T0_SAVE_OFFSET;
-import static org.jikesrvm.ia32.BaselineConstants.T1_SAVE_OFFSET;
-import static org.jikesrvm.ia32.BaselineConstants.XMM_SAVE_OFFSET;
-import static org.jikesrvm.ia32.BaselineConstants.FPU_SAVE_OFFSET;
-import static org.jikesrvm.ia32.BaselineConstants.PR;
-import static org.jikesrvm.ia32.BaselineConstants.S0;
-import static org.jikesrvm.ia32.BaselineConstants.SP;
-import static org.jikesrvm.ia32.BaselineConstants.T0;
-import static org.jikesrvm.ia32.BaselineConstants.T1;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
-import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.NO_SLOT;
-import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.ONE_SLOT;
-import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.TWO_SLOTS;
-import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.THREE_SLOTS;
-import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.FOUR_SLOTS;
-import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.FIVE_SLOTS;
-import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
-import static org.jikesrvm.runtime.EntrypointHelper.getMethodReference;
 
 /**
  * Create magic code
@@ -179,6 +179,7 @@ final class BaselineMagic {
       this.offset = offset;
       this.generator = generator;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Class<?> dc = cm.getDeclaringClass().getClassForType();
       if ((dc != JavaHeader.class) &&
@@ -222,6 +223,7 @@ final class BaselineMagic {
       this.offset = offset;
       this.generator = generator;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       generator.generateMagic(asm, m, cm, sd);
       Class<?> dc = cm.getDeclaringClass().getClassForType();
@@ -254,6 +256,7 @@ final class BaselineMagic {
    * Load a 32bit quantity from an address
    */
   private static final class Load32 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                      // address
@@ -280,6 +283,7 @@ final class BaselineMagic {
    * Load a 32bit quantity from an address and offset parameter
    */
   private static final class Load32_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
@@ -315,6 +319,7 @@ final class BaselineMagic {
    * Load a 32bit quantity from an address and offset parameter
    */
   private static final class Magic_Load32_MD extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(S0);                  // discard meta-data
       // Load at offset
@@ -336,6 +341,7 @@ final class BaselineMagic {
    * Load a byte from an address
    */
   private static final class LoadByte extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                  // base
@@ -353,6 +359,7 @@ final class BaselineMagic {
    * Load a byte from an address and offset parameter
    */
   private static final class LoadByte_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
@@ -371,6 +378,7 @@ final class BaselineMagic {
    * Load an unsigned byte from an address and offset parameter
    */
   private static final class LoadUnsignedByte_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
@@ -388,6 +396,7 @@ final class BaselineMagic {
    * Load a short quantity from an address
    */
   private static final class LoadShort extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                  // base
@@ -404,6 +413,7 @@ final class BaselineMagic {
    * Load a short quantity from an address plus offset
    */
   private static final class LoadShort_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
@@ -422,6 +432,7 @@ final class BaselineMagic {
    * Load a char from an address
    */
   private static final class LoadChar extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                  // base
@@ -438,6 +449,7 @@ final class BaselineMagic {
    * Load a char from an address plus offset
    */
   private static final class LoadChar_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
@@ -456,11 +468,17 @@ final class BaselineMagic {
    * Load a 64bit quantity from an address
    */
   private static final class Load64 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
-      asm.emitPOP_Reg(T0);                // base
-      asm.emitPUSH_RegDisp(T0, ONE_SLOT); // pushes [T0+4]
-      asm.emitPUSH_RegInd(T0);            // pushes [T0]
+      asm.emitPOP_Reg(T0);                  // base
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegDisp(T0, ONE_SLOT); // pushes [T0+4]
+        asm.emitPUSH_RegInd(T0);            // pushes [T0]
+      } else {
+        asm.emitPUSH_Reg(T0);               // create space
+        asm.emitPUSH_RegInd(T0);            // pushes [T0]
+      }
     }
   }
   static {
@@ -474,12 +492,18 @@ final class BaselineMagic {
    * Load a 32bit quantity from an address plus offset
    */
   private static final class Load64_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
+        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+      } else {
+        asm.emitPUSH_Reg(T0);                                  // create space
+        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+      }
     }
   }
   static {
@@ -496,6 +520,7 @@ final class BaselineMagic {
    * Store a 32bit quantity to an address
    */
   private static final class Store32 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                   // value
@@ -519,6 +544,7 @@ final class BaselineMagic {
    * Store a 32bit quantity to an address plus offset
    */
   private static final class Store32_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
       asm.emitPOP_Reg(S0);                   // offset
@@ -544,6 +570,7 @@ final class BaselineMagic {
    * {@link Magic}
    */
   private static final class Magic_Store32 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
@@ -566,6 +593,7 @@ final class BaselineMagic {
    * {@link Magic} with an additional meta-data argument
    */
   private static final class Magic_Store32_MD extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                   // discard meta-data
       asm.emitPOP_Reg(T0);                   // value
@@ -587,6 +615,7 @@ final class BaselineMagic {
    * Store a byte quantity to an address plus offset
    */
   private static final class StoreByte extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                   // value
@@ -603,6 +632,7 @@ final class BaselineMagic {
    * Store a byte quantity to an address plus offset
    */
   private static final class StoreByte_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
       asm.emitPOP_Reg(S0);                   // offset
@@ -620,6 +650,7 @@ final class BaselineMagic {
    * Store a byte quantity to an address plus offset in the format used in {@link Magic}
    */
   private static final class Magic_StoreByte extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
@@ -636,6 +667,7 @@ final class BaselineMagic {
    * Store a 16bit quantity to an address
    */
   private static final class Store16 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                   // value
@@ -653,6 +685,7 @@ final class BaselineMagic {
    * Store a 16bit quantity to an address plus offset
    */
   private static final class Store16_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
       asm.emitPOP_Reg(S0);                   // offset
@@ -672,6 +705,7 @@ final class BaselineMagic {
    * Store a char to an address plus offset in the format used in {@link Magic}
    */
   private static final class Magic_StoreChar extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
@@ -688,14 +722,21 @@ final class BaselineMagic {
    * Store a 64bit quantity to an address
    */
   private static final class Store64 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
-      asm.emitMOV_Reg_RegInd(T0, SP);             // value high
-      asm.emitMOV_Reg_RegDisp(T1, SP, TWO_SLOTS); // base
-      asm.emitMOV_RegInd_Reg(T1, T0);             // [T1] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // value low
-      asm.emitMOV_RegDisp_Reg(T1, ONE_SLOT, T0);  // [T1+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);      // pop stack locations
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0); // value low
+        asm.emitPOP_Reg(T1); // value high
+        asm.emitPOP_Reg(S0); // base
+        asm.emitMOV_RegInd_Reg(S0, T0);            // value low
+        asm.emitMOV_RegDisp_Reg(S0, ONE_SLOT, T1); // value high
+      } else {
+        asm.emitPOP_Reg(T0); // value
+        asm.emitPOP_Reg(T1); // throw away slot
+        asm.emitPOP_Reg(T1); // base
+        asm.emitMOV_RegInd_Reg_Quad(T1, T0);
+      }
     }
   }
   static {
@@ -708,15 +749,22 @@ final class BaselineMagic {
    * Store a 64bit quantity to an address plus offset
    */
   private static final class Store64_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);          // value high
-      asm.emitMOV_Reg_RegInd(S0, SP);     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // base
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // value low
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0);                          // T0 = offset
+        asm.emitADD_Reg_RegDisp(T0, SP, THREE_SLOTS); // T0 = base+offset
+        asm.emitPOP_RegInd(T0);                       // [T0]   <- value low
+        asm.emitPOP_RegDisp(T0, ONE_SLOT);            // [T0+4] <- value high
+        asm.emitPOP_Reg(T0);                          // throw away slot
+      } else {
+        asm.emitPOP_Reg(T0);                               // offset
+        asm.emitADD_Reg_RegDisp_Quad(T0, SP, THREE_SLOTS); // T0 = base+offset
+        asm.emitPOP_RegInd(T0);                            // T0 <- value
+        asm.emitPOP_Reg(T0);                               // throw away slot
+        asm.emitPOP_Reg(T0);                               // throw away slot
+      }
     }
   }
   static {
@@ -730,14 +778,23 @@ final class BaselineMagic {
    * {@link Magic}
    */
   private static final class Magic_Store64 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitMOV_Reg_RegInd(T0, SP);          // value high
-      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0);                       // value low
+        asm.emitPOP_Reg(T1);                       // value high
+        asm.emitPOP_Reg(S0);                       // S0 = offset
+        asm.emitADD_Reg_RegInd(S0, SP);            // S0 = base+offset
+        asm.emitMOV_RegInd_Reg(S0, T0);            // [S0] <- value low
+        asm.emitPOP_Reg(T0);                       // throw away slot
+        asm.emitMOV_RegDisp_Reg(S0, ONE_SLOT, T1); // [S0+4] <- value high
+      } else {
+        asm.emitPOP_Reg(T0);                       // value
+        asm.emitPOP_Reg(T1);                       // throw away slot
+        asm.emitPOP_Reg(T1);                       // T1 = offset
+        asm.emitPOP_Reg(S0);                       // S0 = base
+        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, Assembler.BYTE, NO_SLOT, T0); // [base+offset] <- T0
+      }
     }
   }
   static {
@@ -750,6 +807,7 @@ final class BaselineMagic {
    * Compare and swap a 32bit value
    */
   private static final class Attempt32 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T1);          // newVal
       asm.emitPOP_Reg(EAX);         // oldVal (EAX is implicit arg to LCMPX
@@ -780,6 +838,7 @@ final class BaselineMagic {
    * Compare and swap a 32bit value at an address plus offset
    */
   private static final class Attempt32_Offset extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Offset passed
       asm.emitPOP_Reg(S0);        // S0 = offset
@@ -811,6 +870,7 @@ final class BaselineMagic {
    * Compare and swap a 32bit value in the format used in {@link Magic}
    */
   private static final class Magic_Attempt32 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // attempt gets called with four arguments: base, offset, oldVal, newVal
       // returns ([base+offset] == oldVal)
@@ -846,6 +906,7 @@ final class BaselineMagic {
    * Compare and swap a 64bit value in the format used in {@link Magic}
    */
   private static final class Magic_Attempt64 extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // attempt gets called with four arguments: base, offset, oldVal, newVal
       // returns ([base+offset] == oldVal)
@@ -882,9 +943,10 @@ final class BaselineMagic {
    * Prefetch from an address
    */
   private static final class Prefetch extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitPOP_Reg(T0);
-      asm.emitPREFETCHNTA_Reg(T0);
+      asm.emitPOP_Reg(EDI);
+      asm.emitPREFETCHNTA_RegInd(EDI);
     }
   }
   static {
@@ -897,6 +959,7 @@ final class BaselineMagic {
    * Get the type from an object
    */
   private static final class GetObjectType extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                               // object ref
       BaselineCompilerImpl.baselineEmitLoadTIB(asm, S0, T0);
@@ -912,6 +975,7 @@ final class BaselineMagic {
    * Perform no-operation
    */
   private static final class Nop extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
     }
   }
@@ -920,8 +984,10 @@ final class BaselineMagic {
     Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
     for (Class<?> type : unboxedTypes) {
       generators.put(getMethodReference(type, MagicNames.wordFromInt, int.class, type), g);
-      generators.put(getMethodReference(type, MagicNames.wordFromIntSignExtend, int.class, type), g);
-      generators.put(getMethodReference(type, MagicNames.wordFromIntZeroExtend, int.class, type), g);
+      if (VM.BuildFor32Addr) {
+        generators.put(getMethodReference(type, MagicNames.wordFromIntSignExtend, int.class, type), g);
+        generators.put(getMethodReference(type, MagicNames.wordFromIntZeroExtend, int.class, type), g);
+      }
       generators.put(getMethodReference(type, MagicNames.wordToInt, int.class), g);
       if (type != Address.class)
         generators.put(getMethodReference(type, MagicNames.wordToAddress, Address.class), g);
@@ -965,6 +1031,90 @@ final class BaselineMagic {
   }
 
   /**
+   * Perform an operation to release a stack slot
+   */
+  private static final class FreeStackSlot extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);
+      asm.emitPOP_Reg(T1);
+      asm.emitPUSH_Reg(T0);
+    }
+  }
+  static {
+    if (VM.BuildFor64Addr) {
+      MagicGenerator g = new FreeStackSlot();
+      Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
+      for (Class<?> type : unboxedTypes) {
+        generators.put(getMethodReference(type, MagicNames.wordFromLong, long.class, type), g);
+      }
+    }
+  }
+
+  /**
+   * Perform an operation to duplicate a stack slot
+   */
+  private static final class DuplicateStackSlot extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);
+      asm.emitPUSH_Reg(T0);
+      asm.emitPUSH_Reg(T0);
+    }
+  }
+  static {
+    if (VM.BuildFor64Addr) {
+      MagicGenerator g = new DuplicateStackSlot();
+      Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
+      for (Class<?> type : unboxedTypes) {
+        generators.put(getMethodReference(type, MagicNames.wordToLong, type, long.class), g);
+      }
+    }
+  }
+
+  /**
+   * Zero high part of 64bits
+   */
+  private static final class QuadZeroExtend extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);
+      asm.emitMOV_Reg_Reg(T0, T0);
+      asm.emitPUSH_Reg(T0);
+    }
+  }
+  static {
+    if (VM.BuildFor64Addr) {
+      MagicGenerator g = new QuadZeroExtend();
+      Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
+      for (Class<?> type : unboxedTypes) {
+        generators.put(getMethodReference(type, MagicNames.wordFromIntZeroExtend, int.class, type), g);
+      }
+    }
+  }
+
+  /**
+   * Sign extend 32bit int to 64bits
+   */
+  private static final class QuadSignExtend extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(EAX);
+      asm.emitCDQE();
+      asm.emitPUSH_Reg(EAX);
+    }
+  }
+  static {
+    if (VM.BuildFor64Addr) {
+      MagicGenerator g = new QuadSignExtend();
+      Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
+      for (Class<?> type : unboxedTypes) {
+        generators.put(getMethodReference(type, MagicNames.wordFromIntSignExtend, int.class, type), g);
+      }
+    }
+  }
+
+  /**
    * Generate an address constant
    */
   private static final class AddressConstant extends MagicGenerator {
@@ -972,6 +1122,7 @@ final class BaselineMagic {
     AddressConstant(int value) {
       this.value = value;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPUSH_Imm(value);
     }
@@ -1000,10 +1151,15 @@ final class BaselineMagic {
     AddressComparison(byte comparator) {
       this.comparator = comparator;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(S0);
       asm.emitPOP_Reg(T0);
-      asm.emitCMP_Reg_Reg(T0, S0);
+      if (VM.BuildFor32Addr) {
+        asm.emitCMP_Reg_Reg(T0, S0);
+      } else {
+        asm.emitCMP_Reg_Reg_Quad(T0, S0);
+      }
       ForwardReference fr1 = asm.forwardJcc(comparator);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
@@ -1049,9 +1205,14 @@ final class BaselineMagic {
    * Is an address zero?
    */
   private static final class AddressComparison_isZero extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitTEST_Reg_Reg(T0, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitTEST_Reg_Reg(T0, T0);
+      } else {
+        asm.emitTEST_Reg_Reg_Quad(T0, T0);
+      }
       ForwardReference fr1 = asm.forwardJcc(Assembler.EQ);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
@@ -1076,9 +1237,14 @@ final class BaselineMagic {
    * Is an address max?
    */
   private static final class AddressComparison_isMax extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitCMP_Reg_Imm(T0, -1);
+      if (VM.BuildFor32Addr) {
+        asm.emitCMP_Reg_Imm(T0, -1);
+      } else {
+        asm.emitCMP_Reg_Imm_Quad(T0, -1);
+      }
       ForwardReference fr1 = asm.forwardJcc(Assembler.EQ);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
@@ -1099,31 +1265,55 @@ final class BaselineMagic {
    * Addition of words
    */
   private static final class WordPlus extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitADD_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitADD_RegInd_Reg_Quad(SP, T0);
+      }
+    }
+  }
+  /**
+   * Special case of 64bit addition to 32bit value
+   */
+  private static final class WordPlus32 extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(EAX);
+      asm.emitCDQE();
+      asm.emitADD_RegInd_Reg_Quad(SP, EAX);
     }
   }
   static {
     MagicGenerator g = new WordPlus();
-    generators.put(getMethodReference(Address.class, MagicNames.wordPlus, int.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordPlus, Offset.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordPlus, Extent.class, Address.class), g);
-    generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, int.class, Extent.class), g);
     generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, Extent.class, Extent.class), g);
-    generators.put(getMethodReference(Offset.class, MagicNames.wordPlus, int.class, Offset.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Word.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Offset.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Extent.class, Word.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new WordPlus32();
+    }
+    generators.put(getMethodReference(Address.class, MagicNames.wordPlus, int.class, Address.class), g);
+    generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, int.class, Extent.class), g);
+    generators.put(getMethodReference(Offset.class, MagicNames.wordPlus, int.class, Offset.class), g);
   }
 
   /**
    * Subtraction of words
    */
   private static final class WordMinus extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitSUB_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitSUB_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitSUB_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1145,9 +1335,14 @@ final class BaselineMagic {
    * Logical and of words
    */
   private static final class WordAnd extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitAND_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitAND_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitAND_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1159,9 +1354,14 @@ final class BaselineMagic {
    * Logical or of words
    */
   private static final class WordOr extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitOR_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitOR_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitOR_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1173,9 +1373,14 @@ final class BaselineMagic {
    * Logical xor of words
    */
   private static final class WordXor extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitXOR_RegInd_Reg(SP, T0);
+      if (VM.BuildFor32Addr) {
+        asm.emitXOR_RegInd_Reg(SP, T0);
+      } else {
+        asm.emitXOR_RegInd_Reg_Quad(SP, T0);
+      }
     }
   }
   static {
@@ -1187,9 +1392,14 @@ final class BaselineMagic {
    * Logical left shift of words
    */
   private static final class WordLsh extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(ECX);
-      asm.emitSHL_RegInd_Reg(SP, ECX);
+      if (VM.BuildFor32Addr) {
+        asm.emitSHL_RegInd_Reg(SP, ECX);
+      } else {
+        asm.emitSHL_RegInd_Reg_Quad(SP, ECX);
+      }
     }
   }
   static {
@@ -1201,9 +1411,14 @@ final class BaselineMagic {
    * Logical right shift of words
    */
   private static final class WordRshl extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(ECX);
-      asm.emitSHR_RegInd_Reg(SP, ECX);
+      if (VM.BuildFor32Addr) {
+        asm.emitSHR_RegInd_Reg(SP, ECX);
+      } else {
+        asm.emitSHR_RegInd_Reg_Quad(SP, ECX);
+      }
     }
   }
   static {
@@ -1215,9 +1430,14 @@ final class BaselineMagic {
    * Arithmetic right shift of words
    */
   private static final class WordRsha extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(ECX);
-      asm.emitSAR_RegInd_Reg(SP, ECX);
+      if (VM.BuildFor32Addr) {
+        asm.emitSAR_RegInd_Reg(SP, ECX);
+      } else {
+        asm.emitSAR_RegInd_Reg_Quad(SP, ECX);
+      }
     }
   }
   static {
@@ -1229,8 +1449,13 @@ final class BaselineMagic {
    * Logical not of word
    */
   private static final class WordNot extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitNOT_RegInd(SP);
+      if (VM.BuildFor32Addr) {
+        asm.emitNOT_RegInd(SP);
+      } else {
+        asm.emitNOT_RegInd_Quad(SP);
+      }
     }
   }
   static {
@@ -1242,10 +1467,16 @@ final class BaselineMagic {
    * Convert word to long
    */
   private static final class WordToLong extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
-      asm.emitPUSH_Imm(0); // upper 32 bits
-      asm.emitPUSH_Reg(T0); // lower 32 bits
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_Imm(0); // upper 32 bits
+        asm.emitPUSH_Reg(T0); // lower 32 bits
+      } else {
+        asm.emitPUSH_Reg(T0); // adjust stack
+        asm.emitPUSH_Reg(T0); // long value
+      }
     }
   }
   static {
@@ -1264,6 +1495,7 @@ final class BaselineMagic {
     SetRegister(GPR reg) {
       this.reg = reg;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(reg);
     }
@@ -1283,6 +1515,7 @@ final class BaselineMagic {
     GetRegister(GPR reg) {
       this.reg = reg;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPUSH_Reg(reg);
     }
@@ -1298,6 +1531,7 @@ final class BaselineMagic {
    * Reflective method dispatch
    */
   private static final class InvokeMethodReturningObject extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
@@ -1317,6 +1551,7 @@ final class BaselineMagic {
    * Reflective method dispatch
    */
   private static final class InvokeMethodReturningVoid extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
@@ -1332,6 +1567,7 @@ final class BaselineMagic {
    * Reflective method dispatch
    */
   private static final class InvokeMethodReturningInt extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
@@ -1348,6 +1584,7 @@ final class BaselineMagic {
    * Reflective method dispatch
    */
   private static final class InvokeMethodReturningLong extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
@@ -1365,6 +1602,7 @@ final class BaselineMagic {
    * Reflective method dispatch
    */
   private static final class InvokeMethodReturningFloat extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
@@ -1386,6 +1624,7 @@ final class BaselineMagic {
    * Reflective method dispatch
    */
   private static final class InvokeMethodReturningDouble extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
@@ -1413,6 +1652,7 @@ final class BaselineMagic {
       this.offset = offset;
       this.args = args;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       BaselineCompilerImpl.genParameterRegisterLoad(asm, args);
       asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
@@ -1431,6 +1671,7 @@ final class BaselineMagic {
    * Perform dynamic bridge from linker to compiled code
    */
   private static final class DynamicBridgeTo extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       if (VM.VerifyAssertions) VM._assert(cm.getDeclaringClass().hasDynamicBridgeAnnotation());
 
@@ -1472,6 +1713,7 @@ final class BaselineMagic {
    * Exchange stacks
    */
   private static final class ReturnToNewStack extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // SP gets frame pointer for new stack
       asm.emitPOP_Reg(SP);
@@ -1497,6 +1739,7 @@ final class BaselineMagic {
    * Boot up calling of class initializers
    */
   private static final class InvokeClassInitializer extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(S0);
       asm.emitCALL_Reg(S0); // call address just popped
@@ -1511,6 +1754,7 @@ final class BaselineMagic {
    * Get frame pointer on entry to method
    */
   private static final class GetFramePointer extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitLEA_Reg_RegDisp(S0, SP, sd);
       asm.emitPUSH_Reg(S0);
@@ -1529,6 +1773,7 @@ final class BaselineMagic {
     GetValueAtDisplacement(Offset disp) {
       this.disp = disp;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);
       asm.emitPUSH_RegDisp(T0, disp);
@@ -1555,6 +1800,7 @@ final class BaselineMagic {
     SetValueAtDisplacement(Offset disp) {
       this.disp = disp;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // fp
@@ -1577,6 +1823,7 @@ final class BaselineMagic {
     CreateArray(RVMArray array) {
       this.array = array;
     }
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       int width = array.getLogElementSize();
       Offset tibOffset = array.getTibOffset();
@@ -1609,21 +1856,35 @@ final class BaselineMagic {
   }
 
   /**
-   * Get an element from a runtime table
+   * Get a 32bit element from a runtime table
    * @see org.jikesrvm.objectmodel.RuntimeTable#get(int)
    */
   private static final class Load32_Array extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+      asm.emitPOP_Reg(T0);          // T0 is array index
+      asm.emitPOP_Reg(S0);          // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // push [S0+T0<<2]
       asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
     }
   }
+  /**
+   * Get a 64bit element from a runtime table
+   * @see org.jikesrvm.objectmodel.RuntimeTable#get(int)
+   */
+  private static final class Load64_Array extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);          // T0 is array index
+      asm.emitPOP_Reg(S0);          // S0 is array ref
+      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+      // push [S0+T0<<3]
+      asm.emitPUSH_RegIdx(S0, T0, Assembler.LONG, NO_SLOT);
+    }
+  }
   static {
-    MagicGenerator g = new Load32_Array();
+    MagicGenerator g = VM.BuildFor32Addr ? new Load32_Array() : new Load64_Array();
     Class<?>[] unboxedTypes = new Class<?>[] { AddressArray.class,
         ExtentArray.class, FunctionTable.class, IMT.class,
         ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class,
@@ -1642,6 +1903,7 @@ final class BaselineMagic {
    * Get a byte element from a runtime table
    */
   private static final class LoadByte_Array extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
@@ -1657,21 +1919,37 @@ final class BaselineMagic {
   }
 
   /**
-   * Store an element to a runtime table
+   * Store a 32bit element to a runtime table
    * @see org.jikesrvm.objectmodel.RuntimeTable#set(int, Object)
    */
   private static final class Store32_Array extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Barriers.compileModifyCheck(asm, 8);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
-      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
+      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);            // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
+  /**
+   * Store a 64bit element to a runtime table
+   * @see org.jikesrvm.objectmodel.RuntimeTable#set(int, Object)
+   */
+  private static final class Store64_Array extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      Barriers.compileModifyCheck(asm, 8);
+      asm.emitPOP_Reg(T1); // T1 is the value
+      asm.emitPOP_Reg(T0); // T0 is array index
+      asm.emitPOP_Reg(S0); // S0 is array ref
+      BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
+      asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.LONG, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+    }
+  }
   static {
-    MagicGenerator g = new Store32_Array();
+    MagicGenerator g = VM.BuildFor32Addr ? new Store32_Array() : new Store64_Array();
     Class<?>[] unboxedTypes = new Class<?>[] { AddressArray.class,
         ExtentArray.class, FunctionTable.class, IMT.class,
         ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class,
@@ -1690,6 +1968,7 @@ final class BaselineMagic {
    * Set a byte in a runtime table
    */
   private static final class StoreByte_Array extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Barriers.compileModifyCheck(asm, 8);
       asm.emitPOP_Reg(T1); // T1 is the value
@@ -1708,6 +1987,7 @@ final class BaselineMagic {
    * Create address that holds return address
    */
   private static final class GetReturnAddressLocation extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitADD_RegInd_Imm(SP, STACKFRAME_RETURN_ADDRESS_OFFSET);
     }
@@ -1721,6 +2001,7 @@ final class BaselineMagic {
    * Get a 64bit time base value (not accurate on certain multi-cores)
    */
   private static final class GetTimeBase extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitRDTSC();       // read timestamp counter instruction
       asm.emitPUSH_Reg(EDX); // upper 32 bits
@@ -1736,6 +2017,7 @@ final class BaselineMagic {
    * Pause hint that thread is contending for a lock
    */
   private static final class Pause extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPAUSE();
     }
@@ -1749,6 +2031,7 @@ final class BaselineMagic {
    * Floating point square root
    */
   private static final class Fsqrt extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       if (SSE2_BASE) {
         asm.emitSQRTSS_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
@@ -1767,6 +2050,7 @@ final class BaselineMagic {
    * Double precision square root
    */
   private static final class Dsqrt extends MagicGenerator {
+    @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       if (SSE2_BASE) {
         asm.emitSQRTSD_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)

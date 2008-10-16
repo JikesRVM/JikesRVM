@@ -103,6 +103,8 @@ public final class VM {
   @Untraced
   public static final ReferenceProcessor phantomReferences;
   @Untraced
+  public static final FinalizableProcessor finalizableProcessor;
+  @Untraced
   public static final Scanning scanning;
   @Untraced
   public static final Statistics statistics;
@@ -110,6 +112,8 @@ public final class VM {
   public static final Strings strings;
   @Untraced
   public static final TraceInterface traceInterface;
+  @Untraced
+  public static final MMTk_Events events;
 
   /*
    * The remainder is does the static initialization of the
@@ -149,10 +153,12 @@ public final class VM {
     weakReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.WEAK);
     softReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.SOFT);
     phantomReferences = factory.newReferenceProcessor(ReferenceProcessor.Semantics.PHANTOM);
+    finalizableProcessor = factory.newFinalizableProcessor();
     scanning = factory.newScanning();
     statistics = factory.newStatistics();
     strings = factory.newStrings();
     traceInterface = factory.newTraceInterface();
+    events = factory.newEvents();
     config = new Config(factory.newBuildTimeConfig());
 
     /* Now initialize the constants using the vm-specific singletons */

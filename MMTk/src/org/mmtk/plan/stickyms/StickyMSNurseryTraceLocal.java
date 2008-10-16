@@ -58,8 +58,6 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyMS.MARK_SWEEP, object))
       return StickyMS.msSpace.isLive(object);
-    else if (StickyMS.NURSERY_COLLECT_PLOS && Space.isInSpace(StickyMS.PLOS, object))
-      return StickyMS.ploSpace.isLive(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
   }
@@ -83,8 +81,6 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return object;
     if (Space.isInSpace(StickyMS.MARK_SWEEP, object))
       return StickyMS.msSpace.traceObject(this, object);
-    else if (StickyMS.NURSERY_COLLECT_PLOS && Space.isInSpace(StickyMS.PLOS, object))
-      return StickyMS.ploSpace.traceObject(this, object);
     else
       return object;
   }

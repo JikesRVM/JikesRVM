@@ -53,15 +53,18 @@ global.javahome.ppc32-linux=/opt/ibm-java2-ppc-50
 global.javahome.ppc64-linux=/opt/ibm-java2-ppc-50
 global.javahome.ia32-linux=/opt/jdk1.5.0
 global.javahome.x86_64-linux=/opt/jdk1.5.0
+global.javahome.ia32-osx=/System/Library/Frameworks/JavaVM.framework/Home
 
 # Architecture mappings
 global.arch.i686=ia32
 global.arch.x86_64=x86_64
 global.arch.ppc=ppc32
 global.arch.ppc64=ppc32
+global.arch.i386=ia32
 
 # Operating system mappings
-global.os.GNU/Linux=linux
+global.os.Linux=linux
+global.os.Darwin=osx
 
 # Execution environment
 global.display-wrapper.exe=/usr/bin/xvfb-run

@@ -636,6 +636,18 @@ import org.vmmagic.unboxed.Offset;
       Address top_ip = thread.getContextRegisters().getInnermostInstructionAddress();
       Address top_fp = thread.getContextRegisters().getInnermostFramePointer();
       Scheduler.dumpStack(top_ip, top_fp);
+      Log.writeln("Failing iterators:");
+      Offset offset = compiledMethod.getInstructionOffset(ip);
+      iterator = iteratorGroup.selectIterator(compiledMethod);
+      iterator.setupIterator(compiledMethod, offset, fp);
+      int i=0;
+      for (Address addr = iterator.getNextReferenceAddress();
+           !addr.isZero();
+           addr = iterator.getNextReferenceAddress()) {
+         ObjectReference ref2 = addr.loadObjectReference();
+         Log.write("Iterator "); Log.write(i++); Log.write(": "); Log.write(addr);
+         Log.write(": "); Log.flush(); MemoryManager.dumpRef(ref2);
+      }
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
@@ -727,7 +739,7 @@ import org.vmmagic.unboxed.Offset;
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));
       Log.write("):   ");
-      ObjectReference value = Selected.Collector.get().loadObjectReference(loc);
+      ObjectReference value = Selected.Plan.get().loadObjectReference(loc);
       Log.write(value);
       Log.write(" ");
       Log.flush();

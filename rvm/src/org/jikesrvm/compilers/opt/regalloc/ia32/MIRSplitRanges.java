@@ -57,7 +57,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
    * blocks.  Suppose we have a
    * PEI s which uses a symbolic register r1.  We must ensure that after
    * register allocation, r1 is NOT assigned to a scratch location in s,
-   * since this would mess up code in the catch block tghat uses r1.
+   * since this would mess up code in the catch block that uses r1.
    *
    * So, instead, we introduce a new temporary r2 which holds the value of
    * r1.  The live range for r2 spans only the instruction s.  Later, we
@@ -99,7 +99,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
             // NOTE: Index as marked as a DU because LowTableSwitch is
             //       going to destroy the value in the register.
             //       By construction (see ConvertToLowLevelIR), no one will
-            //       every read the value computed by a LowTableSwitch.
+            //       ever read the value computed by a LowTableSwitch.
             //       Therefore, don't insert a move instruction after the
             //       LowTableSwitch (which would cause IR verification
             //       problems anyways, since LowTableSwitch is a branch).

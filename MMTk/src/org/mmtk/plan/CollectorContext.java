@@ -14,6 +14,7 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
 
@@ -137,7 +138,8 @@ import org.vmmagic.unboxed.*;
   @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes,
       int align, int allocator) {
-    return allocator;
+      boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD;
+      return large ? Plan.ALLOC_LOS : allocator;
   }
 
   /****************************************************************************
@@ -190,30 +192,4 @@ import org.vmmagic.unboxed.*;
   /** @return the unique identifier for this collector context. */
   @Inline
   public int getId() { return id; }
-
-  /****************************************************************************
-   * Collector read/write barriers.
-   */
-
-  /**
-   * Store an object reference
-   *
-   * @param slot The location of the reference
-   * @param value The value to store
-   */
-  @Inline
-  public void storeObjectReference(Address slot, ObjectReference value) {
-    slot.store(value);
-  }
-
-  /**
-   * Load an object reference
-   *
-   * @param slot The location of the reference
-   * @return the object reference loaded from slot
-   */
-  @Inline
-  public ObjectReference loadObjectReference(Address slot) {
-    return slot.loadObjectReference();
-  }
 }

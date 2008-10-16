@@ -24,6 +24,6 @@ public final class Plan extends org.vmutil.options.StringOption {
   public Plan() {
     super(Harness.options, "Plan",
           "Plan to use",
-          "org.mmtk.plan.marksweep.MS");
+          System.getProperty("mmtk.harness.plan","org.mmtk.plan.marksweep.MS"));
   }
 }

@@ -1,0 +1,60 @@
+/*
+ * Test functions that return objects
+ */
+
+main() {
+  object l1 = cons(1,null);
+  object l2 = cons(2,l1);
+  object l3 = cons(5,cons(4,cons(3,l2)));
+
+  check(length(l1),1);
+  check(length(l2),2);
+  check(length(l3),5);
+
+  l1 = cons(7,l1);
+  check(length(l1),2);
+  l1 = cons(8,l1);
+  check(length(l1),3);
+
+  object l4 = cons(random(0,10),l1);
+  check(length(l4),4);
+  printList(l4);
+}
+
+object cons(int hd, object tl) {
+  object l = alloc(1,1);
+  l.int[0] = hd;
+  l.object[0] = tl;
+  return l;
+}
+
+int length(object l) {
+  if ( l == null ) {
+    return 0;
+  } else {
+    return 1 + length(l.object[0]);
+  }
+}
+
+
+printList(object l) {
+  print("vvv");
+  printList1(l);
+}
+
+printList1(object l) {
+  if ( l == null ) {
+    print("^^^");
+  } else {
+    print(l.int[0]);
+    printList1(l.object[0]);
+  }
+}
+
+check(int actual, int expected) {
+  if (actual == expected) {
+    print("OK");
+  } else {
+    print("ERROR");
+  }
+}

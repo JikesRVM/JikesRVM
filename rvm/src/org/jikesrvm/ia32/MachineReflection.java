@@ -16,7 +16,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.Magic;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
@@ -90,6 +91,8 @@ public abstract class MachineReflection implements RegisterConstants {
    * Collect parameters into arrays of registers/spills, as required to
    * call specified method.
    */
+  @UnpreemptibleNoWarn("GC is disabled as Objects are turned into Words."+
+    "avoid preemption but still allow calls to preemptible unboxing routines")
   public static void packageParameters(RVMMethod method, Object thisArg, Object[] otherArgs, WordArray GPRs,
                                        double[] FPRs, byte[] FPRmeta, WordArray Parameters) {
     int GPR = 0;
@@ -100,7 +103,7 @@ public abstract class MachineReflection implements RegisterConstants {
     int fp = NUM_PARAMETER_FPRS; // 0-8
 
     if (!method.isStatic()) {
-      Word val = Reflection.unwrapObject(thisArg).toWord();
+      Word val = Magic.objectAsAddress(thisArg).toWord();
       if (gp > 0) {
         gp--;
         GPRs.set(GPR++, val);
@@ -112,8 +115,15 @@ public abstract class MachineReflection implements RegisterConstants {
     for (int i = 0; i < types.length; i++) {
       TypeReference t = types[i];
 
-      if (t.isLongType()) {
-        long l = Reflection.unwrapLong(otherArgs[i]);
+      if (!t.isPrimitiveType()) {
+        Word val = Magic.objectAsAddress(otherArgs[i]).toWord();
+        if (gp > 0) {
+          gp--;
+          GPRs.set(GPR++, val);
+        }
+        Parameters.set(parameter++, val);
+      } else if (t.isLongType()) {
+        long l = (Long)otherArgs[i];
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l >>> 32)));
@@ -124,89 +134,60 @@ public abstract class MachineReflection implements RegisterConstants {
         }
         Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
         Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
-
       } else if (t.isFloatType()) {
         if (fp > 0) {
           fp--;
           if (ArchConstants.SSE2_FULL) {
-            FPRs[FPR] = Reflection.unwrapFloat(otherArgs[i]);
+            FPRs[FPR] = (Float)otherArgs[i];
             FPRmeta[FPR] = 0x0;
             FPR++;
           } else {
-            FPRs[--FPR] = Reflection.unwrapFloat(otherArgs[i]);
+            FPRs[--FPR] = (Float)otherArgs[i];
           }
         }
-        float f = Reflection.unwrapFloat(otherArgs[i]);
+        float f = (Float)otherArgs[i];
         Parameters.set(parameter++, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
-
       } else if (t.isDoubleType()) {
         if (fp > 0) {
           fp--;
           if (ArchConstants.SSE2_FULL) {
-            FPRs[FPR] = Reflection.unwrapDouble(otherArgs[i]);
+            FPRs[FPR] = (Double)otherArgs[i];
             FPRmeta[FPR] = 0x1;
             FPR++;
           } else {
-            FPRs[--FPR] = Reflection.unwrapDouble(otherArgs[i]);
+            FPRs[--FPR] = (Double)otherArgs[i];
           }
         }
-        double d = Reflection.unwrapDouble(otherArgs[i]);
+        double d = (Double)otherArgs[i];
         long l = Double.doubleToLongBits(d);
         Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
         Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
-
       } else if (t.isBooleanType()) {
-        Word val = Word.fromIntZeroExtend(Reflection.unwrapBooleanAsInt(otherArgs[i]));
+        boolean b = (Boolean)otherArgs[i];
+        Word val = Word.fromIntZeroExtend(b ? 1 : 0);
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
         }
         Parameters.set(parameter++, val);
-
-      } else if (t.isByteType()) {
-        Word val = Word.fromIntZeroExtend(Reflection.unwrapByte(otherArgs[i]));
-        if (gp > 0) {
-          gp--;
-          GPRs.set(GPR++, val);
-        }
-        Parameters.set(parameter++, val);
-
       } else if (t.isCharType()) {
-        Word val = Word.fromIntZeroExtend(Reflection.unwrapChar(otherArgs[i]));
+        char c = (Character)otherArgs[i];
+        Word val = Word.fromIntZeroExtend(c);
         if (gp > 0) {
           gp--;
           GPRs.set(GPR++, val);
         }
         Parameters.set(parameter++, val);
-
-      } else if (t.isShortType()) {
-        Word val = Word.fromIntZeroExtend(Reflection.unwrapShort(otherArgs[i]));
-        if (gp > 0) {
-          gp--;
-          GPRs.set(GPR++, val);
-        }
-        Parameters.set(parameter++, val);
-
-      } else if (t.isIntType()) {
-        Word val = Word.fromIntZeroExtend(Reflection.unwrapInt(otherArgs[i]));
-        if (gp > 0) {
-          gp--;
-          GPRs.set(GPR++, val);
-        }
-        Parameters.set(parameter++, val);
-
-      } else if (!t.isPrimitiveType()) {
-        Word val = Reflection.unwrapObject(otherArgs[i]).toWord();
-        if (gp > 0) {
-          gp--;
-          GPRs.set(GPR++, val);
-        }
-        Parameters.set(parameter++, val);
-
       } else {
-        if (VM.VerifyAssertions) VM._assert(Constants.NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(t.isByteType() || t.isShortType() || t.isIntType());
+        int x = ((Number)otherArgs[i]).intValue();
+        Word val = Word.fromIntZeroExtend(x);
+        if (gp > 0) {
+          gp--;
+          GPRs.set(GPR++, val);
+        }
+        Parameters.set(parameter++, val);
       }
     }
   }
-
 }

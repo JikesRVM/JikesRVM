@@ -61,9 +61,14 @@ struct rule {		/* rules: */
 extern Rule rule(const char *id, Tree pattern, const char *template, const char *code);
 
 /* gram.y: */
+#ifdef __GNUC__
 extern void yyerror(const char *fmt, ...) __attribute__((format(printf,1,2)));
-extern int yyparse(void);
 extern void yywarn(const char *fmt, ...)  __attribute__((format(printf,1,2)));
+#else
+extern void yyerror(const char *fmt, ...);
+extern void yywarn(const char *fmt, ...);
+#endif
+extern int yyparse(void);
 extern int errcnt;
 extern char *xstrdup(const char *src);
 extern FILE *infp;

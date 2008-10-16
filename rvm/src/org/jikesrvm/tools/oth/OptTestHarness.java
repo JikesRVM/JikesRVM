@@ -411,7 +411,7 @@ class OptTestHarness {
         return;
       }
       VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");
-      Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);
+      Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
       VM.sysWrite("**** END OF EXECUTION of " + mainMethod + " ****.\n");
     }
   }

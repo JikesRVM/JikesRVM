@@ -53,7 +53,7 @@ public class Chunk implements Constants {
     return Conversions.bytesToPagesUp(bytes);
   }
 
-  static void sweep(Address chunk, Address end, ImmixSpace space, int[] markHistogram, int[] availHistogram) {
+  static void sweep(Address chunk, Address end, ImmixSpace space, int[] markHistogram) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
     Address start = getFirstUsableBlock(chunk);
     Address cursor = Block.getBlockMarkStateAddress(start);
@@ -61,7 +61,7 @@ public class Chunk implements Constants {
       Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
       if (block.GT(end)) break;
       boolean defragSource = space.inImmixDefragCollection() && Block.isDefragSource(block);
-      short marked = Block.sweepOneBlock(block, markHistogram, availHistogram);
+      short marked = Block.sweepOneBlock(block, markHistogram);
       if (marked == 0) {
         if (!Block.isUnusedState(cursor)) {
           space.release(block);

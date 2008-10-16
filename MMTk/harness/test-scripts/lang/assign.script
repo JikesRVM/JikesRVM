@@ -1,0 +1,10 @@
+main() {
+  int a;
+  a = 1;
+  print("a = ",a);
+  int b = 2;
+  print ("b = ",b);
+
+  int c = a * b + 3;
+  print ("c = ",c);
+}

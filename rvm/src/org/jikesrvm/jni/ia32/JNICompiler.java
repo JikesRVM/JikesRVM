@@ -831,7 +831,7 @@ public abstract class JNICompiler implements BaselineConstants {
 
     // finally proceed with the normal Java compiled code
     // skip the thread switch test for now, see BaselineCompilerImpl.genThreadSwitchTest(true)
-    asm.emitNOP(); // end of prologue marker
+    asm.emitNOP(1); // end of prologue marker
   }
 
   public static void generateEpilogForJNIMethod(Assembler asm, RVMMethod method) {

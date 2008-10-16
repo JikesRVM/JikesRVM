@@ -16,10 +16,12 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mmtk.Collection;
+import org.jikesrvm.mm.mmtk.MMTk_Events;
 import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.mm.mmtk.Scanning;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Time;
+import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
@@ -269,7 +271,9 @@ public final class CollectorThread extends GreenThread {
    */
   @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void collect(Handshake handshake, int why) {
+    Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStart, why);
     handshake.requestAndAwaitCompletion(why);
+    Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStop);
   }
 
   /**

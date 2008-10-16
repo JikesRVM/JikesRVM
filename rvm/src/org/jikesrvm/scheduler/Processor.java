@@ -18,6 +18,7 @@ import org.jikesrvm.Constants;
 import org.jikesrvm.mm.mminterface.ProcessorContext;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.tuningfork.Feedlet;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NonMoving;
@@ -269,22 +270,6 @@ public abstract class Processor extends ProcessorContext implements Constants {
    */
   public int pthread_id;
 
-  /*
-   *  book keeping for thick locks, a range of thick locks is held per processor
-   */
-  /** last lock in Lock available for this processor */
-  public int lastLockIndex;
-  /** next lock in Lock available for this processor */
-  public int nextLockIndex;
-  /** a free lock */
-  public Lock freeLock;
-  /** number of free locks */
-  public int freeLocks;
-  /** number of lock allocation operations on processor */
-  public int locksAllocated;
-  /** number of lock free operations on processor */
-  public int locksFreed;
-
   // to handle contention for processor locks
   //
   ProcessorLock awaitingProcessorLock;
@@ -306,7 +291,6 @@ public abstract class Processor extends ProcessorContext implements Constants {
    */
   protected Processor(int id) {
     this.id = id;
-    this.lastLockIndex = -1;
     this.vpStatus = IN_JAVA;
   }
 
@@ -346,6 +330,13 @@ public abstract class Processor extends ProcessorContext implements Constants {
   @Inline
   public static RVMThread getCurrentThread() {
     return getCurrentProcessor().activeThread;
+  }
+
+  /**
+   * Get Feedlet instance for the current java thread
+   */
+  public static Feedlet getCurrentFeedlet() {
+    return getCurrentThread().feedlet;
   }
 
   /**
@@ -421,19 +412,4 @@ public abstract class Processor extends ProcessorContext implements Constants {
    * Fail if thread switching is disabled on this processor
    */
   public abstract void failIfThreadSwitchingDisabled();
-
-  public void dumpLocks() {
-    VM.sysWrite(" processor ");
-    VM.sysWriteInt(id);
-    VM.sysWrite(": ");
-    VM.sysWriteInt(locksAllocated);
-    VM.sysWrite(" locks allocated, ");
-    VM.sysWriteInt(locksFreed);
-    VM.sysWrite(" locks freed, ");
-    VM.sysWriteInt(freeLocks);
-    VM.sysWrite(" free looks, ");
-    int unallocated = lastLockIndex - nextLockIndex + 1;
-    VM.sysWriteInt(unallocated);
-    VM.sysWrite(" unallocated slots\n");
-  }
 }

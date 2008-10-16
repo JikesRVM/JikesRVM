@@ -91,6 +91,8 @@ static const char* nonStandardUsage[] = {
    "    -X:vmClasses=<path>      Load the org.jikesrvm.* and java.* classes",
    "                             from <path>, a list like one would give to the",
    "                             -classpath argument.",
+   "    -Xbootclasspath/p:<cp>   (p)repend bootclasspath with specified classpath",
+   "    -Xbootclasspath/a:<cp>   (a)ppend specified classpath to bootclasspath",
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
    NULL                         /* End of messages */

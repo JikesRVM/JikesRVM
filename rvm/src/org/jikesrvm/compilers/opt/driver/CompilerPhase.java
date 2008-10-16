@@ -224,9 +224,20 @@ public abstract class CompilerPhase {
    * @param tag a String to use in the start/end message of the IR dump
    */
   public static void dumpIR(IR ir, String tag) {
+    dumpIR(ir, tag, false);
+  }
+
+  /**
+   * Prints the IR, optionally including the CFG
+   *
+   * @param ir the IR to print
+   * @param forceCFG should the CFG be printed, independent of the value of ir.options.PRINT_CFG?
+   * @param tag a String to use in the start/end message of the IR dump
+   */
+  public static void dumpIR(IR ir, String tag, boolean forceCFG) {
     System.out.println("********* START OF IR DUMP  " + tag + "   FOR " + ir.method);
     ir.printInstructions();
-    if (ir.options.PRINT_CFG) {
+    if (forceCFG || ir.options.PRINT_CFG) {
       ir.cfg.printDepthFirst();
     }
     System.out.println("*********   END OF IR DUMP  " + tag + "   FOR " + ir.method);

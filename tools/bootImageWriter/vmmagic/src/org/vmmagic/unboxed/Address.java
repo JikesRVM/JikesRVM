@@ -12,10 +12,11 @@
  */
 package org.vmmagic.unboxed;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
 
 /**
  * The {@link Address} type is used by the runtime system and collector to
@@ -43,6 +44,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   }
 
   /* Compensate for some java compilers helpfully defining this synthetically */
+  @Override
   @Interruptible
   public String toString() {
     return super.toString();
@@ -54,6 +56,9 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    * Special values
    */
 
+  /** Constant zero address */
+  private static final Address _zero = new Address(0);
+
   /**
    * Return an {@link Address} instance that reflects the value
    * zero.
@@ -63,7 +68,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   @UninterruptibleNoWarn
   public static Address zero() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(0);
+    return _zero;
   }
 
   /**
@@ -76,6 +81,9 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
     return EQ(zero());
   }
 
+  /** Constant zero address */
+  private static final Address _max = fromIntSignExtend(-1);
+
   /**
    * Return an {@link Address} instance that reflects the maximum
    * allowable {@link Address} value.
@@ -85,7 +93,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    */
   public static Address max() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return fromIntSignExtend(-1);
+    return _max;
   }
 
   /**
@@ -156,6 +164,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    * instance
    * @return An address instance
    */
+  @Deprecated
   @UninterruptibleNoWarn
   public static Address fromInt(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -632,7 +641,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    */
   public float loadFloat() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return (float)0;
+    return 0;
   }
 
   /**
@@ -644,7 +653,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    */
   public float loadFloat(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return (float)0;
+    return 0;
   }
 
   /**

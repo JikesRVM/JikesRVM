@@ -27,12 +27,12 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public final class GenRCModifiedProcessor extends TransitiveClosure {
-  private final GenRCTraceLocal trace;
 
+    private final GenRCFindRootSetTraceLocal trace;
 
-  public GenRCModifiedProcessor(GenRCTraceLocal t) {
-    trace = t;
-  }
+    public GenRCModifiedProcessor(GenRCFindRootSetTraceLocal trace) {
+      this.trace = trace;
+    }
 
   /**
    * Trace an edge during GC.
@@ -44,7 +44,7 @@ public final class GenRCModifiedProcessor extends TransitiveClosure {
   public void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = slot.loadObjectReference();
     if (!object.isNull()) {
-      if (Space.isInSpace(GenRC.NS, object)) {
+      if (Space.isInSpace(GenRC.NURSERY, object)) {
         object = GenRC.nurserySpace.traceObject(trace, object, GenRC.ALLOC_RC);
         RCHeader.incRC(object);
         slot.store(object);

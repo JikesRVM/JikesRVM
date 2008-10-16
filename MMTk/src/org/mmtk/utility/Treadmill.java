@@ -64,8 +64,11 @@ public final class Treadmill implements Constants {
    * Add a node to the treadmill. This is usually performed on allocation.
    */
   @Inline
-  public void addToTreadmill(Address node) {
-    allocNursery.add(node);
+  public void addToTreadmill(Address node, boolean nursery) {
+    if (nursery)
+      allocNursery.add(node);
+    else
+      toSpace.add(node);
   }
 
   /**
@@ -148,11 +151,6 @@ public final class Treadmill implements Constants {
   @Inline
   public static Address nodeToPayload(Address payload) {
     return DoublyLinkedList.nodeToPayload(payload);
-  }
-
-  @Inline
-  public static Address payloadToNode(Address payload) {
-    return DoublyLinkedList.payloadToNode(payload);
   }
 
   @Inline

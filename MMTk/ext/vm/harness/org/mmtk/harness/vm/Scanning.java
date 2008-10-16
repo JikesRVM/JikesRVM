@@ -70,7 +70,7 @@ public class Scanning extends org.mmtk.vm.Scanning {
    * parallel GC threads were not important, the thread counter could
    * simply be replaced by a for loop).
    */
-  public void resetThreadCounter() {
+  public synchronized void resetThreadCounter() {
     threadCounter = 0;
   }
 

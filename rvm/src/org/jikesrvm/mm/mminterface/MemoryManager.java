@@ -25,6 +25,7 @@ import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mmtk.Collection;
+import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
@@ -42,7 +43,6 @@ import org.jikesrvm.scheduler.ProcessorTable;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
@@ -499,9 +499,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @return true if the address is within a space which may contain stacks
    */
   public static boolean mightBeFP(Address address) {
-    return Space.isInSpace(Plan.LOS, address) ||
-    Space.isInSpace(Plan.IMMORTAL, address) ||
-    Space.isInSpace(Plan.VM_SPACE, address);
+    // In general we don't know which spaces may hold allocated stacks.
+    // If we want to be more specific than the space being mapped we
+    // will need to add a check in Plan that can be overriden.
+    return Space.isMappedAddress(address);
   }
   /***********************************************************************
    *
@@ -587,6 +588,9 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
           isPrefix("Lorg/jikesrvm/mm/", clsBA) ||
           isPrefix("Lorg/jikesrvm/mm/mminterface/GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
+      }
+      if (method.isNonMovingAllocation()) {
+        return Plan.ALLOC_NON_MOVING;
       }
     }
     return type.getMMAllocator();
@@ -1108,7 +1112,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void addFinalizer(Object object) {
-    Finalizer.addCandidate(ObjectReference.fromObject(object));
+    FinalizableProcessor.addCandidate(object);
   }
 
   /**
@@ -1117,8 +1121,9 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @return the object needing to be finialized
    */
+  @Unpreemptible("Non-preemptible but may yield if finalizable table is being grown")
   public static Object getFinalizedObject() {
-    return Finalizer.get().toObject();
+    return FinalizableProcessor.getForFinalize();
   }
 
   /***********************************************************************

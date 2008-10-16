@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.alloc;
 
-import org.mmtk.policy.LargeObjectSpace;
+import org.mmtk.policy.BaseLargeObjectSpace;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -29,19 +29,14 @@ import org.vmmagic.pragma.*;
  * This is a first cut implementation, with plenty of room for
  * improvement...
  */
-@Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
-
-  /****************************************************************************
-   *
-   * Class variables
-   */
-  protected static final Word PAGE_MASK = Word.fromIntSignExtend(~(BYTES_IN_PAGE - 1));
+@Uninterruptible
+public abstract class LargeObjectAllocator extends Allocator implements Constants {
 
   /****************************************************************************
    *
    * Instance variables
    */
-  protected LargeObjectSpace space;
+  protected final BaseLargeObjectSpace space;
 
   /****************************************************************************
    *
@@ -54,7 +49,7 @@ import org.vmmagic.pragma.*;
    * @param space The space with which this large object allocator
    * will be associated.
    */
-  public LargeObjectAllocator(LargeObjectSpace space) {
+  public LargeObjectAllocator(BaseLargeObjectSpace space) {
     this.space = space;
   }
 
@@ -75,11 +70,8 @@ import org.vmmagic.pragma.*;
   @NoInline
   public final Address alloc(int bytes, int align, int offset) {
     Address cell = allocSlow(bytes, align, offset);
-    postAlloc(cell);
     return alignAllocation(cell, align, offset);
   }
-
-  protected abstract void postAlloc(Address cell);
 
   /**
    * Allocate a large object.  Large objects are directly allocted and
@@ -93,55 +85,13 @@ import org.vmmagic.pragma.*;
    * least <code>bytes</code> bytes in size.
    */
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
-    int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of MIN_ALIGNMENT
+    int header = space.getHeaderSize();
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
     int pages = (maxbytes + BYTES_IN_PAGE - 1) >> LOG_BYTES_IN_PAGE;
     Address sp = space.acquire(pages);
     if (sp.isZero()) return sp;
     Address cell = sp.plus(header);
     return cell;
-  }
-
-  /****************************************************************************
-   *
-   * Freeing
-   */
-
-  /**
-   * Free a cell.  If the cell is large (own superpage) then release
-   * the superpage, if not add to the super page's free list and if
-   * all cells on the superpage are free, then release the
-   * superpage.
-   *
-   * @param cell The address of the first byte of the cell to be freed
-   */
-  @Inline
-  public final void free(Address cell) {
-    space.release(getSuperPage(cell));
-  }
-
-  /****************************************************************************
-   *
-   * Superpages
-   */
-
-  protected abstract int superPageHeaderSize();
-  protected abstract int cellHeaderSize();
-
-  /**
-   * Return the superpage for a given cell.  If the cell is a small
-   * cell then this is found by masking the cell address to find the
-   * containing page.  Otherwise the first word of the cell contains
-   * the address of the page.
-   *
-   * @param cell The address of the first word of the cell (exclusive
-   * of any sub-class specific metadata).
-   * @return The address of the first word of the superpage containing
-   *         <code>cell</code>.
-   */
-  @Inline
-  public static Address getSuperPage(Address cell) {
-    return cell.toWord().and(PAGE_MASK).toAddress();
   }
 
   /****************************************************************************

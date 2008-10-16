@@ -17,58 +17,22 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * This class implements the global state of a simple reference counting
- * collector.
- *
- * All plans make a clear distinction between <i>global</i> and
- * <i>thread-local</i> activities, and divides global and local state
- * into separate class hierarchies.  Global activities must be
- * synchronized, whereas no synchronization is required for
- * thread-local activities.  There is a single instance of Plan (or the
- * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
- * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
- *
- * The global instance defines and manages static resources
- * (such as memory and virtual memory resources).  This mapping of threads to
- * instances is crucial to understanding the correctness and
- * performance properties of MMTk plans.
+ * This class implements the global state of a a simple reference counting collector.
  */
 @Uninterruptible
 public class GenRC extends RCBase {
 
-  /****************************************************************************
-   *
-   * Class variables
-   */
-
-  /** The nursery space, where all new objects are allocated by default. */
-  public static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
-
-  public static final int NS = nurserySpace.getDescriptor();
-
-  // Allocators
   public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
+  public static final int ALLOC_RC      = RCBase.ALLOCATORS + 1;
 
-  /****************************************************************************
-   * Instance variables
-   */
+  /** The nursery space is where all new objects are allocated by default */
+  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
 
-  /**
-   * Constructor.
-   */
-  public GenRC() {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(WITH_COALESCING_RC);
-    }
-  }
+  public static final int NURSERY = nurserySpace.getDescriptor();
 
   /*****************************************************************************
    *
@@ -78,16 +42,19 @@ public class GenRC extends RCBase {
   /**
    * Perform a (global) collection phase.
    *
-   * @param phaseId Collection phase to execute.
+   * @param phaseId Collection phase
    */
-  @NoInline
-  public void collectionPhase(short phaseId) {
-    if (phaseId == PREPARE) {
+  public final void collectionPhase(short phaseId) {
+   if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
+      super.collectionPhase(phaseId);
+      return;
     }
 
     if (phaseId == RELEASE) {
+      super.collectionPhase(phaseId);
       nurserySpace.release();
+      return;
     }
 
     super.collectionPhase(phaseId);
@@ -102,9 +69,13 @@ public class GenRC extends RCBase {
    */
   public final boolean collectionRequired(boolean spaceFull) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
-
     return super.collectionRequired(spaceFull) || nurseryFull;
   }
+
+  /*****************************************************************************
+   *
+   * Accounting
+   */
 
   /**
    * Return the number of pages available for allocation, <i>assuming
@@ -128,19 +99,6 @@ public class GenRC extends RCBase {
   }
 
   /**
-   * Return the number of pages in use given the pending
-   * allocation.  Simply add the nursery's contribution to that of
-   * the superclass.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
-   */
-
-  public final int getPagesUsed() {
-    return super.getPagesUsed() + nurserySpace.reservedPages();
-  }
-
-  /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    *
@@ -159,8 +117,12 @@ public class GenRC extends RCBase {
    */
   @Override
   public boolean willNeverMove(ObjectReference object) {
-    if (Space.isInSpace(NS, object))
+    if (Space.isInSpace(NURSERY, object)) {
       return false;
+    }
+    if (Space.isInSpace(REF_COUNT_LOS, object)) {
+      return true;
+    }
     return super.willNeverMove(object);
   }
 }

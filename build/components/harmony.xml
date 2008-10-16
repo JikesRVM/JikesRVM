@@ -17,8 +17,9 @@
 
   <property name="harmony.version" value="5.0M6"/>
   <property name="harmony.description" value="Apache Harmony class libraries"/>
+  <property name="harmony.patchlevel" value="1"/>
   <property name="harmony.component.dir" location="${components.dir}/harmony"/>
-  <property name="harmony.package.dir" value="${harmony.component.dir}/${harmony.version}"/>
+  <property name="harmony.package.dir" value="${harmony.component.dir}/${harmony.version}p${harmony.patchlevel}"/>
   <property name="harmony.dir" value="${harmony.package.dir}/harmony"/>
 
   <!-- **************************************************************************** -->
@@ -29,6 +30,7 @@
   <target name="init-harmony-properties" depends="prepare-ant-tasks">
     <!-- <property name="harmony.from-web" value="true"/> -->
     <property name="harmony.from-svn" value="true"/>
+    <!-- <property name="harmony.from-local" value="true"/> -->
   </target>
 
   <!-- download harmony from svn -->
@@ -40,12 +42,21 @@
     </exec>
   </target>
 
+  <!-- copy harmony from local folder -->
+  <target name="get-harmony-from-local" depends="init-harmony-properties" if="harmony.from-local">
+    <copy todir="${harmony.dir}">
+      <fileset dir="${harmony.local.dir}">
+	<exclude name="**/.svn/**" />
+      </fileset>
+    </copy>
+  </target>
+
   <!-- download harmony from web -->
   <target name="get-harmony-from-web" depends="init-harmony-properties" if="harmony.from-web">
     <fail message="Downloading Harmony from the web is not yet supported"/>
   </target>
 
-  <target name="fetch" depends="get-harmony-from-web,get-harmony-from-svn"/>
+  <target name="fetch" depends="get-harmony-from-web,get-harmony-from-svn,get-harmony-from-local"/>
 
 
   <!-- *************************************************************************** -->
@@ -58,11 +69,17 @@
            dir="${harmony.dir}" strip="0"/>
   </target>
 
+  <!-- Patches against local copy -->
+  <target name="patch-harmony-local" depends="fetch" if="harmony.from-local">
+    <patch patchfile="${components.patch.dir}/harmony-svn.RVM-358-01.patch"
+           dir="${harmony.dir}" strip="0"/>
+  </target>
+
   <!-- Patches against web -->
   <target name="patch-harmony-web" depends="fetch" if="harmony.from-web">
   </target>
 
-  <target name="patch" depends="patch-harmony-web,patch-harmony-cvs"/>
+  <target name="patch" depends="patch-harmony-web,patch-harmony-cvs,patch-harmony-local"/>
 
   <!-- *************************************************************************** -->
   <!--                           Build Harmony                                     -->
@@ -125,6 +142,7 @@
     <copy todir="${harmony.package.dir}/${target.name}/lib" flatten="true">
       <fileset dir="${harmony.dir}">
         <include name="deploy/jdk/jre/lib/**/*.jar"/>
+        <include name="deploy/jdk/jre/lib/**/*.properties"/>
       </fileset>
     </copy>
     <copy todir="${harmony.package.dir}/${target.name}/lib" flatten="true">

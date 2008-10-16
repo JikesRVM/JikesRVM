@@ -490,7 +490,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
         availableHead = sweepBlock(block, sizeClass, blockSize, availableHead, clearMarks);
         block = next;
       }
-      /* Available blocks */
+      /* Consumed blocks */
       block = consumedBlockHead.get(sizeClass);
       consumedBlockHead.set(sizeClass, Address.zero());
       while (!block.isZero()) {
@@ -644,6 +644,149 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
     return firstFree;
   }
 
+  /**
+   * Sweep all blocks for free objects.
+   */
+  public void sweepCells(Sweeper sweeper) {
+    for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
+      Address availableHead = Address.zero();
+      /* Flushed blocks */
+      Address block = flushedBlockHead.get(sizeClass);
+      flushedBlockHead.set(sizeClass, Address.zero());
+      while (!block.isZero()) {
+        Address next = BlockAllocator.getNext(block);
+        availableHead = sweepCells(sweeper, block, sizeClass, availableHead);
+        block = next;
+      }
+      /* Consumed blocks */
+      block = consumedBlockHead.get(sizeClass);
+      consumedBlockHead.set(sizeClass, Address.zero());
+      while (!block.isZero()) {
+        Address next = BlockAllocator.getNext(block);
+        availableHead = sweepCells(sweeper, block, sizeClass, availableHead);
+        block = next;
+      }
+      /* Make blocks available */
+      availableBlockHead.set(sizeClass, availableHead);
+    }
+  }
+
+  /**
+   * Sweep a block, freeing it and adding to the list given by availableHead
+   * if it contains no free objects.
+   *
+   * @param clearMarks should we clear block mark bits as we process.
+   */
+  private Address sweepCells(Sweeper sweeper, Address block, int sizeClass, Address availableHead) {
+    boolean liveBlock = sweepCells(sweeper, block, sizeClass);
+    if (!liveBlock) {
+      BlockAllocator.setNext(block, Address.zero());
+      BlockAllocator.free(this, block);
+    } else {
+      BlockAllocator.setNext(block, availableHead);
+      availableHead = block;
+    }
+    return availableHead;
+  }
+
+  /**
+   * Sweep a block, freeing it and making it available if any live cells were found.
+   * if it contains no free objects.
+   *
+   * This is designed to be called in parallel by multiple collector threads.
+   */
+  public void parallelSweepCells(Sweeper sweeper) {
+    for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
+      Address block;
+      while(!(block = getSweepBlock(sizeClass)).isZero()) {
+        boolean liveBlock = sweepCells(sweeper, block, sizeClass);
+        if (!liveBlock) {
+          BlockAllocator.setNext(block, Address.zero());
+          BlockAllocator.free(this, block);
+        } else {
+          lock.acquire();
+          BlockAllocator.setNext(block, availableBlockHead.get(sizeClass));
+          availableBlockHead.set(sizeClass, block);
+          lock.release();
+        }
+      }
+    }
+  }
+
+  /**
+   * Get a block for a parallel sweep.
+   *
+   * @param sizeClass The size class of the block to sweep.
+   * @return The block or zero if no blocks remain to be swept.
+   */
+  private Address getSweepBlock(int sizeClass) {
+    lock.acquire();
+    Address block;
+
+    /* Flushed blocks */
+    block = flushedBlockHead.get(sizeClass);
+    if (!block.isZero()) {
+      flushedBlockHead.set(sizeClass, BlockAllocator.getNext(block));
+      lock.release();
+      BlockAllocator.setNext(block, Address.zero());
+      return block;
+    }
+
+    /* Consumed blocks */
+    block = consumedBlockHead.get(sizeClass);
+    if (!block.isZero()) {
+      flushedBlockHead.set(sizeClass, BlockAllocator.getNext(block));
+      lock.release();
+      BlockAllocator.setNext(block, Address.zero());
+      return block;
+    }
+
+    /* All swept! */
+    lock.release();
+    return Address.zero();
+  }
+
+  /**
+   * Does this block contain any live cells.
+   *
+   * @param block The block
+   * @param blockSize The size of the block
+   * @param clearMarks should we clear block mark bits as we process.
+   * @return True if any cells in the block are live
+   */
+  @Inline
+  public boolean sweepCells(Sweeper sweeper, Address block, int sizeClass) {
+    Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    Address cursor = block.plus(blockHeaderSize[sizeClass]);
+    Address end = block.plus(blockSize);
+    Extent cellExtent = Extent.fromIntSignExtend(cellSize[sizeClass]);
+    boolean containsLive = false;
+    while (cursor.LT(end)) {
+      ObjectReference current = VM.objectModel.getObjectFromStartAddress(cursor);
+      boolean free = true;
+      if (!current.isNull()) {
+        free = !liveBitSet(current);
+        if (!free) {
+          free = sweeper.sweepCell(current);
+          if (free) unsyncClearLiveBit(current);
+        }
+      }
+      if (!free) {
+        containsLive = true;
+      }
+      cursor = cursor.plus(cellExtent);
+    }
+    return containsLive;
+  }
+
+  /**
+   * A callback used to perform sweeping of a free list space.
+   */
+  @Uninterruptible
+  public abstract static class Sweeper {
+    public abstract boolean sweepCell(ObjectReference object);
+  }
+
   /****************************************************************************
    *
    * Live bit manipulation
@@ -657,7 +800,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   @Inline
   public static boolean testAndSetLiveBit(ObjectReference object) {
-    return setLiveBit(VM.objectModel.objectStartRef(object), true);
+    return updateLiveBit(VM.objectModel.objectStartRef(object), true, true);
   }
 
   /**
@@ -689,28 +832,29 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   @Inline
   public static boolean unsyncSetLiveBit(ObjectReference object) {
-    return setLiveBit(VM.objectModel.refToAddress(object), false);
+    return updateLiveBit(VM.objectModel.refToAddress(object), true, false);
   }
 
   /**
    * Set the live bit for a given address
    *
    * @param address The address whose live bit is to be set.
+   * @param set True if the bit is to be set, as opposed to cleared
    * @param atomic True if we want to perform this operation atomically
    */
   @Inline
-  private static boolean setLiveBit(Address address, boolean atomic) {
+  private static boolean updateLiveBit(Address address, boolean set, boolean atomic) {
     Word oldValue, newValue;
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, true);
     if (atomic) {
       do {
         oldValue = liveWord.prepareWord();
-        newValue = oldValue.or(mask);
+        newValue = (set) ? oldValue.or(mask) : oldValue.and(mask.not());
       } while (!liveWord.attempt(oldValue, newValue));
     } else {
       oldValue = liveWord.loadWord();
-      liveWord.store(oldValue.or(mask));
+      liveWord.store(set ? oldValue.or(mask) : oldValue.and(mask.not()));
     }
     return oldValue.and(mask).NE(mask);
   }
@@ -756,9 +900,40 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   @Inline
   protected static void clearLiveBit(Address address) {
-    Address liveWord = getLiveWordAddress(address);
-    Word mask = getMask(address, false);
-    liveWord.store(liveWord.loadWord().and(mask));
+    updateLiveBit(address, false, true);
+  }
+
+  /**
+   * Clear the live bit for a given object
+   *
+   * @param object The object whose live bit is to be cleared.
+   */
+  @Inline
+  protected static void unsyncClearLiveBit(ObjectReference object) {
+    unsyncClearLiveBit(VM.objectModel.refToAddress(object));
+  }
+
+  /**
+   * Clear the live bit for a given address
+   *
+   * @param address The address whose live bit is to be cleared.
+   */
+  @Inline
+  protected static void unsyncClearLiveBit(Address address) {
+    updateLiveBit(address, false, false);
+  }
+
+  /**
+   * Clear all live bits for a block
+   */
+  protected void clearLiveBits(Address block, int sizeClass) {
+    int blockSize = BlockAllocator.blockSize(blockSizeClass[sizeClass]);
+    Address cursor = getLiveWordAddress(block);
+    Address sentinel = getLiveWordAddress(block.plus(blockSize - 1));
+    while (cursor.LE(sentinel)) {
+      cursor.store(Word.zero());
+      cursor = cursor.plus(BYTES_IN_WORD);
+    }
   }
 
   /**

@@ -3161,7 +3161,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     // Load id from display at required depth and compare against target id.
     asm.emitLHZ(T0, LHSDepth << LOG_BYTES_IN_CHAR, T0);
-    asm.emitCMPI(T0, LHSId);
+    if (Assembler.fits(LHSId, 16)) {
+      asm.emitCMPI(T0, LHSId);
+    } else {
+      asm.emitLVAL(T1, LHSId);
+      asm.emitCMP(T0, T1);
+    }
     ForwardReference fr2 = asm.emitForwardBC(EQ);      // TODO: encode "y" bit that branch is likely taken.
     asm.emitTWI(31, 12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
     fr2.resolve(asm);
@@ -3275,14 +3280,19 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       outOfBounds = asm.emitForwardBC(LE);
     }
 
-    // Load id from display at required depth and compare against target id; set T1 to 1 (true) if matched
+    // Load id from display at required depth and compare against target id; set T0 to 1 (true) if matched
     asm.emitLHZ(T0, LHSDepth << LOG_BYTES_IN_CHAR, T0);
-    asm.emitCMPI(T0, LHSId);
+    if (Assembler.fits(LHSId, 16)) {
+      asm.emitCMPI(T0, LHSId);
+    } else {
+      asm.emitLVAL(T1, LHSId);
+      asm.emitCMP(T0, T1);
+    }
     ForwardReference notMatched = asm.emitForwardBC(NE);
     asm.emitLVAL(T0, 1);
     ForwardReference done = asm.emitForwardB();
 
-    // set T1 to 0 (false)
+    // set T0 to 0 (false)
     isNull.resolve(asm);
     if (outOfBounds != null) outOfBounds.resolve(asm);
     notMatched.resolve(asm);

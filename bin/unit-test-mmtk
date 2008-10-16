@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# Run the MMTk Junit tests
+#
+
+JUNIT_V=4.2
+JUNIT=components/junit/${JUNIT_V}/junit${JUNIT_V}/junit-${JUNIT_V}.jar
+HARNESS=target/mmtk/mmtk-harness.jar
+CLASSES=target/mmtk/tests
+SRC=testing/tests/mmtk/src
+
+TESTS="org.mmtk.utility.deque.ObjectReferenceDequeTest"
+
+# Build/fetch the infrastructure
+
+ant mmtk-harness
+ant -f build/components/junit.xml ensure
+
+if [ ! -f $JUNIT ]; then
+  echo "$JUNIT not found"
+  exit 1
+fi
+
+# Build the unit tests
+
+mkdir -p $CLASSES
+
+javac -classpath $JUNIT:$HARNESS -d $CLASSES `find $SRC -name "*.java"`
+
+java -classpath $JUNIT:$HARNESS:$CLASSES org.junit.runner.JUnitCore $TESTS
+
+java -classpath $JUNIT:$HARNESS:$CLASSES \
+	-Dmmtk.harness.scheduler=DETERMINISTIC \
+	org.junit.runner.JUnitCore $TESTS
+
+java -classpath $JUNIT:$HARNESS:$CLASSES \
+	-Dmmtk.harness.scheduler=DETERMINISTIC \
+	-Dmmtk.harness.yieldpolicy=FIXED \
+	-Dmmtk.harness.yieldpolicy.fixed.interval=1 \
+	org.junit.runner.JUnitCore $TESTS
+
+java -classpath $JUNIT:$HARNESS:$CLASSES \
+	-Dmmtk.harness.scheduler=DETERMINISTIC \
+	-Dmmtk.harness.yieldpolicy=RANDOM \
+	-Dmmtk.harness.yieldpolicy.random.length=20 \
+	-Dmmtk.harness.yieldpolicy.random.min=1 \
+	-Dmmtk.harness.yieldpolicy.random.max=2 \
+	org.junit.runner.JUnitCore $TESTS
+
+java -classpath $JUNIT:$HARNESS:$CLASSES \
+	-Dmmtk.harness.scheduler=DETERMINISTIC \
+	-Dmmtk.harness.yieldpolicy=NEVER \
+	org.junit.runner.JUnitCore $TESTS
+

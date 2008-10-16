@@ -7,6 +7,10 @@ Note: some code in the libraryInterface tree is distributed under
 other open source licenses.  See the various LICENSE files in that
 tree for details.
 
+Note: some code in the external tree is distributed under
+other open source licenses.  See the various LICENSE files in that
+tree for details.
+
 Note:  rvm/src-generated/opt-burs/jburg contains a tool, jburg,
 which was derived from iburg and is not distributed under the CPL.
 See rvm/src-generated/opt-burs/jburg/LICENSE for details.
