@@ -2047,8 +2047,6 @@ cat >> $FILENAME <<EOF
    * $descr of [dstDisp] by srcReg
    * </PRE>
    *
-   * @param dstIndex the destination index register
-   * @param dstScale the destination shift amount
    * @param dstDisp the destination displacement
    * @param srcReg must always be ECX
    */
@@ -2771,12 +2769,12 @@ EOF
     cat >> $FILENAME <<EOF
 
   /**
-   * Generate a register--register ${acronym}. That is,
+   * Generate a register-indirect--register ${acronym}. That is,
    * <PRE>
-   * [dstReg] ${opStr}= ${code} srcReg
+   * [dstBase] ${opStr}= ${code} srcReg
    * </PRE>
    *
-   * @param dstReg the destination register
+   * @param dstBase the destination base register
    * @param srcReg the source register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
@@ -3001,7 +2999,7 @@ emitFloatMemAcc() {
   }
 
   /**
-   * Perform ${op} on FP0. That is,
+   * Perform ${op} on dstReg. That is,
    * <PRE>
    * dstReg ${op}= (${size}) [srcBase + srcIndex<<srcScale + srcDisp]
    * </PRE>
@@ -3013,14 +3011,14 @@ emitFloatMemAcc() {
    * @param srcDisp source displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,3})
-  public final void emit${acronym}_Reg_RegIdx${ext}(FPR dstReg, GPR srcBase, GPR srcIndex, short scale, Offset disp) {
+  public final void emit${acronym}_Reg_RegIdx${ext}(FPR dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == FP0);
     setMachineCodes(mi++, (byte) ${opcode});
     // The ``register'' ${mOpExt} is really part of the opcode
-    emitSIBRegOperands(srcBase, srcIndex, scale, disp, GPR.getForOpcode(${mOpExt}));
-    if (lister != null) lister.RRXD(miStart, "${acronym}", dstReg, srcBase, srcIndex, scale, disp);
+    emitSIBRegOperands(srcBase, srcIndex, srcScale, srcDisp, GPR.getForOpcode(${mOpExt}));
+    if (lister != null) lister.RRXD(miStart, "${acronym}", dstReg, srcBase, srcIndex, srcScale, srcDisp);
   }
 
   /**
@@ -3272,12 +3270,12 @@ cat >> $FILENAME <<EOF
    * @param disp destination displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emit${acronym}_RegDisp (GPR dstReg, Offset disp) {
+  public final void emit${acronym}_RegDisp (GPR baseReg, Offset disp) {
     int miStart = mi;
     $prefix
     setMachineCodes(mi++, (byte) ${opcode});
-    emitRegDispRegOperands(dstReg, disp, GPR.getForOpcode(${opExt}));
-    if (lister != null) lister.RD(miStart, "${acronym}", dstReg, disp);
+    emitRegDispRegOperands(baseReg, disp, GPR.getForOpcode(${opExt}));
+    if (lister != null) lister.RD(miStart, "${acronym}", baseReg, disp);
   }
 
   /**
@@ -3286,12 +3284,12 @@ cat >> $FILENAME <<EOF
    * @param baseReg destination base register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emit${acronym}_RegInd (GPR dstReg) {
+  public final void emit${acronym}_RegInd (GPR baseReg) {
     int miStart = mi;
     $prefix
     setMachineCodes(mi++, (byte) ${opcode});
-    emitRegIndirectRegOperands(dstReg, GPR.getForOpcode(${opExt}));
-    if (lister != null) lister.RN(miStart, "${acronym}", dstReg);
+    emitRegIndirectRegOperands(baseReg, GPR.getForOpcode(${opExt}));
+    if (lister != null) lister.RN(miStart, "${acronym}", baseReg);
   }
 
   /**
