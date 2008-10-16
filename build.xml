@@ -2133,6 +2133,7 @@ target.jni-suffix=${target.jni-suffix}
       <src path="${classlib.library-interface.non-cpl2.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${options.java}"/>
+      <src path="${tuningforklib.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-vm-rvm.java}"/>
       <src path="${generated.java}"/>
@@ -2178,6 +2179,7 @@ target.jni-suffix=${target.jni-suffix}
 
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${tuningforklib.java}" defaultexcludes="yes" includes="com/ibm/tuningfork/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${generated.java}" includes="org/**"/>
@@ -2227,6 +2229,7 @@ target.jni-suffix=${target.jni-suffix}
 
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${tuningforklib.java}" defaultexcludes="yes" includes="com/ibm/tuningfork/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${generated.java}" includes="org/**"/>
