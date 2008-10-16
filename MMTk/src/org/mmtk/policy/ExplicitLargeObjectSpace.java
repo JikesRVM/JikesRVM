@@ -174,7 +174,6 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
   /**
    * Free an object
    *
-   * @param space The space the object is allocated in.
    * @param object The object to be freed.
    */
   @Inline

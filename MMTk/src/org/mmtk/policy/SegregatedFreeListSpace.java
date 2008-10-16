@@ -674,8 +674,6 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   /**
    * Sweep a block, freeing it and adding to the list given by availableHead
    * if it contains no free objects.
-   *
-   * @param clearMarks should we clear block mark bits as we process.
    */
   private Address sweepCells(Sweeper sweeper, Address block, int sizeClass, Address availableHead) {
     boolean liveBlock = sweepCells(sweeper, block, sizeClass);
@@ -747,12 +745,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   }
 
   /**
-   * Does this block contain any live cells.
-   *
-   * @param block The block
-   * @param blockSize The size of the block
-   * @param clearMarks should we clear block mark bits as we process.
-   * @return True if any cells in the block are live
+   * Does this block contain any live cells?
    */
   @Inline
   public boolean sweepCells(Sweeper sweeper, Address block, int sizeClass) {

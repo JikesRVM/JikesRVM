@@ -123,8 +123,6 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * Allocate an entry in the table. This should be called from an unpreemptible
    * context so that the entry can be filled. This method is responsible for growing
    * the table if necessary.
-   *
-   * @return The allocated index.
    */
   @NoInline
   @Unpreemptible("Non-preemptible but yield when table needs to be grown")

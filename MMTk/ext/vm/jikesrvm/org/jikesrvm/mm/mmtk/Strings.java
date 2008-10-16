@@ -93,7 +93,7 @@ public final class Strings extends org.mmtk.vm.Strings {
    * Copies characters from the string into the character array.
    * Thread switching is disabled during this method's execution.
    *
-   * @param src the source string
+   * @param str the source string
    * @param dst the destination array
    * @param dstBegin the start offset in the destination array
    * @param dstEnd the index after the last character in the
