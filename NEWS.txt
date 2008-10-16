@@ -5,11 +5,53 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-* Jikes RVM 3.0.1  (Future)
+* Jikes RVM 3.0.1  (October 16, 2008)
 
-NOTE:  All future release notes will be generated directly from JIRA.
-If you want something mentioned in the release notes, make sure there is
-a JIRA item for it that has been marked as fixed for 2.9.3.
+** New Feature
+    * [RVM-507] - Initial prototype of TuningFork trace generation in Jikes RVM
+    * [RVM-515] - Make boot image writer traversal of object graph configurable
+    * [RVM-517] - Reflection optimization
+    * [RVM-528] - Support for eclipse-project with Harmony class libraries
+    * [RVM-634] - Add RuntimePure annotation to indicate when a Pure annotation should only be respected at runtime
+    * [RVM-673] - Implement Inline.When.AssertionsDisabled pragma
+
+** Improvement
+    * [RVM-291] - Immortal objects with address based hashing should set their hashed bit during boot image writing
+    * [RVM-443] - Avoid back references in java.lang.reflect VMXXX classes
+    * [RVM-476] - Make lock allocation thread-model-agnostic.
+    * [RVM-627] - Use java.nio for writing boot image
+    * [RVM-632] - Space improvements of RVMClass.objectCache
+    * [RVM-633] - Avoid the use of Reflection to invoke Object.finalize()
+    * [RVM-644] - Reduce copying of char[] in java.lang.reflect.Proxy
+    * [RVM-650] - Ask users to submit bug reports on Jikes RVM crashes
+
+** Bug
+    * [RVM-172] - Failing DaCapo benchmarks on PPC 32 OS X
+    * [RVM-288] - Assertion failure in inline oracle
+    * [RVM-318] - java.util.Scanner is unimplemented
+    * [RVM-346] - SPECjvm98: Invalid runs should not be SUCCESSes
+    * [RVM-410] - Problem with changes to stack walk
+    * [RVM-440] - Poisoned tests failing in finalizer thread
+    * [RVM-471] - Stack frame alignment broken for Intel on OS/X
+    * [RVM-605] - Possible fix for FreeListPageResource.releasePages()
+    * [RVM-606] - Problems with OSR guarded inlining of invokeinterface 
+    * [RVM-614] - BaseBasePoisoned build segfaults during VM bootup on pcc64-linux
+    * [RVM-617] - DaCapo bloat fails with Apache Harmony class library
+    * [RVM-619] - DaCapo eclipse fails with Apache Harmony class library
+    * [RVM-621] - DaCapo xalan fails with Apache Harmony class library
+    * [RVM-623] - Intel 16bit operations with immediate operands in some cases generate 32bit immediate operands rather than 16bit
+    * [RVM-631] - Bug in new Finalization code
+    * [RVM-636] - Crash in reflection during JSR-166 TCK
+    * [RVM-643] - Invalid InstructionFormat usage in Simplifier, but real bug is that IR is semantically malformed
+    * [RVM-645] - Bug in LiveAnalysis related to modeling of dataflow through Exception edges in the FCFG
+    * [RVM-646] - Immix defrag broken
+    * [RVM-652] - build failure on IA32 OS X 10.5 (Leopard)
+
+** Task and Sub-task
+    * [RVM-651] - Add support to Intel assembler for REX prefix byte
+    * [RVM-667] - Modify the implementation of table switch
+    * [RVM-669] - Build/boot image runner support for x86 64
+    * [RVM-671] - Fix spill location size estimates
 
 * Jikes RVM 3.0.0  (August 7, 2008)
 
