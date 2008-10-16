@@ -907,10 +907,6 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    * @param reflectionClass the class this method will belong to
    * @param constantPool for the class
    * @param memRef the member reference corresponding to this method
-   * @param interfaceMethod the interface method that will copied to
-   * produce the annotation method
-   * @param constantPoolIndex the index of the field that will be
-   * returned by this method
    * @return the created method
    */
   RVMMethod createReflectionMethod(TypeReference reflectionClass, int[] constantPool,

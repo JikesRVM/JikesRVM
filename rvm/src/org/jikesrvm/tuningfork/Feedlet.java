@@ -58,8 +58,8 @@ public final class Feedlet {
   /**
    * Create a new Feedlet.
    * This method is only meant to be called from TraceEngine.
-   * @param eng the TraceEngine instance to which this feedlet is attached.
-   * @param feedletIndex,
+   * @param engine the TraceEngine instance to which this feedlet is attached.
+   * @param feedletIndex the index to use for the Feedlet
    */
   Feedlet(TraceEngine engine, int feedletIndex) {
     this.engine = engine;
@@ -303,7 +303,7 @@ public final class Feedlet {
    * Add an event to the feedlet's generated event stream
    * @param et The type of event to add
    * @param dval1 The first double data value
-   * @param sval The first String data value
+   * @param sval1 The first String data value
    */
   public void addEvent(EventType et, double dval1, String sval1) {
     if (!enabled) return;

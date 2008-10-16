@@ -156,7 +156,7 @@ public abstract class ReflectionBase {
    * Invoke reflective method being wrapped by this object
    * @param obj object for virtual method invocation
    * @param args arguments to method call
-   * @return
+   * @return the object that is the result of the invoke
    */
   public abstract Object invoke(Object obj, Object[] args);
 
