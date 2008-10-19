@@ -39,7 +39,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
 
   // Java to Native C transition frame...(see JNICompiler)
   //
-  //  0         + saved FP   + <---- FP for Jave to Native C glue frame
+  //  0         + saved FP   + <---- FP for Java to Native C glue frame
   // -4         | methodID   |
   // -8         | saved EDI  |  non-volatile GPR
   // -C         | saved EBX  |  non-volatile GPR

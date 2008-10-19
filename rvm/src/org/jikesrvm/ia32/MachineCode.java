@@ -15,12 +15,18 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.ArchitectureSpecific;
 
 /**
+ * Representation of machine code instructions and a map from bytecode
+ * index to offset within code array
  */
 public abstract class MachineCode {
+  /** Executable instructions */
   private final ArchitectureSpecific.CodeArray instructions;
 
-  // TODO: This should really be a final field, but is not due to the way
-  //       OSR is currently implemented.
+  /**
+   * Array indexed by bytecode index, value is offset into code array
+   * TODO: This should really be a final field, but is not due to the way
+   *       OSR is currently implemented.
+   */
   private int[] bytecodeMap;
 
   public MachineCode(ArchitectureSpecific.CodeArray i, int[] bm) {

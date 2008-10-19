@@ -49,7 +49,7 @@ public final class ReferenceMaps implements BaselineConstants {
   //  final private int startLocal0Offset; // distance from frame pointer to start of the Local area
   private JSRInfo jsrInfo;
 
-  /*
+  /**
    * size of individul maps
    */
   private int bytesPerMap() {
@@ -720,8 +720,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Add an UnusualMap to the array of unusual maps,
-   *   expand the array and referencemap array if necessary
+   * Add an UnusualMap to the array of unusual maps, expand the array
+   * and referencemap array if necessary
    *
    * @param jsrSiteMap   unusualMap to be added to array
    */
@@ -866,8 +866,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Called when all the recording for this map is complete
-   *   Can now sort or perform other cleanups
+   * Called when all the recording for this map is complete. Can now
+   * sort or perform other cleanups
    */
   public void recordingComplete() {
   }
@@ -1416,8 +1416,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * show the basic information for a single map
-   *    this is for testing use
+   * Show the basic information for a single map. This is for testing
+   * use.
    */
   public void showAMap(int MCSiteIndex) {
     VM.sysWriteln("show the map for MCSite index= ", MCSiteIndex);
@@ -1430,8 +1430,7 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Show the offsets for all the maps. <br>
-   * This is for test use.
+   * Show the offsets for all the maps. This is for test use.
    */
   public void showOffsets() {
     VM.sysWrite("in showOffset- #maps = ");
@@ -1503,7 +1502,8 @@ public final class ReferenceMaps implements BaselineConstants {
    * or a local variable is a reference.
    */
 
-  /** Query if a local variable has a reference type value
+  /**
+   * Query if a local variable has a reference type value
    * @param method  The method we're asking about.
    * @param mcoff  The machine code offset of the instruction *following* the
    *               actual instruction.
