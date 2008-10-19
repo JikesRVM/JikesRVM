@@ -130,7 +130,11 @@ public abstract class ProcessorLocalState {
    */
   public static void emitCompareAndExchangeField(Assembler asm, Offset offset, GPR srcReg) {
     asm.emitLockNextInstruction();
-    asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
+    if (VM.BuildFor32Addr) {
+      asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
+    } else {
+      asm.emitCMPXCHG_RegDisp_Reg_Quad(PROCESSOR_REGISTER, offset, srcReg);
+    }
   }
 
   /**

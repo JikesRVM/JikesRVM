@@ -39,6 +39,11 @@ function emitBinaryReg() {
     ext=_Quad
     code=" (quad) "
     rex_w=true
+  elif [ x$sizeOrPrefix = x0x0Fquad ]; then
+    ext=_Quad
+    code=" (quad) "
+    rex_w=true
+    twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
   elif [ x$sizeOrPrefix = x0x0F ]; then
     twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
   elif [ x$sizeOrPrefix != x ]; then
@@ -1771,6 +1776,7 @@ emitMoveSubWord MOVZX "zero extended" 0xB6 0xB7
 emitMoveSubWord MOVZX "zero extended" 0xB6 0xB7 quad
 
 emitBinaryReg CMPXCHG \<\-\> 0xB1 none 0x0F
+emitBinaryReg CMPXCHG \<\-\> 0xB1 none 0x0Fquad
 
 emitShift () {
     acronym=$1
