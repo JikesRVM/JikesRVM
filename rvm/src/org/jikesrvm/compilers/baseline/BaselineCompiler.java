@@ -242,8 +242,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
 
       // determine if we are going to insert edge counters for this method
-      if (options
-          .EDGE_COUNTERS &&
+      if (options.EDGE_COUNTERS &&
           !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
           (method.hasCondBranch() || method.hasSwitch())) {
         ((BaselineCompiledMethod) compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
