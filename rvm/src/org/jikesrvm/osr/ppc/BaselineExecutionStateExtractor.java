@@ -220,7 +220,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
     int size = localTypes.length;
     for (int i = 0; i < size; i++) {
       if ((localTypes[i] == ClassTypeCode) || (localTypes[i] == ArrayTypeCode)) {
-        int loc = fooCM.getGeneralLocalLocation(i);
+        short loc = fooCM.getGeneralLocalLocation(i);
         if (BaselineCompilerImpl.isRegister(loc)) {
           objs[loc] = Magic.addressAsObject(gprs.get(loc).toAddress());
         }
@@ -267,7 +267,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
         case ShortTypeCode:
         case CharTypeCode:
         case IntTypeCode: {
-          int loc = compiledMethod.getGeneralLocalLocation(i);
+          short loc = compiledMethod.getGeneralLocalLocation(i);
           int value;
           if (BaselineCompilerImpl.isRegister(loc)) {
             value = registers.gprs.get(loc).toInt();
@@ -279,7 +279,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
           break;
         }
         case LongTypeCode: {
-          int loc = compiledMethod.getGeneralLocalLocation(i);
+          short loc = compiledMethod.getGeneralLocalLocation(i);
           long lvalue;
           if (BaselineCompilerImpl.isRegister(loc)) {
             if (VM.BuildFor32Addr) {
@@ -301,7 +301,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
           break;
         }
         case FloatTypeCode: {
-          int loc = compiledMethod.getFloatLocalLocation(i);
+          short loc = compiledMethod.getFloatLocalLocation(i);
           int value;
           if (BaselineCompilerImpl.isRegister(loc)) {
             value = Magic.floatAsIntBits((float) registers.fprs[loc]);
@@ -313,7 +313,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
           break;
         }
         case DoubleTypeCode: {
-          int loc = compiledMethod.getFloatLocalLocation(i);
+          short loc = compiledMethod.getFloatLocalLocation(i);
           long lvalue;
           if (BaselineCompilerImpl.isRegister(loc)) {
             lvalue = Magic.doubleAsLongBits(registers.fprs[loc]);
@@ -330,7 +330,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
           break;
         }
         case ReturnAddressTypeCode: {
-          int loc = compiledMethod.getGeneralLocalLocation(i);
+          short loc = compiledMethod.getGeneralLocalLocation(i);
           VM.disableGC();
           Address rowIP;
           if (BaselineCompilerImpl.isRegister(loc)) {
@@ -360,7 +360,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
 
         case ClassTypeCode:
         case ArrayTypeCode: {
-          int loc = compiledMethod.getGeneralLocalLocation(i);
+          short loc = compiledMethod.getGeneralLocalLocation(i);
           Object ref;
           if (BaselineCompilerImpl.isRegister(loc)) {
             ref = registers.objs[loc];
@@ -373,7 +373,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
           break;
         }
         case WordTypeCode: {
-          int loc = compiledMethod.getGeneralLocalLocation(i);
+          short loc = compiledMethod.getGeneralLocalLocation(i);
           Word value;
           if (BaselineCompilerImpl.isRegister(loc)) {
             value = registers.gprs.get(loc);

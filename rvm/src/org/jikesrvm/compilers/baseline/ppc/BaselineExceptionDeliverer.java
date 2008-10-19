@@ -81,7 +81,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
           lock = method.getDeclaringClass().getResolvedClassForType();
         } else {
           Address fp = registers.getInnermostFramePointer();
-          int location = bcm.getGeneralLocalLocation(0);
+          short location = bcm.getGeneralLocalLocation(0);
           Address addr;
           if (BaselineCompilerImpl.isRegister(location)) {
             lock = Magic.addressAsObject(registers.gprs.get(location).toAddress());

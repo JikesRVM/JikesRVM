@@ -66,31 +66,34 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   private final int startLocalOffset;
   private int spillOffset;
 
-  // current offset of the sp from fp
+  /** Current offset of the sp from fp, also accessed by Assembler */
   public int spTopOffset;
 
-  // If we're doing a short forward jump of less than
-  // this number of bytecodes, then we can always use a short-form
-  // conditional branch (don't have to emit a nop & bc).
+  /**
+   * If we're doing a short forward jump of less than this number of
+   * bytecodes, then we can always use a short-form conditional branch
+   * (don't have to emit a nop & bc).
+   */
   private static final int SHORT_FORWARD_LIMIT = 500;
 
   private static final boolean USE_NONVOLATILE_REGISTERS = true;
 
-  private int firstFixedStackRegister; //after the fixed local registers !!
-  private int firstFloatStackRegister; //after the float local registers !!
+  private byte firstFixedStackRegister; //after the fixed local registers !!
+  private byte firstFloatStackRegister; //after the float local registers !!
 
-  private int lastFixedStackRegister;
-  private int lastFloatStackRegister;
+  private byte lastFixedStackRegister;
+  private byte lastFloatStackRegister;
 
-  private final int[] localFixedLocations;
-  private final int[] localFloatLocations;
+  private final short[] localFixedLocations;
+  private final short[] localFloatLocations;
 
+  /** Can non-volatile registers be used? */
   private final boolean use_nonvolatile_registers;
 
   /**
    * Create a Compiler object for the compilation of method.
    */
-  protected BaselineCompilerImpl(BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+  protected BaselineCompilerImpl(BaselineCompiledMethod cm, short[] genLocLoc, short[] floatLocLoc) {
     super(cm);
     localFixedLocations = genLocLoc;
     localFloatLocations = floatLocLoc;
@@ -115,8 +118,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   // more interface //
   //----------------//
 
-  // position of operand stack within method's stackframe.
-
+  /** position of operand stack within method's stackframe */
   @Uninterruptible
   public static int getEmptyStackOffset(NormalMethod m) {
     int params = m.getOperandWords() << LOG_BYTES_IN_STACKSLOT; // maximum parameter area
@@ -126,14 +128,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     return STACKFRAME_HEADER_SIZE + spill + stack;
   }
 
-  // start position of locals within method's stackframe.
+  /** start position of locals within method's stackframe */
   @Uninterruptible
   private static int getInternalStartLocalOffset(NormalMethod m) {
     int locals = m.getLocalWords() << LOG_BYTES_IN_STACKSLOT;       // input param words + pure locals
     return getEmptyStackOffset(m) + locals; // bottom-most local
   }
 
-  // size of method's stackframe.
+  /** size of method's stackframe. */
   @Uninterruptible
   private int getInternalFrameSize() {
     int size = startLocalOffset;
@@ -150,8 +152,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     return size;
   }
 
-  // size of method's stackframe.
-  // only valid on compiled methods
+  /** size of method's stackframe. NB only valid on compiled methods */
   @Uninterruptible
   public static int getFrameSize(BaselineCompiledMethod bcm) {
     NormalMethod m = (NormalMethod) bcm.getMethod();
@@ -173,15 +174,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   private void defineStackAndLocalLocations() {
 
-    int nextFixedLocalRegister = FIRST_FIXED_LOCAL_REGISTER;
-    int nextFloatLocalRegister = FIRST_FLOAT_LOCAL_REGISTER;
+    short nextFixedLocalRegister = FIRST_FIXED_LOCAL_REGISTER;
+    short nextFloatLocalRegister = FIRST_FLOAT_LOCAL_REGISTER;
 
     //define local registers
     int nparam = method.getParameterWords();
     TypeReference[] types = method.getParameterTypes();
     int localIndex = 0;
     if (!method.isStatic()) {
-      if (localTypes[0] != ADDRESS_TYPE) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(localTypes[0] == ADDRESS_TYPE);
       if (!use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) {
         localFixedLocations[localIndex] = offsetToLocation(localOffset(localIndex));
       } else {
@@ -277,13 +278,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       //else unused, assign nothing, can be the case after long or double
     }
 
-    firstFixedStackRegister = nextFixedLocalRegister;
-    firstFloatStackRegister = nextFloatLocalRegister;
+    firstFixedStackRegister = (byte)nextFixedLocalRegister;
+    firstFloatStackRegister = (byte)nextFloatLocalRegister;
 
     //define stack registers
     //KV: TODO
-    lastFixedStackRegister = firstFixedStackRegister - 1;
-    lastFloatStackRegister = firstFloatStackRegister - 1;
+    lastFixedStackRegister = (byte)(firstFixedStackRegister - 1);
+    lastFloatStackRegister = (byte)(firstFloatStackRegister - 1);
 
     if (USE_NONVOLATILE_REGISTERS && method.hasBaselineSaveLSRegistersAnnotation()) {
       //methods with SaveLSRegisters pragma need to save/restore ALL registers in their prolog/epilog
@@ -292,11 +293,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  public final int getLastFixedStackRegister() {
+  public final byte getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
-  public final int getLastFloatStackRegister() {
+  public final byte getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
@@ -312,43 +313,43 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     return 0 != (type & (LONG_TYPE));
   }
 
-  private int getGeneralLocalLocation(int index) {
+  private short getGeneralLocalLocation(int index) {
     return localFixedLocations[index];
   }
 
-  private int getFloatLocalLocation(int index) {
+  private short getFloatLocalLocation(int index) {
     return localFloatLocations[index];
   }
 
   @Uninterruptible
   @Inline
-  public static int getGeneralLocalLocation(int index, int[] localloc, NormalMethod m) {
+  public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
     return localloc[index];
   }
 
   @Uninterruptible
   @Inline
-  public static int getFloatLocalLocation(int index, int[] localloc, NormalMethod m) {
+  public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
     return localloc[index];
   }
 
   /*
-  * implementation of abstract methods of BaselineCompiler
-  */
+   * implementation of abstract methods of BaselineCompiler
+   */
 
   /*
    * Misc routines not directly tied to a particular bytecode
    */
 
-  private int getSingleStackLocation(int index) {
+  private short getSingleStackLocation(int index) {
     return offsetToLocation(spTopOffset + BYTES_IN_STACKSLOT + (index << LOG_BYTES_IN_STACKSLOT));
   }
 
-  private int getDoubleStackLocation(int index) {
+  private short getDoubleStackLocation(int index) {
     return offsetToLocation(spTopOffset + 2 * BYTES_IN_STACKSLOT + (index << LOG_BYTES_IN_STACKSLOT));
   }
 
-  private int getTopOfStackLocationForPush() {
+  private short getTopOfStackLocationForPush() {
     return offsetToLocation(spTopOffset);
   }
 
@@ -768,7 +769,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_iload(int index) {
-    int dstLoc = getTopOfStackLocationForPush();
+    short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(INT_TYPE, getGeneralLocalLocation(index), INT_TYPE, dstLoc);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -779,7 +780,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_lload(int index) {
-    int dstLoc = getTopOfStackLocationForPush();
+    short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(LONG_TYPE, getGeneralLocalLocation(index), LONG_TYPE, dstLoc);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
@@ -790,7 +791,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_fload(int index) {
-    int dstLoc = getTopOfStackLocationForPush();
+    short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(FLOAT_TYPE, getFloatLocalLocation(index), FLOAT_TYPE, dstLoc);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -801,7 +802,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_dload(int index) {
-    int dstLoc = getTopOfStackLocationForPush();
+    short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(DOUBLE_TYPE, getFloatLocalLocation(index), DOUBLE_TYPE, dstLoc);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
@@ -812,14 +813,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_aload(int index) {
-    int dstLoc = getTopOfStackLocationForPush();
+    short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(index), ADDRESS_TYPE, dstLoc);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
   /*
-  * storing local variables
-  */
+   * storing local variables
+   */
 
   /**
    * Emit code to store an int to a local variable
@@ -827,7 +828,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_istore(int index) {
-    int srcLoc = getSingleStackLocation(0);
+    short srcLoc = getSingleStackLocation(0);
     copyByLocation(INT_TYPE, srcLoc, INT_TYPE, getGeneralLocalLocation(index));
     discardSlot();
   }
@@ -848,7 +849,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_fstore(int index) {
-    int srcLoc = getSingleStackLocation(0);
+    short srcLoc = getSingleStackLocation(0);
     copyByLocation(FLOAT_TYPE, srcLoc, FLOAT_TYPE, getFloatLocalLocation(index));
     discardSlot();
   }
@@ -859,7 +860,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_dstore(int index) {
-    int srcLoc = getDoubleStackLocation(0);
+    short srcLoc = getDoubleStackLocation(0);
     copyByLocation(DOUBLE_TYPE, srcLoc, DOUBLE_TYPE, getFloatLocalLocation(index));
     discardSlots(2);
   }
@@ -870,7 +871,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_astore(int index) {
-    int srcLoc = getSingleStackLocation(0);
+    short srcLoc = getSingleStackLocation(0);
     copyByLocation(ADDRESS_TYPE, srcLoc, ADDRESS_TYPE, getGeneralLocalLocation(index));
     discardSlot();
   }
@@ -975,8 +976,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   /*
-  * array stores
-  */
+   * array stores
+   */
 
   /**
    * Emit code to store to an int array
@@ -1332,13 +1333,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_iinc(int index, int val) {
-    int loc = getGeneralLocalLocation(index);
+    short loc = getGeneralLocalLocation(index);
     if (isRegister(loc)) {
       asm.emitADDI(loc, val, loc);
     } else {
-      copyMemToReg(INT_TYPE, locationToOffset(loc), T0);
+      copyMemToReg(INT_TYPE, locationToOffset(loc), (short)T0);
       asm.emitADDI(T0, val, T0);
-      copyRegToMem(INT_TYPE, T0, locationToOffset(loc));
+      copyRegToMem(INT_TYPE, (short)T0, locationToOffset(loc));
     }
   }
 
@@ -2253,10 +2254,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param index local variable containing the return address
    */
   protected final void emit_ret(int index) {
-    int location = getGeneralLocalLocation(index);
+    short location = getGeneralLocalLocation(index);
 
     if (!isRegister(location)) {
-      copyMemToReg(ADDRESS_TYPE, locationToOffset(location), T0);
+      copyMemToReg(ADDRESS_TYPE, locationToOffset(location), (short)T0);
       location = T0;
     }
     asm.emitMTLR(location);
@@ -3361,22 +3362,22 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   @Uninterruptible
-  public static boolean isRegister(int location) {
+  public static boolean isRegister(short location) {
     return location > 0;
   }
 
   @Uninterruptible
-  public static int locationToOffset(int location) {
+  public static int locationToOffset(short location) {
     return -location;
   }
 
   @Uninterruptible
-  public static int offsetToLocation(int offset) {
-    return -offset;
+  public static short offsetToLocation(int offset) {
+    return (short)-offset;
   }
 
   @Inline
-  private void copyRegToReg(byte srcType, int src, int dest) {
+  private void copyRegToReg(byte srcType, short src, short dest) {
     if ((srcType == FLOAT_TYPE) || (srcType == DOUBLE_TYPE)) {
       asm.emitFMR(dest, src);
     } else {
@@ -3388,7 +3389,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   @Inline
-  private void copyRegToMem(byte srcType, int src, int dest) {
+  private void copyRegToMem(byte srcType, short src, int dest) {
     if (srcType == FLOAT_TYPE) {
       asm.emitSTFS(src, dest - BYTES_IN_FLOAT, FP);
     } else if (srcType == DOUBLE_TYPE) {
@@ -3404,7 +3405,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   @Inline
-  private void copyMemToReg(byte srcType, int src, int dest) {
+  private void copyMemToReg(byte srcType, int src, short dest) {
     if (srcType == FLOAT_TYPE) {
       asm.emitLFS(dest, src - BYTES_IN_FLOAT, FP);
     } else if (srcType == DOUBLE_TYPE) {
@@ -3461,16 +3462,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param dest the destination location
    */
   @Inline
-  private void copyByLocation(byte srcType, int src, byte destType, int dest) {
+  private void copyByLocation(byte srcType, short src, byte destType, short dest) {
     if (src == dest && srcType == destType) {
       return;
     }
 
-    boolean srcIsRegister = isRegister(src);
-    boolean destIsRegister = isRegister(dest);
-
-    if (!srcIsRegister) src = locationToOffset(src);
-    if (!destIsRegister) dest = locationToOffset(dest);
+    final boolean srcIsRegister = isRegister(src);
+    final boolean destIsRegister = isRegister(dest);
 
     if (srcType == destType) {
       if (srcIsRegister) {
@@ -3479,37 +3477,37 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           copyRegToReg(srcType, src, dest);
         } else {
           // register to memory move
-          copyRegToMem(srcType, src, dest);
+          copyRegToMem(srcType, src, locationToOffset(dest));
         }
       } else {
         if (destIsRegister) {
           // memory to register move
-          copyMemToReg(srcType, src, dest);
+          copyMemToReg(srcType, locationToOffset(src), dest);
         } else {
           // memory to memory move
-          copyMemToMem(srcType, src, dest);
+          copyMemToMem(srcType, locationToOffset(src), locationToOffset(dest));
         }
       }
 
     } else {// no matching types
       if ((srcType == DOUBLE_TYPE) && (destType == LONG_TYPE) && srcIsRegister && !destIsRegister) {
-        asm.emitSTFD(src, dest - BYTES_IN_DOUBLE, FP);
+        asm.emitSTFD(src, locationToOffset(dest) - BYTES_IN_DOUBLE, FP);
       } else if ((srcType == LONG_TYPE) && (destType == DOUBLE_TYPE) && destIsRegister && !srcIsRegister) {
-        asm.emitLFD(dest, src - BYTES_IN_LONG, FP);
+        asm.emitLFD(dest, locationToOffset(src) - BYTES_IN_LONG, FP);
       } else if ((srcType == INT_TYPE) && (destType == LONGHALF_TYPE) && srcIsRegister && VM.BuildFor32Addr) {
         //Used as Hack if 1 half of long is spilled
         if (destIsRegister) {
           asm.emitMR(dest, src);
         } else {
-          asm.emitSTW(src, dest - BYTES_IN_LONG, FP); // lo mem := lo register (== hi word)
+          asm.emitSTW(src, locationToOffset(dest) - BYTES_IN_LONG, FP); // lo mem := lo register (== hi word)
         }
       } else if ((srcType == LONGHALF_TYPE) && (destType == INT_TYPE) && !srcIsRegister && VM.BuildFor32Addr) {
         //Used as Hack if 1 half of long is spilled
         if (destIsRegister) {
-          asm.emitLWZ(dest + 1, src - BYTES_IN_INT, FP);
+          asm.emitLWZ(dest + 1, locationToOffset(src) - BYTES_IN_INT, FP);
         } else {
-          asm.emitLWZ(0, src - BYTES_IN_INT, FP);
-          asm.emitSTW(0, dest - BYTES_IN_INT, FP);
+          asm.emitLWZ(0, locationToOffset(src) - BYTES_IN_INT, FP);
+          asm.emitSTW(0, locationToOffset(dest) - BYTES_IN_INT, FP);
         }
       } else
         // implement me
@@ -3664,7 +3662,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       Offset klassOffset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(klass.getClassForType()));
       asm.emitLAddrToc(T0, klassOffset);
     } else { // first local is "this" pointer
-      copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, T0);
+      copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, (short)T0);
     }
     asm.emitLAddrOffset(S0, JTOC, Entrypoints.lockMethod.getOffset()); // call out...
     asm.emitMTCTR(S0);                                  // ...of line lock
@@ -3679,7 +3677,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       Offset klassOffset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(klass.getClassForType()));
       asm.emitLAddrToc(T0, klassOffset);
     } else { // first local is "this" pointer
-      copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, T0);
+      copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(0), ADDRESS_TYPE, (short)T0);
     }
     asm.emitLAddrOffset(S0, JTOC, Entrypoints.unlockMethod.getOffset());  // call out...
     asm.emitMTCTR(S0);                                     // ...of line lock
@@ -3845,12 +3843,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   private void genMoveParametersToLocals() {
     // AIX computation will differ
     int spillOff = frameSize + STACKFRAME_HEADER_SIZE;
-    int gp = FIRST_VOLATILE_GPR;
-    int fp = FIRST_VOLATILE_FPR;
+    short gp = FIRST_VOLATILE_GPR;
+    short fp = FIRST_VOLATILE_FPR;
 
     int localIndex = 0;
-    int srcLocation;
-    int dstLocation;
+    short srcLocation;
+    short dstLocation;
     byte type;
 
     if (!method.isStatic()) {

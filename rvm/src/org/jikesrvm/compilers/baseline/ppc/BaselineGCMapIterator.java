@@ -105,7 +105,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       int JSRindex = maps.setupJSRSubroutineMap(mapId);
       while (JSRindex != 0) {
         Address nextCallerAddress;
-        int location = convertIndexToLocation(JSRindex);
+        short location = convertIndexToLocation(JSRindex);
         if (BaselineCompilerImpl.isRegister(location)) {
           nextCallerAddress = registerLocations.get(location).toAddress();
         } else {
@@ -190,21 +190,22 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * given a index in the local area (biased : local0 has index 1)
    *   this routine determines the correspondig offset in the stack
    */
-  public int convertIndexToLocation(int index) {
+  public short convertIndexToLocation(int index) {
     if (index == 0) return 0;
 
     if (index <= currentNumLocals) { //index is biased by 1;
-      return currentCompiledMethod.getGeneralLocalLocation(index -
-                                                           1); //register (positive value) or stacklocation (negative value)
+      //register (positive value) or stacklocation (negative value)
+      return currentCompiledMethod.getGeneralLocalLocation(index - 1);
     } else {
+      //locations must point to the top of the slot
       return currentCompiledMethod.getGeneralStackLocation(index - 1 - currentNumLocals);
-      //(BaselineCompilerImpl.offsetToLocation(maps.convertIndexToOffset(index) + BYTES_IN_STACKSLOT)); //locations must point to the top of the slot
     }
   }
 
-  // Get location of next reference.
-  // A zero return indicates that no more references exist.
-  //
+  /**
+   * Get location of next reference.
+   * A zero return indicates that no more references exist.
+   */
   public Address getNextReferenceAddress() {
 
     if (!finishedWithRegularMap) {
@@ -224,7 +225,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       }
 
       if (mapIndex != 0) {
-        int location = convertIndexToLocation(mapIndex);
+        short location = convertIndexToLocation(mapIndex);
         if (VM.TraceStkMaps) {
           VM.sysWrite("BaselineGCMapIterator getNextReference location = ");
           VM.sysWrite(location);
@@ -366,7 +367,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
 
     if (mapIndex == 0) return Address.zero();
 
-    int location = convertIndexToLocation(mapIndex);
+    short location = convertIndexToLocation(mapIndex);
     if (VM.TraceStkMaps) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddress location = ");
       VM.sysWrite(location);

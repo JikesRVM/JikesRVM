@@ -45,7 +45,7 @@ public class ArchitectureSpecific {
     }
   }
   public static final class BaselineCompilerImpl extends org.jikesrvm.compilers.baseline.@_ARCH_@.BaselineCompilerImpl {
-    public BaselineCompilerImpl(BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+    public BaselineCompilerImpl(BaselineCompiledMethod cm, short[] genLocLoc, short[] floatLocLoc) {
       super(cm @_IA32_QUOTE_@, genLocLoc, floatLocLoc @_PPC_QUOTE_@ */);
     }}
   public static final class DynamicLinkerHelper extends org.jikesrvm.@_ARCH_@.DynamicLinkerHelper {}

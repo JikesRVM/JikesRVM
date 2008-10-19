@@ -174,7 +174,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * given a index in the local area (biased : local0 has index 1)
    *   this routine determines the correspondig offset in the stack
    */
-  public int convertIndexToLocation(int index) {
+  public short convertIndexToLocation(int index) {
     if (index == 0) return 0;
     if (index <= currentNumLocals) { //index is biased by 1;
       return currentCompiledMethod.getGeneralLocalLocation(index - 1);

@@ -295,7 +295,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       if (method.isSynchronized()) {
         ((BaselineCompiledMethod) compiledMethod).setLockAcquisitionOffset(lockOffset);
       }
-      ((BaselineCompiledMethod) compiledMethod).encodeMappingInfo(refMaps, bcMap, instructions.length());
+      ((BaselineCompiledMethod) compiledMethod).encodeMappingInfo(refMaps, bcMap);
       compiledMethod.compileComplete(instructions);
       if (edgeCounterIdx > 0) {
         EdgeCounts.allocateCounters(method, edgeCounterIdx);

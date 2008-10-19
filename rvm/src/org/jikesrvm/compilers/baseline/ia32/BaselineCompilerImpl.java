@@ -89,34 +89,34 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     //nothing to do for intel
   }
 
-  public final int getLastFixedStackRegister() {
+  public final byte getLastFixedStackRegister() {
     return -1; //doesn't dedicate registers to stack;
   }
 
-  public final int getLastFloatStackRegister() {
+  public final byte getLastFloatStackRegister() {
     return -1; //doesn't dedicate registers to stack;
   }
 
   @Uninterruptible
-  public static int getGeneralLocalLocation(int index, int[] localloc, NormalMethod m) {
+  public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
                             (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
   }
 
   @Uninterruptible
-  public static int getFloatLocalLocation(int index, int[] localloc, NormalMethod m) {
+  public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
                             (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
   }
 
   @Uninterruptible
-  public static int locationToOffset(int location) {
+  public static int locationToOffset(short location) {
     return -location;
   }
 
   @Uninterruptible
-  public static int offsetToLocation(int offset) {
-    return -offset;
+  public static short offsetToLocation(int offset) {
+    return (short)-offset;
   }
 
   /**

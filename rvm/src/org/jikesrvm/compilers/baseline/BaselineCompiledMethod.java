@@ -42,6 +42,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
 
   /** Does the baseline compiled method have a counters array? */
   private boolean hasCounters;
+
   /**
    * The lock acquistion offset for synchronized methods.  For
    * synchronized methods, the offset (in the method prologue) after
@@ -63,9 +64,10 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    */
   public ReferenceMaps referenceMaps;
 
-  /*
-   * Currently needed to support dynamic bridge magic;
-   * Consider integrating with GC maps
+  /**
+   * Encoded representation of bytecode index to offset in code array
+   * map.  Currently needed to support dynamic bridge magic; Consider
+   * integrating with GC maps
    */
   private byte[] bytecodeMap;
 
@@ -74,73 +76,92 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    */
   private int[] eTable;
 
-  /* To make a compiled method's stack offset independ of
-   * original method, we move 'getEmptyStackOffset'
-   * here.
-   *
-   * TODO: redesign this.  There has to be a cleaner way!
+  /** Offset into stack frame when operand stack is empty */
+  private final short emptyStackOffset;
+  /** PPC only: last general purpose register holding part of the operand stack */
+  private byte lastFixedStackRegister;
+  /** PPC only: last floating point register holding part of the operand stack */
+  private byte lastFloatStackRegister;
+
+  /**
+   * PPC only: location of general purpose local variables, positive
+   * values are register numbers, negative are stack offsets
    */
-  //private int startLocalOffset;
-  private final int emptyStackOffset;
-  private int lastFixedStackRegister;
-  private int lastFloatStackRegister;
+  private final short[] localFixedLocations;
 
-  private final int[] localFixedLocations;
-  private final int[] localFloatLocations;
+  /**
+   * PPC only: location of floating point local variables, positive
+   * values are register numbers, negative are stack offsets
+   */
+  private final short[] localFloatLocations;
 
-//  public int getStartLocalOffset() {
-//    return startLocalOffset;
-//  }
-
+  /** @return offset into stack frame when operand stack is empty */
   public int getEmptyStackOffset() {
     return emptyStackOffset;
   }
 
-  //These Locations are positioned at the top of the stackslot that contains the value
-  //before accessing, substract size of value you want to access
-  //e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT
-  //e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
+  /**
+   * Location of local general purpose variable.  These Locations are
+   * positioned at the top of the stackslot that contains the value
+   * before accessing, substract size of value you want to access.
+   * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT
+   * e.g. to load long: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_LONG
+   */
   @Uninterruptible
-  public int getGeneralLocalLocation(int localIndex) {
+  public short getGeneralLocalLocation(int localIndex) {
     return BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, (NormalMethod) method);
   }
 
+  /**
+   * Location of local floating point variable.  These Locations are
+   * positioned at the top of the stackslot that contains the value
+   * before accessing, substract size of value you want to access.
+   * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT
+   * e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
+   */
   @Uninterruptible
-  public int getFloatLocalLocation(int localIndex) {
+  public short getFloatLocalLocation(int localIndex) {
     return BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
   }
 
+  /** Offset onto stack of a particular general purpose operand stack location */
   @Uninterruptible
-  public int getGeneralStackLocation(int stackIndex) {
+  public short getGeneralStackLocation(int stackIndex) {
     return BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
+  /** Offset onto stack of a particular operand stack location for a floating point value */
   @Uninterruptible
-  public int getFloatStackLocation(int stackIndex) { //for now same implementation as getGeneralStackLocation, todo
-    return BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
+  public short getFloatStackLocation(int stackIndex) {
+    // for now same implementation as getGeneralStackLocation
+    return getGeneralStackLocation(stackIndex);
   }
 
+  /** Last general purpose register holding part of the operand stack */
   @Uninterruptible
   public int getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
+  /** Last floating point register holding part of the operand stack */
   @Uninterruptible
   public int getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
+  /** Constructor */
   public BaselineCompiledMethod(int id, RVMMethod m) {
     super(id, m);
     NormalMethod nm = (NormalMethod) m;
     //this.startLocalOffset = BaselineCompilerImpl.getStartLocalOffset(nm);
-    this.emptyStackOffset = BaselineCompilerImpl.getEmptyStackOffset(nm);
-    this.localFixedLocations = new int[nm.getLocalWords()];
-    this.localFloatLocations = new int[nm.getLocalWords()];
+    this.emptyStackOffset = (short)BaselineCompilerImpl.getEmptyStackOffset(nm);
+    this.localFixedLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
+    this.localFloatLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
     this.lastFixedStackRegister = -1;
     this.lastFloatStackRegister = -1;
   }
 
+  /** Compile method */
   public void compile() {
     BaselineCompilerImpl comp = new BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
     comp.compile();
@@ -148,20 +169,31 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     this.lastFloatStackRegister = comp.getLastFloatStackRegister();
   }
 
+  /** @return BASELINE */
   @Uninterruptible
   public int getCompilerType() {
     return BASELINE;
   }
 
+  /** @return "baseline compiler" */
   public String getCompilerName() {
     return "baseline compiler";
   }
 
+  /**
+   * Get the exception deliverer for this kind of compiled method
+   */
   @Uninterruptible
   public ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
 
+  /**
+   * Find a catch block within the compiled method
+   * @param instructionOffset offset of faulting instruction in compiled code
+   * @param exceptionType the type of the thrown exception
+   * @return the machine code offset of the catch block.
+   */
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
@@ -171,6 +203,31 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
+  /**
+   * Fetch symbolic reference to a method that's called by one of
+   * this method's instructions.
+   * @param dynamicLink place to put return information
+   * @param instructionOffset offset of machine instruction from start of
+   * this method, in bytes
+   *
+   * Notes:
+   * <ul>
+   * <li> The "instructionOffset" must point to the instruction i
+   * <em> following </em> the call
+   * instruction whose target method is sought.
+   * This allows us to properly handle the case where
+   * the only address we have to work with is a return address
+   * (ie. from a stackframe)
+   * on a machine architecture with variable length instructions.
+   * In such situations we'd have no idea how far to back up the
+   * instruction pointer
+   * to point to the "call site".
+   *
+   * <li> The implementation must not cause any allocations,
+   * because it executes with
+   * gc disabled when called by GCMapIterator.
+   * <ul>
+   */
   @Uninterruptible
   public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
     int bytecodeIndex = findBytecodeIndexForInstruction(instructionOffset);
@@ -201,15 +258,15 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * Find bytecode index corresponding to one of this method's
    * machine instructions.
    *
-   * Note: This method expects the instructionIndex to refer to the machine
-   *         instruction immediately FOLLOWING the bytecode in question.
-   *         just like findLineNumberForInstruction. See CompiledMethod
-   *         for rationale
-   * NOTE: instructionIndex is in units of instructions, not bytes (different from
-   *       all the other methods in this interface!!)
-   *
-   * @return the bytecode index for the machine instruction, -1 if
-   *            not available or not found.
+   * @param instructionOffset instruction offset to map to a bytecode index
+   * Note: This method expects the offset to refer to the machine
+   * instruction immediately FOLLOWING the bytecode in question.  just
+   * like findLineNumberForInstruction. See CompiledMethod for
+   * rationale
+   * NOTE: instructionIndex is in units of instructions, not bytes
+   * (different from all the other methods in this interface!!)
+   * @return the bytecode index for the machine instruction, -1 if not
+   *         available or not found.
    */
   @Uninterruptible
   public int findBytecodeIndexForInstruction(Offset instructionOffset) {
@@ -264,9 +321,11 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return false;
   }
 
-  // Print this compiled method's portion of a stack trace
-  // Taken:   offset of machine instruction from start of method
-  //          the PrintLN to print the stack trace to.
+  /**
+   * Print this compiled method's portion of a stack trace
+   * @param offset of machine instruction from start of method
+   * @param the PrintLN to print the stack trace to.
+   */
   public void printStackTrace(Offset instructionOffset, PrintLN out) {
     out.print("\tat ");
     out.print(method.getDeclaringClass()); // RVMClass
@@ -316,11 +375,13 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return hasCounters;
   }
 
-  // Taken: method that was compiled
-  //        bytecode-index to machine-instruction-index map for method
-  //        number of instructions for method
-  //
-  public void encodeMappingInfo(ReferenceMaps referenceMaps, int[] bcMap, int numInstructions) {
+  /**
+   * Encode/compress the bytecode map, reference (GC) map and exception table
+   *
+   * @param referenceMaps to encode
+   * @param bcMap unencoded bytecode to code array offset map
+   */
+  public void encodeMappingInfo(ReferenceMaps referenceMaps, int[] bcMap) {
     int count = 0;
     int lastBC = 0, lastIns = 0;
     for (int i = 0; i < bcMap.length; i++) {
@@ -364,6 +425,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
         lastIns = bcMap[i];
       }
     }
+    // TODO: it's likely for short methods we can share the bytecodeMap
     referenceMaps.translateByte2Machine(bcMap);
     this.referenceMaps = referenceMaps;
     ExceptionHandlerMap emap = ((NormalMethod) method).getExceptionHandlerMap();
@@ -372,9 +434,13 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  private static final TypeReference TYPE = TypeReference.findOrCreate(BaselineCompiledMethod.class);
-
+  /**
+   * Return the number of bytes used to encode the compiler-specific mapping
+   * information for this compiled method.
+   * Used to gather stats on the space costs of mapping schemes.
+   */
   public int size() {
+    TypeReference TYPE = TypeReference.findOrCreate(BaselineCompiledMethod.class);
     int size = TYPE.peekType().asClass().getInstanceSize();
     if (bytecodeMap != null) size += RVMArray.ByteArray.getInstanceSize(bytecodeMap.length);
     if (eTable != null) size += RVMArray.IntArray.getInstanceSize(eTable.length);
