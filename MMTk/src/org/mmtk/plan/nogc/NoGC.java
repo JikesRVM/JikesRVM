@@ -66,18 +66,6 @@ import org.vmmagic.pragma.*;
     // super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
-  public final boolean collectionRequired(boolean spaceFull) {
-    // Never collect
-    return false;
-  }
-
   /*****************************************************************************
    *
    * Accounting
