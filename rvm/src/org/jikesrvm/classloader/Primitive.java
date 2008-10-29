@@ -155,21 +155,22 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
         classForType = Double.TYPE;
         break;
       default:
+        stackWords = 1;
+        name = tr.getName();
         if (tr == TypeReference.Address ||
             tr == TypeReference.Word ||
             tr == TypeReference.Offset ||
             tr == TypeReference.Extent) {
-          stackWords = 1;
           memoryBytes = BYTES_IN_ADDRESS;
-          name = tr.getName();
-          classForType = null;
         } else if (tr == TypeReference.Code) {
-          stackWords = 1;
           memoryBytes = VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
-          name = tr.getName();
-          classForType = null;
         } else {
           throw new Error("Unknown primitive type " + tr.getName());
+        }
+        try {
+          classForType = Class.forName(name.classNameFromDescriptor());
+        } catch (Exception e) {
+          throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor());
         }
     }
     return new Primitive(tr, classForType, name, stackWords, memoryBytes);

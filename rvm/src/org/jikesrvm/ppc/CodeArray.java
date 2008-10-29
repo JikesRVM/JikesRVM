@@ -57,6 +57,9 @@ public abstract class CodeArray {
    * on the 'class' CodeArray.
    */
   public static class Factory {
+    static {
+      Code x = null; // force compilation of Code wrapper class
+    }
     /**
      * Allocate a code array big enough to contain numInstrs instructions.
      * @param numInstrs the number of instructions to copy from instrs
