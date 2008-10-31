@@ -924,7 +924,8 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     }
     for (int i=0; i < numParams; i++) {
       if (parameters[i].isVoidType()) {
-        bytecodes[curBC+1] =
+        bytecodes[curBC] =
+          bytecodes[curBC+1] =
           bytecodes[curBC+2] =
           bytecodes[curBC+3] =
           bytecodes[curBC+4] =
@@ -945,6 +946,11 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
         constantPool[i+1] = RVMClass.packCPEntry(RVMClass.CP_CLASS, parameters[i].getId());
         bytecodes[curBC+6] = (byte)((i+1) >>> 8);
         bytecodes[curBC+7] = (byte)(i+1);
+      } else if (parameters[i].isWordType()) {
+        bytecodes[curBC+5] =
+          bytecodes[curBC+6] =
+          bytecodes[curBC+7] =
+            (byte)JBC_nop;
       } else {
         bytecodes[curBC+5] = (byte)JBC_invokestatic;
         MemberReference unboxMethod;
@@ -999,7 +1005,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     bytecodes[curBC+1] = (byte)((numParams+1) >>> 8);
     bytecodes[curBC+2] = (byte)(numParams+1);
     TypeReference returnType = getReturnType();
-    if (!returnType.isPrimitiveType()) {
+    if (!returnType.isPrimitiveType() || returnType.isWordType()) {
       bytecodes[curBC+3] = (byte)JBC_nop;
       bytecodes[curBC+4] = (byte)JBC_nop;
       bytecodes[curBC+5] = (byte)JBC_nop;

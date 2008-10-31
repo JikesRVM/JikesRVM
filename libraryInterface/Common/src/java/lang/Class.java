@@ -556,7 +556,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @NoInline
   private void throwNoSuchMethodException(String name, Class<?>... parameterTypes) throws NoSuchMethodException {
-    throw new NoSuchMethodException(name + " " + parameterTypes);
+    String typeString;
+    if (parameterTypes.length == 0) {
+      typeString = "()";
+    } else {
+      typeString = "(";
+      for (int i=0; i < parameterTypes.length-1; i++) {
+        Class c = parameterTypes[i];
+        typeString += c.toString() + ", ";
+      }
+      typeString += parameterTypes[parameterTypes.length-1].toString() + ")";
+    }
+    throw new NoSuchMethodException(name + typeString);
   }
 
   @NoInline
@@ -822,10 +833,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   // --- newInstance ---
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
-  public T newInstance() throws IllegalAccessException,
-                                     InstantiationException,
-                                     ExceptionInInitializerError,
-                                     SecurityException {
+  public T newInstance() throws IllegalAccessException, InstantiationException,
+    InvocationTargetException, ExceptionInInitializerError, SecurityException {
+
     // Basic checks
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType())

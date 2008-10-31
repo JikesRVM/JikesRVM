@@ -14,6 +14,8 @@ package org.jikesrvm.runtime;
 
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
+import org.jikesrvm.classloader.RVMMethod;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Base class for all reflective method invoker classes, contains utility
@@ -32,7 +34,7 @@ public abstract class ReflectionBase {
   /** Unwrap boolean for call */
   @Inline
   protected static boolean unboxAsBoolean(Object obj) {
-    if (!(obj instanceof Boolean)) {
+    if ((obj == null) || !(obj instanceof Boolean)) {
       throwIllegalArgumentException();
     }
     return ((Boolean)obj).booleanValue();
@@ -47,7 +49,7 @@ public abstract class ReflectionBase {
   /** Unwrap boolean for call */
   @Inline
   protected static byte unboxAsByte(Object obj) {
-    if (!(obj instanceof Byte)) {
+    if ((obj == null) || !(obj instanceof Byte)) {
       throwIllegalArgumentException();
     }
     return ((Byte)obj).byteValue();
@@ -62,7 +64,7 @@ public abstract class ReflectionBase {
   /** Unwrap short for call */
   @Inline
   protected static short unboxAsShort(Object obj) {
-    if (!(obj instanceof Short) && !(obj instanceof Byte)) {
+    if ((obj == null) || (!(obj instanceof Short) && !(obj instanceof Byte))) {
       throwIllegalArgumentException();
     }
     return ((Number)obj).shortValue();
@@ -77,7 +79,7 @@ public abstract class ReflectionBase {
   /** Unwrap char for call */
   @Inline
   protected static char unboxAsChar(Object obj) {
-    if (!(obj instanceof Character)) {
+    if ((obj == null) || !(obj instanceof Character)) {
       throwIllegalArgumentException();
     }
     return ((Character)obj).charValue();
@@ -92,9 +94,10 @@ public abstract class ReflectionBase {
   /** Unwrap int for call */
   @Inline
   protected static int unboxAsInt(Object obj) {
-    if (!(obj instanceof Integer) && !(obj instanceof Character) &&
-        !(obj instanceof Short) && !(obj instanceof Byte)) {
-      throw new IllegalArgumentException();
+    if ((obj == null) ||
+        (!(obj instanceof Integer) && !(obj instanceof Character) &&
+         !(obj instanceof Short) && !(obj instanceof Byte))) {
+      throwIllegalArgumentException();
     }
     return ((Number)obj).intValue();
   }
@@ -108,10 +111,11 @@ public abstract class ReflectionBase {
   /** Unwrap long for call */
   @Inline
   protected static long unboxAsLong(Object obj) {
-    if (!(obj instanceof Long) && !(obj instanceof Integer) &&
-        !(obj instanceof Character) && (obj instanceof Short) &&
-        !(obj instanceof Byte)) {
-      throw new IllegalArgumentException();
+    if ((obj == null) ||
+        (!(obj instanceof Long) && !(obj instanceof Integer) &&
+         !(obj instanceof Character) && (obj instanceof Short) &&
+         !(obj instanceof Byte))) {
+      throwIllegalArgumentException();
     }
     return ((Number)obj).longValue();
   }
@@ -125,8 +129,8 @@ public abstract class ReflectionBase {
   /** Unwrap float for call */
   @Inline
   protected static float unboxAsFloat(Object obj) {
-    if (!(obj instanceof Float)) {
-      throw new IllegalArgumentException();
+    if ((obj == null) || !(obj instanceof Float)) {
+      throwIllegalArgumentException();
     }
     return ((Float)obj).floatValue();
   }
@@ -140,8 +144,9 @@ public abstract class ReflectionBase {
   /** Unwrap double for call */
   @Inline
   protected static double unboxAsDouble(Object obj) {
-    if (!(obj instanceof Double) && !(obj instanceof Float)) {
-      throw new IllegalArgumentException();
+    if ((obj == null) ||
+        (!(obj instanceof Double) && !(obj instanceof Float))) {
+      throwIllegalArgumentException();
     }
     return ((Number)obj).doubleValue();
   }
@@ -153,18 +158,58 @@ public abstract class ReflectionBase {
   }
 
   /**
+   * Invoke reflective method being wrapped by this object, internal method
+   * specific part.
+   * @param obj object for virtual method invocation
+   * @param args arguments to method call
+   * @return the object that is the result of the invoke
+   */
+  public abstract Object invokeInternal(Object obj, Object[] args);
+
+  /**
    * Invoke reflective method being wrapped by this object
    * @param obj object for virtual method invocation
    * @param args arguments to method call
    * @return the object that is the result of the invoke
    */
-  public abstract Object invoke(Object obj, Object[] args);
+  public final Object invoke(RVMMethod method, Object obj, Object[] args) throws InvocationTargetException {
+    int argsLength = args == null ? 0 : args.length;
+    if (method.getParameterTypes().length != argsLength) {
+      throwIllegalArgumentException();
+    }
+    Throwable x;
+    try {
+      return invokeInternal(obj, args);
+    } catch (IllegalArgumentException e) {
+      x = e;
+    } catch (NullPointerException e) {
+      x = e;
+    } catch (ClassCastException e) {
+      x = e;
+    } catch (Exception e) {
+      throw new InvocationTargetException(e);
+    }
+    // was this caused by casting an argument or in the invoked method?
+    // TODO: this test can give false positives
+    if (x.getStackTrace().length == (new Throwable()).getStackTrace().length+6) {
+      // error in invocation
+      if (x instanceof ClassCastException) {
+        throw new IllegalArgumentException("argument type mismatch", x);
+      } else if (x instanceof NullPointerException) {
+        throw (NullPointerException)x;
+      } else {
+        throw (IllegalArgumentException)x;
+      }
+    } else {
+      throw new InvocationTargetException(x);
+    }
+  }
 
   /**
    * Reflective method invoker that performs no invocation
    */
   public static final ReflectionBase nullInvoker = new ReflectionBase() {
     @Override
-    public Object invoke(Object obj, Object[] args) {return null;}
+    public Object invokeInternal(Object obj, Object[] args) {return null;}
   };
 }

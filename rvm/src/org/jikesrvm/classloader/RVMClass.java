@@ -2471,7 +2471,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     RVMType klass = reflectionClass.peekType();
     if (klass == null) {
       MethodReference reflectionMethodRef = MethodReference.findOrCreate(reflectionClass,
-          Atom.findOrCreateUnicodeAtom("invoke"),
+          Atom.findOrCreateUnicodeAtom("invokeInternal"),
           Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;")
       ).asMethodReference();
       MethodReference constructorMethodRef = MethodReference.findOrCreate(reflectionClass,

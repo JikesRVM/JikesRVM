@@ -25,6 +25,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
+import java.lang.reflect.InvocationTargetException;
 
 import static org.jikesrvm.Configuration.BuildForSSE2Full;
 
@@ -67,26 +68,28 @@ public class Reflection implements Constants {
    * See also: java/lang/reflect/Method.invoke()
    */
   @Inline
-  public static Object invoke(RVMMethod method, ReflectionBase invoker, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
+  public static Object invoke(RVMMethod method, ReflectionBase invoker,
+                              Object thisArg, Object[] otherArgs,
+                              boolean isNonvirtual) throws InvocationTargetException {
     // NB bytecode reflection doesn't care about isNonvirtual
     if (!bytecodeReflection && !cacheInvokerInJavaLangReflect) {
       return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
     } else if (!bytecodeReflection && cacheInvokerInJavaLangReflect) {
       if (invoker != null) {
-        return invoker.invoke(thisArg, otherArgs);
+        return invoker.invoke(method, thisArg, otherArgs);
       } else {
         return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);
       }
     } else if (bytecodeReflection && !cacheInvokerInJavaLangReflect) {
       if (VM.VerifyAssertions) VM._assert(invoker == null);
-      return method.getInvoker().invoke(thisArg, otherArgs);
+      return method.getInvoker().invoke(method, thisArg, otherArgs);
     } else {
       // Even if we always generate an invoker this test is still necessary for
       // invokers that should have been created in the boot image
       if (invoker != null) {
-        return invoker.invoke(thisArg, otherArgs);
+        return invoker.invoke(method, thisArg, otherArgs);
       } else {
-        return method.getInvoker().invoke(thisArg, otherArgs);
+        return method.getInvoker().invoke(method, thisArg, otherArgs);
       }
     }
   }

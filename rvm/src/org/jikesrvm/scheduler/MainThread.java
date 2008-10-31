@@ -26,6 +26,7 @@ import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;
 
 /**
@@ -197,7 +198,15 @@ public final class MainThread extends Thread {
 
     if (dbg) VM.sysWriteln("[MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
-    Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
+    try {
+      Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause == null) {
+        cause = e;
+      }
+      RuntimeEntrypoints.athrow(cause);
+    }
     if (dbg) VM.sysWriteln("  MainThread.run(): \"main\" method completed.]");
   }
 }
