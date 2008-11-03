@@ -224,17 +224,20 @@ public class Map {
     /* establish bounds of discontiguous space */
     Address startAddress = Space.getDiscontigStart();
     int first = hashAddress(startAddress);
-    int last = hashAddress(Space.getDiscontigEnd().minus(1));
-    int pages = (1 + last - first)*Space.PAGES_IN_CHUNK + 1;
+    int last = hashAddress(Space.getDiscontigEnd());
+    int unavailStart = last + 1;
+    int trailingUnavail = Space.MAX_CHUNKS - unavailStart;
+    int pages = (1 + last - first)*Space.PAGES_IN_CHUNK;
     globalPageMap.resizeFreeList(pages, pages);
     for (int pr = 0; pr < sharedDiscontigFLCount; pr++)
       sharedFLMap[pr].resizeFreeList(startAddress);
 
     /* set up the region map free list */
-    regionMap.alloc(first);                  // block out entire bottom of address range
+    int index = regionMap.alloc(first);       // block out entire bottom of address range
     for (int chunk = first; chunk <= last; chunk++)
-      regionMap.alloc(1);                    // tentitively allocate all usable chunks
-    regionMap.alloc(Space.MAX_CHUNKS - last); // block out entire top of address range
+      index = regionMap.alloc(1);             // Tentatively allocate all usable chunks
+    index = regionMap.alloc(trailingUnavail); // block out entire top of address range
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(index == unavailStart);
 
     /* set up the global page map and place chunks on free list */
     int firstPage = 0;

@@ -194,7 +194,7 @@ public abstract class Space implements Constants {
   public static Address getDiscontigStart() { return heapCursor; }
 
   /** End of discontig getter @return The end of the discontiguous space */
-  public static Address getDiscontigEnd() { return heapLimit; }
+  public static Address getDiscontigEnd() { return heapLimit.minus(1); }
 
   /** Name getter @return The name of this space */
   public final String getName() { return name; }
