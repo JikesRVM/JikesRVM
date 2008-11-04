@@ -274,6 +274,17 @@ public class Map {
   }
 
   /**
+   * Return the total number of clients contending for chunks.   This
+   * is useful when establishing conservative bounds on the number
+   * of remaining chunks.
+   *
+   * @return The total number of clients who may contend for chunks.
+   */
+  public static int getChunkConsumerCount() {
+    return sharedDiscontigFLCount;
+  }
+
+  /**
    * Return the space in which this address resides.
    *
    * @param address The address in question

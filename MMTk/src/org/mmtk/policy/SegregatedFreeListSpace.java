@@ -62,6 +62,12 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   protected static final int META_DATA_PAGES_PER_REGION_NO_BITMAP = Conversions.bytesToPages(Extent.fromIntSignExtend(BlockAllocator.META_DATA_BYTES_PER_REGION));
   private static final Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
 
+
+  // calculate worst case fragmentation very conservatively
+  private static final int NEW_SIZECLASS_OVERHEAD = sizeClassCount();  // one page wasted per size class
+  private static final int METADATA_OVERHEAD = META_DATA_PAGES_PER_REGION_WITH_BITMAP; // worst case scenario
+  public static final float WORST_CASE_FRAGMENTATION = 1 + ((NEW_SIZECLASS_OVERHEAD + METADATA_OVERHEAD)/(float) EmbeddedMetaData.BYTES_IN_REGION);
+
   /****************************************************************************
    *
    * Instance variables
@@ -373,7 +379,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * The number of distinct size classes.
    */
   @Inline
-  public final int sizeClassCount() {
+  public static int sizeClassCount() {
     return (COMPACT_SIZE_CLASSES) ? 28 : 40;
   }
 
