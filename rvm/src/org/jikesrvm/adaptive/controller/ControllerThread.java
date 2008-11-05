@@ -30,6 +30,7 @@ import org.jikesrvm.adaptive.recompilation.InvocationCounts;
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.AOSOptions;
+import org.jikesrvm.scheduler.SoftLatch;
 import org.jikesrvm.scheduler.Scheduler.ThreadModel;
 import org.vmmagic.pragma.NonMoving;
 
@@ -50,13 +51,13 @@ public final class ControllerThread extends ThreadModel {
    * constructor
    * @param sentinel   An object to signal when up and running
    */
-  ControllerThread(Object sentinel) {
+  ControllerThread(SoftLatch sentinel) {
     super("ControllerThread");
     this.sentinel = sentinel;
     makeDaemon(true);
   }
 
-  private final Object sentinel;
+  private final SoftLatch sentinel;
 
   /**
    * There are several ways in which a dcg organizer might
@@ -166,15 +167,7 @@ public final class ControllerThread extends ThreadModel {
       Organizer o = e.nextElement();
       o.start();
     }
-
-    try {
-      synchronized (sentinel) {
-        sentinel.notify();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      VM.sysFail("Failed to start up controller subsystem");
-    }
+    sentinel.open();
   }
 
   /**
