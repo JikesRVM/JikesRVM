@@ -63,6 +63,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   // stackframe pseudo-constants //
   private int frameSize;
   private final int emptyStackOffset;
+  private final int fullStackOffset;
   private final int startLocalOffset;
   private int spillOffset;
 
@@ -105,6 +106,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     stackHeights = new int[bcodes.length()];
     startLocalOffset = getInternalStartLocalOffset(method);
     emptyStackOffset = getEmptyStackOffset(method);
+    fullStackOffset = emptyStackOffset - (method.getOperandWords() << LOG_BYTES_IN_STACKSLOT);
   }
 
   @Override
@@ -392,12 +394,40 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   /*
    * Helper functions for expression stack manipulation
    */
+  /**
+   * Validate that that pushing bytesActuallyWritten
+   * onto the expression stack won't cause anything to
+   * be written outside of the portion of the physical stackframe
+   * that is reserved for use by the Java expression stack.
+   * This method should be called before spTopOffset is decremented by
+   * a push operation, passing the actual size of the data to be
+   * pushed on the stack (which on 64bit, is not the same as the change to spTopOffset).
+   */
+  private void validateStackPush(int bytesActuallyWritten) {
+    if (VM.VerifyAssertions) {
+      VM._assert((spTopOffset - bytesActuallyWritten) >= fullStackOffset, " spTopOffset="+spTopOffset+", empty="+emptyStackOffset+", full="+fullStackOffset+", bw="+bytesActuallyWritten);
+    }
+  }
+
+  /**
+   * Validate that popping from the expression stack didn't cause us
+   * to underflow (read from a garbage area below the expression stack).
+   * This method should be called after spTopOffset is incremented by a pop operation.
+   */
+  private void validateStackPop() {
+    if (VM.VerifyAssertions) {
+      VM._assert(spTopOffset <= emptyStackOffset, " spTopOffset="+spTopOffset+", empty="+emptyStackOffset);
+    }
+  }
+
   private void discardSlot() {
     spTopOffset += BYTES_IN_STACKSLOT;
+    if (VM.VerifyAssertions) validateStackPop();
   }
 
   private void discardSlots(int n) {
     spTopOffset += n * BYTES_IN_STACKSLOT;
+    if (VM.VerifyAssertions) validateStackPop();
   }
 
   /**
@@ -406,6 +436,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register containing the value to push
    */
   private void pushInt(int reg) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_INT);
     asm.emitSTW(reg, spTopOffset - BYTES_IN_INT, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -416,6 +447,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register containing the value to push
    */
   private void pushFloat(int reg) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_FLOAT);
     asm.emitSTFS(reg, spTopOffset - BYTES_IN_FLOAT, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -426,6 +458,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register containing the value to push
    */
   private void pushDouble(int reg) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_DOUBLE);
     asm.emitSTFD(reg, spTopOffset - BYTES_IN_DOUBLE, FP);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
@@ -436,6 +469,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register containing the value to push
    */
   private void pushLowDoubleAsInt(int reg) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_DOUBLE);
     asm.emitSTFD(reg, spTopOffset - BYTES_IN_DOUBLE, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -447,6 +481,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg2 register containing,  the least significant 32 bits on 32bit arch (to highest address), the whole value on 64bit
    */
   private void pushLong(int reg1, int reg2) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_LONG);
     if (VM.BuildFor64Addr) {
       asm.emitSTD(reg2, spTopOffset - BYTES_IN_LONG, FP);
     } else {
@@ -465,6 +500,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register containing the value to push
    */
   private void pushLongAsDouble(int reg) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_LONG);
     asm.emitSTFD(reg, spTopOffset - BYTES_IN_LONG, FP);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
@@ -475,6 +511,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register containing the value to push
    */
   private void pushAddr(int reg) {
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_ADDRESS);
     asm.emitSTAddr(reg, spTopOffset - BYTES_IN_ADDRESS, FP);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
@@ -485,7 +522,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register to peek the value into
    */
   private void pokeAddr(int reg, int idx) {
-    asm.emitSTAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+    int offset = BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx << LOG_BYTES_IN_STACKSLOT);
+    if (VM.VerifyAssertions) validateStackPush(-offset);
+    asm.emitSTAddr(reg, spTopOffset + offset, FP);
   }
 
   /**
@@ -494,7 +533,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg register to peek the value into
    */
   private void pokeInt(int reg, int idx) {
-    asm.emitSTW(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+    int offset = BYTES_IN_STACKSLOT - BYTES_IN_INT + (idx << LOG_BYTES_IN_STACKSLOT);
+    if (VM.VerifyAssertions) validateStackPush(-offset);
+    asm.emitSTW(reg, spTopOffset + offset, FP);
   }
 
   /**
@@ -771,6 +812,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_iload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(INT_TYPE, getGeneralLocalLocation(index), INT_TYPE, dstLoc);
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_INT);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
@@ -782,6 +824,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_lload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(LONG_TYPE, getGeneralLocalLocation(index), LONG_TYPE, dstLoc);
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_LONG);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
 
@@ -793,6 +836,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_fload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(FLOAT_TYPE, getFloatLocalLocation(index), FLOAT_TYPE, dstLoc);
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_FLOAT);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
@@ -804,6 +848,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_dload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(DOUBLE_TYPE, getFloatLocalLocation(index), DOUBLE_TYPE, dstLoc);
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_DOUBLE);
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
 
@@ -815,6 +860,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_aload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(index), ADDRESS_TYPE, dstLoc);
+    if (VM.VerifyAssertions) validateStackPush(BYTES_IN_ADDRESS);
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
