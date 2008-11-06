@@ -409,25 +409,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Validate that popping from the expression stack didn't cause us
-   * to underflow (read from a garbage area below the expression stack).
-   * This method should be called after spTopOffset is incremented by a pop operation.
-   */
-  private void validateStackPop() {
-    if (VM.VerifyAssertions) {
-      VM._assert(spTopOffset <= emptyStackOffset, " spTopOffset="+spTopOffset+", empty="+emptyStackOffset);
-    }
-  }
-
   private void discardSlot() {
     spTopOffset += BYTES_IN_STACKSLOT;
-    if (VM.VerifyAssertions) validateStackPop();
   }
 
   private void discardSlots(int n) {
     spTopOffset += n * BYTES_IN_STACKSLOT;
-    if (VM.VerifyAssertions) validateStackPop();
   }
 
   /**
