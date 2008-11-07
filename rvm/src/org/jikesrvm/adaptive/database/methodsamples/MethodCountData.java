@@ -303,7 +303,7 @@ public final class MethodCountData implements Reportable {
             double ns = counts[index];
             HotMethodRecompilationEvent event = new HotMethodRecompilationEvent(cm, ns);
             Controller.controllerInputQueue.insert(ns, event);
-            AOSLogging.controllerNotifiedForHotness(cm, ns);
+            AOSLogging.logger.controllerNotifiedForHotness(cm, ns);
           }
 
           // Since I was hot enough, also consider my children.

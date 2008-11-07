@@ -112,7 +112,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
     double bestActionTime = futureTimeForMethod;
     double bestCost = 0.0;
 
-    AOSLogging.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(),
+    AOSLogging.logger.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(),
                                                         CompilerDNA.getOptLevel(prevCompiler),
                                                         bestActionTime);
 
@@ -128,7 +128,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
 
       double curActionTime = cost + futureExecutionTime;
 
-      AOSLogging.recordControllerEstimateCostOpt(cmpMethod.getMethod(), choice.toString(), cost, curActionTime);
+      AOSLogging.logger.recordControllerEstimateCostOpt(cmpMethod.getMethod(), choice.toString(), cost, curActionTime);
 
       if (curActionTime < bestActionTime) {
         bestActionTime = curActionTime;
@@ -160,7 +160,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
           ControllerMemory.planWithStatus(cmpMethod.getMethod(), ControllerPlan.COMPLETED) &&
           cmpMethod.getCompilerType() == CompiledMethod.BASELINE;
       if (outdatedBaseline) {
-        AOSLogging.debug("outdated Baseline " + cmpMethod.getMethod() + "(" + cmpMethod.getId() + ")");
+        AOSLogging.logger.debug("outdated Baseline " + cmpMethod.getMethod() + "(" + cmpMethod.getId() + ")");
       }
     }
 
@@ -171,7 +171,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
         // associated with the cmid.
         hme.getCompiledMethod().setSamplesReset();
         Controller.methodSamples.reset(hme.getCMID());
-        AOSLogging.debug(" Resetting method samples " + hme);
+        AOSLogging.logger.debug(" Resetting method samples " + hme);
         return true;
       } else {
         plan = chooseOSRRecompilation(hme);
@@ -200,12 +200,12 @@ abstract class AnalyticModel extends RecompilationStrategy {
   private ControllerPlan chooseOSRRecompilation(HotMethodEvent hme) {
     if (!Controller.options.OSR_PROMOTION) return null;
 
-    AOSLogging.debug(" Consider OSR for " + hme);
+    AOSLogging.logger.debug(" Consider OSR for " + hme);
 
     ControllerPlan prev = ControllerMemory.findLatestPlan(hme.getMethod());
 
     if (prev.getStatus() == ControllerPlan.OSR_BASE_2_OPT) {
-      AOSLogging.debug(" Already have an OSR promotion plan for this method");
+      AOSLogging.logger.debug(" Already have an OSR promotion plan for this method");
       return null;
     }
 
@@ -215,11 +215,11 @@ abstract class AnalyticModel extends RecompilationStrategy {
 
     double futureTimeOptimized = futureTimeForMethod / speedup;
 
-    AOSLogging.debug(" Estimated future time for method " + hme + " is " + futureTimeForMethod);
-    AOSLogging.debug(" Estimated future time optimized " + hme + " is " + (futureTimeOptimized + millis));
+    AOSLogging.logger.debug(" Estimated future time for method " + hme + " is " + futureTimeForMethod);
+    AOSLogging.logger.debug(" Estimated future time optimized " + hme + " is " + (futureTimeOptimized + millis));
 
     if (futureTimeForMethod > futureTimeOptimized + millis) {
-      AOSLogging.recordOSRRecompilationDecision(prev);
+      AOSLogging.logger.recordOSRRecompilationDecision(prev);
       ControllerPlan p =
           new ControllerPlan(prev.getCompPlan(),
                                 prev.getTimeCreated(),
@@ -260,8 +260,8 @@ abstract class AnalyticModel extends RecompilationStrategy {
     double futureTimeForFDOMethod = prevCompileTime + (futureTimeForMethod / event.getBoostFactor());
 
     int prevOptLevel = CompilerDNA.getOptLevel(prevCompiler);
-    AOSLogging.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(), prevOptLevel, futureTimeForMethod);
-    AOSLogging.recordControllerEstimateCostOpt(cmpMethod.getMethod(),
+    AOSLogging.logger.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(), prevOptLevel, futureTimeForMethod);
+    AOSLogging.logger.recordControllerEstimateCostOpt(cmpMethod.getMethod(),
                                                   "O" + prevOptLevel + "AI",
                                                   prevCompileTime,
                                                   futureTimeForFDOMethod);

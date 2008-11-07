@@ -141,8 +141,8 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
                       compiledMethod.getCompilationTime());
 
     if (VM.BuildForAdaptiveSystem) {
-      if (AOSLogging.booted()) {
-        AOSLogging.recordUpdatedCompilationRates(compiler,
+      if (AOSLogging.logger.booted()) {
+        AOSLogging.logger.recordUpdatedCompilationRates(compiler,
                                                     method,
                                                     method.getBytecodeLength(),
                                                     totalBCLength[compiler],
@@ -699,7 +699,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               CompilerAdviceAttribute attr = CompilerAdviceAttribute.getCompilerAdviceInfo(method);
               if (attr.getCompiler() != CompiledMethod.OPT) {
                 cm = fallback(method);
-                AOSLogging.recordCompileTime(cm, 0.0);
+                AOSLogging.logger.recordCompileTime(cm, 0.0);
                 return cm;
               }
               int newCMID = -2;
@@ -712,13 +712,13 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
                 // we don't have to use: if (Controller.options.sampling())
                 compPlan = Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
               }
-              AOSLogging.recompilationStarted(compPlan);
+              AOSLogging.logger.recompilationStarted(compPlan);
               newCMID = recompileWithOpt(compPlan);
               cm = newCMID == -1 ? null : CompiledMethods.getCompiledMethod(newCMID);
               if (newCMID == -1) {
-                AOSLogging.recompilationAborted(compPlan);
+                AOSLogging.logger.recompilationAborted(compPlan);
               } else if (newCMID > 0) {
-                AOSLogging.recompilationCompleted(compPlan);
+                AOSLogging.logger.recompilationCompleted(compPlan);
               }
               if (cm == null) { // if recompilation is aborted
                 cm = baselineCompile(method);
@@ -748,7 +748,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               .enabled) {
         AOSGenerator.baseCompilationCompleted(cm);
       }
-      AOSLogging.recordCompileTime(cm, 0.0);
+      AOSLogging.logger.recordCompileTime(cm, 0.0);
       return cm;
     } else {
       return baselineCompile(method);

@@ -22,7 +22,6 @@ import org.jikesrvm.Configuration;
 import org.jikesrvm.Services;
 import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.adaptive.OnStackReplacementEvent;
-import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
@@ -702,10 +701,6 @@ public abstract class RVMThread {
       Scheduler.dumpStack();
       VM.sysWriteln("END Verbosely dumping stack at time of creating thread termination ]");
       VM.enableGC();
-    }
-
-    if (VM.BuildForAdaptiveSystem) {
-      RuntimeMeasurements.monitorThreadExit();
     }
 
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup

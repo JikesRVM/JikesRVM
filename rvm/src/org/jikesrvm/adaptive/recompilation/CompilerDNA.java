@@ -170,10 +170,10 @@ public class CompilerDNA implements Constants {
     }
 
     for (int i = 0; i < compilationRates.length; i++) {
-      AOSLogging.reportCompilationRate(i, compilationRates[i]);
+      AOSLogging.logger.reportCompilationRate(i, compilationRates[i]);
     }
     for (int i = 0; i < speedupRates.length; i++) {
-      AOSLogging.reportSpeedupRate(i, speedupRates[i]);
+      AOSLogging.logger.reportSpeedupRate(i, speedupRates[i]);
     }
 
     // Compute MAX_OPT_LEVEL
@@ -206,9 +206,9 @@ public class CompilerDNA implements Constants {
         // Since compilation rates are not relative to the 1st compiler
         //  we invert the division.
         compileTimeRatio[prevCompiler][nextCompiler] = compilationRates[prevCompiler] / compilationRates[nextCompiler];
-        AOSLogging.reportBenefitRatio(prevCompiler, nextCompiler, benefitRatio[prevCompiler][nextCompiler]);
+        AOSLogging.logger.reportBenefitRatio(prevCompiler, nextCompiler, benefitRatio[prevCompiler][nextCompiler]);
 
-        AOSLogging.reportCompileTimeRatio(prevCompiler, nextCompiler, compileTimeRatio[prevCompiler][nextCompiler]);
+        AOSLogging.logger.reportCompileTimeRatio(prevCompiler, nextCompiler, compileTimeRatio[prevCompiler][nextCompiler]);
       }
     }
   }

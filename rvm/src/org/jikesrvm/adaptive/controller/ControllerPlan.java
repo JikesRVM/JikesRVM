@@ -149,7 +149,7 @@ public final class ControllerPlan {
         .BACKGROUND_RECOMPILATION ||
                                   getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
       Controller.compilationQueue.insert(getPriority(), this);
-      AOSLogging.recompilationScheduled(getCompPlan(), getPriority());
+      AOSLogging.logger.recompilationScheduled(getCompPlan(), getPriority());
       return true;
     } else {
       getCompPlan().getMethod().replaceCompiledMethod(null);
@@ -169,7 +169,7 @@ public final class ControllerPlan {
     CompilationPlan cp = getCompPlan();
 
     setTimeInitiated(Controller.controllerClock);
-    AOSLogging.recompilationStarted(cp);
+    AOSLogging.logger.recompilationStarted(cp);
 
     if (cp.options.PRINT_METHOD) {
       VM.sysWrite("-oc:O" + cp.options.getOptLevel() + " \n");
@@ -203,10 +203,10 @@ public final class ControllerPlan {
     setTimeCompleted(Controller.controllerClock);
     CompiledMethod cm = newCMID == -1 ? null : CompiledMethods.getCompiledMethod(newCMID);
     if (newCMID == -1) {
-      AOSLogging.recompilationAborted(cp);
+      AOSLogging.logger.recompilationAborted(cp);
     } else {
-      AOSLogging.recompilationCompleted(cp);
-      AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
+      AOSLogging.logger.recompilationCompleted(cp);
+      AOSLogging.logger.recordCompileTime(cm, getExpectedCompilationTime());
     }
     if (Controller.options.ENABLE_ADVICE_GENERATION && (newCMID != -1)) {
       AOSGenerator.reCompilationWithOpt(cp);

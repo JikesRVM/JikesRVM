@@ -131,8 +131,8 @@ public class OSRProfiler implements Callbacks.ExitMonitor {
         cmplplan.options.OSR_GUARDED_INLINING = savedOsr;
 
         if (newcmid != -1) {
-          AOSLogging.debug("recompiling state with opt succeeded " + state.cmid);
-          AOSLogging.debug("new cmid " + newcmid);
+          AOSLogging.logger.debug("recompiling state with opt succeeded " + state.cmid);
+          AOSLogging.logger.debug("new cmid " + newcmid);
 
           // transfer hotness to the new cmid
           double oldSamples = Controller.methodSamples.getData(state.cmid);

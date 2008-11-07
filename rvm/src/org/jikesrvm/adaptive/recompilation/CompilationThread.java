@@ -15,7 +15,6 @@ package org.jikesrvm.adaptive.recompilation;
 import org.jikesrvm.adaptive.OnStackReplacementPlan;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
-import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.NonMoving;
 
@@ -45,8 +44,6 @@ public final class CompilationThread extends GreenThread {
    * them.
    */
   public void run() {
-    AOSLogging.compilationThreadStarted();
-
     // Make a blocking call to deleteMin to get a plan and then execute it.
     // Repeat...
     while (true) {

@@ -135,7 +135,7 @@ public abstract class CodeInstaller implements BaselineConstants {
 
     Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
-    AOSLogging.logOsrEvent("OSR code installation succeeded");
+    AOSLogging.logger.logOsrEvent("OSR code installation succeeded");
 
     return true;
   }

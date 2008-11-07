@@ -85,7 +85,7 @@ public class OnStackReplacementPlan implements Constants {
     // 3. install the code
     // 4. reschedule the thread to new code.
 
-    AOSLogging.logOsrEvent("OSR compiling " + compPlan.method);
+    AOSLogging.logger.logOsrEvent("OSR compiling " + compPlan.method);
 
     setTimeInitiated(Controller.controllerClock);
 
@@ -111,7 +111,7 @@ public class OnStackReplacementPlan implements Constants {
       ExecutionState state = extractor.extractState(suspendedThread, this.tsFromFPoff, this.ypTakenFPoff, CMID);
 
       if (invalidate) {
-        AOSLogging.debug("Invalidate cmid " + CMID);
+        AOSLogging.logger.debug("Invalidate cmid " + CMID);
         OSRProfiler.notifyInvalidation(state);
       }
 
@@ -122,13 +122,13 @@ public class OnStackReplacementPlan implements Constants {
 
       if (newCM == null) {
         setStatus(ControllerPlan.ABORTED_COMPILATION_ERROR);
-        AOSLogging.logOsrEvent("OSR compilation failed!");
+        AOSLogging.logger.logOsrEvent("OSR compilation failed!");
       } else {
         setStatus(ControllerPlan.COMPLETED);
         // now let CodeInstaller generate a code stub,
         // and PostThreadSwitch will install the stub to run.
         CodeInstaller.install(state, newCM);
-        AOSLogging.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
+        AOSLogging.logger.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
       }
     }
 

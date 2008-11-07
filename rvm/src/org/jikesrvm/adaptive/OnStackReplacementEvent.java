@@ -91,7 +91,7 @@ public final class OnStackReplacementEvent implements ControllerInputEvent {
 
     Controller.compilationQueue.insert(priority, plan);
 
-    AOSLogging.logOsrEvent("OSR inserts compilation plan successfully!");
+    AOSLogging.logger.logOsrEvent("OSR inserts compilation plan successfully!");
 
     // do not hold the reference anymore.
     suspendedThread = null;

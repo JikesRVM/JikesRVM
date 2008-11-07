@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -309,7 +308,7 @@ public abstract class RuntimeMeasurements {
    */
   public static void decayDecayableObjects() {
     decayEventCounter++;
-    AOSLogging.decayingCounters();
+    AOSLogging.logger.decayingCounters();
 
     for (Decayable obj : decayObjects) {
       obj.decay();
@@ -357,14 +356,7 @@ public abstract class RuntimeMeasurements {
   public static void report() {
     reportReportableObjects();
 
-    AOSLogging.decayStatistics(decayEventCounter);
-
-    for (int i = 0, n = Scheduler.threads.length; i < n; i++) {
-      RVMThread t = Scheduler.threads[i];
-      if (t != null) {
-        AOSLogging.threadExiting(t);
-      }
-    }
+    AOSLogging.logger.decayStatistics(decayEventCounter);
   }
 
   /**
@@ -377,13 +369,6 @@ public abstract class RuntimeMeasurements {
 
     cbsMethodListeners = new MethodListener[0];
     cbsContextListeners = new ContextListener[0];
-  }
-
-  /**
-   * Called from Thread.terminate.
-   */
-  public static void monitorThreadExit() {
-    AOSLogging.threadExiting(Scheduler.getCurrentThread());
   }
 
   /**

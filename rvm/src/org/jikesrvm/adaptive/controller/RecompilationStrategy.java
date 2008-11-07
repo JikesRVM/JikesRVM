@@ -151,7 +151,7 @@ public abstract class RecompilationStrategy {
   }
 
   private void transferSamplesToNewPlan(HotMethodEvent hme) {
-    AOSLogging.oldVersionStillHot(hme);
+    AOSLogging.logger.oldVersionStillHot(hme);
     double oldNumSamples = Controller.methodSamples.getData(hme.getCMID());
     ControllerPlan activePlan = ControllerMemory.findLatestPlan(hme.getMethod());
     if (activePlan == null) return; // shouldn't happen.

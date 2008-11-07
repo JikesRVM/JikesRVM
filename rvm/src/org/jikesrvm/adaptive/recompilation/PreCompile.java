@@ -97,18 +97,18 @@ public class PreCompile implements Callbacks.StartupMonitor {
             if (Controller.options.counters()) {
               // for invocation counter, we only use one optimization level
               compPlan = InvocationCounts.createCompilationPlan((NormalMethod) method);
-              AOSLogging.recompilationStarted(compPlan);
+              AOSLogging.logger.recompilationStarted(compPlan);
               RuntimeCompiler.recompileWithOpt(compPlan);
-              AOSLogging.recompilationCompleted(compPlan);
+              AOSLogging.logger.recompilationCompleted(compPlan);
             } else if (Controller.options.sampling()) {
               // Create our set of standard optimization plans.
               compPlan =
                   Controller.recompilationStrategy.createCompilationPlan((NormalMethod) method,
                                                                             value.getOptLevel(),
                                                                             null);
-              AOSLogging.recompilationStarted(compPlan);
+              AOSLogging.logger.recompilationStarted(compPlan);
               RuntimeCompiler.recompileWithOpt(compPlan);
-              AOSLogging.recompilationCompleted(compPlan);
+              AOSLogging.logger.recompilationCompleted(compPlan);
             } else {
               VM.sysWriteln("Compiler advice file is not followed  ");
               method.compile();
@@ -117,6 +117,6 @@ public class PreCompile implements Callbacks.StartupMonitor {
         }
       }
     }
-    AOSLogging.compileAllMethodsCompleted();
+    AOSLogging.logger.compileAllMethodsCompleted();
   }
 }

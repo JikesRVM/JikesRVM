@@ -64,7 +64,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
    * Method that is called when the sampling threshold is reached
    */
   void thresholdReached() {
-    AOSLogging.organizerThresholdReached();
+    AOSLogging.logger.organizerThresholdReached();
     int numSamples = ((MethodListener) listener).getNumSamples();
     int[] samples = ((MethodListener) listener).getSamples();
     data.update(samples, numSamples);
