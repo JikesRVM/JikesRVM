@@ -1691,7 +1691,6 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="-lhyarchive"/>
           <arg value="-lhyprt"/>
           <arg value="-lhythr"/>
-          <arg value="-lhysig"/>
           <arg value="-lhyzlib"/>
 	</exec>
       </sequential>
