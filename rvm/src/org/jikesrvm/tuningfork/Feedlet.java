@@ -85,8 +85,13 @@ public final class Feedlet {
    * Add an event to the feedlet's generated event stream
    * @param et The type of event to add
    */
+  @Inline
   public void addEvent(EventType et) {
     if (!enabled) return;
+    addEventInternal(et);
+  }
+  @NoInline
+  private void addEventInternal(EventType et) {
     if (CHECK_TYPES && !checkTypes(et, 0, 0, 0, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -106,8 +111,13 @@ public final class Feedlet {
    * @param et The type of event to add
    * @param ival1 The first int data value
    */
+  @Inline
   public void addEvent(EventType et, int ival1) {
     if (!enabled) return;
+    addEventInternal(et, ival1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int ival1) {
     if (CHECK_TYPES && !checkTypes(et, 1, 0, 0, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -128,8 +138,13 @@ public final class Feedlet {
    * @param ival1 The first int data value
    * @param ival2 The second int data value
    */
+  @Inline
   public void addEvent(EventType et, int ival1, int ival2) {
     if (!enabled) return;
+    addEventInternal(et, ival1, ival2);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int ival1, int ival2) {
     if (CHECK_TYPES && !checkTypes(et, 2, 0, 0, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -151,8 +166,13 @@ public final class Feedlet {
    * @param ival2 The second int data value
    * @param ival3 The third int data value
    */
+  @Inline
   public void addEvent(EventType et, int ival1, int ival2, int ival3) {
     if (!enabled) return;
+    addEventInternal(et, ival1, ival2, ival3);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int ival1, int ival2, int ival3) {
     if (CHECK_TYPES && !checkTypes(et, 3, 0, 0, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -175,8 +195,13 @@ public final class Feedlet {
    * @param ival3 The third int data value
    * @param ival4 The fourth int data value
    */
+  @Inline
   public void addEvent(EventType et, int ival1, int ival2, int ival3, int ival4) {
     if (!enabled) return;
+    addEventInternal(et, ival1, ival2, ival3, ival4);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int ival1, int ival2, int ival3, int ival4) {
     if (CHECK_TYPES && !checkTypes(et, 4, 0, 0, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -196,8 +221,13 @@ public final class Feedlet {
    * @param et The type of event to add
    * @param lval1 The first double data value
    */
+  @Inline
   public void addEvent(EventType et, long lval1) {
     if (!enabled) return;
+    addEventInternal(et, lval1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, long lval1) {
     if (CHECK_TYPES && !checkTypes(et, 0, 1, 0, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -217,8 +247,13 @@ public final class Feedlet {
    * @param et The type of event to add
    * @param dval1 The first double data value
    */
+  @Inline
   public void addEvent(EventType et, double dval1) {
     if (!enabled) return;
+    addEventInternal(et, dval1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, double dval1) {
     if (CHECK_TYPES && !checkTypes(et, 0, 0, 1, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -238,8 +273,13 @@ public final class Feedlet {
    * @param et The type of event to add
    * @param sval1 The first String data value
    */
+  @Inline
   public void addEvent(EventType et, String sval1) {
     if (!enabled) return;
+    addEventInternal(et, sval1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, String sval1) {
     if (CHECK_TYPES && !checkTypes(et, 0, 0, 0, 1)) return;
 
     long timeStamp = getTimeStamp();
@@ -260,8 +300,13 @@ public final class Feedlet {
    * @param ival1 The first int data value
    * @param dval1 The first double data value
    */
+  @Inline
   public void addEvent(EventType et, int ival1, double dval1) {
     if (!enabled) return;
+    addEventInternal(et, ival1, dval1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int ival1, double dval1) {
     if (CHECK_TYPES && !checkTypes(et, 1, 0, 1, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -283,8 +328,13 @@ public final class Feedlet {
    * @param ival2 The second int data value
    * @param dval1 The first double data value
    */
+  @Inline
   public void addEvent(EventType et, int ival1, int ival2, double dval1) {
     if (!enabled) return;
+    addEventInternal(et, ival1, ival2, dval1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int ival1, int ival2, double dval1) {
     if (CHECK_TYPES && !checkTypes(et, 2, 0, 1, 0)) return;
 
     long timeStamp = getTimeStamp();
@@ -305,8 +355,13 @@ public final class Feedlet {
    * @param dval1 The first double data value
    * @param sval1 The first String data value
    */
+  @Inline
   public void addEvent(EventType et, double dval1, String sval1) {
     if (!enabled) return;
+    addEventInternal(et, dval1, sval1);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, double dval1, String sval1) {
     if (CHECK_TYPES && !checkTypes(et, 0, 0, 1, 1)) return;
 
     long timeStamp = getTimeStamp();
@@ -332,6 +387,10 @@ public final class Feedlet {
   @Inline
   public void addEvent(EventType et, int[] idata, long[] ldata, double[] ddata, String[] sdata) {
     if (!enabled) return;
+    addEventInternal(et, idata, ldata, ddata, sdata);
+  }
+  @NoInline
+  private void addEventInternal(EventType et, int[] idata, long[] ldata, double[] ddata, String[] sdata) {
     if (CHECK_TYPES) {
       int ilen = idata == null ? 0 : idata.length;
       int llen = ldata == null ? 0 : ldata.length;
@@ -392,5 +451,4 @@ public final class Feedlet {
       events = null;
     }
   }
-
 }
