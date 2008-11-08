@@ -174,7 +174,8 @@ public abstract class JNICompiler implements BaselineConstants {
     ProcessorLocalState.emitMoveFieldToReg(asm, S0, Entrypoints.activeThreadField.getOffset());
     asm.emitMOV_Reg_RegDisp(S0, S0, Entrypoints.jniEnvField.getOffset());
 
-    if (method.getReturnType().isReferenceType()) {
+    TypeReference returnType = method.getReturnType();
+    if (returnType.isReferenceType()) {
       asm.emitCMP_Reg_Imm(T0, 0);
       ForwardReference globalRef = asm.forwardJcc(Assembler.LT);
 
@@ -206,8 +207,14 @@ public abstract class JNICompiler implements BaselineConstants {
 
       afterWeakGlobalRef.resolve(asm);
       afterGlobalRef.resolve(asm);
-    } else if (method.getReturnType().isLongType()) {
+    } else if (returnType.isLongType()) {
       asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1
+    } else if (returnType.isBooleanType()) {
+      asm.emitMOVZX_Reg_Reg_Byte(T0, T0); // set msbs as appropriate
+    } else if (returnType.isCharType()) {
+      asm.emitMOVZX_Reg_Reg_Word(T0, T0); // set msbs as appropriate
+    } else if (returnType.isShortType()) {
+      asm.emitMOVSX_Reg_Reg_Word(T0, T0); // set msbs as appropriate
     }
 
     // pop frame in JNIRefs array (assumes S0 holds JNIEnvironment)
