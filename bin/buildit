@@ -597,11 +597,13 @@ if ($ok) {
     }
     $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
     if ($host ne $target) {
-      $rsync .= ";\nssh $sshTarget -t mkdir -p $targetRoot";
-      $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
-      if ($compcachedir ne "") {
-        $rsync .= ";\nssh $sshTarget -t mkdir -p $targetCompCache;\n";
-        $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
+      $rsync .= ";\nssh $sshTarget -t mkdir -p $targetRoot/dist";
+      if ($hostConfig ne $targetConfig) {
+        $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
+        if ($compcachedir ne "") {
+          $rsync .= ";\nssh $sshTarget -t mkdir -p $targetCompCache;\n";
+          $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
+        }
       }
     }
     print "$rsync\n\n";
