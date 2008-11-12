@@ -62,6 +62,9 @@ abstract class AbstractHashMapRVM<K, V> {
   }
 
   public final V get(K key) {
+    if (key == null) {
+      return null;
+    }
     int bucketIdx = bucketIndex(key, buckets.length);
     AbstractBucket<K, V> cur = buckets[bucketIdx];
     while (cur != null && !same(cur.getKey(), key)) {
@@ -127,6 +130,7 @@ abstract class AbstractHashMapRVM<K, V> {
   }
 
   public final V remove(K key) {
+    if (VM.VerifyAssertions) VM._assert(key != null);
     int bucketIdx = bucketIndex(key, buckets.length);
     AbstractBucket<K, V> cur = buckets[bucketIdx];
     AbstractBucket<K, V> prev = null;
