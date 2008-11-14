@@ -27,10 +27,10 @@ final class BuildBB implements BytecodeConstants, BBConstants {
 
   // ---------------- Static Class Fields --------------------
 
-  // Types of Instructions
-  private static final byte NONBRANCH = 1;
-  private static final byte CONDITIONAL_BRANCH = 2;
-  private static final byte BRANCH = 3;
+  /** Types of Instructions */
+  private static enum InstructionType {
+    NONBRANCH, CONDITIONAL_BRANCH, BRANCH
+  };
 
   //***************************************************************************//
   //                                                                           //
@@ -72,9 +72,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   public void determineTheBasicBlocks(NormalMethod method) {
     ExceptionHandlerMap exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int[] retList;    // List of basic block numbers that end with a "ret" instruction.
-    BytecodeStream bcodes;       // The bytecodes being analyzed.
-    BasicBlock currentBB;    // current basic block being processed
-    byte lastInstrType;// type of the last instruction
+    BytecodeStream bcodes;        // The bytecodes being analyzed.
+    BasicBlock currentBB;         // current basic block being processed
+    InstructionType lastInstrType;// type of the last instruction
     int lastInstrStart;// byte index where last instruction started
 
     //
@@ -107,7 +107,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
     currentBB = bbf.newBlock(0);
     addBasicBlock(currentBB);
     currentBB.setState(BasicBlock.METHODENTRY);
-    lastInstrType = NONBRANCH;
+    lastInstrType = InstructionType.NONBRANCH;
     lastInstrStart = 0;
 
     if (exceptions != null) {
@@ -133,7 +133,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
       // Note that forward branches mean that the byteToBlockMap will have
       // a basic block value prior to us examining that destination byte code
       //
-      if (lastInstrType == NONBRANCH) {
+      if (lastInstrType == InstructionType.NONBRANCH) {
         if (byteToBlockMap[bcodes.index()] == BasicBlock.NOTBLOCK) {
           // Not a new block
           // Make note of current block
@@ -145,7 +145,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
           currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
         }
       } else { // we are at a block boundary, last instr was some type of branch
-        if (lastInstrType == CONDITIONAL_BRANCH) {
+        if (lastInstrType == InstructionType.CONDITIONAL_BRANCH) {
           currentBB.setEnd(lastInstrStart);
           // See if we need a new block
           if (byteToBlockMap[bcodes.index()] == BasicBlock.NOTBLOCK) {
@@ -161,7 +161,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
             currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
           }
         } else {
-          if (lastInstrType == BRANCH) {
+          if (lastInstrType == InstructionType.BRANCH) {
             currentBB.setEnd(lastInstrStart);
             // See if we need a new block
             if (byteToBlockMap[bcodes.index()] == BasicBlock.NOTBLOCK) {
@@ -181,7 +181,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
 
       // Now examine this instruction
       lastInstrStart = bcodes.index();  // Instruction starts here
-      lastInstrType = NONBRANCH;        // assume it will be a non-branch
+      lastInstrType = InstructionType.NONBRANCH; // assume it will be a non-branch
       switch (bcodes.nextInstruction()) {
         case JBC_ifeq:
         case JBC_ifne:
@@ -199,16 +199,16 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         case JBC_if_acmpne:
         case JBC_ifnull:
         case JBC_ifnonnull: {
-          lastInstrType = CONDITIONAL_BRANCH;
+          lastInstrType = InstructionType.CONDITIONAL_BRANCH;
           int offset = bcodes.getBranchOffset();
-          if (offset < 0) gcPointCount++; // gc map required if backward edge
+          if (offset <= 0) gcPointCount++; // gc map required if backward edge
           int branchtarget = lastInstrStart + offset;
           processBranchTarget(lastInstrStart, branchtarget);
           break;
         }
 
         case JBC_jsr: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           int offset = bcodes.getBranchOffset();
           int branchtarget = lastInstrStart + offset;
           processBranchTarget(lastInstrStart, branchtarget);
@@ -221,7 +221,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         }
 
         case JBC_jsr_w: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           int offset = bcodes.getWideBranchOffset();
           int branchtarget = lastInstrStart + offset;
           processBranchTarget(lastInstrStart, branchtarget);
@@ -234,25 +234,25 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         }
 
         case JBC_goto: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           int offset = bcodes.getBranchOffset();
-          if (offset < 0) gcPointCount++; // gc map required if backward edge
+          if (offset <= 0) gcPointCount++; // gc map required if backward edge
           int branchtarget = lastInstrStart + offset;
           processBranchTarget(lastInstrStart, branchtarget);
           break;
         }
 
         case JBC_goto_w: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           int offset = bcodes.getWideBranchOffset();
-          if (offset < 0) gcPointCount++; // gc map required if backward edge
+          if (offset <= 0) gcPointCount++; // gc map required if backward edge
           int branchtarget = lastInstrStart + offset;
           processBranchTarget(lastInstrStart, branchtarget);
           break;
         }
 
         case JBC_tableswitch: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           bcodes.alignSwitch();
           int def = bcodes.getDefaultSwitchOffset();
           processBranchTarget(lastInstrStart, lastInstrStart + def);
@@ -270,7 +270,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         }
 
         case JBC_lookupswitch: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           bcodes.alignSwitch();
           int def = bcodes.getDefaultSwitchOffset();
           int npairs = bcodes.getSwitchLength();
@@ -291,7 +291,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         case JBC_dreturn:
         case JBC_areturn:
         case JBC_return: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           basicBlocks[BasicBlock.EXITBLOCK].addPredecessor(currentBB);
           if (method.isSynchronized() || VM.UseEpilogueYieldPoints) {
             gcPointCount++;
@@ -300,7 +300,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         }
 
         case JBC_ret: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           bcodes.getLocalNumber(); // index
           int blocknum = currentBB.getBlockNumber();
           basicBlocks[blocknum].setState(BasicBlock.JSREXIT);
@@ -323,7 +323,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
           int widecode = bcodes.getWideOpcode();
           bcodes.getWideLocalNumber(); // index
           if (widecode == JBC_ret) {
-            lastInstrType = BRANCH;
+            lastInstrType = InstructionType.BRANCH;
             int blocknum = currentBB.getBlockNumber();
             basicBlocks[blocknum].setState(BasicBlock.JSREXIT);
 
@@ -347,7 +347,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         }
 
         case JBC_athrow: {
-          lastInstrType = BRANCH;
+          lastInstrType = InstructionType.BRANCH;
           processAthrow(exceptions, lastInstrStart);
           gcPointCount++;
           break;
