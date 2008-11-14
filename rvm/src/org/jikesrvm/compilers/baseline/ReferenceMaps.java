@@ -35,18 +35,19 @@ public final class ReferenceMaps implements BaselineConstants {
 
   public static final int STARTINDEX = 0;
   public static final int NOMORE = 0;
-  private static final byte OR = 1;
-  private static final byte NAND = 2;
-  private static final byte COPY = 3;
+  /** Kinds of merge operation when merging delta maps into table maps */
+  private static enum MergeOperation {
+    OR, NAND, COPY
+  }
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  public static final ProcessorLock jsrLock = new ProcessorLock();   // for serialization of JSR processing
+  /** Serializes JSR processing */
+  public static final ProcessorLock jsrLock = new ProcessorLock();
 
   private byte[] referenceMaps;
   private int[] MCSites;
   private final int bitsPerMap;   // number of bits in each map
   private int mapCount;
-  //  final private int startLocal0Offset; // distance from frame pointer to start of the Local area
   private JSRInfo jsrInfo;
 
   /**
@@ -1192,21 +1193,21 @@ public final class ReferenceMaps implements BaselineConstants {
     }
 
     // merge the reference maps
-    mergeMap(jsrInfo.tempIndex, reftargetindex, COPY);        // save refs made in inner jsr sub(s)
-    mergeMap(reftargetindex, refdeltaindex, OR);      // get refs from outer loop
-    mergeMap(reftargetindex, nreftargetindex, NAND);  // turn off non refs made in inner jsr sub(s)
-    mergeMap(reftargetindex, addrtargetindex, NAND);  // then the return adresses
-    mergeMap(reftargetindex, jsrInfo.tempIndex, OR);           // OR inrefs made in inner jsr sub(s)
+    mergeMap(jsrInfo.tempIndex, reftargetindex, MergeOperation.COPY); // save refs made in inner jsr sub(s)
+    mergeMap(reftargetindex, refdeltaindex, MergeOperation.OR);       // get refs from outer loop
+    mergeMap(reftargetindex, nreftargetindex, MergeOperation.NAND);   // turn off non refs made in inner jsr sub(s)
+    mergeMap(reftargetindex, addrtargetindex, MergeOperation.NAND);   // then the return adresses
+    mergeMap(reftargetindex, jsrInfo.tempIndex, MergeOperation.OR);   // OR inrefs made in inner jsr sub(s)
 
     // merge the non reference maps
-    mergeMap(jsrInfo.tempIndex, nreftargetindex, COPY); // save nonrefs made in inner loop(s)
-    mergeMap(nreftargetindex, nrefdeltaindex, OR);      // get nrefs from outer loop
-    mergeMap(nreftargetindex, reftargetindex, NAND);  // turn off refs made in inner jsr sub(s)
-    mergeMap(nreftargetindex, addrtargetindex, NAND);  // then the return adresses
-    mergeMap(nreftargetindex, jsrInfo.tempIndex, OR);           // OR in non refs made in inner jsr sub(s)
+    mergeMap(jsrInfo.tempIndex, nreftargetindex, MergeOperation.COPY); // save nonrefs made in inner loop(s)
+    mergeMap(nreftargetindex, nrefdeltaindex, MergeOperation.OR);      // get nrefs from outer loop
+    mergeMap(nreftargetindex, reftargetindex, MergeOperation.NAND);    // turn off refs made in inner jsr sub(s)
+    mergeMap(nreftargetindex, addrtargetindex, MergeOperation.NAND);   // then the return adresses
+    mergeMap(nreftargetindex, jsrInfo.tempIndex, MergeOperation.OR);   // OR in non refs made in inner jsr sub(s)
 
     // merge return address maps
-    mergeMap(addrtargetindex, addrdeltaindex, OR);
+    mergeMap(addrtargetindex, addrdeltaindex, MergeOperation.OR);
 
     if (VM.TraceStkMaps) {
       //display final maps
@@ -1235,21 +1236,21 @@ public final class ReferenceMaps implements BaselineConstants {
    * into a target map (similarly represented)
    * and use the operation indicated ( OR or NAND or COPY)
    */
-  private void mergeMap(int targetindex, int deltaindex, byte Op) {
+  private void mergeMap(int targetindex, int deltaindex, MergeOperation Op) {
     int i;
     // Merge the maps
-    if (Op == COPY) {
+    if (Op == MergeOperation.COPY) {
       for (i = 0; i < bytesPerMap(); i++) {
         jsrInfo.unusualReferenceMaps[targetindex + i] = jsrInfo.unusualReferenceMaps[deltaindex + i];
       }
     }
-    if (Op == OR) {
+    if (Op == MergeOperation.OR) {
       for (i = 0; i < bytesPerMap(); i++) {
         jsrInfo.unusualReferenceMaps[targetindex + i] =
             (byte) (jsrInfo.unusualReferenceMaps[targetindex + i] | jsrInfo.unusualReferenceMaps[deltaindex + i]);
       }
     }
-    if (Op == NAND) {
+    if (Op == MergeOperation.NAND) {
       for (i = 0; i < bytesPerMap(); i++) {
         short temp = (byte) (~(jsrInfo.unusualReferenceMaps[deltaindex + i]));
         jsrInfo.unusualReferenceMaps[targetindex + i] = (byte) (jsrInfo.unusualReferenceMaps[targetindex + i] & temp);
