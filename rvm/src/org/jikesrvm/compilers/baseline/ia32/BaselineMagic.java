@@ -1678,8 +1678,11 @@ final class BaselineMagic {
       // save the branch address for later
       asm.emitPOP_Reg(S0);             // S0<-code address
 
-      asm.emitADD_Reg_Imm(SP, sd.toInt() - 4); // just popped 4 bytes above.
-
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_Reg_Imm(SP, sd.toInt() - WORDSIZE); // just popped WORDSIZE bytes above.
+      } else {
+        asm.emitADD_Reg_Imm_Quad(SP, sd.toInt() - WORDSIZE); // just popped WORDSIZE bytes above.
+      }
       if (SSE2_FULL) {
         // TODO: Restore SSE2 Control word?
         asm.emitMOVQ_Reg_RegDisp(XMM0, SP, XMM_SAVE_OFFSET.plus(0));
@@ -1692,10 +1695,17 @@ final class BaselineMagic {
       }
 
       // restore GPRs
-      asm.emitMOV_Reg_RegDisp(T0, SP, T0_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(T1, SP, T1_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_RegDisp(T0, SP, T0_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp(T1, SP, T1_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
+      } else {
+        asm.emitMOV_Reg_RegDisp_Quad(T0, SP, T0_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp_Quad(T1, SP, T1_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp_Quad(EBX, SP, EBX_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp_Quad(EDI, SP, EDI_SAVE_OFFSET);
+      }
 
       // pop frame
       asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset()); // FP<-previous FP
