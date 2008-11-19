@@ -35,6 +35,12 @@ public interface RegisterConstants {
   }
 
   /**
+   * Super interface for floating point registers
+   */
+  public interface FloatingPointMachineRegister extends MachineRegister {
+  }
+
+  /**
    * Representation of general purpose registers
    */
   public enum GPR implements MachineRegister {
@@ -70,6 +76,23 @@ public interface RegisterConstants {
       }
       return result;
     }
+    /** @return encoded value of this register to be included in the opcode byte */
+    @Pure
+    public byte valueForOpcode() {
+      byte result;
+      if (!org.jikesrvm.VM.runningVM) {
+        result = (byte)ordinal();
+      } else {
+        result = (byte)java.lang.JikesRVMSupport.getEnumOrdinal(this);
+      }
+      if (!VM.buildFor32Addr()) {
+        result &= 0x7;
+      }
+      if (VM.VerifyAssertions) {
+        VM._assert(result >=0 && result <= 7);
+      }
+      return result;
+    }
     /** @return does this register require a REX prefix byte? */
     @Pure
     public boolean needsREXprefix() {
@@ -102,7 +125,7 @@ public interface RegisterConstants {
   /**
    * Representation of x87 floating point registers
    */
-  public enum FPR implements MachineRegister {
+  public enum FPR implements FloatingPointMachineRegister {
     FP0(0), FP1(1), FP2(2), FP3(3), FP4(4), FP5(5), FP6(6), FP7(7);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final FPR[] vals = values();
@@ -175,7 +198,7 @@ public interface RegisterConstants {
   /**
    * Representation of SSE XMM registers
    */
-  public enum XMM implements MachineRegister {
+  public enum XMM implements FloatingPointMachineRegister {
     XMM0(0), XMM1(1), XMM2(2), XMM3(3), XMM4(4), XMM5(5), XMM6(6), XMM7(7),
     XMM8(8), XMM9(9), XMM10(10), XMM11(11), XMM12(12), XMM13(13), XMM14(14), XMM15(15);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
@@ -289,9 +312,39 @@ public interface RegisterConstants {
   XMM XMM15 = XMM.XMM15;
 
   /*
+   * Dedicated registers.
+   */
+
+  /** Register current stack pointer. NB the frame pointer is maintained in the processor. */
+  GPR STACK_POINTER = ESP;
+  /** Register holding a reference to processor local information */
+  GPR PROCESSOR_REGISTER = ESI;
+
+  /*
    * Register sets
    * (``range'' is a misnomer for the alphabet soup of of intel registers)
    */
+// CHECKSTYLE:OFF
+  /** All general purpose registers */
+  GPR[] ALL_GPRS =
+    VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI}
+                        : new GPR[]{EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI, R8, R9, R10, R11, R12, R13, R14, R15};
+
+  /** Number of general purpose registers */
+  byte NUM_GPRS = (byte)ALL_GPRS.length;
+
+  /**
+   * All floating point purpose registers
+   * NB with SSE x87 registers must be explicitly managed
+   */
+  FloatingPointMachineRegister[] ALL_FPRS =
+    VM.buildFor32Addr() ? (VM.buildForSSE2() ? new FPR[]{FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7}
+                                             : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7})
+      : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
+                  XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15};
+
+  /** Number of floating point registers */
+  byte NUM_FPRS = (byte)ALL_FPRS.length;
 
   /**
    * Volatile general purpose registers.
@@ -302,44 +355,73 @@ public interface RegisterConstants {
   int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
 
   /**
-   * Non-volatile general purpose registers.
+   * Volatile floating point registers within the RVM.
+   * TODO: this should include XMMs
+   */
+  FloatingPointMachineRegister[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
+  /** Number of volatile FPRs */
+  int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
+
+  /**
+   * Non-volatile general purpose registers within the RVM.
    * Note: the order here is very important.  The opt-compiler allocates
    * the nonvolatile registers in the reverse of order they appear here.
    * R3 (EBX) must be last, because it is the only non-volatile that can
    * be used in instructions that are using r8 and we must ensure that
    * opt doesn't skip over another nonvol while looking for an r8 nonvol.
    */
-  GPR[] NONVOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R5 /*EBP*/, R7 /*EDI*/, R3 /*EBX*/} : new GPR[]{R5, R7, R3};
+  GPR[] NONVOLATILE_GPRS =
+    VM.buildFor32Addr() ? new GPR[]{R5 /*EBP*/, R7 /*EDI*/, R3 /*EBX*/}
+                        : new GPR[]{R5, R7, R3};
+  /** Number of non-volatile GPRs */
   int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
 
-  FPR[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
-  int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
-
-  FPR[] NONVOLATILE_FPRS = {};
+  /** Non-volatile floating point registers within the RVM. */
+  FloatingPointMachineRegister[] NONVOLATILE_FPRS = {};
+  /** Number of non-volatile FPRs */
   int NUM_NONVOLATILE_FPRS = NONVOLATILE_FPRS.length;
 
-  /*
-   * These constants represent the number of volatile registers used
-   * to pass parameters in registers.  They are defined to mean that
-   * the first n registers in the corresponding set of volatile
-   * registers are used to pass parameters.
-   */
-  int NUM_PARAMETER_GPRS = 2;
-  int NUM_PARAMETER_FPRS = 4;
-  int NUM_RETURN_GPRS = 2;
-  int NUM_RETURN_FPRS = 1;
+  /** General purpose registers to pass arguments within the RVM */
+  GPR[] PARAMETER_GPRS = new GPR[]{EAX, EDX};
+  /** Number of parameter GPRs */
+  int NUM_PARAMETER_GPRS = PARAMETER_GPRS.length;
 
-  /** General purpose registers to pass arguments to syscalls in */
-  GPR[] SYSCALL_PARAM_GPRS = VM.buildFor32Addr() ? new GPR[0] : new GPR[]{R7 /*RDI*/, R6 /*RSI*/, R2 /*RDX*/, R1 /*RCX*/, R8, R9};
-  /** Floating point registers to pass arguments to syscalls in */
-  XMM[] SYSCALL_PARAM_FPRS = VM.buildFor32Addr() ? new XMM[0] : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
+  /** Floating point registers to pass arguments within the RVM */
+  FloatingPointMachineRegister[] PARAMETER_FPRS =
+    VM.buildForSSE2() ? new XMM[]{XMM0, XMM1, XMM2, XMM3}
+                    : new FPR[]{FP0, FP1, FP2, FP3};
+  /** Number of parameter FPRs */
+  int NUM_PARAMETER_FPRS = PARAMETER_FPRS.length;
 
-  /*
-   * Dedicated registers.
-   */
-  GPR STACK_POINTER = ESP;
-  GPR PROCESSOR_REGISTER = ESI;
+  /** GPR registers used for returning values */
+  GPR[] RETURN_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, EDX} : new GPR[]{EAX};
+  /** Number of return GPRs */
+  int NUM_RETURN_GPRS = RETURN_GPRS.length;
 
-  byte NUM_GPRS = (byte)(VM.buildFor32Addr() ? 8 : 16);
-  byte NUM_FPRS = 8;
+  /** FPR registers used for returning values */
+  FloatingPointMachineRegister[] RETURN_FPRS =
+    VM.buildForSSE2() ? new XMM[]{XMM0} : new FPR[]{FP0};
+  /** Number of return FPRs */
+  int NUM_RETURN_FPRS = RETURN_FPRS.length;
+
+  /** Native volatile GPRS */
+  GPR[] NATIVE_VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX} : new GPR[]{EAX, ECX, EDX, R8, R9, R10, R11};
+  /** Native non-volatile GPRS */
+  GPR[] NATIVE_NONVOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EBX, EBP, EDI, ESI} : new GPR[]{EBX, EBP, R12, R13, R14, R15};
+
+  /** Native volatile FPRS */
+  FloatingPointMachineRegister[] NATIVE_VOLATILE_FPRS = ALL_FPRS;
+  /** Native non-volatile FPRS */
+  FloatingPointMachineRegister[] NATIVE_NONVOLATILE_FPRS = new FloatingPointMachineRegister[0];
+
+  /** General purpose registers to pass arguments to native code */
+  GPR[] NATIVE_PARAMETER_GPRS =
+    VM.buildFor32Addr() ? new GPR[0]
+                        : new GPR[]{EDI /*R7*/, ESI /*R6*/, EDX /*R2*/, ECX /*R1*/, R8, R9};
+
+  /** Floating point registers to pass arguments to native code */
+  FloatingPointMachineRegister[] NATIVE_PARAMETER_FPRS =
+    VM.buildFor32Addr() ? new FloatingPointMachineRegister[0]
+                        : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
+// CHECKSTYLE:ON
 }

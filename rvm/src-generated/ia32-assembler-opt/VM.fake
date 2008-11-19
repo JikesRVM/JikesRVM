@@ -29,4 +29,6 @@ public class VM {
     public static void sysWrite(String s) { }
 
     public static boolean buildFor32Addr() { return true; }
+
+    public static boolean buildForSSE2() { return true; }
 }

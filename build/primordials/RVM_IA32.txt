@@ -13,7 +13,9 @@
 [Lorg/jikesrvm/ia32/Code;
 [Lorg/jikesrvm/ia32/CodeArray;
 [Lorg/jikesrvm/ia32/RegisterConstants$GPR;
+[Lorg/jikesrvm/ia32/RegisterConstants$FloatingPointMachineRegister;
 [Lorg/jikesrvm/ia32/RegisterConstants$FPR;
+[Lorg/jikesrvm/ia32/RegisterConstants$MachineRegister;
 [Lorg/jikesrvm/ia32/RegisterConstants$XMM;
 [Lorg/jikesrvm/ia32/RegisterConstants$MM;
 [Lorg/jikesrvm/compilers/common/assembler/ia32/Lister$Prefix;

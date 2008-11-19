@@ -2440,7 +2440,7 @@ emitStackOp() {
   public final void emit${acronym}_Reg (GPR reg) {
     int miStart = mi;
     generateREXprefix(false, null, null, reg);
-    setMachineCodes(mi++, (byte) ($regCode + reg.value()));
+    setMachineCodes(mi++, (byte) ($regCode + reg.valueForOpcode()));
     if (lister != null) lister.R(miStart, "${acronym}", reg);
   }
 

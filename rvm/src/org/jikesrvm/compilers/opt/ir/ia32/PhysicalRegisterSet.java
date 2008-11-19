@@ -407,7 +407,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the nth physical FPR
    */
-  public Register getFPR(FPR n) {
+  public Register getFPR(FloatingPointMachineRegister n) {
     return reg[FIRST_DOUBLE + n.value()];
   }
 
