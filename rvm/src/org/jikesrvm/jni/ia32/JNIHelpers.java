@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIFunctions;
 import org.jikesrvm.jni.JNIGenericHelpers;
@@ -186,7 +187,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     Address fp = Magic.getFramePointer();
     fp = fp.loadAddress();
     fp = fp.loadAddress();
-    return (fp.plus(2 * 4 + (skip4Args ? 4 * 4 : 3 * 4)));
+    return (fp.plus(2 * WORDSIZE + (skip4Args ? 4 * WORDSIZE : 3 * WORDSIZE)));
   }
 
   /**
@@ -316,38 +317,38 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
       if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
         argObjectArray[i] = env.getJNIRef(addr.loadInt());
-        addr = addr.plus(4);
+        addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isIntType()) {
         argObjectArray[i] = addr.loadInt();
-        addr = addr.plus(4);
+        addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isLongType()) {
         argObjectArray[i] = addr.loadLong();
-        addr = addr.plus(8);
+        addr = addr.plus(2*WORDSIZE);
       } else if (argTypes[i].isBooleanType()) {
         // the 0/1 bit is stored in the high byte
         argObjectArray[i] = addr.loadByte() != 0;
-        addr = addr.plus(4);
+        addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
         argObjectArray[i] = addr.loadByte();
-        addr = addr.plus(4);
+        addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isCharType()) {
         // char is stored in the high 2 bytes
         argObjectArray[i] = addr.loadChar();
-        addr = addr.plus(4);
+        addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isShortType()) {
         // short is stored in the high 2 bytes
         argObjectArray[i] = addr.loadShort();
-        addr = addr.plus(4);
+        addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isFloatType()) {
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
         argObjectArray[i] = (float) addr.loadDouble();
-        addr = addr.plus(8);
+        addr = addr.plus(2*WORDSIZE);
       } else {
         if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
         argObjectArray[i] = addr.loadDouble();
-        addr = addr.plus(8);
+        addr = addr.plus(2*WORDSIZE);
       }
     }
     return argObjectArray;
@@ -370,7 +371,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     JNIEnvironment env = Scheduler.getCurrentThread().getJNIEnv();
 
     Address addr = argAddress;
-    for (int i = 0; i < argCount; i++, addr = addr.plus(8)) {
+    for (int i = 0; i < argCount; i++, addr = addr.plus(2*WORDSIZE)) {
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
@@ -400,5 +401,4 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     }
     return argObjectArray;
   }
-
 }

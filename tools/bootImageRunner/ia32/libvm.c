@@ -59,6 +59,14 @@ typedef unsigned int u_int32_t;
 
 #include <pthread.h>
 
+#ifndef __SIZEOF_POINTER__
+#  ifdef __x86_64__
+#    define __SIZEOF_POINTER__ 8
+#  else
+#    define __SIZEOF_POINTER__ 4
+#  endif
+#endif
+
 /* Interface to virtual machine data structures. */
 #define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_DECLARATIONS
@@ -1205,25 +1213,15 @@ createVM(int UNUSED vmInSeparateThread)
             = Scheduler_PRIMORDIAL_THREAD_INDEX
                 << ThinLockConstants_TL_THREAD_ID_SHIFT;
         *(unsigned int *) (pr + Processor_framePointer_offset)
-            = (int)sp - 8;
+            = (int)sp - (2*__SIZEOF_POINTER__);
     }
 
-    sp -= 4;
-    ((uint32_t *)sp)[0] = 0xdeadbabe;         /* STACKFRAME_RETURN_ADDRESS_OFFSET */
-#ifdef __x86_64__
-    sp -= 8;
-#else
-    sp -= 4;
-#endif
+    sp -= __SIZEOF_POINTER__;
+    ((Address *)sp)[0] = 0xdeadbabe;                       /* STACKFRAME_RETURN_ADDRESS_OFFSET */
+    sp -= __SIZEOF_POINTER__;
     ((Address *)sp)[0] = Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
-#ifdef __x86_64__
-    sp -= 8;
-#else
-    sp -= 4;
-#endif
-    ((Address *)sp)[0] = Constants_INVISIBLE_METHOD_ID; /* STACKFRAME_METHOD_ID_OFFSET */
-    sp -= 4;
-    ((uint32_t *)sp)[0] = 0; /* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
+    sp -= __SIZEOF_POINTER__;
+    ((Address *)sp)[0] = Constants_INVISIBLE_METHOD_ID;    /* STACKFRAME_METHOD_ID_OFFSET */
 
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
     int rc = bootThread ((void*)ip, (void*)pr, (void*)sp);
