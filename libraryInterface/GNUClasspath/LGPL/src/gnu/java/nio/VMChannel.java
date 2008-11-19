@@ -200,7 +200,7 @@ public final class VMChannel
   /**
    * Thread-local buffer for VM-side buffering of write calls
    */
-  private static LocalByteArray localByteArray = new LocalByteArray() ;
+  private static final LocalByteArray localByteArray = new LocalByteArray() ;
 
   /**
    * Read the specified byte buffer.

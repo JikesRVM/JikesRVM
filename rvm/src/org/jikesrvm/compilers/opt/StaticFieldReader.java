@@ -401,11 +401,7 @@ public abstract class StaticFieldReader implements SizeConstants {
     } catch (IllegalAccessError e) {
       throw new NoSuchFieldException(field.toString());
     } catch (UnsatisfiedLinkError e) {
-      if (VM.BuildForHarmony) {
-        throw new NoSuchFieldException(field.toString());
-      } else {
-        throw e;
-      }
+      throw new NoSuchFieldException(field.toString());
     }
   }
 }
