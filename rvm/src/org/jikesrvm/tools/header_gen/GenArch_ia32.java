@@ -41,13 +41,9 @@ final class GenArch_ia32 extends GenArch {
     p("static const int Constants_ESI                    = " + RegisterConstants.ESI.value() + ";\n");
     p("static const int Constants_EDI                    = " + RegisterConstants.EDI.value() + ";\n");
     p("static const int Constants_STACKFRAME_BODY_OFFSET             = " +
-      StackframeLayoutConstants
-          .STACKFRAME_BODY_OFFSET +
-                                  ";\n");
+      StackframeLayoutConstants.STACKFRAME_BODY_OFFSET + ";\n");
     p("static const int Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = " +
-      StackframeLayoutConstants
-          .STACKFRAME_RETURN_ADDRESS_OFFSET +
-                                            ";\n");
+      StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET + ";\n");
     p("static const int Constants_RVM_TRAP_BASE  = " + TrapConstants.RVM_TRAP_BASE + ";\n");
 
     offset = ArchEntrypoints.framePointerField.getOffset();
