@@ -23,28 +23,33 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * The machine state comprising a thread's execution context.
+ * The machine state comprising a thread's execution context, used both for
+ * thread context switching and for software/hardware exception
+ * reporting/delivery.
  */
 @Uninterruptible
 @NonMoving
 public abstract class Registers implements RegisterConstants {
 
-  // The following are used both for thread context switching
-  // and for software/hardware exception reporting/delivery.
-  //
+  /** General purpose registers */
   @Untraced
-  public final WordArray gprs; // general purpose registers
+  public final WordArray gprs;
+  /** Floating point registers */
   @Untraced
-  public final double[] fprs; // floating point registers
+  public final double[] fprs;
   public final WordArray gprsShadow;
   public final double[] fprsShadow;
-  public Address ip;     // instruction address register
-  public Address fp;     // frame pointer
+  /** Instruction address register */
+  public Address ip;
+  /** Frame pointer */
+  public Address fp;
 
-  // set by C hardware exception handler and RuntimeEntrypoints.athrow
-  // and reset by each implementation of ExceptionDeliverer.deliverException
-  //
-  public boolean inuse; // do exception registers currently contain live values?
+  /**
+   * Do exception registers currently contain live values? Set by C hardware
+   * exception handler and RuntimeEntrypoints.athrow and reset by each
+   * implementation of ExceptionDeliverer.deliverException
+   */
+  public boolean inuse;
 
   public Registers() {
     gprs = gprsShadow = MemoryManager.newNonMovingWordArray(NUM_GPRS);
