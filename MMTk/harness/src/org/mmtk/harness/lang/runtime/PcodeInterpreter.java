@@ -78,12 +78,11 @@ public final class PcodeInterpreter {
             }
           }
         }
-      } catch (Throwable e) {
+      } catch (RuntimeException e) {
         System.err.printf("Runtime exception encountered at line %d, column %d%n",
             op.getLine(),op.getColumn());
         stackTrace(op);
-        e.printStackTrace();
-        System.exit(1);
+        throw e;
       }
     }
   }
