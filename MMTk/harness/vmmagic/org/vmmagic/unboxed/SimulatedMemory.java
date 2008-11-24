@@ -21,6 +21,8 @@ public final class SimulatedMemory {
   /** Set to true to print debug information */
   private static final boolean VERBOSE = false;
 
+  private static final boolean ALIGN_CHECK_LONG = false;
+
   /**
    * Print a debug message (provided verbose output is enabled)
    */
@@ -33,11 +35,13 @@ public final class SimulatedMemory {
   public static final int LOG_BYTES_IN_PAGE = 12;
   public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
   public static final int LOG_BYTES_IN_WORD = 2;
+  public static final int LOG_BYTES_IN_LONG = 3;
   public static final int LOG_BYTES_IN_SHORT = 1;
   public static final int LOG_BITS_IN_BYTE = 3;
   public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
   public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
   public static final int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
+  public static final int BYTES_IN_LONG = 1 << LOG_BYTES_IN_LONG;
   public static final int PAGE_SIZE = 1 << LOG_BYTES_IN_PAGE;
   public static final int INDEX_MASK = (PAGE_SIZE - 1);
   public static final int WORD_MASK = ~(BYTES_IN_WORD - 1);
@@ -52,58 +56,64 @@ public final class SimulatedMemory {
   static final class PageTable {
     private static final HashMap<Integer, MemoryPage> pages = new HashMap<Integer, MemoryPage>();
 
+    private static int pageTableEntry(Address p) {
+      return p.toInt() >>> LOG_BYTES_IN_PAGE;
+    }
+
     /**
      * Internal: get a page by page number, performing appropriate
      * checking and synchronization
      * @param page
      * @return
      */
-    public static MemoryPage getPage(int page) {
+    static MemoryPage getPage(Address p) {
       synchronized(pages) {
-        MemoryPage p = pages.get(page);
-        if (p == null) {
-          throw new RuntimeException("Page not mapped: " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
-        } else if (!p.readable) {
-          throw new RuntimeException("Page not readable: " + Address.formatInt(page << LOG_BYTES_IN_PAGE));
+        MemoryPage page = pages.get(pageTableEntry(p));
+        if (page == null) {
+          throw new RuntimeException("Page not mapped: " + p);
+        } else if (!page.readable) {
+          throw new RuntimeException("Page not readable: " + p);
         }
-        return p;
+        return page;
       }
     }
 
-    static void setReadable(int p) {
+    static void setReadable(Address p) {
       synchronized(pages) {
-        MemoryPage page = pages.get(p);
+        MemoryPage page = pages.get(pageTableEntry(p));
         if (page == null) {
-          throw new RuntimeException("Page not mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+          throw new RuntimeException("Page not mapped: " + p);
         }
         page.readable = true;
       }
     }
 
-    public static void setNonReadable(int p) {
+    static void setNonReadable(Address p) {
       synchronized(pages) {
-        MemoryPage page = pages.get(p);
+        MemoryPage page = pages.get(pageTableEntry(p));
         if (page == null) {
-          throw new RuntimeException("Page not mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+          throw new RuntimeException("Page not mapped: " + p);
         }
         page.readable = false;
       }
     }
 
-    private static void mapPage(int p) {
+    private static void mapPage(Address p) {
       synchronized(pages) {
-        if (pages.get(p) != null) {
-          throw new RuntimeException("Page already mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+        int page = pageTableEntry(p);
+        if (VERBOSE) { System.err.printf("Mapping page %s%n", p); }
+        if (pages.get(page) != null) {
+          throw new RuntimeException("Page already mapped: " + p);
         }
-        pages.put(p, new MemoryPage(p));
+        pages.put(page, new MemoryPage(p));
       }
     }
 
-    private static void zeroPage(int p) {
+    private static void zeroPage(Address p) {
       synchronized(pages) {
-        MemoryPage page = pages.get(p);
+        MemoryPage page = pages.get(pageTableEntry(p));
         if (page == null) {
-          throw new RuntimeException("Page not mapped: " + Address.formatInt(p << SimulatedMemory.LOG_BYTES_IN_PAGE));
+          throw new RuntimeException("Page not mapped: " + p);
         }
         page.zero();
       }
@@ -141,15 +151,8 @@ public final class SimulatedMemory {
     return (addr2^addr1) < BYTES_IN_PAGE;
   }
 
-  /**
-   * Return the page corresponding to a specific (address+offset) value
-   * @param address
-   * @param offset
-   * @return
-   */
-  public static MemoryPage getPage(Address address, Offset offset) {
-    Scheduler.yield();
-    return getPage(address,offset.value);
+  private static boolean onSamePage(Address addr1, Address addr2) {
+    return addr2.toWord().xor(addr1.toWord()).LT(Word.fromIntSignExtend(BYTES_IN_PAGE));
   }
 
   /**
@@ -158,92 +161,66 @@ public final class SimulatedMemory {
    * @param offset
    * @return
    */
-  public static MemoryPage getPage(Address address, int offset) {
+  private static MemoryPage getPage(Address address) {
+    Scheduler.yield();
     if (address.isZero()) {
       throw new RuntimeException("Attempted to dereference a null address");
     }
-    return PageTable.getPage((address.value + offset) >>> LOG_BYTES_IN_PAGE);
+    return PageTable.getPage(address);
   }
 
-  public static byte getByte(Address address) { return getByte(address, ZERO); }
-  public static char getChar(Address address) { return getChar(address, ZERO); }
-  public static short getShort(Address address) { return getShort(address, ZERO); }
-  public static int getInt(Address address) { return getInt(address, ZERO); }
-  public static float getFloat(Address address) { return getFloat(address, ZERO); }
-  public static long getLong(Address address) { return getLong(address, ZERO); }
-  public static double getDouble(Address address) { return getDouble(address, ZERO); }
-
-  public static byte setByte(Address address, byte value) { return setByte(address, value, ZERO); }
-  public static char setChar(Address address, char value) { return setChar(address, value, ZERO); }
-  public static short setShort(Address address, short value) { return setShort(address, value, ZERO); }
-  public static int setInt(Address address, int value) { return setInt(address, value, ZERO); }
-  public static float setFloat(Address address, float value) { return setFloat(address, value, ZERO); }
-  public static long setLong(Address address, long value) { return setLong(address, value, ZERO); }
-  public static double setDouble(Address address, double value) { return setDouble(address, value, ZERO); }
-
-  public static byte getByte(Address address, Offset offset) {
-    return getPage(address, offset).getByte(address, offset);
+  static byte getByte(Address address) {
+    return getPage(address).getByte(address);
+  }
+  static char getChar(Address address) {
+    return getPage(address).getChar(address);
+  }
+  static short getShort(Address address) {
+    return (short)getPage(address).getChar(address);
+  }
+  static int getInt(Address address) {
+    return getPage(address).getInt(address);
+  }
+  static float getFloat(Address address) {
+    return Float.intBitsToFloat(getInt(address));
+  }
+  static long getLong(Address address) {
+    return getPage(address).getLong(address);
+  }
+  static double getDouble(Address address) {
+    return Double.longBitsToDouble(getLong(address));
   }
 
-  public static char getChar(Address address, Offset offset) {
-    return getPage(address, offset).getChar(address, offset);
+  static byte setByte(Address address, byte value) {
+    return getPage(address).setByte(address, value);
   }
 
-  public static short getShort(Address address, Offset offset) {
-    return (short)getPage(address, offset).getChar(address, offset);
+  static char setChar(Address address, char value) {
+    return getPage(address).setChar(address, value);
   }
 
-  public static int getInt(Address address, Offset offset) {
-    return getPage(address, offset).getInt(address, offset);
+  static short setShort(Address address, short value) {
+    return (short)setChar(address, (char)value);
   }
 
-  public static float getFloat(Address address, Offset offset) {
-    return Float.intBitsToFloat(getInt(address,offset));
+  static int setInt(Address address, int value) {
+    return getPage(address).setInt(address, value);
   }
 
-  public static long getLong(Address address, Offset offset) {
-    return getPage(address, offset).getLong(address, offset);
+  static float setFloat(Address address, float value) {
+    return Float.intBitsToFloat(setInt(address, Float.floatToIntBits(value)));
   }
 
-  public static double getDouble(Address address, Offset offset) {
-    return Double.longBitsToDouble(getLong(address,offset));
+  static long setLong(Address address, long value) {
+    return getPage(address).setLong(address, value);
   }
 
-  public static byte setByte(Address address, byte value, Offset offset) {
-    return getPage(address, offset).setByte(address, value, offset);
+  static double setDouble(Address address, double value) {
+    return Double.longBitsToDouble(setLong(address, Double.doubleToLongBits(value)));
   }
 
-  public static char setChar(Address address, char value, Offset offset) {
-    return getPage(address, offset).setChar(address, value, offset);
-  }
-
-  public static short setShort(Address address, short value, Offset offset) {
-    return (short)setChar(address, (char)value, offset);
-  }
-
-  public static int setInt(Address address, int value, Offset offset) {
-    return getPage(address, offset).setInt(address, value, offset);
-  }
-
-  public static float setFloat(Address address, float value, Offset offset) {
-    return Float.intBitsToFloat(setInt(address, Float.floatToIntBits(value), offset));
-  }
-
-  public static long setLong(Address address, long value, Offset offset) {
-    return getPage(address, offset).setLong(address, value, offset);
-  }
-
-  public static double setDouble(Address address, double value, Offset offset) {
-    return Double.longBitsToDouble(setLong(address, Double.doubleToLongBits(value), offset));
-  }
-
-
-  public static boolean exchangeInt(Address address, int oldValue, int value) {
-    return exchangeInt(address, oldValue, value, ZERO);
-  }
-
-  public static boolean exchangeInt(Address address, int oldValue, int value, Offset offset) {
-    return getPage(address, offset).exchangeInt(address, oldValue, value, offset);
+  static boolean exchangeInt(Address address, int oldValue, int value) {
+    return getPage(address).exchangeInt(address, oldValue, value);
   }
 
   /**
@@ -256,10 +233,9 @@ public final class SimulatedMemory {
    */
   public static boolean map(Address start, int size) {
     log("map(%s,%d)\n", start.toString(), size);
-    int first = start.toInt() >>> LOG_BYTES_IN_PAGE;
-    int last = (size >>> LOG_BYTES_IN_PAGE) + first;
+    Address last = start.plus(size);
 
-    for(int p=first; p < last; p++) {
+    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       PageTable.mapPage(p);
     }
     return true;
@@ -275,9 +251,8 @@ public final class SimulatedMemory {
    */
   public static boolean protect(Address start, int size) {
     log("protect(%s,%d)\n", start.toString(), size);
-    int first = start.toInt() >> LOG_BYTES_IN_PAGE;
-    int last = first + size >> LOG_BYTES_IN_PAGE;
-    for(int p=first; p < last; p++) {
+    Address last = start.plus(size);
+    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       PageTable.setNonReadable(p);
     }
     return true;
@@ -293,9 +268,8 @@ public final class SimulatedMemory {
    */
   public static boolean unprotect(Address start, int size) {
     log("unprotect(%s,%d)\n", start.toString(), size);
-    int first = start.toInt() >> LOG_BYTES_IN_PAGE;
-    int last = first + size >> LOG_BYTES_IN_PAGE;
-    for(int p=first; p < last; p++) {
+    Address last = start.plus(size);
+    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       PageTable.setReadable(p);
     }
     return true;
@@ -321,15 +295,15 @@ public final class SimulatedMemory {
   public static void zero(Address start, int size) {
     log("zero(%s,%d)\n", start.toString(), size);
     assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
-    MemoryPage page = getPage(start, 0);
-    int pageAddress = start.toInt();
+    MemoryPage page = getPage(start);
+    Address pageAddress = start;
     for(int i=0; i < size; i += BYTES_IN_WORD) {
-      int curAddr = start.toInt()+i;
+      Address curAddr = start.plus(i);
       if (!onSamePage(pageAddress, curAddr)) {
-        page = getPage(start, i);
+        page = getPage(curAddr);
         pageAddress=curAddr;
       }
-      page.setInt(start, 0, i);
+      page.setInt(curAddr, 0);
     }
   }
 
@@ -340,9 +314,8 @@ public final class SimulatedMemory {
    */
   public static void zeroPages(Address start, int size) {
     log("zeroPages(%s,%d)\n", start.toString(), size);
-    int first = start.toInt() >>> LOG_BYTES_IN_PAGE;
-    int last = (first + size) >>> LOG_BYTES_IN_PAGE;
-    for(int p=first; p < last; p++) {
+    Address last = start.plus(size);
+    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       PageTable.zeroPage(p);
     }
   }
@@ -362,19 +335,18 @@ public final class SimulatedMemory {
     int bytes = (beforeBytes + afterBytes);
     for(int i=0; i < bytes; i += BYTES_IN_WORD) {
       Address cur = begin.plus(i);
-      System.err.println(cur + ": " + Address.formatInt(getInt(cur, ZERO)));
+      System.err.println(cur + ": " + getInt(cur));
     }
   }
 
   /**
    * Represents a single page of memory.
    */
-  static final class MemoryPage {
+  private static final class MemoryPage {
     /** Is this page currently readable */
     private boolean readable;
-    /** The page number */
-    private final int page;
     /** The raw data on this page */
+    private final Address pageAddress;
     private final int[] data;
     /** Watched indexes */
     private final boolean[] watch;
@@ -382,20 +354,41 @@ public final class SimulatedMemory {
     /**
      * Create a new MemoryPage to hold the data in a given page.
      */
-    private MemoryPage(int page) {
-      this.page = page;
+    private MemoryPage(Address pageAddress) {
+      this.pageAddress = pageAddress;
       this.readable = true;
       this.data = new int[PAGE_SIZE >>> LOG_BYTES_IN_WORD];
       this.watch = getWatchPoints();
+      if (VERBOSE) log("Mapping page %s%n",pageAddress);
+    }
+
+    /**
+     * The base address of a given cell
+     * @param index
+     * @return
+     */
+    private Address cellAddress(int index) {
+      return pageAddress.plus(index<<LOG_BYTES_IN_WORD);
     }
 
     /**
      * Zero the memory in this page.
      */
-    public synchronized void zero() {
+    public void zero() {
       for(int i=0; i < data.length; i++) {
         write(i, 0);
       }
+    }
+
+
+    /**
+     * Construct a long value from 2 ints (high and low order 32-bit words)
+     * @param high TODO
+     * @param low TODO
+     * @return
+     */
+    private long longFrom2Ints(int high, int low) {
+      return (((long)high) << 32) |(((long)low & 0xFFFFFFFFL));
     }
 
     /**
@@ -404,100 +397,102 @@ public final class SimulatedMemory {
      * @param offset The offset from this address.
      * @return The index into the page data.
      */
-    private int getIndex(Address address, Offset offset) {
-      return getIndex(address,offset.value);
-    }
-    private int getIndex(Address address, int offset) {
-      assert ((((address.value + offset) >>> LOG_BYTES_IN_PAGE) ^ page) == 0) :
-        "Invalid access of " + Address.formatInt(address.toInt() + offset) + " in page " + Address.formatInt(page << LOG_BYTES_IN_PAGE);
-      return ((address.toInt() + offset) & INDEX_MASK) >>> LOG_BYTES_IN_WORD;
+    private int getIndex(Address address) {
+      assert onSamePage(address,pageAddress) :
+        "Invalid access of " + address + " in page " + pageAddress;
+      return ((int)((address.toLong()) & INDEX_MASK)) >>> LOG_BYTES_IN_WORD;
     }
 
     /**
      * Load a byte value from this page.
      */
-    public byte getByte(Address address, Offset offset) {
-      int bitShift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
-      int index = getIndex(address, offset);
+    public byte getByte(Address address) {
+      int bitShift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+      int index = getIndex(address);
       return (byte)(read(index) >>> bitShift);
     }
 
     /**
      * Load a char value from this page.
      */
-    public char getChar(Address address, Offset offset) {
-      int bitShift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+    public char getChar(Address address) {
+      int bitShift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
       assert bitShift == 0 || bitShift == 16: "misaligned char access";
-      int index = getIndex(address, offset);
+      int index = getIndex(address);
       return (char)(read(index) >>> bitShift);
     }
 
     /**
      * Load an integer value from this page.
      */
-    public int getInt(Address address, Offset offset) {
-      assert ((address.value + offset.value) % 4) == 0: "misaligned 4b access";
-      return read(getIndex(address, offset));
+    public int getInt(Address address) {
+      assert ((address.toInt()) % BYTES_IN_WORD) == 0: "misaligned 4b access";
+      return read(getIndex(address));
     }
 
     /**
      * Load a long value from this page.
      */
-    public synchronized long getLong(Address address, Offset offset) {
-      assert ((address.value + offset.value) % 8) == 0: "misaligned 8b access";
-      return (((long)getInt(address, offset)) << 32) |
-             ((long)getInt(address, offset.plus(BYTES_IN_WORD)));
+    public long getLong(Address address) {
+      if (ALIGN_CHECK_LONG) {
+        assert ((address.toLong()) % BYTES_IN_LONG) == 0: "misaligned 8b access";
+      }
+      return longFrom2Ints(getInt(address), getInt(address.plus(BYTES_IN_WORD)));
     }
 
-    public synchronized byte setByte(Address address, byte value, Offset offset) {
-      int shift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+    public byte setByte(Address address, byte value) {
+      int shift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
       int mask = 0x000000FF << shift;
       int newValue = (((int)value) << shift) & mask;
-      int index = getIndex(address, offset);
+      int index = getIndex(address);
       int oldValue = read(index);
       newValue = (oldValue & ~mask) | newValue;
       write(index, newValue);
       return (byte)(oldValue >>> shift);
     }
 
-    public synchronized char setChar(Address address, char value, Offset offset) {
-      int shift = ((address.value + offset.value) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+    public char setChar(Address address, char value) {
+      int shift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
       assert shift == 0 || shift == 16: "misaligned 2b access";
       int mask = 0x0000FFFF << shift;
       int newValue = (((int)value) << shift) & mask;
-      int index = getIndex(address, offset);
+      int index = getIndex(address);
       int oldValue = read(index);
       newValue = (oldValue & ~mask) | newValue;
       write(index, newValue);
       return (char)(oldValue >>> shift);
     }
 
-    public int setInt(Address address, int value, Offset offset) {
-      return setInt(address,value,offset.value);
-    }
-    public synchronized int setInt(Address address, int value, int offset) {
-      assert ((address.value + offset) % 4) == 0: "misaligned 4b access";
-      int index = getIndex(address, offset);
+    public int setInt(Address address, int value) {
+      assert ((address.toInt()) % BYTES_IN_WORD) == 0: "misaligned 4b access";
+      int index = getIndex(address);
       int old = read(index);
       write(index, value);
       return old;
     }
 
-    public synchronized long setLong(Address address, long value, Offset offset) {
-      assert ((address.value + offset.value) % 8) == 0: "misaligned 8b access";
-      int index = getIndex(address, offset);
-      long old = ((long)read(index)) << 32 | ((long)read(index+1));
+    public long setLong(Address address, long value) {
+      if (ALIGN_CHECK_LONG) {
+        assert ((address.toInt()) % BYTES_IN_LONG) == 0: "misaligned 8b access";
+      }
+      int index = getIndex(address);
+      long old = longFrom2Ints(read(index), read(index+1));
       write(index, (int)(value >>> 32));
       write(index+1, (int)(value & 0xFFFFFFFFL));
       return old;
     }
 
-    public synchronized boolean exchangeInt(Address address, int oldValue, int value, Offset offset) {
-      assert ((address.value + offset.value) % 4) == 0: "misaligned 4b access";
-      int index = getIndex(address, offset);
-      int old = read(index);
+    public synchronized boolean exchangeInt(Address address, int oldValue, int value) {
+      int old = getInt(address);
       if (old != oldValue) return false;
-      write(index, value);
+      setInt(address,value);
+      return true;
+    }
+
+    public synchronized boolean exchangeLong(Address address, long oldValue, long value) {
+      long old = getLong(address);
+      if (old != oldValue) return false;
+      setLong(address,value);
       return true;
     }
 
@@ -507,8 +502,7 @@ public final class SimulatedMemory {
     private int read(int index) {
       int value = data[index];
       if (isWatched(index)) {
-        System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + "= " +
-            Address.formatInt(data[index]));
+        System.err.printf("%s = %08x%n", cellAddress(index), data[index]);
       }
       return value;
     }
@@ -518,9 +512,7 @@ public final class SimulatedMemory {
      */
     private void write(int index, int value) {
       if (isWatched(index)) {
-        System.err.println(Address.formatInt((page << LOG_BYTES_IN_PAGE) + (index<<LOG_BYTES_IN_WORD)) + ": " +
-            Address.formatInt(data[index]) + " -> " +
-            Address.formatInt(value));
+        System.err.printf("%s: %08x -> %08x%n", cellAddress(index), data[index], value);
       }
       data[index] = value;
     }
@@ -535,10 +527,10 @@ public final class SimulatedMemory {
     private boolean[] getWatchPoints() {
       boolean[] result = new boolean[data.length];
       for(Address addr: SimulatedMemory.watches) {
-        if ((addr.value >>> LOG_BYTES_IN_PAGE) == page) {
-          int index = getIndex(addr, ZERO);
+        if (onSamePage(addr,pageAddress)) {
+          int index = getIndex(addr);
           result[index] = true;
-          System.err.println("Watching address "+addr+" (index "+index+" in page "+page+")");
+          System.err.println("Watching address "+addr);
         }
       }
       return result;

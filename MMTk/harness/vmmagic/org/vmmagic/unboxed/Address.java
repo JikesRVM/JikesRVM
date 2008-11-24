@@ -402,7 +402,7 @@ public final class Address {
    * @return the read value
    */
   public byte loadByte(Offset offset) {
-    return SimulatedMemory.getByte(this, offset);
+    return this.plus(offset).loadByte();
   }
 
   /**
@@ -423,7 +423,7 @@ public final class Address {
    * @return the read value
    */
   public char loadChar(Offset offset) {
-    return SimulatedMemory.getChar(this, offset);
+    return this.plus(offset).loadChar();
   }
 
   /**
@@ -444,7 +444,7 @@ public final class Address {
    * @return the read value
    */
   public short loadShort(Offset offset) {
-    return SimulatedMemory.getShort(this, offset);
+    return this.plus(offset).loadShort();
   }
 
   /**
@@ -465,7 +465,7 @@ public final class Address {
    * @return the read value
    */
   public float loadFloat(Offset offset) {
-    return SimulatedMemory.getFloat(this, offset);
+    return this.plus(offset).loadFloat();
   }
 
   /**
@@ -486,7 +486,7 @@ public final class Address {
    * @return the read value
    */
   public int loadInt(Offset offset) {
-    return SimulatedMemory.getInt(this, offset);
+    return this.plus(offset).loadInt();
   }
 
 
@@ -508,7 +508,7 @@ public final class Address {
    * @return the read value
    */
   public long loadLong(Offset offset) {
-    return SimulatedMemory.getLong(this, offset);
+    return this.plus(offset).loadLong();
   }
 
   /**
@@ -529,7 +529,7 @@ public final class Address {
    * @return the read value
    */
   public double loadDouble(Offset offset) {
-    return SimulatedMemory.getDouble(this, offset);
+    return this.plus(offset).loadDouble();
   }
 
   /**
@@ -592,7 +592,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(ObjectReference value, Offset offset) {
-    SimulatedMemory.setInt(this, value.value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -613,7 +613,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(Address value, Offset offset) {
-    SimulatedMemory.setInt(this, value.value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -634,7 +634,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(float value, Offset offset) {
-    SimulatedMemory.setFloat(this, value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -655,7 +655,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(Word value, Offset offset) {
-    SimulatedMemory.setInt(this, value.value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -676,7 +676,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(byte value, Offset offset) {
-    SimulatedMemory.setByte(this, value, offset);
+    this.plus(offset).store(value);
   }
 
 
@@ -698,7 +698,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(int value, Offset offset) {
-    SimulatedMemory.setInt(this, value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -719,7 +719,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(double value, Offset offset) {
-    SimulatedMemory.setDouble(this, value, offset);
+    this.plus(offset).store(value);
   }
 
 
@@ -741,7 +741,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(long value, Offset offset) {
-    SimulatedMemory.setLong(this, value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -762,7 +762,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(char value, Offset offset) {
-    SimulatedMemory.setChar(this, value, offset);
+    this.plus(offset).store(value);
   }
 
   /**
@@ -783,7 +783,7 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(short value, Offset offset) {
-    SimulatedMemory.setShort(this, value, offset);
+    this.plus(offset).store(value);
   }
 
   /****************************************************************************
@@ -897,7 +897,7 @@ public final class Address {
    * @return true if the attempt was successful.
    */
   public boolean attempt(int old, int value, Offset offset) {
-    return SimulatedMemory.exchangeInt(this, old, value, offset);
+    return this.plus(offset).attempt(old,value);
   }
 
   /**
@@ -922,7 +922,7 @@ public final class Address {
    * @return true if the attempt was successful.
    */
   public boolean attempt(Word old, Word value, Offset offset) {
-    return SimulatedMemory.exchangeInt(this, old.value, value.value, offset);
+    return this.plus(offset).attempt(old,value);
   }
 
   /**
@@ -947,7 +947,7 @@ public final class Address {
    * @return true if the attempt was successful.
    */
   public boolean attempt(ObjectReference old, ObjectReference value, Offset offset) {
-    return SimulatedMemory.exchangeInt(this, old.value, value.value, offset);
+    return this.plus(offset).attempt(old,value);
   }
 
   /**
@@ -972,7 +972,7 @@ public final class Address {
    * @return true if the attempt was successful.
    */
   public boolean attempt(Address old, Address value, Offset offset) {
-    return SimulatedMemory.exchangeInt(this, old.value, value.value, offset);
+    return this.plus(offset).attempt(old,value);
   }
 
   /**

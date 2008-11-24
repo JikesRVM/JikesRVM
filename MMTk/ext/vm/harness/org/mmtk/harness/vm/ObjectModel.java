@@ -314,7 +314,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
     Address fromRegion = from.toAddress();
     for(int i=0; i < oldBytes; i += SimulatedMemory.BYTES_IN_WORD) {
-      SimulatedMemory.setInt(toRegion.plus(i), SimulatedMemory.getInt(fromRegion.plus(i)));
+      toRegion.plus(i).store(fromRegion.plus(i).loadInt());
     }
 
     int status = toRegion.loadInt(STATUS_OFFSET);
@@ -349,7 +349,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     int bytes = getSize(from);
     Address fromRegion = from.toAddress();
     for(int i=0; i < bytes; i += SimulatedMemory.BYTES_IN_WORD) {
-      SimulatedMemory.setInt(toRegion.plus(i), SimulatedMemory.getInt(fromRegion.plus(i)));
+      toRegion.plus(i).store(fromRegion.plus(i).loadInt());
     }
 
     int status = toRegion.loadInt(STATUS_OFFSET);
