@@ -33,31 +33,34 @@ public final class SimulatedMemory {
   }
 
   public static final int LOG_BYTES_IN_PAGE = 12;
-  public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
-  public static final int LOG_BYTES_IN_WORD = 2;
   public static final int LOG_BYTES_IN_LONG = 3;
+  public static final int LOG_BYTES_IN_WORD = ArchitecturalWord.getModel().logBytesInWord();
+  public static final int LOG_BYTES_IN_INT = 2;
   public static final int LOG_BYTES_IN_SHORT = 1;
   public static final int LOG_BITS_IN_BYTE = 3;
-  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
-  public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
-  public static final int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
+  public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
   public static final int BYTES_IN_LONG = 1 << LOG_BYTES_IN_LONG;
+  public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
+  public static final int BYTES_IN_INT = 1 << LOG_BYTES_IN_INT;
+  public static final int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
+  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
   public static final int PAGE_SIZE = 1 << LOG_BYTES_IN_PAGE;
   public static final int INDEX_MASK = (PAGE_SIZE - 1);
+  public static final int INT_MASK = ~(BYTES_IN_INT - 1);
   public static final int WORD_MASK = ~(BYTES_IN_WORD - 1);
 
-  public static final Address HEAP_START      = Address.fromIntZeroExtend(0x10000000);
-  public static final Address HEAP_END        = Address.fromIntZeroExtend(0xA0000000);
+  /* Dimensions of memory cells (the contents of a memory page) */
+  private static final int CELL_MASK = INT_MASK;
+  private static final int BYTES_IN_CELL = BYTES_IN_INT;
+  private static final int LOG_BYTES_IN_CELL = LOG_BYTES_IN_INT;
 
-
-  private static final Offset ZERO = Offset.zero();
   private static final ArrayList<Address> watches = new ArrayList<Address>();
 
-  static final class PageTable {
-    private static final HashMap<Integer, MemoryPage> pages = new HashMap<Integer, MemoryPage>();
+  private static final class PageTable {
+    private static final HashMap<Long, MemoryPage> pages = new HashMap<Long, MemoryPage>();
 
-    private static int pageTableEntry(Address p) {
-      return p.toInt() >>> LOG_BYTES_IN_PAGE;
+    private static long pageTableEntry(Address p) {
+      return p.toLong() >>> LOG_BYTES_IN_PAGE;
     }
 
     /**
@@ -100,7 +103,7 @@ public final class SimulatedMemory {
 
     private static void mapPage(Address p) {
       synchronized(pages) {
-        int page = pageTableEntry(p);
+        long page = pageTableEntry(p);
         if (VERBOSE) { System.err.printf("Mapping page %s%n", p); }
         if (pages.get(page) != null) {
           throw new RuntimeException("Page already mapped: " + p);
@@ -136,8 +139,8 @@ public final class SimulatedMemory {
   public static void addWatch(Address watchAddress, int bytes) {
     while (bytes > 0) {
       addWatch(watchAddress);
-      bytes -= BYTES_IN_WORD;
-      watchAddress = watchAddress.plus(BYTES_IN_WORD);
+      bytes -= BYTES_IN_INT;
+      watchAddress = watchAddress.plus(BYTES_IN_INT);
     }
   }
 
@@ -147,10 +150,6 @@ public final class SimulatedMemory {
    * @param addr2
    * @return
    */
-  private static boolean onSamePage(int addr1, int addr2) {
-    return (addr2^addr1) < BYTES_IN_PAGE;
-  }
-
   private static boolean onSamePage(Address addr1, Address addr2) {
     return addr2.toWord().xor(addr1.toWord()).LT(Word.fromIntSignExtend(BYTES_IN_PAGE));
   }
@@ -190,6 +189,15 @@ public final class SimulatedMemory {
   static double getDouble(Address address) {
     return Double.longBitsToDouble(getLong(address));
   }
+  static ArchitecturalWord getWord(Address address) {
+    switch (ArchitecturalWord.getModel()) {
+      case BITS32:
+        return ArchitecturalWord.fromIntSignExtend(getInt(address));
+      case BITS64:
+        return ArchitecturalWord.fromLong(getPage(address).getLong(address));
+    }
+    throw new RuntimeException("ArchitecturalWord.model is neither 32 or 64 bits");
+  }
 
   static byte setByte(Address address, byte value) {
     return getPage(address).setByte(address, value);
@@ -219,8 +227,28 @@ public final class SimulatedMemory {
     return Double.longBitsToDouble(setLong(address, Double.doubleToLongBits(value)));
   }
 
+  static ArchitecturalWord setWord(Address address, ArchitecturalWord value) {
+    switch (ArchitecturalWord.getModel()) {
+      case BITS32:
+        return ArchitecturalWord.fromLong(setInt(address, value.toInt()));
+      case BITS64:
+        return ArchitecturalWord.fromLong(setLong(address, value.toLongSignExtend()));
+    }
+    throw new RuntimeException("ArchitecturalWord.model is neither 32 or 64 bits");
+  }
+
   static boolean exchangeInt(Address address, int oldValue, int value) {
     return getPage(address).exchangeInt(address, oldValue, value);
+  }
+
+  static boolean exchangeWord(Address address, ArchitecturalWord oldValue, ArchitecturalWord value) {
+    switch (ArchitecturalWord.getModel()) {
+      case BITS32:
+        return getPage(address).exchangeInt(address, oldValue.toInt(), value.toInt());
+      case BITS64:
+        return getPage(address).exchangeLong(address, oldValue.toLongSignExtend(), value.toLongSignExtend());
+    }
+    throw new RuntimeException("ArchitecturalWord.model is neither 32 or 64 bits");
   }
 
   /**
@@ -297,7 +325,7 @@ public final class SimulatedMemory {
     assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
     MemoryPage page = getPage(start);
     Address pageAddress = start;
-    for(int i=0; i < size; i += BYTES_IN_WORD) {
+    for(int i=0; i < size; i += BYTES_IN_INT) {
       Address curAddr = start.plus(i);
       if (!onSamePage(pageAddress, curAddr)) {
         page = getPage(curAddr);
@@ -335,7 +363,7 @@ public final class SimulatedMemory {
     int bytes = (beforeBytes + afterBytes);
     for(int i=0; i < bytes; i += BYTES_IN_WORD) {
       Address cur = begin.plus(i);
-      System.err.println(cur + ": " + getInt(cur));
+      System.err.println(cur + ": " + getWord(cur));
     }
   }
 
@@ -357,7 +385,7 @@ public final class SimulatedMemory {
     private MemoryPage(Address pageAddress) {
       this.pageAddress = pageAddress;
       this.readable = true;
-      this.data = new int[PAGE_SIZE >>> LOG_BYTES_IN_WORD];
+      this.data = new int[PAGE_SIZE >>> LOG_BYTES_IN_CELL];
       this.watch = getWatchPoints();
       if (VERBOSE) log("Mapping page %s%n",pageAddress);
     }
@@ -368,7 +396,7 @@ public final class SimulatedMemory {
      * @return
      */
     private Address cellAddress(int index) {
-      return pageAddress.plus(index<<LOG_BYTES_IN_WORD);
+      return pageAddress.plus(index<<LOG_BYTES_IN_CELL);
     }
 
     /**
@@ -379,6 +407,7 @@ public final class SimulatedMemory {
         write(i, 0);
       }
     }
+
 
 
     /**
@@ -392,22 +421,21 @@ public final class SimulatedMemory {
     }
 
     /**
-     * Calculate the index to use in the page data based on the given address/offset combination.
+     * Calculate the index to use in the page data based on the given address.
      * @param address The address being used.
-     * @param offset The offset from this address.
      * @return The index into the page data.
      */
     private int getIndex(Address address) {
       assert onSamePage(address,pageAddress) :
         "Invalid access of " + address + " in page " + pageAddress;
-      return ((int)((address.toLong()) & INDEX_MASK)) >>> LOG_BYTES_IN_WORD;
+      return ((int)((address.toLong()) & INDEX_MASK)) >>> LOG_BYTES_IN_CELL;
     }
 
     /**
      * Load a byte value from this page.
      */
     public byte getByte(Address address) {
-      int bitShift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+      int bitShift = ((address.toInt()) & ~CELL_MASK) << LOG_BITS_IN_BYTE;
       int index = getIndex(address);
       return (byte)(read(index) >>> bitShift);
     }
@@ -416,7 +444,7 @@ public final class SimulatedMemory {
      * Load a char value from this page.
      */
     public char getChar(Address address) {
-      int bitShift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
+      int bitShift = ((address.toInt()) & ~CELL_MASK) << LOG_BITS_IN_BYTE;
       assert bitShift == 0 || bitShift == 16: "misaligned char access";
       int index = getIndex(address);
       return (char)(read(index) >>> bitShift);
@@ -426,7 +454,7 @@ public final class SimulatedMemory {
      * Load an integer value from this page.
      */
     public int getInt(Address address) {
-      assert ((address.toInt()) % BYTES_IN_WORD) == 0: "misaligned 4b access";
+      assert ((address.toInt()) % BYTES_IN_INT) == 0: "misaligned 4b access";
       return read(getIndex(address));
     }
 
@@ -437,7 +465,7 @@ public final class SimulatedMemory {
       if (ALIGN_CHECK_LONG) {
         assert ((address.toLong()) % BYTES_IN_LONG) == 0: "misaligned 8b access";
       }
-      return longFrom2Ints(getInt(address), getInt(address.plus(BYTES_IN_WORD)));
+      return longFrom2Ints(getInt(address), getInt(address.plus(BYTES_IN_CELL)));
     }
 
     public byte setByte(Address address, byte value) {
@@ -464,7 +492,7 @@ public final class SimulatedMemory {
     }
 
     public int setInt(Address address, int value) {
-      assert ((address.toInt()) % BYTES_IN_WORD) == 0: "misaligned 4b access";
+      assert ((address.toInt()) % BYTES_IN_INT) == 0: "misaligned 4b access";
       int index = getIndex(address);
       int old = read(index);
       write(index, value);
@@ -475,11 +503,16 @@ public final class SimulatedMemory {
       if (ALIGN_CHECK_LONG) {
         assert ((address.toInt()) % BYTES_IN_LONG) == 0: "misaligned 8b access";
       }
+      try {
       int index = getIndex(address);
       long old = longFrom2Ints(read(index), read(index+1));
       write(index, (int)(value >>> 32));
       write(index+1, (int)(value & 0xFFFFFFFFL));
       return old;
+      } catch (RuntimeException e) {
+        System.err.println("Error setting address "+address);
+        throw e;
+      }
     }
 
     public synchronized boolean exchangeInt(Address address, int oldValue, int value) {

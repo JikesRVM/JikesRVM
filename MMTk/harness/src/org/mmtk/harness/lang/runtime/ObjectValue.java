@@ -66,9 +66,8 @@ public class ObjectValue extends Value {
   public String toString() {
     if (value.isNull()) {
       return "null";
-    } else {
-      return value.toString();
     }
+    return value.toString();
   }
 
   /**

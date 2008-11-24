@@ -41,7 +41,19 @@ public class Memory extends org.mmtk.vm.Memory {
    * @return The high bound of the memory that MMTk can allocate.
    */
    private static ImmortalSpace vmSpace = null;
-   private static Extent SIZE = Extent.fromIntZeroExtend(0x10000000);
+   private static Extent VMSPACE_SIZE = Extent.fromIntZeroExtend(0x10000000);
+
+   // Uncomment the below to exercise MMTk's 64-bit address space handling
+
+//   public static final Address HEAP_START      = ArchitecturalWord.getModel().bitsInWord() == 32 ?
+//       Address.fromIntZeroExtend(0x10000000) :
+//       Address.fromLong(0x210000000L)  ;
+//   public static final Address HEAP_END        = ArchitecturalWord.getModel().bitsInWord() == 32 ?
+//       Address.fromIntZeroExtend(0xA0000000) :
+//       Address.fromLong(0x2A0000000L);
+
+   public static final Address HEAP_START = Address.fromIntZeroExtend(0x10000000);
+   public static final Address HEAP_END = Address.fromIntZeroExtend(0xA0000000);
 
   /**
    * Return the space associated with/reserved for the VM.  In the
@@ -52,7 +64,7 @@ public class Memory extends org.mmtk.vm.Memory {
   @Interruptible
   public ImmortalSpace getVMSpace() {
     if (vmSpace == null) {
-      vmSpace = new ImmortalSpace("vm", 0, VMRequest.create(SIZE, false));
+      vmSpace = new ImmortalSpace("vm", 0, VMRequest.create(VMSPACE_SIZE, false));
     }
     return vmSpace;
   }
@@ -187,21 +199,21 @@ public class Memory extends org.mmtk.vm.Memory {
    * called by MMTk users.
    */
   /** @return The lowest address in the virtual address space known to MMTk */
-  protected Address getHeapStartConstant() { return SimulatedMemory.HEAP_START; }
+  protected Address getHeapStartConstant() { return HEAP_START; }
   /** @return The highest address in the virtual address space known to MMTk */
-  protected Address getHeapEndConstant() { return SimulatedMemory.HEAP_END; }
+  protected Address getHeapEndConstant() { return HEAP_END; }
   /** @return The lowest address in the contiguous address space available to MMTk  */
-  protected Address getAvailableStartConstant() { return SimulatedMemory.HEAP_START.plus(SIZE); }
+  protected Address getAvailableStartConstant() { return HEAP_START.plus(VMSPACE_SIZE); }
   /** @return The highest address in the contiguous address space available to MMTk */
-  protected Address getAvailableEndConstant()  { return SimulatedMemory.HEAP_END; }
+  protected Address getAvailableEndConstant()  { return HEAP_END; }
   /** @return The log base two of the size of an address */
-  protected byte getLogBytesInAddressConstant() { return SimulatedMemory.LOG_BYTES_IN_WORD; }
+  protected byte getLogBytesInAddressConstant() { return (byte) SimulatedMemory.LOG_BYTES_IN_WORD; }
   /** @return The log base two of the size of a word */
-  protected byte getLogBytesInWordConstant() { return SimulatedMemory.LOG_BYTES_IN_WORD; }
+  protected byte getLogBytesInWordConstant() { return (byte) SimulatedMemory.LOG_BYTES_IN_WORD; }
   /** @return The log base two of the size of an OS page */
   protected byte getLogBytesInPageConstant() { return SimulatedMemory.LOG_BYTES_IN_PAGE; }
   /** @return The log base two of the minimum allocation alignment */
-  protected byte getLogMinAlignmentConstant()  { return SimulatedMemory.LOG_BYTES_IN_WORD; }
+  protected byte getLogMinAlignmentConstant()  { return (byte) SimulatedMemory.LOG_BYTES_IN_WORD; }
   /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
   protected byte getMaxAlignmentShiftConstant() { return 1; }
   /** @return The maximum number of bytes of padding to prepend to an object */

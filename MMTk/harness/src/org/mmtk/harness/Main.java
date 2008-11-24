@@ -34,6 +34,9 @@ public class Main {
     String[] harnessArgs = new String[args.length - 1];
     System.arraycopy(args, 1, harnessArgs, 0, harnessArgs.length);
 
+    /* Initialise the harness */
+    Harness.init(harnessArgs);
+
     /* Parse the script */
     String scriptFile = args[0];
     if(!scriptFile.endsWith(".script")) {
@@ -45,8 +48,6 @@ public class Main {
     /* Type-check the script */
     Checker.typeCheck(methods);
 
-    /* Initialise the harness */
-    Harness.init(harnessArgs);
 
     Scheduler.scheduleMutator(Compiler.compile(methods));
 

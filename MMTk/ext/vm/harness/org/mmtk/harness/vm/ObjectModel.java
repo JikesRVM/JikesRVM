@@ -53,18 +53,18 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
   /** The offset of the object ID */
   private static final Offset ID_OFFSET        = GC_OFFSET.plus(GC_HEADER_BYTES);
   /** The offset of the allocation site */
-  private static final Offset SITE_OFFSET      = ID_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  private static final Offset SITE_OFFSET      = ID_OFFSET.plus(SimulatedMemory.BYTES_IN_INT);
   /** The offset of the UInt16 storing the number of data fields */
-  private static final Offset DATACOUNT_OFFSET = SITE_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  private static final Offset DATACOUNT_OFFSET = SITE_OFFSET.plus(SimulatedMemory.BYTES_IN_INT);
   /** The offset of the UInt16 storing the number of reference fields */
-  private static final Offset REFCOUNT_OFFSET  = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_SHORT);
+  private static final Offset REFCOUNT_OFFSET  = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_INT);
   /** The offset of the status word */
-  private static final Offset STATUS_OFFSET    = DATACOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+  private static final Offset STATUS_OFFSET    = REFCOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_INT);
   /** The offset of the first reference field. */
   public  static final Offset REFS_OFFSET      = STATUS_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
 
-  public static final short MAX_DATA_FIELDS = Short.MAX_VALUE;
-  public static final short MAX_REF_FIELDS = Short.MAX_VALUE;
+  public static final int MAX_DATA_FIELDS = Integer.MAX_VALUE;
+  public static final int MAX_REF_FIELDS = Integer.MAX_VALUE;
 
   /** Has this object been hashed? */
   private static final int HASHED           = 0x1 << (3 * SimulatedMemory.BITS_IN_BYTE);
@@ -84,6 +84,11 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return nextObjectId++;
   }
 
+  /** Return the last object ID allocated - for error reporting: NOT THREAD SAFE!!! */
+  public static int lastObjectId() {
+    return nextObjectId;
+  }
+
   /**
    * Allocate an object and return the ObjectReference.
    *
@@ -95,7 +100,9 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    */
   public static ObjectReference allocateObject(MutatorContext context, int refCount, int dataCount, boolean doubleAlign, int site) {
     int bytes = (HEADER_WORDS + refCount + dataCount) << SimulatedMemory.LOG_BYTES_IN_WORD;
-    int align = (doubleAlign ? 2 : 1) * SimulatedMemory.BYTES_IN_WORD;
+    int align = ArchitecturalWord.getModel().bitsInWord() == 64 ?
+        SimulatedMemory.BYTES_IN_WORD :
+        (doubleAlign ? 2 : 1) * SimulatedMemory.BYTES_IN_INT;
     int allocator = context.checkAllocator(bytes, align, Plan.ALLOC_DEFAULT);
 
     // Allocate the raw memory
@@ -132,7 +139,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Get the object identifier as a string.
    */
   public static String idString(ObjectReference object) {
-    return Address.formatInt(getId(object));
+    return String.format("%08x", getId(object));
   }
 
   /**
@@ -167,8 +174,8 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of data words in the object.
    */
   private static void setDataCount(ObjectReference object, int count) {
-    assert count < Short.MAX_VALUE && count >= 0 : "Too many data fields, "+count;
-    object.toAddress().store((short)count, DATACOUNT_OFFSET);
+    assert count < MAX_DATA_FIELDS && count >= 0 : "Too many data fields, "+count;
+    object.toAddress().store(count, DATACOUNT_OFFSET);
   }
 
 
@@ -176,8 +183,8 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of references in the object.
    */
   private static void setRefCount(ObjectReference object, int count) {
-    assert count < Short.MAX_VALUE && count >= 0 : "Too many reference fields, "+count;
-    object.toAddress().store((short)count, REFCOUNT_OFFSET);
+    assert count < MAX_REF_FIELDS && count >= 0 : "Too many reference fields, "+count;
+    object.toAddress().store(count, REFCOUNT_OFFSET);
   }
 
   /**
@@ -313,7 +320,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     Address toRegion = c.allocCopy(from, newBytes, align, getAlignOffsetWhenCopied(from), allocator);
 
     Address fromRegion = from.toAddress();
-    for(int i=0; i < oldBytes; i += SimulatedMemory.BYTES_IN_WORD) {
+    for(int i=0; i < oldBytes; i += SimulatedMemory.BYTES_IN_INT) {
       toRegion.plus(i).store(fromRegion.plus(i).loadInt());
     }
 

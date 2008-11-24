@@ -19,38 +19,43 @@ import org.vmmagic.pragma.RawStorage;
 @RawStorage(lengthInWords = true, length = 1)
 public final class Extent {
 
-  final int value;
+  final ArchitecturalWord value;
 
-  Extent(int value) {
+  Extent(ArchitecturalWord value) {
     this.value = value;
   }
 
+  @Deprecated
+  private Extent(int value) {
+    this(ArchitecturalWord.fromIntSignExtend(value));
+  }
+
   public static Extent fromIntSignExtend(int value) {
-    return new Extent(value);
+    return new Extent(ArchitecturalWord.fromIntSignExtend(value));
   }
 
   public static Extent fromIntZeroExtend(int value) {
-    return new Extent(value);
+    return new Extent(ArchitecturalWord.fromIntZeroExtend(value));
   }
 
   public static Extent zero() {
-    return new Extent(0);
+    return fromIntSignExtend(0);
   }
 
   public static Extent one() {
-    return new Extent(1);
+    return fromIntSignExtend(1);
   }
 
   public static Extent max() {
-    return new Extent(0xFFFFFFFF);
+    return fromIntSignExtend(0xFFFFFFFF);
   }
 
   public int toInt() {
-    return value;
+    return value.toInt();
   }
 
   public long toLong() {
-    return ((long)value) & 0x00000000FFFFFFFFL;
+    return value.toLongZeroExtend();
   }
 
   public Word toWord() {
@@ -58,50 +63,47 @@ public final class Extent {
   }
 
   public Extent plus(int byteSize) {
-    return new Extent(value + byteSize);
+    return new Extent(value.plus(byteSize));
   }
 
   public Extent plus(Extent byteSize) {
-    return new Extent(value + byteSize.value);
+    return new Extent(value.plus(byteSize.toLong()));
   }
 
   public Extent minus(int byteSize) {
-    return new Extent(value - byteSize);
+    return new Extent(value.minus(byteSize));
   }
 
   public Extent minus(Extent byteSize) {
-    return new Extent(value - byteSize.value);
+    return new Extent(value.minus(byteSize.toLong()));
   }
 
   public boolean LT(Extent extent2) {
-    if (value >= 0 && extent2.value >= 0) return value < extent2.value;
-    if (value < 0 && extent2.value < 0) return value < extent2.value;
-    if (value < 0) return false;
-    return true;
+    return value.LT(extent2.value);
   }
 
   public boolean LE(Extent extent2) {
-    return EQ(extent2) || LT(extent2);
+    return value.LE(extent2.value);
   }
 
   public boolean GT(Extent extent2) {
-    return extent2.LT(this);
+    return value.GT(extent2.value);
   }
 
   public boolean GE(Extent extent2) {
-    return EQ(extent2) || GT(extent2);
+    return value.GE(extent2.value);
   }
 
   public boolean EQ(Extent extent2) {
-    return value == extent2.value;
+    return value.EQ(extent2.value);
   }
 
   public boolean NE(Extent extent2) {
-    return !EQ(extent2);
+    return value.NE(extent2.value);
   }
 
   public String toString() {
-    return Address.formatInt(value);
+    return value.toString();
   }
 }
 
