@@ -54,7 +54,7 @@ public abstract class MachineReflection implements RegisterConstants {
         if (gp > 0) {
           GPRs++;
           gp--;
-          if (gp > 0) {
+          if (VM.BuildFor32Addr && gp > 0) {
             GPRs++;
             gp--;
           }
@@ -124,16 +124,26 @@ public abstract class MachineReflection implements RegisterConstants {
         Parameters.set(parameter++, val);
       } else if (t.isLongType()) {
         long l = (Long)otherArgs[i];
-        if (gp > 0) {
-          gp--;
-          GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l >>> 32)));
+        if (VM.BuildFor32Addr) {
           if (gp > 0) {
             gp--;
-            GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l)));
+            GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l >>> 32)));
+            if (gp > 0) {
+              gp--;
+              GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l)));
+            }
           }
+          Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
+          Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
+        } else {
+          Word val = Word.fromLong(l);
+          if (gp > 0) {
+            gp--;
+            GPRs.set(GPR++, val);
+          }
+          Parameters.set(parameter++, val);
+          Parameters.set(parameter++, val);
         }
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
       } else if (t.isFloatType()) {
         if (fp > 0) {
           fp--;
@@ -148,20 +158,38 @@ public abstract class MachineReflection implements RegisterConstants {
         float f = (Float)otherArgs[i];
         Parameters.set(parameter++, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
       } else if (t.isDoubleType()) {
-        if (fp > 0) {
-          fp--;
-          if (ArchConstants.SSE2_FULL) {
-            FPRs[FPR] = (Double)otherArgs[i];
-            FPRmeta[FPR] = 0x1;
-            FPR++;
-          } else {
-            FPRs[--FPR] = (Double)otherArgs[i];
+        if (VM.BuildFor32Addr) {
+          if (fp > 0) {
+            fp--;
+            if (ArchConstants.SSE2_FULL) {
+              FPRs[FPR] = (Double)otherArgs[i];
+              FPRmeta[FPR] = 0x1;
+              FPR++;
+            } else {
+              FPRs[--FPR] = (Double)otherArgs[i];
+            }
           }
+          double d = (Double)otherArgs[i];
+          long l = Double.doubleToLongBits(d);
+          Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
+          Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
+        } else {
+          if (fp > 0) {
+            fp--;
+            if (ArchConstants.SSE2_FULL) {
+              FPRs[FPR] = (Double)otherArgs[i];
+              FPRmeta[FPR] = 0x1;
+              FPR++;
+            } else {
+              FPRs[--FPR] = (Double)otherArgs[i];
+            }
+          }
+          double d = (Double)otherArgs[i];
+          long l = Double.doubleToLongBits(d);
+          Word val = Word.fromLong(l);
+          Parameters.set(parameter++, val);
+          Parameters.set(parameter++, val);
         }
-        double d = (Double)otherArgs[i];
-        long l = Double.doubleToLongBits(d);
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
       } else if (t.isBooleanType()) {
         boolean b = (Boolean)otherArgs[i];
         Word val = Word.fromIntZeroExtend(b ? 1 : 0);

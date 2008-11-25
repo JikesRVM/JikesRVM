@@ -1607,7 +1607,7 @@ final class BaselineMagic {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
       asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitSUB_Reg_Imm(SP, 4);
+      asm.emitPUSH_Reg(T0); // create space
       if (SSE2_FULL) {
         asm.emitMOVSS_RegInd_Reg(SP, XMM0);
       } else {
@@ -1629,7 +1629,8 @@ final class BaselineMagic {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
       asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitSUB_Reg_Imm(SP, 8);
+      asm.emitPUSH_Reg(T0); // create space
+      asm.emitPUSH_Reg(T0);
       if (SSE2_FULL) {
         asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
       } else {
@@ -1729,9 +1730,13 @@ final class BaselineMagic {
       asm.emitPOP_Reg(SP);
 
       // restore nonvolatile registers
-      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
-      asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
-
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
+      } else {
+        asm.emitMOV_Reg_RegDisp_Quad(EDI, SP, EDI_SAVE_OFFSET);
+        asm.emitMOV_Reg_RegDisp_Quad(EBX, SP, EBX_SAVE_OFFSET);
+      }
       // discard current stack frame
       asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
 
@@ -1814,7 +1819,11 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // fp
-      asm.emitMOV_RegDisp_Reg(S0, disp, T0); // [S0+disp] <- T0
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_RegDisp_Reg(S0, disp, T0); // [S0+disp] <- T0
+      } else {
+        asm.emitMOV_RegDisp_Reg_Quad(S0, disp, T0); // [S0+disp] <- T0
+      }
     }
   }
   static {
@@ -1999,7 +2008,11 @@ final class BaselineMagic {
   private static final class GetReturnAddressLocation extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitADD_RegInd_Imm(SP, STACKFRAME_RETURN_ADDRESS_OFFSET);
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_RegInd_Imm(SP, STACKFRAME_RETURN_ADDRESS_OFFSET);
+      } else {
+        asm.emitADD_RegInd_Imm_Quad(SP, STACKFRAME_RETURN_ADDRESS_OFFSET);
+      }
     }
   }
   static {
