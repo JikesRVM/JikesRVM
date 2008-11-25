@@ -1189,7 +1189,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPOP_Reg(EAX);  // EAX is dividend
       asm.emitCDO();         // sign extend EAX into EDX
       asm.emitIDIV_Reg_Reg_Quad(EAX, ECX);
-      asm.emitPUSH_Reg(EAX); // push result
+      asm.emitPUSH_Reg(EDX); // push result
     } else {
       // (1) zero check
       asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
