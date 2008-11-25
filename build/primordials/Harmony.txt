@@ -446,6 +446,14 @@ Ljava/security/ProtectionDomain;
 Ljava/util/regex/Pattern;
 Ljava/util/BitSet;
 Ljava/util/regex/Matcher;
+Ljava/util/regex/AbstractSet;
+Ljava/util/regex/FSet;
+Ljava/util/regex/FinalSet;
+Ljava/util/regex/Lexer;
+Ljava/util/regex/MatchResultImpl;
+Ljava/util/regex/SequenceSet$IntHash;
+Ljava/util/regex/SequenceSet;
+Ljava/util/regex/SingleSet;
 
 Ljava/util/logging/Logger;
 Ljava/util/logging/Logger$1;

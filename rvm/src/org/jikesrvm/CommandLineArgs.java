@@ -56,7 +56,9 @@ public class CommandLineArgs {
     JAR_ARG,
     JAVAAGENT_ARG,
     ENABLE_ASSERTION_ARG,
+    ENABLE_SYSTEM_ASSERTION_ARG,
     DISABLE_ASSERTION_ARG,
+    DISABLE_SYSTEM_ASSERTION_ARG,
 
     // -----------------------------------------------//
     // The following arguments are RVM-specific.      //
@@ -155,14 +157,29 @@ public class CommandLineArgs {
                                             new Prefix("-verbose:class$", PrefixType.VERBOSE_CLS_ARG),
                                             new Prefix("-verbose:jni$", PrefixType.VERBOSE_JNI_ARG),
                                             new Prefix("-verbose$", PrefixType.VERBOSE_CLS_ARG),
+
                                             new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea:", PrefixType.ENABLE_ASSERTION_ARG),
-                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea", PrefixType.ENABLE_ASSERTION_ARG),
+
+                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
+
+                                            new Prefix("-esa:", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-enablesystemassertions:", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-esa", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-enablesystemassertions", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+
                                             new Prefix("-disableassertions:", PrefixType.DISABLE_ASSERTION_ARG),
                                             new Prefix("-da:", PrefixType.DISABLE_ASSERTION_ARG),
                                             new Prefix("-disableassertions", PrefixType.DISABLE_ASSERTION_ARG),
                                             new Prefix("-da", PrefixType.DISABLE_ASSERTION_ARG),
+
+                                            new Prefix("-disablesystemassertions:", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-dsa:", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-disablesystemassertions", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-dsa", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+
                                             new Prefix("-Xbootclasspath/p:", PrefixType.BOOTCLASSPATH_P_ARG),
                                             new Prefix("-Xbootclasspath/a:", PrefixType.BOOTCLASSPATH_A_ARG),
                                             new Prefix("-X:vmClasses=", PrefixType.BOOTSTRAP_CLASSES_ARG),
@@ -497,8 +514,20 @@ public class CommandLineArgs {
           RVMClassLoader.stashEnableAssertionArg(arg);
           break;
 
+        case ENABLE_SYSTEM_ASSERTION_ARG:
+          // arguments of the form "-esa[:<packagename>...|:<classname>]"
+          // TODO: currently just treat as -ea
+          RVMClassLoader.stashEnableAssertionArg(arg);
+          break;
+
         case DISABLE_ASSERTION_ARG:
           // arguments of the form "-da[:<packagename>...|:<classname>]"
+          RVMClassLoader.stashDisableAssertionArg(arg);
+          break;
+
+        case DISABLE_SYSTEM_ASSERTION_ARG:
+          // arguments of the form "-dsa[:<packagename>...|:<classname>]"
+          // TODO: currently just treat as -da
           RVMClassLoader.stashDisableAssertionArg(arg);
           break;
 
