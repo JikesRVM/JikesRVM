@@ -434,7 +434,7 @@ if ($test_list ne "") {
 # Configuration 
 #
 if ($test_set && !$checkstyle) {
-  $checkstyle = `grep require.checkstyle $localRoot/build/test-runs/$test_set.properties`;
+  $checkstyle = `grep ^require.checkstyle=true\$ $localRoot/build/test-runs/$test_set.properties`;
   chomp($checkstyle);
   if ($checkstyle ne "") {
     $checkstyle = 1;
