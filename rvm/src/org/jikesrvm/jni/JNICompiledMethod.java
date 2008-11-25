@@ -39,8 +39,20 @@ import org.vmmagic.unboxed.Offset;
 public final class JNICompiledMethod extends CompiledMethod {
 
   /** Architecture specific deliverer of exceptions */
-  private static final ExceptionDeliverer deliverer =
-    VM.BuildForIA32 ? new org.jikesrvm.jni.ia32.JNIExceptionDeliverer() : null;
+  private static final ExceptionDeliverer deliverer;
+
+  static {
+    if (VM.BuildForIA32) {
+      try {
+        deliverer =
+         (ExceptionDeliverer)Class.forName("org.jikesrvm.jni.ia32.JNIExceptionDeliverer").newInstance();
+      } catch (Exception e) {
+        throw new Error(e);
+      }
+    } else {
+      deliverer = null;
+    }
+  }
 
   public JNICompiledMethod(int id, RVMMethod m) {
     super(id, m);

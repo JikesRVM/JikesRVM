@@ -85,6 +85,9 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class JNICompiler implements BaselineConstants {
 
+  /** Dummy field to force compilation of the exception deliverer */
+  private org.jikesrvm.jni.ia32.JNIExceptionDeliverer unused;
+
   /** Offset of external functions field in JNIEnvironment */
   private static final  int jniExternalFunctionsFieldOffset =
     Entrypoints.JNIExternalFunctionsField.getOffset().toInt();
