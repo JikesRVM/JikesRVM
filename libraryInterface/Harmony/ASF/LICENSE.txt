@@ -3,7 +3,7 @@ directly derived from Apache Harmony and therefore is redistributable
 under the same License as Apache Harmony itself. That is the Apache
 License.
 
--- The following is the legal text of the License taken from GNU Classpath --
+-- The following is the legal text of the License taken from Apache Harmony --
 
                                  Apache License
                            Version 2.0, January 2004
