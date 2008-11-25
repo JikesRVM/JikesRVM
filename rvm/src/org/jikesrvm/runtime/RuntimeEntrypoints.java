@@ -989,6 +989,9 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    */
   @Uninterruptible
   public static Address unwindNativeStackFrame(Address currfp) {
+    if (VM.BuildForIA32) {
+      return currfp;
+    }
     // Remembered address of previous FP
     Address callee_fp;
     // Address of native frame

@@ -15,15 +15,22 @@ package org.jikesrvm.jni;
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.Synchronization;
 import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A JNIEnvironment is created for each Java thread.
@@ -89,38 +96,22 @@ public final class JNIEnvironment implements SizeConstants {
   protected Processor savedPRreg;
 
   /**
-   * true if the bottom stack frame is native,
-   * such as thread for CreateJVM or AttachCurrentThread
-   */
-  protected boolean alwaysHasNativeFrame;
-
-  /**
-   * references passed to native code
+   * When native code doesn't maintain a base pointer we can't chain
+   * through the base pointers when walking the stack. This field
+   * holds the basePointer on entry to the native code in such a case,
+   * and is pushed onto the stack if we re-enter Java code (e.g. to
+   * handle a JNI function). This field is currently only used on IA32.
    */
   @Entrypoint
-  @Untraced
-  public AddressArray JNIRefs;
+  private Address basePointerOnEntryToNative = Address.fromIntSignExtend(0xF00BAAA1);
 
   /**
-   * address of current top ref in JNIRefs array
-   */
-  @Entrypoint
-  public int JNIRefsTop;
-
-  /**
-   * offset of end (last entry) of JNIRefs array
-   */
-  @Entrypoint
-  protected int JNIRefsMax;
-
-  /**
-   * previous frame boundary in JNIRefs array
-   */
-  @Entrypoint
-  public int JNIRefsSavedFP;
-
-  /**
-   * Top java frame when in C frames on top of the stack
+   * When transitioning between Java and C and back, we may want to stop a thread
+   * returning into Java and executing mutator code when a GC is in progress.
+   * When in C code, the C code may never return. In these situations we need a
+   * frame pointer at which to begin scanning the stack. This field holds this
+   * value. NB. these fields don't chain together on the stack as we walk through
+   * native frames by knowing their return addresses are outside of our heaps
    */
   @Entrypoint
   protected Address JNITopJavaFP;
@@ -144,6 +135,38 @@ public final class JNIEnvironment implements SizeConstants {
    * Pool of available JNIEnvironments.
    */
   protected static JNIEnvironment pool;
+
+  /**
+   * true if the bottom stack frame is native,
+   * such as thread for CreateJVM or AttachCurrentThread
+   */
+  protected boolean alwaysHasNativeFrame;
+
+  /**
+   * references passed to native code
+   */
+  @Entrypoint
+  @Untraced
+  public AddressArray JNIRefs;
+
+  /**
+   * Offset of current top ref in JNIRefs array
+   */
+  @Entrypoint
+  public int JNIRefsTop;
+
+  /**
+   * Offset of end (last entry) of JNIRefs array
+   */
+  @Entrypoint
+  protected int JNIRefsMax;
+
+  /**
+   * Previous frame boundary in JNIRefs array.
+   * NB unused on IA32
+   */
+  @Entrypoint
+  public int JNIRefsSavedFP;
 
   /**
    * Initialize a thread specific JNI environment.
@@ -215,6 +238,41 @@ public final class JNIEnvironment implements SizeConstants {
   }
 
   /**
+   * Check push of reference can succeed
+   * @param ref object to be pushed
+   * @param canGrow can the JNI reference array be grown?
+   */
+  @Uninterruptible("May be called from uninterruptible code")
+  @NoInline
+  private void checkPush(Object ref, boolean canGrow) {
+    final boolean debug=true;
+    VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
+    if (JNIRefsTop < 0) {
+      if (debug) {
+        VM.sysWriteln("JNIRefsTop=", JNIRefsTop);
+        VM.sysWriteln("JNIRefs.length=", JNIRefs.length());
+      }
+      VM.sysFail("unchecked push to negative offset!");
+    }
+    if ((JNIRefsTop >> LOG_BYTES_IN_ADDRESS) >= JNIRefs.length()) {
+      if (debug) {
+        VM.sysWriteln("JNIRefsTop=", JNIRefsTop);
+        VM.sysWriteln("JNIRefs.length=", JNIRefs.length());
+      }
+      VM.sysFail("unchecked pushes exceeded fudge length!");
+    }
+    if (!canGrow) {
+      if ((JNIRefsTop+BYTES_IN_ADDRESS) >= JNIRefsMax) {
+        if (debug) {
+          VM.sysWriteln("JNIRefsTop=", JNIRefsTop);
+          VM.sysWriteln("JNIRefsMax=", JNIRefsMax);
+        }
+        VM.sysFail("unchecked push can't grow JNI refs!");
+      }
+    }
+  }
+
+  /**
    * Push a reference onto thread local JNIRefs stack.
    * To be used by JNI functions when returning a reference
    * back to JNI native C code.
@@ -224,29 +282,125 @@ public final class JNIEnvironment implements SizeConstants {
   public int pushJNIRef(Object ref) {
     if (ref == null) {
       return 0;
-    }
-
-    if (VM.VerifyAssertions) {
-      VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
-    }
-
-    if ((JNIRefsTop >>> LOG_BYTES_IN_ADDRESS) >= JNIRefs.length()) {
-      VM.sysFail("unchecked pushes exceeded fudge length!");
-    }
-
-    JNIRefsTop += BYTES_IN_ADDRESS;
-
-    if (JNIRefsTop >= JNIRefsMax) {
-      JNIRefsMax *= 2;
-      AddressArray newrefs = AddressArray.create((JNIRefsMax >>> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
-      for (int i = 0; i < JNIRefs.length(); i++) {
-        newrefs.set(i, JNIRefs.get(i));
+    } else {
+      if (VM.VerifyAssertions) checkPush(ref, true);
+      JNIRefsTop += BYTES_IN_ADDRESS;
+      if (JNIRefsTop >= JNIRefsMax) {
+        JNIRefsMax *= 2;
+        AddressArray newrefs = AddressArray.create((JNIRefsMax >> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
+        for (int i = 0; i < JNIRefs.length(); i++) {
+          newrefs.set(i, JNIRefs.get(i));
+        }
+        JNIRefs = newrefs;
       }
-      JNIRefs = newrefs;
+      JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
+      return JNIRefsTop;
     }
+  }
 
-    JNIRefs.set(JNIRefsTop >>> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
-    return JNIRefsTop;
+  /**
+   * Push a JNI ref, used on entry to JNI
+   * NB only used for Intel
+   * @param ref reference to place on stack or value of saved frame pointer
+   * @param isRef false if the reference isn't a frame pointer
+   */
+  @Uninterruptible("Encoding arguments on stack that won't be seen by GC")
+  @Inline
+  private int uninterruptiblePushJNIRef(Address ref, boolean isRef) {
+    if (ref.isZero()) {
+      return 0;
+    } else {
+      if (VM.VerifyAssertions) checkPush(isRef ? Magic.addressAsObject(ref) : null, false);
+      // we count all slots so that releasing them is straight forward
+      JNIRefsTop += BYTES_IN_ADDRESS;
+      // ensure null is always seen as slot zero
+      //org.jikesrvm.VM.sysWriteln("Allocating slot for ", Magic.objectAsAddress(ref));
+      JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
+      return JNIRefsTop;
+    }
+  }
+
+  /**
+   * Save data and perform necessary conversions for entry into JNI.
+   * NB only used for Intel.
+   *
+   * @param encodedReferenceOffsets
+   *          bit mask marking which elements on the stack hold objects that need
+   *          encoding as JNI ref identifiers
+   */
+  @Uninterruptible("Objects on the stack won't be recognized by GC, therefore don't allow GC")
+  @Entrypoint
+  public void entryToJNI(int encodedReferenceOffsets) {
+    // Save processor
+    savedPRreg = Magic.getProcessorRegister();
+
+    // Save frame pointer of calling routine, once so that native stack frames
+    // are skipped and once for use by GC
+    Address callersFP = Magic.getCallerFramePointer(Magic.getFramePointer());
+    basePointerOnEntryToNative = callersFP; // NB old value saved on call stack
+    JNITopJavaFP = callersFP;
+
+    // Save current JNI ref stack pointer
+    int oldJNIRefsTop = JNIRefsSavedFP;
+    JNIRefsSavedFP = JNIRefsTop;
+    uninterruptiblePushJNIRef(Address.fromIntSignExtend(oldJNIRefsTop), false);
+
+    // Convert arguments on stack from objects to JNI references
+    Address fp = Magic.getFramePointer();
+    Offset argOffset = Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS);
+    fp.store(uninterruptiblePushJNIRef(fp.loadAddress(argOffset),true), argOffset);
+    while (encodedReferenceOffsets != 0) {
+      argOffset = argOffset.plus(BYTES_IN_ADDRESS);
+      if ((encodedReferenceOffsets & 1) != 0) {
+        fp.store(uninterruptiblePushJNIRef(fp.loadAddress(argOffset), true), argOffset);
+      }
+      encodedReferenceOffsets >>>= 1;
+    }
+    // Transition processor from IN_JAVA to IN_NATIVE
+    while(!Synchronization.tryCompareAndSwap(Magic.getProcessorRegister(),
+        Entrypoints.vpStatusField.getOffset(), Processor.IN_JAVA, Processor.IN_NATIVE)) {
+      SysCall.sysCall.sysVirtualProcessorYield();
+    }
+  }
+
+  /**
+   * Restore data, throw pending exceptions or convert return value for exit
+   * from JNI. NB only used for Intel.
+   *
+   * @param offset
+   *          offset into JNI reference tables of result
+   * @return Object encoded by offset or null if offset is 0
+   */
+  @Unpreemptible("Don't allow preemption when we're not in a sane state. " +
+  "Code can throw exceptions so not uninterruptible.")
+  @Entrypoint
+  public Object exitFromJNI(int offset) {
+    // Transition processor from IN_NATIVE to IN_JAVA
+    while(!Synchronization.tryCompareAndSwap(Magic.getProcessorRegister(),
+        Entrypoints.vpStatusField.getOffset(), Processor.IN_NATIVE, Processor.IN_JAVA)) {
+      SysCall.sysCall.sysVirtualProcessorYield();
+    }
+    // Restore JNI ref top and saved frame pointer
+    JNIRefsTop = JNIRefsSavedFP;
+    JNIRefsSavedFP = JNIRefs.get((JNIRefsTop >> LOG_BYTES_IN_ADDRESS) + BYTES_IN_ADDRESS).toInt();
+
+    // Throw and clear any pending exceptions
+    Throwable pe = pendingException;
+    if (pe != null) {
+      pendingException = null;
+      RuntimeEntrypoints.athrow(pe);
+      // NB. we will never reach here
+    }
+    // Lookup result
+    Object result;
+    if (offset == 0) {
+      result = null;
+    } else if (offset < 0) {
+      result = JNIGlobalRefTable.ref(offset);
+    } else {
+      result = Magic.addressAsObject(JNIRefs.get(offset >> LOG_BYTES_IN_ADDRESS));
+    }
+    return result;
   }
 
   /**
@@ -261,12 +415,13 @@ public final class JNIEnvironment implements SizeConstants {
       VM.sysWrite("(top is ");
       VM.sysWrite(JNIRefsTop);
       VM.sysWrite(")\n");
+      org.jikesrvm.scheduler.Scheduler.dumpStack();
       return null;
     }
     if (offset < 0) {
       return JNIGlobalRefTable.ref(offset);
     } else {
-      return Magic.addressAsObject(JNIRefs.get(offset >>> LOG_BYTES_IN_ADDRESS));
+      return Magic.addressAsObject(JNIRefs.get(offset >> LOG_BYTES_IN_ADDRESS));
     }
   }
 
@@ -283,7 +438,7 @@ public final class JNIEnvironment implements SizeConstants {
       VM.sysWrite(")\n");
     }
 
-    JNIRefs.set(offset >>> LOG_BYTES_IN_ADDRESS, Address.zero());
+    JNIRefs.set(offset >> LOG_BYTES_IN_ADDRESS, Address.zero());
 
     if (offset == JNIRefsTop) JNIRefsTop -= BYTES_IN_ADDRESS;
   }
@@ -307,7 +462,7 @@ public final class JNIEnvironment implements SizeConstants {
       VM.sysWrite(" ");
       VM.sysWrite(Magic.objectAsAddress(JNIRefs).plus(jniRefOffset));
       VM.sysWrite(" ");
-      MemoryManager.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS).toObjectReference());
+      MemoryManager.dumpRef(JNIRefs.get(jniRefOffset >> LOG_BYTES_IN_ADDRESS).toObjectReference());
       jniRefOffset -= BYTES_IN_ADDRESS;
     }
     VM.sysWrite("\n* * end of dump * *\n");

@@ -67,6 +67,7 @@ public abstract class Reference<T> {
    * reference was cleared.
    */
   @SuppressWarnings("unchecked") // This method requires an unchecked cast
+  @Uninterruptible
   public T get() {
     Address tmp = _referent;
 

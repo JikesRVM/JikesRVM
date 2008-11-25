@@ -722,9 +722,8 @@ public abstract class Scheduler {
       try {
         VM.sysWriteln("-- Stack --");
         while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
-
           // if code is outside of RVM heap, assume it to be native code,
-          if (!MemoryManager.addressInVM(ip)) {
+          if (VM.BuildForPowerPC && !MemoryManager.addressInVM(ip)) {
             // Loop until either we fall off the stack or we find an instruction address
             // in one of our heaps
             do {
