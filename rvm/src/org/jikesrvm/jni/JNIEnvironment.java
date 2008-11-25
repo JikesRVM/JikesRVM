@@ -307,14 +307,13 @@ public final class JNIEnvironment implements SizeConstants {
   @Uninterruptible("Encoding arguments on stack that won't be seen by GC")
   @Inline
   private int uninterruptiblePushJNIRef(Address ref, boolean isRef) {
-    if (ref.isZero()) {
+    if (isRef && ref.isZero()) {
       return 0;
     } else {
       if (VM.VerifyAssertions) checkPush(isRef ? Magic.addressAsObject(ref) : null, false);
       // we count all slots so that releasing them is straight forward
       JNIRefsTop += BYTES_IN_ADDRESS;
       // ensure null is always seen as slot zero
-      //org.jikesrvm.VM.sysWriteln("Allocating slot for ", Magic.objectAsAddress(ref));
       JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
       return JNIRefsTop;
     }
@@ -341,9 +340,9 @@ public final class JNIEnvironment implements SizeConstants {
     JNITopJavaFP = callersFP;
 
     // Save current JNI ref stack pointer
-    int oldJNIRefsTop = JNIRefsSavedFP;
+    int oldJNIRefsSavedFP = JNIRefsSavedFP;
     JNIRefsSavedFP = JNIRefsTop;
-    uninterruptiblePushJNIRef(Address.fromIntSignExtend(oldJNIRefsTop), false);
+    uninterruptiblePushJNIRef(Address.fromIntSignExtend(oldJNIRefsSavedFP), false);
 
     // Convert arguments on stack from objects to JNI references
     Address fp = Magic.getFramePointer();
@@ -382,7 +381,9 @@ public final class JNIEnvironment implements SizeConstants {
     }
     // Restore JNI ref top and saved frame pointer
     JNIRefsTop = JNIRefsSavedFP;
-    JNIRefsSavedFP = JNIRefs.get((JNIRefsTop >> LOG_BYTES_IN_ADDRESS) + BYTES_IN_ADDRESS).toInt();
+    if (JNIRefsTop > 0) {
+      JNIRefsSavedFP = JNIRefs.get((JNIRefsTop >> LOG_BYTES_IN_ADDRESS) + 1).toInt();
+    }
 
     // Throw and clear any pending exceptions
     Throwable pe = pendingException;

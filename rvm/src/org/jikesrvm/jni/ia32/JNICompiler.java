@@ -348,11 +348,13 @@ public abstract class JNICompiler implements BaselineConstants {
 
     // Encode reference arguments into a long
     int encodedReferenceOffsets=0;
-    for (int i=0; i < args.length; i++) {
+    for (int i=0, pos=0; i < args.length; i++, pos++) {
       TypeReference arg = args[i];
       if (arg.isReferenceType()) {
-        if (VM.VerifyAssertions) VM._assert(i < 32);
-        encodedReferenceOffsets |= 1 << i;
+        if (VM.VerifyAssertions) VM._assert(pos < 32);
+        encodedReferenceOffsets |= 1 << pos;
+      } else if (arg.isLongType() || arg.isDoubleType()) {
+        pos++;
       }
     }
     // Call out to JNI environment JNI entry
