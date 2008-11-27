@@ -83,7 +83,7 @@ public class JNIGlobalRefTable {
     if (VM.VerifyAssertions) VM._assert(isWeakRef(index));
     @SuppressWarnings("unchecked") // yes, we're being bad.
     WeakReference<Object> ref = (WeakReference<Object>) globalRef(index | STRONG_REF_BIT);
-    return ref.get();
+    return java.lang.ref.JikesRVMSupport.uninterruptibleReferenceGet(ref);
   }
 
   @Uninterruptible
