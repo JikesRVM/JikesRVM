@@ -334,12 +334,12 @@ public final class PiNodes extends CompilerPhase {
         // create the instruction and insert it
         if (obj.isRegister()) {
           RegisterOperand lval = (RegisterOperand) obj.copy();
-          lval.setType(TypeCheck.getType(instr).getTypeRef());
           lval.clearDeclaredType();
           if (lval.getType().isLoaded() && lval.getType().isClassType() && lval.getType().peekType().asClass().isFinal()) {
-            lval.setPreciseType();
+            lval.setPreciseType(TypeCheck.getType(instr).getTypeRef());
           } else {
             lval.clearPreciseType();
+            lval.setType(TypeCheck.getType(instr).getTypeRef());
           }
           Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
           s.position = instr.position;

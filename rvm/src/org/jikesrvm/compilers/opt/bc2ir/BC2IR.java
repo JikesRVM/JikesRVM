@@ -1590,8 +1590,7 @@ public final class BC2IR
                   t.setPreciseType();
                 } else {
                   fieldType = concreteType;
-                  t.setType(concreteType);
-                  t.setPreciseType();
+                  t.setPreciseType(concreteType);
                 }
               }
             }
@@ -4011,9 +4010,9 @@ public final class BC2IR
                   RegisterOperand tlocr = locr.copyU2U();
                   guard = gc.makeNullCheckGuard(tlocr.getRegister());
                   setGuard(tlocr, guard.copyD2U());
-                  tlocr.setType(type2);
                   tlocr.clearDeclaredType();
                   tlocr.clearPreciseType();
+                  tlocr.setType(type2);
                   setLocal(locNum, tlocr);
                   branch = generateTarget(offset);
                   generated = true;

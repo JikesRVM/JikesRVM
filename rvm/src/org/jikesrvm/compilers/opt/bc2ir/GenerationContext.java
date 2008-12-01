@@ -359,9 +359,9 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
         RegisterOperand objPtr = receiver.asRegister();
         if (ClassLoaderProxy.includesType(child.method.getDeclaringClass().getTypeRef(), objPtr.getType()) != YES) {
           // narrow type of actual to match formal static type implied by method
-          objPtr.setType(child.method.getDeclaringClass().getTypeRef());
           objPtr.clearPreciseType(); // Can be precise but not assignable if enough classes aren't loaded
           objPtr.setDeclaredType();
+          objPtr.setType(child.method.getDeclaringClass().getTypeRef());
         }
         local = child.makeLocal(localNum, objPtr);
         localNum++;

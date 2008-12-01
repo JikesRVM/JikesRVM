@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 
 /**
  * A symbolic or physical register.
@@ -129,12 +130,12 @@ public final class RegisterOperand extends Operand {
   public RegisterOperand(Register reg, TypeReference typ, byte inFlags,
       boolean isPrecise, boolean isDeclared) {
     setRegister(reg);
-    setType(typ);
     flags = inFlags;
     if (isPrecise) {
-      setPreciseType();
+      setPreciseType(typ);
     } else {
       clearPreciseType();
+      setType(typ);
     }
     if (isDeclared) {
       setDeclaredType();
@@ -163,12 +164,7 @@ public final class RegisterOperand extends Operand {
     temp.flags = flags;
     temp.flags2 = flags2;
     temp.scratchObject = scratchObject;
-    if (VM.VerifyAssertions && isPreciseType() && type != null &&
-        type.isClassType() && type.isResolved()) {
-      RVMClass preciseClass = type.resolve().asClass();
-      VM._assert(!preciseClass.isInterface());
-      VM._assert(!preciseClass.isAbstract());
-    }
+    if (VM.VerifyAssertions) verifyPreciseType();
     return temp;
   }
 
@@ -219,7 +215,7 @@ public final class RegisterOperand extends Operand {
    */
   public void copyType(RegisterOperand rhs) {
     this.flags = rhs.flags;
-    this.setType(rhs.type);
+    this.setType(rhs.type); // setting type this way will force checking of precision
   }
 
   /**
@@ -362,17 +358,27 @@ public final class RegisterOperand extends Operand {
   /** Clear this register from having a declared type */
   public void clearDeclaredType() { flags &= ~DECLARED_TYPE; }
 
+  private void verifyPreciseType() {
+    if (!VM.VerifyAssertions) {
+      VM._assert(false); // this call should always be guarded
+    } else {
+      if (isPreciseType() && type != null &&
+          type.isClassType() && type.isResolved()) {
+        RVMClass preciseClass = type.resolve().asClass();
+        if(preciseClass.isInterface() || preciseClass.isAbstract()) {
+          VM.sysWriteln("Error processing instruction: ", this.instruction.toString());
+          throw new OptimizingCompilerException("Unable to set type as it would make this interface/abstract class precise " + preciseClass);
+        }
+      }
+    }
+  }
   /** Do we know the precise type of this register? */
   public boolean isPreciseType() { return (flags & PRECISE_TYPE) != 0; }
 
   /** Set this register as having a precise type */
   public void setPreciseType() {
-    if (VM.VerifyAssertions && type.isClassType() && type.isResolved()) {
-      RVMClass preciseClass = type.resolve().asClass();
-      VM._assert(!preciseClass.isInterface());
-      VM._assert(!preciseClass.isAbstract());
-    }
     flags |= PRECISE_TYPE;
+    if (VM.VerifyAssertions) verifyPreciseType();
   }
 
   /** Clear this register from having a precise type */
@@ -400,23 +406,13 @@ public final class RegisterOperand extends Operand {
   /** Merge two sets of register flags */
   public void addFlags(byte inFlag) {
     flags |= inFlag;
-    if (VM.VerifyAssertions && isPreciseType() && type != null &&
-        type.isClassType() && type.isResolved()) {
-      RVMClass preciseClass = type.resolve().asClass();
-      VM._assert(!preciseClass.isInterface());
-      VM._assert(!preciseClass.isAbstract());
-    }
+    if (VM.VerifyAssertions) verifyPreciseType();
   }
 
   /** Currently all flags are inheritable, so copy all flags from src */
   public void setInheritableFlags(RegisterOperand src) {
     flags = src.getFlags();
-    if (VM.VerifyAssertions && isPreciseType() && type != null &&
-        type.isClassType() && type.isResolved()) {
-      RVMClass preciseClass = type.resolve().asClass();
-      VM._assert(!preciseClass.isInterface());
-      VM._assert(!preciseClass.isAbstract());
-    }
+    if (VM.VerifyAssertions) verifyPreciseType();
   }
 
   /** Currently all flags are "meetable", so mask flags together */
@@ -545,12 +541,19 @@ public final class RegisterOperand extends Operand {
    */
   public void setType(TypeReference t) {
     type = t;
-    if (VM.VerifyAssertions && isPreciseType() && type != null &&
-        type.isClassType() && type.isResolved()) {
-      RVMClass preciseClass = type.resolve().asClass();
-      VM._assert(!preciseClass.isInterface());
-      VM._assert(!preciseClass.isAbstract());
-    }
+    if (VM.VerifyAssertions) verifyPreciseType();
+  }
+
+  /**
+   * Set the {@link TypeReference} of the value represented by the operand and
+   * make the type precise.
+   *
+   * @param t the inferred data type of the contents of the register
+   */
+  public void setPreciseType(TypeReference t) {
+    type = t;
+    flags |= PRECISE_TYPE;
+    if (VM.VerifyAssertions) verifyPreciseType();
   }
 
   /**
