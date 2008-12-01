@@ -1042,12 +1042,10 @@ final class BaselineMagic {
     }
   }
   static {
-    if (VM.BuildFor64Addr) {
-      MagicGenerator g = new FreeStackSlot();
-      Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
-      for (Class<?> type : unboxedTypes) {
-        generators.put(getMethodReference(type, MagicNames.wordFromLong, long.class, type), g);
-      }
+    MagicGenerator g = new FreeStackSlot();
+    Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Offset.class, Word.class};
+    for (Class<?> type : unboxedTypes) {
+      generators.put(getMethodReference(type, MagicNames.wordFromLong, long.class, type), g);
     }
   }
 
