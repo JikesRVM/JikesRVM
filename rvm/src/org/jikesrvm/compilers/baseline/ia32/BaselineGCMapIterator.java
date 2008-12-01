@@ -265,7 +265,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
         }
         if (bridgeParameterMappingRequired) {
           if (VM.TraceStkMaps || TRACE_ALL) {
-            VM.sysWriteHex(framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE).loadInt());
+            VM.sysWriteHex(framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE).loadAddress());
             VM.sysWrite(".\n");
             if (mapId < 0) {
               VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
@@ -276,7 +276,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
           return (framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE));
         } else {
           if (VM.TraceStkMaps || TRACE_ALL) {
-            VM.sysWriteHex(framePtr.plus(mapOffset).loadInt());
+            VM.sysWriteHex(framePtr.plus(mapOffset).loadAddress());
             VM.sysWrite(".\n");
             if (mapId < 0) {
               VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
