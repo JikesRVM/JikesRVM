@@ -37,8 +37,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
     new ImmutableEntryHashMapRVM<String, RVMType>();
 
-  private static final boolean DBG = false;
-
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
 
@@ -164,6 +162,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
   public Class<?> findClass(String className) throws ClassNotFoundException {
+    final boolean DBG=false;
     if (!VM.runningVM) {
       return super.findClass(className);
     }

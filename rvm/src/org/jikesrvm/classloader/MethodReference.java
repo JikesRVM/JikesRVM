@@ -179,9 +179,9 @@ public final class MethodReference extends MemberReference {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    RVMClass declaringClass = (RVMClass) type.peekType();
+    RVMType declaringClass = type.peekType();
     if (declaringClass == null) return null;
-    return resolveInternal(declaringClass);
+    return resolveInternal((RVMClass)declaringClass);
   }
 
   /**
@@ -195,8 +195,6 @@ public final class MethodReference extends MemberReference {
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
     return resolveInternal((RVMClass) type.resolve());
   }
-
-  static final boolean DBG = false;
 
   /**
    * Return true iff this member reference refers to a method which
@@ -273,6 +271,7 @@ public final class MethodReference extends MemberReference {
    * @return the RVMMethod that this method ref resolved to.
    */
   private RVMMethod resolveInternal(RVMClass declaringClass) {
+    final boolean DBG=false;
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
