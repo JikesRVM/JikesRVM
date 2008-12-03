@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -131,6 +132,7 @@ public class StaticSplitting extends CompilerPhase {
       if (coldPrev == null) continue;
       if (tooBig(cand)) continue;
       BasicBlock coldSucc = findColdSucc(cand, candTest);
+      if (containsOSRPoint(coldSucc)) continue;
       if (DEBUG) {
         VM.sysWrite("Found candidate \n");
         VM.sysWrite("\tTest is " + candTest + "\n");
@@ -228,6 +230,16 @@ public class StaticSplitting extends CompilerPhase {
         cost++;
       }
       if (cost > MAX_COST) return true;
+    }
+    return false;
+  }
+
+  private boolean containsOSRPoint(BasicBlock bb) {
+    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.next();
+      if (s.operator() == YIELDPOINT_OSR) {
+        return true;
+      }
     }
     return false;
   }
