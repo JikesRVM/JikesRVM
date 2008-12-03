@@ -1,3 +1,15 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.vmmagic.unboxed;
 
 import static org.junit.Assert.*;
@@ -14,8 +26,8 @@ public class AddressTest {
   private static final byte BYTE_CONST1 = (byte)25;
   private static final double DOUBLE_CONST2 = 7.36573648929734E65;
   private static final double DOUBLE_CONST1 = 25.0;
-  private static final long LONG_CONST2 = 0xcafebabedeadbeefl;
-  private static final long LONG_CONST1 = 25l;
+  private static final long LONG_CONST2 = 0xcafebabedeadbeefL;
+  private static final long LONG_CONST1 = 25L;
   private static final int INT_CONST2 = 0xcafebabe;
   private static final int INT_CONST1 = 25;
   private static final float FLOAT_CONST2 = 7.2E9f;
@@ -24,7 +36,7 @@ public class AddressTest {
   private static final short SHORT_CONST1 = 25;
   private static final int HIGH_TEST_PAGE = 0xF0000000;
   private static final int LOW_TEST_PAGE = 0x10000;
-  
+
   // Eliminate mysterious numeric constants ...
   //
   // Some of these can be imported from other modules, but I
@@ -36,13 +48,13 @@ public class AddressTest {
   private static final int BYTES_IN_FLOAT = 4;
   private static final int BYTES_IN_LONG = 8;
   private static final int BYTES_IN_DOUBLE = 8;
-  
+
   private static final int BYTES_IN_PAGE = 4096;
-  
-  private static final boolean is64bit() {
+
+  private static boolean is64bit() {
     return ArchitecturalWord.getModel() == Architecture.BITS64;
   }
-  
+
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     Harness.init("plan=org.mmtk.plan.nogc.NoGC");
@@ -51,7 +63,7 @@ public class AddressTest {
     SimulatedMemory.map(Address.fromIntSignExtend(LOW_TEST_PAGE), BYTES_IN_PAGE);
     SimulatedMemory.map(Address.fromIntSignExtend(HIGH_TEST_PAGE), BYTES_IN_PAGE);
   }
-  
+
   private static void zeroTestPages() {
     SimulatedMemory.zero(Address.fromIntSignExtend(LOW_TEST_PAGE), BYTES_IN_PAGE);
     SimulatedMemory.zero(Address.fromIntSignExtend(HIGH_TEST_PAGE), BYTES_IN_PAGE);
@@ -72,7 +84,7 @@ public class AddressTest {
     assertTrue(highAddr.loadObjectReference().isNull());
     lowAddr.store(Address.fromIntSignExtend(INT_CONST1).toObjectReference());
     highAddr.store(Address.fromIntZeroExtend(INT_CONST2).toObjectReference());
-    assertTrue(highAddr.loadObjectReference().toAddress().toLong() == (INT_CONST2&0xFFFFFFFFl));
+    assertTrue(highAddr.loadObjectReference().toAddress().toLong() == (INT_CONST2&0xFFFFFFFFL));
     if (is64bit()) {
       highAddr.store(Address.fromIntSignExtend(INT_CONST2).toObjectReference());
       assertTrue(highAddr.loadObjectReference().toAddress().toLong() == INT_CONST2);
@@ -97,8 +109,8 @@ public class AddressTest {
       highAddr.plus(offset).store(Address.fromIntZeroExtend(INT_CONST2).toObjectReference());
       assertTrue(lowAddr.loadObjectReference(offset).toAddress().toInt() == INT_CONST1);
       assertTrue(highAddr.loadObjectReference(offset).toAddress().toInt() == INT_CONST2);
-      assertTrue(lowAddrEnd.loadObjectReference(negOffset).toAddress().toLong() == (INT_CONST1&0xFFFFFFFFl));
-      assertTrue(highAddr.loadObjectReference().toAddress().toLong() == (INT_CONST2&0xFFFFFFFFl));
+      assertTrue(lowAddrEnd.loadObjectReference(negOffset).toAddress().toLong() == (INT_CONST1&0xFFFFFFFFL));
+      assertTrue(highAddr.loadObjectReference().toAddress().toLong() == (INT_CONST2&0xFFFFFFFFL));
     }
   }
 
@@ -329,8 +341,8 @@ public class AddressTest {
       highAddr.plus(offset).store(Address.fromIntZeroExtend(INT_CONST2));
       assertTrue(lowAddr.loadAddress(offset).toLong() == INT_CONST1);
       assertTrue(highAddr.loadAddress(offset).toInt() == INT_CONST2);
-      assertTrue(lowAddrEnd.loadAddress(negOffset).toLong() == (INT_CONST1&0xFFFFFFFFl));
-      assertTrue(highAddrEnd.loadAddress(negOffset).toLong() == (INT_CONST2&0xFFFFFFFFl));
+      assertTrue(lowAddrEnd.loadAddress(negOffset).toLong() == (INT_CONST1&0xFFFFFFFFL));
+      assertTrue(highAddrEnd.loadAddress(negOffset).toLong() == (INT_CONST2&0xFFFFFFFFL));
     }
   }
 
@@ -357,8 +369,8 @@ public class AddressTest {
       highAddr.plus(offset).store(Word.fromIntZeroExtend(INT_CONST2));
       assertTrue(lowAddr.loadWord(offset).toLong() == INT_CONST1);
       assertTrue(highAddr.loadWord(offset).toInt() == INT_CONST2);
-      assertTrue(lowAddrEnd.loadWord(negOffset).toLong() == (INT_CONST1&0xFFFFFFFFl));
-      assertTrue(highAddrEnd.loadWord(negOffset).toLong() == (INT_CONST2&0xFFFFFFFFl));
+      assertTrue(lowAddrEnd.loadWord(negOffset).toLong() == (INT_CONST1&0xFFFFFFFFL));
+      assertTrue(highAddrEnd.loadWord(negOffset).toLong() == (INT_CONST2&0xFFFFFFFFL));
     }
   }
 
@@ -565,7 +577,7 @@ public class AddressTest {
     assertTrue(w.EQ(Word.one()));
     lowAddr.store(Word.zero(),posOffset);
     assertFalse(lowAddr.attempt(w,Word.zero(),posOffset));
-    
+
     w = lowAddr.prepareWord(negOffset);
     assertTrue(lowAddr.attempt(w,Word.one(),negOffset));
     w = lowAddr.prepareWord(negOffset);
@@ -579,11 +591,11 @@ public class AddressTest {
   public void testExchangeObjectReference() {
     Address loc = Address.fromIntSignExtend(LOW_TEST_PAGE+8);
     final ObjectReference one = Word.one().toAddress().toObjectReference();
-    
+
     ObjectReference w = loc.prepareObjectReference();
     assertTrue(loc.attempt(w,one));
     assertTrue(loc.loadObjectReference().toAddress().EQ(one.toAddress()));
-    
+
     w = loc.prepareObjectReference();
     assertTrue(w.toAddress().EQ(one.toAddress()));
     loc.store(ObjectReference.nullReference());
@@ -644,7 +656,7 @@ public class AddressTest {
     assertTrue(w == INT_CONST1);
     lowAddr.store(0);
     assertFalse(lowAddr.attempt(w,0));
-    
+
     w = lowAddr.prepareInt();
     assertTrue(lowAddr.attempt(w,INT_CONST2));
     w = lowAddr.prepareInt();

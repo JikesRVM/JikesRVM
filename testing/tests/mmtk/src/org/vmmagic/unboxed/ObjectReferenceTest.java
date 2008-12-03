@@ -1,3 +1,15 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.vmmagic.unboxed;
 
 import static org.junit.Assert.*;
@@ -39,7 +51,7 @@ public class ObjectReferenceTest {
     }
     for (int i=32; i < BITS; i++) {
       ObjectReference ref = Word.one().lsh(i).toAddress().toObjectReference();
-      assertTrue(ref.toAddress().toLong() == 1l<<i);
+      assertTrue(ref.toAddress().toLong() == 1L<<i);
     }
   }
 
@@ -49,7 +61,7 @@ public class ObjectReferenceTest {
     ObjectReference[] rrefs = new ObjectReference[BITS];
     for (int i=0; i < BITS; i++) {
       lrefs[i] = Word.one().lsh(i).toAddress().toObjectReference();
-      rrefs[i] = Address.fromLong(1l<<i).toObjectReference();
+      rrefs[i] = Address.fromLong(1L<<i).toObjectReference();
     }
     for (int i=0; i < BITS; i++) {
       for (int j=0; j < BITS; j++) {
@@ -73,7 +85,7 @@ public class ObjectReferenceTest {
   public void testToString() {
     final String format = BITS == 64 ? "0x%016x" : "0x%08x";
     for (int i=0; i < BITS; i++) {
-      final String expected = String.format(format, 1l<<i);
+      final String expected = String.format(format, 1L<<i);
       assertEquals(Word.one().lsh(i).toAddress().toObjectReference().toString(),
           expected);
     }

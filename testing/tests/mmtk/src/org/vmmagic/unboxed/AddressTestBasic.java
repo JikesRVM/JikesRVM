@@ -1,3 +1,15 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.vmmagic.unboxed;
 
 import static org.junit.Assert.*;
@@ -11,34 +23,31 @@ import org.junit.Test;
  */
 public class AddressTestBasic {
 
-  
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     ArchitecturalWord.init();
   }
-  
-  private static final boolean is64bit() {
+
+  private static boolean is64bit() {
     return ArchitecturalWord.getModel() == Architecture.BITS64;
   }
-  
-  private static final boolean is32bit() {
+
+  private static boolean is32bit() {
     return !is64bit();
   }
-  
+
   final Address zero = Address.zero();
   final Address one = Address.fromIntSignExtend(1);
   final Address large = Address.fromIntSignExtend(Integer.MAX_VALUE);
   final Address veryLarge = Address.fromIntSignExtend(Integer.MIN_VALUE/2);
   final Address largest = Address.max();
-  
+
   final Address zero() { return Address.fromIntSignExtend(0); }
   final Address one() { return Address.fromIntSignExtend(1); }
   final Address large() { return  Address.fromIntSignExtend(Integer.MAX_VALUE); }
   final Address veryLarge() { return Address.fromIntSignExtend(Integer.MIN_VALUE/2); }
   final Address largest() { return Address.max(); }
-  
-  
-  
+
   @Test
   public void testZero() {
     assertTrue(Address.zero().toInt() == 0);
@@ -72,19 +81,19 @@ public class AddressTestBasic {
     assertTrue(Address.fromIntZeroExtend(1).toInt() == 1);
     assertTrue(Address.fromIntZeroExtend(-1).toInt() == -1);
     assertTrue(Address.fromIntZeroExtend(1).toLong() == 1);
-    assertTrue(Address.fromIntZeroExtend(-1).toLong() == 0xFFFFFFFFl);
+    assertTrue(Address.fromIntZeroExtend(-1).toLong() == 0xFFFFFFFFL);
   }
 
   @Test
   public void testFromLong() {
     assertTrue(Address.fromLong(0).isZero());
     assertTrue(Address.fromLong(1).toInt() == 1);
-    assertTrue(Address.fromLong(0xA0000000l).EQ(Address.fromIntZeroExtend(0xA0000000)));
+    assertTrue(Address.fromLong(0xA0000000L).EQ(Address.fromIntZeroExtend(0xA0000000)));
     if (is64bit()) {
-      assertTrue(Address.fromLong(0x00000000A0000000l).toString().equals("0x00000000A0000000"));
-      assertTrue(Address.fromLong(0x000000A000000000l).toString().equals("0x000000A000000000"));
-      assertTrue(Address.fromLong(0x0000A00000000000l).toString().equals("0x0000A00000000000"));
-      assertTrue(Address.fromLong(0x00A0000000000000l).toString().equals("0x00A0000000000000"));
+      assertTrue(Address.fromLong(0x00000000A0000000L).toString().equals("0x00000000A0000000"));
+      assertTrue(Address.fromLong(0x000000A000000000L).toString().equals("0x000000A000000000"));
+      assertTrue(Address.fromLong(0x0000A00000000000L).toString().equals("0x0000A00000000000"));
+      assertTrue(Address.fromLong(0x00A0000000000000L).toString().equals("0x00A0000000000000"));
     }
   }
 

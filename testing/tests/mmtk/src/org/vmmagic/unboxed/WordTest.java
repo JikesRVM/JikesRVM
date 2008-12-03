@@ -1,3 +1,15 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.vmmagic.unboxed;
 
 import static org.junit.Assert.*;
@@ -6,7 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class WordTest {
-  
+
   private static boolean is32bit() {
     return SimulatedMemory.BYTES_IN_WORD == 4;
   }
@@ -30,15 +42,15 @@ public class WordTest {
   public void testFromIntSignExtend() {
     assertTrue(Word.fromIntSignExtend(0x80000000).EQ(Word.fromLong(0x80000000)));
     if (is32bit()) {
-      assertTrue(Word.fromIntSignExtend(0x80000000).EQ(Word.fromLong(0x80000000l)));
+      assertTrue(Word.fromIntSignExtend(0x80000000).EQ(Word.fromLong(0x80000000L)));
     } else {
-      assertFalse(Word.fromIntSignExtend(0x80000000).EQ(Word.fromLong(0x80000000l)));
+      assertFalse(Word.fromIntSignExtend(0x80000000).EQ(Word.fromLong(0x80000000L)));
     }
   }
 
   @Test
   public void testFromIntZeroExtend() {
-    assertTrue(Word.fromIntZeroExtend(0x80000000).EQ(Word.fromLong(0x80000000l)));
+    assertTrue(Word.fromIntZeroExtend(0x80000000).EQ(Word.fromLong(0x80000000L)));
     if (is32bit()) {
       assertTrue(Word.fromIntZeroExtend(0x80000000).EQ(Word.fromLong(0x80000000)));
     } else {
@@ -49,9 +61,9 @@ public class WordTest {
   @Test
   public void testFromLong() {
     if (is32bit()) {
-      assertTrue(Word.fromLong(0xF00000000l).EQ(Word.zero()));
+      assertTrue(Word.fromLong(0xF00000000L).EQ(Word.zero()));
     } else {
-      assertTrue(Word.fromLong(0xF00000000l).NE(Word.zero()));      
+      assertTrue(Word.fromLong(0xF00000000L).NE(Word.zero()));
     }
   }
 
@@ -81,22 +93,22 @@ public class WordTest {
   @Test
   public void testToLong() {
     for (int i=0; i < 8*SimulatedMemory.BYTES_IN_WORD; i++) {
-      assertTrue(Word.fromLong(1l<<i).toLong() == (1l<<i));
+      assertTrue(Word.fromLong(1L<<i).toLong() == (1L<<i));
     }
   }
 
   @Test
   public void testToAddress() {
     for (int i=0; i < 8*SimulatedMemory.BYTES_IN_WORD; i++) {
-      assertTrue(Word.fromLong(1l<<i).toAddress().EQ(Address.fromLong(1l<<i)));
+      assertTrue(Word.fromLong(1L<<i).toAddress().EQ(Address.fromLong(1L<<i)));
     }
   }
 
   @Test
   public void testToOffset() {
     for (int i=0; i < 8*SimulatedMemory.BYTES_IN_WORD; i++) {
-      assertTrue(Word.fromLong(1l<<i).toOffset().EQ(
-          Address.fromLong(1l<<i).diff(Address.zero())));
+      assertTrue(Word.fromLong(1L<<i).toOffset().EQ(
+          Address.fromLong(1L<<i).diff(Address.zero())));
     }
   }
 
@@ -115,8 +127,8 @@ public class WordTest {
     assertTrue(Word.max().plus(Word.one()).EQ(Word.zero()));
     assertTrue(Word.one().plus(Word.max()).EQ(Word.zero()));
     if (is64bit()) {
-      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).plus(Word.one()).EQ(Word.fromLong(0x100000000l)));
-      assertTrue(Word.one().plus(Word.fromIntZeroExtend(0xFFFFFFFF)).EQ(Word.fromLong(0x100000000l)));
+      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).plus(Word.one()).EQ(Word.fromLong(0x100000000L)));
+      assertTrue(Word.one().plus(Word.fromIntZeroExtend(0xFFFFFFFF)).EQ(Word.fromLong(0x100000000L)));
     }
   }
 
@@ -129,7 +141,7 @@ public class WordTest {
     assertTrue(Word.one().plus(minusOne).EQ(Word.zero()));
     assertTrue(Word.max().plus(one).EQ(Word.zero()));
     if (is64bit()) {
-      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).plus(one).EQ(Word.fromLong(0x100000000l)));
+      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).plus(one).EQ(Word.fromLong(0x100000000L)));
     }
   }
 
@@ -140,8 +152,8 @@ public class WordTest {
     assertTrue(Word.max().plus(Extent.one()).EQ(Word.zero()));
     assertTrue(Word.one().plus(Extent.max()).EQ(Word.zero()));
     if (is64bit()) {
-      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).plus(Extent.one()).EQ(Word.fromLong(0x100000000l)));
-      assertTrue(Word.one().plus(Extent.fromIntZeroExtend(0xFFFFFFFF)).EQ(Word.fromLong(0x100000000l)));
+      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).plus(Extent.one()).EQ(Word.fromLong(0x100000000L)));
+      assertTrue(Word.one().plus(Extent.fromIntZeroExtend(0xFFFFFFFF)).EQ(Word.fromLong(0x100000000L)));
     }
   }
 
@@ -152,7 +164,7 @@ public class WordTest {
     assertTrue(Word.one().minus(Word.zero()).EQ(Word.one()));
     assertTrue(Word.zero().minus(Word.max()).EQ(Word.one()));
     if (is64bit()) {
-      assertTrue(Word.fromLong(0x100000000l).minus(Word.one()).EQ(Word.fromIntZeroExtend(0xFFFFFFFF)));
+      assertTrue(Word.fromLong(0x100000000L).minus(Word.one()).EQ(Word.fromIntZeroExtend(0xFFFFFFFF)));
     }
   }
 
@@ -165,8 +177,8 @@ public class WordTest {
     assertTrue(Word.one().minus(one).EQ(Word.zero()));
     assertTrue(Word.max().minus(minusOne).EQ(Word.zero()));
     if (is64bit()) {
-      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).minus(minusOne).EQ(Word.fromLong(0x100000000l)));
-      assertTrue(Word.fromLong(0x100000000l).minus(one).EQ(Word.fromIntZeroExtend(0xFFFFFFFF)));
+      assertTrue(Word.fromIntZeroExtend(0xFFFFFFFF).minus(minusOne).EQ(Word.fromLong(0x100000000L)));
+      assertTrue(Word.fromLong(0x100000000L).minus(one).EQ(Word.fromIntZeroExtend(0xFFFFFFFF)));
     }
   }
 
@@ -176,7 +188,7 @@ public class WordTest {
     assertTrue(Word.zero().minus(Extent.one()).EQ(Word.max()));
     assertTrue(Word.zero().minus(Extent.max()).EQ(Word.one()));
     if (is64bit()) {
-      assertTrue(Word.fromLong(0x100000000l).minus(Extent.one()).EQ(Word.fromIntZeroExtend(0xFFFFFFFF)));
+      assertTrue(Word.fromLong(0x100000000L).minus(Extent.one()).EQ(Word.fromIntZeroExtend(0xFFFFFFFF)));
     }
   }
 
@@ -193,7 +205,7 @@ public class WordTest {
     assertTrue(Word.max().isMax());
     assertTrue(Word.fromIntSignExtend(-1).isMax());
     if (is64bit()) {
-      assertTrue(Word.fromLong(-1l).isMax());
+      assertTrue(Word.fromLong(-1L).isMax());
     }
   }
 
@@ -221,7 +233,7 @@ public class WordTest {
     assertTrue(word2.LE(Word.max()));
     assertFalse(Word.max().LE(word1));
     assertFalse(word2.LE(Word.zero()));
-    
+
     assertTrue(Word.zero().LE(Word.zero()));
     assertTrue(Word.one().LE(Word.one()));
     assertTrue(Word.max().LE(Word.max()));
@@ -268,7 +280,7 @@ public class WordTest {
     assertTrue(Word.zero().EQ(Word.fromIntSignExtend(0)));
     assertTrue(Word.max().EQ(Word.fromIntSignExtend(-1)));
     if (is64bit()) {
-      assertTrue(Word.fromLong(-1l).EQ(Word.max()));
+      assertTrue(Word.fromLong(-1L).EQ(Word.max()));
     }
   }
 
@@ -279,7 +291,7 @@ public class WordTest {
     assertFalse(Word.zero().NE(Word.fromIntSignExtend(0)));
     assertFalse(Word.max().NE(Word.fromIntSignExtend(-1)));
     if (is64bit()) {
-      assertFalse(Word.fromLong(-1l).NE(Word.max()));
+      assertFalse(Word.fromLong(-1L).NE(Word.max()));
     }
   }
 
@@ -330,11 +342,11 @@ public class WordTest {
   public void testLsh() {
     for (int i=0; i < 32; i++) {
       assertTrue(Word.one().lsh(i).toInt() == (1<<i));
-      assertTrue(Word.one().lsh(i).toLong() == (1l<<i));
+      assertTrue(Word.one().lsh(i).toLong() == (1L<<i));
     }
     if (is64bit()) {
       for (int i=0; i < 64; i++) {
-        assertTrue(Word.one().lsh(i).toLong() == (1l<<i));
+        assertTrue(Word.one().lsh(i).toLong() == (1L<<i));
       }
     }
   }
