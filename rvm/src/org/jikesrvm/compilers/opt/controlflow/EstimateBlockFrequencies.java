@@ -168,7 +168,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     float goal = (1f - f) * total;
     total = 0f;
     float threshold = 0f;
-    // add up the frequencies (desceding) until we real the goal.
+    // add up the frequencies (descending) until we real the goal.
     for (i = freq.length - 1; i >= 0 && total < goal; i--) {
       threshold = freq[i];
       total += threshold;
