@@ -101,6 +101,3 @@ final class LiveSetElement {
     return buf.toString();
   }
 }
-
-
-

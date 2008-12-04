@@ -22,7 +22,7 @@ public final class SpecializedMethod {
   /**
    * The method that was specialized
    */
-  NormalMethod method;
+  final NormalMethod method;
 
   /**
    * Corresponding compiled method
@@ -32,12 +32,12 @@ public final class SpecializedMethod {
   /**
    * Specialized Method index into the SpecializedMethods table
    */
-  int smid;
+  final int smid;
 
   /**
    * Encodes the rules for generating the specialized code.
    */
-  SpecializationContext context;
+  final SpecializationContext context;
 
   /**
    * constructor for OPT compiler.
@@ -79,6 +79,3 @@ public final class SpecializedMethod {
     return "Specialized " + method + "  (Context: " + context + ")";
   }
 }
-
-
-

@@ -37,7 +37,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
    *               (these are expanded to either physical regs or spills
    *                by the register allocator)
    */
-  private LinkedListRVM<GCIRMapElement> list = new LinkedListRVM<GCIRMapElement>();
+  private final LinkedListRVM<GCIRMapElement> list = new LinkedListRVM<GCIRMapElement>();
 
   /**
    *  Used for class-wide debugging
@@ -203,6 +203,3 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
     return buf.toString();
   }
 }
-
-
-

@@ -669,5 +669,3 @@ final class NormalBURS extends BURS {
     return numProblemEdges > 0;
   }
 }
-
-

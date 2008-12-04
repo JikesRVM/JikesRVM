@@ -63,7 +63,7 @@ public final class Simple extends CompilerPhase {
   /**
    * At what optimization level should this phase be run?
    */
-  private int level;
+  private final int level;
   /**
    * Perform type propagation?
    */

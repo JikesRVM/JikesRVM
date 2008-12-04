@@ -4835,7 +4835,7 @@ public final class BC2IR
     return barrier;
   }
 
-  /* special process for long/double constants */
+  /** special process for long/double constants */
   private Operand _prepareLongConstant(Operand op) {
     /* for long and double constants, always move them to a register,
      * therefor, BURS will split it in two registers.
@@ -4846,7 +4846,7 @@ public final class BC2IR
     return t.copyD2U();
   }
 
-  /* special process for long/double constants */
+  /** special process for long/double constants */
   private Operand _prepareDoubleConstant(Operand op) {
     /* for long and double constants, always move them to a register,
      * therefor, BURS will split it in two registers.
@@ -4857,20 +4857,13 @@ public final class BC2IR
     return t.copyD2U();
   }
 
-  /* make a temporary register, and create a move instruction
-  * @param op, the local variable.
-  * @return operand marked as use.
-  */
+  /**
+   * make a temporary register, and create a move instruction
+   * @param op, the local variable.
+   * @return operand marked as use.
+   */
   private Operand _loadLocalForOSR(Operand op) {
 
-    /* if it is LOCALS ON STACK, do nothing. */
-/*
-        if (LOCALS_ON_STACK) {
-      return op;
-    }
-*/
-
-    /* otherwise, create move instructions. */
     /* return address is processed specially */
     if (op instanceof ReturnAddressOperand) {
       return op;

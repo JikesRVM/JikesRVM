@@ -17,6 +17,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.vmmagic.pragma.Pure;
 
 /**
  * This class provides utilities to record defs and uses of physical
@@ -95,6 +96,7 @@ public abstract class PhysicalDefUse {
    * @return a string representation of the physical registers encoded by
    * an integer
    */
+  @Pure
   public static String getString(int code) {
     if (code == mask) return "";
     if (code == maskAF_CF_OF_PF_SF_ZF) return " AF CF OF PF SF ZF";

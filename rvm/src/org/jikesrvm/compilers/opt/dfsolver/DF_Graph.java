@@ -87,4 +87,3 @@ class DF_Graph implements Graph {
     throw new OptimizingCompilerException("DF_Graph edges implicit");
   }
 }
-

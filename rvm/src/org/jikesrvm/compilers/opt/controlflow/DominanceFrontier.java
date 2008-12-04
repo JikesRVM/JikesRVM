@@ -44,8 +44,6 @@ import org.jikesrvm.util.BitVector;
  * <p> TODO: we do not support IRs with exception handlers!!
  */
 public class DominanceFrontier extends CompilerPhase {
-  static final boolean DEBUG = false;
-
   /**
    * Should this phase be performed?  This is a member of a composite
    * phase, so always return true.  The parent composite phase will
@@ -96,6 +94,7 @@ public class DominanceFrontier extends CompilerPhase {
    * @param ir the governing IR
    */
   public void perform(IR ir) {
+    final boolean DEBUG = false;
     // make sure the dominator computation completed successfully
     if (!ir.HIRInfo.dominatorsAreComputed) {
       return;

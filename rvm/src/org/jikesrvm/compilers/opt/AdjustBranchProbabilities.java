@@ -106,7 +106,3 @@ public class AdjustBranchProbabilities extends CompilerPhase {
     return false;
   }
 }
-
-
-
-

@@ -18,7 +18,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
  * A trivial phase that can be inserted to dump the IR.
  */
 public class IRPrinter extends CompilerPhase {
-  protected String msg;
+  protected final String msg;
 
   /**
    * Constuct a phase to print the IR with a message.

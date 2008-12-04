@@ -75,7 +75,18 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
  * objects
  */
 final class ObjectReplacer implements AggregateReplacer {
-  static final boolean DEBUG = false;
+  /**
+   * type of the object
+   */
+  private final RVMClass klass;
+  /**
+   * the IR
+   */
+  private final IR ir;
+  /**
+   * the register holding the object reference
+   */
+  private final Register reg;
 
   /**
    * Return an object representing this transformation for a given
@@ -116,6 +127,8 @@ final class ObjectReplacer implements AggregateReplacer {
   }
 
   private void transform2(Register reg, Instruction defI, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
+    final boolean DEBUG = false;
+
     // now remove the def
     if (DEBUG) {
       System.out.println("Removing " + defI);
@@ -126,19 +139,6 @@ final class ObjectReplacer implements AggregateReplacer {
       scalarReplace(use, scalars, fields, visited);
     }
   }
-
-  /**
-   * type of the object
-   */
-  private final RVMClass klass;
-  /**
-   * the IR
-   */
-  private final IR ir;
-  /**
-   * the register holding the object reference
-   */
-  private final Register reg;
 
   /**
    * Returns a ArrayList<RVMField>, holding the fields of the object

@@ -232,6 +232,3 @@ public class EscapeTransformations extends CompilerPhase {
     return null;
   }
 }
-
-
-

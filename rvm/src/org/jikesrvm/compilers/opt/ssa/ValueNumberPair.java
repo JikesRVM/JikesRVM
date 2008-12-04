@@ -66,6 +66,3 @@ class ValueNumberPair implements Comparable<ValueNumberPair> {
     }
   }
 }
-
-
-

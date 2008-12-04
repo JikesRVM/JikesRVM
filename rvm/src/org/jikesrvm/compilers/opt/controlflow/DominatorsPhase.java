@@ -29,7 +29,7 @@ public final class DominatorsPhase extends CompilerPhase {
   /**
    * Should we unfactor the CFG?
    */
-  private boolean unfactor = false;
+  private final boolean unfactor;
 
   /**
    * @param unfactor Should we unfactor the CFG before computing

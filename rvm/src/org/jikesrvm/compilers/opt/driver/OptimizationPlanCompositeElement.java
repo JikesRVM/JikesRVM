@@ -32,11 +32,11 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
   /**
    * Name of this element.
    */
-  private String myName;
+  private final String myName;
   /**
    * Ordered list of elements that together comprise this element.
    */
-  private OptimizationPlanElement[] myElements;
+  private final OptimizationPlanElement[] myElements;
 
   /**
    * Compose together the argument elements into a composite element

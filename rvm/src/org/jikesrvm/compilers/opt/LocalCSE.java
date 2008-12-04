@@ -69,8 +69,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
  *         nullchecks, boundchecks, and zero checks.
  * </ul>
  * Algorithm: Muchnick pp.379-385
- *
- *                       partially based on LocalBoundsCheck)
  */
 public class LocalCSE extends CompilerPhase {
   private final boolean isHIR;

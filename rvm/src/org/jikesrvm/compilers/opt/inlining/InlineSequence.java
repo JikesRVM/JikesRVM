@@ -22,8 +22,6 @@ import org.jikesrvm.compilers.opt.util.Stack;
  * Used to uniquely identify program locations.
  */
 public final class InlineSequence {
-  static final boolean DEBUG = false;
-
   /**
    * Current method.
    */

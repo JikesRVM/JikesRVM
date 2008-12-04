@@ -111,6 +111,3 @@ public class HeapVariable<T> {
     return (number == 0);
   }
 }
-
-
-

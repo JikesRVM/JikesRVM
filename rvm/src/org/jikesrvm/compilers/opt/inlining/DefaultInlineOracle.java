@@ -481,6 +481,3 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     return guardCost + inlinedBodyEstimate;
   }
 }
-
-
-

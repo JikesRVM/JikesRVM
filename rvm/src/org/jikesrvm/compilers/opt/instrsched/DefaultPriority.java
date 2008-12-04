@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
  */
 class DefaultPriority extends Priority {
   // Underlying enumeration.
-  private BasicBlock bb;
+  private final BasicBlock bb;
   private Instruction i;
   private InstructionEnumeration instr;
 

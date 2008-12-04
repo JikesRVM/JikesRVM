@@ -155,6 +155,3 @@ public final class WeightedBranchTargets {
     return Math.abs(a - b) < 0.003;
   }
 }
-
-
-

@@ -24,6 +24,19 @@ public abstract class AbstractRegisterPool {
   private Register start, end;
 
   /**
+   * When 2 registers are necessary to encode a result, such as with a long on
+   * 32bit architectures, this hash map remembers the pairing of registers. It's
+   * key is the 1st register and the value is the 2nd register.
+   */
+  private final HashMap<Register, Register> _regPairs = new HashMap<Register, Register>();
+
+  /**
+   * All registers are assigned unique numbers; currentNum is the counter
+   * containing the next available register number.
+   */
+  protected int currentNum;
+
+  /**
    * Return the first symbolic register in this pool.
    */
   public Register getFirstSymbolicRegister() {
@@ -57,12 +70,6 @@ public abstract class AbstractRegisterPool {
     }
   }
   /* end of inlined behavior */
-
-  /**
-   * All registers are assigned unique numbers; currentNum is the counter
-   * containing the next available register number.
-   */
-  protected int currentNum;
 
   private Register makeNewReg() {
     Register reg = new Register(currentNum);
@@ -229,8 +236,6 @@ public abstract class AbstractRegisterPool {
       return getInteger();
     }
   }
-
-  private final HashMap<Register, Register> _regPairs = new HashMap<Register, Register>();
 
   /**
    * MIR: Get the other half of the register pair that is

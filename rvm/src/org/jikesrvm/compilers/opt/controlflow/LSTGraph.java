@@ -266,16 +266,10 @@ public class LSTGraph extends SpaceEffGraph {
           outEdge.setBackEdge();
           if (DEBUG) {
             System.out.println("backedge from " +
-                               bb
-                                   .scratch +
-                                            " ( " +
-                                            bb +
-                                            " ) " +
-                                            outbb
-                                                .scratch +
-                                                         " ( " +
-                                                         outbb +
-                                                         " ) ");
+                               bb.scratch +
+                               " ( " + bb + " ) " +
+                               outbb.scratch +
+                               " ( " + outbb + " ) ");
           }
         } else if (!outbb.dfsVisited()) {
           // irreducible loop test

@@ -24,7 +24,7 @@ public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphCon
   /**
    * Instruction that this node represents.
    */
-  public Instruction _instr;
+  public final Instruction _instr;
 
   /**
    * Constructor.
@@ -83,4 +83,3 @@ public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphCon
     node.appendInEdge(e);
   }
 }
-

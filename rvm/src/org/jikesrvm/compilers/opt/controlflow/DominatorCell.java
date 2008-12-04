@@ -27,11 +27,11 @@ class DominatorCell extends DF_AbstractCell {
   /**
    * Pointer to the governing IR.
    */
-  IR ir;
+  final IR ir;
   /**
    * The basic block corresponding to this lattice cell.
    */
-  BasicBlock block;
+  final BasicBlock block;
   /**
    * Bit set representation of the dominators for this basic block.
    */
@@ -40,7 +40,7 @@ class DominatorCell extends DF_AbstractCell {
    * A guess of the upper bound on the number of out edges for most basic
    * blocks.
    */
-  static final int CAPACITY = 5;
+  private static final int CAPACITY = 5;
 
   /**
    * Make a bit set for a basic block

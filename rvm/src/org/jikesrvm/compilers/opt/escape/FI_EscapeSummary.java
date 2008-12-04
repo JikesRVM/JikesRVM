@@ -63,7 +63,7 @@ class FI_EscapeSummary {
     }
   }
 
-  /** Implementation */
+  /* Implementation */
   /**
    * A mapping that holds the analysis result for thread-locality for each
    * Register.

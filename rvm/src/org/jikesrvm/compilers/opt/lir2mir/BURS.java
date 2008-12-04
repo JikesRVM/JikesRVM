@@ -48,7 +48,7 @@ public abstract class BURS {
     BranchTarget.setNumRegisters(0);
   }
 
-  public IR ir;
+  public final IR ir;
   protected Instruction lastInstr;
 
   /**
@@ -68,7 +68,7 @@ public abstract class BURS {
    * @param bb
    */
   final void finalizeBlock(BasicBlock bb) {
-    lastInstr.BURS_KLUDGE_linkWithNext(bb.lastInstruction());
+    lastInstr.linkWithNext(bb.lastInstruction());
     lastInstr = null;
     if (DEBUG) {
       VM.sysWrite("INITIAL MIR\n");
@@ -80,7 +80,7 @@ public abstract class BURS {
    * append an instruction (in other words emit an MIR instruction)
    */
   public final void append(Instruction instruction) {
-    lastInstr.BURS_KLUDGE_linkWithNext(instruction);
+    lastInstr.linkWithNext(instruction);
     lastInstr = instruction;
   }
 }

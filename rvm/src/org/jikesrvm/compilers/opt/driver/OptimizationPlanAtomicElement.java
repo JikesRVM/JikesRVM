@@ -33,7 +33,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
   /**
    * The phase to be performed.
    */
-  private CompilerPhase myPhase;
+  private final CompilerPhase myPhase;
   /**
    * Accumulated nanoseconds spent in the element.
    */

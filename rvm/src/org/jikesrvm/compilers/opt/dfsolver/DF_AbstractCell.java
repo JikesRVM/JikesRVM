@@ -24,6 +24,14 @@ import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
  * Represents a single lattice cell in a dataflow system.
  */
 public abstract class DF_AbstractCell implements DF_LatticeCell {
+  /**
+   * Set of DF_Equations which use this lattice cell.
+   */
+  private final HashSet<DF_Equation> uses;
+  /**
+   * Set of DF_Equations which define this lattice cell.
+   */
+  private final HashSet<DF_Equation> defs;
 
   /**
    * Default Constructor
@@ -86,18 +94,9 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
     defs.add(eq);
   }
 
-  /**
-   * Set of DF_Equations which use this lattice cell.
-   */
-  private final HashSet<DF_Equation> uses;
-  /**
-   * Set of DF_Equations which define this lattice cell.
-   */
-  private final HashSet<DF_Equation> defs;
-
   public GraphNodeEnumeration inNodes() {
     return new GraphNodeEnumeration() {
-      private Iterator<DF_Equation> i = defs.iterator();
+      private final Iterator<DF_Equation> i = defs.iterator();
 
       public boolean hasMoreElements() { return i.hasNext(); }
 
@@ -109,7 +108,7 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
 
   public GraphNodeEnumeration outNodes() {
     return new GraphNodeEnumeration() {
-      private Iterator<DF_Equation> i = uses.iterator();
+      private final Iterator<DF_Equation> i = uses.iterator();
 
       public boolean hasMoreElements() { return i.hasNext(); }
 
@@ -147,7 +146,6 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   public int setScratch(int o) {
     return (scratch = o);
   }
-
 }
 
 

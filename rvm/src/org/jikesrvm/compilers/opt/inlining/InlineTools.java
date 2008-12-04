@@ -254,6 +254,3 @@ public abstract class InlineTools implements OptConstants {
     return caller.getDeclaringClass().isInBootImage() && !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
   }
 }
-
-
-

@@ -491,4 +491,3 @@ public abstract class IREnumeration {
     throw new java.util.NoSuchElementException(msg);
   }
 }
-

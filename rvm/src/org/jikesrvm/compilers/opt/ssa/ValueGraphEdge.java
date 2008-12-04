@@ -32,6 +32,3 @@ final class ValueGraphEdge extends SpaceEffGraphEdge {
     return src.getName() + " --> " + dest.getName();
   }
 }
-
-
-

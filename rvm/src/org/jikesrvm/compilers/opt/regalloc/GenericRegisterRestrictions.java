@@ -306,7 +306,7 @@ public abstract class GenericRegisterRestrictions {
     /**
      * The set of registers to which assignment is forbidden.
      */
-    private BitSet bitset;
+    private final BitSet bitset;
 
     /**
      * additionally, are all volatile registers forbidden?

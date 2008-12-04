@@ -168,15 +168,15 @@ public class DF_Equation implements GraphNode {
     topologicalNumber = n;
   }
 
-  /** Implementation */
+  /* Implementation */
   /**
    * The operator in the equation
    */
-  protected DF_Operator operator;
+  protected final DF_Operator operator;
   /**
    * The operands. Operand[0] is the left hand side.
    */
-  protected DF_LatticeCell[] operands;
+  protected final DF_LatticeCell[] operands;
   /**
    * The number of this equation when the system is sorted in topological
    * order.

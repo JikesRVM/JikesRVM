@@ -87,6 +87,12 @@ import org.jikesrvm.runtime.Entrypoints;
  * are always inline expanded.
  */
 public final class ExpandRuntimeServices extends CompilerPhase {
+  /** Cache of simple optimizations if used to tidy up */
+  private Simple _os;
+  /** Cache of branch optimizations if used to tidy up */
+  private BranchOptimizations branchOpts;
+  /** Did we expand something? */
+  private boolean didSomething = false;
 
   /**
    * Constructor for this compiler phase
@@ -529,7 +535,13 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
     // If we actually inlined anything, clean up the mess
     if (didSomething) {
+      if (branchOpts == null) {
+        branchOpts = new BranchOptimizations(-1, true, true);
+      }
       branchOpts.perform(ir, true);
+      if (_os == null) {
+        _os = new Simple(1, false, false, false);
+      }
       _os.perform(ir);
     }
     // signal that we do not intend to use the gc in other phases anymore.
@@ -568,13 +580,4 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     }
     didSomething = true;
   }
-
-  private final Simple _os = new Simple(1, false, false, false);
-  private final BranchOptimizations branchOpts = new BranchOptimizations(-1, true, true);
-  private boolean didSomething = false;
-
-  //private final IntConstantOperand IRTools.IC(int x) { return IRTools.IRTools.IC(x); }
-  //private final AddressConstantOperand IRTools.AC(Address x) { return IRTools.IRTools.AC(x); }
-  //private final AddressConstantOperand IRTools.AC(Offset x) { return IRTools.IRTools.AC(x); }
-
 }

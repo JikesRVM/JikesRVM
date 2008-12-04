@@ -23,11 +23,16 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
  * discussion.
  */
 final class ValueGraphVertex extends SpaceEffGraphNode {
-  private final Object name;  // the name of the variable defined by this node
-  private Object label;       // the name of the operator that does the definition
-  private int valueNumber;    // integer value number
-  private ValueGraphVertex[] targets;   // operand vertices, in order
-  private int arity;                        // number of operands needed
+  /** the name of the variable defined by this node */
+  private final Object name;
+  /** the name of the operator that does the definition */
+  private Object label;
+  /** operand vertices, in order */
+  private ValueGraphVertex[] targets;
+  /** integer value number */
+  private int valueNumber;
+  /** number of operands needed */
+  private int arity;
 
   ValueGraphVertex(Object name) {
     this.name = name;

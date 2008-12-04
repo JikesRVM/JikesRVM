@@ -66,22 +66,22 @@ public final class LiveAnalysis extends CompilerPhase {
   /**
    *  Should we also create GC maps while we are computing liveness
    */
-  private boolean createGCMaps;
+  private final boolean createGCMaps;
 
   /**
    *  Should we store liveness information at the top of each handler block?
    */
-  private boolean storeLiveAtHandlers;
+  private final boolean storeLiveAtHandlers;
 
   /**
    *  Should we skip guard registers?
    */
-  private boolean skipGuards;
+  private final boolean skipGuards;
 
   /**
    *  Should we skip the (final) local propagation phase?
    */
-  private boolean skipLocal;
+  private final boolean skipLocal;
 
   /**
    *  The current LiveSet that we will carry around
@@ -96,9 +96,9 @@ public final class LiveAnalysis extends CompilerPhase {
   /**
    * The GC map associated with the IR, optionally filled by this class
    */
-  private GCIRMap map;
+  private final GCIRMap map;
 
-  private VariableMap osrMap;
+  private final VariableMap osrMap;
 
   /**
    * For each register, the set of live interval elements describing the
@@ -107,10 +107,10 @@ public final class LiveAnalysis extends CompilerPhase {
   private ArrayList<LiveIntervalElement>[] registerMap;
 
   /** Debugging info */
-  private static final boolean debug = false;
+  private static final boolean DEBUG = false;
 
   /** Even more debugging info */
-  private static final boolean verbose = false;
+  private static final boolean VERBOSE = false;
 
   public String getName() {
     return "Live Analysis";
@@ -156,6 +156,16 @@ public final class LiveAnalysis extends CompilerPhase {
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = storeLiveAtHandlers;
     this.skipGuards = skipGuards;
+    if (createGCMaps) {
+      // Create the IR-based Map we will use during compilation
+      // At a later phase this map is converted into the "runtime"
+      //  map, which is called OptReferenceMap.
+      map = new GCIRMap();
+      osrMap = new VariableMap();
+    } else {
+      map = null;
+      osrMap = null;
+    }
   }
 
   /**
@@ -191,7 +201,7 @@ public final class LiveAnalysis extends CompilerPhase {
 
     // Debugging information
     // Live Intervals, GC Maps, and fixed-point results
-    final boolean dumpFinalLiveIntervals = debug ||
+    final boolean dumpFinalLiveIntervals = DEBUG ||
       ir.options.PRINT_GC_MAPS &&
          (!ir.options.hasMETHOD_TO_PRINT() ||
           (ir.options.hasMETHOD_TO_PRINT() && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))
@@ -206,15 +216,6 @@ public final class LiveAnalysis extends CompilerPhase {
 
     for (int i = 0; i < ir.cfg.numberOfNodes(); i++) {
       bbLiveInfo[i] = new BBLiveElement();
-    }
-
-    if (createGCMaps) {
-      // Create the IR-based Map we will use during compilation
-      // At a later phase this map is converted into the "runtime"
-      //  map, which is called OptReferenceMap.
-      map = new GCIRMap();
-
-      osrMap = new VariableMap();
     }
 
     // allocate the "currentSet" which is used to cache the current results
@@ -376,7 +377,7 @@ public final class LiveAnalysis extends CompilerPhase {
    *      www.research.ibm.com/jalapeno)"
    */
   private void computeBlockGenAndKill(BasicBlock bblock, IR ir) {
-    if (verbose) {
+    if (VERBOSE) {
       System.out.println(" --> Computing Gen/Kill for block " + bblock);
     }
 
@@ -532,7 +533,7 @@ public final class LiveAnalysis extends CompilerPhase {
         seenFirstPEI = true;
       }
     }           // foreach instruction in block
-    if (verbose) {
+    if (VERBOSE) {
       System.out.println("  Gen: " + bbLiveInfo[bblock.getNumber()].getGen());
       System.out.println("  Kill: " + bbLiveInfo[bblock.getNumber()].BBKillSet());
       System.out.println("  1st PEI Kill: " + bbLiveInfo[bblock.getNumber()].firstPEIKillSet());
@@ -588,7 +589,7 @@ public final class LiveAnalysis extends CompilerPhase {
    *  @param ir the governing ir
    */
   private boolean processBlock(BasicBlock block, boolean reuseCurrentSet, IR ir) {
-    if (verbose) {
+    if (VERBOSE) {
       System.out.println(" *** processing block " + block + " # out edges: " + block.getNumberOfOut());
       block.printExtended();
     }
@@ -636,7 +637,7 @@ public final class LiveAnalysis extends CompilerPhase {
         }
       }
     }
-    if (verbose) {
+    if (VERBOSE) {
       System.out.println("\t Before applying transfor function:");
       System.out.println("\t currentSet: " + currentSet);
       System.out.println("\t exceptionBlockSummary: " + exceptionBlockSummary);
@@ -676,12 +677,12 @@ public final class LiveAnalysis extends CompilerPhase {
     // the previous In set.  If it results in an addition we have
     // a change and return true, otherwise return false.
     if (bbLiveInfo[block.getNumber()].getIn().add(currentSet)) {
-      if (verbose) {
+      if (VERBOSE) {
         System.out.println(" *** processBlock returning true, currentSet: " + currentSet);
       }
       return true;
     } else {
-      if (verbose) {
+      if (VERBOSE) {
         System.out.println(" *** processBlock returning false, currentSet: " + currentSet);
       }
       return false;
@@ -706,7 +707,7 @@ public final class LiveAnalysis extends CompilerPhase {
    *  @param ir the IR
    */
   private void performLocalPropagation(IR ir, boolean createGCMaps) {
-    if (debug) {
+    if (DEBUG) {
       System.out.println(" .... starting local propagation\n");
     }
     Stack<MapElement> blockStack = null;
@@ -719,7 +720,7 @@ public final class LiveAnalysis extends CompilerPhase {
     }
     for (BasicBlock block = ir.firstBasicBlockInCodeOrder(); block != null; block =
         block.nextBasicBlockInCodeOrder()) {
-      if (verbose) {
+      if (VERBOSE) {
         System.out.print(" ....   processing block # " + block.getNumber() + " ...");
       }
 
@@ -744,7 +745,7 @@ public final class LiveAnalysis extends CompilerPhase {
           local.add(bbLiveInfo[succ.getNumber()].getIn());
         }
       }
-      if (verbose) {
+      if (VERBOSE) {
         System.out.println(" Completed succ walk. exceptionBlockSummary: " +
                            exceptionBlockSummary +
                            "\n local: " +
@@ -760,7 +761,7 @@ public final class LiveAnalysis extends CompilerPhase {
       // Process the block, an instruction at a time.
       for (Instruction inst = block.lastInstruction(); inst != block.firstInstruction(); inst =
           inst.prevInstructionInCodeOrder()) {
-        if (verbose) {
+        if (VERBOSE) {
           System.out.println("Processing: " + inst);
         }
 
@@ -792,7 +793,7 @@ public final class LiveAnalysis extends CompilerPhase {
             if (regOp.getType() != null) {
               // process the def as a kill
               local.remove(regOp);
-              if (verbose) {
+              if (VERBOSE) {
                 System.out.println("  Killing: " + regOp + "\n local: " + local);
               }
 
@@ -830,7 +831,7 @@ public final class LiveAnalysis extends CompilerPhase {
           // NOTE: this translation does some screening, see GCIRMap.java
           List<RegSpillListElement> regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
-          if (verbose) { System.out.println("SAVING GC Map"); }
+          if (VERBOSE) { System.out.println("SAVING GC Map"); }
         }       // is GC instruction, and map not already made
 
         // now process the uses
@@ -847,7 +848,7 @@ public final class LiveAnalysis extends CompilerPhase {
             if (regType != null) {
               // process the use as a gen
               local.add(regOp);
-              if (verbose) {
+              if (VERBOSE) {
                 System.out.println("  Gen-ing: " + regOp);
                 System.out.println("local: " + local);
               }
@@ -891,7 +892,7 @@ public final class LiveAnalysis extends CompilerPhase {
         local.clear();
       }
     }           // end basic block for loop
-    if (debug) {
+    if (DEBUG) {
       System.out.println(" .... completed local propagation\n");
     }
   }
@@ -950,9 +951,9 @@ public final class LiveAnalysis extends CompilerPhase {
    * @param dumpFinalLiveIntervals debug info
    */
   private void debugPostGlobal(IR ir, boolean dumpFixedPointResults, boolean dumpFinalMaps, boolean dumpFinalLiveIntervals) {
-    if (debug) {
+    if (DEBUG) {
       System.out.println(" .... Completed global live computation ....");
-      if (verbose) {
+      if (VERBOSE) {
         // Print the basic blocks
         System.out.println(" .... CFG:");
         System.out.println(ir.cfg);

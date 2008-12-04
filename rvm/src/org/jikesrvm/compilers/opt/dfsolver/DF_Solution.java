@@ -45,6 +45,3 @@ public class DF_Solution extends HashMap<Object, DF_LatticeCell> {
     return get(k);
   }
 }
-
-
-

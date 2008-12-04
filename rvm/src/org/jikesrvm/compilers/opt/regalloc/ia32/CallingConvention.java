@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.VM;
@@ -60,7 +62,7 @@ public abstract class CallingConvention extends IRTools
   /**
    * Size of a word, in bytes
    */
-  private static final int WORDSIZE = 4;
+  private static final int WORDSIZE = BYTES_IN_ADDRESS;
 
   /**
    * Expand calling conventions to make physical registers explicit in the

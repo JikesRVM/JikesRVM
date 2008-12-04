@@ -30,7 +30,7 @@ public final class CompilationPlan {
   /**
    * The method to be compiled.
    */
-  public NormalMethod method;
+  public final NormalMethod method;
 
   public NormalMethod getMethod() {
     return method;
@@ -39,16 +39,16 @@ public final class CompilationPlan {
   /**
    * The specialized parameters to use in place of those defined in method.
    */
-  public TypeReference[] params;
+  public final TypeReference[] params;
 
   /**
    * The OptimizationPlanElements to be invoked during compilation.
    */
-  public OptimizationPlanElement[] optimizationPlan;
+  public final OptimizationPlanElement[] optimizationPlan;
   /**
    * The instrumentation plan for the method.
    */
-  public InstrumentationPlan instrumentationPlan;
+  public final InstrumentationPlan instrumentationPlan;
   /**
    * The oracle to be consulted for all inlining decisions.
    */
@@ -56,7 +56,7 @@ public final class CompilationPlan {
   /**
    * The Options object that contains misc compilation control data
    */
-  public OptOptions options;
+  public final OptOptions options;
 
   /**
    * Whether this compilation is for analysis only?

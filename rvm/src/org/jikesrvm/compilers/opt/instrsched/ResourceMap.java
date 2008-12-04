@@ -22,30 +22,25 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * @see org.jikesrvm.compilers.opt.ir.Operator
  */
 final class ResourceMap {
-  private static final int verbose = 0;
+  private static final int VERBOSE = 0;
 
   private static void debug(String s) {
     System.out.println(s);
   }
 
-  // Padding
-  // For internal use only.
-  private static final String ZEROS = dup(32, '0');
-
   private static String toBinaryPad32(int value) {
     String s = Integer.toBinaryString(value);
-    return ZEROS.substring(s.length()) + s;
+    return String.format("%032s", s);
   }
 
-  // GROWABLE Resource Usage map.
+  /** GROWABLE Resource Usage map. */
   private int[] rumap;
-  // Current size of the RU map.
+  /** Current size of the RU map. */
   private int size;
 
-  // Grows the RU map to a given size.
-  // For internal use only.
+  /** Grows the RU map to a given size. For internal use only. */
   private void grow(int s) {
-    if (verbose >= 2) {
+    if (VERBOSE >= 2) {
       debug("Growing from " + size + " to " + s);
     }
     if (size >= s) {
@@ -99,7 +94,7 @@ final class ResourceMap {
       throw new InternalError("Already scheduled");
     }
     OperatorClass opc = i.operator().getOpClass();
-    if (verbose >= 2) {
+    if (VERBOSE >= 2) {
       debug("Op Class=" + opc);
     }
     for (int alt = 0; alt < opc.masks.length; alt++) {
@@ -146,7 +141,7 @@ final class ResourceMap {
   // For internal use only.
   private boolean schedule(int[] usage, int time) {
     grow(time + usage.length);
-    if (verbose >= 1) {
+    if (VERBOSE >= 1) {
       debug("Pattern (" + usage.length + ")");
       for (int anUsage : usage) debug("   " + toBinaryPad32(anUsage));
       debug("");
@@ -168,16 +163,6 @@ final class ResourceMap {
     for (int i = 0; i < usage.length; i++) {
       rumap[time + i] &= ~usage[i];
     }
-  }
-
-  // Generates a string of a given length filled by a given character.
-  // For internal use only.
-  private static String dup(int len, char c) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < len; i++) {
-      sb.append(c);
-    }
-    return sb.toString();
   }
 }
 

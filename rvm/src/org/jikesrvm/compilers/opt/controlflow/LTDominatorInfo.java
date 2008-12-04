@@ -28,7 +28,8 @@ class LTDominatorInfo {
   static final boolean DEBUG = false;
 
   private int semiDominator;
-  private BasicBlock dominator;             // the imediate dominator
+  /** the immediate dominator */
+  private BasicBlock dominator;
   private BasicBlock parent;
   private final HashSet<BasicBlock> bucket;
   private BasicBlock label;

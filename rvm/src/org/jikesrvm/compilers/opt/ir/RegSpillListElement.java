@@ -22,7 +22,7 @@ public class RegSpillListElement {
   /**
    * this should be a symbolic register
    */
-  private Register symbolicReg;
+  private final Register symbolicReg;
 
   /**
    * this could be either a spill or a real reg number

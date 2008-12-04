@@ -46,6 +46,11 @@ import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 final class Scheduler {
   /**
+   * Debugging level.
+   */
+  private static final int VERBOSE = 0;
+
+  /**
    * Should we print the length of the critical path for each basic block?
    */
   private static final boolean PRINT_CRITICAL_PATH_LENGTH = false;
@@ -71,7 +76,27 @@ final class Scheduler {
   /**
    * Current phase (prepass/postpass).
    */
-  private int phase;
+  private final int phase;
+
+  /**
+   * Current IR.
+   */
+  private IR ir;
+
+  /**
+   * Current basic block.
+   */
+  private BasicBlock bb;
+
+  /**
+   * Dependence graph for current basic block.
+   */
+  private DepGraph dg;
+
+  /**
+   * Mapping from Instruction to DepGraphNode.
+   */
+  private DepGraphNode[] i2gn;
 
   /**
    * Should we print the dependence graph?
@@ -92,7 +117,7 @@ final class Scheduler {
   void perform(IR _ir) {
     // Remember the ir to schedule
     ir = _ir;
-    if (verbose >= 1) {
+    if (VERBOSE >= 1) {
       debug("Scheduling " +
             ir.method.getDeclaringClass() +
             ' ' +
@@ -156,11 +181,6 @@ final class Scheduler {
   }
 
   /**
-   * Debugging level.
-   */
-  private static final int verbose = 0;
-
-  /**
    * Output debugging information.
    * @param s string to print
    */
@@ -169,41 +189,14 @@ final class Scheduler {
   }
 
   /**
-   * A string of spaces.
-   * Used for indenting.
-   */
-  private static String SPACES = null;
-
-  /**
    * Output debugging information with indentation.
    * @param depth level of indenting
    * @param s string to print
    */
   private static void debug(int depth, String s) {
-    if (SPACES == null) SPACES = dup(128, ' ');
-    if (SPACES.length() < depth * 2) SPACES += SPACES;
-    debug(SPACES.substring(0, depth * 2) + s);
+    String format = String.format("%% %ds", depth*2);
+    debug(String.format(format, s));
   }
-
-  /**
-   * Current IR.
-   */
-  private IR ir;
-
-  /**
-   * Current basic block.
-   */
-  private BasicBlock bb;
-
-  /**
-   * Dependence graph for current basic block.
-   */
-  private DepGraph dg;
-
-  /**
-   * Mapping from Instruction to DepGraphNode.
-   */
-  private DepGraphNode[] i2gn;
 
   /**
    * Set corresponding graph node for instruction.
@@ -228,7 +221,7 @@ final class Scheduler {
    * @param depth current DFS depth
    */
   private void computeCriticalPath(DepGraphNode n, int depth) {
-    if (verbose >= 5) {
+    if (VERBOSE >= 5) {
       debug(depth, "Visiting " + n);
     }
     Instruction i = n.instruction();
@@ -253,7 +246,7 @@ final class Scheduler {
    * @param i given instruction
    */
   private int computeEarliestTime(Instruction i) {
-    if (verbose >= 5) {
+    if (VERBOSE >= 5) {
       debug("Computing earliest time for " + i);
     }
     DepGraphNode n = getGraphNode(i);
@@ -262,7 +255,7 @@ final class Scheduler {
       etime = 0;
     }
     OperatorClass opc = i.operator().getOpClass();
-    if (verbose >= 7) {
+    if (VERBOSE >= 7) {
       debug("opc=" + opc);
     }
     if (opc == null) {
@@ -272,17 +265,17 @@ final class Scheduler {
       DepGraphNode np = (DepGraphNode) pred.next();
       Instruction j = np.instruction();
       int time = SchedulingInfo.getTime(j);
-      if (verbose >= 6) {
+      if (VERBOSE >= 6) {
         debug("Predecessor " + j + " scheduled at " + time);
       }
       if (time == -1) {
         throw new OptimizingCompilerException("Instructions not in topological order: " + i + "; " + j);
       }
-      if (verbose >= 6) {
+      if (VERBOSE >= 6) {
         debug("Retrieving latency from " + j);
       }
       OperatorClass joc = j.operator().getOpClass();
-      if (verbose >= 7) {
+      if (VERBOSE >= 7) {
         debug("j's class=" + joc);
       }
       if (joc == null) {
@@ -293,7 +286,7 @@ final class Scheduler {
         etime = time + lat;
       }
     }
-    if (verbose >= 5) {
+    if (VERBOSE >= 5) {
       debug("Updating time of " + i + " to " + etime);
     }
     SchedulingInfo.setEarliestTime(i, etime);
@@ -384,10 +377,10 @@ final class Scheduler {
    * Schedule a basic block.
    */
   private void scheduleBasicBlock() {
-    if (verbose >= 2) {
+    if (VERBOSE >= 2) {
       debug("Scheduling " + bb);
     }
-    if (verbose >= 4) {
+    if (VERBOSE >= 4) {
       debug("**** START OF CURRENT BB BEFORE SCHEDULING ****");
       for (InstructionEnumeration bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
         debug(bi.next().toString());
@@ -398,21 +391,21 @@ final class Scheduler {
     for (DepGraphNode dgn = (DepGraphNode) dg.firstNode(); dgn != null; dgn = (DepGraphNode) dgn.getNext())
     {
       setGraphNode(dgn.instruction(), dgn);
-      if (verbose >= 4) {
+      if (VERBOSE >= 4) {
         debug("Added node for " + dgn.instruction());
       }
     }
     ResourceMap rmap = new ResourceMap();
     int bl = 0;
     Instruction fi = bb.firstInstruction();
-    if (verbose >= 5) {
+    if (VERBOSE >= 5) {
       debug("Computing critical path for " + fi);
     }
     computeCriticalPath(getGraphNode(fi), 0);
     int cp = SchedulingInfo.getCriticalPath(fi);
     for (InstructionEnumeration ie = bb.forwardRealInstrEnumerator(); ie.hasMoreElements();) {
       Instruction i = ie.next();
-      if (verbose >= 5) {
+      if (VERBOSE >= 5) {
         debug("Computing critical path for " + i);
       }
       computeCriticalPath(getGraphNode(i), 0);
@@ -430,56 +423,37 @@ final class Scheduler {
     int maxtime = 0;
     for (ilist.reset(); ilist.hasMoreElements();) {
       Instruction i = ilist.next();
-      if (verbose >= 3) {
+      if (VERBOSE >= 3) {
         debug("Scheduling " + i + "[" + SchedulingInfo.getInfo(i) + "]");
       }
       int time = computeEarliestTime(i);
       while (!rmap.schedule(i, time)) {
         time++;
       }
-      if (verbose >= 5) {
+      if (VERBOSE >= 5) {
         debug("Scheduled " + i + " at time " + time);
       }
       if (time > maxtime) {
         maxtime = time;
       }
     }
-    if (verbose >= 2) {
+    if (VERBOSE >= 2) {
       debug("Done scheduling " + bb);
     }
-    if (verbose >= 3) {
+    if (VERBOSE >= 3) {
       debug(rmap.toString());
     }
     boolean changed = sortBasicBlock(maxtime);
-    if (changed && verbose >= 2) {
+    if (changed && VERBOSE >= 2) {
       debug("Basic block " + bb + " changed");
     }
-    if (verbose >= 4) {
+    if (VERBOSE >= 4) {
       debug("**** START OF CURRENT BB AFTER SCHEDULING ****");
       for (InstructionEnumeration bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
         debug(bi.next().toString());
       }
       debug("**** END   OF CURRENT BB AFTER SCHEDULING ****");
     }
-  }
-
-  /**
-   * Generates a string of a given length filled by a given character.
-   * @param len the length to generate
-   * @param c the character to fill the string with
-   */
-  private static String dup(int len, char c) {
-    StringBuilder ret = new StringBuilder();
-    StringBuffer sp2 = new StringBuffer(c);
-    int p2 = 1;
-    for (int i = 0; i < 32; i++) {
-      if ((len & p2) != 0) {
-        ret.append(sp2);
-      }
-      sp2.append(sp2);
-      p2 <<= 1;
-    }
-    return ret.toString();
   }
 }
 

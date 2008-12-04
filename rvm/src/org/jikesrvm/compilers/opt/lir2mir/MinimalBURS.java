@@ -184,5 +184,3 @@ final class MinimalBURS extends BURS {
     }
   }
 }
-
-

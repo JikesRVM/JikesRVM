@@ -15,6 +15,7 @@ Ljava/io/LineNumberReader;
 Ljava/io/FileReader;
 Ljava/io/PushbackReader;
 [Lorg/jikesrvm/compilers/opt/Simplifier$DefUseEffect;
+[Lorg/jikesrvm/compilers/opt/inlining/InlineDecision$Code;
 [Lorg/jikesrvm/compilers/opt/instrsched/OperatorClass;
 [Lorg/jikesrvm/compilers/opt/instrsched/ResourceReservation;
 [Lorg/jikesrvm/compilers/opt/ir/Register;

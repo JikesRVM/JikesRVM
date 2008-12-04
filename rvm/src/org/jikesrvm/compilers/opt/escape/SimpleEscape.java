@@ -162,8 +162,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *       problem, and solved with iteration
  */
 class SimpleEscape extends CompilerPhase {
-  private static final boolean DEBUG = false;
-
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
@@ -201,6 +199,7 @@ class SimpleEscape extends CompilerPhase {
    * @param ir IR for the target method
    */
   public FI_EscapeSummary simpleEscapeAnalysis(IR ir) {
+    final boolean DEBUG = false;
     if (DEBUG) {
       VM.sysWrite("ENTER Simple Escape Analysis " + ir.method + "\n");
     }

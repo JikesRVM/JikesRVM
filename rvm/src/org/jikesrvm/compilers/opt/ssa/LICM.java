@@ -61,7 +61,7 @@ public class LICM extends CompilerPhase {
   /** Generate debug output? */
   private static final boolean DEBUG = false;
   /** Generate verbose debug output? */
-  private static boolean verbose = false;
+  private static boolean VERBOSE = false;
 
   /**
    * Constructor for this compiler phase
@@ -100,19 +100,19 @@ public class LICM extends CompilerPhase {
       return;
     }
 
-    verbose = ir.options.VERBOSE_GCP;
+    VERBOSE = ir.options.VERBOSE_GCP;
 
-    if (verbose && ir.options.hasMETHOD_TO_PRINT()) {
-      verbose = ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString());
-      if (!verbose) {
+    if (VERBOSE && ir.options.hasMETHOD_TO_PRINT()) {
+      VERBOSE = ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString());
+      if (!VERBOSE) {
         resetLandingPads();
         return;
       }
     }
 
-    if (verbose) VM.sysWrite("] " + ir.method + "\n");
+    if (VERBOSE) VM.sysWrite("] " + ir.method + "\n");
     initialize(ir);
-    if (verbose) SSA.printInstructions(ir);
+    if (VERBOSE) SSA.printInstructions(ir);
 
     Instruction inst = ir.firstInstructionInCodeOrder();
     while (inst != null) {
@@ -393,7 +393,7 @@ public class LICM extends CompilerPhase {
 
     // if there are no uses, this instruction is dead.
     if (lateBlock == null) {
-      if (verbose) VM.sysWrite("deleting " + inst + "\n");
+      if (VERBOSE) VM.sysWrite("deleting " + inst + "\n");
       inst.remove();
     } else {
       if (DEBUG && lateBlock != getOrigBlock(inst)) {
@@ -734,7 +734,7 @@ public class LICM extends CompilerPhase {
     if (DEBUG && moved.add(inst.operator)) {
       VM.sysWrite("m(" + (ir.IRStage == IR.LIR ? "l" : "h") + ") " + inst.operator + "\n");
     }
-    if (verbose) {
+    if (VERBOSE) {
       VM.sysWrite(ir.IRStage == IR.LIR ? "%" : "#");
       VM.sysWrite(" moving " + inst + " from " + _origBlock + " to " + to + "\n" + "behind  " + cand + "\n");
 

@@ -21,7 +21,7 @@ package org.jikesrvm.compilers.opt.instrsched;
  */
 final class ResourceReservation {
   // Resource Class.
-  private int rclass;
+  private final int rclass;
   /**
    * Start Time.
    */

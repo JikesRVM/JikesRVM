@@ -21,9 +21,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * to provide a mechanism for instrumentation phases to performing
  * counting of events, but to keep the implemntation of the counters
  * completely hidden.
- *
- *
- **/
+ */
 public abstract class InstrumentedEventCounterManager {
   static final boolean DEBUG = false;
 
@@ -83,7 +81,4 @@ public abstract class InstrumentedEventCounterManager {
    * Still  under construction.
    */
   public abstract void insertBaselineCounter();
-}               // end of class
-
-
-
+}

@@ -33,7 +33,8 @@ public class DominatorTreeNode extends TreeNode {
   private final BasicBlock block;
 
   /**
-   * distance from the root of the dominator tree
+   * distance from the root of the dominator tree, lazily initialized (-1 => not
+   * initialized)
    */
   private int depth = -1;
 

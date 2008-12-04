@@ -53,10 +53,58 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public abstract class GenericStackManager extends IRTools {
 
+  protected static final boolean DEBUG = false;
+  protected static final boolean VERBOSE = false;
+  protected static final boolean VERBOSE_DEBUG = false;
+
   /**
    * Size of a word, in bytes
    */
   protected static final int WORDSIZE = BYTES_IN_ADDRESS;
+
+  protected IR ir;
+  protected int frameSize;      // = 0;  (by default)
+  protected boolean allocFrame; // = false;  (by default)
+
+  /**
+   * Object holding register preferences
+   */
+  protected final RegisterPreferences pref = new RegisterPreferences();
+
+  RegisterPreferences getPreferences() { return pref; }
+
+  /**
+   * Object holding register restrictions
+   */
+  protected RegisterRestrictions restrict;
+
+  RegisterRestrictions getRestrictions() { return restrict; }
+
+  /**
+   * Spill pointer (in bytes) relative to the beginning of the
+   * stack frame (starts after the header).
+   */
+  protected int spillPointer = ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE;
+
+  /**
+   * Have we decided that a stack frame is required for this method?
+   */
+  private boolean frameRequired;
+
+  /**
+   * Memory location (8 bytes) to be used for type conversions
+   */
+  private int conversionOffset;
+
+  /**
+   * Memory location (4 bytes) to be used for caughtExceptions
+   */
+  private int caughtExceptionOffset;
+
+  /**
+   * Is there a prologue yieldpoint in this method?
+   */
+  private boolean prologueYieldpoint;
 
   /**
    * We will have to save and restore all non-volatile registers around
@@ -88,9 +136,13 @@ public abstract class GenericStackManager extends IRTools {
   protected final int[] saveVolatileGPRLocation = new int[NUM_GPRS];
   protected final int[] saveVolatileFPRLocation = new int[NUM_FPRS];
 
-  protected static final boolean debug = false;
-  protected static final boolean verbose = false;
-  protected static final boolean verboseDebug = false;
+  /**
+   * An object used to track adjustments to the GC maps induced by scratch
+   * registers
+   */
+  protected final ScratchMap scratchMap = new ScratchMap();
+
+  ScratchMap getScratchMap() { return scratchMap; }
 
   /**
    * Perform some architecture-specific initialization.
@@ -379,14 +431,14 @@ public abstract class GenericStackManager extends IRTools {
       }
       // update the scratch maps, even if the scratch registers are now
       // dead.
-      if (verboseDebug) {
+      if (VERBOSE_DEBUG) {
         System.out.println("RALL: End scratch interval " + scratch.scratch + " " + s);
       }
       i.remove();
       scratchMap.endScratchInterval(scratch.scratch, s);
       Register scratchContents = scratch.currentContents;
       if (scratchContents != null) {
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RALL: End symbolic interval " + scratchContents + " " + s);
         }
         scratchMap.endSymbolicInterval(scratchContents, s);
@@ -494,12 +546,12 @@ public abstract class GenericStackManager extends IRTools {
           // shares a spill location with r.currentContents.  However,
           // update the mapping information.
           if (r.currentContents != null) {
-            if (verboseDebug) {
+            if (VERBOSE_DEBUG) {
               System.out.println("GSR: End symbolic interval " + r.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(r.currentContents, s);
           }
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("GSR: Begin symbolic interval " + symb + " " + r.scratch + " " + s);
           }
           scratchMap.beginSymbolicInterval(symb, r.scratch, s);
@@ -644,13 +696,13 @@ public abstract class GenericStackManager extends IRTools {
       }
     } else {
       // update mapping information
-      if (verboseDebug) {
+      if (VERBOSE_DEBUG) {
         System.out.println("CSB: " + " End scratch interval " + sr.scratch + " " + s);
       }
       scratchMap.endScratchInterval(sr.scratch, s);
       Register scratchContents = sr.currentContents;
       if (scratchContents != null) {
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("CSB: " + " End symbolic interval " + sr.currentContents + " " + s);
         }
         scratchMap.endSymbolicInterval(sr.currentContents, s);
@@ -658,12 +710,12 @@ public abstract class GenericStackManager extends IRTools {
     }
 
     // update mapping information
-    if (verboseDebug) {
+    if (VERBOSE_DEBUG) {
       System.out.println("CSB: Begin scratch interval " + r + " " + s);
     }
     scratchMap.beginScratchInterval(r, s);
 
-    if (verboseDebug) {
+    if (VERBOSE_DEBUG) {
       System.out.println("CSB: Begin symbolic interval " + symb + " " + r + " " + s);
     }
     scratchMap.beginSymbolicInterval(symb, r, s);
@@ -950,7 +1002,7 @@ public abstract class GenericStackManager extends IRTools {
       activeSet = set;
     }
 
-    if (verboseDebug) {
+    if (VERBOSE_DEBUG) {
       System.out.println("INSERT SPILL CODE:");
     }
 
@@ -964,7 +1016,7 @@ public abstract class GenericStackManager extends IRTools {
         boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
 
         Instruction s = e.nextElement();
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println(s);
         }
 
@@ -997,7 +1049,7 @@ public abstract class GenericStackManager extends IRTools {
               // Is r currently assigned to a scratch register?
               // Note that if we're being cheap, the answer is always no (null)
               ScratchRegister scratch = getCurrentScratchRegister(r, s);
-              if (verboseDebug) {
+              if (VERBOSE_DEBUG) {
                 System.out.println(r + " SCRATCH " + scratch);
               }
               if (scratch != null) {
@@ -1023,12 +1075,12 @@ public abstract class GenericStackManager extends IRTools {
                     if (!usedIn(r, s)) {
                       Register r2 = spillLocationUse(r, s);
                       scratch = moveToScratchBefore(s, r2, beCheap);
-                      if (verboseDebug) {
+                      if (VERBOSE_DEBUG) {
                         System.out.println("MOVED TO SCRATCH BEFORE " + r2 + " " + scratch);
                       }
                     } else {
                       scratch = moveToScratchBefore(s, r, beCheap);
-                      if (verboseDebug) {
+                      if (VERBOSE_DEBUG) {
                         System.out.println("MOVED TO SCRATCH BEFORE " + r + " " + scratch);
                       }
                     }
@@ -1036,7 +1088,7 @@ public abstract class GenericStackManager extends IRTools {
                   if (defined) {
                     scratch = holdInScratchAfter(s, r, beCheap);
                     scratch.setDirty(true);
-                    if (verboseDebug) {
+                    if (VERBOSE_DEBUG) {
                       System.out.println("HELD IN SCRATCH AFTER" + r + " " + scratch);
                     }
                   }
@@ -1064,14 +1116,6 @@ public abstract class GenericStackManager extends IRTools {
       }
     }
   }
-
-  /**
-   * An object used to track adjustments to the GC maps induced by scrach
-   * registers
-   */
-  protected ScratchMap scratchMap = new ScratchMap();
-
-  ScratchMap getScratchMap() { return scratchMap; }
 
   /**
    * Insert a spill of a physical register before instruction s.
@@ -1122,46 +1166,6 @@ public abstract class GenericStackManager extends IRTools {
   public final void insertUnspillAfter(Instruction s, Register r, byte type, int location) {
     insertUnspillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
-
-  /**
-   * Object holding register preferences
-   */
-  protected RegisterPreferences pref = new RegisterPreferences();
-
-  RegisterPreferences getPreferences() { return pref; }
-
-  /**
-   * Object holding register restrictions
-   */
-  protected RegisterRestrictions restrict;
-
-  RegisterRestrictions getRestrictions() { return restrict; }
-
-  /**
-   * Spill pointer (in bytes) relative to the beginning of the
-   * stack frame (starts after the header).
-   */
-  protected int spillPointer = ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE;
-
-  /**
-   * Have we decided that a stack frame is required for this method?
-   */
-  private boolean frameRequired;
-
-  /**
-   * Memory location (8 bytes) to be used for type conversions
-   */
-  private int conversionOffset;
-
-  /**
-   * Memory location (4 bytes) to be used for caughtExceptions
-   */
-  private int caughtExceptionOffset;
-
-  /**
-   * Is there a prologue yieldpoint in this method?
-   */
-  private boolean prologueYieldpoint;
 
   /**
    * Are we required to allocate a stack frame for this method?
@@ -1335,10 +1339,6 @@ public abstract class GenericStackManager extends IRTools {
     restrict = new RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());
   }
 
-  protected IR ir;
-  protected int frameSize;      // = 0;  (by default)
-  protected boolean allocFrame; // = false;  (by default)
-
   /**
    * Set up register restrictions
    */
@@ -1360,7 +1360,7 @@ public abstract class GenericStackManager extends IRTools {
       Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
-        if (debug) VM.sysWrite(" volat." + realReg + " to symb " + symbReg + '\n');
+        if (DEBUG) VM.sysWrite(" volat." + realReg + " to symb " + symbReg + '\n');
         return realReg;
       }
     }
@@ -1419,7 +1419,7 @@ public abstract class GenericStackManager extends IRTools {
    * Class to represent a physical register currently allocated as a
    * scratch register.
    */
-  protected static class ScratchRegister {
+  protected static final class ScratchRegister {
     /**
      * The physical register used as scratch.
      */

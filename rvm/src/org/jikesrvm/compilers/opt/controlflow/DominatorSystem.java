@@ -27,7 +27,7 @@ class DominatorSystem extends DF_System {
   /**
    * The governing IR.
    */
-  IR ir;
+  private final IR ir;
 
   /**
    * Default constructor.

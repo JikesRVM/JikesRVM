@@ -55,8 +55,10 @@ final class FieldDatabase {
   // a data structure holding information about a field
   static final class FieldDatabaseEntry {
     private final ImmutableEntryHashMapRVM<RVMMethod, FieldWriterInfo> summaries;
-    boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
-    TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
+    /** have we already determined all methods are analyzed? */
+    boolean cachedAllAnalyzed;
+    /** cache a copy of the concrete type already determined for this field */
+    TypeReference cachedConcreteType;
 
     FieldWriterInfo findMethodInfo(RVMMethod m) {
       return summaries.get(m);

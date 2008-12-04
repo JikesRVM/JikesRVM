@@ -27,19 +27,14 @@ import org.jikesrvm.util.BitVector;
  */
 public class DominatorTree extends Tree {
   /**
-   * control for debugging messages.
-   */
-  static final boolean DEBUG = false;
-
-  /**
    * True if we are computing regular dominators, false for post-dominators
    */
-  private boolean forward;
+  private final boolean forward;
 
   /**
    * The governing IR
    */
-  private IR ir;
+  private final IR ir;
 
   /**
    * A structure used to quickly index into the DominatorVertex tree
@@ -56,6 +51,9 @@ public class DominatorTree extends Tree {
    * @param forward are we building regular dominators or post-dominators?
    */
   public static void perform(IR ir, boolean forward) {
+    // control for debugging messages.
+    final boolean DEBUG = false;
+
     if (forward) {
       ir.HIRInfo.dominatorTree = new DominatorTree(ir, forward);
       if (ir.options.PRINT_DOMINATORS) {
@@ -63,10 +61,8 @@ public class DominatorTree extends Tree {
           System.out.println("Here is the CFG for method " + ir.method.getName() + "\n" + ir.cfg);
         }
         System.out.println("Here is the Dominator Tree for method " +
-                           ir.method.getName() +
-                           "\n" +
-                           ir.HIRInfo
-                               .dominatorTree);
+                           ir.method.getName() + "\n" +
+                           ir.HIRInfo.dominatorTree);
       }
     } else {
       ir.HIRInfo.postDominatorTree = new DominatorTree(ir, forward);
@@ -75,10 +71,8 @@ public class DominatorTree extends Tree {
           System.out.println("Here is the CFG for method " + ir.method.getName() + "\n" + ir.cfg);
         }
         System.out.println("Here is the Post-Dominator Tree for method " +
-                           ir.method.getName() +
-                           "\n" +
-                           ir.HIRInfo
-                               .postDominatorTree);
+                           ir.method.getName() + "\n" +
+                           ir.HIRInfo.postDominatorTree);
       }
     }
   }
@@ -295,6 +289,3 @@ public class DominatorTree extends Tree {
   }
 
 }
-
-
-

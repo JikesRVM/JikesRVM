@@ -23,7 +23,7 @@ public abstract class GenericRegisterPreferences {
   /**
    * The main backing data structure;
    */
-  CoalesceGraph graph = new CoalesceGraph();
+  private final CoalesceGraph graph = new CoalesceGraph();
 
   /**
    * Add a affinity of weight w between two registers.

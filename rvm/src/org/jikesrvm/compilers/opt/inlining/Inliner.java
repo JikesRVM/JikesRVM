@@ -64,9 +64,11 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
  */
 public class Inliner {
 
-  // The following flag requires an adaptive boot image and flag
-  // "INSERT_DEBUGGING_COUNTERS" to be true.  See instrumentation
-  // section of the user guide for more information.
+  /**
+   * The following flag enables debug counters and requires an adaptive boot
+   * image and flag "INSERT_DEBUGGING_COUNTERS" to be true. See instrumentation
+   * section of the user guide for more information.
+   */
   private static final boolean COUNT_FAILED_GUARDS = false;
 
   /**
@@ -437,14 +439,9 @@ public class Inliner {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
       NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
-        VM.sysWrite("\tInline " +
-                    callee +
-                    " into " +
-                    callSite.position.getMethod() +
-                    " at bytecode " +
-                    callSite
-                        .bcIndex +
-                                 "\n");
+        VM.sysWrite("\tInline " + callee +
+                    " into " + callSite.position.getMethod() +
+                    " at bytecode " + callSite.bcIndex + "\n");
       }
       GenerationContext child = GenerationContext.
           createChildContext(parent, ebag, callee, callSite);

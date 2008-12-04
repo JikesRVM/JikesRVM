@@ -23,6 +23,10 @@ import org.jikesrvm.util.BitVector;
  * dataflow equations for the dominator calculation.
  */
 class DominatorOperator extends DF_Operator {
+  /**
+   * A singleton instance of this class.
+   */
+  static final DominatorOperator MEET = new DominatorOperator();
 
   /**
    * Evaluate an equation with the MEET operation
@@ -56,9 +60,4 @@ class DominatorOperator extends DF_Operator {
   public String toString() {
     return "MEET";
   }
-
-  /**
-   * A singleton instance of this class.
-   */
-  static final DominatorOperator MEET = new DominatorOperator();
 }

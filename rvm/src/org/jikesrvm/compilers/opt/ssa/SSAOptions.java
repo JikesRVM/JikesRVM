@@ -19,19 +19,27 @@ package org.jikesrvm.compilers.opt.ssa;
  *            actual options held by the IR object.
  */
 public class SSAOptions {
-  /**
+  /*
    * options for SSA construction
    */
-  private boolean scalarsOnly;        // construct SSA only for scalars?
-  private boolean backwards;          // construct Heap SSA for backwards
-  // analysis?
-  private boolean insertUsePhis;      // constuct Heap SSA with uPhi functions?
-  private boolean insertPEIDeps;      // constuct Heap SSA with PEI deps?
-  private boolean excludeGuards;      // ignore guards (validation regs) ?
-  private java.util.Set<Object> heapTypes;    // restrict Heap SSA to this set of types?
-  private boolean heapValid;          // is Heap SSA info valid?
-  private boolean scalarValid;        // is Scalar SSA info valid?
-  private boolean abort;              // abort all ssa passes?
+  /** construct SSA only for scalars? */
+  private boolean scalarsOnly;
+  /** construct Heap SSA for backwards analysis? */
+  private boolean backwards;
+  /** constuct Heap SSA with uPhi functions? */
+  private boolean insertUsePhis;
+  /** constuct Heap SSA with PEI deps? */
+  private boolean insertPEIDeps;
+  /** ignore guards (validation regs) ? */
+  private boolean excludeGuards;
+  /** restrict Heap SSA to this set of types? */
+  private java.util.Set<Object> heapTypes;
+  /** is Heap SSA info valid? */
+  private boolean heapValid;
+  /** is Scalar SSA info valid? */
+  private boolean scalarValid;
+  /** abort all ssa passes? */
+  private boolean abort;
 
   final boolean getAbort() {
     return abort;

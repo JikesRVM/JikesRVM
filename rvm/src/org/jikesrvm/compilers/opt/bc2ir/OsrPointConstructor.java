@@ -117,7 +117,8 @@ public class OsrPointConstructor extends CompilerPhase {
     return osrs;
   }
 
-  /* For each OsrPoint instruction, traces its OsrBarriers created by
+  /**
+   * For each OsrPoint instruction, traces its OsrBarriers created by
    * inlining. rebuild OsrPoint instruction to hold all necessary
    * information to recover from inlined activation.
    */

@@ -674,4 +674,3 @@ public abstract class IRTools {
     return s.mayBeVolatileFieldLoad();
   }
 }
-

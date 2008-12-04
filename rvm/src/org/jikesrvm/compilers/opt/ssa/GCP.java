@@ -214,6 +214,3 @@ public final class GCP extends OptimizationPlanCompositeElement {
     return false;
   }
 }
-
-
-

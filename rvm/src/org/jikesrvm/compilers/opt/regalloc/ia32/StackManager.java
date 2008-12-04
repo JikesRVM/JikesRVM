@@ -989,7 +989,7 @@ public abstract class StackManager extends GenericStackManager {
       ScratchRegister scratch = i.next();
 
       if (scratch.currentContents == null) continue;
-      if (verboseDebug) {
+      if (VERBOSE_DEBUG) {
         System.out.println("RESTORE: consider " + scratch);
       }
       boolean removed = false;
@@ -1000,19 +1000,19 @@ public abstract class StackManager extends GenericStackManager {
           (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RESTORE : unload because defined " + scratch);
         }
         unloadScratchRegisterBefore(s, scratch);
 
         // update mapping information
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
         Register scratchContents = scratch.currentContents;
         if (scratchContents != null) {
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
           }
           scratchMap.endSymbolicInterval(scratch.currentContents, s);
@@ -1029,19 +1029,19 @@ public abstract class StackManager extends GenericStackManager {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RESTORE : unload because used " + scratch);
           }
           unloadScratchRegisterBefore(s, scratch);
 
           // update mapping information
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
           Register scratchContents = scratch.currentContents;
           if (scratchContents != null) {
-            if (verboseDebug) {
+            if (VERBOSE_DEBUG) {
               System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(scratch.currentContents, s);
@@ -1050,7 +1050,7 @@ public abstract class StackManager extends GenericStackManager {
         }
         // s or some future instruction uses the scratch register,
         // so restore the correct contents.
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RESTORE : reload because used " + scratch);
         }
         reloadScratchRegisterBefore(s, scratch);

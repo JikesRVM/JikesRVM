@@ -1931,18 +1931,9 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @param other the instruction to link with.
    */
-  void linkWithNext(Instruction other) {
+  public void linkWithNext(Instruction other) {
     next = other;
     other.prev = this;
-  }
-
-  /**
-   * Temp kludge for BURS as we bring the ir package on line
-   * @deprecated
-   */
-  @Deprecated
-  public void BURS_KLUDGE_linkWithNext(Instruction other) {
-    linkWithNext(other);
   }
 
   /**

@@ -19,6 +19,54 @@ import org.jikesrvm.compilers.opt.OptOptions;
  * Instances of this class represent decisions to inline.
  */
 public final class InlineDecision {
+  private enum Code {
+    /**
+     * Symbolic constant coding internal state.
+     */
+    DECIDE_NO,
+    /**
+     * Symbolic constant coding internal state.
+     */
+    DECIDE_YES,
+    /**
+     * Symbolic constant coding internal state.
+     */
+    GUARDED_YES
+  }
+
+  /**
+   * Rationale for this decision
+   */
+  private final String rationale;
+  /**
+   * Holds characterization of this decision.
+   */
+  private final Code code;
+  /**
+   * The set of methods to inline.
+   */
+  private final RVMMethod[] targets;
+  /**
+   * The set of guards to use (only valid when code == GUARDED_YES)
+   */
+  private final byte[] guards;
+
+  /**
+   * Should the test-failed block be replaced with an OSR point?
+   */
+  private boolean testFailedOSR = false;
+
+  /**
+   * @param targets   The methods to inline
+   * @param code the decision code
+   * @param reason a string rationale
+   */
+  private InlineDecision(RVMMethod[] targets, byte[] guards, Code code, String reason) {
+    this.code = code;
+    this.rationale = reason;
+    this.targets = targets;
+    this.guards = guards;
+  }
 
   /**
    * Return a decision NOT to inline.
@@ -30,7 +78,7 @@ public final class InlineDecision {
   public static InlineDecision NO(RVMMethod target, String reason) {
     RVMMethod[] targets = new RVMMethod[1];
     targets[0] = target;
-    return new InlineDecision(targets, null, DECIDE_NO, reason);
+    return new InlineDecision(targets, null, Code.DECIDE_NO, reason);
   }
 
   /**
@@ -40,7 +88,7 @@ public final class InlineDecision {
    * @return a decision NOT to inline
    */
   public static InlineDecision NO(String reason) {
-    return new InlineDecision(null, null, DECIDE_NO, reason);
+    return new InlineDecision(null, null, Code.DECIDE_NO, reason);
   }
 
   /**
@@ -52,7 +100,7 @@ public final class InlineDecision {
   public static InlineDecision YES(RVMMethod target, String reason) {
     RVMMethod[] targets = new RVMMethod[1];
     targets[0] = target;
-    return new InlineDecision(targets, null, DECIDE_YES, reason);
+    return new InlineDecision(targets, null, Code.DECIDE_YES, reason);
   }
 
   /**
@@ -68,7 +116,7 @@ public final class InlineDecision {
     byte[] guards = new byte[1];
     targets[0] = target;
     guards[0] = guard;
-    return new InlineDecision(targets, guards, GUARDED_YES, reason);
+    return new InlineDecision(targets, guards, Code.GUARDED_YES, reason);
   }
 
   /**
@@ -80,7 +128,7 @@ public final class InlineDecision {
    * @return a decision YES to inline, but it is not always safe.
    */
   public static InlineDecision guardedYES(RVMMethod[] targets, byte[] guards, String reason) {
-    return new InlineDecision(targets, guards, GUARDED_YES, reason);
+    return new InlineDecision(targets, guards, Code.GUARDED_YES, reason);
   }
 
   /**
@@ -94,14 +142,14 @@ public final class InlineDecision {
    * Is this inline decision a NO?
    */
   public boolean isNO() {
-    return (code == DECIDE_NO);
+    return (code == Code.DECIDE_NO);
   }
 
   /**
    * Does this inline site need a guard?
    */
   public boolean needsGuard() {
-    return (code == GUARDED_YES);
+    return (code == Code.GUARDED_YES);
   }
 
   /**
@@ -128,74 +176,12 @@ public final class InlineDecision {
     return targets.length;
   }
 
-  /**
-   * Should the test-failed block be replaced with an OSR point?
-   */
-  private boolean testFailedOSR = false;
-
   public void setOSRTestFailed() { testFailedOSR = true; }
 
   public boolean OSRTestFailed() { return testFailedOSR; }
 
-  /**
-   * Symbolic constant coding internal state.
-   */
-  private static final short DECIDE_NO = 0;
-  /**
-   * Symbolic constant coding internal state.
-   */
-  private static final short DECIDE_YES = 1;
-  /**
-   * Symbolic constant coding internal state.
-   */
-  private static final short GUARDED_YES = 2;
-  /**
-   * Rationale for this decision
-   */
-  private String rationale;
-  /**
-   * Holds characterization of this decision.
-   */
-  private short code;
-  /**
-   * The set of methods to inline.
-   */
-  private RVMMethod[] targets;
-  /**
-   * The set of guards to use
-   * (only valid when code == GUARDED_YES)
-   */
-  private byte[] guards;
-
-  /**
-   * @param targets   The methods to inline
-   * @param code the decision code
-   * @param reason a string rationale
-   */
-  private InlineDecision(RVMMethod[] targets, byte[] guards, short code, String reason) {
-    this(code, reason);
-    this.targets = targets;
-    this.guards = guards;
-  }
-
-  /**
-   * @param code the decision code
-   * @param reason a string rationale
-   */
-  private InlineDecision(short code, String reason) {
-    this.code = code;
-    this.rationale = reason;
-  }
-
   public String toString() {
-    String s = null;
-    if (code == DECIDE_NO) {
-      s = "DECIDE_NO";
-    } else if (code == DECIDE_YES) {
-      s = "DECIDE_YES";
-    } else if (code == GUARDED_YES) {
-      s = "GUARDED_YES";
-    }
+    String s = code.toString();
     if (testFailedOSR) {
       s += "(OSR off-branch)";
     }
@@ -221,6 +207,3 @@ public final class InlineDecision {
     return s;
   }
 }
-
-
-

@@ -29,8 +29,6 @@ import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
  * @see DepGraph
  */
 public class DepGraphStats {
-  private static final boolean debug = false;
-
   /**
    * Create a statistical summary of a dependence graph for a given basic
    * block.
@@ -99,9 +97,10 @@ public class DepGraphStats {
    * @param ir the IR
    */
   public static void printBasicBlockStatistics(IR ir) {
+    final boolean DEBUG = false;
     System.out.println();
     System.out.println("**** START OF printBasicBlockStatistics() for method " + ir.method + " ****");
-    if (debug) {
+    if (DEBUG) {
       ir.printInstructions();
     }
 

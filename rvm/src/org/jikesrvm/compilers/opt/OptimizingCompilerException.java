@@ -29,7 +29,7 @@ public class OptimizingCompilerException extends RuntimeException {
   /**
    * Capture illegal upcasts from magic types to java.lang.Object
    */
-  public static class IllegalUpcast extends RuntimeException {
+  public static final class IllegalUpcast extends RuntimeException {
     /** Support for exception serialization */
     static final long serialVersionUID = -847866659938089530L;
     /** Unboxed type that was attempted to convert to an Object */
@@ -222,6 +222,3 @@ public class OptimizingCompilerException extends RuntimeException {
     return sb.toString();
   }
 }
-
-
-

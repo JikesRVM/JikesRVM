@@ -109,9 +109,9 @@ public class LSTNode extends SpaceEffGraphNode {
   }
 
   static final class Edge {
-    BasicBlock source;
-    BasicBlock target;
-    float probability;
+    final BasicBlock source;
+    final BasicBlock target;
+    final float probability;
 
     Edge(BasicBlock s, BasicBlock t, float p) {
       source = s;
@@ -125,6 +125,3 @@ public class LSTNode extends SpaceEffGraphNode {
   }
 
 }
-
-
-

@@ -39,7 +39,7 @@ public class LiveSet {
   /**
    * just used for debugging
    */
-  private static final boolean debug = false;
+  private static final boolean DEBUG = false;
 
   /**
    * Empties the set
@@ -54,7 +54,7 @@ public class LiveSet {
    * @return whether the item was found
    */
   public boolean contains(Register item) {
-    if (debug) {
+    if (DEBUG) {
       System.out.println("looking for " + item + " in " + this);
     }
     // simply linear search
@@ -62,13 +62,13 @@ public class LiveSet {
     while (lsEnum.hasMoreElements()) {
       Register elem = lsEnum.nextElement().getRegister();
       if (item == elem) {
-        if (debug) {
+        if (DEBUG) {
           System.out.println("found it, returning true");
         }
         return true;
       }
     }
-    if (debug) {
+    if (DEBUG) {
       System.out.println("didn't find it, returning false");
     }
     return false;
@@ -80,7 +80,7 @@ public class LiveSet {
    *             created object
    */
   public void add(RegisterOperand item) {
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\t LiveSet.add (item) called with reg " + item);
       System.out.println("\t before add:" + this);
     }
@@ -114,7 +114,7 @@ public class LiveSet {
         createAndAddToCurrentList(item, prev);
       }
     }
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\tafter add:" + this);
     }
   }
@@ -135,7 +135,7 @@ public class LiveSet {
     if (!lsEnum.hasMoreElements()) {
       return false;
     }
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\t LiveSet.add called");
       System.out.println("\t   currentList: " + this);
       System.out.println("\t   additionList: " + additionList);
@@ -196,7 +196,7 @@ public class LiveSet {
         change = true;
       }
     }
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\tafter add:" + this + "\n Change:" + change);
     }
     return change;
@@ -224,7 +224,7 @@ public class LiveSet {
     if (first == null) {
       return;
     }
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\t LiveSet.remove called");
       System.out.println("\t   currentList: " + this);
       System.out.println("\t   removalList: " + removalList);
@@ -264,7 +264,7 @@ public class LiveSet {
     // once we leave the loop, we may have items on 1 list, but not
     // on the other.  these can't be removed so there is nothing to
     // be done with them
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\tafter remove:" + this);
     }
   }
@@ -274,7 +274,7 @@ public class LiveSet {
    * @param item the registerOperand holding the register of interest
    */
   void remove(RegisterOperand item) {
-    if (debug) {
+    if (DEBUG) {
       System.out.println("\tLiveSet.remove (item) called with reg " + item);
     }
     // only something to do if the set is non-empty

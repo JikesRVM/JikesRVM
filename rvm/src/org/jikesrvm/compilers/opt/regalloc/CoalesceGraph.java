@@ -101,7 +101,7 @@ class CoalesceGraph extends SpaceEffGraph {
   }
 
   static class Node extends SpaceEffGraphNode {
-    Register r;
+    final Register r;
 
     Node(Register r) {
       this.r = r;

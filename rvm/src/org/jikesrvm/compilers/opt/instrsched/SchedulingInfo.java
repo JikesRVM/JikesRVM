@@ -163,6 +163,3 @@ final class SchedulingInfo {
     return "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp=" + cp;
   }
 }
-
-
-

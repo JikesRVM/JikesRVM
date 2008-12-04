@@ -249,12 +249,12 @@ public class StaticSplitting extends CompilerPhase {
    */
   private CandInfo cands;
 
-  private static class CandInfo {
-    BasicBlock candBB;
-    BasicBlock prevBB;
-    BasicBlock succBB;
+  private static final class CandInfo {
+    final BasicBlock candBB;
+    final BasicBlock prevBB;
+    final BasicBlock succBB;
     final Instruction test;
-    CandInfo next;
+    final CandInfo next;
 
     CandInfo(BasicBlock c, BasicBlock p, BasicBlock s, Instruction t, CandInfo n) {
       candBB = c;
