@@ -273,7 +273,7 @@ public class FinalMIRExpansion extends IRTools {
               MIR_Unary.getVal(next).similar(MIR_Unary.getResult(next)) &&
               MIR_Unary.getVal(next).similar(MIR_Set.getResult(p))) {
             // Find instruction in this basic block that defines flags
-            Instruction x = p.getPrev();
+            Instruction x = p.prevInstructionInCodeOrder();
             Operand result = MIR_Unary.getResult(next);
             boolean foundCmp = false;
             outer:
@@ -293,7 +293,7 @@ public class FinalMIRExpansion extends IRTools {
                 foundCmp = true;
                 break outer;
               }
-              x = x.getPrev();
+              x = x.prevInstructionInCodeOrder();
             }
             if (foundCmp) {
               // We found the <cmp>, mutate the movzx__b into an xor and insert it before the <cmp>

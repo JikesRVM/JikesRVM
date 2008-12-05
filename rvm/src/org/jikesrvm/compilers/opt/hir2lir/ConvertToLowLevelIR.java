@@ -969,7 +969,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
 
     BranchProfileOperand bp = BranchProfileOperand.never();
     BasicBlock predBB = s.getBasicBlock();
-    BasicBlock succBB = predBB.splitNodeAt(s.getPrev(), ir);
+    BasicBlock succBB = predBB.splitNodeAt(s.prevInstructionInCodeOrder(), ir);
     BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir, 1f - bp.takenProbability);
     BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
     s.remove();

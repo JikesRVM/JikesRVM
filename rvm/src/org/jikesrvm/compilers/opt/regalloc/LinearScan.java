@@ -1847,10 +1847,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
         listOfBlocks = bb;
 
         // number the instructions last to first
-        for (Instruction inst = bb.lastInstruction(); inst != null; inst = inst.getPrev()) {
-
+        InstructionEnumeration e = bb.reverseInstrEnumerator();
+        while (e.hasMoreElements()) {
+          Instruction inst = e.next();
           setDFN(inst, curDfn);
-
           curDfn--;
         }
       }

@@ -1330,7 +1330,7 @@ public abstract class Simplifier extends IRTools {
             return DefUseEffect.MOVE_REDUCED;
           }
           // x / c == (x + (((1 << c) - 1) & (x >> 31))) >> c .. if c is power of 2
-          if (s.getPrev() != null) {
+          if (s.hasPrev()) {
             int power = PowerOf2(val2);
             if (power != -1) {
               RegisterOperand tempInt1 = regpool.makeTempInt();
@@ -1410,7 +1410,7 @@ public abstract class Simplifier extends IRTools {
       return DefUseEffect.REDUCED;
     }
     // Try to reduce x*c into shift and adds, but only if cost is cheap
-    if (s.getPrev() != null) {
+    if (s.hasPrev()) {
       // don't attempt to reduce if this instruction isn't
       // part of a well-formed sequence
 
@@ -3234,7 +3234,6 @@ public abstract class Simplifier extends IRTools {
           }
         }
       } else if (methOp.isStatic() && methOp.hasPreciseTarget() && HIR) {
-        RVMMethod containingMethod = s.position.getMethod();
         RVMMethod method = methOp.getTarget();
         // Can we remove the need for RVMClass.getClass...FromStackFrame to walk the stack?
         if (method == Entrypoints.getClassLoaderFromStackFrame ||

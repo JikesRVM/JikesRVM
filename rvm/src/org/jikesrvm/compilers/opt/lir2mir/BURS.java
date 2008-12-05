@@ -68,7 +68,7 @@ public abstract class BURS {
    * @param bb
    */
   final void finalizeBlock(BasicBlock bb) {
-    lastInstr.linkWithNext(bb.lastInstruction());
+    lastInstr.BURS_backdoor_linkWithNext(bb.lastInstruction());
     lastInstr = null;
     if (DEBUG) {
       VM.sysWrite("INITIAL MIR\n");
@@ -80,7 +80,7 @@ public abstract class BURS {
    * append an instruction (in other words emit an MIR instruction)
    */
   public final void append(Instruction instruction) {
-    lastInstr.linkWithNext(instruction);
+    lastInstr.BURS_backdoor_linkWithNext(instruction);
     lastInstr = instruction;
   }
 }

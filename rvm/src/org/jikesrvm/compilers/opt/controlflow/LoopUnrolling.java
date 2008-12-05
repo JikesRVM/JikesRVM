@@ -958,7 +958,7 @@ public class LoopUnrolling extends CompilerPhase {
   static void deleteBranches(BasicBlock b) {
     Instruction branch = b.lastRealInstruction();
     while (branch.isBranch()) {
-      Instruction nextBranch = branch.getPrev();
+      Instruction nextBranch = branch.prevInstructionInCodeOrder();
       branch.remove();
       branch = nextBranch;
     }

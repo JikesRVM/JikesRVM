@@ -471,10 +471,11 @@ public abstract class StackManager extends GenericStackManager {
                              null,
                              null);
 
+    // the prologue instruction
+    Instruction plg = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
-    Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder().nextInstructionInCodeOrder();
-    Instruction plg = inst.getPrev();
+    Instruction inst = plg.nextInstructionInCodeOrder();
 
     int frameFixedSize = getFrameFixedSize();
     ir.compiledMethod.setFrameFixedSize(frameFixedSize);
