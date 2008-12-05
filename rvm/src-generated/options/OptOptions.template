@@ -71,13 +71,15 @@ $$$$ END LET USE_OPT_LEVELS
   }
 
 
-  // accessor to get OPT level
+  /** accessor to get OPT level */
   public int getOptLevel() {
     return OPTIMIZATION_LEVEL;
   }
 
-  // Set the options to encode the optimizations enabled at the given opt label
-  // and disabled all optimizations that are not enabled at the given opt label
+  /**
+   * Set the options to encode the optimizations enabled at the given opt label
+   * and disabled all optimizations that are not enabled at the given opt label
+   */
   public void setOptLevel(int level) {
      OPTIMIZATION_LEVEL = level;
      // Begin generated opt-level logic

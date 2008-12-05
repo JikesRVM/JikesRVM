@@ -15,7 +15,8 @@ $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,30," ")
-   public boolean PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+   /** OPTION.DESCRIP */
+   public boolean PRETTY_NAME= DEFAULT_VALUE;
      $$$$ END LET PRETTY_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
@@ -25,11 +26,13 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
        $$$$ IF TAG == S
        $$$$ LET PRETTY_NAME @PAD(FULL_NAME,23-@LENGTH("TYPE")," ")
-   private java.util.HashSet<String> PRETTY_NAME= null; // OPTION.DESCRIP
+    /** OPTION.DESCRIP */
+    private java.util.HashSet<TYPE> PRETTY_NAME= null;
        $$$$ END LET PRETTY_NAME
        $$$$ ELSE
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
-   public TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+    /** OPTION.DESCRIP */
+    public TYPE PRETTY_NAME= DEFAULT_VALUE;
      $$$$ END LET PRETTY_NAME
        $$$$ END IF
      $$$$ END SPLIT
@@ -46,7 +49,12 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
    public static final TYPE ITEM_NAME = CONSTNAME.INDEX;
-   public final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
+   /**
+    * Is FULL_NAME set to ITEM_NAME?
+    */
+   public final boolean QUERRY_NAME() {
+     return FULL_NAME == ITEM_NAME;
+   }
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP
 
@@ -62,22 +70,38 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
    // FULL_NAME
-   public boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
+   /**
+    * Has the given parameter been added to FULL_NAME set of options?
+    */
+   public boolean isFULL_NAME(TYPE q) {
+     return FULL_NAME != null && FULL_NAME.contains(q);
+   }
+          $$$$ IF TYPE == String
+   /**
+    * Does the given parameter appear within a set the String of one of the options?
+    */
    public boolean fuzzyMatchFULL_NAME(TYPE q) {
-     if (FULL_NAME == null) return false;
-     for (final String s : FULL_NAME) {
-       if (q.indexOf(s) > -1) return true;
+     if (FULL_NAME != null) {
+       for (final String s : FULL_NAME) {
+         if (q.indexOf(s) > -1)
+           return true;
+       }
      }
      return false;
    }
-   public boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
-   public java.util.Iterator<String> getFULL_NAMEs() {
+          $$$$ END IF TYPE == String
+   /**
+    * Have any items been placed in the set FULL_NAME?
+    */
+   public boolean hasFULL_NAME() {
+     return FULL_NAME != null && !FULL_NAME.isEmpty();
+   }
+   /**
+    * Return an iterator over the items in FULL_NAME
+    */
+   public java.util.Iterator<TYPE> getFULL_NAMEs() {
      if (FULL_NAME == null) {
-       return new java.util.Iterator<String>() {
-         public boolean hasNext() { return false; }
-         public String next() { return null; }
-          public void remove() {}
-       };
+       return new org.jikesrvm.util.EmptyIterator<TYPE>();
      } else {
        return FULL_NAME.iterator();
      }
@@ -97,7 +121,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
      if (FULL_NAME != null) {
-       clone.FULL_NAME = (java.util.HashSet)this.FULL_NAME.clone();
+       clone.FULL_NAME = (java.util.HashSet<TYPE>)this.FULL_NAME.clone();
      }
      $$$$ END IF
      $$$$ END SPLIT
@@ -116,7 +140,6 @@ $$$$ END LOOP
       throw error;
     }
   }
-
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
@@ -174,7 +197,7 @@ $$$$ FOREACH OPTION BDATFILE
         FULL_NAME = true;
         return true;
       } else if (value.equals("false")) {
-          FULL_NAME = false;
+        FULL_NAME = false;
         return true;
       } else
         return false;
@@ -199,10 +222,10 @@ $$$$ FOREACH OPTION VDATFILE
        FULL_NAME = (byte)CommandLineArgs.primitiveParseInt(value);
               $$$$ ELSE
                 $$$$ IF TYPE == double
-          FULL_NAME = CommandLineArgs.primitiveParseFloat(value);
+       FULL_NAME = CommandLineArgs.primitiveParseFloat(value);
                 $$$$ ELSE
                   $$$$ IF TYPE == float
-            FULL_NAME = CommandLineArgs.primitiveParseFloat(value);
+       FULL_NAME = CommandLineArgs.primitiveParseFloat(value);
                   $$$$ ELSE
        Hey! You tried to declare a value option of unrecoginized type...fix it!
                   $$$$ END IF
@@ -226,16 +249,12 @@ $$$$ FOREACH OPTION VDATFILE
      }
        $$$$ ELSE
          $$$$ IF TAG == S
-           $$$$ IF TYPE == String
        if (FULL_NAME == null) {
-         FULL_NAME = new java.util.HashSet<String>();
+         FULL_NAME = new java.util.HashSet<TYPE>();
        }
        FULL_NAME.add(value);
        return true;
      }
-           $$$$ ELSE
-       Hey! You tried to declare a Set option of unsupported type...fix it!
-           $$$$ END IF TYPE == String
          $$$$ ELSE
          Whoops! Unimplemented tag: TAG...go nag Dave and he'll finish it.
          $$$$ END IF TAG == S
@@ -251,7 +270,7 @@ $$$$ END LOOP
     return false;
   }
 
-  // Print a short description of every option
+  /** Print a short description of every option */
   public static void printHelp(String prefix) {
 
     instancePrintHelpHeader(prefix);
@@ -325,7 +344,7 @@ $$$$ END LOOP
     VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }
 
-  // print the options values
+  /** @return a String representing the options values */
   @org.vmmagic.pragma.NoOptCompile
   public String toString() {
     StringBuilder result = new StringBuilder();
@@ -384,7 +403,8 @@ $$$$ END LOOP
     return result.toString();
     //End generated toString()
   }
-  // return a String value of this options object
+
+  /** print a String value of this options object */
   @org.vmmagic.pragma.NoOptCompile
   public void printOptions() {
     printOptionsHeader();
