@@ -94,7 +94,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   static final boolean DEBUG = false;
 
   public boolean shouldPerform(OptOptions options) {
-    return options.LOAD_ELIMINATION;
+    return options.SSA_LOAD_ELIMINATION;
   }
 
   public String getName() {
@@ -680,7 +680,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     }
 
     public final boolean shouldPerform(OptOptions options) {
-      return options.LOAD_ELIMINATION;
+      return options.SSA_LOAD_ELIMINATION;
     }
 
     public final String getName() {
@@ -697,7 +697,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
       ir.desiredSSAOptions.setBackwards(false);
       ir.desiredSSAOptions.setInsertUsePhis(true);
       ir.desiredSSAOptions.setHeapTypes(LoadElimination.getCandidates(ir));
-      ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS) ||
+      ir.desiredSSAOptions.setAbort((round > ir.options.SSA_LOAD_ELIMINATION_ROUNDS) ||
                                     (!ir.HIRInfo.loadEliminationDidSomething));
     }
   }
@@ -708,7 +708,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   private static class GVNPreparation extends CompilerPhase {
 
     public final boolean shouldPerform(OptOptions options) {
-      return options.LOAD_ELIMINATION;
+      return options.SSA_LOAD_ELIMINATION;
     }
 
     public final String getName() {
@@ -746,7 +746,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
       ir.desiredSSAOptions.setScalarsOnly(true);
       ir.desiredSSAOptions.setBackwards(false);
       ir.desiredSSAOptions.setInsertUsePhis(false);
-      ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS) ||
+      ir.desiredSSAOptions.setAbort((round > ir.options.SSA_LOAD_ELIMINATION_ROUNDS) ||
                                     (!ir.HIRInfo.loadEliminationDidSomething));
     }
   }

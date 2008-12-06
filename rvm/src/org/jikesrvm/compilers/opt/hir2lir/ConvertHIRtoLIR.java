@@ -34,7 +34,7 @@ public final class ConvertHIRtoLIR extends CompilerPhase {
     if (IR.SANITY_CHECK) {
       ir.verify("before conversion to LIR", true);
     }
-    if (ir.options.STATIC_STATS) {
+    if (ir.options.PRINT_STATIC_STATS) {
       // Print summary statistics (critpath, etc.) for all basic blocks
       DepGraphStats.printBasicBlockStatistics(ir);
     }

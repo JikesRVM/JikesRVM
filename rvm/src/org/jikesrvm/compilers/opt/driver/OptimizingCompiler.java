@@ -69,7 +69,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
       // Make a local copy so that some options can be forced off just for the
       // duration of this initialization step.
       options = options.dup();
-      options.SIMPLE_ESCAPE_IPA = false;
+      options.ESCAPE_SIMPLE_IPA = false;
 
       initializeStatics();
       if (VM.runningVM) {
@@ -122,7 +122,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
     // Only do guarded inlining if we can use code patches.
     // Early speculation with method test/class test can result in
     // bad code that we can't recover from later.
-    options.GUARDED_INLINE = options.guardWithCodePatch();
+    options.INLINE_GUARDED = options.guardWithCodePatch();
 
     // Compute summaries of bootimage methods if we haven't encountered them yet.
     // Does not handle unimplemented magics very well; disable until
@@ -345,9 +345,9 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
       String msg = "Method throws NoOptCompilePragma";
       throw MagicNotImplementedException.EXPECTED(msg);
     }
-    if (options.hasEXCLUDE()) {
+    if (options.hasDRIVER_EXCLUDE()) {
       String name = method.getDeclaringClass().toString() + "." + method.getName();
-      if (options.fuzzyMatchEXCLUDE(name)) {
+      if (options.fuzzyMatchDRIVER_EXCLUDE(name)) {
         if (!method.getDeclaringClass().hasSaveVolatileAnnotation()) {
           throw new OptimizingCompilerException("method excluded", false);
         }

@@ -66,7 +66,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
     if (options.getOptLevel() < 2) {
       return false;
     }
-    return options.GCP || options.VERBOSE_GCP || options.GCSE;
+    return options.SSA_GCP || options.SSA_GCSE;
   }
 
   static boolean tooBig(IR ir) {
@@ -97,7 +97,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * @param options
      */
     public final boolean shouldPerform(OptOptions options) {
-      return options.GCP || options.VERBOSE_GCP || options.GCSE;
+      return options.SSA_GCP || options.SSA_GCSE;
     }
 
     /**
@@ -139,7 +139,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
-        ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.LICM_IGNORE_PEI);
+        ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.SSA_LICM_IGNORE_PEI);
         ir.desiredSSAOptions.setHeapTypes(null);
       }
     }
@@ -164,7 +164,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * @param options
      */
     public final boolean shouldPerform(OptOptions options) {
-      return options.GCP || options.VERBOSE_GCP || options.GCSE;
+      return options.SSA_GCP || options.SSA_GCSE;
     }
 
     /**

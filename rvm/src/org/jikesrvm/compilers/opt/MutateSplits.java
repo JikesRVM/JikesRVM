@@ -41,7 +41,7 @@ public final class MutateSplits extends CompilerPhase {
   }
 
   public boolean shouldPerform(OptOptions options) {
-    return options.LIVE_RANGE_SPLITTING;
+    return options.SSA_LIVE_RANGE_SPLITTING;
   }
 
   public String getName() {

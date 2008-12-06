@@ -76,7 +76,7 @@ public final class GlobalCSE extends CompilerPhase {
    * unless we pass through this test.
    */
   public boolean shouldPerform(OptOptions options) {
-    return options.GCSE;
+    return options.SSA_GCSE;
   }
 
   /**
@@ -108,7 +108,7 @@ public final class GlobalCSE extends CompilerPhase {
       return;
     }
     // cache useful values
-    verbose = ir.options.VERBOSE_GCP;
+    verbose = ir.options.DEBUG_GCP;
     this.ir = ir;
     dominator = ir.HIRInfo.dominatorTree;
 

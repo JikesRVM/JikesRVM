@@ -940,14 +940,14 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       this.ir = ir;
       this.spillManager = sm;
 
-      switch (ir.options.SPILL_COST_ESTIMATE) {
-        case OptOptions.SIMPLE_SPILL_COST:
+      switch (ir.options.REGALLOC_SPILL_COST_ESTIMATE) {
+        case OptOptions.REGALLOC_SIMPLE_SPILL_COST:
           spillCost = new SimpleSpillCost(ir);
           break;
-        case OptOptions.BRAINDEAD_SPILL_COST:
+        case OptOptions.REGALLOC_BRAINDEAD_SPILL_COST:
           spillCost = new BrainDeadSpillCost(ir);
           break;
-        case OptOptions.BLOCK_COUNT_SPILL_COST:
+        case OptOptions.REGALLOC_BLOCK_COUNT_SPILL_COST:
           spillCost = new BlockCountSpillCost(ir);
           break;
         default:

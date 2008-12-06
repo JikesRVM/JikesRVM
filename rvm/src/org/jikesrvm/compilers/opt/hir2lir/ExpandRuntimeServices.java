@@ -169,7 +169,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                        offset,
                        site);
           next = inst.prevInstructionInCodeOrder();
-          if (ir.options.INLINE_NEW) {
+          if (ir.options.H2L_INLINE_NEW) {
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -227,7 +227,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                        offset,
                        site);
           next = inst.prevInstructionInCodeOrder();
-          if (inline && ir.options.INLINE_NEW) {
+          if (inline && ir.options.H2L_INLINE_NEW) {
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -385,7 +385,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             wb.position = inst.position;
             inst.replace(wb);
             next = wb.prevInstructionInCodeOrder();
-            if (ir.options.INLINE_WRITE_BARRIER) {
+            if (ir.options.H2L_INLINE_WRITE_BARRIER) {
               inline(wb, ir, true);
             }
           }
@@ -434,7 +434,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                 wb.position = inst.position;
                 inst.replace(wb);
                 next = wb.prevInstructionInCodeOrder();
-                if (ir.options.INLINE_WRITE_BARRIER) {
+                if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                   inline(wb, ir, true);
                 }
               }
@@ -489,7 +489,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
               wb.position = inst.position;
               inst.replace(wb);
               next = wb.prevInstructionInCodeOrder();
-              if (ir.options.INLINE_WRITE_BARRIER) {
+              if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                 inline(wb, ir, true);
               }
             }
@@ -556,9 +556,9 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     // so we have to be sure to inline it "all the way" not
     // just 1 level.
     boolean savedInliningOption = ir.options.INLINE;
-    boolean savedExceptionOption = ir.options.NO_CALLEE_EXCEPTIONS;
+    boolean savedExceptionOption = ir.options.H2L_NO_CALLEE_EXCEPTIONS;
     ir.options.INLINE = true;
-    ir.options.NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
+    ir.options.H2L_NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
     boolean savedOsrGI = ir.options.OSR_GUARDED_INLINING;
     ir.options.OSR_GUARDED_INLINING = false;
     try {
@@ -567,7 +567,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;
-      ir.options.NO_CALLEE_EXCEPTIONS = savedExceptionOption;
+      ir.options.H2L_NO_CALLEE_EXCEPTIONS = savedExceptionOption;
       ir.options.OSR_GUARDED_INLINING = savedOsrGI;
     }
     didSomething = true;

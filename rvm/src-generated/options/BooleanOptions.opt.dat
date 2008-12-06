@@ -15,8 +15,37 @@ DECL
 DESCRIP
 
 ##########
-# First all the non-printing, non-debugging options
-# Should not start with PRINT_ or DEBUG_ prefix
+# Cross cutting optimization options
+##########
+FREQ_FOCUS_EFFORT -1 false focus_effort
+Focus compilation effort based on frequency profile data
+
+READS_KILL -1 false
+Should we constrain optimizations by enforcing reads-kill?
+
+##########
+# Analysis of fields to help determine their type options
+##########
+FIELD_ANALYSIS 0 true
+Eagerly compute method summaries for flow-insensitive field analysis
+
+##########
+# Inlining optimizations
+##########
+INLINE 0 true
+Inline statically resolvable calls
+
+INLINE_GUARDED 0 true
+Guarded inlining of non-final virtual calls
+
+INLINE_GUARDED_INTERFACES 0 true
+Speculatively inline non-final interface calls
+
+INLINE_PREEX 0 true
+Pre-existence based inlining
+
+##########
+# Local (within a basic block) optimizations
 ##########
 LOCAL_CONSTANT_PROP 0 true
 Perform local constant propagation
@@ -27,126 +56,132 @@ Perform local copy propagation
 LOCAL_CSE 0 true
 Perform local common subexpression elimination
 
-# ABCD is currently incomplete; it doesn't check lower bounds
-GLOBAL_BOUNDS_CHECK -1 false global_bounds
-Perform global Array Bound Check elimination on Demand
+LOCAL_EXPRESSION_FOLDING 3 false
+Should we try to fold expressions with constants locally?
 
-MONITOR_REMOVAL 1 true
-Try to remove unnecessary monitor operations
+##########
+# Control-flow optimization options
+##########
+CONTROL_STATIC_SPLITTING 1 true
+CFG splitting to create hot traces based on static heuristics
 
-INVOKEE_THREAD_LOCAL -1 false
-Compile the method assuming the invokee is thread-local
+CONTROL_TURN_WHILES_INTO_UNTILS 3 false control_unwhile
+Turn whiles into untils
 
-NO_CALLEE_EXCEPTIONS -1 false
-Assert that any callee of this compiled method will not throw exceptions. Cannot be properly set on commandline
-
-SIMPLE_ESCAPE_IPA -1 false
+##########
+# Simple escape optimization options
+##########
+ESCAPE_SIMPLE_IPA -1 false
 Eagerly compute method summaries for simple escape analysis
 
-FIELD_ANALYSIS 0 true
-Eagerly compute method summaries for flow-insensitive field analysis
+ESCAPE_SCALAR_REPLACE_AGGREGATES 1 true
+If possible turn aggregates (objects) into variable definition/uses
 
-SCALAR_REPLACE_AGGREGATES 1 true
-Perform scalar replacement of aggregates
+ESCAPE_MONITOR_REMOVAL 1 true
+Try to remove unnecessary monitor operations
 
+ESCAPE_INVOKEE_THREAD_LOCAL -1 false
+Compile the method assuming the invokee is thread-local. Cannot be properly set on command line.
+
+##########
+# SSA optimizations
+##########
+SSA 3 false
+Should SSA form be constructed on the HIR?
+
+SSA_EXPRESSION_FOLDING 3 false
+Should we try to fold expressions with constants in SSA form?
+
+SSA_REDUNDANT_BRANCH_ELIMINATION 3 true
+Eliminate redundant conditional branches
+
+# This options looks unsound, remove?
+SSA_LICM_IGNORE_PEI -1 false
+Assume PEIs do not throw or state is not observable
+
+SSA_LOAD_ELIMINATION 3 false
+Should we perform redundant load elimination during SSA pass?
+
+SSA_COALESCE_AFTER 3 false
+Should we coalesce move instructions after leaving SSA?
+
+SSA_LOOP_VERSIONING -1 false
+Create copies of loops where runtime exceptions are checked prior to entry
+
+SSA_LIVE_RANGE_SPLITTING -1 false
+Split live ranges using LIR SSA pass?
+
+SSA_GCP 3 false
+Perform global code placement
+
+SSA_GCSE 3 false
+Perform global code placement
+
+# ABCD is currently incomplete; it doesn't check lower bounds
+SSA_GLOBAL_BOUNDS_CHECK -1 false ssa_global_bounds
+Perform (incomplete/unsafe) global Array Bound Check elimination on Demand
+
+##########
+# Code reordering for icache performance options
+##########
 REORDER_CODE 0 true
 Reorder basic blocks for improved locality and branch prediction
 
 REORDER_CODE_PH 1 true
 Reorder basic blocks using Pettis and Hansen Algo2
 
-INLINE_NEW 0 true
+##########
+# Options during conversion from HIR to LIR
+##########
+H2L_INLINE_NEW 0 true
 Inline allocation of scalars and arrays
 
-INLINE_WRITE_BARRIER 1 true
+H2L_INLINE_WRITE_BARRIER 1 true
 Inline write barriers for generational collectors
 
-INLINE 0 true
-Inline statically resolvable calls
+H2L_NO_CALLEE_EXCEPTIONS -1 false
+Assert that any callee of this compiled method will not throw exceptions. Cannot be properly set on command line.
 
-GUARDED_INLINE 0 true
-Guarded inlining of non-final virtual calls
-
-GUARDED_INLINE_INTERFACE 0 true
-Speculatively inline non-final interface calls
-
-STATIC_SPLITTING 1 true
-CFG splitting to create hot traces based on static heuristics
-
-REDUNDANT_BRANCH_ELIMINATION 3 true
-Eliminate redundant conditional branches
-
-PREEX_INLINE 0 true
-Pre-existence based inlining
-
-SSA 3 false
-Should SSA form be constructed on the HIR?
-
-LOAD_ELIMINATION 3 false
-Should we perform redundant load elimination during SSA pass?
-
-COALESCE_AFTER_SSA 3 false
-Should we coalesce move instructions after leaving SSA?
-
-EXPRESSION_FOLDING 3 false
-Should we try to fold expressions with constants in SSA form?
-
-LIVE_RANGE_SPLITTING -1 false
-Split live ranges using LIR SSA pass?
-
-GCP 3 false gcp
-Perform global code placement
-
-GCSE 3 false  gcse
-Perform global code placement
-
-VERBOSE_GCP -1 false verbose_gcp
-Perform noisy global code placement
-
-LICM_IGNORE_PEI -1 false licm_ignore_pei
-Asume PEIs do not throw or state is not observable
-
-TURN_WHILES_INTO_UNTILS 3 false unwhile
-Turn whiles into untils
-
-LOOP_VERSIONING -1 false loop_versioning
-Loop versioning
-
-HANDLER_LIVENESS 2 false
+##########
+# Options during conversion from LIR to MIR
+##########
+L2M_HANDLER_LIVENESS 2 false
 Store liveness for handlers to improve dependence graph at PEIs
 
-SCHEDULE_PREPASS -1 false
+L2M_SCHEDULE_PREPASS -1 false
 Perform prepass instruction scheduling
 
-READS_KILL -1 false
-Should we constrain optimizations by enforcing reads-kill?
-
-STATIC_STATS -1 false
-Should we dump out compile-time statistics for basic blocks?
-
-INSTRUMENTATION_SAMPLING -1 false
+##########
+# Options for adaptive compilation
+##########
+ADAPTIVE_INSTRUMENTATION_SAMPLING -1 false
 Perform code transformation to sample instrumentation code.
 
-NO_DUPLICATION -1 false
+ADAPTIVE_NO_DUPLICATION -1 false
 When performing inst. sampling, should it be done without duplicating code?
 
-PROCESSOR_SPECIFIC_COUNTER -1 true
+ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER -1 true
 Should there be one CBS counter per processor for SMP performance?
 
-REMOVE_YP_FROM_CHECKING -1 false
+ADAPTIVE_REMOVE_YP_FROM_CHECKING -1 false
 Should yieldpoints be removed from the checking code (requires finite sample interval)
 
-##########
-# Options for feedback-directed optimizations
-#
-FREQ_FOCUS_EFFORT -1 false focusEffort
-Focus compilation effort based on frequency profile data
+###########
+# OnStackReplacement options
+###########
+OSR_GUARDED_INLINING 1 true
+Insert OSR point at off branch of guarded inlining?
+
+OSR_INLINE_POLICY 1 true
+Use OSR knowledge to drive more aggressive inlining?
 
 ##########
-# Next, declare all the printing options
-# MUST start with PRINT_
-#
-PRINT_PHASES -1 false phases
+# Printing options
+##########
+PRINT_STATIC_STATS -1 false
+Print out compile-time statistics for basic blocks?
+
+PRINT_PHASES -1 false
 Print short message for each compilation phase
 
 PRINT_ALL_IR -1 false
@@ -158,10 +193,10 @@ Print detailed report of compile-time inlining decisions
 PRINT_INLINE_REPORT -1 false
 Print detailed report of compile-time inlining decisions
 
-PRINT_DOMINATORS -1 false dom
+PRINT_DOMINATORS -1 false print_dom
 Print dominators
 
-PRINT_POST_DOMINATORS -1 false pdom
+PRINT_POST_DOMINATORS -1 false print_pdom
 Print post-dominators
 
 PRINT_SSA -1 false
@@ -176,29 +211,29 @@ Print dependence graph before prepass scheduling
 PRINT_DG_SCHED_POST -1 false
 Print dependence graph before postpass scheduling
 
-PRINT_COALESCING -1 false pcoal
+PRINT_COALESCING -1 false print_coal
 Print coalescing output
 
 ## Options for IR printing at various points in compilation
-PRINT_HIGH -1 false high
+PRINT_HIGH -1 false
 Print IR after initial generation
 
-PRINT_FINAL_HIR -1 false final_hir
+PRINT_FINAL_HIR -1 false
 Print IR just before conversion to LIR
 
-PRINT_LOW -1 false low
+PRINT_LOW -1 false
 Print IR after conversion to LIR
 
-PRINT_FINAL_LIR -1 false final_lir
+PRINT_FINAL_LIR -1 false
 Print IR just before conversion to MIR
 
-PRINT_MIR -1 false mir
+PRINT_MIR -1 false
 Print IR after conversion to MIR
 
-PRINT_FINAL_MIR -1 false final_mir
+PRINT_FINAL_MIR -1 false
 Print IR just before conversion to machine code
 
-PRINT_CFG -1 false cfg
+PRINT_CFG -1 false
 Print control flow graph too when IR is printed
 
 PRINT_SCHEDULE_PRE -1 false
@@ -207,7 +242,7 @@ Print IR after prepass scheduling
 PRINT_SCHEDULE_POST -1 false
 Print IR after postpass scheduling
 
-PRINT_REGALLOC -1 false regalloc
+PRINT_REGALLOC -1 false
 Print IR before and after register allocation
 
 PRINT_CALLING_CONVENTIONS -1 false
@@ -217,10 +252,9 @@ PRINT_GC_MAPS -1 false
 Print the garbage collection maps
 
 ##########
-# Finally, the debugging flags
-# MUST start with DEBUG_ prefix
-#
-DEBUG_CODEGEN -1 false cgd
+# Debugging flags
+##########
+DEBUG_CODEGEN -1 false debug_cgd
 Enable debugging support for final assembly
 
 DEBUG_INSTRU_SAMPLING -1 false
@@ -229,13 +263,6 @@ Enable debugging statements for instrumentation sampling
 DEBUG_INSTRU_SAMPLING_DETAIL -1 false
 Enable detailed debugging statements for instrumentation sampling
 
-###########
-# OnStackReplacement options, use this when guarded_inlining
-# is enabled
-###########
-OSR_GUARDED_INLINING 1 true
-Insert OSR point at off branch of guarded inlining?
-
-OSR_INLINE_POLICY 1 true
-Use OSR knowledge to drive more aggressive inlining?
+DEBUG_GCP -1 false
+Perform noisy global code placement
 

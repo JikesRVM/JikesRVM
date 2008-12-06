@@ -191,13 +191,13 @@ public final class InlineDecision {
         s += " " + targets[i];
         if (guards != null) {
           switch (guards[i]) {
-            case OptOptions.IG_METHOD_TEST:
+            case OptOptions.INLINE_GUARD_METHOD_TEST:
               s += " (method test)";
               break;
-            case OptOptions.IG_CLASS_TEST:
+            case OptOptions.INLINE_GUARD_CLASS_TEST:
               s += " (class test)";
               break;
-            case OptOptions.IG_CODE_PATCH:
+            case OptOptions.INLINE_GUARD_CODE_PATCH:
               s += " (code patch)";
               break;
           }

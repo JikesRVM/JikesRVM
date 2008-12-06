@@ -100,7 +100,7 @@ public class LICM extends CompilerPhase {
       return;
     }
 
-    VERBOSE = ir.options.VERBOSE_GCP;
+    VERBOSE = ir.options.DEBUG_GCP;
 
     if (VERBOSE && ir.options.hasMETHOD_TO_PRINT()) {
       VERBOSE = ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString());
@@ -145,7 +145,7 @@ public class LICM extends CompilerPhase {
    * @param options
    */
   public boolean shouldPerform(OptOptions options) {
-    return options.GCP || options.VERBOSE_GCP;
+    return options.SSA_GCP;
   }
 
   //------------------------- Implementation -------------------------
@@ -340,7 +340,7 @@ public class LICM extends CompilerPhase {
     }
 
     /* don't put memory stores or PEIs on speculative path */
-    if ((inst.isPEI() && !ir.options.LICM_IGNORE_PEI) || inst.isImplicitStore()) {
+    if ((inst.isPEI() && !ir.options.SSA_LICM_IGNORE_PEI) || inst.isImplicitStore()) {
       while (!postDominates(getBlock(inst), getBlock(_earlyPos))) {
         _earlyPos = dominanceSuccessor(_earlyPos, inst);
       }

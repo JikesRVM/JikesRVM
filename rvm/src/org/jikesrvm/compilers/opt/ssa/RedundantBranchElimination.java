@@ -61,7 +61,7 @@ import org.jikesrvm.compilers.opt.ir.Move;
 public final class RedundantBranchElimination extends OptimizationPlanCompositeElement {
 
   public boolean shouldPerform(OptOptions options) {
-    return options.REDUNDANT_BRANCH_ELIMINATION;
+    return options.SSA_REDUNDANT_BRANCH_ELIMINATION;
   }
 
   /**

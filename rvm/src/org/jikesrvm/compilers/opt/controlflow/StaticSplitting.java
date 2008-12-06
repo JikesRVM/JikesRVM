@@ -69,7 +69,7 @@ public class StaticSplitting extends CompilerPhase {
   public String getName() { return "Static Splitting"; }
 
   public boolean shouldPerform(OptOptions options) {
-    return options.STATIC_SPLITTING;
+    return options.CONTROL_STATIC_SPLITTING;
   }
 
   public boolean printingEnabled(OptOptions options, boolean before) {

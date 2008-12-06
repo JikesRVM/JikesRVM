@@ -50,7 +50,7 @@ public class CoalesceMoves extends CompilerPhase {
    * @param options controlling compiler options
    */
   public final boolean shouldPerform(OptOptions options) {
-    return options.COALESCE_AFTER_SSA;
+    return options.SSA_COALESCE_AFTER;
   }
 
   /**

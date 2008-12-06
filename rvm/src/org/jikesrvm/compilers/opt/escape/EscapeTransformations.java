@@ -66,7 +66,7 @@ public class EscapeTransformations extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    return options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
+    return options.ESCAPE_MONITOR_REMOVAL || options.ESCAPE_SCALAR_REPLACE_AGGREGATES;
   }
 
   public final String getName() {
@@ -109,7 +109,7 @@ public class EscapeTransformations extends CompilerPhase {
         // of aggregates
         // *********************************************************
         Instruction def = reg.defList.instruction;
-        if (ir.options.SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
+        if (ir.options.ESCAPE_SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
           AggregateReplacer s = null;
           if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
             s = getAggregateReplacer(def, ir);
@@ -123,7 +123,7 @@ public class EscapeTransformations extends CompilerPhase {
         // *********************************************************
         // Now remove synchronizations
         // *********************************************************
-        if (ir.options.MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
+        if (ir.options.ESCAPE_MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
           UnsyncReplacer unsync = null;
           if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
             unsync = getUnsyncReplacer(reg, def, ir);
@@ -222,11 +222,11 @@ public class EscapeTransformations extends CompilerPhase {
     }
 
     // first attempt to perform scalar replacement for an object
-    if (t.isClassType() && options.SCALAR_REPLACE_AGGREGATES) {
+    if (t.isClassType() && options.ESCAPE_SCALAR_REPLACE_AGGREGATES) {
       return ObjectReplacer.getReplacer(inst, ir);
     }
     // attempt to perform scalar replacement on a short array
-    if (t.isArrayType() && options.SCALAR_REPLACE_AGGREGATES) {
+    if (t.isArrayType() && options.ESCAPE_SCALAR_REPLACE_AGGREGATES) {
       return ShortArrayReplacer.getReplacer(inst, ir);
     }
     return null;

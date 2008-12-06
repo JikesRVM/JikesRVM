@@ -18,88 +18,81 @@ DESCRIP
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
 
-V IC_MAX_TARGET_SIZE int (4*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
-Static inlining heuristic: Upper bound on callee size
-
-
-V IC_MAX_INLINE_DEPTH int 5
-Static inlining heuristic: Upper bound on depth of inlining
-
-
-V IC_MAX_ALWAYS_INLINE_TARGET_SIZE int (2*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
-Static inlining heuristic: Always inline callees of this size or smaller
-
-
-V IC_MASSIVE_METHOD_SIZE int 2048
-Static inlining heuristic: If root method is already this big, then only inline trivial methods
-
-
-V AI_MAX_TARGET_SIZE int (20*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
-Adaptive inlining heuristic: Upper bound on callee size
-
-
-V AI_MIN_CALLSITE_FRACTION double 0.4
-Adaptive inlining heuristc: Minimum fraction of callsite distribution for guarded inlining of a callee
-
-
-V EDGE_COUNT_INPUT_FILE String null
-Input file of edge counter profile data
-
-
-E INLINING_GUARD byte IG_CODE_PATCH
-Selection of guard mechanism for inlined virtual calls that cannot be statically bound
-"IG_METHOD_TEST guardWithMethodTest ig_method_test" \
-"IG_CLASS_TEST guardWithClassTest ig_class_test" \
-"IG_CODE_PATCH guardWithCodePatch ig_code_patch"
-
-E FP_MODE byte FP_STRICT
-Selection of strictness level for floating point computations
-"FP_STRICT strictFP strict" \
-"FP_ALLOW_FMA allowFMA allow_fma" \
-"FP_LOOSE allowAssocFP allow_assoc"
-
-S EXCLUDE String
+S DRIVER_EXCLUDE String
 Exclude methods from being opt compiled
 
 
-V UNROLL_LOG int 2
-Unroll loops. Duplicates the loop body 2^n times.
-
-
-V COND_MOVE_CUTOFF int 5
-How many extra instructions will we insert in order to remove a conditional branch?
-
-
-V LOAD_ELIMINATION_ROUNDS int 3
-How many rounds of redundant load elimination will we attempt?
-
-
-V ALLOC_ADVICE_SITES String null
-Read allocation advice attributes for all classes from this file
-
-
-E FREQUENCY_STRATEGY byte COUNTERS_FREQ
-How to compute block and edge frequencies?
-"COUNTERS_FREQ frequencyCounters counters" \
-"STATIC_FREQ staticFrequencyEstimates static" \
-"DUMB_FREQ dumbFrequency dumb" \
-"INVERSE_COUNTERS_FREQ inverseFrequencyCounters inverse"
-
-E SPILL_COST_ESTIMATE byte BLOCK_COUNT_SPILL_COST
-Selection of spilling heuristic
-"SIMPLE_SPILL_COST simpleSpillCost simple" \
-"BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
-"BLOCK_COUNT_SPILL_COST blockCountSpillCost blockCount"
-
-V INFREQUENT_THRESHOLD float 0.01f
-Cumulative threshold which defines the set of infrequent basic blocks
-
-
-V CBS_HOTNESS double 0.98
-Threshold at which a conditional branch is considered to be skewed
-
-
-V IR_PRINT_LEVEL int 0
+V PRINT_IR_LEVEL int 0
 Only print IR compiled above this level
 
 
+V PROFILE_EDGE_COUNT_INPUT_FILE String null
+Input file of edge counter profile data
+
+
+E PROFILE_FREQUENCY_STRATEGY byte PROFILE_COUNTERS_FREQ
+How to compute block and edge frequencies?
+"PROFILE_COUNTERS_FREQ frequencyCounters counters" \
+"PROFILE_STATIC_FREQ staticFrequencyEstimates static" \
+"PROFILE_DUMB_FREQ dumbFrequency dumb" \
+"PROFILE_INVERSE_COUNTERS_FREQ inverseFrequencyCounters inverse"
+
+V PROFILE_INFREQUENT_THRESHOLD float 0.01f
+Cumulative threshold which defines the set of infrequent basic blocks
+
+
+V PROFILE_CBS_HOTNESS double 0.98
+Threshold at which a conditional branch is considered to be skewed
+
+
+V SSA_LOAD_ELIMINATION_ROUNDS int 3
+How many rounds of redundant load elimination will we attempt?
+
+
+E REGALLOC_SPILL_COST_ESTIMATE byte REGALLOC_BLOCK_COUNT_SPILL_COST
+Selection of spilling heuristic
+"REGALLOC_SIMPLE_SPILL_COST simpleSpillCost simple" \
+"REGALLOC_BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
+"REGALLOC_BLOCK_COUNT_SPILL_COST blockCountSpillCost blockCount"
+
+V CONTROL_TABLESWITCH_CUTOFF int 8
+If a tableswitch comprises this many or fewer comparisons convert it into multiple if-then-else style branches
+
+
+V CONTROL_COND_MOVE_CUTOFF int 5
+How many extra instructions will we insert in order to remove a conditional branch?
+
+
+V CONTROL_UNROLL_LOG int 2
+Unroll loops. Duplicates the loop body 2^n times.
+
+
+V INLINE_MAX_TARGET_SIZE int (4*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
+Static inlining heuristic: Upper bound on callee size
+
+
+V INLINE_MAX_INLINE_DEPTH int 5
+Static inlining heuristic: Upper bound on depth of inlining
+
+
+V INLINE_MAX_ALWAYS_INLINE_TARGET_SIZE int (2*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
+Static inlining heuristic: Always inline callees of this size or smaller
+
+
+V INLINE_MASSIVE_METHOD_SIZE int 2048
+Static inlining heuristic: If root method is already this big, then only inline trivial methods
+
+
+V INLINE_AI_MAX_TARGET_SIZE int (20*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
+Adaptive inlining heuristic: Upper bound on callee size
+
+
+V INLINE_AI_MIN_CALLSITE_FRACTION double 0.4
+Adaptive inlining heuristc: Minimum fraction of callsite distribution for guarded inlining of a callee
+
+
+E INLINE_GUARD_KIND byte INLINE_GUARD_CODE_PATCH
+Selection of guard mechanism for inlined virtual calls that cannot be statically bound
+"INLINE_GUARD_METHOD_TEST guardWithMethodTest inline_guard_method_test" \
+"INLINE_GUARD_CLASS_TEST guardWithClassTest inline_guard_class_test" \
+"INLINE_GUARD_CODE_PATCH guardWithCodePatch inline_guard_code_patch"

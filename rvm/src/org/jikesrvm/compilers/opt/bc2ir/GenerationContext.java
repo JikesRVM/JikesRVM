@@ -666,7 +666,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     // since it's the second time reenter
     if (method.isForOsrSpecialization()) {
       // do nothing
-    } else if (method.isSynchronized() && !options.INVOKEE_THREAD_LOCAL) {
+    } else if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {
       Operand lockObject = getLockObject();
       Instruction s = MonitorOp.create(MONITORENTER, lockObject, new TrueGuardOperand());
       appendInstruction(prologue, s, SYNCHRONIZED_MONITORENTER_BCI);
@@ -679,7 +679,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
-    if (method.isSynchronized() && !options.INVOKEE_THREAD_LOCAL) {
+    if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {
       Operand lockObject = getLockObject();
       Instruction s = MonitorOp.create(MONITOREXIT, lockObject, new TrueGuardOperand());
       appendInstruction(epilogue, s, SYNCHRONIZED_MONITOREXIT_BCI);
@@ -705,7 +705,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * PRECONDITION: cfg, arguments & temps have been setup/initialized.
    */
   private void completeExceptionHandlers(boolean isOutermost) {
-    if (method.isSynchronized() && !options.INVOKEE_THREAD_LOCAL) {
+    if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {
       ExceptionHandlerBasicBlock rethrow =
           new ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI,
                                              inlineSequence,

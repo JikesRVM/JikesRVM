@@ -173,7 +173,7 @@ class SimpleEscape extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    return options.SIMPLE_ESCAPE_IPA;
+    return options.ESCAPE_SIMPLE_IPA;
   }
 
   public final String getName() {
@@ -774,7 +774,7 @@ class SimpleEscape extends CompilerPhase {
   private static MethodSummary findOrCreateMethodSummary(RVMMethod m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
-      if (options.SIMPLE_ESCAPE_IPA) {
+      if (options.ESCAPE_SIMPLE_IPA) {
         performSimpleEscapeAnalysis(m, options);
         summ = SummaryDatabase.findMethodSummary(m);
       }
@@ -788,7 +788,7 @@ class SimpleEscape extends CompilerPhase {
    * Perform the simple escape analysis for a method.
    */
   private static void performSimpleEscapeAnalysis(RVMMethod m, OptOptions options) {
-    if (!options.SIMPLE_ESCAPE_IPA) {
+    if (!options.ESCAPE_SIMPLE_IPA) {
       return;
     }
     // do not perform for unloaded methods

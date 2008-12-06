@@ -444,7 +444,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     }
     Operand val = TableSwitch.getClearValue(s);
     BranchOperand defaultLabel = TableSwitch.getClearDefault(s);
-    if (number < 8) {           // convert into a lookupswitch
+    if (number < ir.options.CONTROL_TABLESWITCH_CUTOFF) { // convert into a lookupswitch
       Instruction l =
           LookupSwitch.create(LOOKUPSWITCH,
                               val,

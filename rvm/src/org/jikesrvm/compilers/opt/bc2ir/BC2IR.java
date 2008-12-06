@@ -2023,7 +2023,7 @@ public final class BC2IR
                            MethodOperand.STATIC(target),
                            new IntConstantOperand(ref.getId()),
                            receiver.copy());
-            if (gc.options.NO_CALLEE_EXCEPTIONS) {
+            if (gc.options.H2L_NO_CALLEE_EXCEPTIONS) {
               callCheck.markAsNonPEI();
             }
 
@@ -2794,7 +2794,7 @@ public final class BC2IR
     int numHiddenParams = methOp.isStatic() ? 0 : 1;
     TypeReference[] params = meth.getParameterTypes();
     Instruction s = Call.create(CALL, null, null, null, null, params.length + numHiddenParams);
-    if (gc.options.NO_CALLEE_EXCEPTIONS) {
+    if (gc.options.H2L_NO_CALLEE_EXCEPTIONS) {
       s.markAsNonPEI();
     }
     for (int i = params.length - 1; i >= 0; i--) {

@@ -89,7 +89,8 @@ public final class InvokeeThreadLocalContext implements SpecializationContext {
   public static void init() {
     options = new OptOptions();
     optimizationPlan = OptimizationPlanner.createOptimizationPlan(options);
-    options.INVOKEE_THREAD_LOCAL = true;
+    // all objects in the specialized method will be thread local
+    options.ESCAPE_INVOKEE_THREAD_LOCAL = true;
   }
 }
 

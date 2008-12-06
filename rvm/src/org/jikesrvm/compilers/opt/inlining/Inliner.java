@@ -159,7 +159,7 @@ public class Inliner {
         NormalMethod callee = (NormalMethod) targets[i];
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
-          String guard = guards[i] == OptOptions.IG_CLASS_TEST ? " (class test) " : " (method test) ";
+          String guard = guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST ? " (class test) " : " (method test) ";
           VM.sysWrite("\tGuarded inline" + guard + " " + callee +
                       " into " + callSite.position.getMethod() +
                       " at bytecode " + callSite.bcIndex + "\n");
@@ -360,7 +360,7 @@ public class Inliner {
           }
         }
 
-        if (guards[i] == OptOptions.IG_CLASS_TEST) {
+        if (guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST) {
           tmp =
               InlineGuard.create(IG_CLASS_TEST,
                                  receiver.copy(),
@@ -368,7 +368,7 @@ public class Inliner {
                                  new TypeOperand(target.getDeclaringClass()),
                                  testFailed.makeJumpTarget(),
                                  BranchProfileOperand.unlikely());
-        } else if (guards[i] == OptOptions.IG_METHOD_TEST) {
+        } else if (guards[i] == OptOptions.INLINE_GUARD_METHOD_TEST) {
           // method test for interface requires additional check if
           // the reciever's class is a subclass of inlined method's
           // declaring class.

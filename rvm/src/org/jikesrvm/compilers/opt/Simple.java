@@ -155,7 +155,7 @@ public final class Simple extends CompilerPhase {
     // if it does it will recompute it.
     foldConstants(ir);
     // Simple local expression folding respecting DU
-    if (false && ExpressionFolding.performLocal(ir)) {
+    if (ir.options.LOCAL_EXPRESSION_FOLDING && ExpressionFolding.performLocal(ir)) {
       // constant folding again
       foldConstants(ir);
     }

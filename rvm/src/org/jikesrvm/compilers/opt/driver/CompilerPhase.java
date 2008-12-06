@@ -208,7 +208,7 @@ public abstract class CompilerPhase {
     if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         // only print when above certain opt level
-        if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
+        if (ir.options.getOptLevel() >= ir.options.PRINT_IR_LEVEL) {
           dumpIR(ir, "After " + getName());
         }
       }

@@ -70,7 +70,7 @@ public final class PiNodes extends CompilerPhase {
    * @param options controlling compiler options
    */
   public boolean shouldPerform(OptOptions options) {
-    return options.GLOBAL_BOUNDS_CHECK || typeChecks;
+    return options.SSA_GLOBAL_BOUNDS_CHECK || typeChecks;
   }
 
   /**

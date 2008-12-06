@@ -111,7 +111,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   public boolean shouldPerform(OptOptions options) {
-    return options.INSTRUMENTATION_SAMPLING;
+    return options.ADAPTIVE_INSTRUMENTATION_SAMPLING;
   }
 
   public String getName() { return "InstrumentationSamplingFramework"; }
@@ -133,7 +133,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     }
 
     // Perform the actual phase here.
-    if (ir.options.NO_DUPLICATION) {
+    if (ir.options.ADAPTIVE_NO_DUPLICATION) {
       performVariationNoDuplication(ir);
     } else {
       performVariationFullDuplication(ir, this);
@@ -439,7 +439,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
     if (DEBUG) VM.sysWrite("Adding load to " + bb + "\n");
     Instruction load = null;
-    if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
+    if (ir.options.ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER) {
       // Use one CBS counter per processor (better for multi threaded apps)
 
       if (ir.IRStage == IR.HIR) {
@@ -495,7 +495,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
     if (DEBUG) VM.sysWrite("Adding store to " + bb + "\n");
     Instruction store = null;
-    if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
+    if (ir.options.ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER) {
       store =
           Store.create(INT_STORE,
                        cbsReg.copyRO(),
@@ -589,7 +589,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       dummy.insertBefore(load);
 
       // Store it in the counter register
-      if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
+      if (ir.options.ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER) {
         store =
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
@@ -731,7 +731,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       // been transfered to the duplicated code.
       for (InstructionEnumeration ie = origBlock.forwardInstrEnumerator(); ie.hasMoreElements();) {
         Instruction i = ie.next();
-        if (isInstrumentationInstruction(i) || (isYieldpoint(i) && ir.options.REMOVE_YP_FROM_CHECKING)) {
+        if (isInstrumentationInstruction(i) || (isYieldpoint(i) && ir.options.ADAPTIVE_REMOVE_YP_FROM_CHECKING)) {
 
           if (DEBUG) VM.sysWrite("Removing " + i + "\n");
           i.remove();

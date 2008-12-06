@@ -37,7 +37,7 @@ public class IRPrinter extends CompilerPhase {
    * @param ir the IR to print
    */
   public final void perform(IR ir) {
-    if (ir.options.getOptLevel() < ir.options.IR_PRINT_LEVEL) {
+    if (ir.options.getOptLevel() < ir.options.PRINT_IR_LEVEL) {
       return;
     }
 

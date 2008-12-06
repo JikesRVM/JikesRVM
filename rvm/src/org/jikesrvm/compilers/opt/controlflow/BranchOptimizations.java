@@ -749,7 +749,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     // evaluate whether it's profitable.
     int shortestCost = Math.min(takenCost, notTakenCost);
     int xformCost = 2 * (takenCost + notTakenCost);
-    int k = ir.options.COND_MOVE_CUTOFF;
+    int k = ir.options.CONTROL_COND_MOVE_CUTOFF;
     if (xformCost - shortestCost > k) return false;
 
     // Perform the transformation!

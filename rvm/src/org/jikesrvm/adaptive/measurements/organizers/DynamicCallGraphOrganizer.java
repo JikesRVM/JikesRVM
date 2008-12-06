@@ -112,7 +112,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
      *   thresholdReachedCount * samplesPerInvocationOfThresholdReached > 1 / AI_HOT_CALLSITE_THRESHOLD
      * to be true.
      */
-    thresholdReachedCount = (int)Math.ceil(1.0 /(numberOfBufferTriples * Controller.options.AI_HOT_CALLSITE_THRESHOLD));;
+    thresholdReachedCount = (int)Math.ceil(1.0 /(numberOfBufferTriples * Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD));;
 
     // Install the edge listener
     if (Controller.options.cgTimer()) {

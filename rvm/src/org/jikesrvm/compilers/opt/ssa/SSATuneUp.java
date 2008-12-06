@@ -67,7 +67,7 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
     }
 
     public final boolean shouldPerform(OptOptions options) {
-      return options.SSA && options.EXPRESSION_FOLDING;
+      return options.SSA && options.SSA_EXPRESSION_FOLDING;
     }
 
     public final String getName() {

@@ -86,8 +86,12 @@ V DCG_SAMPLE_SIZE int 20
 After how many timer interrupts do we update the weights in the dynamic call graph?
 
 
-V AI_SEED_MULTIPLIER double 3
+V INLINE_AI_SEED_MULTIPLIER double 3
 Initial edge weight of call graph is set to AI_SEED_MULTIPLER * (1/AI_CONTROL_POINT)
+
+
+V INLINE_AI_HOT_CALLSITE_THRESHOLD double 0.01
+What percentage of the total weight of the dcg demarcates warm/hot edges 
 
 
 V OFFLINE_INLINE_PLAN_NAME String \"AI_plan\" offlinePlan
@@ -108,10 +112,6 @@ Opt level for recompilation in invocation count based system
 
 V COUNTER_BASED_SAMPLE_INTERVAL int 1000
 What is the sample interval for counter-based sampling
-
-
-V AI_HOT_CALLSITE_THRESHOLD double 0.01
-What percentage of the total weight of the dcg demarcates warm/hot edges 
 
 
 V MAX_OPT_LEVEL int 2

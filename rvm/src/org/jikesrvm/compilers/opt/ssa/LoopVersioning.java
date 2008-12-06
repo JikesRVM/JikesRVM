@@ -344,7 +344,7 @@ public final class LoopVersioning extends CompilerPhase {
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
-    return options.LOOP_VERSIONING;
+    return options.SSA_LOOP_VERSIONING;
   }
 
   /**

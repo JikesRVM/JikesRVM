@@ -84,7 +84,7 @@ public class CFGTransformations extends CompilerPhase {
     if (options.getOptLevel() < 2) {
       return false;
     }
-    return options.TURN_WHILES_INTO_UNTILS;
+    return options.CONTROL_TURN_WHILES_INTO_UNTILS;
   }
 
   /**

@@ -63,7 +63,7 @@ import org.jikesrvm.util.BitVector;
 public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
 
   public final boolean shouldPerform(OptOptions options) {
-    return options.LIVE_RANGE_SPLITTING;
+    return options.SSA_LIVE_RANGE_SPLITTING;
   }
 
   /**
@@ -98,7 +98,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
     }
 
     public final boolean shouldPerform(OptOptions options) {
-      return options.LIVE_RANGE_SPLITTING;
+      return options.SSA_LIVE_RANGE_SPLITTING;
     }
 
     public final String getName() {
@@ -393,7 +393,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
     }
 
     public final boolean shouldPerform(OptOptions options) {
-      return options.LIVE_RANGE_SPLITTING;
+      return options.SSA_LIVE_RANGE_SPLITTING;
     }
 
     public final String getName() {
