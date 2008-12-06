@@ -690,7 +690,8 @@ public class GenerateFromTemplate {
 
   private String evalPad(StreamTokenizer st) throws IOException {
      if (st.nextToken() != '(') throw new IOException("Missing '('");
-     StringBuffer val = new StringBuffer(evalStrExpr(st));
+     StringBuilder val = new StringBuilder(evalStrExpr(st));
+     int unpaddedSize = val.length();
      if (st.nextToken() != ',') throw new IOException("Missing ','");
      int len = evalExpr(st);
      if (st.nextToken() != ',') throw new IOException("Missing ','");
@@ -699,13 +700,13 @@ public class GenerateFromTemplate {
      if (st.nextToken() != ')') throw new IOException("Missing ')'");
      while (val.length() < len)
         val.append(pad);
-     val.setLength(len);
+     val.setLength(Math.max(len, unpaddedSize));
      return val.toString();
   }
 
   private String evalSubst(StreamTokenizer st) throws IOException {
      if (st.nextToken() != '(') throw new IOException("Missing '('");
-     StringBuffer val = new StringBuffer(evalStrExpr(st));
+     StringBuilder val = new StringBuilder(evalStrExpr(st));
      if (st.nextToken() != ',') throw new IOException("Missing ','");
      if (st.nextToken() != '"') throw new IOException("Invalid string");
      String oldc = st.sval;
@@ -776,8 +777,8 @@ public class GenerateFromTemplate {
         case StreamTokenizer.TT_WORD:   if (st.sval.equals("@LENGTH"))
                               return evalLength(st);
                            else
-                              throw new IOException("Invalid token");
-        default:           throw new IOException("Invalid token");
+                              throw new IOException("Invalid token: "+tok);
+        default:           throw new IOException("Invalid token: "+tok);
      }
   }
 
@@ -836,7 +837,7 @@ public class GenerateFromTemplate {
   }
 
   private String evalStrExpr(StreamTokenizer st) throws IOException {
-     StringBuffer val = new StringBuffer(evalString(st));
+     StringBuilder val = new StringBuilder(evalString(st));
      int token = st.nextToken();
      while (token == '`') {
         val.append(evalString(st));
@@ -1146,7 +1147,7 @@ public class GenerateFromTemplate {
 
   String substitute(String input, String var,
                     String[] fields, String[] fieldData) throws IOException {
-    StringBuffer out = new StringBuffer();
+    StringBuilder out = new StringBuilder();
     int varlen = var.length();
     int oidx = 0;
     for (;;) {
@@ -1186,7 +1187,7 @@ public class GenerateFromTemplate {
   }
 
   String substitute(String input, String var, String value) throws IOException {
-    StringBuffer out = new StringBuffer();
+    StringBuilder out = new StringBuilder();
     int varlen = var.length();
     int oidx = 0;
     for (;;) {
