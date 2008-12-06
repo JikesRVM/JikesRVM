@@ -123,13 +123,9 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
                                             new IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.isync) {
-      if (!gc.options.NO_CACHE_FLUSH) {
-        bc2ir.appendInstruction(Empty.create(READ_CEILING));
-      }
+      bc2ir.appendInstruction(Empty.create(READ_CEILING));
     } else if (methodName == MagicNames.sync) {
-      if (!gc.options.NO_CACHE_FLUSH) {
-        bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
-      }
+      bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (methodName == MagicNames.pause) {
       // IA-specific
     } else if (methodName == MagicNames.dcbst) {

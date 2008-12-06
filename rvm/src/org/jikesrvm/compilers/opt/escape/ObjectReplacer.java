@@ -201,20 +201,12 @@ final class ObjectReplacer implements AggregateReplacer {
       }
       break;
       case MONITORENTER_opcode:
-        if (ir.options.NO_CACHE_FLUSH) {
-          DefUse.removeInstructionAndUpdateDU(inst);
-        } else {
-          inst.insertBefore(Empty.create(READ_CEILING));
-          DefUse.removeInstructionAndUpdateDU(inst);
-        }
+        inst.insertBefore(Empty.create(READ_CEILING));
+        DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case MONITOREXIT_opcode:
-        if (ir.options.NO_CACHE_FLUSH) {
-          DefUse.removeInstructionAndUpdateDU(inst);
-        } else {
-          inst.insertBefore(Empty.create(WRITE_FLOOR));
-          DefUse.removeInstructionAndUpdateDU(inst);
-        }
+        inst.insertBefore(Empty.create(WRITE_FLOOR));
+        DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case CALL_opcode:
       case NULL_CHECK_opcode:

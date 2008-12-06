@@ -19,7 +19,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -36,15 +35,6 @@ import org.jikesrvm.compilers.opt.ir.Operator;
  *  3) (optionally) method exits (epilogue, athrow)
  */
 public class YieldPoints extends CompilerPhase {
-
-  /**
-   * Should this phase be performed?
-   * @param options controlling compiler options
-   * @return true or false
-   */
-  public final boolean shouldPerform(OptOptions options) {
-    return !options.NO_THREADS;
-  }
 
   /**
    * Return the name of this phase

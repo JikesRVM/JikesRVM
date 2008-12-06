@@ -117,18 +117,14 @@ final class UnsyncReplacer {
         if (DEBUG) {
           VM.sysWrite("Removing " + inst);
         }
-        if (!options.NO_CACHE_FLUSH) {
-          inst.insertBefore(Empty.create(READ_CEILING));
-        }
+        inst.insertBefore(Empty.create(READ_CEILING));
         DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case MONITOREXIT_opcode:
         if (DEBUG) {
           VM.sysWrite("Removing " + inst);
         }
-        if (!options.NO_CACHE_FLUSH) {
-          inst.insertAfter(Empty.create(WRITE_FLOOR));
-        }
+        inst.insertAfter(Empty.create(WRITE_FLOOR));
         DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:

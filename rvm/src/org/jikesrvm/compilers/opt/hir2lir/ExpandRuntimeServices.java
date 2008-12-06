@@ -308,71 +308,63 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case MONITORENTER_opcode: {
-          if (ir.options.NO_SYNCHRO) {
-            inst.remove();
-          } else {
-            Operand ref = MonitorOp.getClearRef(inst);
-            RVMType refType = ref.getType().peekType();
-            if (refType != null && !refType.getThinLockOffset().isMax()) {
-              RVMMethod target = Entrypoints.inlineLockMethod;
-              Call.mutate2(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref,
-                           IRTools.AC(refType.getThinLockOffset()));
-              if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-              container.counter2++;
-              if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-                inline(inst, ir);
-              }
-            } else {
-              RVMMethod target = Entrypoints.lockMethod;
-              Call.mutate1(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref);
+          Operand ref = MonitorOp.getClearRef(inst);
+          RVMType refType = ref.getType().peekType();
+          if (refType != null && !refType.getThinLockOffset().isMax()) {
+            RVMMethod target = Entrypoints.inlineLockMethod;
+            Call.mutate2(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref,
+                         IRTools.AC(refType.getThinLockOffset()));
+            if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+            container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
             }
+          } else {
+            RVMMethod target = Entrypoints.lockMethod;
+            Call.mutate1(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref);
           }
-          break;
         }
+        break;
 
         case MONITOREXIT_opcode: {
-          if (ir.options.NO_SYNCHRO) {
-            inst.remove();
-          } else {
-            Operand ref = MonitorOp.getClearRef(inst);
-            RVMType refType = ref.getType().peekType();
-            if (refType != null && !refType.getThinLockOffset().isMax()) {
-              RVMMethod target = Entrypoints.inlineUnlockMethod;
-              Call.mutate2(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref,
-                           IRTools.AC(refType.getThinLockOffset()));
-              if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-              container.counter2++;
-              if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-                inline(inst, ir);
-              }
-            } else {
-              RVMMethod target = Entrypoints.unlockMethod;
-              Call.mutate1(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref);
+          Operand ref = MonitorOp.getClearRef(inst);
+          RVMType refType = ref.getType().peekType();
+          if (refType != null && !refType.getThinLockOffset().isMax()) {
+            RVMMethod target = Entrypoints.inlineUnlockMethod;
+            Call.mutate2(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref,
+                         IRTools.AC(refType.getThinLockOffset()));
+            if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+            container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
             }
+          } else {
+            RVMMethod target = Entrypoints.unlockMethod;
+            Call.mutate1(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref);
           }
         }
         break;

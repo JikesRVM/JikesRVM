@@ -2265,16 +2265,14 @@ public final class BC2IR
           }
 
           RegisterOperand refinedOp2 = gc.temps.makeTemp(op2);
-          if (!gc.options.NO_CHECKCAST) {
-            if (classLoading) {
-              s = TypeCheck.create(CHECKCAST_UNRESOLVED, refinedOp2, op2.copy(), makeTypeOperand(typeRef));
+          if (classLoading) {
+            s = TypeCheck.create(CHECKCAST_UNRESOLVED, refinedOp2, op2.copy(), makeTypeOperand(typeRef));
+          } else {
+            TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
+            if (isNonNull(op2)) {
+              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, getGuard(op2));
             } else {
-              TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
-              if (isNonNull(op2)) {
-                s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, getGuard(op2));
-              } else {
-                s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), typeOp);
-              }
+              s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), typeOp);
             }
           }
           refinedOp2.refine(typeRef);
@@ -2336,11 +2334,7 @@ public final class BC2IR
             break;
           }
           if (VM.VerifyAssertions) VM._assert(op0.isRef());
-          if (gc.options.MONITOR_NOP) {
-            s = null;
-          } else {
-            s = MonitorOp.create(MONITORENTER, op0, getCurrentGuard());
-          }
+          s = MonitorOp.create(MONITORENTER, op0, getCurrentGuard());
         }
         break;
 
@@ -2350,11 +2344,7 @@ public final class BC2IR
           if (do_NullCheck(op0)) {
             break;
           }
-          if (gc.options.MONITOR_NOP) {
-            s = null;
-          } else {
-            s = MonitorOp.create(MONITOREXIT, op0, getCurrentGuard());
-          }
+          s = MonitorOp.create(MONITOREXIT, op0, getCurrentGuard());
           rectifyStateWithExceptionHandler(TypeReference.JavaLangIllegalMonitorStateException);
         }
         break;
@@ -3821,9 +3811,6 @@ public final class BC2IR
    * @return true if an unconditional throw is generated, false otherwise
    */
   private boolean do_CheckStore(Operand ref, Operand elem, TypeReference elemType) {
-    if (gc.options.NO_CHECKSTORE) {
-      return false;     // Unsafely eliminate all store checks
-    }
     if (CF_CHECKSTORE) {
       // NOTE: BE WARY OF ADDITIONAL OPTIMZATIONS.
       // ARRAY SUBTYPING IS SUBTLE (see JLS 10.10) --dave
