@@ -83,6 +83,44 @@ V INLINE_MASSIVE_METHOD_SIZE int 2048
 Static inlining heuristic: If root method is already this big, then only inline trivial methods
 
 
+# bound credits at 40% off; we don't want to be too optimistic about code space reductions.
+V INLINE_MAX_ARG_BONUS double 0.40
+Maximum bonus for reducing the perceived size of a method during inlining.
+
+
+# Reductions only come from optimization of dynamic type checks; all virtual methods on arrays are defined on Object.
+V INLINE_PRECISE_REG_ARRAY_ARG_BONUS double 0.05
+Bonus given to inlining methods that are passed a register of a known precise type.
+
+
+V INLINE_DECLARED_AASTORED_ARRAY_ARG_BONUS double 0.02
+Bonus given when there's potential to optimize checkstore portion of aastore bytecode on parameter
+
+
+# Reductions come from optimization of dynamic type checks and improved inlining of virtual/interface calls
+V INLINE_PRECISE_REG_CLASS_ARG_BONUS double 0.15
+Bonus given to inlining methods that are passed a register of a known precise type.
+
+
+V INLINE_EXTANT_REG_CLASS_ARG_BONUS double 0.05
+Bonus given to inlining methods that are passed a register that's known not to be null.
+
+
+# 5% credit for being an int constant; mainly in the hopes of control flow simplifications
+V INLINE_INT_CONST_ARG_BONUS double 0.05
+Bonus given to inlining methods that are passed an int constant argument
+
+
+# 10% credit for being 'null' as this enables a number of simplifications
+V INLINE_NULL_CONST_ARG_BONUS double 0.10
+Bonus given to inlining methods that are passed a null constant argument
+
+
+# 10% credit for being a string/class/object constant: inlining, constant folding, and Pure method opportunities
+V INLINE_OBJECT_CONST_ARG_BONUS double 0.10
+Bonus given to inlining methods that are passed an object constant argument
+
+
 V INLINE_AI_MAX_TARGET_SIZE int (20*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
 Adaptive inlining heuristic: Upper bound on callee size
 

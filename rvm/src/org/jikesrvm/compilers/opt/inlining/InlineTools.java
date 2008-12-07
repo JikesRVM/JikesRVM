@@ -24,6 +24,7 @@ import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.pragma.Inline;
 
@@ -119,6 +120,7 @@ public abstract class InlineTools implements OptConstants {
     Instruction callInstr = state.getCallInstruction();
     int numArgs = Call.getNumberOfParams(callInstr);
     double reductionFactor = 1.0;               // no reduction.
+    OptOptions opts = state.getOptions();
     for (int i = 0; i < numArgs; i++) {
       Operand op = Call.getParam(callInstr, i);
       if (op instanceof RegisterOperand) {
@@ -128,28 +130,29 @@ public abstract class InlineTools implements OptConstants {
           if (type.isArrayType()) {
             // Reductions only come from optimization of dynamic type checks; all virtual methods on arrays are defined on Object.
             if (rop.isPreciseType()) {
-              reductionFactor -= 0.05;
+              reductionFactor -= opts.INLINE_PRECISE_REG_ARRAY_ARG_BONUS;
             } else if (rop.isDeclaredType() && callee.hasArrayWrite() && type.getArrayElementType().isReferenceType()) {
-              reductionFactor -= 0.02; // potential to optimize checkstore portion of aastore bytecode on parameter
+              // potential to optimize checkstore portion of aastore bytecode on parameter
+              reductionFactor -= opts.INLINE_DECLARED_AASTORED_ARRAY_ARG_BONUS;
             }
           } else {
             // Reductions come from optimization of dynamic type checks and improved inlining of virtual/interface calls
             if (rop.isPreciseType()) {
-              reductionFactor -= 0.15;
+              reductionFactor -= opts.INLINE_PRECISE_REG_CLASS_ARG_BONUS;
             } else if (rop.isExtant()) {
-              reductionFactor -= 0.05;
+              reductionFactor -= opts.INLINE_EXTANT_REG_CLASS_ARG_BONUS;
             }
           }
         }
       } else if (op.isIntConstant()) {
-        reductionFactor -= 0.05;        // 5% credit for being an int constant; mainly in the hopes of control flow simplifications
+        reductionFactor -= opts.INLINE_INT_CONST_ARG_BONUS;
       } else if (op.isNullConstant()) {
-        reductionFactor -= 0.10;        // 10% credit for being 'null' as this enables a number of simplifications
+        reductionFactor -= opts.INLINE_NULL_CONST_ARG_BONUS;
       } else if (op.isObjectConstant()) {
-        reductionFactor -= 0.10;        // 10% credit for being a string/class/object constant: inlining, constant folding, and Pure method opportunities
+        reductionFactor -= opts.INLINE_OBJECT_CONST_ARG_BONUS;
       }
     }
-    reductionFactor = Math.max(reductionFactor, 0.60); // bound credits at 40% off; we don't want to be too optimistic about code space reductions.
+    reductionFactor = Math.max(reductionFactor, 1.0-opts.INLINE_MAX_ARG_BONUS);
     return (int) (sizeEstimate * reductionFactor);
   }
 
