@@ -1579,6 +1579,19 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, new RegisterOperand(hr, TypeReference.Int),
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(lr, TypeReference.Int), IC(0))));
 
 #####
+# ADDR_2LONG
+#####
+r:	ADDR_2LONG(r)
+33
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), false);
+
+r:	ADDR_2LONG(load32)
+38
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), consumeMO(), false);
+
+#####
 # LONG_2INT
 #####
 r:	LONG_2INT(r)

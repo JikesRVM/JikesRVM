@@ -768,13 +768,9 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.appendInstruction(Unary.create(INT_2ADDRZerExt, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.wordFromLong) {
-      if (VM.BuildFor64Addr) {
-        RegisterOperand reg = gc.temps.makeTemp(resultType);
-        bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
-        bc2ir.push(reg.copyD2U());
-      } else {
-        VM._assert(false); //should not reach
-      }
+      RegisterOperand reg = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
+      bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.wordToInt) {
       RegisterOperand reg = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Unary.create(ADDR_2INT, reg, bc2ir.popAddress()));

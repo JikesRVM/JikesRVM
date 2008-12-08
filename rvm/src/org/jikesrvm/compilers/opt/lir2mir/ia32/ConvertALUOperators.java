@@ -289,8 +289,8 @@ public class ConvertALUOperators extends CompilerPhase implements Operators, Arc
       case ADDR_2INT_opcode:
         s.operator = INT_MOVE;
         break;
-      case ADDR_2LONG_opcode:
-        s.operator = INT_2LONG;
+      case LONG_2ADDR_opcode:
+        s.operator = LONG_2INT;
         break;
       }
 
