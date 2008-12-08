@@ -153,7 +153,12 @@ public abstract class InlineTools implements OptConstants {
       }
     }
     reductionFactor = Math.max(reductionFactor, 1.0-opts.INLINE_MAX_ARG_BONUS);
-    return (int) (sizeEstimate * reductionFactor);
+    if (opts.INLINE_CALL_DEPTH_COST != 0.00) {
+      double depthCost = Math.pow(1.0+opts.INLINE_CALL_DEPTH_COST, (double)(state.getInlineDepth()+1));
+      return (int) (sizeEstimate * reductionFactor * depthCost);
+    } else {
+      return (int) (sizeEstimate * reductionFactor);
+    }
   }
 
   /**

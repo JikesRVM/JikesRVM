@@ -121,6 +121,10 @@ V INLINE_OBJECT_CONST_ARG_BONUS double 0.10
 Bonus given to inlining methods that are passed an object constant argument
 
 
+V INLINE_CALL_DEPTH_COST double 0.00
+As we inline deeper nested methods what cost (or bonus) do we wish to give to deter (or encourage) nesting of deeper methods?
+
+
 V INLINE_AI_MAX_TARGET_SIZE int (20*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
 Adaptive inlining heuristic: Upper bound on callee size
 

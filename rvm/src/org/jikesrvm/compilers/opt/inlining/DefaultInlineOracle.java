@@ -58,12 +58,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
     if (verbose) VM.sysWriteln("Begin inline decision for " + "<" + caller + "," + bcIndex + "," + staticCallee + ">");
 
-    // Stage 1: At all optimization levels we should attempt to inline
-    //          trivial methods. Even if the inline code is never executed,
-    //          inlining a trivial method is a no cost operation as the impact
-    //          on code size should be negligible and compile time usually is
-    //          reduced since we expect to eliminate the call instruction (or
-    //          at worse replace one call instruction with another one).
+    // Stage 1: We definitely don't inline certain methods
     if (!state.isInvokeInterface()) {
       if (staticCallee.isNative()) {
         if (verbose) VM.sysWriteln("\tNO: native method\n");
@@ -73,27 +68,46 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         if (verbose) VM.sysWriteln("\tNO: pragmaNoInline\n");
         return InlineDecision.NO("pragmaNoInline");
       }
-      if (// are we calling the throwable constructor
+      // We need throwable constructors to have their own compiled method IDs
+      // to correctly elide stack frames when generating stack traces (see
+      // StackTrace).
+      if (// are we calling the throwable constructor?
           staticCallee.isObjectInitializer() &&
           (staticCallee.getDeclaringClass().getClassForType() == Throwable.class) &&
           // and not from a throwable constructor
           !(caller.isObjectInitializer() &&
            (caller.getDeclaringClass().getClassForType() == Throwable.class))) {
-        // We need throwable constructors to have their own compiled method IDs
-        // to correctly elide stack frames when generating stack traces (see
-        // StackTrace).
         if (verbose) VM.sysWriteln("\tNO: throwable constructor\n");
         return InlineDecision.NO("throwable constructor");
       }
-
-      if (!staticCallee.isAbstract()) {
+    }
+    // Stage 2: At all optimization levels we should attempt to inline
+    //          trivial methods. Even if the inline code is never executed,
+    //          inlining a trivial method is a no cost operation as the impact
+    //          on code size should be negligible and compile time usually is
+    //          reduced since we expect to eliminate the call instruction (or
+    //          at worse replace one call instruction with another one).
+    if (!state.isInvokeInterface() && !staticCallee.isAbstract()) {
+      // NB when the destination is known we will have refined the target so the
+      // above test passes
+      if (state.getHasPreciseTarget() || !needsGuard(staticCallee)) {
+        // call is guardless
         int inlinedSizeEstimate = inlinedSizeEstimate((NormalMethod) staticCallee, state);
-        boolean guardless = state.getHasPreciseTarget() || !needsGuard(staticCallee);
-        if (inlinedSizeEstimate < opts.INLINE_MAX_ALWAYS_INLINE_TARGET_SIZE &&
-            guardless &&
-            !state.getSequence().containsMethod(staticCallee)) {
-          if (verbose) VM.sysWriteln("\tYES: trivial guardless inline\n");
-          return InlineDecision.YES(staticCallee, "trivial inline");
+        if (inlinedSizeEstimate < opts.INLINE_MAX_ALWAYS_INLINE_TARGET_SIZE) {
+          // inlining is desirable
+          if (!state.getSequence().containsMethod(staticCallee)) {
+            // not recursive
+            if (verbose) VM.sysWriteln("\tYES: trivial guardless inline\n");
+            return InlineDecision.YES(staticCallee, "trivial inline");
+          }
+        }
+        if (hasInlinePragma(staticCallee, state)) {
+          // inlining is desirable
+          if (!state.getSequence().containsMethod(staticCallee)) {
+            // not recursive
+            if (verbose) VM.sysWriteln("\tYES: pragma inline\n");
+            return InlineDecision.YES(staticCallee, "pragma inline");
+          }
         }
       }
     }
@@ -111,9 +125,8 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       return InlineDecision.NO("Root method is massive; no non-trivial inlines");
     }
 
-    // Stage 2: Determine based on profile data and static information
+    // Stage 3: Determine based on profile data and static information
     //          what are the possible targets of this call.
-    //
     WeightedCallTargets targets = null;
     boolean purelyStatic = true;
     if (Controller.dcg != null && Controller.options.ADAPTIVE_INLINING) {
@@ -192,7 +205,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       // If there is a precise target, then targets contains exactly that target method.
       if (targets == null) return InlineDecision.NO("No potential targets identified");
 
-      // Stage 3: We have one or more targets.  Determine what if anything should be done with them.
+      // Stage 4: We have one or more targets.  Determine what if anything should be done with them.
       final ArrayList<RVMMethod> methodsToInline = new ArrayList<RVMMethod>();
       final ArrayList<Boolean> methodsNeedGuard = new ArrayList<Boolean>();
       final double callSiteWeight = targets.totalWeight();
@@ -340,7 +353,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         }
       });
 
-      // Stage 4: Choose guards and package up the results in an InlineDecision object
+      // Stage 5: Choose guards and package up the results in an InlineDecision object
       if (methodsToInline.isEmpty()) {
         InlineDecision d = InlineDecision.NO("No desirable targets");
         if (verbose) VM.sysWriteln("\tDecide: " + d);
