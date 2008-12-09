@@ -161,11 +161,6 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * we'll leave array loads in the LIR.
    */
   public static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
-  /**
-   * Plant virtual calls via the JTOC rather than from the tib of an
-   * object when possible
-   */
-  public static final boolean CALL_VIA_JTOC = false;
 
   /**
    * Converts the given HIR to LIR.
@@ -822,7 +817,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, Call.getClearAddress(v)));
     } else if (methOp.isVirtual()) {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));
-      if (CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
+      if (ir.options.H2L_CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
         // Call to precise type can go via JTOC
         RVMMethod target = methOp.getTarget();
         Call.setAddress(v,
@@ -849,7 +844,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         // target == null => we are calling an unresolved <init> method.
         Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, Call.getClearAddress(v)));
       } else {
-        if (CALL_VIA_JTOC) {
+        if (ir.options.H2L_CALL_VIA_JTOC) {
           Call.setAddress(v,
                           InsertLoadOffsetJTOC(v,
                                                ir,

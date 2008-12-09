@@ -2666,7 +2666,7 @@ public final class BC2IR
   private Instruction _unaryHelper(Operator operator, Operand val, TypeReference type) {
     RegisterOperand t = gc.temps.makeTemp(type);
     Instruction s = Unary.create(operator, t, val);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       push(Move.getClearVal(s));
@@ -2680,7 +2680,7 @@ public final class BC2IR
   private Instruction _unaryDualHelper(Operator operator, Operand val, TypeReference type) {
     RegisterOperand t = gc.temps.makeTemp(type);
     Instruction s = Unary.create(operator, t, val);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       pushDual(Move.getClearVal(s));
@@ -2695,7 +2695,7 @@ public final class BC2IR
                                         TypeReference type) {
     RegisterOperand t = gc.temps.makeTemp(type);
     Instruction s = Binary.create(operator, t, op1, op2);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       push(Move.getClearVal(s));
@@ -2710,7 +2710,7 @@ public final class BC2IR
                                                Operand guard, TypeReference type) {
     RegisterOperand t = gc.temps.makeTemp(type);
     Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       push(Move.getClearVal(s));
@@ -2725,7 +2725,7 @@ public final class BC2IR
                                             TypeReference type) {
     RegisterOperand t = gc.temps.makeTemp(type);
     Instruction s = Binary.create(operator, t, op1, op2);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       pushDual(Move.getClearVal(s));
@@ -2740,7 +2740,7 @@ public final class BC2IR
                                                    Operand guard, TypeReference type) {
     RegisterOperand t = gc.temps.makeTemp(type);
     Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       pushDual(Move.getClearVal(s));
@@ -2822,7 +2822,7 @@ public final class BC2IR
     } else {
       RegisterOperand t = gc.temps.makeTemp(rtype);
       Call.setResult(s, t);
-      Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, s);
+      Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
       if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
         gc.temps.release(t);
         push(Move.getClearVal(s), rtype);

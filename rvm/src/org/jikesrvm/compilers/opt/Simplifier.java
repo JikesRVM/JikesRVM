@@ -28,7 +28,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
-import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -178,7 +177,7 @@ public abstract class Simplifier extends IRTools {
    * @param s the instruction to simplify
    * @return one of UNCHANGED, MOVE_FOLDED, MOVE_REDUCED, TRAP_REDUCED, REDUCED
    */
-  public static DefUseEffect simplify(boolean hir, AbstractRegisterPool regpool, Instruction s) {
+  public static DefUseEffect simplify(boolean hir, AbstractRegisterPool regpool, OptOptions opts, Instruction s) {
     DefUseEffect result;
     char opcode = s.getOpcode();
     switch (opcode) {
@@ -546,7 +545,7 @@ public abstract class Simplifier extends IRTools {
         result = getDoesImplementFromTib(s);
         break;
       case REF_LOAD_opcode:
-        result = refLoad(s);
+        result = refLoad(s, opts);
         break;
       default:
         result = DefUseEffect.UNCHANGED;
@@ -3540,7 +3539,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refLoad(Instruction s) {
+  private static DefUseEffect refLoad(Instruction s, OptOptions opts) {
     if (CF_TIB) {
       Operand base = Load.getAddress(s);
       if (base.isTIBConstant()) {
@@ -3566,7 +3565,7 @@ public abstract class Simplifier extends IRTools {
           } else if (tibArray.slotContainsCode(intSlot)) {
             // Only generate code constants when we want to make
             // some virtual calls go via the JTOC
-            if (ConvertToLowLevelIR.CALL_VIA_JTOC) {
+            if (opts.H2L_CALL_VIA_JTOC) {
               RVMMethod method = tib.value.getTIBMethodAtSlot(intSlot);
               result = new CodeConstantOperand(method);
             } else {

@@ -118,12 +118,6 @@ final class ShortArrayReplacer implements AggregateReplacer {
   }
 
   /**
-   * Arrays shorter than this length are candidates to be replaced by
-   * scalar values.
-   */
-  public static final int SHORT_ARRAY_SIZE = 5;
-
-  /**
    * Return an object representing this transformation for a given
    * allocation site
    *
@@ -140,7 +134,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
       return null;
     }
     int s = size.asIntConstant().value;
-    if (s > SHORT_ARRAY_SIZE) {
+    if (s > ir.options.ESCAPE_MAX_ARRAY_SIZE) {
       return null;
     }
     if (s < 0) {

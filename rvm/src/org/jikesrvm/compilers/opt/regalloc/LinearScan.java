@@ -82,16 +82,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   private static final boolean MUTATE_FMOV = VM.BuildForIA32;
 
   /**
-   * Attempt to coalesce to eliminate register moves?
-   */
-  static final boolean COALESCE_MOVES = true;
-
-  /**
-   * Attempt to coalesce stack locations?
-   */
-  private static final boolean COALESCE_SPILLS = true;
-
-  /**
    * debug flags
    */
   private static final boolean DEBUG = false;
@@ -1266,7 +1256,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
       // first attempt to allocate to the preferred register
-      if (COALESCE_MOVES) {
+      if (ir.options.REGALLOC_COALESCE_MOVES) {
         Register p = getPhysicalPreference(ci);
         if (p != null) {
           if (DEBUG_COALESCE) {
@@ -1311,7 +1301,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
       // first attempt to allocate to the preferred register
-      if (COALESCE_MOVES) {
+      if (ir.options.REGALLOC_COALESCE_MOVES) {
         Register p = getPhysicalPreference(symb);
         if (p != null) {
           if (DEBUG_COALESCE) {
@@ -1957,7 +1947,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
       // Search the free intervals and try to find an interval to
       // reuse. First look for the preferred interval.
-      if (COALESCE_SPILLS) {
+      if (ir.options.REGALLOC_COALESCE_SPILLS) {
         result = getSpillPreference(ci, spillSize);
         if (result != null) {
           if (DEBUG_COALESCE) {

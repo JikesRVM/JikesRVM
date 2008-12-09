@@ -49,7 +49,6 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 public class StaticSplitting extends CompilerPhase {
 
   private static final boolean DEBUG = false;
-  private static final int MAX_COST = 10; // upper bound on instructions duplicated
   private final BranchOptimizations branchOpts;
 
   public StaticSplitting() {
@@ -130,7 +129,7 @@ public class StaticSplitting extends CompilerPhase {
       if (candTest == null) continue;
       BasicBlock coldPrev = findColdPrev(cand);
       if (coldPrev == null) continue;
-      if (tooBig(cand)) continue;
+      if (tooBig(cand, ir.options.CONTROL_STATIC_SPLITTING_MAX_COST)) continue;
       BasicBlock coldSucc = findColdSucc(cand, candTest);
       if (containsOSRPoint(coldSucc)) continue;
       if (DEBUG) {
@@ -218,7 +217,7 @@ public class StaticSplitting extends CompilerPhase {
    * static hints, we are only willing to
    * copy a very small amount of code.
    */
-  private boolean tooBig(BasicBlock bb) {
+  private boolean tooBig(BasicBlock bb, int maxCost) {
     int cost = 0;
     for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.next();
@@ -229,7 +228,7 @@ public class StaticSplitting extends CompilerPhase {
       } else {
         cost++;
       }
-      if (cost > MAX_COST) return true;
+      if (cost > maxCost) return true;
     }
     return false;
   }

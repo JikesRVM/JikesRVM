@@ -37,6 +37,8 @@ class BlockCountSpillCost extends SpillCostEstimator {
    * Calculate the estimated cost for each register.
    */
   void calculate(IR ir) {
+    final double moveFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MOVE_FACTOR;
+    final double memoryOperandFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MEMORY_OPERAND_FACTOR;
     for (Enumeration<BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements();) {
       BasicBlock bb = blocks.nextElement();
       float freq = bb.getExecutionFrequency();
@@ -44,10 +46,10 @@ class BlockCountSpillCost extends SpillCostEstimator {
         Instruction s = e.nextElement();
         double factor = freq;
 
-        if (s.isMove()) factor *= SimpleSpillCost.MOVE_FACTOR;
+        if (s.isMove()) factor *= moveFactor;
         double baseFactor = factor;
         if (SimpleSpillCost.hasBadSizeMemoryOperand(s)) {
-          baseFactor *= SimpleSpillCost.MEMORY_OPERAND_FACTOR;
+          baseFactor *= memoryOperandFactor;
         }
 
         // first deal with non-memory operands
@@ -61,7 +63,7 @@ class BlockCountSpillCost extends SpillCostEstimator {
           }
         }
         // now handle memory operands
-        factor *= SimpleSpillCost.MEMORY_OPERAND_FACTOR;
+        factor *= memoryOperandFactor;
         for (OperandEnumeration e2 = s.getMemoryOperands(); e2.hasMoreElements();) {
           MemoryOperand M = (MemoryOperand) e2.nextElement();
           if (M.base != null) {

@@ -45,8 +45,16 @@ V PROFILE_CBS_HOTNESS double 0.98
 Threshold at which a conditional branch is considered to be skewed
 
 
+V ESCAPE_MAX_ARRAY_SIZE int 5
+Maximum size of array to replaced with registers by simple escape analysis
+
+
 V SSA_LOAD_ELIMINATION_ROUNDS int 3
 How many rounds of redundant load elimination will we attempt?
+
+
+V L2M_MAX_BLOCK_SIZE int 300
+Maximum size of block for BURS, larger blocks are split
 
 
 E REGALLOC_SPILL_COST_ESTIMATE byte REGALLOC_BLOCK_COUNT_SPILL_COST
@@ -54,6 +62,18 @@ Selection of spilling heuristic
 "REGALLOC_SIMPLE_SPILL_COST simpleSpillCost simple" \
 "REGALLOC_BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
 "REGALLOC_BLOCK_COUNT_SPILL_COST blockCountSpillCost blockCount"
+
+V REGALLOC_SIMPLE_SPILL_COST_MOVE_FACTOR double 1.0
+spill penalty for move instructions
+
+
+# registers used in memory operands may hurt more than 'normal', since they
+# will definitely use a scratch register. rationale for 5: 5 instructions
+# affected when using a scratch register. (2 to save physical register, 1 to
+# load scratch, 1 to dump scratch, and the original)
+V REGALLOC_SIMPLE_SPILL_COST_MEMORY_OPERAND_FACTOR double 5.0
+spill penalty for registers used in memory operands
+
 
 V CONTROL_TABLESWITCH_CUTOFF int 8
 If a tableswitch comprises this many or fewer comparisons convert it into multiple if-then-else style branches
@@ -65,6 +85,10 @@ How many extra instructions will we insert in order to remove a conditional bran
 
 V CONTROL_UNROLL_LOG int 2
 Unroll loops. Duplicates the loop body 2^n times.
+
+
+V CONTROL_STATIC_SPLITTING_MAX_COST int 10
+Upper bound on the number of instructions duplicated per block when trying to create hot traces with static splitting
 
 
 V INLINE_MAX_TARGET_SIZE int (4*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)

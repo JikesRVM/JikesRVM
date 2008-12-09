@@ -142,6 +142,9 @@ Inline write barriers for generational collectors
 H2L_NO_CALLEE_EXCEPTIONS -1 false
 Assert that any callee of this compiled method will not throw exceptions. Cannot be properly set on command line.
 
+H2L_CALL_VIA_JTOC -1 false
+Plant virtual calls via the JTOC rather than from the tib of anobject when possible
+
 ##########
 # Options during conversion from LIR to MIR
 ##########
@@ -150,6 +153,15 @@ Store liveness for handlers to improve dependence graph at PEIs
 
 L2M_SCHEDULE_PREPASS -1 false
 Perform prepass instruction scheduling
+
+##########
+# Options during register allocation
+##########
+REGALLOC_COALESCE_MOVES 0 true
+Attempt to coalesce to eliminate register moves?
+
+REGALLOC_COALESCE_SPILLS 0 true
+Attempt to coalesce stack locations?
 
 ##########
 # Options for adaptive compilation

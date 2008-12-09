@@ -26,17 +26,6 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  */
 class SimpleSpillCost extends SpillCostEstimator {
 
-  // modify the following factor to adjust the spill penalty in move
-  // instructions
-  public static final double MOVE_FACTOR = 1.0;
-
-  // registers used in memory operands may hurt more than 'normal', since
-  // they will definitely use a scratch register.
-  // rationale for 5: 5 instructions affected when using a scratch register.
-  // (2 to save physical register, 1 to load scratch, 1 to dump scratch, and
-  // the original)
-  public static final double MEMORY_OPERAND_FACTOR = 5.0;
-
   SimpleSpillCost(IR ir) {
     calculate(ir);
   }
@@ -45,17 +34,19 @@ class SimpleSpillCost extends SpillCostEstimator {
    * Calculate the estimated cost for each register.
    */
   void calculate(IR ir) {
+    final double moveFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MOVE_FACTOR;
+    final double memoryOperandFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MEMORY_OPERAND_FACTOR;
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();
       for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
         Instruction s = ie.nextElement();
         double factor = (bb.getInfrequent()) ? 0.0 : 1.0;
         if (s.isMove()) {
-          factor *= MOVE_FACTOR;
+          factor *= moveFactor;
         }
         double baseFactor = factor;
         if (hasBadSizeMemoryOperand(s)) {
-          baseFactor *= MEMORY_OPERAND_FACTOR;
+          baseFactor *= memoryOperandFactor;
         }
         // first deal with non-memory operands
         for (Enumeration<Operand> e2 = s.getRootOperands(); e2.hasMoreElements();) {
@@ -68,7 +59,7 @@ class SimpleSpillCost extends SpillCostEstimator {
           }
         }
         // now handle memory operands
-        factor *= MEMORY_OPERAND_FACTOR;
+        factor *= memoryOperandFactor;
         for (Enumeration<Operand> e2 = s.getMemoryOperands(); e2.hasMoreElements();) {
           MemoryOperand M = (MemoryOperand) e2.nextElement();
           if (M.base != null) {
