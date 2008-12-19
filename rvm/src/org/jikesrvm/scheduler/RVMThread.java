@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.scheduler;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
@@ -764,7 +767,7 @@ public abstract class RVMThread {
         if (VM.TraceExceptionDelivery) {
           VM.sysWriteln("Calling sysExit due to uncaught exception.");
         }
-        System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+        callSystemExit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       } else if (thread instanceof MainThread) {
         MainThread mt = (MainThread) thread;
         if (!mt.launched) {
@@ -776,11 +779,11 @@ public abstract class RVMThread {
            * there is no reason why we should not support this.)   This was
            * discussed on jikesrvm-researchers
            * on 23 Jan 2005 and 24 Jan 2005. */
-          System.exit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
+          callSystemExit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
         }
       }
       /* Use System.exit so that any shutdown hooks are run.  */
-      System.exit(0);
+      callSystemExit(0);
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
@@ -791,6 +794,21 @@ public abstract class RVMThread {
 
     // Switch to uninterruptible portion of termination
     terminateUnpreemptible();
+  }
+
+  /**
+   * Call System.exit() with the correct security status.
+   * @param exitStatus
+   */
+  @Interruptible
+  private void callSystemExit(final int exitStatus) {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+      //@Override // Java 1.5 - can't override interface method
+      public Object run() {
+        System.exit(exitStatus);
+        return null;
+      }
+    });
   }
 
   /**
