@@ -2044,17 +2044,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*2, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LLT);
-    ForwardReference fr2 = asm.forwardJcc(Assembler.LGT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    ForwardReference fr3 = asm.forwardJMP();
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    ForwardReference fr4 = asm.forwardJMP();
+    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT);
+    asm.emitSBB_Reg_Reg(T0, T0);                        // T0 = XMM0 < XMM1 ? -1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
+    ForwardReference fr2 = asm.forwardJMP();
     fr1.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr3.resolve(asm);
-    fr4.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push result on stack
+    fr2.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2076,20 +2072,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*2, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    // TODO: It's bad to have 2 conditional jumps within 16bytes of each other
     ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push 1
-    ForwardReference fr3 = asm.forwardJcc(Assembler.NE);  // if < goto push -1
     ForwardReference fr2 = asm.forwardJcc(Assembler.PE);  // if unordered goto push 1
-    asm.emitPUSH_Imm(0);                                // push result of 0 on stack
-    ForwardReference fr4 = asm.forwardJMP();
+    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = XMM0 < XMM1 ? -1 : 0
+    asm.emitPUSH_Reg(T0);                                // push result on stack
+    ForwardReference fr3 = asm.forwardJMP();
     fr1.resolve(asm);
     fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result of 1 on stack
-    ForwardReference fr5 = asm.forwardJMP();
+    asm.emitPUSH_Imm(1);                                // push result on stack
     fr3.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result of -1 on stack
-    fr4.resolve(asm);
-    fr5.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2111,17 +2102,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*4, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LLT);
-    ForwardReference fr2 = asm.forwardJcc(Assembler.LGT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    ForwardReference fr3 = asm.forwardJMP();
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    ForwardReference fr4 = asm.forwardJMP();
+    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT);
+    asm.emitSBB_Reg_Reg(T0, T0);                        // T0 = XMM0 < XMM1 ? -1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
+    ForwardReference fr2 = asm.forwardJMP();
     fr1.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr3.resolve(asm);
-    fr4.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push result on stack
+    fr2.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2143,28 +2130,23 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*4, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    // TODO: It's bad to have 2 conditional jumps within 16bytes of each other
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push1
-    ForwardReference fr3 = asm.forwardJcc(Assembler.NE);  // if < goto push -1
+    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push 1
     ForwardReference fr2 = asm.forwardJcc(Assembler.PE);  // if unordered goto push 1
-    asm.emitPUSH_Imm(0);                                // push result of 0 on stack
-    ForwardReference fr4 = asm.forwardJMP();
+    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = XMM0 < XMM1 ? -1 : 0
+    asm.emitPUSH_Reg(T0);                                // push result on stack
+    ForwardReference fr3 = asm.forwardJMP();
     fr1.resolve(asm);
     fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result of 1 on stack
-    ForwardReference fr5 = asm.forwardJMP();
+    asm.emitPUSH_Imm(1);                                // push result on stack
     fr3.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result of -1 on stack
-    fr4.resolve(asm);
-    fr5.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
   }
 
   /*
-  * branching
-  */
+   * branching
+   */
 
   /**
    * Emit code to implement the ifeg bytecode
