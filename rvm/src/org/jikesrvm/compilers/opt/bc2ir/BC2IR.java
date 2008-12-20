@@ -1599,7 +1599,7 @@ public final class BC2IR
             // initialized or we're writing the bootimage and in an
             // RVM bootimage class, then get the value at compile
             // time.
-            if (field.isFinal()) {
+            if (gc.options.SIMPLIFY_CHASE_FINAL_FIELDS && field.isFinal()) {
               RVMClass declaringClass = field.getDeclaringClass();
               if (declaringClass.isInitialized() || declaringClass.isInBootImage()) {
                 try {

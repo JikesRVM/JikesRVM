@@ -45,6 +45,37 @@ INLINE_PREEX 0 true
 Pre-existence based inlining
 
 ##########
+# Simplifier, single instruction optimizations
+# NB: these operations may create more literal values that may consume space
+# in the JTOC.
+# NB: The convention is that constant folding is controlled based on the type
+# of the result of the operator, not the type of its inputs.
+##########
+SIMPLIFY_INTEGER_OPS -1 true
+Simplify operations on integers
+
+SIMPLIFY_LONG_OPS -1 true
+Simplify operations on longs
+
+SIMPLIFY_FLOAT_OPS -1 true
+Simplify operations on floats
+
+SIMPLIFY_DOUBLE_OPS -1 true
+Simplify operations on floats
+
+SIMPLIFY_REF_OPS -1 true
+Simplify operations on references
+
+SIMPLIFY_TIB_OPS -1 true
+Simplify operations on TIBs
+
+SIMPLIFY_FIELD_OPS -1 true
+Simplify operations on fields
+
+SIMPLIFY_CHASE_FINAL_FIELDS -1 true
+Chase final fields avoiding loads at runtime
+
+##########
 # Local (within a basic block) optimizations
 ##########
 LOCAL_CONSTANT_PROP 0 true
