@@ -316,6 +316,18 @@ public final class IR {
   }
 
   /**
+   * Should strictfp be adhered to for the given instructions?
+   */
+  public boolean strictFP(Instruction... is) {
+    for (Instruction i : is) {
+      if (i.position.method.isStrictFP()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Return the first instruction with respect to
    * the current code linearization order.
    *

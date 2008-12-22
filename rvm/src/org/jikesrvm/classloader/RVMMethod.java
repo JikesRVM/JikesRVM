@@ -492,6 +492,13 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   }
 
   /**
+   * Strict enforcement of IEEE 754 rules?
+   */
+  public final boolean isStrictFP() {
+    return (modifiers & ACC_STRICT) != 0;
+  }
+
+  /**
    * Not implemented in Java and use C not JNI calling convention
    */
   public final boolean isSysCall() {
