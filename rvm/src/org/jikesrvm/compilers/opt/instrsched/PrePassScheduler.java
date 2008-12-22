@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 public final class PrePassScheduler extends CompilerPhase {
 
   public boolean shouldPerform(OptOptions options) {
-    return options.SCHEDULE_PREPASS;
+    return options.L2M_SCHEDULE_PREPASS;
   }
 
   public String getName() {

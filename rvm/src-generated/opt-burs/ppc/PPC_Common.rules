@@ -815,84 +815,84 @@ EMIT(MIR_Unary.mutate(P(p), PPC_FSQRT, Unary.getResult(P(p)), Unary.getVal(P(p))
 # FMA and friends
 #####
 r: 	FLOAT_ADD(FLOAT_MUL(r, r), r)
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FMADDS, Binary.getResult(P(p)),             \
 		        R(Binary.getVal1(PL(p))), R(Binary.getVal2(PL(p))),   \
 		        R(Binary.getVal2(P(p)))));
 
 r: 	DOUBLE_ADD(DOUBLE_MUL(r, r), r)
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FMADD, Binary.getResult(P(p)),              \
 		        R(Binary.getVal1(PL(p))), R(Binary.getVal2(PL(p))),   \
 		        R(Binary.getVal2(P(p)))));
 
 r:	FLOAT_ADD(r, FLOAT_MUL(r,r))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PR(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FMADDS, Binary.getResult(P(p)),             \
 			R(Binary.getVal1(PR(p))), R(Binary.getVal2(PR(p))),   \
 			R(Binary.getVal1(P(p)))));
 
 r:	DOUBLE_ADD(r, DOUBLE_MUL(r,r))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PR(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FMADD, Binary.getResult(P(p)),              \
 			R(Binary.getVal1(PR(p))), R(Binary.getVal2(PR(p))),   \
 			R(Binary.getVal1(P(p)))));
 
 r: 	FLOAT_SUB(FLOAT_MUL(r, r), r)
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FMSUBS, Binary.getResult(P(p)),             \
 		        R(Binary.getVal1(PL(p))), R(Binary.getVal2(PL(p))),   \
 		        R(Binary.getVal2(P(p)))));
 
 r: 	DOUBLE_SUB(DOUBLE_MUL(r, r), r)
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FMSUB, Binary.getResult(P(p)),              \
 		        R(Binary.getVal1(PL(p))), R(Binary.getVal2(PL(p))),   \
 		        R(Binary.getVal2(P(p)))));
 
 r: 	FLOAT_NEG(FLOAT_ADD(FLOAT_MUL(r, r), r))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p),PLL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADDS, Binary.getResult(P(p)),            \
 		        R(Binary.getVal1(PLL(p))), R(Binary.getVal2(PLL(p))), \
 		        R(Binary.getVal2(PL(p)))));
 
 r: 	DOUBLE_NEG(DOUBLE_ADD(DOUBLE_MUL(r, r), r))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p),PLL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADD, Binary.getResult(P(p)),             \
 		        R(Binary.getVal1(PLL(p))), R(Binary.getVal2(PLL(p))), \
 		        R(Binary.getVal2(PL(p)))));
 
 r:	FLOAT_NEG(FLOAT_ADD(r, FLOAT_MUL(r,r)))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p),PLR(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADDS, Binary.getResult(P(p)),            \
 			R(Binary.getVal1(PLR(p))), R(Binary.getVal2(PLR(p))), \
 			R(Binary.getVal1(PL(p)))));
 
 r:	DOUBLE_NEG(DOUBLE_ADD(r, DOUBLE_MUL(r,r)))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p),PLR(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADD, Binary.getResult(P(p)),            \
 			R(Binary.getVal1(PLR(p))), R(Binary.getVal2(PLR(p))),\
 			R(Binary.getVal1(PL(p)))));
 
 r: 	FLOAT_NEG(FLOAT_SUB(FLOAT_MUL(r, r), r))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p),PLL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FNMSUBS, Binary.getResult(P(p)),            \
 		        R(Binary.getVal1(PLL(p))), R(Binary.getVal2(PLL(p))), \
 		        R(Binary.getVal2(PL(p)))));
 
 r: 	DOUBLE_NEG(DOUBLE_SUB(DOUBLE_MUL(r, r), r))
-burs.ir.options.strictFP()?INFINITE:10
+burs.ir.strictFP(P(p),PL(p),PLL(p))?INFINITE:10
 EMIT_INSTRUCTION
 EMIT(MIR_Ternary.mutate(P(p), PPC_FNMSUB, Binary.getResult(P(p)),             \
 		        R(Binary.getVal1(PLL(p))), R(Binary.getVal2(PLL(p))), \

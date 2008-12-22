@@ -487,7 +487,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
   }
 
   private static void long_ifcmp(Instruction s, IR ir) {
-    if (VM.VerifyAssertions) VM._assert(!IfCmp.getCond(s).isUNSIGNED());
+    if (VM.VerifyAssertions) VM._assert(IfCmp.getCond(s).isEQUAL() || IfCmp.getCond(s).isNOT_EQUAL() || !IfCmp.getCond(s).isUNSIGNED());
     BasicBlock BB1 = s.getBasicBlock();
     BasicBlock BB3 = BB1.splitNodeAt(s, ir);
     BasicBlock BB2 = BB1.createSubBlock(0, ir);

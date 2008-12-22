@@ -190,9 +190,8 @@ public abstract class NormalizeConstants extends IRTools {
 
     // This code assumes that INT/LONG/ADDR constant folding in Simplifier is enabled.
     // This greatly reduces the number of cases we have to worry about below.
-    if (!(Simplifier.CF_INT && Simplifier.CF_LONG && Simplifier.CF_ADDR)) {
-      throw new OptimizingCompilerException("Unexpected config!");
-    }
+    if (VM.VerifyAssertions) VM._assert(ir.options.SIMPLIFY_INTEGER_OPS && ir.options.SIMPLIFY_LONG_OPS && ir.options.SIMPLIFY_REF_OPS);
+
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
 
       // STEP ONE: Get 'large' constants into a form that the PPC BURS rules
@@ -290,7 +289,7 @@ public abstract class NormalizeConstants extends IRTools {
       // in normalized form. This reduces the number of cases we have to
       // worry about (and does last minute constant folding on the off chance
       // we've missed an opportunity...)
-      Simplifier.simplify(false, ir.regpool, s);
+      Simplifier.simplify(false, ir.regpool, ir.options, s);
 
       switch (s.getOpcode()) {
         //////////

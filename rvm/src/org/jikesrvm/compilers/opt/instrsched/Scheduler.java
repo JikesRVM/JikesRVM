@@ -127,7 +127,7 @@ final class Scheduler {
     }
 
     // Performing live analysis may reduce dependences between PEIs and stores
-    if (ir.options.HANDLER_LIVENESS) {
+    if (ir.options.L2M_HANDLER_LIVENESS) {
       new LiveAnalysis(false, false, true).perform(ir);
     }
 
