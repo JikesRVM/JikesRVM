@@ -32,26 +32,34 @@ public final class ConditionOperand extends Operand {
   public static final int LESS_EQUAL = 5;
 
   /* unsigned integer arithmetic */
-  public static final int SAME = 6;
-  public static final int NOT_SAME = 7;
-  public static final int HIGHER = 8;
-  public static final int LOWER = 9;
-  public static final int HIGHER_EQUAL = 10;
-  public static final int LOWER_EQUAL = 11;
+  public static final int HIGHER = 6;
+  public static final int LOWER = 7;
+  public static final int HIGHER_EQUAL = 8;
+  public static final int LOWER_EQUAL = 9;
 
   /* floating-point arithmethic */
   // branches that fall through when unordered
-  public static final int CMPL_EQUAL = 12; // Branch if == (equivalent to CMPG_EQUAL)
-  public static final int CMPL_GREATER = 13; // Branch if >
-  public static final int CMPG_LESS = 14; // Branch if <
-  public static final int CMPL_GREATER_EQUAL = 15; // Branch if >=
-  public static final int CMPG_LESS_EQUAL = 16; // Brnach if <=
+  /** Branch if == (equivalent to CMPG_EQUAL) */
+  public static final int CMPL_EQUAL = 10;
+  /** Branch if > */
+  public static final int CMPL_GREATER = 11;
+  /** Branch if < */
+  public static final int CMPG_LESS = 12;
+  /** Branch if >= */
+  public static final int CMPL_GREATER_EQUAL = 13;
+  /** Branch if <= */
+  public static final int CMPG_LESS_EQUAL = 14;
   // branches that are taken when unordered
-  public static final int CMPL_NOT_EQUAL = 17; // Branch if != (equivalent to CMPG_NOT_EQUAL)
-  public static final int CMPL_LESS = 18; // Branch if < or unordered
-  public static final int CMPG_GREATER_EQUAL = 19; // Brach if >= or unordered
-  public static final int CMPG_GREATER = 20; // Branch if > or unordered
-  public static final int CMPL_LESS_EQUAL = 21; // Branch if <= or unordered
+  /** Branch if != (equivalent to CMPG_NOT_EQUAL) */
+  public static final int CMPL_NOT_EQUAL = 17;
+  /** Branch if < or unordered */
+  public static final int CMPL_LESS = 18;
+  /** Branch if >= or unordered */
+  public static final int CMPG_GREATER_EQUAL = 19;
+  /** Branch if > or unordered */
+  public static final int CMPG_GREATER = 20;
+  /** Branch if <= or unordered */
+  public static final int CMPL_LESS_EQUAL = 21;
 
   /**
    * Value of this operand.
@@ -251,8 +259,8 @@ public final class ConditionOperand extends Operand {
    */
   public boolean isUNSIGNED() {
     switch (value) {
-      case SAME:
-      case NOT_SAME:
+      case EQUAL:
+      case NOT_EQUAL:
       case HIGHER:
       case LOWER:
       case HIGHER_EQUAL:
@@ -376,7 +384,7 @@ public final class ConditionOperand extends Operand {
   public ConditionOperand translateUNSIGNED() {
     switch (value) {
       case CMPL_EQUAL:
-        value = SAME;
+        value = EQUAL;
         break;
       case CMPL_GREATER:
         value = HIGHER;
@@ -391,7 +399,7 @@ public final class ConditionOperand extends Operand {
         value = LOWER_EQUAL;
         break;
       case CMPL_NOT_EQUAL:
-        value = NOT_SAME;
+        value = NOT_EQUAL;
         break;
       case CMPL_LESS:
         value = LOWER;
@@ -530,14 +538,12 @@ public final class ConditionOperand extends Operand {
         case EQUAL:
         case GREATER_EQUAL:
         case LESS_EQUAL:
-        case SAME:
         case HIGHER_EQUAL:
         case LOWER_EQUAL:
           return TRUE;
         case NOT_EQUAL:
         case LESS:
         case GREATER:
-        case NOT_SAME:
         case HIGHER:
         case LOWER:
           return FALSE;
@@ -559,10 +565,8 @@ public final class ConditionOperand extends Operand {
    */
   public int evaluate(int v1, int v2) {
     switch (value) {
-      case SAME:
       case EQUAL:
         return (v1 == v2) ? TRUE : FALSE;
-      case NOT_SAME:
       case NOT_EQUAL:
         return (v1 != v2) ? TRUE : FALSE;
       case GREATER:
@@ -720,10 +724,8 @@ public final class ConditionOperand extends Operand {
   public int evaluate(Address v1, Address v2) {
     switch (value) {
       case EQUAL:
-      case SAME:
         return (v1.EQ(v2)) ? TRUE : FALSE;
       case NOT_EQUAL:
-      case NOT_SAME:
         return (v1.NE(v2)) ? TRUE : FALSE;
       case GREATER:
         return (v1.toWord().toOffset().sGT(v2.toWord().toOffset())) ? TRUE : FALSE;
@@ -779,12 +781,6 @@ public final class ConditionOperand extends Operand {
         break;
       case GREATER_EQUAL:
         value = LESS;
-        break;
-      case SAME:
-        value = NOT_SAME;
-        break;
-      case NOT_SAME:
-        value = SAME;
         break;
       case HIGHER:
         value = LOWER_EQUAL;
@@ -866,12 +862,6 @@ public final class ConditionOperand extends Operand {
       case GREATER_EQUAL:
         value = LESS_EQUAL;
         break;
-      case SAME:
-        value = SAME;
-        break;
-      case NOT_SAME:
-        value = NOT_SAME;
-        break;
       case HIGHER:
         value = LOWER;
         break;
@@ -946,10 +936,6 @@ public final class ConditionOperand extends Operand {
         return ">";
       case GREATER_EQUAL:
         return ">=";
-      case SAME:
-        return "==U";
-      case NOT_SAME:
-        return "!=U";
       case HIGHER:
         return ">U";
       case LOWER:

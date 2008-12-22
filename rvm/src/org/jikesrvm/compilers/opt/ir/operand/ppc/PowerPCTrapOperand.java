@@ -192,12 +192,6 @@ public final class PowerPCTrapOperand extends Operand {
       case ConditionOperand.LOWER_EQUAL:
         value = LOWER_EQUAL;
         break;
-      case ConditionOperand.SAME:
-        value = SAME;
-        break;
-      case ConditionOperand.NOT_SAME:
-        value = NOT_SAME;
-        break;
     }
   }
 

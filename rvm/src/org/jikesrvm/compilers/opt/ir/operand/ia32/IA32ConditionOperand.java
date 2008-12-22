@@ -211,11 +211,9 @@ public final class IA32ConditionOperand extends Operand implements AssemblerCons
   private void translate(ConditionOperand c) {
     switch (c.value) {
       case ConditionOperand.EQUAL:
-      case ConditionOperand.SAME:
         value = EQ;
         break;
       case ConditionOperand.NOT_EQUAL:
-      case ConditionOperand.NOT_SAME:
         value = NE;
         break;
       case ConditionOperand.LESS:

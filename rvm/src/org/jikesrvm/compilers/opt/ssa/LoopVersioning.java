@@ -996,11 +996,11 @@ public final class LoopVersioning extends CompilerPhase {
         phiMinIndexValue = loop.initialIteratorValue;
         if ((loop.condition.isLESS() ||
              loop.condition.isLOWER() ||
-             loop.condition.isNOT_EQUAL() /*|| loop.condition.isNOT_SAME()*/)) {
+             loop.condition.isNOT_EQUAL())) {
           phiMaxIndexValue = terminal;
         } else if ((loop.condition.isLESS_EQUAL() ||
                     loop.condition.isLOWER_EQUAL() ||
-                    loop.condition.isEQUAL() /*|| loop.condition.isSAME()*/)) {
+                    loop.condition.isEQUAL())) {
           phiMaxIndexValue = terminalPlusStrideOnce;
         } else {
           throw new Error("Unrecognised loop for fission " + loop);
@@ -1009,11 +1009,11 @@ public final class LoopVersioning extends CompilerPhase {
         phiMaxIndexValue = loop.initialIteratorValue;
         if ((loop.condition.isGREATER() ||
              loop.condition.isHIGHER() ||
-             loop.condition.isNOT_EQUAL() /*|| loop.condition.isNOT_SAME()*/)) {
+             loop.condition.isNOT_EQUAL())) {
           phiMinIndexValue = terminalPlusStrideOnce;
         } else if ((loop.condition.isGREATER_EQUAL() ||
                     loop.condition.isHIGHER_EQUAL() ||
-                    loop.condition.isEQUAL() /*|| loop.condition.isSAME()*/)) {
+                    loop.condition.isEQUAL())) {
           phiMinIndexValue = terminalLessStrideOnce;
         } else {
           throw new Error("Unrecognised loop for fission " + loop);

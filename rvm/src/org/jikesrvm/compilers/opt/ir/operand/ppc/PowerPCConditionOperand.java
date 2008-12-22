@@ -194,12 +194,10 @@ public final class PowerPCConditionOperand extends Operand {
   public void translate(ConditionOperand c) {
     switch (c.value) {
       case ConditionOperand.EQUAL:
-      case ConditionOperand.SAME:
       case ConditionOperand.CMPL_EQUAL:
         value = EQUAL;
         break;
       case ConditionOperand.NOT_EQUAL:
-      case ConditionOperand.NOT_SAME:
       case ConditionOperand.CMPL_NOT_EQUAL: // Extra unordered test required
         value = NOT_EQUAL;
         break;

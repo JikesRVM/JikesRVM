@@ -480,8 +480,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     case ConditionOperand.GREATER_EQUAL:
     case ConditionOperand.GREATER:
     case ConditionOperand.LESS_EQUAL:
-    case ConditionOperand.SAME:
-    case ConditionOperand.NOT_SAME:
+      return true;
     default:
       return false;
     }
@@ -2928,39 +2927,61 @@ Operand value, boolean signExtend) {
           // 1 or 2 more instructions but saves a register)
           int true_const = ((IntConstantOperand) trueValue).value;
           int false_const = ((IntConstantOperand) falseValue).value;
-          // Generate values for consts trying to avoid zero extending the
-          // set__b result
-          // result = cond ? 1 : 0
-          EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, result.copyRO(), COND(cond))));
-
-          if ((true_const - false_const) == 1) {
-            // result = (cond ? 1 : 0) + false_const
-            EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
-          } else if ((false_const - true_const) == 1) {
-            // result = (cond ? -1 : 0) + false_const
-            EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
-            EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
-          } else if (((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
-            // result = cond ? 0 : -1
-            // result = (cond ? 0 : -1) & (false_const - true__const)
-            // result = ((cond ? 0 : -1) & (false_const - true_const)) +
-            // true_const
-            EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, result.copyRO(), IC(1))));
-            EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(true_const)));
-          } else {
+          if (cond.isLOWER()) {
+            // Comparison sets carry flag so use to avoid setb, movzx
             // result = cond ? -1 : 0
-            // result = (cond ? -1 : 0) & (true_const - false_const)
-            // result = ((cond ? -1 : 0) & (true_const - false_const)) +
-            // false_const
-            if (((true_const - false_const) > 0xFF) || ((true_const - false_const) < 0)) {
-              EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+            EMIT(CPOS(s, MIR_BinaryAcc.mutate(s, IA32_SBB, result, result.copyRO())));
+            if (true_const - false_const != -1) {
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
             }
-            EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
-            EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            if (false_const != 0) {
+              EMIT(MIR_BinaryAcc.create(IA32_ADD, result.copyRO(), IC(false_const)));
+            }
+          } else if(cond.isHIGHER_EQUAL()) {
+            // Comparison sets carry flag so use to avoid setb, movzx
+            // result = cond ? 0 : -1
+            EMIT(CPOS(s, MIR_BinaryAcc.mutate(s, IA32_SBB, result, result.copyRO())));
+            if (false_const - true_const != -1) {
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
+            }
+            if (true_const != 0) {
+              EMIT(MIR_BinaryAcc.create(IA32_ADD, result, IC(true_const)));
+            }
+          } else {
+            // Generate values for consts trying to avoid zero extending the
+            // set__b result
+            // result = cond ? 1 : 0
+            EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, result.copyRO(), COND(cond))));
+
+            if ((true_const - false_const) == 1) {
+              // result = (cond ? 1 : 0) + false_const
+              EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            } else if ((false_const - true_const) == 1) {
+              // result = (cond ? -1 : 0) + false_const
+              EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+              EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            } else if (((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
+              // result = cond ? 0 : -1
+              // result = (cond ? 0 : -1) & (false_const - true__const)
+              // result = ((cond ? 0 : -1) & (false_const - true_const)) +
+              // true_const
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, result.copyRO(), IC(1))));
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(true_const)));
+            } else {
+              // result = cond ? -1 : 0
+              // result = (cond ? -1 : 0) & (true_const - false_const)
+              // result = ((cond ? -1 : 0) & (true_const - false_const)) +
+              // false_const
+              if (((true_const - false_const) > 0xFF) || ((true_const - false_const) < 0)) {
+                EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+              }
+              EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            }
           }
         }
       }
