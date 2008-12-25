@@ -259,8 +259,6 @@ public final class ConditionOperand extends Operand {
    */
   public boolean isUNSIGNED() {
     switch (value) {
-      case EQUAL:
-      case NOT_EQUAL:
       case HIGHER:
       case LOWER:
       case HIGHER_EQUAL:
