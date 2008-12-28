@@ -152,6 +152,15 @@ Perform global code placement
 SSA_GLOBAL_BOUNDS_CHECK -1 false ssa_global_bounds
 Perform (incomplete/unsafe) global Array Bound Check elimination on Demand
 
+SSA_SPLITBLOCK_TO_AVOID_RENAME -1 false
+When leaving SSA create blocks to avoid renaming variables
+
+SSA_SPLITBLOCK_FOR_LOCAL_LIVE -1 true
+When leaving SSA create blocks for local liveness
+
+SSA_SPLITBLOCK_INTO_INFREQUENT -1 true
+When leaving SSA create blocks to avoid adding code to frequently executed blocks
+
 ##########
 # Code reordering for icache performance options
 ##########

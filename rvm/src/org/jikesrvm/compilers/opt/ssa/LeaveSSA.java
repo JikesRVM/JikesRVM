@@ -67,11 +67,6 @@ public class LeaveSSA extends CompilerPhase {
    */
   static final boolean DEBUG = false;
 
-  // control bias between adding blocks or adding temporaries
-  private static final boolean SplitBlockToAvoidRenaming = false;
-  private static final boolean SplitBlockForLocalLive = true;
-  private static final boolean SplitBlockIntoInfrequent = true;
-
   /**
    * The IR to manipulate
    */
@@ -391,10 +386,10 @@ public class LeaveSSA extends CompilerPhase {
         if (c.source.isRegister()) rr = c.source.asRegister().getRegister();
         boolean shouldSplitBlock =
             !c.phi.getBasicBlock().isExceptionHandlerBasicBlock() &&
-            ((out.contains(r) && SplitBlockToAvoidRenaming) ||
-             (rr != null && usedBelowCopy(bb, rr) && SplitBlockForLocalLive));
+            ((ir.options.SSA_SPLITBLOCK_TO_AVOID_RENAME && out.contains(r)) ||
+             (rr != null && ir.options.SSA_SPLITBLOCK_FOR_LOCAL_LIVE && usedBelowCopy(bb, rr)));
 
-        if (SplitBlockIntoInfrequent) {
+        if (ir.options.SSA_SPLITBLOCK_INTO_INFREQUENT) {
           if (!bb.getInfrequent() &&
               c.phi.getBasicBlock().getInfrequent() &&
               !c.phi.getBasicBlock().isExceptionHandlerBasicBlock()) {
